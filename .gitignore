@@ -44,3 +44,7 @@ prisma/*.db
 # Backups and database dumps
 backups/
 *.dump
+
+# Local storage and test artifacts
+storage/
+apps/api/storage/

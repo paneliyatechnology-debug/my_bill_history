@@ -10,6 +10,7 @@ type ReportTab =
   | "purchase-register"
   | "receipt-payment"
   | "outstanding"
+  | "party-ledger"
   | "party-aging"
   | "trial-balance"
   | "profit-loss"
@@ -29,10 +30,43 @@ export default function ReportsPage() {
     new Date().toISOString().split("T")[0],
   );
 
+  const [selectedPartyId, setSelectedPartyId] = useState<string>("");
+  const [partiesList, setPartiesList] = useState<any[]>([]);
+
   const [reportData, setReportData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+
+  // Read URL query params on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      const tab = sp.get("tab") as ReportTab | null;
+      const pid = sp.get("partyId");
+      if (tab) setActiveTab(tab);
+      if (pid) setSelectedPartyId(pid);
+    }
+  }, []);
+
+  // Fetch parties if on party-ledger tab
+  useEffect(() => {
+    async function loadParties() {
+      try {
+        const res: any = await apiClient.get("/parties");
+        const list = Array.isArray(res) ? res : res?.items || res?.data || [];
+        setPartiesList(list);
+        if (!selectedPartyId && list.length > 0) {
+          setSelectedPartyId(list[0].id);
+        }
+      } catch {
+        // ignore
+      }
+    }
+    if (tenantContext.companyId && partiesList.length === 0) {
+      loadParties();
+    }
+  }, [tenantContext.companyId, partiesList.length, selectedPartyId]);
 
   const fetchReport = useCallback(async () => {
     setIsLoading(true);
@@ -60,6 +94,15 @@ export default function ReportsPage() {
           data = await apiClient.get("/reports/outstanding-balances", {
             asOfDate: endDate,
           });
+          break;
+        case "party-ledger":
+          if (selectedPartyId) {
+            data = await apiClient.get("/reports/party-ledger", {
+              partyId: selectedPartyId,
+              fromDate: startDate,
+              toDate: endDate,
+            });
+          }
           break;
         case "party-aging":
           data = await apiClient.get("/reports/party-aging", {
@@ -106,7 +149,7 @@ export default function ReportsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [activeTab, startDate, endDate]);
+  }, [activeTab, startDate, endDate, selectedPartyId]);
 
   useEffect(() => {
     if (tenantContext.companyId) {
@@ -167,6 +210,12 @@ export default function ReportsPage() {
       label: "Outstanding Balances",
       labelGu: "બાકી સિલક (લેણાં-દેવાં)",
       icon: "⚖️",
+    },
+    {
+      id: "party-ledger",
+      label: "Party Statement (Khata)",
+      labelGu: "પાર્ટી ખાતાવહી (લેજર)",
+      icon: "📜",
     },
     {
       id: "party-aging",
@@ -284,13 +333,31 @@ export default function ReportsPage() {
               className="text-xs p-1.5 bg-slate-50 border border-slate-300 rounded font-mono text-slate-800"
             />
           </div>
+          {activeTab === "party-ledger" && (
+            <div>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">
+                Party (Customer / Supplier)
+              </label>
+              <select
+                value={selectedPartyId}
+                onChange={(e) => setSelectedPartyId(e.target.value)}
+                className="text-xs p-1.5 bg-slate-50 border border-slate-300 rounded font-medium text-slate-800 max-w-xs"
+              >
+                {partiesList.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} ({p.type}) {p.phone ? `• ${p.phone}` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         <button
           onClick={fetchReport}
           className="w-full sm:w-auto px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg shadow-sm"
         >
-          Apply Date Filters
+          {activeTab === "party-ledger" ? "Load Statement" : "Apply Date Filters"}
         </button>
       </div>
 
@@ -796,6 +863,135 @@ export default function ReportsPage() {
                       </td>
                     </tr>
                   ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : activeTab === "party-ledger" && reportData ? (
+          /* Party Ledger / Khata */
+          <div className="space-y-6">
+            <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <div>
+                <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <span>📜</span>
+                  <span>{reportData.party?.name || "Party Statement"}</span>
+                  <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-700 rounded font-semibold">
+                    {reportData.party?.type}
+                  </span>
+                </h2>
+                <div className="text-xs text-slate-500 font-mono mt-0.5 space-x-2">
+                  <span>Phone: {reportData.party?.phone || "—"}</span>
+                  <span>•</span>
+                  <span>GSTIN: {reportData.party?.gstin || "Unregistered"}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => window.print()}
+                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg border border-slate-300 inline-flex items-center gap-1.5 transition-colors"
+              >
+                <span>🖨️</span>
+                <span>Print Statement (ખાતાવહી પ્રિન્ટ)</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                <span className="text-[10px] text-slate-500 uppercase font-semibold">
+                  Opening Balance
+                </span>
+                <p className="font-mono font-bold text-base text-slate-900">
+                  ₹{Number(reportData.openingBalance?.amount || 0).toFixed(2)}
+                </p>
+                <span className="text-[10px] text-slate-600 font-semibold">
+                  {reportData.openingBalance?.type || "DR"}
+                </span>
+              </div>
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <span className="text-[10px] text-blue-800 uppercase font-bold">
+                  Total Debits (Dr)
+                </span>
+                <p className="font-mono font-bold text-base text-blue-900">
+                  ₹{Number(reportData.totals?.totalDebit || 0).toFixed(2)}
+                </p>
+              </div>
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <span className="text-[10px] text-amber-800 uppercase font-bold">
+                  Total Credits (Cr)
+                </span>
+                <p className="font-mono font-bold text-base text-amber-900">
+                  ₹{Number(reportData.totals?.totalCredit || 0).toFixed(2)}
+                </p>
+              </div>
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <span className="text-[10px] text-emerald-800 uppercase font-bold">
+                  Closing Balance (સિલક)
+                </span>
+                <p className="font-mono font-bold text-base text-emerald-900">
+                  ₹{Number(reportData.closingBalance?.amount || 0).toFixed(2)}
+                </p>
+                <span
+                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                    reportData.closingBalance?.type === "DR"
+                      ? "bg-blue-100 text-blue-800"
+                      : "bg-amber-100 text-amber-800"
+                  }`}
+                >
+                  {reportData.closingBalance?.type}
+                </span>
+              </div>
+            </div>
+
+            <div className="border border-slate-200 rounded-lg overflow-x-auto bg-white shadow-sm">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-semibold">
+                    <th className="py-2.5 px-3">Date</th>
+                    <th className="py-2.5 px-3">Voucher No</th>
+                    <th className="py-2.5 px-3">Type</th>
+                    <th className="py-2.5 px-3">Particulars / Narration</th>
+                    <th className="py-2.5 px-3 text-right">Debit (Dr ₹)</th>
+                    <th className="py-2.5 px-3 text-right">Credit (Cr ₹)</th>
+                    <th className="py-2.5 px-3 text-right">Running Balance (₹)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {!reportData.entries || reportData.entries.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-8 text-center text-slate-400">
+                        No transactions recorded for this party in the selected date range.
+                      </td>
+                    </tr>
+                  ) : (
+                    reportData.entries.map((entry: any, idx: number) => (
+                      <tr key={idx} className="hover:bg-slate-50 font-mono">
+                        <td className="py-2.5 px-3 font-sans text-slate-600">
+                          {new Date(entry.voucherDate).toLocaleDateString("en-IN")}
+                        </td>
+                        <td className="py-2.5 px-3 font-bold text-slate-900">
+                          {entry.voucherNumber}
+                        </td>
+                        <td className="py-2.5 px-3 font-sans">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700">
+                            {entry.voucherType}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 font-sans text-slate-700">
+                          {entry.narration || "—"}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-semibold text-blue-900">
+                          {Number(entry.debit) > 0 ? `₹${Number(entry.debit).toFixed(2)}` : "—"}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-semibold text-amber-900">
+                          {Number(entry.credit) > 0 ? `₹${Number(entry.credit).toFixed(2)}` : "—"}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-bold text-slate-900">
+                          ₹{Number(entry.runningBalance?.amount || 0).toFixed(2)}{" "}
+                          {entry.runningBalance?.type}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

@@ -917,6 +917,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     </select>
                   </div>
                 )}
+                {branches.length > 0 && (
+                  <div>
+                    <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
+                      Branch / શાખા
+                    </label>
+                    <select
+                      value={currentBranch?.id || ""}
+                      onChange={(e) => switchBranch(e.target.value)}
+                      className="w-full text-xs bg-white border border-slate-300 rounded p-1.5 font-medium text-slate-800"
+                    >
+                      {branches.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          📍 {b.name} ({b.code})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 {financialYears.length > 0 && (
                   <div>
                     <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">

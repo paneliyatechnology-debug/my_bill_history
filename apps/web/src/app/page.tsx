@@ -41,15 +41,28 @@ export default function DashboardPage() {
         apiClient.get("/invoices/sales", { limit: 5 }).catch(() => null),
       ]);
 
-      const totalSales = Number(salesRes?.summary?.totalGrandTotal || 0);
-      const totalInvoices = Number(salesRes?.summary?.totalInvoices || 0);
-      const totalOutstanding = Number(outRes?.totalOutstanding || 0);
+      const totalSales = Number(
+        salesRes?.summary?.totalGrandTotal || salesRes?.totalSales || 0,
+      );
+      const totalInvoices = Number(
+        salesRes?.summary?.totalInvoices || salesRes?.invoices?.length || 0,
+      );
+      const totalOutstanding = Number(
+        outRes?.totals?.totalCustomerOutstanding ||
+          outRes?.totalCustomerOutstanding ||
+          outRes?.totalOutstanding ||
+          0,
+      );
 
       const stockItems =
         stockRes?.items || (Array.isArray(stockRes) ? stockRes : []);
-      const totalInventoryValue = stockItems.reduce(
-        (sum: number, it: any) => sum + (Number(it.closingValue) || 0),
-        0,
+      const totalInventoryValue = Number(
+        stockRes?.totals?.totalValuation ||
+          stockItems.reduce(
+            (sum: number, it: any) =>
+              sum + (Number(it.totalValuation || it.closingValue) || 0),
+            0,
+          ),
       );
 
       setMetrics({
@@ -215,7 +228,7 @@ export default function DashboardPage() {
               ? "Loading..."
               : `₹${metrics.totalInventoryValue.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
           }
-          subtext="WAC/FIFO Inventory Value"
+          subtext="Moving Weighted-Average Cost (WAC)"
           variant="brand"
           icon={<span className="text-indigo-600 font-bold">📦</span>}
         />

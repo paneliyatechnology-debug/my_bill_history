@@ -54,11 +54,11 @@ export function Modal({
         aria-modal="true"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/50">
           <div>
-            <h3 className="text-base font-semibold text-slate-800">{title}</h3>
+            <h3 className="text-sm sm:text-base font-semibold text-slate-800">{title}</h3>
             {titleGujarati && (
-              <p className="text-xs text-slate-500 font-medium">
+              <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
                 {titleGujarati}
               </p>
             )}
@@ -85,11 +85,11 @@ export function Modal({
         </div>
 
         {/* Content body */}
-        <div className="p-6 overflow-y-auto flex-1">{children}</div>
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1">{children}</div>
 
         {/* Footer */}
         {footer && (
-          <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+          <div className="px-4 sm:px-6 py-3 sm:py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
             {footer}
           </div>
         )}
