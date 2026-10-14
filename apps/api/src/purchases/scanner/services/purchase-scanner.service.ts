@@ -1,0 +1,666 @@
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+  Logger,
+} from "@nestjs/common";
+import { TenantContext } from "@billing/shared-types";
+import { DatabaseService } from "../../../database/database.service";
+import { AuditService } from "../../../audit/audit.service";
+import { PurchasesService } from "../../purchases.service";
+import { BillStorageService } from "./bill-storage.service";
+import { BillNormalizerService } from "./bill-normalizer.service";
+import { BillMatcherService } from "./bill-matcher.service";
+import { OcrProviderFactory } from "../providers/ocr-provider.factory";
+import {
+  ConfirmPurchaseScanDto,
+  UpdateScanDraftDto,
+  ExtractedBillDataDto,
+} from "../schemas/bill-extraction.schema";
+
+@Injectable()
+export class PurchaseScannerService {
+  private readonly logger = new Logger(PurchaseScannerService.name);
+
+  constructor(
+    private readonly prisma: DatabaseService,
+    private readonly audit: AuditService,
+    private readonly storage: BillStorageService,
+    private readonly normalizer: BillNormalizerService,
+    private readonly matcher: BillMatcherService,
+    private readonly ocrFactory: OcrProviderFactory,
+    private readonly purchasesService: PurchasesService,
+  ) {}
+
+  /**
+   * Uploads, extracts, normalizes, matches, and creates a PurchaseBillScan draft.
+   */
+  async uploadAndProcessBill(
+    fileBuffer: Buffer,
+    fileName: string,
+    declaredMimeType: string,
+    tenant: TenantContext,
+    idempotencyKey?: string,
+    requestedProvider?: string,
+  ): Promise<any> {
+    if (!fileBuffer || fileBuffer.length === 0) {
+      throw new BadRequestException("Uploaded file buffer cannot be empty.");
+    }
+
+    // 1. Check Idempotency Key
+    if (idempotencyKey) {
+      const existingKey = await this.prisma.purchaseBillScan.findFirst({
+        where: {
+          companyId: tenant.companyId,
+          idempotencyKey: idempotencyKey.trim(),
+        },
+        include: {
+          matchedParty: true,
+          purchaseInvoice: true,
+        },
+      });
+      if (existingKey) {
+        this.logger.log(`Idempotent replay detected for key: ${idempotencyKey}`);
+        return existingKey;
+      }
+    }
+
+    // 2. Validate and Store File
+    const scanId = crypto.randomUUID();
+    const storedFile = await this.storage.validateAndSaveFile(
+      fileBuffer,
+      fileName,
+      tenant.companyId,
+      scanId,
+    );
+
+    // 3. Resolve Company Context (e.g. state code, GSTIN)
+    const company = await this.prisma.company.findUnique({
+      where: { id: tenant.companyId },
+      select: { stateCode: true, legalName: true, gstin: true },
+    });
+
+    // 4. Initial Pending Record
+    const initialScan = await this.prisma.executeInTenantContext(
+      tenant,
+      async (tx) => {
+        return tx.purchaseBillScan.create({
+          data: {
+            id: scanId,
+            organizationId: tenant.organizationId,
+            companyId: tenant.companyId,
+            branchId: tenant.branchId || null,
+            fileName: storedFile.fileName,
+            fileMimeType: storedFile.mimeType,
+            fileSizeBytes: storedFile.sizeBytes,
+            fileStoragePath: storedFile.storagePath,
+            fileSha256: storedFile.sha256,
+            status: "PROCESSING",
+            ocrProvider: requestedProvider || "local",
+            idempotencyKey: idempotencyKey || null,
+            createdById: tenant.userId || null,
+          },
+        });
+      },
+    );
+
+    // 5. OCR & AI Extraction
+    let ocrResult: any;
+    const provider = this.ocrFactory.getProvider(requestedProvider);
+    try {
+      ocrResult = await provider.extractInvoice(fileBuffer, storedFile.mimeType, {
+        fileName: storedFile.fileName,
+        mimeType: storedFile.mimeType,
+        companyStateCode: company?.stateCode || "24",
+        companyGstin: company?.gstin || undefined,
+        companyName: company?.legalName || undefined,
+      });
+    } catch (err: any) {
+      this.logger.error(`OCR Extraction failed for scan ${scanId}: ${err.message}`, err.stack);
+      await this.prisma.purchaseBillScan.update({
+        where: { id: scanId },
+        data: {
+          status: "FAILED",
+          errorMessage: err.message || "OCR document extraction failed.",
+        },
+      });
+
+      await this.audit.record({
+        organizationId: tenant.organizationId,
+        companyId: tenant.companyId,
+        userId: tenant.userId || "system",
+        action: "PURCHASE_BILL_SCAN_FAILED",
+        entityName: "PurchaseBillScan",
+        entityId: scanId,
+        newState: { error: err.message, fileName: storedFile.fileName },
+      });
+
+      throw new BadRequestException(
+        `Document extraction failed: ${err.message || "Could not read bill text."}`,
+      );
+    }
+
+    // 6. Normalization
+    const normalizedData = this.normalizer.normalizeBillData(
+      ocrResult.extractedData,
+      company?.stateCode || "24",
+    );
+
+    // 7. Intelligent Supplier & Item Matching
+    const supplierMatch = await this.matcher.matchSupplier(
+      normalizedData.supplier,
+      tenant,
+    );
+
+    normalizedData.supplier = {
+      ...normalizedData.supplier,
+      matchedPartyId: supplierMatch.matchedPartyId,
+      matchedPartyName: supplierMatch.matchedPartyName,
+      matchedPartyGstin: supplierMatch.matchedPartyGstin,
+      matchedPartyScore: supplierMatch.matchedPartyScore,
+      isNewSupplier: supplierMatch.isNewSupplier,
+    };
+
+    normalizedData.items = await this.matcher.matchAllItems(
+      normalizedData.items,
+      tenant,
+    );
+
+    // 8. Duplicate Invoice Detection (Check vendor invoice number against company purchase invoices)
+    if (
+      normalizedData.invoice?.invoiceNumber &&
+      supplierMatch.matchedPartyId
+    ) {
+      const duplicateInvoice = await this.prisma.purchaseInvoice.findFirst({
+        where: {
+          companyId: tenant.companyId,
+          partyId: supplierMatch.matchedPartyId,
+          vendorInvoiceNumber: normalizedData.invoice.invoiceNumber.trim(),
+        },
+      });
+      if (duplicateInvoice) {
+        normalizedData.invoice.isDuplicateWarning = true;
+        normalizedData.documentMetadata.warnings.push(
+          `Warning: Vendor invoice '${normalizedData.invoice.invoiceNumber}' already exists for this supplier in the system.`,
+        );
+      }
+    }
+
+    // Check duplicate file upload warning in company
+    const existingSameFile = await this.prisma.purchaseBillScan.findFirst({
+      where: {
+        companyId: tenant.companyId,
+        fileSha256: storedFile.sha256,
+        id: { not: scanId },
+      },
+    });
+    if (existingSameFile) {
+      normalizedData.documentMetadata.warnings.push(
+        "Notice: An identical bill file (matching SHA-256) has previously been uploaded to this company.",
+      );
+    }
+
+    // 9. Update Scan to READY_FOR_REVIEW
+    const updatedScan = await this.prisma.executeInTenantContext(
+      tenant,
+      async (tx) => {
+        const engineName = ocrResult.extractedData?.documentMetadata?.engine;
+        const resolvedProvider = engineName ? `${ocrResult.provider}:${engineName}` : ocrResult.provider;
+
+        return tx.purchaseBillScan.update({
+          where: { id: scanId },
+          data: {
+            status: "READY_FOR_REVIEW",
+            ocrProvider: resolvedProvider,
+            extractedData: normalizedData as any,
+            rawOcrText: ocrResult.rawText || null,
+            matchedPartyId: supplierMatch.matchedPartyId,
+            matchedPartyScore: supplierMatch.matchedPartyScore,
+          },
+          include: {
+            matchedParty: true,
+          },
+        });
+      },
+    );
+
+    // 10. Audit Event
+    await this.audit.record({
+      organizationId: tenant.organizationId,
+      companyId: tenant.companyId,
+      userId: tenant.userId || "system",
+      action: "PURCHASE_BILL_SCAN_UPLOADED",
+      entityName: "PurchaseBillScan",
+      entityId: scanId,
+      newState: {
+        fileName: storedFile.fileName,
+        provider: ocrResult.provider,
+        matchedPartyId: supplierMatch.matchedPartyId,
+        itemCount: normalizedData.items.length,
+      },
+    });
+
+    return updatedScan;
+  }
+
+  /**
+   * Retrieves paginated list of scans for current tenant.
+   */
+  async getScans(
+    tenant: TenantContext,
+    status?: string,
+    search?: string,
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<any> {
+    return this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const skip = (page - 1) * limit;
+      const where: any = {
+        companyId: tenant.companyId,
+      };
+
+      if (status) {
+        where.status = status as any;
+      }
+      if (search) {
+        where.OR = [
+          { fileName: { contains: search, mode: "insensitive" } },
+          { matchedParty: { name: { contains: search, mode: "insensitive" } } },
+        ];
+      }
+
+      const [items, total] = await Promise.all([
+        tx.purchaseBillScan.findMany({
+          where,
+          skip,
+          take: limit,
+          orderBy: { createdAt: "desc" },
+          include: {
+            matchedParty: {
+              select: { id: true, name: true, gstin: true, phone: true },
+            },
+            purchaseInvoice: {
+              select: {
+                id: true,
+                vendorInvoiceNumber: true,
+                grandTotal: true,
+                createdAt: true,
+              },
+            },
+          },
+        }),
+        tx.purchaseBillScan.count({ where }),
+      ]);
+
+      return {
+        data: items,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    });
+  }
+
+  /**
+   * Retrieves single scan by ID.
+   */
+  async getScanById(id: string, tenant: TenantContext): Promise<any> {
+    return this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const scan = await tx.purchaseBillScan.findFirst({
+        where: { id, companyId: tenant.companyId },
+        include: {
+          matchedParty: true,
+          purchaseInvoice: {
+            include: {
+              items: {
+                include: { item: true },
+              },
+            },
+          },
+        },
+      });
+
+      if (!scan) {
+        throw new NotFoundException(`Purchase bill scan '${id}' not found.`);
+      }
+
+      return scan;
+    });
+  }
+
+  /**
+   * Streams/retrieves bill file content for authorized tenant download/preview.
+   */
+  async getScanFile(
+    id: string,
+    tenant: TenantContext,
+  ): Promise<{ buffer: Buffer; mimeType: string; fileName: string }> {
+    const scan = await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      return tx.purchaseBillScan.findFirst({
+        where: { id, companyId: tenant.companyId },
+        select: {
+          fileName: true,
+          fileMimeType: true,
+          fileStoragePath: true,
+        },
+      });
+    });
+
+    if (!scan) {
+      throw new NotFoundException(`Bill scan document '${id}' not found.`);
+    }
+
+    const buffer = await this.storage.readFile(scan.fileStoragePath);
+    return {
+      buffer,
+      mimeType: scan.fileMimeType,
+      fileName: scan.fileName,
+    };
+  }
+
+  /**
+   * Updates an in-progress scan draft with corrected fields before confirmation.
+   */
+  async updateScanDraft(
+    id: string,
+    dto: UpdateScanDraftDto,
+    tenant: TenantContext,
+  ): Promise<any> {
+    return this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const scan = await tx.purchaseBillScan.findFirst({
+        where: { id, companyId: tenant.companyId },
+      });
+
+      if (!scan) {
+        throw new NotFoundException(`Purchase bill scan '${id}' not found.`);
+      }
+      if (scan.status === "CONFIRMED") {
+        throw new BadRequestException("Cannot edit an already confirmed purchase invoice scan.");
+      }
+
+      let currentData: any = scan.extractedData || {};
+      if (dto.extractedData) {
+        currentData = dto.extractedData;
+      }
+      if (dto.vendorInvoiceNumber) {
+        currentData.invoice = {
+          ...currentData.invoice,
+          invoiceNumber: dto.vendorInvoiceNumber.trim(),
+        };
+      }
+      if (dto.invoiceDate) {
+        currentData.invoice = {
+          ...currentData.invoice,
+          invoiceDate: dto.invoiceDate,
+        };
+      }
+      if (dto.placeOfSupply) {
+        currentData.invoice = {
+          ...currentData.invoice,
+          placeOfSupply: dto.placeOfSupply,
+        };
+      }
+
+      const updated = await tx.purchaseBillScan.update({
+        where: { id },
+        data: {
+          matchedPartyId: dto.partyId !== undefined ? dto.partyId : scan.matchedPartyId,
+          extractedData: currentData,
+        },
+        include: {
+          matchedParty: true,
+        },
+      });
+
+      await this.audit.record({
+        organizationId: tenant.organizationId,
+        companyId: tenant.companyId,
+        userId: tenant.userId || "system",
+        action: "PURCHASE_BILL_SCAN_DRAFT_UPDATED",
+        entityName: "PurchaseBillScan",
+        entityId: id,
+        newState: { partyId: dto.partyId, invoiceNumber: dto.vendorInvoiceNumber },
+      });
+
+      return updated;
+    });
+  }
+
+  /**
+   * Confirms the purchase scan:
+   * 1. Creates any approved new products atomically
+   * 2. Calls PurchasesService.createPurchaseInvoice (stock ledger, double-entry vouchers)
+   * 3. Links scan to confirmed PurchaseInvoice
+   * 4. Enforces strict idempotency
+   */
+  async confirmPurchaseScan(
+    scanId: string,
+    dto: ConfirmPurchaseScanDto,
+    tenant: TenantContext,
+  ): Promise<any> {
+    // 1. Check Scan State and Idempotency
+    const scan = await this.prisma.purchaseBillScan.findFirst({
+      where: { id: scanId, companyId: tenant.companyId },
+      include: { purchaseInvoice: true },
+    });
+
+    if (!scan) {
+      throw new NotFoundException(`Purchase bill scan '${scanId}' not found.`);
+    }
+
+    if (scan.status === "CONFIRMED" && scan.purchaseInvoiceId) {
+      this.logger.log(`Scan ${scanId} was already confirmed. Returning existing purchase invoice.`);
+      return {
+        scan,
+        invoice: scan.purchaseInvoice,
+        isIdempotentReplay: true,
+      };
+    }
+
+    // 2. Prepare Items & Create Approved New Products
+    return this.prisma.executeInTenantContext(tenant, async (tx) => {
+      // Find company default UOM or create "PCS" if missing
+      let defaultUom = await tx.unitOfMeasure.findFirst({
+        where: { companyId: tenant.companyId },
+      });
+      if (!defaultUom) {
+        defaultUom = await tx.unitOfMeasure.create({
+          data: {
+            organizationId: tenant.organizationId,
+            companyId: tenant.companyId,
+            name: "PIECES",
+            symbol: "PCS",
+            uqcCode: "PCS",
+            decimalPlaces: 0,
+          },
+        });
+      }
+
+      const finalPurchaseItems: Array<{
+        itemId: string;
+        hsnCode?: string;
+        quantity: number | string;
+        unitPrice: number | string;
+        taxRate: number | string;
+      }> = [];
+
+      for (const line of dto.items) {
+        let resolvedItemId = line.itemId;
+
+        // If user explicitly confirmed creating a new product
+        if (line.createNewProduct && line.newProductDetails) {
+          const np = line.newProductDetails;
+          let uomId = defaultUom.id;
+
+          if (np.unitSymbol) {
+            const matchedUom = await tx.unitOfMeasure.findFirst({
+              where: {
+                companyId: tenant.companyId,
+                symbol: { equals: np.unitSymbol.trim(), mode: "insensitive" },
+              },
+            });
+            if (matchedUom) {
+              uomId = matchedUom.id;
+            }
+          }
+
+          const isService = np.itemType === "SERVICE" || line.itemType === "SERVICE";
+          const createdItem = await tx.item.create({
+            data: {
+              organizationId: tenant.organizationId,
+              companyId: tenant.companyId,
+              type: isService ? "SERVICE" : "PRODUCT",
+              name: np.name.trim(),
+              hsnCode: np.hsnCode || "0000",
+              primaryUomId: uomId,
+              taxRate: np.taxRate || 18,
+              purchaseRate: np.purchasePrice || 0,
+              retailPrice: np.retailPrice || np.purchasePrice || 0,
+              wholesalePrice: np.purchasePrice || 0,
+            },
+          });
+
+          resolvedItemId = createdItem.id;
+          this.logger.log(`Created new ${isService ? "service" : "product"} '${createdItem.name}' (${createdItem.id}) from bill scan.`);
+        }
+
+        if (!resolvedItemId) {
+          throw new BadRequestException(
+            "Each line item must either map to an existing product or be confirmed as a new product.",
+          );
+        }
+
+        const exchangeRate = dto.currency && dto.currency !== "INR" && dto.exchangeRate ? Number(dto.exchangeRate) : 1;
+        const convertedUnitPrice = Number(line.unitPrice) * exchangeRate;
+
+        finalPurchaseItems.push({
+          itemId: resolvedItemId,
+          hsnCode: line.hsnCode,
+          quantity: line.quantity,
+          unitPrice: convertedUnitPrice,
+          taxRate: line.taxRate,
+        });
+      }
+
+      // 3. Resolve or Auto-Create Supplier Party
+      let resolvedPartyId = dto.partyId;
+      if (
+        (!resolvedPartyId || resolvedPartyId === "__NEW_SUPPLIER__" || dto.createNewSupplier) &&
+        dto.newSupplierDetails?.name
+      ) {
+        const sup = dto.newSupplierDetails;
+        const createdParty = await tx.party.create({
+          data: {
+            organizationId: tenant.organizationId,
+            companyId: tenant.companyId,
+            name: sup.name.trim(),
+            gstin: sup.gstin ? sup.gstin.trim() : null,
+            phone: sup.phone ? sup.phone.trim() : "",
+            email: sup.email ? sup.email.trim() : null,
+            type: "SUPPLIER",
+            gstType: sup.gstin ? "REGULAR" : "UNREGISTERED",
+            stateCode: (sup.gstin ? sup.gstin.substring(0, 2) : dto.placeOfSupply) || "24",
+            billingAddress: sup.address ? ({ line1: sup.address, city: "", pincode: "" } as any) : ({ line1: "Main Office", city: "", pincode: "" } as any),
+            creditLimit: 0,
+            creditDays: 0,
+            interestRate: 0,
+            defaultDiscount: 0,
+            isActive: true,
+          },
+        });
+        resolvedPartyId = createdParty.id;
+        this.logger.log(`Created new supplier '${createdParty.name}' (${createdParty.id}) from bill scan.`);
+      }
+
+      if (!resolvedPartyId || resolvedPartyId === "__NEW_SUPPLIER__") {
+        throw new BadRequestException("Please select or confirm a supplier party.");
+      }
+
+      // 4. Call existing transactional PurchasesService
+      const purchaseInvoice = await this.purchasesService.createPurchaseInvoice(
+        {
+          partyId: resolvedPartyId,
+          vendorInvoiceNumber: dto.vendorInvoiceNumber.trim(),
+          invoiceDate: dto.invoiceDate,
+          placeOfSupply: dto.placeOfSupply,
+          warehouseId: dto.warehouseId,
+          itcEligibility: dto.itcEligibility || "INPUT",
+          items: finalPurchaseItems,
+        },
+        tenant,
+        tx,
+      );
+
+      // 4. Update scan status to CONFIRMED
+      const confirmedScan = await tx.purchaseBillScan.update({
+        where: { id: scanId },
+        data: {
+          status: "CONFIRMED",
+          purchaseInvoiceId: purchaseInvoice.id,
+          matchedPartyId: dto.partyId,
+        },
+        include: {
+          matchedParty: true,
+          purchaseInvoice: true,
+        },
+      });
+
+      // 5. Audit Log
+      await this.audit.record({
+        organizationId: tenant.organizationId,
+        companyId: tenant.companyId,
+        userId: tenant.userId || "system",
+        action: "PURCHASE_BILL_SCAN_CONFIRMED",
+        entityName: "PurchaseBillScan",
+        entityId: scanId,
+        newState: {
+          purchaseInvoiceId: purchaseInvoice.id,
+          vendorInvoiceNumber: dto.vendorInvoiceNumber,
+          grandTotal: purchaseInvoice.grandTotal,
+        },
+      });
+
+      return {
+        scan: confirmedScan,
+        invoice: purchaseInvoice,
+        isIdempotentReplay: false,
+      };
+    });
+  }
+
+  /**
+   * Discards a scan draft.
+   */
+  async discardScan(id: string, tenant: TenantContext): Promise<any> {
+    return this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const scan = await tx.purchaseBillScan.findFirst({
+        where: { id, companyId: tenant.companyId },
+      });
+
+      if (!scan) {
+        throw new NotFoundException(`Purchase bill scan '${id}' not found.`);
+      }
+      if (scan.status === "CONFIRMED") {
+        throw new BadRequestException("Cannot discard an already confirmed purchase invoice.");
+      }
+
+      const updated = await tx.purchaseBillScan.update({
+        where: { id },
+        data: { status: "DISCARDED" },
+      });
+
+      await this.audit.record({
+        organizationId: tenant.organizationId,
+        companyId: tenant.companyId,
+        userId: tenant.userId || "system",
+        action: "PURCHASE_BILL_SCAN_DISCARDED",
+        entityName: "PurchaseBillScan",
+        entityId: id,
+      });
+
+      return updated;
+    });
+  }
+}

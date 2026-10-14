@@ -1,0 +1,430 @@
+"use client";
+
+import React, { useState, useEffect, useCallback } from "react";
+import { useAuth } from "../../../context/auth-context";
+import { apiClient } from "../../../lib/api-client";
+import { Modal } from "../../../components/ui/modal";
+
+interface Category {
+  id: string;
+  name: string;
+  nameGujarati?: string;
+  description?: string;
+  itemCount?: number;
+}
+
+export default function CategoriesPage() {
+  const { lang, tenantContext } = useAuth();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Create Modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  // Edit Modal
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    nameGujarati: "",
+  });
+
+  // Delete Modal
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const [formData, setFormData] = useState({
+    name: "",
+    nameGujarati: "",
+    description: "",
+  });
+
+  const fetchCategories = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res: any = await apiClient.get("/categories");
+      setCategories(Array.isArray(res) ? res : []);
+    } catch (err: any) {
+      setError(err.message || "Failed to load categories.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tenantContext.companyId) {
+      fetchCategories();
+    }
+  }, [tenantContext.companyId, fetchCategories]);
+
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError(null);
+    setIsSubmitting(true);
+
+    try {
+      await apiClient.post("/categories", {
+        name: formData.name,
+        nameGujarati: formData.nameGujarati || undefined,
+        description: formData.description || undefined,
+      });
+
+      setIsModalOpen(false);
+      await fetchCategories();
+    } catch (err: any) {
+      setFormError(err.message || "Failed to create category.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOpenEditModal = (cat: Category) => {
+    setEditingCategory(cat);
+    setEditFormData({
+      name: cat.name,
+      nameGujarati: cat.nameGujarati || "",
+    });
+    setFormError(null);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCategory) return;
+    setFormError(null);
+    setIsSubmitting(true);
+
+    try {
+      await apiClient.put(`/categories/${editingCategory.id}`, {
+        name: editFormData.name,
+        nameGujarati: editFormData.nameGujarati || undefined,
+      });
+
+      setIsEditModalOpen(false);
+      setEditingCategory(null);
+      await fetchCategories();
+    } catch (err: any) {
+      setFormError(err.message || "Failed to update category.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+    setIsDeleting(true);
+    try {
+      await apiClient.delete(`/categories/${categoryToDelete.id}`);
+      setCategoryToDelete(null);
+      await fetchCategories();
+    } catch (err: any) {
+      setError(err.message || "Failed to delete category.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+            {lang === "gu"
+              ? "વસ્તુઓની શ્રેણીઓ (Item Categories)"
+              : "Item Categories"}
+          </h1>
+          <p className="text-xs text-slate-500">
+            {lang === "gu"
+              ? "અનાજ, કરિયાણું, તેલ, પીણાં જેવી કેટેગરીઓનું સંચાલન"
+              : "Organize items into structured product categories"}
+          </p>
+        </div>
+
+        <button
+          onClick={() => {
+            setFormData({ name: "", nameGujarati: "", description: "" });
+            setFormError(null);
+            setIsModalOpen(true);
+          }}
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#FF9933] hover:bg-[#E67E17] text-slate-950 text-sm font-bold rounded-lg shadow-sm transition-colors"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          <span>{lang === "gu" ? "નવી શ્રેણી ઉમેરો" : "Add Category"}</span>
+        </button>
+      </div>
+
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        {error && (
+          <div className="p-4 bg-rose-50 border-b border-rose-100 text-xs text-rose-700 font-medium">
+            {error}
+          </div>
+        )}
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
+                <th className="py-3 px-4">
+                  {lang === "gu" ? "શ્રેણીનું નામ" : "Category Name"}
+                </th>
+                <th className="py-3 px-4">
+                  {lang === "gu" ? "ગુજરાતી નામ" : "Gujarati Name"}
+                </th>
+                <th className="py-3 px-4 text-center">
+                  {lang === "gu" ? "ક્રિયાઓ" : "Actions"}
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {isLoading ? (
+                <tr>
+                  <td colSpan={3} className="py-12 text-center text-slate-400">
+                    <div className="inline-block w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-2" />
+                    <p>Loading categories...</p>
+                  </td>
+                </tr>
+              ) : categories.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="py-12 text-center text-slate-400">
+                    <p className="font-medium text-slate-600 mb-1">
+                      No categories found
+                    </p>
+                    <p className="text-[11px]">
+                      Click &apos;Add Category&apos; to organize your item
+                      catalog.
+                    </p>
+                  </td>
+                </tr>
+              ) : (
+                categories.map((c) => (
+                  <tr
+                    key={c.id}
+                    className="hover:bg-slate-50 transition-colors"
+                  >
+                    <td className="py-3 px-4 font-semibold text-slate-900">
+                      {c.name}
+                    </td>
+                    <td className="py-3 px-4 text-slate-600">
+                      {c.nameGujarati || "—"}
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <div className="inline-flex items-center justify-center gap-1.5">
+                        <button
+                          onClick={() => handleOpenEditModal(c)}
+                          className="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded transition-colors inline-flex items-center gap-1"
+                          title="Edit Category"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                          <span>{lang === "gu" ? "સુધારો" : "Edit"}</span>
+                        </button>
+                        <button
+                          onClick={() => setCategoryToDelete(c)}
+                          className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded transition-colors inline-flex items-center gap-1"
+                          title="Delete Category"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          <span>{lang === "gu" ? "કાઢી નાખો" : "Delete"}</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Create Category Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={lang === "gu" ? "નવી શ્રેણી ઉમેરો" : "Add Category"}
+        titleGujarati="ઉત્પાદનોનું વર્ગીકરણ"
+        maxWidth="md"
+      >
+        <form onSubmit={handleCreateCategory} className="space-y-4">
+          {formError && (
+            <div className="p-3 bg-rose-50 border border-rose-200 rounded text-xs text-rose-700">
+              {formError}
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              Category Name *
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              placeholder="e.g. Spices & Masala"
+              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              Name in Gujarati (Optional)
+            </label>
+            <input
+              type="text"
+              value={formData.nameGujarati}
+              onChange={(e) =>
+                setFormData({ ...formData, nameGujarati: e.target.value })
+              }
+              placeholder="દા.ત. મસાલા અને તેજાના"
+              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 rounded-lg"
+            >
+              {isSubmitting ? "Saving..." : "Save Category"}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Edit Category Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingCategory(null);
+        }}
+        title={lang === "gu" ? "શ્રેણી સુધારો (Edit Category)" : "Edit Category"}
+        titleGujarati={editingCategory ? editingCategory.name : ""}
+        maxWidth="md"
+      >
+        <form onSubmit={handleUpdateCategory} className="space-y-4">
+          {formError && (
+            <div className="p-3 bg-rose-50 border border-rose-200 rounded text-xs text-rose-700">
+              {formError}
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              Category Name *
+            </label>
+            <input
+              type="text"
+              required
+              value={editFormData.name}
+              onChange={(e) =>
+                setEditFormData({ ...editFormData, name: e.target.value })
+              }
+              placeholder="e.g. Spices & Masala"
+              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              Name in Gujarati (Optional)
+            </label>
+            <input
+              type="text"
+              value={editFormData.nameGujarati}
+              onChange={(e) =>
+                setEditFormData({ ...editFormData, nameGujarati: e.target.value })
+              }
+              placeholder="દા.ત. મસાલા અને તેજાના"
+              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => {
+                setIsEditModalOpen(false);
+                setEditingCategory(null);
+              }}
+              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 rounded-lg"
+            >
+              {isSubmitting ? "Updating..." : "Save Changes"}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={!!categoryToDelete}
+        onClose={() => setCategoryToDelete(null)}
+        title={lang === "gu" ? "શ્રેણી કાઢી નાખવાની ખાતરી" : "Confirm Delete Category"}
+        titleGujarati={categoryToDelete ? categoryToDelete.name : ""}
+        maxWidth="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-slate-600">
+            {lang === "gu"
+              ? `શું તમે ખરેખર "${categoryToDelete?.name}" શ્રેણીને કાઢી નાખવા માંગો છો?`
+              : `Are you sure you want to delete category "${categoryToDelete?.name}"?`}
+          </p>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setCategoryToDelete(null)}
+              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteCategory}
+              disabled={isDeleting}
+              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm"
+            >
+              {isDeleting ? "Deleting..." : "Confirm Delete"}
+            </button>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+}
