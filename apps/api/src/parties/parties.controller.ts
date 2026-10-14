@@ -40,6 +40,14 @@ export class PartiesController {
     return this.partiesService.findAll(ctx, query);
   }
 
+  @Get("lookup/gstin/:gstin")
+  async lookupGstin(
+    @CurrentTenant() ctx: TenantContext,
+    @Param("gstin") gstin: string,
+  ) {
+    return this.partiesService.lookupGstin(ctx, gstin);
+  }
+
   @Get(":id")
   async findOne(@CurrentTenant() ctx: TenantContext, @Param("id") id: string) {
     return this.partiesService.findOne(ctx, id);

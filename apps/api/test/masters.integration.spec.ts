@@ -608,6 +608,54 @@ describe("Phase 3: Master Data & Party/Item Catalogs (Integration)", () => {
       });
       expect(res.statusCode).toBe(404);
     });
+
+    it("should look up GSTIN and return autofill details for valid GSTIN", async () => {
+      const res = await app.inject({
+        method: "GET",
+        url: "/api/v1/parties/lookup/gstin/07ABCDE1234F1Z2",
+        headers: { authorization: `Bearer ${tenantAToken}` },
+      });
+      expect(res.statusCode).toBe(200);
+      const data = JSON.parse(res.body);
+      expect(data.isValid).toBe(true);
+      expect(data.gstin).toBe("07ABCDE1234F1Z2");
+      expect(data.stateCode).toBe("07");
+      expect(data.legalName).toBeDefined();
+      expect(data.address?.city).toBeDefined();
+      expect(data.address?.pincode).toBeDefined();
+    });
+
+    it("should detect invalid GSTIN checksum and suggest corrected check digit", async () => {
+      const res = await app.inject({
+        method: "GET",
+        url: "/api/v1/parties/lookup/gstin/07ABCDE1234F1Z5",
+        headers: { authorization: `Bearer ${tenantAToken}` },
+      });
+      expect(res.statusCode).toBe(200);
+      const data = JSON.parse(res.body);
+      expect(data.isValid).toBe(false);
+      expect(data.calculatedChecksum).toBe("2");
+      expect(data.actualChecksum).toBe("5");
+      expect(data.suggestedGstin).toBe("07ABCDE1234F1Z2");
+    });
+
+    it("should dynamically resolve State, PAN, Constitution for unlisted valid GSTIN cleanly", async () => {
+      const res = await app.inject({
+        method: "GET",
+        url: "/api/v1/parties/lookup/gstin/24AAACA1234A1ZQ",
+        headers: { authorization: `Bearer ${tenantAToken}` },
+      });
+      expect(res.statusCode).toBe(200);
+      const data = JSON.parse(res.body);
+      expect(data.isValid).toBe(true);
+      expect(data.stateCode).toBe("24");
+      expect(data.stateName).toBe("Gujarat");
+      expect(data.stateNameGujarati).toBe("ગુજરાત");
+      expect(data.pan).toBe("AAACA1234A");
+      expect(data.constitution).toContain("Company");
+      expect(data.source).toBe("STATUTORY_DERIVATION");
+      expect(data.message).toBeDefined();
+    });
   });
 
   // ==========================================
