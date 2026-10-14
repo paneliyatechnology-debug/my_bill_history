@@ -413,4 +413,50 @@ describe("Supplier purchase payments", () => {
     });
     expect(response.statusCode).toBe(403);
   });
+
+  it("settles a bill for a party initially created as CUSTOMER and upgrades party to BOTH", async () => {
+    const custRes = await app.inject({
+      method: "POST",
+      url: "/api/v1/parties",
+      headers: headersA(),
+      payload: {
+        type: "CUSTOMER",
+        name: "Dual Role Customer",
+        phone: "9825999088",
+        stateCode: "24",
+        billingAddress: { line1: "Shop 1", city: "Ahmedabad", pincode: "380001" },
+      },
+    });
+    expect(custRes.statusCode).toBe(201);
+    const customer = JSON.parse(custRes.body);
+    expect(customer.type).toBe("CUSTOMER");
+
+    const billRes = await app.inject({
+      method: "POST",
+      url: "/api/v1/purchases",
+      headers: headersA(),
+      payload: {
+        partyId: customer.id,
+        vendorInvoiceNumber: "DUAL-ROLE-BILL-1",
+        invoiceDate: "2026-10-14",
+        warehouseId,
+        items: [{ itemId, quantity: 1, unitPrice: 1000, taxRate: 18 }],
+      },
+    });
+    expect(billRes.statusCode).toBe(201);
+    const bill = JSON.parse(billRes.body);
+
+    const payRes = await app.inject({
+      method: "POST",
+      url: `/api/v1/purchases/${bill.id}/payments`,
+      headers: headersA(),
+      payload: { amount: 1180, paymentDate: "2026-10-14" },
+    });
+    expect(payRes.statusCode).toBe(201);
+
+    const updatedParty = await prisma.executeBypassRls((tx) =>
+      tx.party.findUnique({ where: { id: customer.id } }),
+    );
+    expect(updatedParty?.type).toBe("BOTH");
+  });
 });

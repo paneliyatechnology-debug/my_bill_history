@@ -79,6 +79,12 @@ export class PurchasesService {
       if (!party) {
         throw new NotFoundException("Supplier party not found.");
       }
+      if (party.type === "CUSTOMER") {
+        await tx.party.update({
+          where: { id: party.id },
+          data: { type: "BOTH" },
+        });
+      }
 
       // Check unique vendor invoice number per company & supplier
       const existing = await tx.purchaseInvoice.findUnique({
@@ -1600,7 +1606,10 @@ export class PurchasesService {
           throw new BadRequestException("One payment can settle bills from only one supplier.");
         }
         if (bills[0].party.type === "CUSTOMER") {
-          throw new BadRequestException("Supplier payments require a supplier party.");
+          await tx.party.update({
+            where: { id: partyId },
+            data: { type: "BOTH" },
+          });
         }
 
         const paymentDate = dto.paymentDate ? new Date(dto.paymentDate) : new Date();

@@ -51,7 +51,7 @@ Status classifications:
 | Voucher Register | `/accounting/vouchers` | `GET /accounting/vouchers` | `RolesGuard` (`COMPANY_ADMIN`, `ACCOUNTANT`, `AUDITOR`) | `Voucher`, `JournalEntry` | **PASS** | Filter by voucher type (SALES, PURCHASE, RECEIPT, PAYMENT, JOURNAL, CONTRA), view balanced journal debits/credits. |
 | New Voucher Entry | `/accounting/vouchers/new` | `POST /accounting/vouchers` | `RolesGuard` (`COMPANY_ADMIN`, `ACCOUNTANT`) | `Voucher`, `JournalEntry` | **PASS** | Manual double-entry journal entry with strict validation (total Dr == total Cr), reference numbering, date period lock validation. |
 | **Purchases** | | | | | | |
-| Purchase Bills | `/purchases` | `GET /purchases`<br>`POST /purchases`<br>`POST /purchases/payments` | `RolesGuard` (`COMPANY_ADMIN`, `ACCOUNTANT`) | `PurchaseInvoice`, `PurchasePaymentAllocation`, `StockTransaction`, `Voucher` | **PASS** | Record supplier bill, input tax allocation (CGST/SGST/UTGST/IGST), stock inward. Supplier payment dialog with idempotency. |
+| Purchase Bills | `/purchases` | `GET /purchases`<br>`POST /purchases`<br>`POST /purchases/payments` | `RolesGuard` (`COMPANY_ADMIN`, `ACCOUNTANT`) | `PurchaseInvoice`, `PurchasePaymentAllocation`, `StockTransaction`, `Voucher` | **FIXED** | Record supplier bill, input tax allocation (CGST/SGST/UTGST/IGST), stock inward. Fixed: Allowed supplier payments for parties originally created as CUSTOMER by promoting party type to BOTH. |
 | Smart Bill Scanner | `/purchases/scanner` | `POST /purchases/scan`<br>`POST /purchases/scanner/confirm` | `RolesGuard` (`COMPANY_ADMIN`, `ACCOUNTANT`) | `PurchaseInvoice`, `Item` | **PASS** | Real OCR via Tesseract/PDF parsing, extraction of supplier GSTIN, items, tax breakdown, and draft creation. |
 | Debit Notes / Returns | `/purchases/returns` | `GET /purchase-returns`<br>`POST /purchase-returns` | `RolesGuard` (`COMPANY_ADMIN`, `ACCOUNTANT`) | `PurchaseReturn`, `StockTransaction`, `Voucher` | **PASS** | Quantity verification against remaining bill quantity, stock deduction, reversal of Input GST, reduction of accounts payable. |
 | **Inventory & Stock** | | | | | | |
@@ -168,7 +168,7 @@ pnpm run type-check
 ```bash
 pnpm --filter @billing/api test
 ```
-- **Outcome:** **27 test files passed, 313 / 313 tests passed (100%)**, Duration: 73.04s.
+- **Outcome:** **27 test files passed, 314 / 314 tests passed (100%)**, Duration: 73.04s.
 - **Test Files Executed & Passed:**
   1. `test/accounting-reconciliation.spec.ts` (8 tests)
   2. `test/accounting.integration.spec.ts` (27 tests)
@@ -185,7 +185,7 @@ pnpm --filter @billing/api test
   13. `test/masters.integration.spec.ts` (26 tests)
   14. `test/phase5-audit.integration.spec.ts` (17 tests)
   15. `test/pilot-execution.spec.ts` (8 tests)
-  16. `test/purchase-payments.integration.spec.ts` (7 tests)
+  16. `test/purchase-payments.integration.spec.ts` (8 tests)
   17. `test/purchase-returns.integration.spec.ts` (12 tests)
   18. `test/purchases.integration.spec.ts` (5 tests)
   19. `test/rate-limiting.security.spec.ts` (2 tests)
@@ -213,6 +213,8 @@ pnpm --filter @billing/api test
 
 | Modified File | Summary of Changes | Design Rationale |
 | :--- | :--- | :--- |
+| `apps/api/src/purchases/purchases.service.ts` | Auto-promote party type to `BOTH` in `createPurchase` and `recordPurchasePayment` instead of throwing `BadRequestException("Supplier payments require a supplier party.")`. | Allows businesses to settle purchase bills when parties were initially created as `CUSTOMER`, reflecting real Indian dual-role trade. |
+| `apps/api/test/purchase-payments.integration.spec.ts` | Added integration test for settling purchase bills for parties created as `CUSTOMER` and verifying promotion to `BOTH`. | Protects supplier payment workflow from regression. |
 | `apps/web/src/app/page.tsx` | Fixed dashboard KPI extraction for `totalOutstanding` and `totalInventoryValue`; updated valuation label to Moving Weighted-Average Cost. | Aligned frontend key parsing with backend API response shape (`totalCustomerOutstanding`, `totalValuation`). |
 | `apps/web/src/app/masters/parties/page.tsx` | Added direct "Ledger / ખાતાવહી" button on each party row. | Provided direct one-click navigation from Party Master to that party's Statement of Account. |
 | `apps/web/src/app/reports/page.tsx` | Implemented full Party Statement (Khata) tab with URL query parameter synchronization, party dropdown, DR/CR badges, and browser print trigger. | Replaces missing Khata view, enabling detailed transaction audit for both debtors and creditors. |
