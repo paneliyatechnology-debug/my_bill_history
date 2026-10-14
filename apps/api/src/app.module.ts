@@ -17,6 +17,7 @@ import { CategoriesModule } from "./categories/categories.module";
 import { PartiesModule } from "./parties/parties.module";
 import { ItemsModule } from "./items/items.module";
 import { BatchesModule } from "./batches/batches.module";
+import { HsnModule } from "./hsn/hsn.module";
 import { LedgersModule } from "./ledgers/ledgers.module";
 import { VouchersModule } from "./vouchers/vouchers.module";
 import { InvoicesModule } from "./invoices/invoices.module";
@@ -53,6 +54,7 @@ import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
     PartiesModule,
     ItemsModule,
     BatchesModule,
+    HsnModule,
     LedgersModule,
     VouchersModule,
     InvoicesModule,

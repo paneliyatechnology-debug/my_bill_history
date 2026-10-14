@@ -5,6 +5,7 @@ import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { Badge, StatusBadge } from "../../../components/ui/badge";
+import { HsnSelector } from "../../../components/ui/hsn-selector";
 
 interface Item {
   id: string;
@@ -564,18 +565,17 @@ export default function ItemsPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                {lang === "gu" ? "એચએસએન / એસએસી કોડ *" : "HSN / SAC Code *"}
-              </label>
-              <input
-                type="text"
-                required
+              <HsnSelector
                 value={formData.hsnCode}
-                onChange={(e) =>
-                  setFormData({ ...formData, hsnCode: e.target.value })
-                }
-                placeholder="e.g. 1006 or 998311"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono focus:bg-white focus:ring-1 focus:ring-emerald-500"
+                onChange={(code, hsnOpt) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    hsnCode: code,
+                    taxRate: hsnOpt ? Number(hsnOpt.gstRate) : prev.taxRate,
+                    type: hsnOpt?.type === "SAC" ? "SERVICE" : prev.type,
+                  }));
+                }}
+                required
               />
             </div>
           </div>
@@ -827,18 +827,17 @@ export default function ItemsPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                {lang === "gu" ? "એચએસએન / એસએસી કોડ *" : "HSN / SAC Code *"}
-              </label>
-              <input
-                type="text"
-                required
+              <HsnSelector
                 value={editFormData.hsnCode}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, hsnCode: e.target.value })
-                }
-                placeholder="e.g. 1006 or 998311"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono focus:bg-white focus:ring-1 focus:ring-emerald-500"
+                onChange={(code, hsnOpt) => {
+                  setEditFormData((prev) => ({
+                    ...prev,
+                    hsnCode: code,
+                    taxRate: hsnOpt ? Number(hsnOpt.gstRate) : prev.taxRate,
+                    type: hsnOpt?.type === "SAC" ? "SERVICE" : prev.type,
+                  }));
+                }}
+                required
               />
             </div>
           </div>

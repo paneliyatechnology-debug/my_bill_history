@@ -159,12 +159,27 @@ export class ItemsService {
         }
       }
 
+      let hsnMasterId = dto.hsnMasterId || null;
+      if (!hsnMasterId && hsnCode) {
+        const foundHsn = await tx.hsnMaster.findFirst({
+          where: {
+            code: hsnCode,
+            isActive: true,
+            OR: [{ companyId: ctx.companyId }, { companyId: null }],
+          },
+        });
+        if (foundHsn) {
+          hsnMasterId = foundHsn.id;
+        }
+      }
+
       // 5. Create Item
       const item = await tx.item.create({
         data: {
           organizationId: ctx.organizationId,
           companyId: ctx.companyId,
           categoryId: dto.categoryId || null,
+          hsnMasterId,
           type,
           name,
           nameGujarati: dto.nameGujarati?.trim() || null,
@@ -192,6 +207,7 @@ export class ItemsService {
           primaryUom: true,
           secondaryUom: true,
           category: true,
+          hsnMaster: true,
         },
       });
 
@@ -294,6 +310,7 @@ export class ItemsService {
             primaryUom: true,
             secondaryUom: true,
             category: true,
+            hsnMaster: true,
           },
           orderBy: { name: "asc" },
           skip,
@@ -321,6 +338,7 @@ export class ItemsService {
           secondaryUom: true,
           category: true,
           batches: true,
+          hsnMaster: true,
         },
       });
 
@@ -400,6 +418,19 @@ export class ItemsService {
         trackSerialNo = false;
       }
 
+      let nextHsnCode = dto.hsnCode ? dto.hsnCode.trim() : existing.hsnCode;
+      let nextHsnMasterId = dto.hsnMasterId !== undefined ? dto.hsnMasterId : existing.hsnMasterId;
+      if (dto.hsnCode && dto.hsnMasterId === undefined) {
+        const foundHsn = await tx.hsnMaster.findFirst({
+          where: {
+            code: nextHsnCode,
+            isActive: true,
+            OR: [{ companyId: ctx.companyId }, { companyId: null }],
+          },
+        });
+        nextHsnMasterId = foundHsn ? foundHsn.id : null;
+      }
+
       const updated = await tx.item.update({
         where: { id },
         data: {
@@ -421,7 +452,8 @@ export class ItemsService {
                 ? dto.barcode.trim()
                 : null
               : existing.barcode,
-          hsnCode: dto.hsnCode ? dto.hsnCode.trim() : existing.hsnCode,
+          hsnCode: nextHsnCode,
+          hsnMasterId: nextHsnMasterId,
           categoryId:
             dto.categoryId !== undefined ? dto.categoryId : existing.categoryId,
           primaryUomId: dto.primaryUomId ?? existing.primaryUomId,
@@ -471,6 +503,7 @@ export class ItemsService {
           primaryUom: true,
           secondaryUom: true,
           category: true,
+          hsnMaster: true,
         },
       });
 

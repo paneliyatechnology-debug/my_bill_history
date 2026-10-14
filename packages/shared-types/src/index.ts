@@ -67,6 +67,14 @@ export enum ItemType {
 }
 
 /**
+ * HSN Code Types (Goods vs Services)
+ */
+export enum HsnType {
+  HSN = "HSN",
+  SAC = "SAC",
+}
+
+/**
  * Inventory Costing Valuation Methods
  */
 export enum ValuationMethod {

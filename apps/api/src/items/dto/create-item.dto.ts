@@ -7,6 +7,7 @@ export interface CreateItemDto {
   sku?: string;
   barcode?: string;
   hsnCode: string; // 2, 4, 6, 8 digit HSN or 6-digit SAC (99xxxx)
+  hsnMasterId?: string;
   categoryId?: string;
   primaryUomId: string;
   secondaryUomId?: string;

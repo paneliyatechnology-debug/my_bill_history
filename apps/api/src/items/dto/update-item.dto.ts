@@ -7,6 +7,7 @@ export interface UpdateItemDto {
   sku?: string;
   barcode?: string;
   hsnCode?: string;
+  hsnMasterId?: string | null;
   categoryId?: string | null;
   primaryUomId?: string;
   secondaryUomId?: string | null;

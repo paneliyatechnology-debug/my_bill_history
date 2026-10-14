@@ -135,6 +135,7 @@ model Company {
   parties                  Party[]
   itemCategories           ItemCategory[]
   items                    Item[]
+  hsnMasters               HsnMaster[]
   uoms                     UnitOfMeasure[]
   warehouses               Warehouse[]
   vouchers                 Voucher[]
@@ -520,11 +521,44 @@ model ItemCategory {
   @@map("item_categories")
 }
 
+enum HsnType {
+  HSN
+  SAC
+}
+
+model HsnMaster {
+  id                  String    @id @default(uuid()) @db.Uuid
+  organizationId      String?   @map("organization_id") @db.Uuid
+  companyId           String?   @map("company_id") @db.Uuid
+  code                String    @db.VarChar(10)
+  description         String    @db.VarChar(255)
+  descriptionGujarati String?   @map("description_gujarati") @db.VarChar(255)
+  type                HsnType   @default(HSN)
+  gstRate             Decimal   @default(18.00) @map("gst_rate") @db.Decimal(5, 2)
+  cessRate            Decimal   @default(0.00) @map("cess_rate") @db.Decimal(5, 2)
+  chapter             String?   @db.VarChar(50)
+  notes               String?   @db.VarChar(255)
+  isSystem            Boolean   @default(false) @map("is_system")
+  isActive            Boolean   @default(true) @map("is_active")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  company             Company?  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  items               Item[]
+
+  @@index([organizationId, companyId])
+  @@index([code])
+  @@index([type])
+  @@index([isActive])
+  @@map("hsn_masters")
+}
+
 model Item {
   id                  String          @id @default(uuid()) @db.Uuid
   organizationId      String          @map("organization_id") @db.Uuid
   companyId           String          @map("company_id") @db.Uuid
   categoryId          String?         @map("category_id") @db.Uuid
+  hsnMasterId         String?         @map("hsn_master_id") @db.Uuid
   type                ItemType        @default(PRODUCT)
   name                String          @db.VarChar(255)
   nameGujarati        String?         @map("name_gujarati") @db.VarChar(255)
@@ -553,6 +587,7 @@ model Item {
 
   company             Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
   category            ItemCategory?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  hsnMaster           HsnMaster?      @relation(fields: [hsnMasterId], references: [id], onDelete: SetNull)
   primaryUom          UnitOfMeasure   @relation("PrimaryUom", fields: [primaryUomId], references: [id], onDelete: Restrict)
   secondaryUom        UnitOfMeasure?  @relation("SecondaryUom", fields: [secondaryUomId], references: [id], onDelete: SetNull)
   batches             ItemBatch[]
@@ -571,6 +606,7 @@ model Item {
   @@index([organizationId, companyId])
   @@index([barcode])
   @@index([hsnCode])
+  @@index([hsnMasterId])
   @@map("items")
 }
 

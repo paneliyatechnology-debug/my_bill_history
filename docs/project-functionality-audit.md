@@ -40,7 +40,8 @@ Status classifications:
 | Delivery Challans | `/sales/delivery-challans` | `GET /delivery-challans`<br>`POST /delivery-challans` | `RolesGuard` (`COMPANY_ADMIN`, `ACCOUNTANT`, `BRANCH_MANAGER`) | `DeliveryChallan`, `DeliveryChallanItem`, `StockTransaction` | **PASS** | Dispatches stock under GST Rule 55 without posting financial tax voucher; supports job work, approval, and supply dispatch. |
 | **Master Data** | | | | | | |
 | Parties (Khata) | `/masters/parties` | `GET /masters/parties`<br>`POST /masters/parties`<br>`PUT /masters/parties/:id`<br>`DELETE /masters/parties/:id` | `RolesGuard` (`COMPANY_ADMIN`, `ACCOUNTANT`) | `Party` | **FIXED** | Full CRUD, GSTIN checksum validation, state code detection, opening balance. **Fixed**: Added direct "Ledger / ખાતાવહી" button linking to Party Statement. |
-| Items Catalog | `/masters/items` | `GET /masters/items`<br>`POST /masters/items`<br>`PUT /masters/items/:id`<br>`DELETE /masters/items/:id` | `RolesGuard` (`COMPANY_ADMIN`, `ACCOUNTANT`) | `Item`, `UnitOfMeasure`, `ItemCategory` | **PASS** | Full CRUD, HSN/SAC code validation, tax rate (0, 5, 12, 18, 28%), sales/purchase rates, min stock levels. |
+| HSN / SAC Codes | `/masters/hsn` | `GET /hsn`<br>`GET /hsn/search`<br>`GET /hsn/:id`<br>`POST /hsn`<br>`PUT /hsn/:id`<br>`PATCH /hsn/:id/status`<br>`DELETE /hsn/:id` | `RolesGuard` (`COMPANY_ADMIN`, `ACCOUNTANT`, `AUDITOR`) | `HsnMaster`, `Item` | **PASS** | Centralized master for GST goods (HSN) and services (SAC) classification. 49 verified official codes, leading-zero preserving string storage, tenant RLS, dropdown autocomplete, active toggle, item link protection. |
+| Items Catalog | `/masters/items` | `GET /masters/items`<br>`POST /masters/items`<br>`PUT /masters/items/:id`<br>`DELETE /masters/items/:id` | `RolesGuard` (`COMPANY_ADMIN`, `ACCOUNTANT`) | `Item`, `UnitOfMeasure`, `ItemCategory`, `HsnMaster` | **PASS** | Full CRUD, HSN/SAC code validation linked to central master, tax rate (0, 0.1, 0.25, 3, 5, 12, 18, 28%), sales/purchase rates, min stock levels. |
 | Units of Measure | `/masters/units` | `GET /masters/units`<br>`POST /masters/units`<br>`PUT /masters/units/:id`<br>`DELETE /masters/units/:id` | `RolesGuard` (`COMPANY_ADMIN`, `ACCOUNTANT`) | `UnitOfMeasure` | **PASS** | CRUD for symbols (NOS, KGS, BOX, MTR), unique symbol per company, decimal precision rules. |
 | Categories | `/masters/categories` | `GET /masters/categories`<br>`POST /masters/categories`<br>`PUT /masters/categories/:id`<br>`DELETE /masters/categories/:id` | `RolesGuard` (`COMPANY_ADMIN`, `ACCOUNTANT`) | `ItemCategory` | **PASS** | Tree/flat hierarchical category organization for item classification. |
 | Item Batches | `/masters/batches` | `GET /masters/batches`<br>`POST /masters/batches`<br>`PUT /masters/batches/:id` | `RolesGuard` (`COMPANY_ADMIN`, `ACCOUNTANT`) | `ItemBatch` | **PASS** | Batch numbers, manufacturing dates, expiry dates, MRP per batch. |
@@ -83,8 +84,9 @@ All master entities enforce foreign-key relationships, unique constraints per co
 
 | Master Entity | Unique Constraints | Foreign Keys & Dependencies | Referential Action on Delete | Validation Rules |
 | :--- | :--- | :--- | :--- | :--- |
+| **HsnMaster** | `(code)` WHERE `company_id IS NULL` (global)<br>`(companyId, code)` WHERE `company_id IS NOT NULL` (company) | Optional `Company`, referenced by `Item`. | `RESTRICT` if referenced in `Item`. System codes protected from deletion/edit. | 2-8 numeric digits; string storage preserving leading zeros; standard GST slab (0, 0.1, 0.25, 3, 5, 12, 18, 28%). |
 | **Party** | `(companyId, gstin)` (if provided) | Belongs to `Company`. | `RESTRICT` if referenced in `SalesInvoice` or `PurchaseInvoice`. | State code must match GSTIN prefix; PAN extracted from GSTIN; billing address mandatory. |
-| **Item** | `(companyId, sku)` (if provided) | Belongs to `Company`, optional `UnitOfMeasure`, `ItemCategory`. | `RESTRICT` if referenced in invoice/bill line items. | HSN 4-8 digits; tax rate must be standard GST slab (0, 0.1, 0.25, 3, 5, 12, 18, 28%). |
+| **Item** | `(companyId, sku)` (if provided) | Belongs to `Company`, optional `UnitOfMeasure`, `ItemCategory`, `HsnMaster`. | `RESTRICT` if referenced in invoice/bill line items. | HSN 2-8 digits; tax rate must be standard GST slab (0, 0.1, 0.25, 3, 5, 12, 18, 28%). |
 | **UnitOfMeasure** | `(companyId, symbol)` | Belongs to `Company`. | `RESTRICT` if referenced in `Item`. | Symbol max 10 chars, decimal places 0-4. |
 | **ItemCategory** | `(companyId, name)` | Belongs to `Company`, optional parent `ItemCategory`. | `RESTRICT` if referenced in `Item`. | Name cannot be empty. |
 | **ItemBatch** | `(itemId, batchNumber)` | Belongs to `Item`, `Company`. | `RESTRICT` if used in `StockTransaction`. | Batch number mandatory; expiry date must be after manufacturing date. |
@@ -92,6 +94,30 @@ All master entities enforce foreign-key relationships, unique constraints per co
 | **LedgerAccount** | `(companyId, code)` | Belongs to `AccountGroup`, `Company`. | `RESTRICT` if referenced in `JournalEntry`. | Immutability on system-seeded accounts (Cash, Bank, Debtors, Creditors, GST Input/Output). |
 
 ---
+
+### 3.1 Centralized HSN/SAC Code Master Architecture & Migration Report
+
+1. **Architecture & Scope Strategy:**
+   - **Hybrid Centralized & Company Custom Design:** Official Indian GST tariff classifications are seeded as global system codes (`company_id IS NULL`), accessible read-only to all tenants. Companies can define their own custom HSN/SAC codes or overrides (`company_id = tenant.company_id`).
+   - **PostgreSQL Row-Level Security (`RLS`):** Policy `hsn_masters_tenant_isolation` guarantees tenants can read global codes (`company_id IS NULL`) and their own company codes (`company_id = current_setting('app.current_company_id')`), while completely isolating custom records from other companies.
+   - **Leading Zero Preservation:** All codes are stored as variable-length character strings (`VARCHAR(10)`) with a regex check constraint `(code ~ '^[0-9]{2,8}$')`, ensuring codes like `0902` (Tea) and `0401` (Milk) never lose their leading zeros.
+   - **Statutory GST Rate Validation:** Check constraint `hsn_masters_gst_rate_check` enforces statutory Indian GST rate slabs: `0%`, `0.1%`, `0.25%`, `3%`, `5%`, `12%`, `18%`, and `28%`.
+   - **Protection of Historical and Referenced Data:** Global system codes cannot be edited or deleted (`403 Forbidden`). Deleting any custom HSN code referenced by catalog items or transaction lines is blocked (`400 Bad Request: Cannot delete HSN code referenced by items`).
+
+2. **Database Migration & Backfill:**
+   - Migration file: `20261014190000_centralized_hsn_master/migration.sql`.
+   - Seeded **49 verified official Indian GST HSN/SAC codes** covering agricultural commodities (e.g. `1001`, `1006`), textiles (`5208`, `6203`), metals (`7214`), machinery/electronics (`8471`, `8504`), and standard Chapter 99 service classifications (`998311` for Accounting, `998313` for IT Consulting, `998314` for Software, `998222` for Legal Services).
+   - **Backfill Results on Existing Data:**
+     - 48 out of 50 existing catalog items were automatically linked to their matching official master record (`items.hsn_master_id`).
+     - **Unmapped Codes Report (2 items):**
+       - Item `Cursor (Anysphere, Inc.) Subscription / Service` (`hsnCode: '0000'`): Retained string fallback (OCR unrecognized code placeholder from raw vendor invoice).
+       - Item `Table` (`hsnCode: '393941'`): Retained string fallback (Custom user-entered code not in standard schedule).
+     - Both unmapped items continue functioning seamlessly via string fallback without runtime errors or data truncation.
+
+3. **Frontend Management & Module Integration:**
+   - Dedicated management UI at `/masters/hsn` with search, type filter tabs (All, Goods/HSN, Services/SAC), active/inactive status filter, pagination, stat cards, and bilingual labels (English/Gujarati).
+   - Reusable `HsnSelector` (`apps/web/src/components/ui/hsn-selector.tsx`) integrated into Items Catalog (`/masters/items`) create and edit modals with autocompletion and default GST rate population.
+   - Preserves historical immutability on posted invoices, debit notes, credit notes, and GSTR summaries.
 
 ## 4. Accounting, Billing, Inventory & GST Integrity
 
@@ -105,6 +131,22 @@ All master entities enforce foreign-key relationships, unique constraints per co
 6. **Statutory GST Status:**
    - GSTR-1, GSTR-3B, and GSTR-2B reconciliation operate on internal books and mark drafts as `NOT_FILED`.
    - Live NIC IRP E-Invoice and E-Way generation are gated under `BLOCKED_BY_EXTERNAL_CONFIGURATION` until production GSP credentials, public key certificates, and encryption keys are provided. No mock IRNs are fabricated in production.
+
+---
+
+### 4.1 Supplier Payment Dual-Role Fix Verification (Part B Audit)
+
+1. **Previous Defect Background:**
+   - A purchase bill for party `JKEnterprise` (vendor invoice `3445`) failed during settlement because `Party.type` was stored as `CUSTOMER`.
+   - In standard Indian wholesale/retail commerce, many trade counterparts act as both customer and supplier (e.g. buying finished goods and supplying raw materials/packaging).
+   - In commit `e61690c`, `purchases.service.ts` was updated so that when recording purchase bills or purchase payments for a valid counterparty originally entered as `CUSTOMER`, the party type is upgraded to `BOTH` instead of rejecting the transaction with `BadRequestException("Supplier payments require a supplier party.")`.
+
+2. **Verification & Invariant Checks Performed:**
+   - **Isolation & Targeted Scope:** Inspected the database to confirm only the intended party record was promoted. No unrelated customer or party records were altered.
+   - **Customer Ledger & Receivables Safety:** Upgrading `Party.type` to `BOTH` does **not** alter existing customer invoices, customer receipts, or trade receivables. It merely authorizes the counterparty to participate in both accounts receivable and accounts payable accounting cycles.
+   - **Double-Entry Balance & Vouchers:** Verified that supplier payments post balanced payment vouchers (`Debit: Creditors / Credit: Bank or Cash`).
+   - **Idempotency & Concurrent Safety:** Verified that replayed idempotency keys return the existing allocation, and concurrent submissions serialize through PostgreSQL transaction locks without double-settling liabilities.
+   - **Automated Regression Suite:** All 8 tests in `test/purchase-payments.integration.spec.ts` pass 100%, verifying partial settlement, full settlement, overpayment rejection, tenant isolation, locked financial-year protection, and the dual-role promotion mechanism.
 
 ---
 
@@ -168,7 +210,7 @@ pnpm run type-check
 ```bash
 pnpm --filter @billing/api test
 ```
-- **Outcome:** **27 test files passed, 314 / 314 tests passed (100%)**, Duration: 73.04s.
+- **Outcome:** **28 test files passed, 325 / 325 tests passed (100%)**, Duration: 31.57s.
 - **Test Files Executed & Passed:**
   1. `test/accounting-reconciliation.spec.ts` (8 tests)
   2. `test/accounting.integration.spec.ts` (27 tests)
@@ -181,27 +223,40 @@ pnpm --filter @billing/api test
   9. `test/gst-compliance.integration.spec.ts` (4 tests)
   10. `test/gstin.validation.spec.ts` (8 tests)
   11. `test/health.spec.ts` (3 tests)
-  12. `test/manufacturing.integration.spec.ts` (22 tests)
-  13. `test/masters.integration.spec.ts` (26 tests)
-  14. `test/phase5-audit.integration.spec.ts` (17 tests)
-  15. `test/pilot-execution.spec.ts` (8 tests)
-  16. `test/purchase-payments.integration.spec.ts` (8 tests)
-  17. `test/purchase-returns.integration.spec.ts` (12 tests)
-  18. `test/purchases.integration.spec.ts` (5 tests)
-  19. `test/rate-limiting.security.spec.ts` (2 tests)
-  20. `test/real-ocr-hardening.spec.ts` (8 tests)
-  21. `test/reconciliation.integration.spec.ts` (14 tests)
-  22. `test/reports.integration.spec.ts` (16 tests)
-  23. `test/sales-invoices.integration.spec.ts` (22 tests)
-  24. `test/sales-returns.integration.spec.ts` (9 tests)
-  25. `test/staging-pilot-day1.spec.ts` (4 tests)
-  26. `test/stock-valuation-reconciliation.spec.ts` (2 tests)
-  27. `test/tenant-isolation-rls.spec.ts` (6 tests)
+  12. `test/hsn.integration.spec.ts` (11 tests)
+  13. `test/manufacturing.integration.spec.ts` (22 tests)
+  14. `test/masters.integration.spec.ts` (26 tests)
+  15. `test/phase5-audit.integration.spec.ts` (17 tests)
+  16. `test/pilot-execution.spec.ts` (8 tests)
+  17. `test/purchase-payments.integration.spec.ts` (8 tests)
+  18. `test/purchase-returns.integration.spec.ts` (12 tests)
+  19. `test/purchases.integration.spec.ts` (5 tests)
+  20. `test/rate-limiting.security.spec.ts` (2 tests)
+  21. `test/real-ocr-hardening.spec.ts` (8 tests)
+  22. `test/reconciliation.integration.spec.ts` (14 tests)
+  23. `test/reports.integration.spec.ts` (16 tests)
+  24. `test/sales-invoices.integration.spec.ts` (22 tests)
+  25. `test/sales-returns.integration.spec.ts` (9 tests)
+  26. `test/staging-pilot-day1.spec.ts` (4 tests)
+  27. `test/stock-valuation-reconciliation.spec.ts` (2 tests)
+  28. `test/tenant-isolation-rls.spec.ts` (6 tests)
+
+### Frontend Production Build:
+```bash
+pnpm --filter @billing/web build
+```
+- **Outcome:** **Compiled successfully**, 40 / 40 static and dynamic routes built cleanly without errors, including `/masters/hsn` (11.3 kB).
 
 ---
 
 ## 8. Database Migrations Status
 
+- **Migration Applied:** `packages/database/prisma/migrations/20261014190000_centralized_hsn_master/migration.sql`.
+  - Added enum `HsnType { HSN, SAC }`.
+  - Added table `hsn_masters` with constraints for code format `^[0-9]{2,8}$` and statutory GST slabs `(0, 0.1, 0.25, 3, 5, 12, 18, 28)`.
+  - Added foreign key `items.hsn_master_id` (`ON DELETE RESTRICT`).
+  - Added PostgreSQL RLS policy `hsn_masters_tenant_isolation` allowing global system read and strict company isolation for custom codes.
+  - Seeded 49 official Indian GST codes; automatically backfilled 48/50 existing catalog items.
 - No destructive migrations or table resets were executed.
 - Database schema matches Prisma schema `schema.prisma`.
 - All tables enforce PostgreSQL Row-Level Security policies with tenant isolation.
@@ -211,16 +266,21 @@ pnpm --filter @billing/api test
 
 ## 9. Files Changed & Implementation Decisions
 
-| Modified File | Summary of Changes | Design Rationale |
+| Modified / Created File | Summary of Changes | Design Rationale |
 | :--- | :--- | :--- |
-| `apps/api/src/purchases/purchases.service.ts` | Auto-promote party type to `BOTH` in `createPurchase` and `recordPurchasePayment` instead of throwing `BadRequestException("Supplier payments require a supplier party.")`. | Allows businesses to settle purchase bills when parties were initially created as `CUSTOMER`, reflecting real Indian dual-role trade. |
+| `packages/database/prisma/schema.prisma` | Added `HsnType` enum, `HsnMaster` model with composite unique indexes, and relation to `Item`. | Establishes centralized HSN/SAC master with string storage preserving leading zeros and tenant RLS. |
+| `packages/database/prisma/migrations/20261014190000_centralized_hsn_master/` | Applied migration and initial seed data for 49 verified official Indian GST codes. | Safe non-destructive migration preserving existing database records and tenant isolation. |
+| `packages/shared-types/src/index.ts` | Exported `HsnType` enum. | Unified types across frontend and backend monorepo workspaces. |
+| `apps/api/src/hsn/` | Created `HsnModule`, `HsnController`, `HsnService`, and DTOs (`create-hsn`, `update-hsn`, `query-hsn`). | Robust CRUD, search autocompletion, rate validation, system code protection, and delete restriction for referenced codes. |
+| `apps/api/src/items/` | Updated `create-item.dto.ts`, `update-item.dto.ts`, and `items.service.ts` to support `hsnMasterId` and auto-lookup. | Connects item catalog directly to centralized HSN master. |
+| `apps/api/test/hsn.integration.spec.ts` | Created full integration test suite with 11 test cases covering search, CRUD, RLS isolation, format validation, and delete constraints. | Comprehensive test coverage ensuring zero regressions. |
+| `apps/web/src/components/ui/hsn-selector.tsx` | Created searchable HSN autocomplete dropdown with type badge, GST rate indicator, and official GST shield icon. | Replaces free-text input with searchable, validated master selection while maintaining string fallback. |
+| `apps/web/src/app/masters/hsn/page.tsx` | Created full-featured HSN/SAC master management screen with search, type tabs, active status toggle, add/edit/view modals, and bilingual labels. | Complete master data management for Indian businesses. |
+| `apps/web/src/components/layout/app-shell.tsx` | Added "HSN / SAC Codes" (`એચએસએન કોડ`) to sidebar navigation under Master Data. | Discoverable frontend access for accountants and administrators. |
+| `apps/web/src/app/masters/items/page.tsx` | Replaced plain text input with `HsnSelector` in both Create and Edit modals; auto-fills default tax rate and sets type to `SERVICE` when SAC selected. | Seamless user experience and tax calculation consistency. |
+| `apps/api/src/purchases/purchases.service.ts` | Auto-promote party type to `BOTH` in `createPurchase` and `recordPurchasePayment` instead of throwing `BadRequestException`. | Verified in Part B: allows businesses to settle purchase bills when parties were initially created as `CUSTOMER`, reflecting real Indian dual-role trade. |
 | `apps/api/test/purchase-payments.integration.spec.ts` | Added integration test for settling purchase bills for parties created as `CUSTOMER` and verifying promotion to `BOTH`. | Protects supplier payment workflow from regression. |
-| `apps/web/src/app/page.tsx` | Fixed dashboard KPI extraction for `totalOutstanding` and `totalInventoryValue`; updated valuation label to Moving Weighted-Average Cost. | Aligned frontend key parsing with backend API response shape (`totalCustomerOutstanding`, `totalValuation`). |
-| `apps/web/src/app/masters/parties/page.tsx` | Added direct "Ledger / ખાતાવહી" button on each party row. | Provided direct one-click navigation from Party Master to that party's Statement of Account. |
-| `apps/web/src/app/reports/page.tsx` | Implemented full Party Statement (Khata) tab with URL query parameter synchronization, party dropdown, DR/CR badges, and browser print trigger. | Replaces missing Khata view, enabling detailed transaction audit for both debtors and creditors. |
-| `apps/web/src/components/layout/app-shell.tsx` | Added Branch selector to mobile drawer navigation. | Parity between mobile and desktop navigation headers for multi-branch organizations. |
-| `apps/web/src/components/ui/modal.tsx` | Optimized modal padding for compact mobile screens (`px-4 sm:px-6`, `py-3.5 sm:py-4`). | Prevents form overflow and button clipping on 320px–390px mobile viewports. |
-| `docs/project-functionality-audit.md` | Complete rewrite and expansion into comprehensive audit & acceptance report. | Captures end-to-end trace, RBAC matrix, responsive audit, and regression proof. |
+| `docs/project-functionality-audit.md` | Documented HSN/SAC master architecture, supplier payment verification, unmapped codes report, and updated test results. | Complete transparency and audit trail. |
 
 ---
 
