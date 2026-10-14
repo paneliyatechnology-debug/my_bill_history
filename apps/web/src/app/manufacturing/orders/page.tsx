@@ -320,7 +320,7 @@ export default function ProductionOrdersPage() {
 
         <button
           onClick={handleOpenCreate}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-lg text-sm font-semibold shadow-sm transition-colors"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -342,7 +342,7 @@ export default function ProductionOrdersPage() {
                   ? "ઓર્ડર નંબર અથવા તૈયાર માલથી શોધો..."
                   : "Search order # or finished item..."
               }
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#F47721] focus:bg-white"
             />
             <svg
               className="w-4 h-4 text-slate-400 absolute left-3 top-3"
@@ -361,7 +361,7 @@ export default function ProductionOrdersPage() {
                 onClick={() => setStatusFilter(st)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
                   statusFilter === st
-                    ? "bg-indigo-600 text-white"
+                    ? "bg-[#F47721] text-white"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
@@ -419,7 +419,7 @@ export default function ProductionOrdersPage() {
           </p>
           <button
             onClick={handleOpenCreate}
-            className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-semibold hover:bg-indigo-100 transition-colors"
+            className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-[#FFF3E8] text-[#F47721] rounded-lg text-xs font-semibold hover:bg-[#F47721] hover:text-white transition-colors"
           >
             + {lang === "gu" ? "પ્રથમ ઓર્ડર બનાવો" : "Create First Order"}
           </button>
@@ -546,7 +546,7 @@ export default function ProductionOrdersPage() {
               type="submit"
               form="create-order-form"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50"
             >
               {isSubmitting
                 ? lang === "gu"
@@ -646,7 +646,7 @@ export default function ProductionOrdersPage() {
               type="submit"
               form="start-order-form"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50"
             >
               {isSubmitting
                 ? lang === "gu"

@@ -511,11 +511,11 @@ function SalesReturnsContent() {
                 ? "ક્રેડિટ નોટ / વેચાણ પરત"
                 : "Sales Returns & Credit Notes"}
             </h1>
-            <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+            <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-saffron-light text-primary border border-primary/25">
               GST Compliant
             </span>
           </div>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs text-muted mt-1">
             {lang === "gu"
               ? "વેચાણ બિલ સામે માલ પરત સ્વીકારો, જીએસટી રિવર્સલ કરો અને ગ્રાહકને ક્રેડિટ નોટ આપો."
               : "Issue credit notes against posted sales invoices, reverse output GST, and restore stock."}
@@ -527,10 +527,10 @@ function SalesReturnsContent() {
             setFormError(null);
             setIsCreateModalOpen(true);
           }}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-colors shadow-sm"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white rounded-xl font-bold text-xs sm:text-sm transition-all shadow-card hover:shadow-hover"
         >
           <svg
-            className="w-5 h-5"
+            className="w-4 h-4"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -538,12 +538,12 @@ function SalesReturnsContent() {
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth={2}
+              strokeWidth={2.5}
               d="M12 4v16m8-8H4"
             />
           </svg>
           <span>
-            {lang === "gu" ? "નવી ક્રેડિટ નોટ બનાવો" : "Create Credit Note"}
+            {lang === "gu" ? "નવી ક્રેડિટ નોટ બનાવો" : "+ Create Credit Note"}
           </span>
         </button>
       </div>

@@ -288,14 +288,18 @@ export default function ItemsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            {lang === "gu"
-              ? "વસ્તુઓની યાદી (Item Catalog)"
-              : "Item Catalog & Pricing"}
-          </h1>
-          <p className="text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              {lang === "gu"
+                ? "વસ્તુઓની યાદી (Item Catalog)"
+                : "Products & Item Catalog"}
+            </h1>
+          </div>
+          <p className="text-xs text-muted mt-1 ml-4.5">
             {lang === "gu"
               ? "તમામ ઉત્પાદનો, સેવાઓ, બેચ ટ્રેકિંગ, એચએસએન કોડ અને જીએસટી દરોનું સંચાલન"
               : "Manage products, services, batch tracking, HSN/SAC codes, tax rates, and prices"}
@@ -304,7 +308,7 @@ export default function ItemsPage() {
 
         <button
           onClick={handleOpenCreateModal}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#FF9933] hover:bg-[#E67E17] text-slate-950 text-sm font-bold rounded-lg shadow-sm transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
         >
           <svg
             className="w-4 h-4"
@@ -315,19 +319,19 @@ export default function ItemsPage() {
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth={2}
+              strokeWidth={2.5}
               d="M12 4v16m8-8H4"
             />
           </svg>
-          <span>{lang === "gu" ? "નવી વસ્તુ ઉમેરો" : "Add New Item"}</span>
+          <span>{lang === "gu" ? "નવી વસ્તુ ઉમેરો" : "+ Add New Item"}</span>
         </button>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center gap-3">
+      <div className="bg-white p-4 rounded-xl border border-border shadow-subtle flex flex-col sm:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
           <svg
-            className="w-4 h-4 absolute left-3 top-3 text-slate-400"
+            className="w-4 h-4 absolute left-3.5 top-3 text-muted"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -348,7 +352,7 @@ export default function ItemsPage() {
                 ? "વસ્તુનું નામ, એસકેયુ અથવા એચએસએન કોડ દ્વારા શોધો..."
                 : "Search by item name, SKU, or HSN code..."
             }
-            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#FF9933] focus:bg-white text-slate-800"
+            className="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white text-slate-900 transition-all"
           />
         </div>
 
@@ -356,10 +360,10 @@ export default function ItemsPage() {
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="w-full sm:w-auto text-xs bg-slate-50 border border-slate-300 text-slate-700 rounded-lg px-3 py-2 font-medium focus:outline-none focus:ring-1 focus:ring-[#FF9933]"
+            className="w-full sm:w-auto text-xs bg-slate-50 border border-border text-slate-700 rounded-xl px-3.5 py-2.5 font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-all cursor-pointer"
           >
             <option value="ALL">
-              {lang === "gu" ? "તમામ પ્રકાર" : "All Types"}
+              {lang === "gu" ? "તમામ પ્રકાર (All Types)" : "All Types"}
             </option>
             <option value="PRODUCT">
               {lang === "gu" ? "ઉત્પાદન (Product)" : "Products"}
@@ -419,7 +423,7 @@ export default function ItemsPage() {
               {isLoading ? (
                 <tr>
                   <td colSpan={10} className="py-12 text-center text-slate-400">
-                    <div className="inline-block w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-2" />
+                    <div className="inline-block w-6 h-6 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin mb-2" />
                     <p>
                       {lang === "gu"
                         ? "વસ્તુઓ લોડ થઈ રહી છે..."
@@ -779,7 +783,7 @@ export default function ItemsPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 text-xs font-bold text-slate-950 bg-[#FF9933] hover:bg-[#E67E17] disabled:bg-amber-200 rounded-lg shadow-sm"
+              className="px-5 py-2 text-xs font-semibold text-white bg-[#F47721] hover:bg-[#D95F12] disabled:bg-[#F47721]/50 rounded-lg shadow-sm"
             >
               {isSubmitting
                 ? "Saving..."
@@ -1068,7 +1072,7 @@ export default function ItemsPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 text-xs font-bold text-slate-950 bg-[#FF9933] hover:bg-[#E67E17] disabled:bg-amber-200 rounded-lg shadow-sm"
+              className="px-5 py-2 text-xs font-semibold text-white bg-[#F47721] hover:bg-[#D95F12] disabled:bg-[#F47721]/50 rounded-lg shadow-sm"
             >
               {isSubmitting
                 ? "Updating..."

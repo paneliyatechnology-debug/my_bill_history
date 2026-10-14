@@ -213,7 +213,7 @@ export default function InvoiceDetailPage() {
   if (isLoading) {
     return (
       <div className="py-20 text-center text-slate-400">
-        <div className="inline-block w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-3" />
+        <div className="inline-block w-8 h-8 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin mb-3" />
         <p className="text-xs">Loading tax invoice...</p>
       </div>
     );
@@ -227,7 +227,7 @@ export default function InvoiceDetailPage() {
         </p>
         <Link
           href="/sales/invoices"
-          className="text-xs text-slate-600 underline"
+          className="text-xs text-primary font-medium hover:underline"
         >
           Return to Invoices List
         </Link>
@@ -238,13 +238,14 @@ export default function InvoiceDetailPage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Top Action Bar (Hidden on Print) */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 print:hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-2xl border border-border shadow-subtle print:hidden">
         <div className="flex items-center gap-3">
           <Link
             href="/sales/invoices"
-            className="text-xs text-slate-500 hover:text-slate-800"
+            className="text-xs font-semibold text-muted hover:text-slate-800 flex items-center gap-1"
           >
-            ← Invoices
+            <span>←</span>
+            <span>{lang === "gu" ? "બિલોની યાદી" : "Invoices"}</span>
           </Link>
           <span className="text-slate-300">/</span>
           <span className="font-mono font-bold text-slate-900 text-sm">
@@ -253,12 +254,12 @@ export default function InvoiceDetailPage() {
           <StatusBadge status={invoice.status} />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {invoice.status === "DRAFT" && (
             <button
               onClick={() => handleIssueInvoice(false)}
               disabled={isIssuing}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm flex items-center gap-1.5 transition-colors"
+              className="px-4 py-2 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs font-bold rounded-xl shadow-card flex items-center gap-1.5 transition-all"
             >
               {isIssuing && (
                 <svg className="animate-spin h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none">
@@ -271,7 +272,7 @@ export default function InvoiceDetailPage() {
                   ? "Processing..."
                   : invoice.category === "PROFORMA_INVOICE"
                     ? "Convert to Tax Invoice (પાકું બિલ)"
-                    : "Issue Invoice"}
+                    : "Issue Tax Invoice"}
               </span>
             </button>
           )}
@@ -284,16 +285,17 @@ export default function InvoiceDetailPage() {
                 setPaymentError(null);
                 setIsPaymentModalOpen(true);
               }}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm"
+              className="px-4 py-2 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs font-bold rounded-xl shadow-card transition-all flex items-center gap-1.5"
             >
-              Record Payment (ચુકવણી નોંધો)
+              <span>💳</span>
+              <span>{lang === "gu" ? "ચુકવણી નોંધો" : "Record Payment"}</span>
             </button>
           )}
 
           {!["CANCELLED", "DRAFT"].includes(invoice.status) && (
             <Link
               href={`/sales/returns?invoiceId=${invoice.id}`}
-              className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold rounded-lg flex items-center gap-1.5"
+              className="px-3.5 py-2 bg-saffron-light hover:bg-[#FFE6D0] text-primary border border-primary/20 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all"
             >
               <svg
                 className="w-4 h-4"
@@ -308,7 +310,7 @@ export default function InvoiceDetailPage() {
                   d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
                 />
               </svg>
-              <span>Credit Note / Return</span>
+              <span>{lang === "gu" ? "વેચાણ પરત / ક્રેડિટ નોટ" : "Credit Note"}</span>
             </Link>
           )}
 
@@ -319,9 +321,9 @@ export default function InvoiceDetailPage() {
                 setCancelError(null);
                 setIsCancelModalOpen(true);
               }}
-              className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold rounded-lg"
+              className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold rounded-xl transition-all"
             >
-              Cancel Invoice
+              {lang === "gu" ? "બિલ રદ કરો" : "Cancel Invoice"}
             </button>
           )}
 
@@ -342,14 +344,14 @@ export default function InvoiceDetailPage() {
                 : `https://wa.me/?text=${encodeURIComponent(text)}`;
               window.open(waUrl, "_blank");
             }}
-            className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm flex items-center gap-1.5"
+            className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm flex items-center gap-1.5 transition-all"
           >
             <span>💬 WhatsApp</span>
           </button>
 
           <button
             onClick={() => window.print()}
-            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg shadow-sm flex items-center gap-1.5"
+            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-card flex items-center gap-1.5 transition-all"
           >
             <svg
               className="w-4 h-4"
@@ -364,7 +366,7 @@ export default function InvoiceDetailPage() {
                 d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
               />
             </svg>
-            <span>Print Invoice</span>
+            <span>{lang === "gu" ? "પ્રિન્ટ બિલ (A4)" : "Print Invoice"}</span>
           </button>
         </div>
       </div>

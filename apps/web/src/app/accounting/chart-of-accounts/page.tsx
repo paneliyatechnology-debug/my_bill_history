@@ -108,14 +108,17 @@ export default function ChartOfAccountsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            {lang === "gu"
-              ? "ખાતાવહી માળખું (Chart of Accounts)"
-              : "Chart of Accounts (COA)"}
-          </h1>
-          <p className="text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              {lang === "gu"
+                ? "ખાતાવહી માળખું (Chart of Accounts)"
+                : "Chart of Accounts (COA)"}
+            </h1>
+          </div>
+          <p className="text-xs text-muted mt-1 ml-4.5">
             {lang === "gu"
               ? "મિલકતો, દેવા, આવક અને ખર્ચના ખાતા જૂથો"
               : "Standard double-entry accounting hierarchy: Assets, Liabilities, Equity, Revenue, Expenses"}
@@ -126,10 +129,10 @@ export default function ChartOfAccountsPage() {
           <button
             onClick={handleSeedStandard}
             disabled={seeding}
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold rounded-lg transition-colors shadow-sm"
+            className="inline-flex items-center gap-2 px-3.5 py-2.5 bg-saffron-light hover:bg-[#FFE6D0] text-primary border border-primary/25 text-xs font-bold rounded-xl transition-all shadow-sm"
           >
             {seeding ? (
-              <span className="w-3.5 h-3.5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+              <span className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             ) : (
               <span>🌱</span>
             )}
@@ -151,7 +154,7 @@ export default function ChartOfAccountsPage() {
               setFormError(null);
               setIsModalOpen(true);
             }}
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#FF9933] hover:bg-[#E67E17] text-slate-950 text-xs font-bold rounded-lg transition-colors shadow-sm"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
           >
             <svg
               className="w-4 h-4"
@@ -162,11 +165,11 @@ export default function ChartOfAccountsPage() {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
+                strokeWidth={2.5}
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            <span>{lang === "gu" ? "નવું ખાતા જૂથ" : "Add Group"}</span>
+            <span>{lang === "gu" ? "નવું ખાતા જૂથ" : "+ Add Group"}</span>
           </button>
         </div>
       </div>
@@ -208,7 +211,7 @@ export default function ChartOfAccountsPage() {
               {isLoading ? (
                 <tr>
                   <td colSpan={4} className="py-12 text-center text-slate-400">
-                    <div className="inline-block w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-2" />
+                    <div className="inline-block w-6 h-6 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin mb-2" />
                     <p>Loading chart of accounts...</p>
                   </td>
                 </tr>

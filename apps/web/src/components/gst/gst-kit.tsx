@@ -81,23 +81,27 @@ export function GstFrame({
   return (
     <GstPeriodContext.Provider value={period}>
     <div className="p-4 sm:p-6 space-y-4">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">GST Compliance</p>
-        <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">{title}</h1>
-        <p className="text-sm text-slate-600 mt-1">
-          {currentCompany?.tradeName || currentCompany?.legalName || "No company selected"} · GSTIN{" "}
-          {currentCompany?.gstin || "not set"} · {currentFY?.name || "Financial year not selected"}
-        </p>
+      <div className="bg-white p-5 rounded-2xl border border-border shadow-subtle flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">{title}</h1>
+          </div>
+          <p className="text-xs text-muted mt-1 ml-4.5">
+            {currentCompany?.tradeName || currentCompany?.legalName || "No company selected"} · GSTIN:{" "}
+            <span className="font-mono font-bold text-primary">{currentCompany?.gstin || "Not configured"}</span> · {currentFY?.name || "Financial Year"}
+          </p>
+        </div>
       </div>
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
         {LINKS.map((link) => {
           const active = pathname === link.href;
           return (
             <Link
               key={link.href}
               href={link.href}
-              className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium border ${
-                active ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-700 border-slate-200"
+              className={`shrink-0 rounded-xl px-3.5 py-2 text-xs font-semibold border transition-all ${
+                active ? "bg-primary text-white border-primary shadow-card font-bold" : "bg-white text-slate-700 border-border hover:border-primary/40 hover:bg-saffron-very-light"
               }`}
             >
               {link.label}
@@ -105,35 +109,41 @@ export function GstFrame({
           );
         })}
       </div>
-      <div className="bg-white border border-slate-200 rounded-xl p-3 flex flex-wrap gap-3 items-end">
-        <label className="text-xs text-slate-500">
-          Month
+      <div className="bg-white border border-border rounded-2xl p-4 shadow-subtle flex flex-wrap gap-4 items-end">
+        <label className="text-xs font-bold text-slate-700">
+          Month (મહિનો)
           <select
-            className="mt-1 block border border-slate-300 rounded px-2 py-1 text-sm text-slate-900"
+            className="mt-1 block border border-border rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-900 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
             value={period.month}
             onChange={(event) => period.setMonth(Number(event.target.value))}
           >
             {Array.from({ length: 12 }, (_, index) => (
               <option key={index + 1} value={index + 1}>
-                {index + 1}
+                Month {index + 1} ({new Date(2026, index, 1).toLocaleString('en', { month: 'short' })})
               </option>
             ))}
           </select>
         </label>
-        <label className="text-xs text-slate-500">
-          Year
+        <label className="text-xs font-bold text-slate-700">
+          Year (વર્ષ)
           <input
-            className="mt-1 block w-24 border border-slate-300 rounded px-2 py-1 text-sm"
+            className="mt-1 block w-24 border border-border rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-slate-900 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             type="number"
             value={period.year}
             onChange={(event) => period.setYear(Number(event.target.value))}
           />
         </label>
-        <p className="text-xs text-slate-500">
-          Period {period.fromDate} to {period.toDate}. Return period {period.returnPeriod}. Drafts are not filed returns.
+        <p className="text-xs text-muted flex items-center gap-1.5 pb-1">
+          <span>📅 Period:</span>
+          <span className="font-mono font-bold text-slate-800">{period.fromDate}</span>
+          <span>to</span>
+          <span className="font-mono font-bold text-slate-800">{period.toDate}</span>
+          <span className="text-[11px] bg-saffron-light text-primary font-bold px-2 py-0.5 rounded-md ml-1">
+            GSTR Period: {period.returnPeriod}
+          </span>
         </p>
       </div>
-      {notice ? <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-3">{notice}</p> : null}
+      {notice ? <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-3 shadow-subtle">{notice}</p> : null}
       {children}
     </div>
     </GstPeriodContext.Provider>

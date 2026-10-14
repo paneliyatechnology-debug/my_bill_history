@@ -575,7 +575,7 @@ export function BillScannerModal({
         {/* Top Header */}
         <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-100">
+            <div className="w-10 h-10 rounded-xl bg-[#F47721] flex items-center justify-center text-white shadow-md shadow-orange-100">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -645,10 +645,10 @@ export function BillScannerModal({
               <div
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
-                className="border-2 border-dashed border-indigo-200 hover:border-indigo-400 bg-indigo-50/30 hover:bg-indigo-50/60 rounded-2xl p-10 transition-all cursor-pointer flex flex-col items-center justify-center gap-4"
+                className="border-2 border-dashed border-[#F47721]/30 hover:border-[#F47721] bg-[#FFF3E8]/30 hover:bg-[#FFF3E8]/60 rounded-2xl p-10 transition-all cursor-pointer flex flex-col items-center justify-center gap-4"
                 onClick={() => fileInputRef.current?.click()}
               >
-                <div className="w-16 h-16 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm">
+                <div className="w-16 h-16 rounded-2xl bg-[#FFF3E8] flex items-center justify-center text-[#F47721] shadow-sm">
                   <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
@@ -671,7 +671,7 @@ export function BillScannerModal({
                       e.stopPropagation();
                       fileInputRef.current?.click();
                     }}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-2"
+                    className="px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white text-xs font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-2"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -764,8 +764,8 @@ export function BillScannerModal({
           {step === "processing" && (
             <div className="p-16 flex flex-col items-center justify-center text-center space-y-6">
               <div className="relative">
-                <div className="w-20 h-20 rounded-full border-4 border-indigo-100 border-t-indigo-600 animate-spin" />
-                <div className="absolute inset-0 flex items-center justify-center text-indigo-600 font-bold text-xs">
+                <div className="w-20 h-20 rounded-full border-4 border-[#FFF3E8] border-t-[#F47721] animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center text-[#F47721] font-bold text-xs">
                   AI
                 </div>
               </div>
@@ -790,7 +790,7 @@ export function BillScannerModal({
                   onClick={() => setMobileTab("data")}
                   className={`flex-1 py-2.5 text-xs font-bold text-center border-b-2 ${
                     mobileTab === "data"
-                      ? "border-indigo-600 text-indigo-600 bg-white"
+                      ? "border-[#F47721] text-[#F47721] bg-white"
                       : "border-transparent text-slate-500"
                   }`}
                 >
@@ -801,7 +801,7 @@ export function BillScannerModal({
                   onClick={() => setMobileTab("preview")}
                   className={`flex-1 py-2.5 text-xs font-bold text-center border-b-2 ${
                     mobileTab === "preview"
-                      ? "border-indigo-600 text-indigo-600 bg-white"
+                      ? "border-[#F47721] text-[#F47721] bg-white"
                       : "border-transparent text-slate-500"
                   }`}
                 >
@@ -987,7 +987,7 @@ export function BillScannerModal({
                               type="button"
                               onClick={handleOpenCreateSupplierModal}
                               disabled={isSavingSupplier}
-                              className="px-2.5 py-1 text-[11px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded shadow-sm disabled:opacity-50 shrink-0 transition-colors"
+                              className="px-2.5 py-1 text-[11px] font-bold bg-[#F47721] hover:bg-[#D95F12] text-white rounded shadow-sm disabled:opacity-50 shrink-0 transition-colors"
                             >
                               {lang === "gu" ? "ખાતું બનાવો" : "Save to Masters"}
                             </button>
@@ -1116,7 +1116,7 @@ export function BillScannerModal({
                       <button
                         type="button"
                         onClick={handleAddLine}
-                        className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1"
+                        className="text-xs text-[#F47721] hover:text-[#D95F12] font-semibold flex items-center gap-1"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -1452,7 +1452,7 @@ export function BillScannerModal({
                     type="button"
                     onClick={handleConfirmPurchase}
                     disabled={isConfirming || isSavingDraft}
-                    className="flex-1 sm:flex-none px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-md transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="flex-1 sm:flex-none px-5 py-2.5 bg-[#F47721] hover:bg-[#D95F12] text-white text-xs font-bold rounded-lg shadow-md transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     {isConfirming ? (
                       <>
@@ -1631,7 +1631,7 @@ export function BillScannerModal({
                     <button
                       type="submit"
                       disabled={isSavingSupplier}
-                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm disabled:opacity-50 flex items-center gap-1.5 transition-colors"
+                      className="px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white text-xs font-bold rounded-lg shadow-sm disabled:opacity-50 flex items-center gap-1.5 transition-colors"
                     >
                       {isSavingSupplier ? (
                         <>

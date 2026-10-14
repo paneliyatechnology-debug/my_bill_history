@@ -107,14 +107,18 @@ export default function LedgersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            {lang === "gu"
-              ? "ખાતાઓનું રજિસ્ટર (Ledger Accounts)"
-              : "Ledger Accounts Register"}
-          </h1>
-          <p className="text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              {lang === "gu"
+                ? "ખાતાઓનું રજિસ્ટર (Ledger Accounts)"
+                : "Ledger Accounts Register"}
+            </h1>
+          </div>
+          <p className="text-xs text-muted mt-1 ml-4.5">
             {lang === "gu"
               ? "રોકડ, બેંક, ગ્રાહકો, સપ્લાયર્સ અને ખર્ચના ખાતાઓ"
               : "Manage individual ledgers, opening balances, and double-entry postings"}
@@ -134,7 +138,7 @@ export default function LedgersPage() {
             setFormError(null);
             setIsModalOpen(true);
           }}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#FF9933] hover:bg-[#E67E17] text-slate-950 text-sm font-bold rounded-lg shadow-sm transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
         >
           <svg
             className="w-4 h-4"
@@ -145,19 +149,19 @@ export default function LedgersPage() {
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth={2}
+              strokeWidth={2.5}
               d="M12 4v16m8-8H4"
             />
           </svg>
-          <span>{lang === "gu" ? "નવું ખાતું ખોલો" : "Create Ledger"}</span>
+          <span>{lang === "gu" ? "નવું ખાતું ખોલો" : "+ Create Ledger"}</span>
         </button>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center gap-3">
+      <div className="bg-white p-4 rounded-xl border border-border shadow-subtle flex flex-col sm:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
           <svg
-            className="w-4 h-4 absolute left-3 top-3 text-slate-400"
+            className="w-4 h-4 absolute left-3.5 top-3 text-muted"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -174,7 +178,7 @@ export default function LedgersPage() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search ledger by name or code..."
-            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white text-slate-800"
+            className="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white text-slate-900 transition-all"
           />
         </div>
 
@@ -182,9 +186,9 @@ export default function LedgersPage() {
           <select
             value={groupFilter}
             onChange={(e) => setGroupFilter(e.target.value)}
-            className="w-full sm:w-auto text-xs bg-slate-50 border border-slate-300 text-slate-700 rounded-lg px-3 py-2 font-medium"
+            className="w-full sm:w-auto text-xs bg-slate-50 border border-border text-slate-700 rounded-xl px-3.5 py-2.5 font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-all cursor-pointer"
           >
-            <option value="ALL">All Ledger Groups</option>
+            <option value="ALL">All Ledger Groups (તમામ જૂથ)</option>
             {groups.map((g) => (
               <option key={g.id} value={g.id}>
                 {g.name}
@@ -226,7 +230,7 @@ export default function LedgersPage() {
               {isLoading ? (
                 <tr>
                   <td colSpan={5} className="py-12 text-center text-slate-400">
-                    <div className="inline-block w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-2" />
+                    <div className="inline-block w-6 h-6 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin mb-2" />
                     <p>Loading ledger accounts...</p>
                   </td>
                 </tr>

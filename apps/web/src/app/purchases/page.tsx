@@ -316,14 +316,17 @@ export default function PurchasesPage() {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            {lang === "gu"
-              ? "ખરીદી બિલો (Purchase Bills)"
-              : "Purchase Bills & Inward Stock"}
-          </h1>
-          <p className="text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              {lang === "gu"
+                ? "ખરીદી બિલો (Purchase Bills)"
+                : "Purchase Bills & Inward Stock"}
+            </h1>
+          </div>
+          <p className="text-xs text-muted mt-1 ml-4.5">
             {lang === "gu"
               ? "વેપારી ખરીદી, ઇનપુટ ટેક્સ ક્રેડિટ (ITC) અને સ્ટોકની આવક"
               : "Vendor bills, Input Tax Credit (ITC), and inward inventory receipts"}
@@ -336,10 +339,10 @@ export default function PurchasesPage() {
               fetchDependencies();
               setIsScannerModalOpen(true);
             }}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 via-indigo-600 to-indigo-700 hover:from-violet-700 hover:to-indigo-800 text-white text-sm font-bold rounded-lg shadow-md hover:shadow-lg transition-all"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-saffron-light hover:bg-[#FFE6D0] text-primary border border-primary/25 text-xs sm:text-sm font-bold rounded-xl shadow-sm transition-all"
           >
             <svg
-              className="w-4 h-4 text-violet-200"
+              className="w-4 h-4 text-primary"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -360,13 +363,13 @@ export default function PurchasesPage() {
             <span>
               {lang === "gu"
                 ? "AI સ્માર્ટ બિલ સ્કેનર (Scan Bill)"
-                : "Scan / Upload Bill (AI Auto-Entry)"}
+                : "Scan Bill (AI Auto-Entry)"}
             </span>
           </button>
 
           <button
             onClick={handleOpenModal}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
           >
             <svg
               className="w-4 h-4"
@@ -377,12 +380,12 @@ export default function PurchasesPage() {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
+                strokeWidth={2.5}
                 d="M12 4v16m8-8H4"
               />
             </svg>
             <span>
-              {lang === "gu" ? "મેન્યુઅલ બિલ ઉમેરો" : "Manual Bill Entry"}
+              {lang === "gu" ? "મેન્યુઅલ બિલ ઉમેરો" : "+ Record Purchase Bill"}
             </span>
           </button>
         </div>
@@ -413,7 +416,7 @@ export default function PurchasesPage() {
           value={invoices.length}
           icon={
             <svg
-              className="w-5 h-5 text-indigo-600"
+              className="w-5 h-5 text-[#F47721]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -474,7 +477,7 @@ export default function PurchasesPage() {
       </div>
 
       {/* Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-white p-4 rounded-xl border border-border shadow-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="relative w-full sm:w-96">
           <input
             type="text"
@@ -485,10 +488,10 @@ export default function PurchasesPage() {
                 ? "બિલ નંબર અથવા વેપારી શોધો..."
                 : "Search bill number or supplier..."
             }
-            className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none transition-all"
           />
           <svg
-            className="w-4 h-4 text-slate-400 absolute left-3 top-2.5"
+            className="w-4 h-4 text-muted absolute left-3.5 top-3"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -504,23 +507,29 @@ export default function PurchasesPage() {
       </div>
 
       {/* Invoices List Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-border shadow-subtle overflow-hidden">
         {isLoading ? (
-          <div className="p-8 text-center text-sm text-slate-500">
-            {lang === "gu"
-              ? "ખરીદી બિલો લોડ થઈ રહ્યા છે..."
-              : "Loading purchase bills..."}
+          <div className="p-8 text-center text-xs text-muted">
+            <div className="inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mb-2" />
+            <p>
+              {lang === "gu"
+                ? "ખરીદી બિલો લોડ થઈ રહ્યા છે..."
+                : "Loading purchase bills..."}
+            </p>
           </div>
         ) : error ? (
-          <div className="p-8 text-center text-sm text-rose-600">{error}</div>
+          <div className="p-8 text-center text-xs text-rose-600 font-medium">{error}</div>
         ) : invoices.length === 0 ? (
-          <div className="p-12 text-center text-slate-500">
-            <p className="text-sm font-medium">
+          <div className="p-12 text-center text-muted">
+            <div className="w-12 h-12 rounded-full bg-saffron-light text-primary flex items-center justify-center mx-auto mb-2 text-xl font-bold">
+              📦
+            </div>
+            <p className="text-sm font-semibold text-slate-800">
               {lang === "gu"
                 ? "કોઈ ખરીદી બિલ મળ્યા નથી."
                 : "No purchase bills recorded yet."}
             </p>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-muted mt-1">
               {lang === "gu"
                 ? "નવા સ્ટોક અને આઈટીસી માટે ખરીદી બિલ દાખલ કરો."
                 : "Record a supplier invoice to update inventory and GST input tax credit."}
@@ -528,31 +537,31 @@ export default function PurchasesPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-700 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50/80 text-slate-500 text-[11px] font-bold uppercase tracking-wider border-b border-border">
                 <tr>
-                  <th className="px-6 py-3">
+                  <th className="px-5 py-3">
                     {lang === "gu" ? "બિલ નંબર" : "Bill Number"}
                   </th>
-                  <th className="px-6 py-3">
+                  <th className="px-5 py-3">
                     {lang === "gu" ? "તારીખ" : "Date"}
                   </th>
-                  <th className="px-6 py-3">
+                  <th className="px-5 py-3">
                     {lang === "gu" ? "વેપારી" : "Supplier"}
                   </th>
-                  <th className="px-6 py-3 text-right">
-                    {lang === "gu" ? "કરપાત્ર રકમ" : "Taxable"}
+                  <th className="px-5 py-3 text-right">
+                    {lang === "gu" ? "કરપાત્ર રકમ" : "Taxable (₹)"}
                   </th>
-                  <th className="px-6 py-3 text-right">
-                    {lang === "gu" ? "ટેક્સ" : "Tax (ITC)"}
+                  <th className="px-5 py-3 text-right">
+                    {lang === "gu" ? "ટેક્સ (ITC)" : "Tax (ITC) (₹)"}
                   </th>
-                  <th className="px-6 py-3 text-right">
-                    {lang === "gu" ? "કુલ રકમ" : "Grand Total"}
+                  <th className="px-5 py-3 text-right">
+                    {lang === "gu" ? "કુલ રકમ" : "Grand Total (₹)"}
                   </th>
-                  <th className="px-6 py-3 text-right">
-                    {lang === "gu" ? "બાકી" : "Remaining"}
+                  <th className="px-5 py-3 text-right">
+                    {lang === "gu" ? "બાકી રકમ" : "Balance (₹)"}
                   </th>
-                  <th className="px-6 py-3 text-center">
+                  <th className="px-5 py-3 text-center">
                     {lang === "gu" ? "આઈટીસી સ્ટેટસ" : "ITC Eligibility"}
                   </th>
                 </tr>
@@ -566,49 +575,51 @@ export default function PurchasesPage() {
                   return (
                     <tr
                       key={inv.id}
-                      className="hover:bg-slate-50 transition-colors"
+                      className="hover:bg-saffron-very-light/60 transition-colors group"
                     >
-                      <td className="px-6 py-4 font-semibold text-slate-900">
+                      <td className="px-5 py-3.5 font-mono font-bold text-slate-900">
                         {inv.vendorInvoiceNumber}
                       </td>
-                      <td className="px-6 py-4 text-slate-600">
+                      <td className="px-5 py-3.5 font-mono text-slate-600">
                         {new Date(inv.invoiceDate).toLocaleDateString("en-IN")}
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="font-medium text-slate-800">
+                      <td className="px-5 py-3.5">
+                        <div className="font-semibold text-slate-900">
                           {lang === "gu" && inv.party.nameGujarati
                             ? inv.party.nameGujarati
                             : inv.party.name}
                         </div>
                         {inv.party.gstin && (
-                          <div className="text-xs text-slate-400 font-mono">
+                          <div className="text-[10px] text-primary font-bold font-mono">
                             {inv.party.gstin}
                           </div>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-right font-mono text-slate-700">
+                      <td className="px-5 py-3.5 text-right font-mono text-slate-700">
                         ₹{Number(inv.taxableAmount).toFixed(2)}
                       </td>
-                      <td className="px-6 py-4 text-right font-mono text-emerald-600 font-medium">
+                      <td className="px-5 py-3.5 text-right font-mono text-emerald-700 font-semibold">
                         ₹{tax.toFixed(2)}
                       </td>
-                      <td className="px-6 py-4 text-right font-mono font-bold text-slate-900">
+                      <td className="px-5 py-3.5 text-right font-mono font-bold text-slate-900">
                         ₹{Number(inv.grandTotal).toFixed(2)}
                       </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="font-mono text-slate-800">₹{Number(inv.balanceAmount ?? inv.grandTotal).toFixed(2)}</div>
+                      <td className="px-5 py-3.5 text-right">
+                        <div className="font-mono font-semibold text-slate-800">
+                          ₹{Number(inv.balanceAmount ?? inv.grandTotal).toFixed(2)}
+                        </div>
                         {canPay && Number(inv.balanceAmount ?? inv.grandTotal) > 0 ? (
                           <button
                             type="button"
-                            className="mt-1 text-xs font-semibold text-indigo-700 underline"
+                            className="mt-1 text-[11px] font-bold text-primary hover:text-primary-hover hover:underline inline-block"
                             onClick={() => openPayment(inv)}
                           >
-                            {lang === "gu" ? "ચુકવણી" : "Pay"}
+                            {lang === "gu" ? "💳 ચુકવણી કરો" : "💳 Record Pay"}
                           </button>
                         ) : null}
                       </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">
+                      <td className="px-5 py-3.5 text-center">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
                           {inv.itcEligibility || "INPUT"}
                         </span>
                       </td>
@@ -777,7 +788,7 @@ export default function PurchasesPage() {
               <button
                 type="button"
                 onClick={handleAddLine}
-                className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold"
+                className="text-xs text-[#F47721] hover:text-[#D95F12] font-semibold"
               >
                 + {lang === "gu" ? "વસ્તુ ઉમેરો" : "Add Line"}
               </button>
@@ -917,7 +928,7 @@ export default function PurchasesPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm"
+              className="px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm"
             >
               {isSubmitting
                 ? lang === "gu"

@@ -5,13 +5,18 @@
   "packageManager": "pnpm@9.15.0",
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "dev": "pnpm --parallel --filter \"./apps/*\" dev",
+    "dev:turbo": "turbo run dev",
+    "dev:web": "pnpm --filter @billing/web dev",
+    "dev:api": "pnpm --filter @billing/api dev",
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
-    "db:generate": "turbo run db:generate"
+    "db:generate": "pnpm --filter @billing/database db:generate",
+    "db:migrate": "pnpm --filter @billing/database db:migrate",
+    "db:push": "pnpm --filter @billing/database db:push"
   },
   "devDependencies": {
     "prettier": "^3.3.3",

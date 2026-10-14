@@ -340,21 +340,24 @@ export default function PartiesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            {lang === "gu" ? "વેપારીઓ / ખાતાઓ" : "Parties (Khata)"}
-          </h1>
-          <p className="text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              {lang === "gu" ? "વેપારીઓ / ગ્રાહક ખાતાઓ (Parties)" : "Parties & Customer Khata"}
+            </h1>
+          </div>
+          <p className="text-xs text-muted mt-1 ml-4.5">
             {lang === "gu"
               ? "ગ્રાહકો, સપ્લાયરો, જીએસટી નંબર અને ખાતાની માહિતી મેનેજ કરો"
-              : "Manage customers, suppliers, GSTINs, and ledger limits"}
+              : "Manage customers, suppliers, GSTINs, credit terms, and ledger limits"}
           </p>
         </div>
 
         <button
           onClick={handleOpenCreateModal}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#FF9933] hover:bg-[#E67E17] text-slate-950 text-sm font-bold rounded-lg shadow-sm transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
         >
           <svg
             className="w-4 h-4"
@@ -365,19 +368,19 @@ export default function PartiesPage() {
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth={2}
+              strokeWidth={2.5}
               d="M12 4v16m8-8H4"
             />
           </svg>
-          <span>{lang === "gu" ? "નવો વેપારી ઉમેરો" : "Add New Party"}</span>
+          <span>{lang === "gu" ? "નવો વેપારી ઉમેરો" : "+ Add New Party"}</span>
         </button>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center gap-3">
+      <div className="bg-white p-4 rounded-xl border border-border shadow-subtle flex flex-col sm:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
           <svg
-            className="w-4 h-4 absolute left-3 top-3 text-slate-400"
+            className="w-4 h-4 absolute left-3.5 top-3 text-muted"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -398,7 +401,7 @@ export default function PartiesPage() {
                 ? "નામ, ફોન નંબર અથવા જીએસટી દ્વારા શોધો..."
                 : "Search by party name, phone, or GSTIN..."
             }
-            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white text-slate-800"
+            className="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white text-slate-900 transition-all"
           />
         </div>
 
@@ -406,10 +409,10 @@ export default function PartiesPage() {
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="w-full sm:w-auto text-xs bg-slate-50 border border-slate-300 text-slate-700 rounded-lg px-3 py-2 font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            className="w-full sm:w-auto text-xs bg-slate-50 border border-border text-slate-700 rounded-xl px-3.5 py-2.5 font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-all cursor-pointer"
           >
             <option value="ALL">
-              {lang === "gu" ? "તમામ પ્રકાર" : "All Types"}
+              {lang === "gu" ? "તમામ પ્રકાર (All Types)" : "All Types"}
             </option>
             <option value="CUSTOMER">
               {lang === "gu" ? "ગ્રાહક (Customers)" : "Customers"}
@@ -463,7 +466,7 @@ export default function PartiesPage() {
               {isLoading ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <div className="inline-block w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-2" />
+                    <div className="inline-block w-6 h-6 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin mb-2" />
                     <p>
                       {lang === "gu"
                         ? "ખાતાઓ લોડ થઈ રહ્યા છે..."

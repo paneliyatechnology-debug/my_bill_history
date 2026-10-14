@@ -111,14 +111,17 @@ export default function VouchersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            {lang === "gu"
-              ? "નામા વાઉચર રજિસ્ટર (Vouchers Register)"
-              : "Double-Entry Voucher Register"}
-          </h1>
-          <p className="text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              {lang === "gu"
+                ? "નામા વાઉચર રજિસ્ટર (Vouchers Register)"
+                : "Double-Entry Voucher Register"}
+            </h1>
+          </div>
+          <p className="text-xs text-muted mt-1 ml-4.5">
             {lang === "gu"
               ? "રોજમેળ, જમા-ઉધાર, જર્નલ, બેંક અને રોકડ વાઉચરોનું રજિસ્ટર"
               : "Immutable journal entries, receipts, payments, and contra vouchers"}
@@ -127,7 +130,7 @@ export default function VouchersPage() {
 
         <Link
           href="/accounting/vouchers/new"
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#FF9933] hover:bg-[#E67E17] text-slate-950 text-sm font-bold rounded-lg shadow-sm transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
         >
           <svg
             className="w-4 h-4"
@@ -138,19 +141,19 @@ export default function VouchersPage() {
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth={2}
+              strokeWidth={2.5}
               d="M12 4v16m8-8H4"
             />
           </svg>
-          <span>{lang === "gu" ? "નવું વાઉચર લખો" : "Record New Voucher"}</span>
+          <span>{lang === "gu" ? "નવું વાઉચર લખો" : "+ Record New Voucher"}</span>
         </Link>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center gap-3">
+      <div className="bg-white p-4 rounded-xl border border-border shadow-subtle flex flex-col sm:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
           <svg
-            className="w-4 h-4 absolute left-3 top-3 text-slate-400"
+            className="w-4 h-4 absolute left-3.5 top-3 text-muted"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -167,16 +170,16 @@ export default function VouchersPage() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by voucher number, narration, or reference..."
-            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white text-slate-800"
+            className="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white text-slate-900 transition-all"
           />
         </div>
 
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="w-full sm:w-auto text-xs bg-slate-50 border border-slate-300 text-slate-700 rounded-lg px-3 py-2 font-medium"
+          className="w-full sm:w-auto text-xs bg-slate-50 border border-border text-slate-700 rounded-xl px-3.5 py-2.5 font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-all cursor-pointer"
         >
-          <option value="ALL">All Voucher Types</option>
+          <option value="ALL">All Voucher Types (તમામ વાઉચર)</option>
           <option value="JOURNAL">JOURNAL (જર્નલ)</option>
           <option value="RECEIPT">RECEIPT (આવક પહોંચ)</option>
           <option value="PAYMENT">PAYMENT (ચૂકવણી વાઉચર)</option>
@@ -224,7 +227,7 @@ export default function VouchersPage() {
               {isLoading ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <div className="inline-block w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-2" />
+                    <div className="inline-block w-6 h-6 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin mb-2" />
                     <p>Loading vouchers...</p>
                   </td>
                 </tr>
@@ -271,7 +274,7 @@ export default function VouchersPage() {
                     <td className="py-3 px-4 text-right space-x-2">
                       <button
                         onClick={() => setSelectedVoucher(v)}
-                        className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold"
+                        className="text-xs text-[#F47721] hover:text-[#D95F12] font-semibold"
                       >
                         View Lines
                       </button>

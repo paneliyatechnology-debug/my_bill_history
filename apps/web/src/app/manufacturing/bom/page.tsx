@@ -296,7 +296,7 @@ export default function BomPage() {
 
         <button
           onClick={handleOpenCreate}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-lg text-sm font-semibold shadow-sm transition-colors"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -317,7 +317,7 @@ export default function BomPage() {
                 ? "BOM અથવા તૈયાર માલના નામથી શોધો..."
                 : "Search by BOM name or finished item..."
             }
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#F47721] focus:bg-white transition-all"
           />
           <svg
             className="w-4 h-4 text-slate-400 absolute left-3 top-3"
@@ -405,7 +405,7 @@ export default function BomPage() {
           </p>
           <button
             onClick={handleOpenCreate}
-            className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-semibold hover:bg-indigo-100 transition-colors"
+            className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-[#FFF3E8] text-[#F47721] rounded-lg text-xs font-semibold hover:bg-[#F47721] hover:text-white transition-colors"
           >
             + {lang === "gu" ? "પ્રથમ BOM બનાવો" : "Create First BOM"}
           </button>
@@ -462,7 +462,7 @@ export default function BomPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FFF3E8] text-[#F47721] border border-[#F47721]/30">
                         {bom.items.length}{" "}
                         {lang === "gu" ? "કાચો માલ" : "Raw Materials"}
                       </span>
@@ -476,13 +476,13 @@ export default function BomPage() {
                     <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
                       <button
                         onClick={() => handleOpenView(bom)}
-                        className="text-xs text-slate-600 hover:text-indigo-600 font-medium px-2 py-1 rounded hover:bg-slate-100 transition-colors"
+                        className="text-xs text-slate-600 hover:text-[#F47721] font-medium px-2 py-1 rounded hover:bg-slate-100 transition-colors"
                       >
                         {lang === "gu" ? "વિગતો" : "View"}
                       </button>
                       <button
                         onClick={() => handleOpenEdit(bom)}
-                        className="text-xs text-indigo-600 hover:text-indigo-800 font-medium px-2 py-1 rounded hover:bg-indigo-50 transition-colors"
+                        className="text-xs text-[#F47721] hover:text-[#D95F12] font-semibold px-2 py-1 rounded hover:bg-[#FFF3E8] transition-colors"
                       >
                         {lang === "gu" ? "સુધારો" : "Edit"}
                       </button>
@@ -521,7 +521,7 @@ export default function BomPage() {
               type="submit"
               form="create-bom-form"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50"
             >
               {isSubmitting
                 ? lang === "gu"
@@ -630,7 +630,7 @@ export default function BomPage() {
               <button
                 type="button"
                 onClick={handleAddRawItem}
-                className="text-xs text-indigo-600 font-semibold hover:text-indigo-800"
+                className="text-xs text-[#F47721] font-semibold hover:text-[#D95F12]"
               >
                 + {lang === "gu" ? "કાચો માલ ઉમેરો" : "Add Component"}
               </button>
@@ -728,7 +728,7 @@ export default function BomPage() {
               type="submit"
               form="edit-bom-form"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50"
             >
               {isSubmitting
                 ? lang === "gu"
@@ -825,7 +825,7 @@ export default function BomPage() {
               <button
                 type="button"
                 onClick={handleAddRawItem}
-                className="text-xs text-indigo-600 font-semibold hover:text-indigo-800"
+                className="text-xs text-[#F47721] font-semibold hover:text-[#D95F12]"
               >
                 + {lang === "gu" ? "કાચો માલ ઉમેરો" : "Add Component"}
               </button>

@@ -11,6 +11,7 @@ interface PartyOption {
   name: string;
   gstin?: string;
   stateCode: string;
+  phone?: string;
 }
 
 interface ItemOption {
@@ -19,6 +20,8 @@ interface ItemOption {
   hsnCode: string;
   taxRate: number;
   retailPrice: number;
+  stockQuantity?: number;
+  unit?: string;
 }
 
 interface InvoiceItemRow {
@@ -46,7 +49,7 @@ export default function NewInvoicePage() {
   >("TAX_INVOICE");
   const [partyId, setPartyId] = useState("");
   const [invoiceDate, setInvoiceDate] = useState(
-    new Date().toISOString().split("T")[0],
+    new Date().toISOString().split("T")[0]
   );
   const [paymentMode, setPaymentMode] = useState("UNPAID_CREDIT");
   const [placeOfSupply, setPlaceOfSupply] = useState("24"); // Default Gujarat
@@ -85,7 +88,7 @@ export default function NewInvoicePage() {
         setRows([
           {
             itemId: iList[0].id,
-            hsnCode: iList[0].hsnCode,
+            hsnCode: iList[0].hsnCode || "1001",
             quantity: 1,
             unitPrice: iList[0].retailPrice || 100,
             discountPercent: 0,
@@ -122,7 +125,7 @@ export default function NewInvoicePage() {
     updated[idx] = {
       ...updated[idx],
       itemId: item.id,
-      hsnCode: item.hsnCode,
+      hsnCode: item.hsnCode || "1001",
       unitPrice: item.retailPrice,
       taxRate: item.taxRate,
     };
@@ -132,7 +135,7 @@ export default function NewInvoicePage() {
   const handleRowChange = (
     idx: number,
     field: keyof InvoiceItemRow,
-    val: any,
+    val: any
   ) => {
     const updated = [...rows];
     updated[idx] = { ...updated[idx], [field]: val };
@@ -145,7 +148,7 @@ export default function NewInvoicePage() {
       ...rows,
       {
         itemId: firstItem?.id || "",
-        hsnCode: firstItem?.hsnCode || "1006",
+        hsnCode: firstItem?.hsnCode || "1001",
         quantity: 1,
         unitPrice: firstItem?.retailPrice || 100,
         discountPercent: 0,
@@ -159,7 +162,19 @@ export default function NewInvoicePage() {
     setRows(rows.filter((_, i) => i !== idx));
   };
 
-  // Tax calculations
+  // Keyboard shortcut for fast counter billing (F2: Add Item)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "F2") {
+        e.preventDefault();
+        handleAddRow();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  });
+
+  // Statutory GST tax calculations
   const companyState = currentCompany?.stateCode || "24";
   const isInterState = placeOfSupply !== companyState;
 
@@ -200,13 +215,21 @@ export default function NewInvoicePage() {
   const roundedGrandTotal = Math.round(rawGrandTotal);
   const roundOff = roundedGrandTotal - rawGrandTotal;
 
+  const formatInr = (val: number) => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 2,
+    }).format(val || 0);
+  };
+
   const handleSubmit = async (isDraft: boolean) => {
     setError(null);
     setIsSubmitting(true);
 
     try {
       const res: any = await apiClient.post(
-        "/invoices/sales",
+        "/invoices",
         {
           category,
           partyId: partyId || undefined,
@@ -226,7 +249,7 @@ export default function NewInvoicePage() {
           })),
         },
         undefined,
-        `inv_key_${Date.now()}_${Math.random()}`,
+        `inv_key_${Date.now()}_${Math.random()}`
       );
 
       if (res?.id) {
@@ -238,7 +261,7 @@ export default function NewInvoicePage() {
       setError(
         lang === "gu" && err.messageGujarati
           ? err.messageGujarati
-          : err.message || "Failed to create sales invoice.",
+          : err.message || "Failed to create sales invoice."
       );
       setIsSubmitting(false);
     }
@@ -246,145 +269,160 @@ export default function NewInvoicePage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* 1. TOP HEADER & BREADCRUMB */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Link
               href="/sales/invoices"
-              className="text-xs text-slate-500 hover:text-slate-800"
+              className="text-xs font-semibold text-[#F47721] hover:underline flex items-center gap-1"
             >
-              ← Back to Invoices
+              ← {lang === "gu" ? "બધા વેચાણ બિલ" : "Back to Invoices"}
             </Link>
           </div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            {lang === "gu"
-              ? "નવું વેચાણ બિલ બનાવો (New Tax Invoice)"
-              : "Create Sales Invoice"}
+          <h1 className="text-xl sm:text-2xl font-bold text-[#202124] tracking-tight flex items-center gap-2">
+            <span>{lang === "gu" ? "નવું વેચાણ બિલ (New Bill)" : "Create Sales Invoice"}</span>
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FFF3E8] text-[#F47721] border border-[#FED7AA]">
+              {category.replace(/_/g, " ")}
+            </span>
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[#667085]">
             {isInterState
-              ? "Inter-State (IGST Applicable)"
-              : "Intra-State (CGST + SGST Applicable)"}{" "}
-            • Authoritative statutory calculations
+              ? (lang === "gu" ? "આંતરરાજ્ય સપ્લાય (IGST લાગુ થશે)" : "Inter-State Supply (IGST Applicable)")
+              : (lang === "gu" ? "સ્થાનિક ગુજરાત સપ્લાય (CGST 50% + SGST 50% લાગુ થશે)" : "Intra-State Supply (CGST + SGST Applicable)")}
           </p>
+        </div>
+
+        {/* Live Grand Total Badge (Prominent for cashiers) */}
+        <div className="bg-[#FFFAF5] border border-[#FED7AA] rounded-card p-3 sm:px-5 flex items-center justify-between sm:justify-end gap-4 shadow-subtle border-r-4 border-r-[#F47721]">
+          <span className="text-xs font-bold text-[#667085] uppercase tracking-wider">
+            {lang === "gu" ? "કુલ બિલ રકમ" : "Grand Total"}
+          </span>
+          <span className="text-2xl sm:text-3xl font-extrabold text-[#F47721] font-mono tracking-tight">
+            {formatInr(roundedGrandTotal)}
+          </span>
         </div>
       </div>
 
       {error && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-semibold flex items-center gap-2">
-          <span>⚠️</span>
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-card text-xs text-rose-800 font-semibold flex items-center gap-2">
+          <svg className="w-5 h-5 text-rose-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
           <span>{error}</span>
         </div>
       )}
 
-      {/* Invoice Meta Bar */}
-      <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-5 gap-4">
+      {/* 2. INVOICE META SETTINGS CARD */}
+      <div className="bg-white p-5 rounded-card border border-[#E5E7EB] shadow-card grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* Document Type */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-            Document Type *
+          <label className="block text-xs font-bold text-[#202124] uppercase mb-1">
+            {lang === "gu" ? "બિલનો પ્રકાર *" : "Document Type *"}
           </label>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value as any)}
-            className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg font-bold text-slate-900 focus:bg-white"
+            className="w-full text-xs p-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg font-bold text-[#202124] focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
           >
-            <option value="TAX_INVOICE">Tax Invoice (પાકું બિલ)</option>
-            <option value="PROFORMA_INVOICE">
-              Quotation / Estimate (કાચું બિલ)
-            </option>
-            <option value="BILL_OF_SUPPLY">Bill of Supply (મુક્તિ)</option>
-            <option value="DELIVERY_CHALLAN">Delivery Challan (ચલણ)</option>
+            <option value="TAX_INVOICE">{lang === "gu" ? "પાકું બિલ (Tax Invoice)" : "Tax Invoice"}</option>
+            <option value="PROFORMA_INVOICE">{lang === "gu" ? "કાચું બિલ / અંદાજપત્ર (Quotation)" : "Quotation / Estimate"}</option>
+            <option value="BILL_OF_SUPPLY">{lang === "gu" ? "બિલ ઓફ સપ્લાય (મુક્ત)" : "Bill of Supply"}</option>
+            <option value="DELIVERY_CHALLAN">{lang === "gu" ? "ડિલિવરી ચલણ" : "Delivery Challan"}</option>
           </select>
         </div>
 
+        {/* Customer / Party */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-            Customer / Party *
+          <label className="block text-xs font-bold text-[#202124] uppercase mb-1">
+            {lang === "gu" ? "ગ્રાહક (Customer) *" : "Customer / Party *"}
           </label>
           <select
             value={partyId}
             onChange={(e) => handlePartyChange(e.target.value)}
-            className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg font-semibold text-slate-900 focus:bg-white"
+            className="w-full text-xs p-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg font-semibold text-[#202124] focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
           >
             {parties.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.name} {p.gstin ? `(${p.gstin})` : "(Unregistered)"}
+                {p.name} {p.gstin ? `(${p.gstin})` : `(${p.phone || "Walk-in"})`}
               </option>
             ))}
           </select>
         </div>
 
+        {/* Invoice Date */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-            Invoice Date *
+          <label className="block text-xs font-bold text-[#202124] uppercase mb-1">
+            {lang === "gu" ? "તારીખ (Date) *" : "Invoice Date *"}
           </label>
           <input
             type="date"
             required
             value={invoiceDate}
             onChange={(e) => setInvoiceDate(e.target.value)}
-            className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg font-mono text-slate-900 focus:bg-white"
+            className="w-full text-xs p-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg font-mono text-[#202124] focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
           />
         </div>
 
+        {/* Payment Mode */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-            Payment Mode *
+          <label className="block text-xs font-bold text-[#202124] uppercase mb-1">
+            {lang === "gu" ? "ચુકવણી પ્રકાર *" : "Payment Mode *"}
           </label>
           <select
             value={paymentMode}
             onChange={(e) => setPaymentMode(e.target.value)}
-            className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg font-medium text-slate-900 focus:bg-white"
+            className="w-full text-xs p-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg font-semibold text-[#202124] focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
           >
-            <option value="UNPAID_CREDIT">CREDIT (ઉધાર / બાકી)</option>
-            <option value="CASH">CASH (રોકડ)</option>
-            <option value="BANK_TRANSFER">
-              BANK TRANSFER (નેફ્ટ/આરટીજીએસ)
-            </option>
-            <option value="UPI_QR">UPI (યુપીઆઈ)</option>
-            <option value="CHEQUE">CHEQUE (ચેક)</option>
+            <option value="UNPAID_CREDIT">{lang === "gu" ? "ઉધાર / બાકી (Credit)" : "CREDIT (Unpaid)"}</option>
+            <option value="CASH">{lang === "gu" ? "રોકડ (Cash)" : "CASH"}</option>
+            <option value="BANK_TRANSFER">{lang === "gu" ? "બેંક ટ્રાન્સફર (NEFT/RTGS)" : "BANK TRANSFER"}</option>
+            <option value="UPI_QR">{lang === "gu" ? "યુપીઆઇ (UPI QR)" : "UPI"}</option>
+            <option value="CHEQUE">{lang === "gu" ? "ચેક (Cheque)" : "CHEQUE"}</option>
           </select>
         </div>
 
+        {/* Place of Supply */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-            Place of Supply (State) *
+          <label className="block text-xs font-bold text-[#202124] uppercase mb-1">
+            {lang === "gu" ? "સપ્લાય રાજ્ય કોડ *" : "Place of Supply *"}
           </label>
           <input
             type="text"
             required
             value={placeOfSupply}
             onChange={(e) => setPlaceOfSupply(e.target.value)}
-            placeholder="24"
-            className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg font-mono font-bold text-slate-900 focus:bg-white"
+            placeholder="24 (Gujarat)"
+            className="w-full text-xs p-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg font-mono font-bold text-[#202124] focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
           />
         </div>
       </div>
 
-      {/* Items Grid */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      {/* 3. ITEMS TABLE CARD */}
+      <div className="bg-white rounded-card border border-[#E5E7EB] shadow-card overflow-hidden">
+        {/* Table Controls Header */}
+        <div className="p-4 border-b border-[#E5E7EB] bg-[#FFFAF5] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-              {lang === "gu" ? "વસ્તુઓની યાદી અને કર (Items & Tax Rates)" : "Items & Tax Rates"}
+            <h2 className="text-xs font-bold text-[#202124] uppercase tracking-wider">
+              {lang === "gu" ? "માલસામાનની વિગત (Items Entry)" : "Items & Tax Rates"}
             </h2>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-[#667085]">
               {isTaxInclusive
-                ? (lang === "gu" ? "ભાવ GST સહિત છે — મૂળ કરપાત્ર ભાવ આપોઆપ ગણાશે" : "Rates are Tax-Inclusive (GST is included in entered price)")
-                : (lang === "gu" ? "ભાવ GST વગરનો છે — GST અલગથી ઉમેરાશે" : "Rates are Tax-Exclusive (GST is added extra on base price)")}
+                ? (lang === "gu" ? "ભાવ GST સહિત છે (Tax-Inclusive)" : "Rates are Tax-Inclusive (GST is included in entered price)")
+                : (lang === "gu" ? "ભાવ GST વગરનો છે (Tax-Exclusive)" : "Rates are Tax-Exclusive (GST is added extra on base price)")}
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
+            {/* Tax Inclusive / Exclusive Switch */}
+            <div className="flex items-center bg-[#F3F4F6] p-0.5 rounded-lg border border-[#E5E7EB] text-xs">
               <button
                 type="button"
                 onClick={() => setIsTaxInclusive(false)}
-                className={`px-2.5 py-1 rounded font-medium transition-all ${
+                className={`px-3 py-1 rounded-md font-bold transition-all ${
                   !isTaxInclusive
-                    ? "bg-white text-emerald-800 shadow-sm font-bold"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-white text-[#F47721] shadow-xs"
+                    : "text-[#667085] hover:text-[#202124]"
                 }`}
               >
                 {lang === "gu" ? "GST અલગથી (+Extra)" : "Tax Exclusive"}
@@ -392,162 +430,152 @@ export default function NewInvoicePage() {
               <button
                 type="button"
                 onClick={() => setIsTaxInclusive(true)}
-                className={`px-2.5 py-1 rounded font-medium transition-all ${
+                className={`px-3 py-1 rounded-md font-bold transition-all ${
                   isTaxInclusive
-                    ? "bg-white text-emerald-800 shadow-sm font-bold"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-white text-[#F47721] shadow-xs"
+                    : "text-[#667085] hover:text-[#202124]"
                 }`}
               >
-                {lang === "gu" ? "GST ભાવમાં સામેલ (Incl.)" : "Tax Inclusive"}
+                {lang === "gu" ? "GST સહિત (Inclusive)" : "Tax Inclusive"}
               </button>
             </div>
 
+            {/* Quick Add Row Button */}
             <button
               type="button"
               onClick={handleAddRow}
-              className="text-xs text-emerald-700 hover:text-emerald-800 font-semibold flex items-center gap-1 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-button text-xs font-bold shadow-saffron transition-colors"
             >
-              + Add Product Row
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+              </svg>
+              <span>{lang === "gu" ? "+ વસ્તુ ઉમેરો (F2)" : "+ Add Item (F2)"}</span>
             </button>
           </div>
         </div>
 
+        {/* Table Body */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold">
-                <th className="py-2.5 px-3 w-10">#</th>
-                <th className="py-2.5 px-3 w-64">Item Name</th>
-                <th className="py-2.5 px-3 w-24">HSN</th>
-                <th className="py-2.5 px-3 w-24 text-right">Qty</th>
-                <th className="py-2.5 px-3 w-32 text-right">
-                  {isTaxInclusive ? "Price (Incl. GST)" : "Price (Excl. GST)"}
-                </th>
-                <th className="py-2.5 px-3 w-20 text-right">Disc %</th>
-                <th className="py-2.5 px-3 w-24 text-right">GST %</th>
-                <th className="py-2.5 px-3 w-36 text-right">Line Total (₹)</th>
-                <th className="py-2.5 px-3 w-10 text-center"></th>
+          <table className="w-full text-left text-xs">
+            <thead className="bg-[#F8F9FB] text-[#667085] uppercase tracking-wider font-semibold border-b border-[#E5E7EB]">
+              <tr>
+                <th className="px-4 py-3 min-w-[200px]">{lang === "gu" ? "વસ્તુનું નામ" : "Item Description"}</th>
+                <th className="px-3 py-3 w-24">{lang === "gu" ? "HSN કોડ" : "HSN"}</th>
+                <th className="px-3 py-3 w-24 text-right">{lang === "gu" ? "જથ્થો (Qty)" : "Quantity"}</th>
+                <th className="px-3 py-3 w-28 text-right">{lang === "gu" ? "દર (Rate ₹)" : "Rate (₹)"}</th>
+                <th className="px-3 py-3 w-24 text-right">{lang === "gu" ? "વટાવ (Disc %)" : "Disc %"}</th>
+                <th className="px-3 py-3 w-24 text-right">{lang === "gu" ? "જીએસટી %" : "GST %"}</th>
+                <th className="px-4 py-3 w-32 text-right">{lang === "gu" ? "કુલ રકમ (₹)" : "Line Total"}</th>
+                <th className="px-3 py-3 w-12 text-center"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-[#E5E7EB]">
               {rows.map((row, idx) => {
                 const qty = Number(row.quantity) || 0;
-                const price = Number(row.unitPrice) || 0;
+                const rate = Number(row.unitPrice) || 0;
                 const disc = Number(row.discountPercent) || 0;
-                const gross = qty * price;
-                const afterDisc = gross - (gross * disc) / 100;
-                const lineTaxable = isTaxInclusive
-                  ? afterDisc / (1 + row.taxRate / 100)
-                  : afterDisc;
-                const lineTax = isTaxInclusive
-                  ? afterDisc - lineTaxable
-                  : (lineTaxable * row.taxRate) / 100;
-                const lineTotal = lineTaxable + lineTax;
+                const gross = qty * rate;
+                const grossAfterDisc = gross - (gross * disc) / 100;
+                const lineTotal = isTaxInclusive
+                  ? grossAfterDisc
+                  : grossAfterDisc + (grossAfterDisc * row.taxRate) / 100;
 
                 return (
-                  <tr key={idx} className="hover:bg-slate-50">
-                    <td className="py-2.5 px-3 text-slate-400 font-mono">
-                      {idx + 1}
-                    </td>
-                    <td className="py-2.5 px-3">
+                  <tr key={idx} className="hover:bg-[#FFFAF5] transition-colors">
+                    {/* Item Select */}
+                    <td className="px-4 py-2">
                       <select
                         value={row.itemId}
                         onChange={(e) => handleItemSelect(idx, e.target.value)}
-                        className="w-full text-xs p-1.5 bg-slate-50 border border-slate-300 rounded font-medium text-slate-800"
+                        className="w-full text-xs p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-md font-semibold text-[#202124] focus:bg-white focus:ring-1 focus:ring-[#F47721]"
                       >
                         {items.map((it) => (
                           <option key={it.id} value={it.id}>
-                            {it.name}
+                            {it.name} (Stock: {it.stockQuantity ?? 0})
                           </option>
                         ))}
                       </select>
                     </td>
-                    <td className="py-2.5 px-3 font-mono text-slate-600">
-                      {row.hsnCode}
-                    </td>
-                    <td className="py-2.5 px-3 text-right">
+
+                    {/* HSN Code */}
+                    <td className="px-3 py-2">
                       <input
-                        type="number"
-                        min="0.01"
-                        step="any"
-                        value={row.quantity}
-                        onChange={(e) =>
-                          handleRowChange(
-                            idx,
-                            "quantity",
-                            e.target.value === "" ? "" : Number(e.target.value),
-                          )
-                        }
-                        className="w-full text-xs p-1.5 bg-slate-50 border border-slate-300 rounded text-right font-mono"
+                        type="text"
+                        value={row.hsnCode}
+                        onChange={(e) => handleRowChange(idx, "hsnCode", e.target.value)}
+                        className="w-full text-xs p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-md font-mono text-[#202124] focus:bg-white"
                       />
                     </td>
-                    <td className="py-2.5 px-3 text-right">
+
+                    {/* Quantity */}
+                    <td className="px-3 py-2">
+                      <input
+                        type="number"
+                        min="0.001"
+                        step="any"
+                        value={row.quantity}
+                        onChange={(e) => handleRowChange(idx, "quantity", e.target.value)}
+                        className="w-full text-xs p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-md text-right font-mono font-bold text-[#202124] focus:bg-white"
+                      />
+                    </td>
+
+                    {/* Rate */}
+                    <td className="px-3 py-2">
                       <input
                         type="number"
                         min="0"
-                        step="0.01"
+                        step="any"
                         value={row.unitPrice}
-                        onChange={(e) =>
-                          handleRowChange(
-                            idx,
-                            "unitPrice",
-                            e.target.value === "" ? "" : Number(e.target.value),
-                          )
-                        }
-                        className="w-full text-xs p-1.5 bg-slate-50 border border-slate-300 rounded text-right font-mono"
+                        onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value)}
+                        className="w-full text-xs p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-md text-right font-mono font-bold text-[#202124] focus:bg-white"
                       />
                     </td>
-                    <td className="py-2.5 px-3 text-right">
+
+                    {/* Discount % */}
+                    <td className="px-3 py-2">
                       <input
                         type="number"
                         min="0"
                         max="100"
                         value={row.discountPercent}
-                        onChange={(e) =>
-                          handleRowChange(
-                            idx,
-                            "discountPercent",
-                            e.target.value === "" ? "" : Number(e.target.value),
-                          )
-                        }
-                        className="w-full text-xs p-1.5 bg-slate-50 border border-slate-300 rounded text-right font-mono"
+                        onChange={(e) => handleRowChange(idx, "discountPercent", e.target.value)}
+                        className="w-full text-xs p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-md text-right font-mono text-[#202124] focus:bg-white"
                       />
                     </td>
-                    <td className="py-2.5 px-3 text-right">
+
+                    {/* Tax Rate % */}
+                    <td className="px-3 py-2">
                       <select
                         value={row.taxRate}
-                        onChange={(e) =>
-                          handleRowChange(
-                            idx,
-                            "taxRate",
-                            Number(e.target.value),
-                          )
-                        }
-                        className="w-full text-xs p-1.5 bg-slate-50 border border-slate-300 rounded text-right font-mono font-semibold"
+                        onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value))}
+                        className="w-full text-xs p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-md text-right font-mono font-bold text-[#F47721] focus:bg-white"
                       >
-                        <option value={0}>0%</option>
-                        <option value={5}>5%</option>
-                        <option value={12}>12%</option>
-                        <option value={18}>18%</option>
-                        <option value={28}>28%</option>
+                        <option value="0">0%</option>
+                        <option value="5">5%</option>
+                        <option value="12">12%</option>
+                        <option value="18">18%</option>
+                        <option value="28">28%</option>
                       </select>
                     </td>
-                    <td className="py-2.5 px-3 text-right font-mono">
-                      <div className="font-bold text-slate-900 text-sm">₹{lineTotal.toFixed(2)}</div>
-                      <div className="text-[10px] text-slate-500 font-sans">
-                        Taxable: ₹{lineTaxable.toFixed(2)} | GST: ₹{lineTax.toFixed(2)}
-                      </div>
+
+                    {/* Line Total */}
+                    <td className="px-4 py-2 text-right font-mono font-bold text-sm text-[#202124]">
+                      {formatInr(lineTotal)}
                     </td>
-                    <td className="py-2.5 px-3 text-center">
-                      {rows.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveRow(idx)}
-                          className="text-slate-400 hover:text-rose-600 p-1"
-                        >
-                          ✕
-                        </button>
-                      )}
+
+                    {/* Remove Action */}
+                    <td className="px-3 py-2 text-center">
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveRow(idx)}
+                        disabled={rows.length <= 1}
+                        className="text-[#98A2B3] hover:text-[#DC3545] disabled:opacity-20 p-1 rounded transition-colors"
+                        title="Remove row"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
                     </td>
                   </tr>
                 );
@@ -555,97 +583,102 @@ export default function NewInvoicePage() {
             </tbody>
           </table>
         </div>
+      </div>
 
-        {/* Invoice Summary Card */}
-        <div className="bg-slate-50/50 p-5 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-              Customer Notes & Terms
-            </label>
-            <textarea
-              rows={3}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Goods once sold will not be taken back..."
-              className="w-full text-xs p-2.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500"
-            />
+      {/* 4. TOTALS SUMMARY & SUBMISSION STRIP */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Notes & Terms */}
+        <div className="bg-white p-5 rounded-card border border-[#E5E7EB] shadow-card space-y-3">
+          <label className="block text-xs font-bold text-[#202124] uppercase">
+            {lang === "gu" ? "નોંધ / શરતો (Notes & Remarks)" : "Invoice Notes & Terms"}
+          </label>
+          <textarea
+            rows={3}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder={lang === "gu" ? "ગ્રાહક માટે વિશેષ નોંધ અથવા ચૂકવણી શરતો..." : "Special instructions or payment terms for the customer..."}
+            className="w-full text-xs p-3 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-[#202124] focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
+          />
+          <div className="text-[11px] text-[#667085] flex items-center gap-1.5">
+            <span>💡</span>
+            <span>{lang === "gu" ? "આ બિલ સાચવતા જ સ્ટોક અને ઉઘરાણી આપોઆપ અપડેટ થશે." : "Saving will automatically adjust inventory and customer ledger balance."}</span>
           </div>
+        </div>
 
-          <div className="space-y-2 text-xs">
-            <div className="flex justify-between text-slate-600">
-              <span>Total Taxable Amount:</span>
-              <span className="font-mono font-semibold text-slate-900">
-                ₹{totalTaxable.toFixed(2)}
-              </span>
+        {/* Tax Breakdown & Final Grand Total Card */}
+        <div className="bg-white p-5 rounded-card border border-[#E5E7EB] shadow-card space-y-3">
+          <div className="space-y-1.5 text-xs text-[#667085] pb-3 border-b border-[#E5E7EB]">
+            <div className="flex justify-between">
+              <span>{lang === "gu" ? "કરપાત્ર રકમ (Taxable Value)" : "Taxable Value"}:</span>
+              <span className="font-mono font-semibold text-[#202124]">{formatInr(totalTaxable)}</span>
             </div>
             {!isInterState ? (
               <>
-                <div className="flex justify-between text-slate-600">
-                  <span>CGST:</span>
-                  <span className="font-mono text-slate-800">
-                    ₹{totalCgst.toFixed(2)}
-                  </span>
+                <div className="flex justify-between">
+                  <span>CGST (50%):</span>
+                  <span className="font-mono font-semibold text-[#202124]">{formatInr(totalCgst)}</span>
                 </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>SGST:</span>
-                  <span className="font-mono text-slate-800">
-                    ₹{totalSgst.toFixed(2)}
-                  </span>
+                <div className="flex justify-between">
+                  <span>SGST (50%):</span>
+                  <span className="font-mono font-semibold text-[#202124]">{formatInr(totalSgst)}</span>
                 </div>
               </>
             ) : (
-              <div className="flex justify-between text-slate-600">
-                <span>IGST (Inter-State):</span>
-                <span className="font-mono text-slate-800">
-                  ₹{totalIgst.toFixed(2)}
-                </span>
+              <div className="flex justify-between">
+                <span>IGST (100%):</span>
+                <span className="font-mono font-semibold text-[#202124]">{formatInr(totalIgst)}</span>
               </div>
             )}
-            <div className="flex justify-between text-slate-600">
-              <span>Sec 170 Round Off:</span>
-              <span className="font-mono text-slate-800">
-                {roundOff >= 0
-                  ? `+₹${roundOff.toFixed(2)}`
-                  : `-₹${Math.abs(roundOff).toFixed(2)}`}
-              </span>
-            </div>
-            <div className="pt-2 border-t border-slate-300 flex justify-between text-sm font-bold text-slate-900">
-              <span>Grand Total:</span>
-              <span className="font-mono text-emerald-800 text-base">
-                ₹{roundedGrandTotal.toFixed(2)}
+            <div className="flex justify-between text-[#98A2B3]">
+              <span>{lang === "gu" ? "રાઉન્ડ ઓફ (Round Off)" : "Round Off"}:</span>
+              <span className="font-mono font-semibold">
+                {roundOff >= 0 ? `+${roundOff.toFixed(2)}` : roundOff.toFixed(2)}
               </span>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Action Buttons */}
-      <div className="flex items-center justify-end gap-3">
-        <Link
-          href="/sales/invoices"
-          className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-lg transition-colors"
-        >
-          Cancel
-        </Link>
-        <button
-          type="button"
-          disabled={isSubmitting}
-          onClick={() => handleSubmit(true)}
-          className="px-5 py-2.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg shadow-sm transition-colors"
-        >
-          Save Draft (કાચું બિલ)
-        </button>
-        <button
-          type="button"
-          disabled={isSubmitting}
-          onClick={() => handleSubmit(false)}
-          className="px-6 py-2.5 text-xs font-bold text-slate-950 bg-[#FF9933] hover:bg-[#E67E17] disabled:bg-amber-200 rounded-lg shadow-sm transition-colors flex items-center gap-2"
-        >
-          {isSubmitting ? (
-            <span className="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
-          ) : null}
-          <span>Issue Tax Invoice (બિલ જારી કરો)</span>
-        </button>
+          <div className="flex items-center justify-between pt-1">
+            <span className="text-sm font-bold text-[#202124] uppercase">
+              {lang === "gu" ? "આખરી રકમ (Final Bill Amount)" : "Grand Total"}:
+            </span>
+            <span className="text-2xl font-extrabold text-[#F47721] font-mono">
+              {formatInr(roundedGrandTotal)}
+            </span>
+          </div>
+
+          {/* Submission Buttons */}
+          <div className="pt-3 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => handleSubmit(true)}
+              className="px-4 py-2.5 bg-[#F8F9FB] hover:bg-[#F3F4F6] text-[#667085] border border-[#E5E7EB] rounded-button text-xs font-semibold transition-colors disabled:opacity-50"
+            >
+              {lang === "gu" ? "કાચું સાચવો (Draft)" : "Save Draft"}
+            </button>
+
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => handleSubmit(false)}
+              className="px-6 py-2.5 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-button text-xs sm:text-sm font-bold shadow-saffron transition-all disabled:opacity-50 flex items-center gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>{lang === "gu" ? "બિલ બની રહ્યું છે..." : "Generating Bill..."}</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>{lang === "gu" ? "સાચવો અને પ્રિન્ટ કરો (Save & Print)" : "Save & Print Bill"}</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

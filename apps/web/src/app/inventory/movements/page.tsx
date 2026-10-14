@@ -110,7 +110,7 @@ export default function StockMovementsPage() {
               {isLoading ? (
                 <tr>
                   <td colSpan={5} className="py-12 text-center text-slate-400">
-                    <div className="inline-block w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-2" />
+                    <div className="inline-block w-6 h-6 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin mb-2" />
                     <p>Loading movements...</p>
                   </td>
                 </tr>

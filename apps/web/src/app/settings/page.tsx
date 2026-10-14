@@ -126,13 +126,16 @@ export default function SettingsPage() {
   return (
     <div className="max-w-4xl space-y-6">
       {/* Page Title */}
-      <div>
-        <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-          {lang === "gu"
-            ? "કંપની પ્રોફાઇલ અને સેટિંગ્સ"
-            : "Company Profile & Settings"}
-        </h1>
-        <p className="text-xs text-slate-500">
+      <div className="bg-white p-5 rounded-2xl border border-border shadow-subtle">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            {lang === "gu"
+              ? "કંપની પ્રોફાઇલ અને સેટિંગ્સ"
+              : "Company Profile & Business Settings"}
+          </h1>
+        </div>
+        <p className="text-xs text-muted mt-1 ml-4.5">
           {lang === "gu"
             ? "કાયદેસર માહિતી, જીએસટી, સરનામું, બેંક વિગતો અને બિલિંગ પસંદગીઓ"
             : "Legal details, GSTIN, address, bank details, and invoice printing preferences"}
@@ -379,11 +382,11 @@ export default function SettingsPage() {
                 name="enableGujaratiPrint"
                 checked={formData.enableGujaratiPrint}
                 onChange={handleChange}
-                className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                className="w-4 h-4 text-primary rounded border-border focus:ring-primary/20 accent-primary"
               />
               <span className="text-sm text-slate-800 font-medium">
                 {lang === "gu"
-                  ? "બિલ પ્રિન્ટિંગમાં ગુજરાતી નામ દર્શાવો (Bilingual Print)"
+                  ? "બિલ પ્રિન્ટિંગમાં ગુજરાતી નામ દર્શાવો (Bilingual Gujarati Print)"
                   : "Enable bilingual Gujarati printing on invoices"}
               </span>
             </label>
@@ -394,7 +397,7 @@ export default function SettingsPage() {
                 name="allowNegativeStock"
                 checked={formData.allowNegativeStock}
                 onChange={handleChange}
-                className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                className="w-4 h-4 text-primary rounded border-border focus:ring-primary/20 accent-primary"
               />
               <span className="text-sm text-slate-800 font-medium">
                 {lang === "gu"
@@ -410,7 +413,7 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={isSaving}
-            className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm"
+            className="px-6 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed disabled:opacity-50 text-white rounded-xl text-sm font-bold transition-all shadow-card hover:shadow-hover"
           >
             {isSaving
               ? lang === "gu"

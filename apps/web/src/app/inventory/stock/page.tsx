@@ -78,25 +78,28 @@ export default function StockSummaryPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            {lang === "gu"
-              ? "સ્ટોક સિલક અને મૂલ્યાંકન (Stock Summary)"
-              : "Physical Stock Summary & Valuation"}
-          </h1>
-          <p className="text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              {lang === "gu"
+                ? "સ્ટોક સિલક અને મૂલ્યાંકન (Stock Summary)"
+                : "Physical Stock Summary & Valuation"}
+            </h1>
+          </div>
+          <p className="text-xs text-muted mt-1 ml-4.5">
             {lang === "gu"
               ? "તમામ માલસામાનની વાસ્તવિક સિલક અને WAC/FIFO મૂલ્યાંકન"
               : "Live database-backed physical quantities, inward/outward totals, and valuation"}
           </p>
         </div>
 
-        <div className="bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-xl text-right">
-          <span className="text-[10px] uppercase font-bold text-emerald-700 tracking-wider block">
-            Total Inventory Value
+        <div className="bg-saffron-light border border-primary/25 px-5 py-2.5 rounded-xl text-right">
+          <span className="text-[10px] uppercase font-bold text-primary tracking-wider block">
+            {lang === "gu" ? "કુલ સ્ટોક મૂલ્યાંકન" : "Total Inventory Value"}
           </span>
-          <span className="font-mono font-bold text-emerald-900 text-lg">
+          <span className="font-mono font-bold text-slate-900 text-lg">
             ₹
             {totalInventoryValue.toLocaleString("en-IN", {
               minimumFractionDigits: 2,
@@ -106,10 +109,10 @@ export default function StockSummaryPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+      <div className="bg-white p-4 rounded-xl border border-border shadow-subtle flex items-center gap-3">
         <div className="relative flex-1">
           <svg
-            className="w-4 h-4 absolute left-3 top-3 text-slate-400"
+            className="w-4 h-4 absolute left-3.5 top-3 text-muted"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -125,8 +128,8 @@ export default function StockSummaryPage() {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search stock by item name or SKU..."
-            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white text-slate-800"
+            placeholder={lang === "gu" ? "વસ્તુનું નામ અથવા એસકેયુ દ્વારા શોધો..." : "Search stock by item name or SKU..."}
+            className="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white text-slate-900 transition-all"
           />
         </div>
       </div>
@@ -174,7 +177,7 @@ export default function StockSummaryPage() {
               {isLoading ? (
                 <tr>
                   <td colSpan={9} className="py-12 text-center text-slate-400">
-                    <div className="inline-block w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-2" />
+                    <div className="inline-block w-6 h-6 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin mb-2" />
                     <p>Loading stock summary...</p>
                   </td>
                 </tr>

@@ -345,7 +345,7 @@ export default function PosTerminalPage() {
         <div className="mb-4">
           <div className="relative">
             <svg
-              className="w-5 h-5 absolute left-3.5 top-3 text-slate-400"
+              className="w-5 h-5 absolute left-3.5 top-3 text-muted"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -361,9 +361,9 @@ export default function PosTerminalPage() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Scan Barcode or Search Products (F2)..."
+              placeholder={lang === "gu" ? "બારકોડ સ્કેન કરો અથવા વસ્તુ શોધો (F2)..." : "Scan Barcode or Search Products (F2)..."}
               autoFocus
-              className="w-full pl-11 pr-4 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#FF9933] font-medium"
+              className="w-full pl-11 pr-4 py-2.5 text-sm bg-slate-50 border border-border rounded-xl focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium transition-all"
             />
           </div>
         </div>
@@ -371,12 +371,13 @@ export default function PosTerminalPage() {
         {/* Product Cards Grid */}
         <div className="flex-1 overflow-y-auto pr-1">
           {isLoading ? (
-            <div className="py-20 text-center text-slate-400">
-              Loading catalog...
+            <div className="py-20 text-center text-muted text-xs">
+              <div className="inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mb-2" />
+              <p>{lang === "gu" ? "માલસામાન લોડ થઈ રહ્યો છે..." : "Loading catalog..."}</p>
             </div>
           ) : filteredItems.length === 0 ? (
-            <div className="py-20 text-center text-slate-400">
-              No items found matching search.
+            <div className="py-20 text-center text-muted text-xs">
+              <p className="font-semibold text-slate-700 mb-1">{lang === "gu" ? "કોઈ માલ મળ્યો નથી" : "No items found matching search."}</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -384,21 +385,21 @@ export default function PosTerminalPage() {
                 <button
                   key={item.id}
                   onClick={() => addToCart(item)}
-                  className="p-3 bg-slate-50 hover:bg-amber-50/50 border border-slate-200 hover:border-[#FF9933] rounded-xl text-left transition-all active:scale-95 flex flex-col justify-between h-28 group"
+                  className="p-3 bg-white hover:bg-saffron-very-light border border-border hover:border-primary/50 hover:shadow-subtle rounded-xl text-left transition-all active:scale-[0.98] flex flex-col justify-between h-28 group"
                 >
                   <div>
-                    <h3 className="font-semibold text-slate-900 text-xs line-clamp-2 group-hover:text-amber-950">
+                    <h3 className="font-bold text-slate-900 text-xs line-clamp-2 group-hover:text-primary transition-colors">
                       {item.name}
                     </h3>
-                    <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+                    <p className="text-[10px] text-muted font-mono mt-0.5">
                       {item.barcode || item.sku || "PROD"}
                     </p>
                   </div>
-                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-200/60">
+                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100">
                     <span className="font-mono font-bold text-slate-900 text-sm">
                       ₹{Number(item.retailPrice).toFixed(2)}
                     </span>
-                    <span className="text-[10px] bg-slate-200/80 px-1.5 py-0.5 rounded text-slate-600 font-medium">
+                    <span className="text-[10px] bg-saffron-light text-primary font-bold px-1.5 py-0.5 rounded">
                       +{item.taxRate}%
                     </span>
                   </div>
@@ -497,9 +498,9 @@ export default function PosTerminalPage() {
               <span>GST Tax:</span>
               <span className="font-mono">₹{taxTotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between font-bold text-base text-slate-900 pt-1 border-t border-slate-100">
-              <span>Grand Total:</span>
-              <span className="font-mono text-emerald-800">
+            <div className="flex justify-between font-bold text-base text-slate-900 pt-2 border-t border-slate-100">
+              <span className="text-slate-800">{lang === "gu" ? "કુલ રકમ (Total):" : "Grand Total:"}</span>
+              <span className="font-mono text-primary text-lg">
                 ₹{grandTotal.toFixed(2)}
               </span>
             </div>
@@ -511,40 +512,55 @@ export default function PosTerminalPage() {
               <button
                 key={mode}
                 onClick={() => setPaymentMode(mode)}
-                className={`py-1.5 text-xs font-semibold rounded-lg border transition-all ${paymentMode === mode
-                    ? "bg-[#FF9933] text-slate-950 font-bold border-[#FF9933] shadow-sm"
-                    : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                className={`py-2 text-xs font-bold rounded-xl border transition-all ${paymentMode === mode
+                    ? "bg-primary text-white border-primary shadow-sm"
+                    : "bg-slate-50 text-slate-700 border-border hover:bg-slate-100"
                   }`}
               >
-                {mode}
+                {mode === "CASH" ? (lang === "gu" ? "💵 રોકડ" : "💵 CASH") : mode === "UPI" ? "📱 UPI" : "💳 CARD"}
               </button>
             ))}
           </div>
 
-          {/* Cash Tender Input */}
+          {/* Cash Tender Input with Quick Value Shortcuts */}
           {paymentMode === "CASH" && (
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                value={tenderedAmount}
-                onChange={(e) =>
-                  setTenderedAmount(
-                    e.target.value === "" ? "" : Number(e.target.value),
-                  )
-                }
-                placeholder="Cash Tendered (₹)..."
-                className="flex-1 text-xs p-2 bg-slate-50 border border-slate-300 rounded-lg font-mono focus:bg-white"
-              />
-              {changeDue > 0 && (
-                <div className="text-right text-xs">
-                  <span className="text-[10px] text-slate-500 block">
-                    Change:
-                  </span>
-                  <span className="font-mono font-bold text-emerald-700">
-                    ₹{changeDue.toFixed(2)}
-                  </span>
-                </div>
-              )}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={tenderedAmount}
+                  onChange={(e) =>
+                    setTenderedAmount(
+                      e.target.value === "" ? "" : Number(e.target.value),
+                    )
+                  }
+                  placeholder={lang === "gu" ? "ગ્રાહકે આપેલી રોકડ (₹)..." : "Cash Tendered (₹)..."}
+                  className="flex-1 text-xs p-2.5 bg-slate-50 border border-border rounded-xl font-mono font-bold focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900"
+                />
+                {changeDue > 0 && (
+                  <div className="text-right text-xs bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                    <span className="text-[10px] text-emerald-600 block font-semibold">
+                      {lang === "gu" ? "પાછા આપવા:" : "Change:"}
+                    </span>
+                    <span className="font-mono font-bold text-emerald-800">
+                      ₹{changeDue.toFixed(2)}
+                    </span>
+                  </div>
+                )}
+              </div>
+              {/* Quick Cash Buttons */}
+              <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+                {[grandTotal, 100, 200, 500].map((amt, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setTenderedAmount(amt)}
+                    className="px-2 py-1 bg-slate-100 hover:bg-saffron-light hover:text-primary text-slate-700 font-mono text-[11px] font-semibold rounded-lg border border-border transition-all"
+                  >
+                    {idx === 0 ? "Exact" : `₹${amt}`}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -552,13 +568,13 @@ export default function PosTerminalPage() {
           <button
             onClick={handleCheckout}
             disabled={cart.length === 0 || isCheckingOut}
-            className="w-full py-3 bg-[#FF9933] hover:bg-[#E67E17] disabled:bg-slate-300 disabled:cursor-not-allowed text-slate-950 font-bold text-sm rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+            className="w-full py-3 bg-primary hover:bg-primary-hover active:bg-primary-pressed disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-bold text-sm rounded-xl shadow-card hover:shadow-hover transition-all flex items-center justify-center gap-2"
           >
             {isCheckingOut ? (
-              <span className="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
+              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : null}
             <span>
-              {isCheckingOut ? "Processing..." : `Checkout ₹${grandTotal}`}
+              {isCheckingOut ? "Processing..." : `${lang === "gu" ? "બિલ પૂરું કરો" : "Checkout"} ₹${grandTotal}`}
             </span>
           </button>
         </div>
@@ -570,21 +586,19 @@ export default function PosTerminalPage() {
           isOpen={true}
           onClose={() => setLastReceipt(null)}
           title="POS Counter Receipt"
-          titleGujarati="રોકડ બિલ પહોંચ"
+          titleGujarati="રોકડ બિલ પહોંચ (POS Receipt)"
           maxWidth="sm"
         >
           <div className="space-y-4 text-center font-mono">
             <div className="border-b border-dashed border-slate-300 pb-3">
-              <img
-                src="/logo-icon.png"
-                alt="MyBill History"
-                className="h-8 w-8 mx-auto mb-1 object-contain"
-              />
+              <div className="w-10 h-10 rounded-full bg-saffron-light text-primary flex items-center justify-center mx-auto mb-1 text-lg font-bold">
+                🧾
+              </div>
               <h3 className="font-bold text-base text-slate-900">
                 MyBill History POS
               </h3>
-              <p className="text-xs text-slate-500">{lastReceipt.date}</p>
-              <p className="text-xs font-bold text-slate-800 mt-1">
+              <p className="text-xs text-muted">{lastReceipt.date}</p>
+              <p className="text-xs font-bold text-primary mt-1">
                 {lastReceipt.invoiceNumber}
               </p>
               {lastReceipt.isOffline && (
@@ -602,13 +616,13 @@ export default function PosTerminalPage() {
               )}
             </div>
 
-            <div className="text-left text-xs space-y-1">
+            <div className="text-left text-xs space-y-1.5 max-h-48 overflow-y-auto">
               {lastReceipt.items?.map((it: CartItem, i: number) => (
-                <div key={i} className="flex justify-between">
-                  <span>
+                <div key={i} className="flex justify-between items-center py-0.5 border-b border-slate-100">
+                  <span className="truncate pr-2">
                     {it.item.name} × {it.quantity}
                   </span>
-                  <span className="font-bold">
+                  <span className="font-bold text-slate-900">
                     ₹{(it.item.retailPrice * it.quantity).toFixed(2)}
                   </span>
                 </div>
@@ -617,24 +631,30 @@ export default function PosTerminalPage() {
 
             <div className="border-t border-dashed border-slate-300 pt-3 text-sm font-bold flex justify-between">
               <span>Paid ({lastReceipt.paymentMode}):</span>
-              <span className="text-emerald-800">
+              <span className="text-primary font-bold">
                 ₹{lastReceipt.grandTotal.toFixed(2)}
               </span>
             </div>
 
             {lastReceipt.changeDue > 0 && (
-              <div className="text-xs flex justify-between text-slate-600">
+              <div className="text-xs flex justify-between text-muted">
                 <span>Change Returned:</span>
-                <span>₹{lastReceipt.changeDue.toFixed(2)}</span>
+                <span className="font-bold text-emerald-700">₹{lastReceipt.changeDue.toFixed(2)}</span>
               </div>
             )}
 
             <div className="pt-4 flex gap-2">
               <button
-                onClick={() => setLastReceipt(null)}
-                className="flex-1 py-2 bg-[#FF9933] hover:bg-[#E67E17] text-slate-950 text-xs font-bold rounded-lg font-sans shadow-sm"
+                onClick={() => window.print()}
+                className="py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl font-sans shadow-sm flex items-center justify-center gap-1.5 transition-all"
               >
-                Next Customer (નવો ગ્રાહક)
+                <span>🖨️ Print</span>
+              </button>
+              <button
+                onClick={() => setLastReceipt(null)}
+                className="flex-1 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs font-bold rounded-xl font-sans shadow-card transition-all"
+              >
+                {lang === "gu" ? "નવો ગ્રાહક (Next Customer)" : "Next Customer"}
               </button>
             </div>
           </div>

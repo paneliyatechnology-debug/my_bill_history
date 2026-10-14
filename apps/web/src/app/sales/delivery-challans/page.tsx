@@ -394,12 +394,15 @@ export default function DeliveryChallansPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            {lang === "gu" ? "ડિલિવરી ચલણ (Delivery Challans)" : "Delivery Challans (Sec 55 GST)"}
-          </h1>
-          <p className="text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              {lang === "gu" ? "ડિલિવરી ચલણ (Delivery Challans)" : "Delivery Challans (Sec 55 GST)"}
+            </h1>
+          </div>
+          <p className="text-xs text-muted mt-1 ml-4.5">
             {lang === "gu"
               ? "જોબ વર્ક, અપ્રુવલ પર માલ મોકલવા અને બ્રાન્ચ ટ્રાન્સફર માટે જીએસટી નિયમ ૫૫ મુજબ ચલણ વ્યવસ્થા"
               : "Section 55 compliant non-sale delivery challans for Job Work, Supply on Approval, and Movement of Goods"}
@@ -408,17 +411,17 @@ export default function DeliveryChallansPage() {
 
         <button
           onClick={handleOpenCreate}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white rounded-xl text-xs sm:text-sm font-bold shadow-card hover:shadow-hover transition-all"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
           </svg>
-          {lang === "gu" ? "નવું ડિલિવરી ચલણ" : "New Delivery Challan"}
+          {lang === "gu" ? "નવું ડિલિવરી ચલણ" : "+ New Delivery Challan"}
         </button>
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white p-4 rounded-xl border border-border shadow-subtle flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto flex-1">
           <div className="relative w-full sm:w-72">
             <input
@@ -430,10 +433,10 @@ export default function DeliveryChallansPage() {
                   ? "ચલણ # અથવા વેપારીથી શોધો..."
                   : "Search challan # or party..."
               }
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             />
             <svg
-              className="w-4 h-4 text-slate-400 absolute left-3 top-3"
+              className="w-4 h-4 text-muted absolute left-3.5 top-2.5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -442,21 +445,21 @@ export default function DeliveryChallansPage() {
             </svg>
           </div>
 
-          <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+          <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
             {(["ALL", "JOB_WORK", "SUPPLY_ON_APPROVAL", "BRANCH_TRANSFER"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setTypeFilter(t)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
                   typeFilter === t
-                    ? "bg-slate-800 text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ? "bg-primary text-white border-primary shadow-sm font-bold"
+                    : "bg-slate-50 text-slate-700 border-border hover:bg-saffron-very-light hover:border-primary/40"
                 }`}
               >
-                {t === "ALL" ? (lang === "gu" ? "બધા પ્રકાર" : "All Types") : t.replace(/_/g, " ")}
+              {t === "ALL" ? "All Types" : t.replace(/_/g, " ")}
               </button>
             ))}
-          </div>
+        </div>
 
           <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
             {(["ALL", "DRAFT", "ISSUED", "CLOSED", "CANCELLED"] as const).map((st) => (
@@ -465,7 +468,7 @@ export default function DeliveryChallansPage() {
                 onClick={() => setStatusFilter(st)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
                   statusFilter === st
-                    ? "bg-indigo-600 text-white"
+                    ? "bg-[#F47721] text-white"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
@@ -518,7 +521,7 @@ export default function DeliveryChallansPage() {
           </p>
           <button
             onClick={handleOpenCreate}
-            className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-semibold hover:bg-indigo-100 transition-colors"
+            className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-[#FFF3E8] text-[#F47721] rounded-lg text-xs font-semibold hover:bg-[#F47721] hover:text-white transition-colors"
           >
             + {lang === "gu" ? "પ્રથમ ચલણ બનાવો" : "Create First Challan"}
           </button>
@@ -652,7 +655,7 @@ export default function DeliveryChallansPage() {
               type="submit"
               form="create-challan-form"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm disabled:opacity-50"
+              className="px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-lg text-sm font-semibold shadow-sm disabled:opacity-50 transition-colors"
             >
               {isSubmitting ? "..." : lang === "gu" ? "ચલણ બનાવો" : "Create Challan"}
             </button>
@@ -874,7 +877,7 @@ export default function DeliveryChallansPage() {
               type="submit"
               form="issue-challan-form"
               disabled={isSubmitting}
-              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm"
+              className="px-3 py-1.5 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-lg text-xs font-semibold shadow-sm transition-colors"
             >
               {isSubmitting ? "..." : lang === "gu" ? "ઇશ્યૂ કરો" : "Confirm Issue"}
             </button>
@@ -1062,7 +1065,7 @@ export default function DeliveryChallansPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm"
+                  className="w-full py-2 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-lg text-xs font-semibold shadow-sm transition-colors"
                 >
                   {isSubmitting ? "Generating..." : "Generate Statutory E-Way Bill JSON Payload"}
                 </button>
@@ -1079,7 +1082,7 @@ export default function DeliveryChallansPage() {
                     navigator.clipboard.writeText(JSON.stringify(generatedEwbPayload, null, 2));
                     alert("JSON payload copied to clipboard!");
                   }}
-                  className="text-xs text-indigo-600 font-semibold hover:text-indigo-800"
+                  className="text-xs text-[#F47721] font-semibold hover:text-[#D95F12]"
                 >
                   Copy JSON
                 </button>

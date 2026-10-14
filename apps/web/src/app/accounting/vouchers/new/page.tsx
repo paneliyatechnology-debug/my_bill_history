@@ -163,22 +163,26 @@ export default function NewVoucherPage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="bg-white p-5 rounded-2xl border border-border shadow-subtle flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Link
               href="/accounting/vouchers"
-              className="text-xs text-slate-500 hover:text-slate-800"
+              className="text-xs font-semibold text-muted hover:text-slate-800 flex items-center gap-1"
             >
-              ← Back to Vouchers
+              <span>←</span>
+              <span>{lang === "gu" ? "વાઉચરોની યાદી" : "Back to Vouchers"}</span>
             </Link>
           </div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            {lang === "gu"
-              ? "દ્વિનોંધી નામા વાઉચર લખો (New Double-Entry Voucher)"
-              : "Record New Journal / Voucher"}
-          </h1>
-          <p className="text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              {lang === "gu"
+                ? "દ્વિનોંધી નામા વાઉચર લખો (New Double-Entry Voucher)"
+                : "Record New Journal / Voucher"}
+            </h1>
+          </div>
+          <p className="text-xs text-muted mt-1 ml-4.5">
             {lang === "gu"
               ? "ઉધાર અને જમા સરખા હોવા આવશ્યક છે (Total Debits == Total Credits)"
               : "Strict double-entry accounting invariants enforced on client and authoritative server"}
@@ -431,14 +435,14 @@ export default function NewVoucherPage() {
         <div className="flex items-center justify-end gap-3">
           <Link
             href="/accounting/vouchers"
-            className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-lg transition-colors"
+            className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-xl transition-all"
           >
             Cancel
           </Link>
           <button
             type="submit"
             disabled={!isBalanced || isSubmitting}
-            className="px-6 py-2.5 text-xs font-bold text-slate-950 bg-[#FF9933] hover:bg-[#E67E17] disabled:bg-slate-300 disabled:cursor-not-allowed rounded-lg shadow-sm transition-colors flex items-center gap-2"
+            className="px-6 py-2.5 text-xs font-bold text-white bg-primary hover:bg-primary-hover active:bg-primary-pressed disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed rounded-xl shadow-card hover:shadow-hover transition-all flex items-center gap-2"
           >
             {isSubmitting ? (
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

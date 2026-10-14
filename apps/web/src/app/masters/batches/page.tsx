@@ -190,7 +190,7 @@ export default function BatchesPage() {
 
         <button
           onClick={handleOpenModal}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#FF9933] hover:bg-[#E67E17] text-slate-950 text-sm font-bold rounded-lg shadow-sm transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white text-sm font-semibold rounded-lg shadow-sm transition-colors"
         >
           <svg
             className="w-4 h-4"
@@ -247,7 +247,7 @@ export default function BatchesPage() {
               {isLoading ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <div className="inline-block w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-2" />
+                    <div className="inline-block w-6 h-6 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin mb-2" />
                     <p>Loading batches...</p>
                   </td>
                 </tr>
@@ -456,7 +456,7 @@ export default function BatchesPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 rounded-lg shadow-sm transition-colors"
+              className="px-5 py-2 text-xs font-semibold text-white bg-[#F47721] hover:bg-[#D95F12] disabled:bg-[#F47721]/50 rounded-lg shadow-sm transition-colors"
             >
               {isSubmitting
                 ? lang === "gu"

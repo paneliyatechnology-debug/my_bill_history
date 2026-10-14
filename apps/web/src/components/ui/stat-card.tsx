@@ -10,7 +10,7 @@ interface StatCardProps {
     value: string;
     isPositive?: boolean;
   };
-  variant?: "default" | "success" | "warning" | "danger" | "brand" | "saffron";
+  variant?: "default" | "success" | "warning" | "danger" | "brand" | "saffron" | "primary";
 }
 
 export function StatCard({
@@ -23,46 +23,57 @@ export function StatCard({
   variant = "default",
 }: StatCardProps) {
   const borderVariants = {
-    default: "border-slate-200/80 hover:border-slate-300",
-    success: "border-emerald-200/80 hover:border-emerald-300 bg-emerald-50/10",
-    warning: "border-amber-200/80 hover:border-amber-300 bg-amber-50/10",
-    danger: "border-rose-200/80 hover:border-rose-300 bg-rose-50/10",
-    brand: "border-amber-200/80 hover:border-[#FF9933] bg-amber-50/20",
-    saffron: "border-amber-300 hover:border-[#FF9933] bg-amber-50/30",
+    default: "border-[#E5E7EB] hover:border-[#D1D5DB] bg-white",
+    primary: "border-[#FED7AA] bg-[#FFFAF5] hover:border-[#F47721]",
+    saffron: "border-[#FED7AA] bg-[#FFFAF5] hover:border-[#F47721]",
+    brand: "border-[#FED7AA] bg-[#FFFAF5] hover:border-[#F47721]",
+    success: "border-emerald-200 bg-emerald-50/20 hover:border-emerald-300",
+    warning: "border-amber-200 bg-amber-50/20 hover:border-amber-300",
+    danger: "border-rose-200 bg-rose-50/20 hover:border-rose-300",
+  };
+
+  const iconBgVariants = {
+    default: "bg-[#F3F4F6] text-[#667085]",
+    primary: "bg-[#FFF3E8] text-[#F47721]",
+    saffron: "bg-[#FFF3E8] text-[#F47721]",
+    brand: "bg-[#FFF3E8] text-[#F47721]",
+    success: "bg-emerald-100/60 text-emerald-700",
+    warning: "bg-amber-100/60 text-amber-700",
+    danger: "bg-rose-100/60 text-rose-700",
   };
 
   return (
     <div
-      className={`bg-white rounded-xl p-5 border shadow-sm transition-all duration-200 hover:shadow-md ${borderVariants[variant]}`}
+      className={`rounded-card p-4 sm:p-5 border shadow-card transition-all duration-200 hover:shadow-md min-w-0 w-full overflow-hidden ${borderVariants[variant]}`}
     >
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1 min-w-0 flex-1">
+          <p className="text-xs font-semibold text-[#667085] uppercase tracking-wider truncate">
             {title}
             {titleGujarati && (
-              <span className="text-slate-400 font-normal ml-1">
+              <span className="text-[#98A2B3] font-normal ml-1">
                 ({titleGujarati})
               </span>
             )}
           </p>
-          <div className="text-2xl font-bold tracking-tight text-slate-900 font-mono">
+          <div className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-[#202124] font-mono truncate">
             {value}
           </div>
         </div>
         {icon && (
-          <div className="p-2.5 bg-slate-100 rounded-lg text-slate-600">
+          <div className={`p-2 sm:p-2.5 rounded-lg shrink-0 ${iconBgVariants[variant]}`}>
             {icon}
           </div>
         )}
       </div>
 
       {(subtext || trend) && (
-        <div className="mt-3 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
-          {subtext && <span>{subtext}</span>}
+        <div className="mt-3 flex items-center justify-between text-xs text-[#667085] pt-2 border-t border-[#E5E7EB] min-w-0 flex-wrap gap-1">
+          {subtext && <span className="truncate">{subtext}</span>}
           {trend && (
             <span
-              className={`font-medium ${
-                trend.isPositive ? "text-emerald-600" : "text-rose-600"
+              className={`font-semibold shrink-0 ${
+                trend.isPositive ? "text-[#16834A]" : "text-[#DC3545]"
               }`}
             >
               {trend.value}
