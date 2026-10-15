@@ -12,6 +12,7 @@ export interface ColumnDef<T> {
   align?: "left" | "center" | "right";
   className?: string;
   headerClassName?: string;
+  sticky?: boolean;
 }
 
 export interface DataTableProps<T> {
@@ -91,6 +92,24 @@ export function DataTable<T>({
   const [currentPage, setCurrentPage] = useState(1);
   const [sortKey, setSortKey] = useState<string | null>(defaultSortKey || null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">(defaultSortOrder);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollLeft = 0;
+    }
+  }, [currentPage, data, searchQuery]);
+
+  React.useEffect(() => {
+    const handleReset = () => {
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollLeft = 0;
+      }
+    };
+    handleReset();
+    window.addEventListener("resize", handleReset);
+    return () => window.removeEventListener("resize", handleReset);
+  }, []);
 
   const activeExportFileName = exportFilename || exportFileName;
   const resolveKey = keyExtractor 
@@ -377,7 +396,7 @@ export function DataTable<T>({
         )}
 
         {/* Desktop Table Presentation (or all screen sizes if mobileCardRender is not supplied) */}
-        <div className={`${mobileCardRender ? "hidden md:block" : "block"} overflow-x-auto min-h-[160px]`}>
+        <div ref={scrollContainerRef} className={`${mobileCardRender ? "hidden md:block" : "block"} overflow-x-auto min-h-[160px]`}>
           <table className="w-full text-left text-xs">
             <thead className="bg-[#FAFBFD] border-b border-[#E2E8F0] text-[#64748B] uppercase font-bold text-[11px] tracking-wider select-none">
               <tr>
@@ -387,11 +406,16 @@ export function DataTable<T>({
                   const alignFlex = col.align === "right" ? "justify-end" : col.align === "center" ? "justify-center" : "justify-start";
                   const alignText = col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : "text-left";
 
+                  const isSticky = Boolean(col.sticky);
+                  const stickyThClass = isSticky
+                    ? "sticky left-0 bg-[#FAFBFD] z-20 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)]"
+                    : "";
+
                   return (
                     <th
                       key={colKey || idx}
                       onClick={() => handleSort(col)}
-                      className={`py-3.5 px-4 font-bold ${alignText} ${col.headerClassName || ""} ${
+                      className={`py-3 px-3 font-bold ${alignText} ${stickyThClass} ${col.headerClassName || ""} ${
                         col.sortable ? "cursor-pointer hover:bg-slate-100/70 transition-colors" : ""
                       } ${isSorted ? sortedHeaderClass : ""}`}
                     >
@@ -437,16 +461,20 @@ export function DataTable<T>({
                   <tr
                     key={resolveKey(row, (safePage - 1) * pageSize + rowIdx)}
                     onClick={() => onRowClick && onRowClick(row)}
-                    className={`hover:bg-[#FAFBFD] transition-colors ${
+                    className={`hover:bg-[#FAFBFD] transition-colors group ${
                       onRowClick ? "cursor-pointer" : ""
                     }`}
                   >
                     {columns.map((col, colIdx) => {
                       const cellAlign = col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : "text-left";
+                      const isSticky = Boolean(col.sticky);
+                      const stickyTdClass = isSticky
+                        ? "sticky left-0 bg-white group-hover:bg-[#FAFBFD] z-10 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)] transition-colors"
+                        : "";
                       return (
                         <td
                           key={col.id || (col.accessorKey ? String(col.accessorKey) : colIdx)}
-                          className={`py-3.5 px-4 ${cellAlign} ${col.className || ""}`}
+                          className={`py-3 px-3 ${cellAlign} ${stickyTdClass} ${col.className || ""}`}
                         >
                           {col.cell
                             ? col.cell(row, (safePage - 1) * pageSize + rowIdx)

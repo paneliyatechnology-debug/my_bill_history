@@ -528,6 +528,9 @@ export default function SuperAdminPortalPage() {
       id: "organization",
       header: lang === "gu" ? "સંસ્થા / ટેનન્ટ આઈડી" : "ORGANIZATION / TENANT",
       sortable: true,
+      sticky: true,
+      headerClassName: "min-w-[210px]",
+      className: "min-w-[210px]",
       accessorFn: (t) => t.organizations[0]?.name || "Main Organization",
       cell: (t) => {
         const firstOrg = t.organizations?.[0];
@@ -537,23 +540,23 @@ export default function SuperAdminPortalPage() {
         const initials = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : orgName.slice(0, 2).toUpperCase();
 
         return (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             {isMainOrg ? (
-              <div className="w-9 h-9 rounded-full bg-[#EDE9FE] text-[#7C3AED] flex items-center justify-center shrink-0 border border-[#DDD6FE]/60 shadow-2xs">
-                <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="w-8 h-8 rounded-full bg-[#EDE9FE] text-[#7C3AED] flex items-center justify-center shrink-0 border border-[#DDD6FE]/60 shadow-2xs">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
               </div>
             ) : (
-              <div className="w-9 h-9 rounded-full bg-[#EDE9FE] text-[#7C3AED] font-bold text-xs flex items-center justify-center shrink-0 border border-[#DDD6FE]/60 shadow-2xs">
+              <div className="w-8 h-8 rounded-full bg-[#EDE9FE] text-[#7C3AED] font-bold text-[11px] flex items-center justify-center shrink-0 border border-[#DDD6FE]/60 shadow-2xs">
                 {initials}
               </div>
             )}
             <div className="min-w-0">
-              <div className="font-bold text-slate-900 text-sm truncate max-w-[190px]" title={orgName}>
+              <div className="font-bold text-slate-900 text-xs truncate max-w-[190px] xl:max-w-[240px]" title={orgName}>
                 {orgName}
               </div>
-              <div className="text-[11px] text-slate-400 font-mono truncate max-w-[190px]" title={t.id}>
+              <div className="text-[10px] text-slate-400 font-mono truncate max-w-[190px] xl:max-w-[240px]" title={t.id}>
                 {t.id}
               </div>
             </div>
@@ -694,14 +697,14 @@ export default function SuperAdminPortalPage() {
         const firstOrg = t.organizations?.[0];
         const firstCompany = firstOrg?.companies?.[0];
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 whitespace-nowrap">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 setSelectedTenant(t);
                 setEditTier(t.subscriptionTier);
               }}
-              className="px-3 py-1.5 bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#7C3AED] border border-[#DDD6FE] rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+              className="px-2.5 py-1 bg-[#FAF5FF] hover:bg-[#F3E8FF] text-[#7C3AED] border border-[#DDD6FE] rounded-lg text-[11px] font-semibold transition-colors cursor-pointer"
             >
               Manage License
             </button>
@@ -710,7 +713,7 @@ export default function SuperAdminPortalPage() {
                 e.stopPropagation();
                 handleViewTenantDetails(t.id);
               }}
-              className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold transition-colors shadow-2xs cursor-pointer"
+              className="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-[11px] font-semibold transition-colors shadow-2xs cursor-pointer"
               title="View full tenant details"
             >
               Details
@@ -721,7 +724,7 @@ export default function SuperAdminPortalPage() {
                   e.stopPropagation();
                   handleImpersonateTenant(firstCompany.id, firstCompany.tradeName);
                 }}
-                className="px-3 py-1.5 bg-[#FFF7ED] hover:bg-[#FFEDD5] text-[#EA580C] border border-[#FED7AA] rounded-lg text-xs font-bold transition-colors shadow-2xs flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                className="px-2.5 py-1 bg-[#FFF7ED] hover:bg-[#FFEDD5] text-[#EA580C] border border-[#FED7AA] rounded-lg text-[11px] font-bold transition-colors shadow-2xs flex items-center gap-1 cursor-pointer"
                 title="Enter tenant portal in support mode"
               >
                 <span>Enter Portal</span>
@@ -1368,7 +1371,7 @@ export default function SuperAdminPortalPage() {
         )}
 
         {/* ===================== 3. PAGE BODY CONTENT ===================== */}
-        <main className="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto space-y-6 relative z-10">
+        <main className="flex-1 p-5 sm:p-7 w-full max-w-[1920px] mx-auto space-y-6 relative z-10">
           {/* SKELETON LOADING STATE FOR OVERVIEW */}
           {activeSection === "overview" && !stats && (
             <div className="space-y-6 animate-pulse">
@@ -1449,7 +1452,7 @@ export default function SuperAdminPortalPage() {
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
-                    <span>{lang === "gu" ? "નવી સંસ્થા" : "+ New Tenant"}</span>
+                    <span>{lang === "gu" ? "નવી સંસ્થા" : "New Tenant"}</span>
                   </button>
                 </div>
               </div>
@@ -1851,7 +1854,7 @@ export default function SuperAdminPortalPage() {
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
                   </svg>
-                  <span>{lang === "gu" ? "નવી સંસ્થા બનાવો" : "+ Create New Tenant"}</span>
+                  <span>{lang === "gu" ? "નવી સંસ્થા બનાવો" : "Create New Tenant"}</span>
                 </button>
               </div>
 
