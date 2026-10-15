@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../../context/auth-context";
+import { apiClient } from "../../lib/api-client";
 
 interface SubNavItem {
   name: string;
@@ -55,6 +56,46 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     advanced: false,
     settings: false,
   });
+
+  const [supportSession, setSupportSession] = useState<{
+    isSupportSession: boolean;
+    companyName?: string;
+    companyId?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("billing_support_session");
+      if (raw) {
+        setSupportSession(JSON.parse(raw));
+      } else {
+        setSupportSession(null);
+      }
+    } catch {
+      setSupportSession(null);
+    }
+  }, [pathname]);
+
+  const handleExitSupportSession = async () => {
+    try {
+      if (supportSession?.companyId) {
+        await apiClient.post("/super-admin/impersonate/exit", {
+          companyId: supportSession.companyId,
+          sessionId: (supportSession as any)?.sessionId,
+        });
+      }
+    } catch {
+      // ignore
+    } finally {
+      const orig = (supportSession as any)?.originalToken;
+      if (orig) {
+        localStorage.setItem("billing_token", orig);
+      }
+      localStorage.removeItem("billing_support_session");
+      localStorage.removeItem("billing_tenant_context");
+      router.push("/superadmin");
+    }
+  };
 
   // Load persisted sidebar state from localStorage
   useEffect(() => {
@@ -555,6 +596,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* 2. MAIN APPLICATION CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0 w-full min-h-0">
+        {/* SuperAdmin Active Support Session Banner */}
+        {supportSession?.isSupportSession && (
+          <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-900 text-white px-4 py-2 text-xs flex items-center justify-between z-30 sticky top-0 shadow-md">
+            <div className="flex items-center gap-2">
+              <span className="bg-amber-400 text-purple-950 font-bold px-2 py-0.5 rounded text-[10px] uppercase font-mono tracking-wider">
+                Support Session
+              </span>
+              <span className="font-medium text-slate-100">
+                Operating in authorized context of <strong className="text-white underline">{supportSession.companyName || "Client Tenant"}</strong> as Platform SuperAdmin.
+              </span>
+            </div>
+            <button
+              onClick={handleExitSupportSession}
+              className="px-3 py-1 bg-white text-purple-950 hover:bg-purple-100 rounded-lg font-bold text-xs transition-all shadow-xs shrink-0"
+            >
+              Exit Support Mode & Return to Console →
+            </button>
+          </div>
+        )}
+
         {/* TOPBAR HEADER */}
         <header className="h-16 bg-white border-b border-[#E5E7EB] px-3 sm:px-6 flex items-center justify-between sticky top-0 z-20 shadow-xs max-w-full">
           {/* Left: Mobile hamburger & Desktop sidebar toggle */}

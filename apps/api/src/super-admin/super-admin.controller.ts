@@ -7,14 +7,18 @@ import {
   Body,
   Query,
   UseGuards,
+  HttpCode,
+  HttpStatus,
 } from "@nestjs/common";
 import { Roles } from "../common/decorators/roles.decorator";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { UserRole, SubscriptionTier } from "@billing/shared-types";
 import { SuperAdminService } from "./super-admin.service";
+import { SuperAdminGuard } from "../common/guards/super-admin.guard";
 
 @Controller("super-admin")
 @Roles(UserRole.SUPER_ADMIN)
+@UseGuards(SuperAdminGuard)
 export class SuperAdminController {
   constructor(private readonly superAdminService: SuperAdminService) {}
 
@@ -34,7 +38,13 @@ export class SuperAdminController {
     return this.superAdminService.getTenants({ search, tier, status, page, limit });
   }
 
+  @Get("tenants/:id")
+  async getTenantById(@Param("id") id: string) {
+    return this.superAdminService.getTenantById(id);
+  }
+
   @Post("tenants")
+  @HttpCode(HttpStatus.CREATED)
   async createTenant(
     @Body() dto: any,
     @CurrentUser("id") superAdminUserId: string,
@@ -89,8 +99,38 @@ export class SuperAdminController {
     return this.superAdminService.getAuditLogs({ limit, action });
   }
 
+  @Get("invoices")
+  async getInvoices(
+    @Query("search") search?: string,
+    @Query("status") status?: string,
+    @Query("page") page?: number,
+    @Query("limit") limit?: number,
+  ) {
+    return this.superAdminService.getInvoices({ search, status, page, limit });
+  }
+
+  @Get("diagnostics")
+  async getDiagnostics() {
+    return this.superAdminService.getDiagnostics();
+  }
+
   @Post("impersonate")
-  async impersonateCompany(@Body("companyId") companyId: string) {
-    return this.superAdminService.impersonateCompany(companyId);
+  @HttpCode(HttpStatus.OK)
+  async impersonateCompany(
+    @Body() body: { companyId?: string; targetCompanyId?: string; reason?: string },
+    @CurrentUser("id") superAdminUserId: string,
+  ) {
+    const cid = body?.companyId || body?.targetCompanyId || "";
+    return this.superAdminService.impersonateCompany(cid, body?.reason, superAdminUserId);
+  }
+
+  @Post("impersonate/exit")
+  @HttpCode(HttpStatus.OK)
+  async exitImpersonation(
+    @Body() body: { companyId?: string; targetCompanyId?: string; sessionId?: string },
+    @CurrentUser("id") superAdminUserId: string,
+  ) {
+    const cid = body?.companyId || body?.targetCompanyId || "";
+    return this.superAdminService.exitImpersonation(cid, superAdminUserId, body?.sessionId);
   }
 }

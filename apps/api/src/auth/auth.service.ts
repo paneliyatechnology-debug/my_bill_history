@@ -19,6 +19,7 @@ import {
 } from "@billing/accounting-core";
 import { DatabaseService } from "../database/database.service";
 import { AuditService } from "../audit/audit.service";
+import { SupportSessionRegistry } from "../super-admin/support-session.registry";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { SwitchContextDto } from "./dto/switch-context.dto";
@@ -30,6 +31,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly audit: AuditService,
+    private readonly sessionRegistry: SupportSessionRegistry,
   ) {}
 
   /**
@@ -480,6 +482,19 @@ export class AuthService {
         financialYearId: fy?.id || null,
         financialYear: fy?.name || null,
       },
+    };
+  }
+
+  /**
+   * Secure logout: revokes all active support sessions for the user
+   */
+  async logout(userId: string) {
+    if (userId) {
+      await this.sessionRegistry.revokeAllForActor(userId);
+    }
+    return {
+      success: true,
+      message: "Logged out successfully. All active support sessions revoked.",
     };
   }
 }

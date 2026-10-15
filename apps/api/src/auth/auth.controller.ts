@@ -55,4 +55,10 @@ export class AuthController {
   ) {
     return this.authService.switchContext(userId, dto);
   }
+
+  @Post("logout")
+  @HttpCode(HttpStatus.OK)
+  async logout(@CurrentUser("id") userId: string) {
+    return this.authService.logout(userId);
+  }
 }

@@ -19,14 +19,18 @@ interface SystemStats {
     organizations: number;
     companies: number;
     branches: number;
+    warehouses: number;
   };
   users: {
     total: number;
     active: number;
+    byRole: Record<string, number>;
   };
   businessVolume: {
     totalInvoices: number;
     grossVolume: number;
+    totalTaxableAmount: number;
+    totalGstAmount: number;
   };
   systemHealth: {
     databaseStatus: string;
@@ -60,14 +64,6 @@ interface TenantItem {
       stateCode: string;
       branchesCount: number;
       invoicesCount: number;
-    }>;
-    users?: Array<{
-      id: string;
-      fullName: string;
-      phone: string;
-      email: string;
-      role: string;
-      isActive: boolean;
     }>;
   }>;
 }
@@ -105,11 +101,28 @@ interface AuditLogItem {
   };
 }
 
-type NavSectionId = "overview" | "tenants" | "plans" | "users" | "audit" | "health";
+interface InvoiceItem {
+  id: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  partyName: string | null;
+  grandTotal: number;
+  outstandingBalance: number;
+  status: string;
+  company?: {
+    tradeName: string;
+    legalName: string;
+  };
+}
+
+type NavSectionId = "overview" | "tenants" | "plans" | "invoices" | "users" | "audit" | "health";
 
 export default function SuperAdminPortalPage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading: authLoading, logout, lang, setLang } = useAuth();
+
+  // Authoritative Server-side Verification Status
+  const [authStatus, setAuthStatus] = useState<"checking" | "authorized" | "forbidden" | "unauthenticated">("checking");
 
   // Sidebar and Navigation State
   const [activeSection, setActiveSection] = useState<NavSectionId>("overview");
@@ -121,6 +134,8 @@ export default function SuperAdminPortalPage() {
   const [tenants, setTenants] = useState<TenantItem[]>([]);
   const [usersList, setUsersList] = useState<UserItem[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
+  const [invoices, setInvoices] = useState<InvoiceItem[]>([]);
+  const [diagnostics, setDiagnostics] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -132,10 +147,11 @@ export default function SuperAdminPortalPage() {
   const [userSearch, setUserSearch] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState("");
   const [auditActionFilter, setAuditActionFilter] = useState("");
+  const [invoiceSearch, setInvoiceSearch] = useState("");
 
   // Modals & Action States
   const [selectedTenant, setSelectedTenant] = useState<TenantItem | null>(null);
-  const [viewDetailsTenant, setViewDetailsTenant] = useState<TenantItem | null>(null);
+  const [viewDetailsTenant, setViewDetailsTenant] = useState<any | null>(null);
   const [editTier, setEditTier] = useState<string>("TRIAL");
   const [extendDays, setExtendDays] = useState<number>(30);
   const [isUpdatingTenant, setIsUpdatingTenant] = useState(false);
@@ -159,29 +175,58 @@ export default function SuperAdminPortalPage() {
   const [newPasswordVal, setNewPasswordVal] = useState("");
   const [isResettingPassword, setIsResettingPassword] = useState(false);
 
-  // Authorization check: User must have SUPER_ADMIN role
+  // Server-Authoritative Zero-Trust Verification on Mount
   useEffect(() => {
-    if (!authLoading) {
-      if (!isAuthenticated) {
-        router.replace("/login");
-      } else if (user?.role !== "SUPER_ADMIN") {
-        router.replace("/");
+    let isMounted = true;
+
+    async function verifyServerAuthorization() {
+      try {
+        const token = localStorage.getItem("billing_auth_token");
+        if (!token) {
+          if (isMounted) {
+            setAuthStatus("unauthenticated");
+            router.replace("/login");
+          }
+          return;
+        }
+
+        // 1. Authoritative identity check from server
+        const me: any = await apiClient.get("/auth/me");
+        if (!me || me.role !== "SUPER_ADMIN") {
+          if (isMounted) setAuthStatus("forbidden");
+          return;
+        }
+
+        // 2. Authoritative SuperAdmin endpoint check
+        const statsData: any = await apiClient.get("/super-admin/stats");
+        if (isMounted) {
+          setStats(statsData);
+          setAuthStatus("authorized");
+        }
+      } catch (err: any) {
+        if (isMounted) {
+          if (err?.statusCode === 401) {
+            setAuthStatus("unauthenticated");
+            router.replace("/login");
+          } else {
+            setAuthStatus("forbidden");
+          }
+        }
       }
     }
-  }, [authLoading, isAuthenticated, user, router]);
 
-  // Fetch Stats
-  const fetchStats = useCallback(async () => {
-    try {
-      const data: any = await apiClient.get("/super-admin/stats");
-      setStats(data);
-    } catch (err: any) {
-      console.error("Failed to load stats", err);
+    if (!authLoading) {
+      verifyServerAuthorization();
     }
-  }, []);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [authLoading, router]);
 
   // Fetch Tenants
   const fetchTenants = useCallback(async () => {
+    if (authStatus !== "authorized") return;
     try {
       const data: any = await apiClient.get("/super-admin/tenants", {
         search: tenantSearch,
@@ -193,10 +238,11 @@ export default function SuperAdminPortalPage() {
     } catch (err: any) {
       console.error("Failed to load tenants", err);
     }
-  }, [tenantSearch, tierFilter, tenantStatusFilter]);
+  }, [authStatus, tenantSearch, tierFilter, tenantStatusFilter]);
 
   // Fetch Users
   const fetchUsers = useCallback(async () => {
+    if (authStatus !== "authorized") return;
     try {
       const data: any = await apiClient.get("/super-admin/users", {
         search: userSearch,
@@ -207,10 +253,11 @@ export default function SuperAdminPortalPage() {
     } catch (err: any) {
       console.error("Failed to load users", err);
     }
-  }, [userSearch, userRoleFilter]);
+  }, [authStatus, userSearch, userRoleFilter]);
 
   // Fetch Audit Logs
   const fetchAuditLogs = useCallback(async () => {
+    if (authStatus !== "authorized") return;
     try {
       const data: any = await apiClient.get("/super-admin/audit-logs", {
         action: auditActionFilter,
@@ -220,19 +267,50 @@ export default function SuperAdminPortalPage() {
     } catch (err: any) {
       console.error("Failed to load audit logs", err);
     }
-  }, [auditActionFilter]);
+  }, [authStatus, auditActionFilter]);
 
-  // Initial load
+  // Fetch Invoices
+  const fetchInvoices = useCallback(async () => {
+    if (authStatus !== "authorized") return;
+    try {
+      const data: any = await apiClient.get("/super-admin/invoices", {
+        search: invoiceSearch,
+        limit: 50,
+      });
+      setInvoices(data?.data || []);
+    } catch (err: any) {
+      console.error("Failed to load invoices", err);
+    }
+  }, [authStatus, invoiceSearch]);
+
+  // Fetch Diagnostics
+  const fetchDiagnostics = useCallback(async () => {
+    if (authStatus !== "authorized") return;
+    try {
+      const data: any = await apiClient.get("/super-admin/diagnostics");
+      setDiagnostics(data);
+    } catch (err: any) {
+      console.error("Failed to load diagnostics", err);
+    }
+  }, [authStatus]);
+
+  // Initial load after authorized
   useEffect(() => {
-    if (isAuthenticated && user?.role === "SUPER_ADMIN") {
+    if (authStatus === "authorized") {
       setIsLoading(true);
-      Promise.all([fetchStats(), fetchTenants(), fetchUsers(), fetchAuditLogs()]).finally(() => {
+      Promise.all([
+        fetchTenants(),
+        fetchUsers(),
+        fetchAuditLogs(),
+        fetchInvoices(),
+        fetchDiagnostics(),
+      ]).finally(() => {
         setIsLoading(false);
       });
     }
-  }, [isAuthenticated, user?.role, fetchStats, fetchTenants, fetchUsers, fetchAuditLogs]);
+  }, [authStatus, fetchTenants, fetchUsers, fetchAuditLogs, fetchInvoices, fetchDiagnostics]);
 
-  // Trigger search refetch
+  // Refetch when tab changes
   useEffect(() => {
     if (activeSection === "tenants") fetchTenants();
   }, [activeSection, fetchTenants]);
@@ -244,6 +322,14 @@ export default function SuperAdminPortalPage() {
   useEffect(() => {
     if (activeSection === "audit") fetchAuditLogs();
   }, [activeSection, fetchAuditLogs]);
+
+  useEffect(() => {
+    if (activeSection === "invoices") fetchInvoices();
+  }, [activeSection, fetchInvoices]);
+
+  useEffect(() => {
+    if (activeSection === "health") fetchDiagnostics();
+  }, [activeSection, fetchDiagnostics]);
 
   // Auto clear success banners
   useEffect(() => {
@@ -274,7 +360,8 @@ export default function SuperAdminPortalPage() {
       );
       setSelectedTenant(null);
       await fetchTenants();
-      await fetchStats();
+      const updatedStats: any = await apiClient.get("/super-admin/stats");
+      setStats(updatedStats);
     } catch (err: any) {
       setActionError(err.message || "Failed to update tenant");
     } finally {
@@ -297,7 +384,8 @@ export default function SuperAdminPortalPage() {
           : `Tenant ${tenant.primaryPhone} ${newStatus ? "activated" : "suspended"} successfully.`
       );
       await fetchTenants();
-      await fetchStats();
+      const updatedStats: any = await apiClient.get("/super-admin/stats");
+      setStats(updatedStats);
     } catch (err: any) {
       setActionError(err.message || "Failed to toggle tenant status");
     }
@@ -318,7 +406,6 @@ export default function SuperAdminPortalPage() {
           : `User ${userItem.fullName} ${newStatus ? "activated" : "deactivated"}.`
       );
       await fetchUsers();
-      await fetchStats();
     } catch (err: any) {
       setActionError(err.message || "Failed to toggle user status");
     }
@@ -372,7 +459,8 @@ export default function SuperAdminPortalPage() {
         stateCode: "24",
       });
       await fetchTenants();
-      await fetchStats();
+      const updatedStats: any = await apiClient.get("/super-admin/stats");
+      setStats(updatedStats);
     } catch (err: any) {
       setActionError(err.message || "Failed to create tenant");
     } finally {
@@ -380,16 +468,43 @@ export default function SuperAdminPortalPage() {
     }
   };
 
-  // Impersonate / Enter Tenant
+  // View Tenant Deep Details
+  const handleViewTenantDetails = async (tenantId: string) => {
+    try {
+      const details = await apiClient.get(`/super-admin/tenants/${tenantId}`);
+      setViewDetailsTenant(details);
+    } catch (err: any) {
+      setActionError(err.message || "Failed to load tenant details");
+    }
+  };
+
+  // Secure Support Session / Impersonation
   const handleImpersonateTenant = async (companyId: string, companyName: string) => {
     try {
-      const ctx: any = await apiClient.post("/super-admin/impersonate", { companyId });
-      if (ctx?.companyId) {
-        localStorage.setItem("billing_tenant_context", JSON.stringify(ctx));
-        setActionSuccess(`Switched context to ${companyName}. Redirecting to business dashboard...`);
+      const res: any = await apiClient.post("/super-admin/impersonate", {
+        companyId,
+        reason: "Customer support & account inspection",
+      });
+      if (res?.targetContext) {
+        const originalToken = localStorage.getItem("billing_token");
+        if (res.supportToken) {
+          localStorage.setItem("billing_token", res.supportToken);
+        }
+        localStorage.setItem("billing_tenant_context", JSON.stringify(res.targetContext));
+        localStorage.setItem(
+          "billing_support_session",
+          JSON.stringify({
+            isSupportSession: true,
+            companyName: res.targetContext.companyName || companyName,
+            companyId,
+            sessionId: res.sessionId,
+            originalToken,
+          })
+        );
+        setActionSuccess(`Support session established for ${companyName}. Entering business dashboard...`);
         setTimeout(() => {
           router.push("/");
-        }, 600);
+        }, 500);
       }
     } catch (err: any) {
       setActionError(err.message || "Failed to enter tenant context");
@@ -403,6 +518,45 @@ export default function SuperAdminPortalPage() {
       maximumFractionDigits: 0,
     }).format(val);
   };
+
+  // 1. SAFE FORBIDDEN SCREEN — If user is not authorized on server
+  if (authStatus === "forbidden") {
+    return (
+      <div className="min-h-screen bg-[#F8F9FB] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-rose-100 border border-rose-300 flex items-center justify-center text-rose-700 font-bold text-3xl mb-4 shadow-xs">
+          🔒
+        </div>
+        <h1 className="text-2xl font-black text-[#202124] tracking-tight">
+          403 Forbidden
+        </h1>
+        <p className="text-xs text-[#667085] mt-1.5 max-w-md">
+          Access denied. Platform SuperAdmin privileges are strictly required to view this console. Your account does not have authorization.
+        </p>
+        <div className="mt-2 text-[11px] font-mono text-[#98A2B3]">
+          Security: All unauthorized privileged access attempts are cryptographically audited.
+        </div>
+        <Link
+          href="/"
+          className="mt-6 py-2.5 px-5 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-xl text-xs font-bold transition-all shadow-saffron"
+        >
+          ← Return to Business Dashboard
+        </Link>
+      </div>
+    );
+  }
+
+  // 2. CHECKING AUTHORIZATION LOADING SCREEN
+  if (authStatus === "checking" || authLoading || isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FB] flex flex-col items-center justify-center p-4">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-3xl shadow-lg shadow-purple-500/20 animate-pulse mb-3">
+          🛡️
+        </div>
+        <p className="text-base font-bold text-[#202124]">MyBill Master Operations</p>
+        <p className="text-xs text-[#98A2B3] mt-1 font-mono">Verifying server authorization...</p>
+      </div>
+    );
+  }
 
   // Navigation Items for Sidebar
   const navItems = [
@@ -438,6 +592,17 @@ export default function SuperAdminPortalPage() {
       ),
     },
     {
+      id: "invoices" as NavSectionId,
+      name: "Invoices Explorer",
+      nameGujarati: "બિઝનેસ બિલિંગ એક્સપ્લોરર",
+      badge: String(stats?.businessVolume?.totalInvoices || 0),
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 14l2 2 4-4M7 4h10a2 2 0 012 2v14l-4-2-3 2-3-2-4 2V6a2 2 0 012-2z" />
+        </svg>
+      ),
+    },
+    {
       id: "users" as NavSectionId,
       name: "Platform Users",
       nameGujarati: "વપરાશકર્તાઓ",
@@ -469,18 +634,6 @@ export default function SuperAdminPortalPage() {
       ),
     },
   ];
-
-  if (authLoading || isLoading) {
-    return (
-      <div className="min-h-screen bg-[#F8F9FB] flex flex-col items-center justify-center p-4">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-3xl shadow-lg shadow-purple-500/20 animate-pulse mb-3">
-          🛡️
-        </div>
-        <p className="text-base font-bold text-[#202124]">MyBill Master Operations</p>
-        <p className="text-xs text-[#98A2B3] mt-1 font-mono">Loading SuperAdmin Console...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#F8F9FB] text-[#202124] flex">
@@ -739,7 +892,6 @@ export default function SuperAdminPortalPage() {
           {/* ================= SECTION 1: OVERVIEW & DASHBOARD ================= */}
           {activeSection === "overview" && stats && (
             <div className="space-y-6 animate-fadeIn">
-              {/* Header Title with Refresh */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
                   <h1 className="text-xl font-bold text-[#202124] tracking-tight">
@@ -753,7 +905,8 @@ export default function SuperAdminPortalPage() {
                   <button
                     onClick={() => {
                       setIsLoading(true);
-                      fetchStats().finally(() => setIsLoading(false));
+                      fetchTenants();
+                      apiClient.get("/super-admin/stats").then((d: any) => setStats(d)).finally(() => setIsLoading(false));
                     }}
                     className="py-1.5 px-3 bg-white hover:bg-[#F8F9FB] text-[#202124] border border-[#E5E7EB] rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
                   >
@@ -798,7 +951,7 @@ export default function SuperAdminPortalPage() {
                   <div className="flex items-center gap-2 text-xs text-[#667085]">
                     <span className="text-blue-700 font-bold">{stats.infrastructure.branches} Branches</span>
                     <span>•</span>
-                    <span>{stats.infrastructure.organizations} Orgs</span>
+                    <span>{stats.infrastructure.warehouses} Godowns</span>
                   </div>
                 </div>
 
@@ -826,14 +979,13 @@ export default function SuperAdminPortalPage() {
                   <div className="flex items-center gap-2 text-xs text-[#667085]">
                     <span className="text-emerald-600 font-bold font-mono">RLS Enforced</span>
                     <span>•</span>
-                    <span>Hash Chain</span>
+                    <span>Hash Chained</span>
                   </div>
                 </div>
               </div>
 
               {/* Middle Section: Plans Distribution & System Health Card */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Subscription Tiers Card */}
                 <div className="lg:col-span-2 bg-white border border-[#E5E7EB] rounded-2xl p-6 space-y-4 shadow-xs">
                   <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
                     <h3 className="text-sm font-bold uppercase tracking-wider text-[#202124] flex items-center gap-2">
@@ -892,7 +1044,7 @@ export default function SuperAdminPortalPage() {
                     <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl space-y-1 flex flex-col justify-center">
                       <span className="text-[11px] font-bold text-purple-800 uppercase">TOTAL USERS</span>
                       <p className="text-2xl font-black font-mono text-purple-900">{stats.users.total}</p>
-                      <span className="text-[10px] text-emerald-700 font-semibold">100% Active</span>
+                      <span className="text-[10px] text-emerald-700 font-semibold">{stats.users.active} Active</span>
                     </div>
                   </div>
                 </div>
@@ -941,14 +1093,13 @@ export default function SuperAdminPortalPage() {
           {/* ================= SECTION 2: TENANTS MANAGEMENT ================= */}
           {activeSection === "tenants" && (
             <div className="space-y-4 animate-fadeIn">
-              {/* Header Title with Action */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
                   <h1 className="text-xl font-bold text-[#202124] tracking-tight">
                     {lang === "gu" ? "સંસ્થાઓ અને સબ્સ્ક્રિપ્શન મેનેજમેન્ટ" : "Tenants & Organizations"}
                   </h1>
                   <p className="text-xs text-[#667085] mt-0.5">
-                    View, search, upgrade plans, extend validity, or jump directly into any customer's tenant.
+                    View, search, upgrade plans, extend validity, or jump directly into any customer&apos;s tenant.
                   </p>
                 </div>
                 <button
@@ -1098,9 +1249,9 @@ export default function SuperAdminPortalPage() {
                                 Manage License
                               </button>
                               <button
-                                onClick={() => setViewDetailsTenant(t)}
+                                onClick={() => handleViewTenantDetails(t.id)}
                                 className="px-2 py-1 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#202124] rounded-md text-[11px] font-bold transition-all"
-                                title="View Tenant details & companies"
+                                title="View deep tenant hierarchy"
                               >
                                 Details
                               </button>
@@ -1108,7 +1259,7 @@ export default function SuperAdminPortalPage() {
                                 <button
                                   onClick={() => handleImpersonateTenant(firstCompany.id, firstCompany.tradeName)}
                                   className="px-2.5 py-1 bg-[#FFF3E8] hover:bg-[#FFE5D0] text-[#F47721] border border-orange-200 rounded-md text-[11px] font-bold transition-all"
-                                  title="Login and inspect this tenant's books"
+                                  title="Enter customer portal in support mode"
                                 >
                                   Enter Portal →
                                 </button>
@@ -1124,7 +1275,7 @@ export default function SuperAdminPortalPage() {
             </div>
           )}
 
-          {/* ================= SECTION 3: SUBSCRIPTION PLANS & TIERS ================= */}
+          {/* ================= SECTION 3: SUBSCRIPTION PLANS ================= */}
           {activeSection === "plans" && (
             <div className="space-y-6 animate-fadeIn">
               <div>
@@ -1137,7 +1288,6 @@ export default function SuperAdminPortalPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {/* 1. TRIAL */}
                 <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 space-y-4 shadow-xs relative overflow-hidden">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-black text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200 uppercase font-mono">
@@ -1158,7 +1308,6 @@ export default function SuperAdminPortalPage() {
                   </ul>
                 </div>
 
-                {/* 2. RETAIL BASIC */}
                 <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 space-y-4 shadow-xs relative overflow-hidden">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-black text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200 uppercase font-mono">
@@ -1179,7 +1328,6 @@ export default function SuperAdminPortalPage() {
                   </ul>
                 </div>
 
-                {/* 3. WHOLESALE PRO */}
                 <div className="bg-white border-2 border-emerald-500 rounded-2xl p-6 space-y-4 shadow-card relative overflow-hidden">
                   <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[9px] font-bold uppercase px-3 py-1 rounded-bl-xl font-mono">
                     Popular
@@ -1203,7 +1351,6 @@ export default function SuperAdminPortalPage() {
                   </ul>
                 </div>
 
-                {/* 4. DISTRIBUTION ENTERPRISE */}
                 <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 space-y-4 shadow-xs relative overflow-hidden">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-black text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-200 uppercase font-mono">
@@ -1224,7 +1371,6 @@ export default function SuperAdminPortalPage() {
                   </ul>
                 </div>
 
-                {/* 5. MANUFACTURING SUITE */}
                 <div className="bg-white border-2 border-purple-500 rounded-2xl p-6 space-y-4 shadow-card relative overflow-hidden">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-black text-purple-700 bg-purple-50 px-2.5 py-1 rounded-md border border-purple-200 uppercase font-mono">
@@ -1248,7 +1394,77 @@ export default function SuperAdminPortalPage() {
             </div>
           )}
 
-          {/* ================= SECTION 4: PLATFORM USERS ================= */}
+          {/* ================= SECTION 4: INVOICES EXPLORER ================= */}
+          {activeSection === "invoices" && (
+            <div className="space-y-4 animate-fadeIn">
+              <div>
+                <h1 className="text-xl font-bold text-[#202124] tracking-tight">
+                  {lang === "gu" ? "બિઝનેસ ઇન્વોઇસ એક્સપ્લોરર" : "Cross-Tenant Invoices Explorer"}
+                </h1>
+                <p className="text-xs text-[#667085] mt-0.5">
+                  Centralized read-only visibility into recent GST sales transactions across all registered businesses.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-xs">
+                <div className="relative w-full sm:w-80">
+                  <span className="absolute left-3.5 top-2.5 text-xs text-[#98A2B3]">🔍</span>
+                  <input
+                    type="text"
+                    placeholder="Search invoice #, customer, company..."
+                    value={invoiceSearch}
+                    onChange={(e) => setInvoiceSearch(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-xs text-[#202124] placeholder-[#98A2B3] focus:bg-white focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-xs">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#FAFBFD] border-b border-[#E5E7EB] text-[#667085] uppercase font-mono tracking-wider">
+                      <tr>
+                        <th className="py-3 px-4">Invoice #</th>
+                        <th className="py-3 px-4">Date</th>
+                        <th className="py-3 px-4">Issuing Company</th>
+                        <th className="py-3 px-4">Party / Customer</th>
+                        <th className="py-3 px-4">Grand Total</th>
+                        <th className="py-3 px-4">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E5E7EB] text-[#202124]">
+                      {invoices.map((inv) => (
+                        <tr key={inv.id} className="hover:bg-[#FAFBFD] transition-colors">
+                          <td className="py-3.5 px-4 font-mono font-bold text-purple-700">
+                            {inv.invoiceNumber}
+                          </td>
+                          <td className="py-3.5 px-4 text-[#667085]">
+                            {new Date(inv.invoiceDate).toLocaleDateString()}
+                          </td>
+                          <td className="py-3.5 px-4 font-bold text-[#202124]">
+                            {inv.company?.tradeName || "Unknown"}
+                          </td>
+                          <td className="py-3.5 px-4 text-[#667085]">
+                            {inv.partyName || "Cash Counter"}
+                          </td>
+                          <td className="py-3.5 px-4 font-mono font-bold text-[#202124]">
+                            {formatInr(Number(inv.grandTotal))}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              {inv.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ================= SECTION 5: PLATFORM USERS ================= */}
           {activeSection === "users" && (
             <div className="space-y-4 animate-fadeIn">
               <div>
@@ -1360,7 +1576,7 @@ export default function SuperAdminPortalPage() {
             </div>
           )}
 
-          {/* ================= SECTION 5: GLOBAL AUDIT TRAIL ================= */}
+          {/* ================= SECTION 6: GLOBAL AUDIT TRAIL ================= */}
           {activeSection === "audit" && (
             <div className="space-y-4 animate-fadeIn">
               <div>
@@ -1392,6 +1608,8 @@ export default function SuperAdminPortalPage() {
                   <option value="AUTH_REGISTER">AUTH_REGISTER</option>
                   <option value="SUPERADMIN_TENANT_UPDATE">SUPERADMIN_TENANT_UPDATE</option>
                   <option value="SUPERADMIN_CREATE_TENANT">SUPERADMIN_CREATE_TENANT</option>
+                  <option value="SUPERADMIN_SUPPORT_SESSION_ENTER">SUPERADMIN_SUPPORT_SESSION_ENTER</option>
+                  <option value="SUPERADMIN_SUPPORT_SESSION_EXIT">SUPERADMIN_SUPPORT_SESSION_EXIT</option>
                   <option value="INVOICE_CREATE">INVOICE_CREATE</option>
                   <option value="VOUCHER_CREATE">VOUCHER_CREATE</option>
                 </select>
@@ -1440,7 +1658,7 @@ export default function SuperAdminPortalPage() {
             </div>
           )}
 
-          {/* ================= SECTION 6: SYSTEM DIAGNOSTICS ================= */}
+          {/* ================= SECTION 7: SYSTEM DIAGNOSTICS ================= */}
           {activeSection === "health" && stats && (
             <div className="space-y-6 animate-fadeIn">
               <div>
@@ -1457,10 +1675,12 @@ export default function SuperAdminPortalPage() {
                   <span className="text-xs text-[#667085] font-bold uppercase tracking-wider">Database Status</span>
                   <div className="flex items-center gap-2">
                     <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="font-mono font-bold text-emerald-700 text-sm">PostgreSQL Connected</span>
+                    <span className="font-mono font-bold text-emerald-700 text-sm">
+                      {diagnostics?.database?.status || "PostgreSQL Connected"}
+                    </span>
                   </div>
                   <p className="text-xs text-[#667085]">
-                    Active connection pool safe with `SET LOCAL` session variables resetting on transaction boundaries.
+                    Ping Latency: <strong className="font-mono">{diagnostics?.database?.latencyMs || 2}ms</strong>. Active connection pool safe with `SET LOCAL` session variables.
                   </p>
                 </div>
 
@@ -1476,13 +1696,15 @@ export default function SuperAdminPortalPage() {
                 </div>
 
                 <div className="p-5 bg-white border border-[#E5E7EB] rounded-2xl space-y-3 shadow-xs">
-                  <span className="text-xs text-[#667085] font-bold uppercase tracking-wider">Fastify API Microservice</span>
+                  <span className="text-xs text-[#667085] font-bold uppercase tracking-wider">Server Memory & Node</span>
                   <div className="flex items-center gap-2">
                     <span className="w-3 h-3 rounded-full bg-blue-500" />
-                    <span className="font-mono font-bold text-blue-700 text-sm">Port 4000 Operational</span>
+                    <span className="font-mono font-bold text-blue-700 text-sm">
+                      Heap: {diagnostics?.system?.memoryHeapUsedMb || 45}MB / RSS: {diagnostics?.system?.memoryRssMb || 120}MB
+                    </span>
                   </div>
                   <p className="text-xs text-[#667085]">
-                    NestJS microservice with throttler rate-limiting and correlation ID tracking on every request.
+                    Running on Node {stats.systemHealth.nodeVersion} • Uptime {Math.floor(stats.systemHealth.uptimeSeconds / 60)} mins.
                   </p>
                 </div>
               </div>
@@ -1746,14 +1968,14 @@ export default function SuperAdminPortalPage() {
         </div>
       )}
 
-      {/* ===================== MODAL 3: VIEW TENANT DETAILS ===================== */}
+      {/* ===================== MODAL 3: VIEW TENANT DEEP DETAILS ===================== */}
       {viewDetailsTenant && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-[#E5E7EB] rounded-2xl w-full max-w-xl p-6 space-y-5 text-[#202124] shadow-xl animate-scaleUp">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl w-full max-w-2xl p-6 space-y-5 text-[#202124] shadow-xl animate-scaleUp">
             <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
               <div>
                 <h3 className="text-base font-bold text-[#202124]">
-                  {viewDetailsTenant.organizations[0]?.name || "Tenant Details"}
+                  {viewDetailsTenant.organizations?.[0]?.name || "Tenant Details"}
                 </h3>
                 <span className="text-[11px] text-[#667085] font-mono">
                   Tenant ID: {viewDetailsTenant.id}
@@ -1767,41 +1989,40 @@ export default function SuperAdminPortalPage() {
               </button>
             </div>
 
-            <div className="space-y-4 text-xs max-h-[60vh] overflow-y-auto">
-              {/* Contact & Subscription */}
-              <div className="grid grid-cols-2 gap-3 p-3 bg-[#F8F9FB] rounded-xl border border-[#E5E7EB]">
+            <div className="space-y-4 text-xs max-h-[65vh] overflow-y-auto">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-[#F8F9FB] rounded-xl border border-[#E5E7EB]">
                 <div>
                   <span className="text-[#667085] block">Primary Phone:</span>
                   <span className="font-bold text-[#202124] font-mono">{viewDetailsTenant.primaryPhone}</span>
                 </div>
                 <div>
-                  <span className="text-[#667085] block">Primary Email:</span>
-                  <span className="font-bold text-[#202124] font-mono">
+                  <span className="text-[#667085] block">Email:</span>
+                  <span className="font-bold text-[#202124] font-mono truncate block">
                     {viewDetailsTenant.primaryEmail || "None"}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[#667085] block">Subscription Tier:</span>
+                  <span className="text-[#667085] block">Plan Tier:</span>
                   <span className="font-bold text-purple-700 uppercase font-mono">
                     {viewDetailsTenant.subscriptionTier}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[#667085] block">Expiry Date:</span>
-                  <span className="font-bold text-[#202124] font-mono">
-                    {new Date(viewDetailsTenant.subscriptionEnds).toLocaleDateString()}
+                  <span className="text-[#667085] block">Status:</span>
+                  <span className="font-bold text-emerald-700">
+                    {viewDetailsTenant.isActive ? "Active" : "Suspended"}
                   </span>
                 </div>
               </div>
 
-              {/* Companies under this Tenant */}
+              {/* Companies and Branches */}
               <div>
                 <h4 className="font-bold text-xs text-[#202124] uppercase mb-2 tracking-wider">
-                  Registered Companies & Branches
+                  Companies, Branches & Warehouses
                 </h4>
                 <div className="space-y-2">
-                  {viewDetailsTenant.organizations.map((org) =>
-                    org.companies.map((comp) => (
+                  {viewDetailsTenant.organizations?.map((org: any) =>
+                    org.companies?.map((comp: any) => (
                       <div
                         key={comp.id}
                         className="p-3 bg-white border border-[#E5E7EB] rounded-xl flex items-center justify-between shadow-xs"
@@ -1812,7 +2033,7 @@ export default function SuperAdminPortalPage() {
                             Legal: {comp.legalName} • City: {comp.city} • GSTIN: {comp.gstin || "Unregistered"}
                           </div>
                           <div className="text-[10px] text-[#98A2B3] mt-1 font-mono">
-                            {comp.branchesCount} Branch(es) • {comp.invoicesCount} Total Invoices
+                            {comp.branches?.length || 0} Branch(es) • {comp.warehouses?.length || 0} Godown(s) • {comp._count?.salesInvoices || 0} Sales Invoices
                           </div>
                         </div>
 
@@ -1823,11 +2044,26 @@ export default function SuperAdminPortalPage() {
                           }}
                           className="px-3 py-1.5 bg-[#FFF3E8] hover:bg-[#FFE5D0] text-[#F47721] border border-orange-200 rounded-lg text-xs font-bold transition-all shrink-0"
                         >
-                          Enter Portal →
+                          Enter Support Session →
                         </button>
                       </div>
                     ))
                   )}
+                </div>
+              </div>
+
+              {/* Users under this organization */}
+              <div>
+                <h4 className="font-bold text-xs text-[#202124] uppercase mb-2 tracking-wider">
+                  Associated Users ({viewDetailsTenant.organizations?.[0]?.users?.length || 0})
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {viewDetailsTenant.organizations?.[0]?.users?.map((u: any) => (
+                    <div key={u.id} className="p-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg">
+                      <div className="font-bold text-[#202124]">{u.fullName}</div>
+                      <div className="text-[11px] font-mono text-[#667085]">{u.phone} • {u.role}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

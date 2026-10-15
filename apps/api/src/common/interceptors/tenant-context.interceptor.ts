@@ -4,21 +4,29 @@ import {
   ExecutionContext,
   CallHandler,
   ForbiddenException,
+  UnauthorizedException,
+  Optional,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Observable } from "rxjs";
 import { TenantContext, UserRole } from "@billing/shared-types";
 import { DatabaseService } from "../../database/database.service";
+import { SupportSessionRegistry } from "../../super-admin/support-session.registry";
 import { IS_PUBLIC_KEY } from "../decorators/public.decorator";
 
 export const TENANT_CONTEXT_KEY = "TENANT_CONTEXT";
 
 @Injectable()
 export class TenantContextInterceptor implements NestInterceptor {
+  private readonly sessionRegistry: SupportSessionRegistry;
+
   constructor(
     private readonly reflector: Reflector,
     private readonly prisma: DatabaseService,
-  ) {}
+    @Optional() sessionRegistry?: SupportSessionRegistry,
+  ) {
+    this.sessionRegistry = sessionRegistry || new SupportSessionRegistry(prisma);
+  }
 
   async intercept(
     context: ExecutionContext,
@@ -53,6 +61,42 @@ export class TenantContextInterceptor implements NestInterceptor {
       return next.handle();
     }
 
+    // 0. Zero-Trust Authoritative Account Validation
+    // Ensure the account has not been deactivated, revoked, or demoted
+    const currentUserId = user.id || user.userId || user.sub;
+    if (currentUserId) {
+      const dbUser = await this.prisma.user.findUnique({
+        where: { id: currentUserId },
+        select: { id: true, role: true, isActive: true, updatedAt: true },
+      });
+
+      if (!dbUser || !dbUser.isActive) {
+        throw new ForbiddenException({
+          statusCode: 403,
+          error: "ACCOUNT_DEACTIVATED",
+          message: "Access denied: Account is suspended, deactivated, or revoked.",
+          messageGujarati: "એકાઉન્ટ સ્થગિત અથવા નિષ્ક્રિય કરવામાં આવ્યું છે.",
+        });
+      }
+
+      // Check if session token was invalidated by password reset or security change
+      if (user.iat && dbUser.updatedAt) {
+        const tokenIssuedAtMs = user.iat * 1000;
+        // Invalidate tokens issued more than 2 seconds before password reset or security update
+        if (dbUser.updatedAt.getTime() - tokenIssuedAtMs > 2000) {
+          throw new UnauthorizedException({
+            statusCode: 401,
+            error: "SESSION_REVOKED",
+            message: "Session invalidated due to password reset or security change. Please sign in again.",
+            messageGujarati: "પાસવર્ડ બદલાયો હોવાથી સેશન અમાન્ય કરવામાં આવ્યું છે. કૃપા કરીને ફરી લોગિન કરો.",
+          });
+        }
+      }
+
+      // Authoritative role sync: override token role with authoritative DB role
+      user.role = dbUser.role;
+    }
+
     const rawOrgHeader = request.headers["x-organization-id"] as
       string | undefined;
     const rawCompanyHeader = request.headers["x-company-id"] as
@@ -62,7 +106,91 @@ export class TenantContextInterceptor implements NestInterceptor {
     const rawFyHeader = request.headers["x-financial-year-id"] as
       string | undefined;
 
-    // Zero Trust Override: SUPER_ADMIN role has platform-wide global bypass
+    // 1. Support Session Handling & Boundary Isolation
+    if (user.isSupportSession) {
+      const validSession = await this.sessionRegistry.getValidSession(user.sessionId);
+      if (!validSession) {
+        throw new UnauthorizedException({
+          statusCode: 401,
+          error: "SUPPORT_SESSION_EXPIRED",
+          message: "Support session has been terminated, revoked, or expired. Please re-authenticate as SuperAdmin.",
+          messageGujarati: "સપોર્ટ સેશન પૂર્ણ થઈ ગયું છે અથવા એક્સપાયર થઈ ગયું છે.",
+        });
+      }
+
+      // Strict actor binding: verify the authenticated user matches the session actor
+      if (validSession.actor_id !== currentUserId) {
+        throw new ForbiddenException({
+          statusCode: 403,
+          error: "FORBIDDEN_SUPPORT_ACTOR_MISMATCH",
+          message: "Security violation: Authenticated user does not match the active support session actor.",
+          messageGujarati: "સપોર્ટ સેશન એક્ટર મેળ ખાતો નથી.",
+        });
+      }
+
+      // Strict boundary: support token claims must match authoritative DB record
+      if (
+        user.organizationId !== validSession.target_organization_id ||
+        user.impersonatedCompanyId !== validSession.target_company_id
+      ) {
+        throw new ForbiddenException({
+          statusCode: 403,
+          error: "FORBIDDEN_SUPPORT_CLAIM_MISMATCH",
+          message: "Support session claims do not match authoritative records in the session registry.",
+          messageGujarati: "સપોર્ટ સેશન ડેટાબેઝ સાથે મેળ ખાતો નથી.",
+        });
+      }
+
+      // Strict boundary: support token cannot be redirected to another tenant organization via headers
+      if (rawOrgHeader && rawOrgHeader !== validSession.target_organization_id) {
+        throw new ForbiddenException({
+          statusCode: 403,
+          error: "FORBIDDEN_SUPPORT_TENANT_ACCESS",
+          message: `Cross-tenant access forbidden. Support session is strictly restricted to organization '${validSession.target_organization_id}'.`,
+          messageGujarati: "સપોર્ટ સેશન દરમિયાન અન્ય સંસ્થાનો ઍક્સેસ પ્રતિબંધિત છે.",
+        });
+      }
+
+      // Strict boundary: support token cannot access another company via headers
+      if (rawCompanyHeader && rawCompanyHeader !== validSession.target_company_id) {
+        throw new ForbiddenException({
+          statusCode: 403,
+          error: "FORBIDDEN_SUPPORT_COMPANY_ACCESS",
+          message: `Cross-company access forbidden. Support session is strictly restricted to company '${validSession.target_company_id}'.`,
+          messageGujarati: "સપોર્ટ સેશન દરમિયાન અન્ય કંપનીનો ઍક્સેસ પ્રતિબંધિત છે.",
+        });
+      }
+
+      // Validate branch header against authoritative DB if provided
+      if (rawBranchHeader) {
+        const branch = await this.prisma.branch.findFirst({
+          where: { id: rawBranchHeader, companyId: validSession.target_company_id },
+          select: { id: true },
+        });
+        if (!branch) {
+          throw new ForbiddenException({
+            statusCode: 403,
+            error: "INVALID_BRANCH",
+            message: "Requested branch does not exist within the active support company.",
+            messageGujarati: "વિનંતી કરેલ શાખા સક્રિય કંપનીમાં અસ્તિત્વમાં નથી.",
+          });
+        }
+      }
+
+      // Establish support context: RLS remains active for target company, preserving real actor ID in audit records
+      request[TENANT_CONTEXT_KEY] = {
+        organizationId: validSession.target_organization_id,
+        companyId: validSession.target_company_id,
+        branchId: rawBranchHeader,
+        financialYearId: rawFyHeader,
+        userId: validSession.actor_id,
+        isSystemBypass: false,
+        isSupportSession: true,
+      };
+      return next.handle();
+    }
+
+    // 2. Regular Platform SuperAdmin Global Context Bypass
     if (user.role === UserRole.SUPER_ADMIN) {
       const superOrgId = rawOrgHeader || user.organizationId || "";
       const superCompanyId = rawCompanyHeader || "";
@@ -77,7 +205,7 @@ export class TenantContextInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    // 1. Zero Trust: Organization Check
+    // 3. Zero Trust: Organization Check for Standard Users
     if (
       rawOrgHeader &&
       rawOrgHeader !== user.organizationId &&
