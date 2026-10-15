@@ -376,25 +376,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        {/* Quick Create Bill Action in Sidebar */}
-        <div className={isSidebarCollapsed ? "p-2 flex justify-center" : "px-3 pt-3 pb-2"}>
-          <Link
-            href="/sales/invoices/new"
-            className={
-              isSidebarCollapsed
-                ? "w-11 h-11 flex items-center justify-center bg-[#F47721] hover:bg-[#D95F12] text-white rounded-xl shadow-saffron transition-transform active:scale-95"
-                : "w-full flex items-center justify-center gap-2 py-2.5 px-3 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-button text-sm font-semibold shadow-saffron transition-colors"
-            }
-            title={lang === "gu" ? "નવું વેચાણ બિલ (F2)" : "Create New Bill (F2)"}
-          >
-            <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 4v16m8-8H4" />
-            </svg>
-            {!isSidebarCollapsed && (
-              <span>{lang === "gu" ? "નવું વેચાણ બિલ (F2)" : "Create New Bill"}</span>
-            )}
-          </Link>
-        </div>
 
         {/* Navigation Item Tree */}
         <div className="flex-1 overflow-y-auto px-2 py-2 space-y-1">
@@ -708,13 +689,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {/* Primary Action Button: Create Bill */}
             <Link
               href="/sales/invoices/new"
-              className="flex items-center gap-1 py-1.5 px-2.5 sm:px-3.5 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-button text-xs sm:text-sm font-semibold shadow-saffron transition-all shrink-0 whitespace-nowrap"
+              className="flex items-center gap-1.5 py-1.5 px-3 sm:px-3.5 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-button text-xs sm:text-sm font-semibold shadow-saffron transition-all shrink-0 whitespace-nowrap"
+              title={lang === "gu" ? "નવું વેચાણ બિલ (F2)" : "Create New Bill (F2)"}
             >
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 4v16m8-8H4" />
               </svg>
-              <span className="hidden xs:inline">{lang === "gu" ? "નવું બિલ" : "New Bill"}</span>
-              <span className="xs:hidden">{lang === "gu" ? "બિલ" : "Bill"}</span>
+              <span>{lang === "gu" ? "નવું બિલ બનાવો" : "Create New Bill"}</span>
             </Link>
 
             {/* Bilingual Language Switcher (EN | ગુજ) */}

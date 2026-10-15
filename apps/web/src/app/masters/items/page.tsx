@@ -323,7 +323,7 @@ export default function ItemsPage() {
               d="M12 4v16m8-8H4"
             />
           </svg>
-          <span>{lang === "gu" ? "નવી વસ્તુ ઉમેરો" : "+ Add New Item"}</span>
+          <span>{lang === "gu" ? "નવી વસ્તુ ઉમેરો" : "Add New Item"}</span>
         </button>
       </div>
 

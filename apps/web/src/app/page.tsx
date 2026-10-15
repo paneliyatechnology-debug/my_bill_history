@@ -106,16 +106,6 @@ export default function DashboardPage() {
       {/* 1. TOP PROMINENT ACTION BANNER */}
       <div className="bg-white rounded-card p-4 sm:p-6 border border-[#E5E7EB] shadow-card flex flex-col md:flex-row md:items-center justify-between gap-4 border-l-4 border-l-[#F47721] min-w-0">
         <div className="space-y-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-bold text-[#F47721] bg-[#FFF3E8] border border-[#FED7AA] px-2.5 py-0.5 rounded-full truncate max-w-full">
-              {currentCompany?.tradeName ||
-                currentCompany?.legalName ||
-                (isLoading ? "Loading..." : "No Company Selected")}
-            </span>
-            <span className="text-xs text-[#667085] hidden sm:inline">
-              • {currentBranch?.name || "Main Branch"} • {currentFY?.name || (isLoading ? "Loading..." : "No Active FY")}
-            </span>
-          </div>
           <h1 className="text-xl sm:text-2xl font-bold text-[#202124] tracking-tight truncate">
             {lang === "gu"
               ? "વેપાર ડેશબોર્ડ (Business Overview)"
