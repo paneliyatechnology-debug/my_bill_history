@@ -141,6 +141,23 @@ describe("AI Bill Scanner - Unit Tests", () => {
       expect(res.extension).toBe("jpg");
     });
 
+    it("accepts valid WebP magic bytes (RIFF....WEBP)", () => {
+      const webpBuffer = Buffer.from([
+        0x52, 0x49, 0x46, 0x46, // RIFF
+        0x20, 0x00, 0x00, 0x00, // size
+        0x57, 0x45, 0x42, 0x50, // WEBP
+        0x56, 0x50, 0x38, 0x20, // VP8
+      ]);
+      const res = storage.validateFileSignature(webpBuffer);
+      expect(res.mimeType).toBe("image/webp");
+      expect(res.extension).toBe("webp");
+    });
+
+    it("rejects truncated files smaller than 4 bytes", () => {
+      const tinyBuffer = Buffer.from([0x25, 0x50]);
+      expect(() => storage.validateFileSignature(tinyBuffer)).toThrow("File is empty or truncated.");
+    });
+
     it("rejects malicious or executable files disguised with .pdf or .jpg extension", () => {
       const exeBuffer = Buffer.from([0x4d, 0x5a, 0x90, 0x00]); // Windows MZ header
       const scriptBuffer = Buffer.from("<script>alert(1)</script>");

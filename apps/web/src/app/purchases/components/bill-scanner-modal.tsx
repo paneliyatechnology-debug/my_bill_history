@@ -4,6 +4,309 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { apiClient } from "../../../lib/api-client";
 import { ExtractedBillData, ExtractedBillItem, PurchaseBillScanRecord } from "@billing/shared-types";
 
+// ─────────────────────────────────────────────────────────────
+// Diagnostic Logger: Safe, non-PII runtime stage marker tracing
+// ─────────────────────────────────────────────────────────────
+export interface ScannerDiagnosticEntry {
+  stage: string;
+  timestamp: string;
+  durationMs?: number;
+  details: Record<string, any>;
+}
+
+const scannerDiagnosticLogs: ScannerDiagnosticEntry[] = [];
+
+export function logDiagnosticStage(
+  stage: string,
+  details: Record<string, any> = {},
+  durationMs?: number,
+) {
+  const entry: ScannerDiagnosticEntry = {
+    stage,
+    timestamp: new Date().toISOString(),
+    durationMs,
+    details,
+  };
+  scannerDiagnosticLogs.push(entry);
+  if (scannerDiagnosticLogs.length > 60) {
+    scannerDiagnosticLogs.shift();
+  }
+  if (typeof console !== "undefined" && console.log) {
+    console.log(
+      `[SCANNER_DIAGNOSTIC] [${stage}]${durationMs !== undefined ? ` (${durationMs}ms)` : ""}:`,
+      details,
+    );
+  }
+  if (typeof window !== "undefined") {
+    (window as any).__SCANNER_DIAGNOSTICS__ = scannerDiagnosticLogs;
+    (window as any).__LAST_SCANNER_STAGE__ = stage;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Memory-Safe Image Optimization
+// 1. Decodes via createImageBitmap hardware downsampling when supported (avoids 200MB uncompressed bitmap allocation)
+// 2. Immediate bitmap.close() and canvas backing store zeroing
+// 3. Fallback: If device memory pressure or decode fails, and file <= 12MB,
+//    safely passes the original File directly to FormData (server supports up to 15MB)
+// ─────────────────────────────────────────────────────────────
+async function memorySafeProcessImage(
+  source: File,
+  maxDimension = 1600,
+  targetQuality = 0.82,
+  onStageChange?: (stage: string, details?: any) => void,
+): Promise<{ processFile: File; originalSizeBytes: number; finalSizeBytes: number }> {
+  const originalSizeBytes = source.size;
+  const overallStart = performance.now();
+
+  // Try createImageBitmap (Native Skia/libjpeg downsampling without full-resolution heap allocation)
+  if (typeof window !== "undefined" && typeof window.createImageBitmap === "function") {
+    try {
+      const decodeStart = performance.now();
+      onStageChange?.("IMAGE_DECODE_START", {
+        fileName: source.name,
+        mimeType: source.type,
+        originalSizeBytes,
+        method: "createImageBitmap",
+      });
+      logDiagnosticStage("IMAGE_DECODE_START", {
+        fileName: source.name,
+        mimeType: source.type,
+        originalSizeBytes,
+        method: "createImageBitmap",
+      });
+
+      // Note: passing resizeWidth downsamples during decode in browser engine
+      const bitmap = await window.createImageBitmap(source, {
+        resizeWidth: maxDimension,
+        resizeQuality: "medium",
+      });
+      const decodeDuration = Math.round(performance.now() - decodeStart);
+
+      onStageChange?.("IMAGE_DECODE_END", {
+        width: bitmap.width,
+        height: bitmap.height,
+        durationMs: decodeDuration,
+      });
+      logDiagnosticStage("IMAGE_DECODE_END", {
+        width: bitmap.width,
+        height: bitmap.height,
+        durationMs: decodeDuration,
+      });
+
+      onStageChange?.("IMAGE_COMPRESSION_START", {
+        width: bitmap.width,
+        height: bitmap.height,
+      });
+      logDiagnosticStage("IMAGE_COMPRESSION_START", {
+        width: bitmap.width,
+        height: bitmap.height,
+      });
+
+      const compStart = performance.now();
+      const canvas = document.createElement("canvas");
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) {
+        bitmap.close();
+        throw new Error("Canvas 2D context unavailable on this device");
+      }
+
+      ctx.drawImage(bitmap, 0, 0);
+      // Immediately free the ImageBitmap memory from GPU / heap
+      bitmap.close();
+
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, "image/jpeg", targetQuality),
+      );
+
+      // Immediately release canvas backing buffer
+      canvas.width = 0;
+      canvas.height = 0;
+
+      if (!blob) {
+        throw new Error("Canvas toBlob failed to produce JPEG");
+      }
+
+      const compDuration = Math.round(performance.now() - compStart);
+      const totalDuration = Math.round(performance.now() - overallStart);
+
+      onStageChange?.("IMAGE_COMPRESSION_END", {
+        originalSizeBytes,
+        compressedSizeBytes: blob.size,
+        compressionRatio: ((blob.size / originalSizeBytes) * 100).toFixed(1) + "%",
+        durationMs: compDuration,
+        totalDurationMs: totalDuration,
+      });
+      logDiagnosticStage("IMAGE_COMPRESSION_END", {
+        originalSizeBytes,
+        compressedSizeBytes: blob.size,
+        compressionRatio: ((blob.size / originalSizeBytes) * 100).toFixed(1) + "%",
+        durationMs: compDuration,
+        totalDurationMs: totalDuration,
+      });
+
+      const compressedFile = new File(
+        [blob],
+        source.name.replace(/\.[^.]+$/, ".jpg"),
+        { type: "image/jpeg" },
+      );
+
+      return {
+        processFile: compressedFile,
+        originalSizeBytes,
+        finalSizeBytes: blob.size,
+      };
+    } catch (bitmapErr: any) {
+      console.warn("createImageBitmap compression path warning:", bitmapErr);
+      // If client-side compression hits memory pressure, check fallback
+    }
+  }
+
+  // Safe Fallback: If original file is within server limit (<= 12 MB),
+  // stream original File directly via FormData without risking mobile browser heap crash!
+  if (source.size <= 12 * 1024 * 1024) {
+    const totalDuration = Math.round(performance.now() - overallStart);
+    onStageChange?.("IMAGE_COMPRESSION_END", {
+      originalSizeBytes,
+      compressedSizeBytes: source.size,
+      method: "direct_original_fallback",
+      note: "Used original file directly (<=12MB) to protect client memory",
+      totalDurationMs: totalDuration,
+    });
+    logDiagnosticStage("IMAGE_COMPRESSION_END", {
+      originalSizeBytes,
+      compressedSizeBytes: source.size,
+      method: "direct_original_fallback",
+      note: "Used original file directly (<=12MB) to protect client memory",
+      totalDurationMs: totalDuration,
+    });
+    return {
+      processFile: source,
+      originalSizeBytes,
+      finalSizeBytes: source.size,
+    };
+  }
+
+  // Fallback for huge files (> 12 MB) using bounded HTMLImageElement with cleanup
+  return new Promise((resolve, reject) => {
+    const decodeStart = performance.now();
+    const url = URL.createObjectURL(source);
+    const img = new Image();
+
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const decodeDuration = Math.round(performance.now() - decodeStart);
+      onStageChange?.("IMAGE_DECODE_END", {
+        width: img.width,
+        height: img.height,
+        durationMs: decodeDuration,
+      });
+      logDiagnosticStage("IMAGE_DECODE_END", {
+        width: img.width,
+        height: img.height,
+        durationMs: decodeDuration,
+      });
+
+      onStageChange?.("IMAGE_COMPRESSION_START", {
+        width: img.width,
+        height: img.height,
+      });
+      logDiagnosticStage("IMAGE_COMPRESSION_START", {
+        width: img.width,
+        height: img.height,
+      });
+
+      const compStart = performance.now();
+      const canvas = document.createElement("canvas");
+      const scale = Math.min(1, maxDimension / Math.max(img.width, img.height));
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) {
+        canvas.width = 0;
+        canvas.height = 0;
+        if (source.size <= 12 * 1024 * 1024) {
+          resolve({
+            processFile: source,
+            originalSizeBytes,
+            finalSizeBytes: source.size,
+          });
+          return;
+        }
+        reject(new Error("Canvas context unavailable"));
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(
+        (blob) => {
+          canvas.width = 0;
+          canvas.height = 0;
+          if (!blob) {
+            if (source.size <= 12 * 1024 * 1024) {
+              resolve({
+                processFile: source,
+                originalSizeBytes,
+                finalSizeBytes: source.size,
+              });
+              return;
+            }
+            reject(new Error("Canvas compression failed"));
+            return;
+          }
+          const compDuration = Math.round(performance.now() - compStart);
+          const totalDuration = Math.round(performance.now() - overallStart);
+
+          onStageChange?.("IMAGE_COMPRESSION_END", {
+            originalSizeBytes,
+            compressedSizeBytes: blob.size,
+            durationMs: compDuration,
+            totalDurationMs: totalDuration,
+          });
+          logDiagnosticStage("IMAGE_COMPRESSION_END", {
+            originalSizeBytes,
+            compressedSizeBytes: blob.size,
+            durationMs: compDuration,
+            totalDurationMs: totalDuration,
+          });
+
+          const compressedFile = new File(
+            [blob],
+            source.name.replace(/\.[^.]+$/, ".jpg"),
+            { type: "image/jpeg" },
+          );
+          resolve({
+            processFile: compressedFile,
+            originalSizeBytes,
+            finalSizeBytes: blob.size,
+          });
+        },
+        "image/jpeg",
+        targetQuality,
+      );
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      if (source.size <= 12 * 1024 * 1024) {
+        resolve({
+          processFile: source,
+          originalSizeBytes,
+          finalSizeBytes: source.size,
+        });
+        return;
+      }
+      reject(new Error("Browser could not decode image format"));
+    };
+
+    img.src = url;
+  });
+}
+
 interface BillScannerModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -27,6 +330,10 @@ export function BillScannerModal({
   const [step, setStep] = useState<"upload" | "processing" | "review">("upload");
   const [processingStage, setProcessingStage] = useState<string>("Uploading document...");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Diagnostic Tracing State (safe, non-PII runtime stage indicators)
+  const [diagnosticStage, setDiagnosticStage] = useState<string>("IDLE");
+  const [diagnosticDetails, setDiagnosticDetails] = useState<string>("");
 
   // Scan Record State
   const [scanRecord, setScanRecord] = useState<PurchaseBillScanRecord | null>(null);
@@ -76,10 +383,19 @@ export function BillScannerModal({
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
 
+  // ── Live Camera States ────────────────────────────────────────
+  const [showPermissionPrompt, setShowPermissionPrompt] = useState(false);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [cameraFacingMode, setCameraFacingMode] = useState<"environment" | "user">("environment");
+  const [isCameraReady, setIsCameraReady] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
   // File Input References
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const mobileCameraInputRef = useRef<HTMLInputElement>(null);
   const previewBlobUrlRef = useRef<string | null>(null);
+  const handleFileProcessRef = useRef<(file: File) => Promise<void>>();
 
   useEffect(() => {
     previewBlobUrlRef.current = previewBlobUrl;
@@ -89,7 +405,10 @@ export function BillScannerModal({
   useEffect(() => {
     if (isOpen) {
       setStep("upload");
+      setShowPermissionPrompt(false);
       setErrorMessage(null);
+      setDiagnosticStage("IDLE");
+      setDiagnosticDetails("");
       setScanRecord(null);
       if (previewBlobUrlRef.current) {
         URL.revokeObjectURL(previewBlobUrlRef.current);
@@ -105,92 +424,314 @@ export function BillScannerModal({
     }
   }, [isOpen, warehouses]);
 
-  // Clean up blob URL on unmount
+  // Clean up blob URL + camera stream on unmount
   useEffect(() => {
     return () => {
       if (previewBlobUrlRef.current) {
         URL.revokeObjectURL(previewBlobUrlRef.current);
       }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
     };
   }, []);
 
-  // Handle File Selection (Drag & Drop, Camera, File Browser)
+  // ── Stop camera stream whenever camera overlay closes ─────────
+  const stopCameraStream = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    setIsCameraOpen(false);
+    setIsCameraReady(false);
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  }, []);
+
+  // Also stop camera when scanner modal is closed
+  useEffect(() => {
+    if (!isOpen) stopCameraStream();
+  }, [isOpen, stopCameraStream]);
+
+  // ── Open live camera (uses getUserMedia on HTTPS/localhost, or native mobile camera on HTTP LAN) ─
+  const handleOpenCamera = useCallback(async () => {
+    setShowPermissionPrompt(false);
+
+    // Live video stream requires a Secure Context (HTTPS or localhost)
+    const canUseLiveStream =
+      typeof window !== "undefined" &&
+      window.isSecureContext &&
+      !!navigator.mediaDevices &&
+      typeof navigator.mediaDevices.getUserMedia === "function";
+
+    if (canUseLiveStream) {
+      setErrorMessage(null);
+      setIsCameraReady(false);
+      setIsCameraOpen(true);
+    } else {
+      // In local LAN IP access (e.g. http://192.168.1.112:3000), browsers restrict getUserMedia.
+      // Automatically open the mobile device's native camera shutter without any error!
+      if (mobileCameraInputRef.current) {
+        mobileCameraInputRef.current.click();
+      } else if (fileInputRef.current) {
+        fileInputRef.current.click();
+      }
+    }
+  }, []);
+
+  // After camera overlay mounts, start stream in useEffect
+  useEffect(() => {
+    if (!isCameraOpen) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const constraints: MediaStreamConstraints = {
+          video: {
+            facingMode: { ideal: cameraFacingMode },
+            width: { ideal: 1280, max: 1920 },
+            height: { ideal: 720, max: 1080 },
+          },
+          audio: false,
+        };
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return; }
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+        }
+        setIsCameraReady(true);
+      } catch (err: any) {
+        if (cancelled) return;
+        console.error("Camera error:", err);
+        let msg: string;
+        if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+          msg = lang === "gu"
+            ? "કેમેરાની પરવાનગી નામંજૂર થઈ. કૃપા કરીને બ્રાઉઝર સેટિંગ્સમાં જઈને કેમેરા Allow કરો."
+            : "Camera permission denied. Go to browser Settings → Privacy → Camera → Allow this site.";
+        } else if (err.name === "NotFoundError") {
+          msg = lang === "gu"
+            ? "કોઈ કેમેરા ઉપકરણ મળ્યું નથી."
+            : "No camera device found on this device.";
+        } else if (err.name === "NotReadableError") {
+          msg = lang === "gu"
+            ? "કેમેરા અત્યારે અન્ય એપ્લિકેશન દ્વારા ઉપયોગ થઈ રહ્યો છે."
+            : "Camera is in use by another app. Close other tabs or apps.";
+        } else {
+          msg = err.message || (lang === "gu" ? "કેમેરો ખોલી શકાયો નહીં." : "Could not open camera.");
+        }
+        stopCameraStream();
+        setErrorMessage(msg);
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCameraOpen, cameraFacingMode]);
+
+  // ── Capture a photo from the live video stream (Optimized for low-memory devices) ──
+  const handleCapturePhoto = useCallback(async () => {
+    if (!videoRef.current || !isCameraReady) return;
+    const video = videoRef.current;
+
+    // Single-pass memory-safe downscale
+    const maxDim = 1600;
+    const vw = video.videoWidth || 1280;
+    const vh = video.videoHeight || 720;
+    const scale = Math.min(1, maxDim / Math.max(vw, vh));
+    const targetW = Math.round(vw * scale);
+    const targetH = Math.round(vh * scale);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = targetW;
+    canvas.height = targetH;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.drawImage(video, 0, 0, targetW, targetH);
+
+    // Stop the video stream immediately to free camera hardware memory
+    stopCameraStream();
+
+    // Export directly to compressed JPEG blob without duplicate memory copies
+    canvas.toBlob(
+      async (blob) => {
+        // Clear canvas dimensions to release backing store memory
+        canvas.width = 0;
+        canvas.height = 0;
+
+        if (!blob) {
+          setErrorMessage(lang === "gu" ? "ફોટો કેપ્ચર નિષ્ફળ." : "Photo capture failed. Please retry.");
+          return;
+        }
+        try {
+          const file = new File([blob], `bill_scan_${Date.now()}.jpg`, { type: "image/jpeg" });
+          logDiagnosticStage("CAMERA_FILE_RECEIVED", {
+            source: "live_video_stream",
+            fileName: file.name,
+            fileSize: file.size,
+            mimeType: file.type,
+          });
+          setDiagnosticStage("CAMERA_FILE_RECEIVED");
+          setDiagnosticDetails(`Stream capture: ${(file.size / 1024).toFixed(1)} KB`);
+          if (handleFileProcessRef.current) {
+            await handleFileProcessRef.current(file);
+          }
+        } catch (compErr: any) {
+          setErrorMessage(
+            lang === "gu"
+              ? "ફોટો પ્રોસેસ કરવામાં ભૂલ: " + (compErr?.message || "")
+              : "Failed to process captured photo: " + (compErr?.message || "Please retry."),
+          );
+        }
+      },
+      "image/jpeg",
+      0.82,
+    );
+  }, [isCameraReady, stopCameraStream, lang]);
+
+  // Handle File Selection (Drag & Drop, File Browser, Camera) with memory-safe streaming
   const handleFileProcess = async (file: File) => {
     if (!file) return;
 
-    // Validate size (15MB)
-    if (file.size > 15 * 1024 * 1024) {
-      setErrorMessage(
-        lang === "gu"
-          ? "ફાઇલનું કદ 15 MB કરતાં વધુ ન હોવું જોઈએ."
-          : "File size exceeds 15 MB limit.",
-      );
-      return;
-    }
-
-    setStep("processing");
-    setErrorMessage(null);
-    setProcessingStage(lang === "gu" ? "બિલ અપલોડ થઈ રહ્યું છે..." : "Uploading bill document...");
+    const overallStart = performance.now();
+    let currentStage = "CAMERA_FILE_RECEIVED";
 
     try {
-      // Convert to base64
-      const reader = new FileReader();
-      const base64Promise = new Promise<string>((resolve, reject) => {
-        reader.onload = () => {
-          const res = reader.result as string;
-          const base64 = res.split(",")[1];
-          resolve(base64);
-        };
-        reader.onerror = reject;
-      });
-      reader.readAsDataURL(file);
-      const fileBase64 = await base64Promise;
-
-      setProcessingStage(
-        lang === "gu"
-          ? "AI સ્માર્ટ OCR ડેટા નિષ્કર્ષણ ચાલુ છે..."
-          : "Running AI Smart Document Intelligence & OCR...",
-      );
-
-      // Call API
-      const response: any = await apiClient.post("/purchases/scans/upload", {
-        fileBase64,
+      // 1. FILE_VALIDATION_START / END
+      currentStage = "FILE_VALIDATION_START";
+      setDiagnosticStage(currentStage);
+      setDiagnosticDetails(`${(file.size / 1024).toFixed(1)} KB | ${file.type || "unknown"}`);
+      const valStart = performance.now();
+      logDiagnosticStage("FILE_VALIDATION_START", {
         fileName: file.name,
-        mimeType: file.type || "application/pdf",
+        fileSize: file.size,
+        mimeType: file.type,
       });
 
+      if (file.size <= 0) {
+        throw new Error(lang === "gu" ? "ખાલી ફાઇલ અપલોડ કરી શકાતી નથી." : "Selected file is empty.");
+      }
+
+      if (file.size > 15 * 1024 * 1024) {
+        const err: any = new Error(
+          lang === "gu"
+            ? "ફાઇલનું કદ સર્વર મર્યાદા (15 MB) કરતાં વધુ છે. કૃપા કરીને નાની ફાઇલ પસંદ કરો."
+            : "File size exceeds 15 MB limit. Please select a smaller file.",
+        );
+        err.statusCode = 413;
+        throw err;
+      }
+
+      const isImage = file.type.startsWith("image/") || /\.(jpe?g|png|webp|bmp)$/i.test(file.name);
+      const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+
+      if (!isImage && !isPdf) {
+        throw new Error(
+          lang === "gu"
+            ? "માત્ર PDF, JPG, અથવા PNG ફાઇલો સપોર્ટેડ છે."
+            : "Unsupported file type. Please upload a PDF, JPG, or PNG document.",
+        );
+      }
+
+      const valDuration = Math.round(performance.now() - valStart);
+      currentStage = "FILE_VALIDATION_END";
+      setDiagnosticStage(currentStage);
+      logDiagnosticStage("FILE_VALIDATION_END", {
+        fileName: file.name,
+        isImage,
+        isPdf,
+        durationMs: valDuration,
+      });
+
+      setStep("processing");
+      setErrorMessage(null);
+
+      let processFile: File = file;
+
+      // 2. IMAGE OPTIMIZATION (hardware-downsampled createImageBitmap + bounded cleanup)
+      if (isImage) {
+        setProcessingStage(
+          lang === "gu" ? "ઇમેજ ઑપ્ટિમાઇઝ થઈ રહી છે (મેમરી સેફ)..." : "Optimizing image size (memory-safe)...",
+        );
+        const { processFile: optimizedFile } = await memorySafeProcessImage(
+          file,
+          1600,
+          0.82,
+          (stage, details) => {
+            currentStage = stage;
+            setDiagnosticStage(stage);
+            if (details) {
+              setDiagnosticDetails(
+                details.compressedSizeBytes
+                  ? `${(details.compressedSizeBytes / 1024).toFixed(1)} KB (${details.compressionRatio || "optimized"})`
+                  : details.width
+                  ? `${details.width}x${details.height}`
+                  : JSON.stringify(details),
+              );
+            }
+          },
+        );
+        processFile = optimizedFile;
+      }
+
+      // 3. UPLOAD_START
+      currentStage = "UPLOAD_START";
+      setDiagnosticStage(currentStage);
+      setDiagnosticDetails(`Sending ${(processFile.size / 1024).toFixed(1)} KB to API...`);
       setProcessingStage(
-        lang === "gu"
-          ? "વેપારી અને આઇટમનું મેચિંગ થઈ રહ્યું છે..."
-          : "Matching supplier GSTIN and catalog items...",
+        lang === "gu" ? "બિલ દસ્તાવેજ અપલોડ થઈ રહ્યો છે..." : "Uploading bill document...",
       );
 
-      // Fetch uploaded file blob for authorized preview
+      const uploadStart = performance.now();
+      logDiagnosticStage("UPLOAD_START", {
+        fileName: processFile.name,
+        mimeType: processFile.type,
+        fileSizeBytes: processFile.size,
+      });
+
+      const formData = new FormData();
+      formData.append("file", processFile, processFile.name);
+
+      // Direct streaming multipart upload (NO Base64 / readAsDataURL fallback)
+      const response: any = await apiClient.post("/purchases/scans/upload", formData);
+      const uploadDuration = Math.round(performance.now() - uploadStart);
+
+      // 4. UPLOAD_RESPONSE
+      currentStage = "UPLOAD_RESPONSE";
+      setDiagnosticStage(currentStage);
+      setDiagnosticDetails(`Uploaded in ${uploadDuration}ms (Scan: ${response?.id?.substring(0, 8)})`);
+      logDiagnosticStage("UPLOAD_RESPONSE", {
+        scanId: response?.id,
+        status: response?.status,
+        durationMs: uploadDuration,
+      });
+
+      // 5. OCR_RESPONSE
+      currentStage = "OCR_RESPONSE";
+      const ext: ExtractedBillData = response?.extractedData || {};
+      const itemCount = (ext.items || []).length;
+      setDiagnosticStage(currentStage);
+      setDiagnosticDetails(`Extracted ${itemCount} items | Status: ${response?.status}`);
+      logDiagnosticStage("OCR_RESPONSE", {
+        scanId: response?.id,
+        status: response?.status,
+        itemCount,
+        hasSupplier: !!(ext.supplier?.name || response?.matchedPartyId),
+        confidence: ext.documentMetadata?.overallConfidence,
+      });
+
+      // Local instant preview (zero network latency, zero duplicate server download)
       try {
-        const token = localStorage.getItem("billing_auth_token");
-        const tenantRaw = localStorage.getItem("billing_tenant_context");
-        const tenant = tenantRaw ? JSON.parse(tenantRaw) : {};
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
-        const fileRes = await fetch(`${apiBase}/purchases/scans/${response.id}/file`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "x-company-id": tenant.companyId || "",
-            "x-organization-id": tenant.organizationId || "",
-          },
-        });
-        if (fileRes.ok) {
-          const blob = await fileRes.blob();
-          const objectUrl = URL.createObjectURL(blob);
-          setPreviewBlobUrl(objectUrl);
-        }
-      } catch (err) {
-        console.warn("Could not pre-fetch preview blob", err);
+        const localPreview = URL.createObjectURL(processFile);
+        setPreviewBlobUrl(localPreview);
+      } catch (prevErr) {
+        console.warn("Could not create local preview blob:", prevErr);
       }
 
       // Populate Editable Fields
       setScanRecord(response);
-      const ext: ExtractedBillData = response.extractedData || {};
-
       const matchedId = response.matchedPartyId || ext.supplier?.matchedPartyId || "";
       if (matchedId) {
         setSelectedPartyId(matchedId);
@@ -234,11 +775,56 @@ export function BillScannerModal({
 
       setStep("review");
     } catch (err: any) {
-      console.error("Scan failed", err);
-      setErrorMessage(err.message || "Failed to process bill. Please check file format and retry.");
+      console.error("Scan pipeline failed at stage", currentStage, err);
+      const errorDuration = Math.round(performance.now() - overallStart);
+
+      let errorCategory = "SERVER_OR_PROCESSING_ERROR";
+      let userFacingMessage = err?.message || "An unexpected error occurred.";
+
+      const rawMsg = String(err?.message || "").toLowerCase();
+      if (
+        err?.name === "QuotaExceededError" ||
+        rawMsg.includes("out of memory") ||
+        rawMsg.includes("quota") ||
+        rawMsg.includes("memory") ||
+        rawMsg.includes("heap")
+      ) {
+        errorCategory = "BROWSER_MEMORY_EXHAUSTED";
+        userFacingMessage = lang === "gu"
+          ? "મોબાઇલ મેમરી મર્યાદા આવી ગઈ. કૃપા કરીને 'ગેલેરીમાંથી પસંદ કરો' વાપરો અથવા કેમેરાનું રિઝોલ્યુશન સામાન્ય રાખો."
+          : "Mobile memory limit reached. Please use 'Choose from Gallery' or take a photo with standard camera resolution.";
+      } else if (err?.statusCode === 413 || rawMsg.includes("too large") || rawMsg.includes("payload")) {
+        errorCategory = "FILE_TOO_LARGE_413";
+        userFacingMessage = lang === "gu"
+          ? "ફાઇલનું કદ સર્વર મર્યાદા (15 MB) કરતાં વધુ છે. કૃપા કરીને નાની ફાઇલ પસંદ કરો."
+          : "File size exceeds 15 MB limit. Please select a smaller file.";
+      } else if (err?.statusCode === 422) {
+        errorCategory = "UNPROCESSABLE_DOCUMENT";
+        userFacingMessage = err?.messageGujarati && lang === "gu" ? err.messageGujarati : err?.message;
+      } else if (rawMsg.includes("failed to fetch") || rawMsg.includes("network") || rawMsg.includes("timeout")) {
+        errorCategory = "NETWORK_ERROR";
+        userFacingMessage = lang === "gu"
+          ? "નેટવર્ક કનેક્શનમાં ક્ષતિ. સર્વર કનેક્શન (LAN / Wi-Fi) ચકાસો અને ફરી પ્રયાસ કરો."
+          : "Network connection error. Please verify Wi-Fi / LAN connection and retry.";
+      } else if (err?.messageGujarati && lang === "gu") {
+        userFacingMessage = err.messageGujarati;
+      }
+
+      logDiagnosticStage("PIPELINE_ERROR", {
+        failedStage: currentStage,
+        errorCategory,
+        statusCode: err?.statusCode || null,
+        errorMessage: err?.message || String(err),
+        durationMs: errorDuration,
+      });
+
+      setDiagnosticStage("PIPELINE_ERROR");
+      setDiagnosticDetails(`[${errorCategory}] Failed at ${currentStage}`);
+      setErrorMessage(userFacingMessage);
       setStep("upload");
     }
   };
+  handleFileProcessRef.current = handleFileProcess;
 
   // Drag and Drop handlers
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -272,6 +858,7 @@ export function BillScannerModal({
 
   // Add Item Row
   const handleAddLine = () => {
+    const newIdx = lineItems.length;
     setLineItems([
       ...lineItems,
       {
@@ -286,6 +873,19 @@ export function BillScannerModal({
         confidence: 100,
       },
     ]);
+    setIsNewProductFlags((prev) => ({ ...prev, [newIdx]: true }));
+    setNewProductDetails((prev) => ({
+      ...prev,
+      [newIdx]: {
+        name: "New Item",
+        itemType: "PRODUCT",
+        hsnCode: "0000",
+        unitSymbol: "PCS",
+        taxRate: 18,
+        purchasePrice: 0,
+        retailPrice: 0,
+      },
+    }));
   };
 
   // Remove Line Row
@@ -509,9 +1109,10 @@ export function BillScannerModal({
 
     try {
       const itemsPayload = lineItems.map((line, idx) => {
-        const isNew = isNewProductFlags[idx];
+        const isNew = isNewProductFlags[idx] ?? !line.matchedItemId;
         const newDetails = newProductDetails[idx];
         const resolvedType = newDetails?.itemType || line.itemType || "PRODUCT";
+        const descName = line.description?.trim() || `Item ${idx + 1}`;
 
         return {
           itemId: isNew ? undefined : line.matchedItemId || undefined,
@@ -519,29 +1120,31 @@ export function BillScannerModal({
           itemType: resolvedType,
           newProductDetails: isNew
             ? {
-                name: newDetails?.name || line.description,
+                name: newDetails?.name?.trim() || descName,
                 itemType: resolvedType,
-                hsnCode: newDetails?.hsnCode || line.hsnCode || (resolvedType === "SERVICE" ? "9983" : "0000"),
-                unitSymbol: newDetails?.unitSymbol || line.unit || (resolvedType === "SERVICE" ? "NOS" : "PCS"),
-                taxRate: Number(newDetails?.taxRate || line.taxRate || 18),
-                purchasePrice: Number(newDetails?.purchasePrice || line.unitPrice || 0),
-                retailPrice: Number(newDetails?.retailPrice || line.unitPrice || 0),
+                hsnCode: newDetails?.hsnCode?.trim() || line.hsnCode || (resolvedType === "SERVICE" ? "9983" : "0000"),
+                unitSymbol: newDetails?.unitSymbol?.trim() || line.unit || (resolvedType === "SERVICE" ? "NOS" : "PCS"),
+                taxRate: Number(newDetails?.taxRate ?? line.taxRate ?? 18),
+                purchasePrice: Number(newDetails?.purchasePrice ?? line.unitPrice ?? 0),
+                retailPrice: Number(newDetails?.retailPrice ?? line.unitPrice ?? 0),
               }
             : undefined,
           hsnCode: line.hsnCode || undefined,
-          quantity: Number(line.quantity),
-          unitPrice: Number(line.unitPrice),
-          taxRate: Number(line.taxRate),
+          quantity: Math.max(0.0001, Number(line.quantity) || 1),
+          unitPrice: Math.max(0, Number(line.unitPrice) || 0),
+          taxRate: Number(line.taxRate) || 0,
         };
       });
 
-      const isNewSupplier = selectedPartyId === "__NEW_SUPPLIER__";
+      const isNewSupplier = !selectedPartyId || selectedPartyId === "__NEW_SUPPLIER__";
+      const supplierName = scanRecord?.extractedData?.supplier?.name?.trim() || `Supplier ${vendorInvoiceNumber.trim()}`;
+
       const res: any = await apiClient.post(`/purchases/scans/${scanRecord.id}/confirm`, {
         partyId: isNewSupplier ? undefined : selectedPartyId,
         createNewSupplier: isNewSupplier,
         newSupplierDetails: isNewSupplier
           ? {
-              name: scanRecord?.extractedData?.supplier?.name || "Vendor Supplier",
+              name: supplierName,
               gstin: scanRecord?.extractedData?.supplier?.gstin || null,
               phone: scanRecord?.extractedData?.supplier?.phone || null,
               email: scanRecord?.extractedData?.supplier?.email || null,
@@ -551,8 +1154,8 @@ export function BillScannerModal({
         currency,
         exchangeRate: currency !== "INR" ? exchangeRate : 1,
         vendorInvoiceNumber: vendorInvoiceNumber.trim(),
-        invoiceDate,
-        placeOfSupply,
+        invoiceDate: invoiceDate || undefined,
+        placeOfSupply: placeOfSupply || "24",
         warehouseId: selectedWarehouseId || undefined,
         items: itemsPayload,
       });
@@ -561,7 +1164,11 @@ export function BillScannerModal({
       onClose();
     } catch (err: any) {
       console.error("Confirm failed", err);
-      setErrorMessage(err.message || "Failed to confirm purchase.");
+      const msg =
+        err?.messageGujarati && lang === "gu"
+          ? err.messageGujarati
+          : err?.message || (lang === "gu" ? "ખરીદી કન્ફર્મ કરવામાં ભૂલ આવી." : "Failed to confirm purchase.");
+      setErrorMessage(msg);
     } finally {
       setIsConfirming(false);
     }
@@ -622,15 +1229,27 @@ export function BillScannerModal({
         {/* Global Error Alert */}
         {errorMessage && (
           <div className="px-6 py-3 bg-rose-50 border-b border-rose-200 text-rose-700 text-sm flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <svg className="w-5 h-5 text-rose-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
-              <span>{errorMessage}</span>
+              <div>
+                <div className="font-semibold text-rose-900">
+                  <span className="font-mono text-xs bg-rose-200/80 px-1.5 py-0.5 rounded mr-2 text-rose-800">
+                    STAGE: {diagnosticStage}
+                  </span>
+                  {errorMessage}
+                </div>
+                {diagnosticDetails && (
+                  <div className="text-xs text-rose-600 font-mono mt-0.5">
+                    {diagnosticDetails}
+                  </div>
+                )}
+              </div>
             </div>
             <button
               onClick={() => setErrorMessage(null)}
-              className="text-rose-500 hover:text-rose-700 text-xs font-semibold"
+              className="text-rose-500 hover:text-rose-700 text-xs font-semibold shrink-0 ml-3"
             >
               Dismiss
             </button>
@@ -671,46 +1290,87 @@ export function BillScannerModal({
                       e.stopPropagation();
                       fileInputRef.current?.click();
                     }}
-                    className="px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white text-xs font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-2"
+                    className="px-4 py-2.5 bg-[#F47721] hover:bg-[#D95F12] text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
-                    <span>{lang === "gu" ? "ફાઇલ પસંદ કરો" : "Choose File"}</span>
+                    <span>{lang === "gu" ? "ગેલેરી / ફાઇલમાંથી પસંદ કરો" : "Choose from Gallery / Files"}</span>
+                    <span className="bg-emerald-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-normal">
+                      {lang === "gu" ? "લો-મેમરી સેફ" : "Safe"}
+                    </span>
                   </button>
 
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      cameraInputRef.current?.click();
+                      setShowPermissionPrompt(true);
                     }}
-                    className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-2"
+                    className="px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl shadow-sm transition-colors flex items-center gap-2"
                   >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <span>{lang === "gu" ? "કેમેરાથી ફોટો લો" : "Capture with Camera"}</span>
+                    <span>{lang === "gu" ? "કેમેરાથી ફોટો લો" : "Scan with Camera"}</span>
                   </button>
                 </div>
+
+                <p className="text-[11px] text-slate-500 mt-2 bg-slate-50 border border-slate-200 rounded-lg p-2 max-w-md mx-auto">
+                  💡 <span className="font-medium text-slate-700">
+                    {lang === "gu"
+                      ? "ટીપ: જો તમારા ફોનમાં કેમેરા ફોટો લીધા પછી 'Low Memory' એરર આવે, તો 'ગેલેરીમાંથી પસંદ કરો' વાપરો."
+                      : "Tip: If your phone displays 'Low Memory' after camera capture, please use 'Choose from Gallery'."}
+                  </span>
+                </p>
               </div>
 
-              {/* Hidden file inputs */}
+              {/* Hidden file input (Gallery / disk picker, memory safe on Android) */}
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="application/pdf,image/jpeg,image/png,image/jpg"
+                accept="image/jpeg,image/png,application/pdf"
                 className="hidden"
-                onChange={(e) => e.target.files?.[0] && handleFileProcess(e.target.files[0])}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) {
+                    logDiagnosticStage("CAMERA_FILE_RECEIVED", {
+                      source: "gallery_file_picker",
+                      fileName: f.name,
+                      fileSize: f.size,
+                      mimeType: f.type,
+                    });
+                    setDiagnosticStage("CAMERA_FILE_RECEIVED");
+                    setDiagnosticDetails(`Selected: ${(f.size / 1024).toFixed(1)} KB`);
+                    handleFileProcess(f);
+                    e.target.value = "";
+                  }
+                }}
               />
+
+              {/* Native mobile camera input (Restricted to standard JPEG/PNG to avoid RAW/HEIC camera intent memory spike) */}
               <input
-                ref={cameraInputRef}
+                ref={mobileCameraInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png"
                 capture="environment"
                 className="hidden"
-                onChange={(e) => e.target.files?.[0] && handleFileProcess(e.target.files[0])}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) {
+                    logDiagnosticStage("CAMERA_FILE_RECEIVED", {
+                      source: "camera_capture",
+                      fileName: f.name,
+                      fileSize: f.size,
+                      mimeType: f.type,
+                    });
+                    setDiagnosticStage("CAMERA_FILE_RECEIVED");
+                    setDiagnosticDetails(`Camera file: ${(f.size / 1024).toFixed(1)} KB`);
+                    handleFileProcess(f);
+                    e.target.value = "";
+                  }
+                }}
               />
 
               {/* Security & Feature Badges */}
@@ -760,7 +1420,7 @@ export function BillScannerModal({
             </div>
           )}
 
-          {/* STEP 2: PROCESSING ANIMATION */}
+          {/* STEP 2: PROCESSING ANIMATION WITH LIVE DIAGNOSTIC BADGE */}
           {step === "processing" && (
             <div className="p-16 flex flex-col items-center justify-center text-center space-y-6">
               <div className="relative">
@@ -776,6 +1436,20 @@ export function BillScannerModal({
                     ? "અમારી સિસ્ટમ બિલ વાંચી રહી છે અને GST નિયમો પ્રમાણે વિગતો ગોઠવી રહી છે..."
                     : "Extracting GST rates, line items, and supplier details with strict mathematical precision..."}
                 </p>
+
+                {/* Live Diagnostic Stage Badge */}
+                <div className="mt-4 pt-3 border-t border-slate-200 max-w-xs mx-auto">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-300 rounded-full text-[11px] font-mono text-slate-700">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-slate-500">STAGE:</span>
+                    <span className="font-bold text-[#F47721]">{diagnosticStage}</span>
+                  </div>
+                  {diagnosticDetails && (
+                    <div className="text-[11px] text-slate-500 font-mono mt-1.5 truncate">
+                      {diagnosticDetails}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -1649,6 +2323,201 @@ export function BillScannerModal({
           )}
         </div>
       </div>
+
+      {/* ===================== CAMERA PERMISSION MODAL ===================== */}
+      {showPermissionPrompt && (
+        <div className="fixed inset-0 z-[120] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-slate-200 text-center animate-in zoom-in-95 duration-200">
+            {/* Animated Camera Icon */}
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-orange-50 border-2 border-[#F47721]/30 flex items-center justify-center text-[#F47721] shadow-inner">
+              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+
+            {/* Title */}
+            <h3 className="text-base font-bold text-slate-900 mb-2">
+              {lang === "gu" ? "કેમેરા એક્સેસની પરવાનગી આપો" : "Allow Camera Access?"}
+            </h3>
+
+            {/* Description */}
+            <p className="text-xs text-slate-600 leading-relaxed mb-5">
+              {lang === "gu"
+                ? "બિલનો ફોટો પાડીને AI દ્વારા માલની વિગતો અને GST ઓટોમેટિક ભરવા માટે તમારા ડિવાઇસના કેમેરાની પરવાનગી આપો."
+                : "MyBill History needs access to your camera to capture bills, auto-read GSTIN, and create inward purchase entries."}
+            </p>
+
+            {/* Bullet features */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 mb-6 text-left space-y-2 text-[11px] text-slate-600">
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">✓</span>
+                <span>{lang === "gu" ? "સીધો જ લાઇવ ફોટો સ્કેન" : "Instant live bill capture"}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">🔒</span>
+                <span>{lang === "gu" ? "100% સુરક્ષિત અને પ્રાઇવેટ એક્સેસ" : "100% secure in-browser session"}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-orange-100 text-[#F47721] flex items-center justify-center font-bold text-[10px]">⚡</span>
+                <span>{lang === "gu" ? "લો-મેમરી ઓપ્ટિમાઇઝ્ડ (કોઈ હેંગ નહિ)" : "Low-memory optimized (smooth capture)"}</span>
+              </div>
+            </div>
+
+            {/* Action Buttons: Allow vs Deny */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setShowPermissionPrompt(false)}
+                className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors border border-slate-200"
+              >
+                {lang === "gu" ? "ના (Deny)" : "Don't Allow (Deny)"}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleOpenCamera}
+                className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>{lang === "gu" ? "પરવાનગી આપો" : "Allow Camera"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== LIVE CAMERA OVERLAY ===================== */}
+      {isCameraOpen && (
+        <div className="fixed inset-0 z-[110] bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-between p-4 sm:p-6 animate-in fade-in duration-200">
+          {/* Top Bar */}
+          <div className="w-full max-w-2xl flex items-center justify-between text-white py-2">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-[#F47721]">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-sm font-bold tracking-tight text-white">
+                  {lang === "gu" ? "કેમેરાથી બિલ સ્કેન કરો" : "Scan Bill with Live Camera"}
+                </h3>
+                <p className="text-[11px] text-slate-300">
+                  {lang === "gu"
+                    ? "બિલને ફ્રેમમાં સીધું અને સ્પષ્ટ રાખો"
+                    : "Hold steady & align the entire invoice inside frame"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setCameraFacingMode((prev) => (prev === "environment" ? "user" : "environment"))}
+                className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-white/20 transition-all active:scale-95"
+                title={lang === "gu" ? "કેમેરો બદલો (Front / Rear)" : "Flip Camera (Front / Rear)"}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span className="hidden sm:inline">{lang === "gu" ? "ફ્લિપ" : "Flip"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={stopCameraStream}
+                className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center border border-white/20 transition-all"
+                title={lang === "gu" ? "બંધ કરો" : "Close"}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Camera Viewfinder Area */}
+          <div className="relative w-full max-w-2xl flex-1 max-h-[70vh] bg-black rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center border border-white/20 my-2">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-full object-cover"
+            />
+
+            {/* Target Framing Guides */}
+            <div className="absolute inset-4 sm:inset-8 pointer-events-none border-2 border-dashed border-white/40 rounded-xl flex flex-col justify-between p-3">
+              <div className="flex justify-between items-start">
+                <div className="w-6 h-6 border-t-4 border-l-4 border-[#F47721] rounded-tl-lg" />
+                <div className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-[11px] font-semibold text-white/90 border border-white/20 flex items-center gap-1.5 shadow">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  {lang === "gu" ? "બિલને ફ્રેમમાં ગોઠવો" : "Align bill edges inside frame"}
+                </div>
+                <div className="w-6 h-6 border-t-4 border-r-4 border-[#F47721] rounded-tr-lg" />
+              </div>
+
+              <div className="flex justify-between items-end">
+                <div className="w-6 h-6 border-b-4 border-l-4 border-[#F47721] rounded-bl-lg" />
+                <div className="w-6 h-6 border-b-4 border-r-4 border-[#F47721] rounded-br-lg" />
+              </div>
+            </div>
+
+            {!isCameraReady && (
+              <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-white gap-2">
+                <div className="w-8 h-8 border-3 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                <span className="text-xs font-medium text-slate-200">
+                  {lang === "gu" ? "કેમેરો ચાલુ થઈ રહ્યો છે..." : "Starting camera..."}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Bottom Shutter & Controls */}
+          <div className="w-full max-w-2xl flex items-center justify-around py-2">
+            <button
+              type="button"
+              onClick={stopCameraStream}
+              className="px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white transition-colors"
+            >
+              {lang === "gu" ? "રદ કરો" : "Cancel"}
+            </button>
+
+            {/* Shutter Button */}
+            <button
+              type="button"
+              disabled={!isCameraReady}
+              onClick={handleCapturePhoto}
+              className="group relative flex items-center justify-center w-18 h-18 sm:w-20 sm:h-20 rounded-full border-4 border-white bg-white/20 hover:bg-white/30 active:scale-95 transition-all shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+              title={lang === "gu" ? "ફોટો લો અને સ્કેન કરો" : "Capture Photo"}
+            >
+              <div className="w-14 h-14 sm:w-15 sm:h-15 rounded-full bg-[#F47721] group-hover:bg-[#D95F12] transition-colors flex items-center justify-center text-white shadow-inner">
+                <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                stopCameraStream();
+                fileInputRef.current?.click();
+              }}
+              className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-medium border border-white/20 transition-all flex items-center gap-1.5"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              <span className="hidden sm:inline">{lang === "gu" ? "ફાઇલ અપલોડ" : "Upload File"}</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

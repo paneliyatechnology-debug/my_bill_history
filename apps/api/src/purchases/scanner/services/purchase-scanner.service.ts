@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  HttpException,
   Logger,
 } from "@nestjs/common";
 import { TenantContext } from "@billing/shared-types";
@@ -18,6 +19,7 @@ import {
   UpdateScanDraftDto,
   ExtractedBillDataDto,
 } from "../schemas/bill-extraction.schema";
+import { isValidGstinChecksum } from "../../../common/validators/gstin.validator";
 
 @Injectable()
 export class PurchaseScannerService {
@@ -106,8 +108,13 @@ export class PurchaseScannerService {
     );
 
     // 5. OCR & AI Extraction
+    const startTime = Date.now();
     let ocrResult: any;
     const provider = this.ocrFactory.getProvider(requestedProvider);
+    this.logger.log(
+      `[DIAGNOSTIC] Stage: UPLOAD_RECEIVED | ScanId: ${scanId} | File: ${storedFile.fileName} | Mime: ${storedFile.mimeType} | SizeBytes: ${storedFile.sizeBytes} | Provider: ${provider.name} (configured: ${provider.isAvailable()})`,
+    );
+
     try {
       ocrResult = await provider.extractInvoice(fileBuffer, storedFile.mimeType, {
         fileName: storedFile.fileName,
@@ -116,8 +123,22 @@ export class PurchaseScannerService {
         companyGstin: company?.gstin || undefined,
         companyName: company?.legalName || undefined,
       });
+
+      this.logger.log(
+        `[DIAGNOSTIC] Stage: OCR_COMPLETED | ScanId: ${scanId} | DurationMs: ${Date.now() - startTime} | HasRawText: ${!!ocrResult.rawText} | RawTextLength: ${ocrResult.rawText?.length || 0} | PageCount: ${ocrResult.extractedData?.documentMetadata?.pageCount || 1} | ExtractedItems: ${ocrResult.extractedData?.items?.length || 0}`,
+      );
     } catch (err: any) {
-      this.logger.error(`OCR Extraction failed for scan ${scanId}: ${err.message}`, err.stack);
+      const durationMs = Date.now() - startTime;
+      const errorCategory = err instanceof BadRequestException
+        ? "BAD_REQUEST"
+        : err.message?.toLowerCase().includes("timeout")
+          ? "OCR_PROVIDER_TIMEOUT"
+          : "OCR_PROCESSING_FAILED";
+
+      this.logger.error(
+        `[DIAGNOSTIC] Stage: OCR_FAILED | ScanId: ${scanId} | DurationMs: ${durationMs} | ErrorCategory: ${errorCategory} | Error: ${err.message}`,
+        err.stack,
+      );
       await this.prisma.purchaseBillScan.update({
         where: { id: scanId },
         data: {
@@ -135,6 +156,10 @@ export class PurchaseScannerService {
         entityId: scanId,
         newState: { error: err.message, fileName: storedFile.fileName },
       });
+
+      if (err instanceof HttpException) {
+        throw err;
+      }
 
       throw new BadRequestException(
         `Document extraction failed: ${err.message || "Could not read bill text."}`,
@@ -240,6 +265,10 @@ export class PurchaseScannerService {
         itemCount: normalizedData.items.length,
       },
     });
+
+    this.logger.log(
+      `[DIAGNOSTIC] Stage: DRAFT_SAVED | ScanId: ${scanId} | Status: READY_FOR_REVIEW | MatchedParty: ${supplierMatch.matchedPartyId ? "MATCHED" : "NEW"} | FinalItems: ${normalizedData.items.length} | TotalDurationMs: ${Date.now() - startTime}`,
+    );
 
     return updatedScan;
   }
@@ -441,6 +470,11 @@ export class PurchaseScannerService {
     tenant: TenantContext,
   ): Promise<any> {
     // 1. Check Scan State and Idempotency
+    const confirmStart = Date.now();
+    this.logger.log(
+      `[DIAGNOSTIC] Stage: CONFIRM_START | ScanId: ${scanId} | ItemsCount: ${dto.items.length} | IsNewSupplier: ${dto.createNewSupplier} | Currency: ${dto.currency || "INR"}`,
+    );
+
     const scan = await this.prisma.purchaseBillScan.findFirst({
       where: { id: scanId, companyId: tenant.companyId },
       include: { purchaseInvoice: true },
@@ -551,17 +585,22 @@ export class PurchaseScannerService {
         dto.newSupplierDetails?.name
       ) {
         const sup = dto.newSupplierDetails;
+        const rawGstin = sup.gstin ? sup.gstin.trim().toUpperCase() : null;
+        const isValidGstin = rawGstin ? isValidGstinChecksum(rawGstin) : false;
+        const validGstin = isValidGstin ? rawGstin : null;
+        const supplierState = (validGstin ? validGstin.substring(0, 2) : (dto.placeOfSupply || "24"));
+
         const createdParty = await tx.party.create({
           data: {
             organizationId: tenant.organizationId,
             companyId: tenant.companyId,
             name: sup.name.trim(),
-            gstin: sup.gstin ? sup.gstin.trim() : null,
+            gstin: validGstin,
             phone: sup.phone ? sup.phone.trim() : "",
             email: sup.email ? sup.email.trim() : null,
             type: "SUPPLIER",
-            gstType: sup.gstin ? "REGULAR" : "UNREGISTERED",
-            stateCode: (sup.gstin ? sup.gstin.substring(0, 2) : dto.placeOfSupply) || "24",
+            gstType: validGstin ? "REGULAR" : "UNREGISTERED",
+            stateCode: supplierState,
             billingAddress: sup.address ? ({ line1: sup.address, city: "", pincode: "" } as any) : ({ line1: "Main Office", city: "", pincode: "" } as any),
             creditLimit: 0,
             creditDays: 0,
@@ -571,7 +610,7 @@ export class PurchaseScannerService {
           },
         });
         resolvedPartyId = createdParty.id;
-        this.logger.log(`Created new supplier '${createdParty.name}' (${createdParty.id}) from bill scan.`);
+        this.logger.log(`Created new supplier '${createdParty.name}' (${createdParty.id}) from bill scan. Valid GSTIN: ${validGstin || "UNREGISTERED"}`);
       }
 
       if (!resolvedPartyId || resolvedPartyId === "__NEW_SUPPLIER__") {
@@ -621,6 +660,10 @@ export class PurchaseScannerService {
           grandTotal: purchaseInvoice.grandTotal,
         },
       });
+
+      this.logger.log(
+        `[DIAGNOSTIC] Stage: CONFIRM_COMMITTED | ScanId: ${scanId} | InvoiceId: ${purchaseInvoice.id} | VendorInvNo: ${purchaseInvoice.vendorInvoiceNumber} | GrandTotal: ${purchaseInvoice.grandTotal} | DurationMs: ${Date.now() - confirmStart}`,
+      );
 
       return {
         scan: confirmedScan,

@@ -7,6 +7,8 @@ import {
 import { AppModule } from "../src/app.module";
 import { DatabaseService } from "../src/database/database.service";
 import { Decimal } from "@billing/accounting-core";
+import * as fs from "fs/promises";
+import * as path from "path";
 
 describe("AI Bill Scanner - End-to-End Integration Tests", () => {
   let app: NestFastifyApplication;
@@ -505,4 +507,123 @@ describe("AI Bill Scanner - End-to-End Integration Tests", () => {
     });
     expect(confirmRes.statusCode).toBe(404);
   });
+
+  it("8. Real Document End-to-End: Uploads real invoice, extracts fields & items via local OCR, confirms purchase with stock & voucher integrity", async () => {
+    const filePath = path.join(__dirname, "fixtures/scanner-verification/indian_gst_invoice.pdf");
+    const fileBuf = await fs.readFile(filePath);
+
+    // 1. Upload with real local OCR provider
+    const uploadRes = await app.inject({
+      method: "POST",
+      url: "/api/v1/purchases/scans/upload",
+      headers: {
+        authorization: `Bearer ${tokenA}`,
+        "content-type": "application/json",
+      },
+      payload: {
+        fileBase64: fileBuf.toString("base64"),
+        fileName: "indian_gst_invoice.pdf",
+        mimeType: "application/pdf",
+        provider: "local",
+      },
+    });
+
+    expect(uploadRes.statusCode).toBe(201);
+    const scanRecord = JSON.parse(uploadRes.body);
+    expect(scanRecord.id).toBeDefined();
+    expect(scanRecord.status).toBe("READY_FOR_REVIEW");
+    expect(scanRecord.extractedData.items.length).toBeGreaterThan(0);
+
+    const extractedItem = scanRecord.extractedData.items[0];
+    expect(extractedItem.description).toBeDefined();
+    expect(Number(extractedItem.quantity)).toBeGreaterThan(0);
+    expect(Number(extractedItem.unitPrice)).toBeGreaterThan(0);
+
+    // 2. Persist purchase confirmation
+    const vendorInvNo = scanRecord.extractedData.invoice?.invoiceNumber || `REAL-INV-${Date.now()}`;
+    const initialPurchaseCount = await prisma.purchaseInvoice.count({
+      where: { companyId: companyAId },
+    });
+    const initialStockCount = await prisma.stockTransaction.count({
+      where: { companyId: companyAId },
+    });
+    const initialVoucherCount = await prisma.voucher.count({
+      where: { companyId: companyAId },
+    });
+
+    const confirmRes = await app.inject({
+      method: "POST",
+      url: `/api/v1/purchases/scans/${scanRecord.id}/confirm`,
+      headers: {
+        authorization: `Bearer ${tokenA}`,
+        "content-type": "application/json",
+      },
+      payload: {
+        partyId: supplierAId,
+        vendorInvoiceNumber: vendorInvNo,
+        invoiceDate: "2026-10-10",
+        warehouseId: warehouseAId,
+        items: [
+          {
+            itemId: itemAId,
+            quantity: extractedItem.quantity,
+            unitPrice: extractedItem.unitPrice,
+            taxRate: extractedItem.taxRate || 18,
+          },
+        ],
+      },
+    });
+
+    expect(confirmRes.statusCode).toBe(201);
+    const confirmBody = JSON.parse(confirmRes.body);
+    expect(confirmBody.invoice).toBeDefined();
+    expect(confirmBody.invoice.vendorInvoiceNumber).toBe(vendorInvNo);
+
+    // 3. Verify exactly one purchase invoice created
+    const finalPurchaseCount = await prisma.purchaseInvoice.count({
+      where: { companyId: companyAId },
+    });
+    expect(finalPurchaseCount).toBe(initialPurchaseCount + 1);
+
+    // 4. Verify stock transaction created
+    const finalStockCount = await prisma.stockTransaction.count({
+      where: { companyId: companyAId },
+    });
+    expect(finalStockCount).toBe(initialStockCount + 1);
+
+    // 5. Verify balanced voucher created
+    const finalVoucherCount = await prisma.voucher.count({
+      where: { companyId: companyAId },
+    });
+    expect(finalVoucherCount).toBe(initialVoucherCount + 1);
+
+    // 6. Test Idempotency: Re-confirming does not duplicate records
+    const retryRes = await app.inject({
+      method: "POST",
+      url: `/api/v1/purchases/scans/${scanRecord.id}/confirm`,
+      headers: {
+        authorization: `Bearer ${tokenA}`,
+        "content-type": "application/json",
+      },
+      payload: {
+        partyId: supplierAId,
+        vendorInvoiceNumber: vendorInvNo,
+        items: [
+          {
+            itemId: itemAId,
+            quantity: extractedItem.quantity,
+            unitPrice: extractedItem.unitPrice,
+            taxRate: 18,
+          },
+        ],
+      },
+    });
+    expect(retryRes.statusCode).toBe(201);
+    const retryBody = JSON.parse(retryRes.body);
+    expect(retryBody.isIdempotentReplay).toBe(true);
+
+    expect(await prisma.purchaseInvoice.count({ where: { companyId: companyAId } })).toBe(finalPurchaseCount);
+    expect(await prisma.stockTransaction.count({ where: { companyId: companyAId } })).toBe(finalStockCount);
+    expect(await prisma.voucher.count({ where: { companyId: companyAId } })).toBe(finalVoucherCount);
+  }, 30000);
 });

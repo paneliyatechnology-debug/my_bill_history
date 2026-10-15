@@ -61,8 +61,13 @@ async function request<T>(
     ...(options.headers as Record<string, string>),
   };
 
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
   if (options.body !== undefined && options.body !== null) {
-    headers["Content-Type"] = "application/json";
+    if (isFormData) {
+      delete headers["Content-Type"];
+    } else if (!headers["Content-Type"]) {
+      headers["Content-Type"] = "application/json";
+    }
   }
 
   if (token) {
@@ -162,11 +167,12 @@ export const apiClient = {
     tenant?: TenantHeaders,
     idempotencyKey?: string,
   ): Promise<T> {
+    const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
     return request<T>(
       path,
       {
         method: "POST",
-        body: body ? JSON.stringify(body) : undefined,
+        body: isFormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
       },
       tenant,
       idempotencyKey,
@@ -174,22 +180,24 @@ export const apiClient = {
   },
 
   put<T>(path: string, body?: any, tenant?: TenantHeaders): Promise<T> {
+    const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
     return request<T>(
       path,
       {
         method: "PUT",
-        body: body ? JSON.stringify(body) : undefined,
+        body: isFormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
       },
       tenant,
     );
   },
 
   patch<T>(path: string, body?: any, tenant?: TenantHeaders): Promise<T> {
+    const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
     return request<T>(
       path,
       {
         method: "PATCH",
-        body: body ? JSON.stringify(body) : undefined,
+        body: isFormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
       },
       tenant,
     );

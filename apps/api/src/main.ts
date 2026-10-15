@@ -46,7 +46,11 @@ async function bootstrap() {
 
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ logger: false, trustProxy }),
+    new FastifyAdapter({
+      logger: false,
+      trustProxy,
+      bodyLimit: 25 * 1024 * 1024, // 25 MB max payload
+    }),
   );
 
   // Register multipart support for bill uploads (15MB limit)

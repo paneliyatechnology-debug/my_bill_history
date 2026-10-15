@@ -4,6 +4,7 @@ node_modules
 
 # Production & Build outputs
 .next
+.next-dev
 out
 dist
 build

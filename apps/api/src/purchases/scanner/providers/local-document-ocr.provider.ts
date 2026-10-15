@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, BadRequestException } from "@nestjs/common";
 import { IOcrProvider, OcrOptions, OcrResult } from "./ocr-provider.interface";
 import { ExtractedBillDataSchema } from "../schemas/bill-extraction.schema";
 import { execFile } from "child_process";
@@ -32,12 +32,23 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
 
     // 1. PDF Processing: Check digital text via pdftotext
     if (mimeType === "application/pdf" || fileName.endsWith(".pdf")) {
-      const tempId = Math.random().toString(36).substring(2, 10);
-      const tempPdfPath = path.join(os.tmpdir(), `ocr_scan_${tempId}.pdf`);
+      const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "ocr_scan_"));
+      const tempPdfPath = path.join(tempDir, "document.pdf");
 
       try {
         await fs.writeFile(tempPdfPath, fileBuffer);
-        const { stdout } = await execFileAsync("pdftotext", ["-layout", tempPdfPath, "-"]);
+        let stdout = "";
+        try {
+          const res = await execFileAsync("pdftotext", ["-layout", tempPdfPath, "-"]);
+          stdout = res.stdout || "";
+        } catch (pdfErr: any) {
+          const stderr = (pdfErr?.stderr || "").toLowerCase();
+          if (stderr.includes("password") || stderr.includes("encrypted")) {
+            throw new BadRequestException("The uploaded PDF is password-protected. Please upload an unlocked PDF.");
+          }
+          this.logger.warn(`pdftotext extraction warning: ${pdfErr?.message}`);
+        }
+
         const trimmed = (stdout || "").trim();
 
         // Check if digital text exists (more than 35 chars)
@@ -47,45 +58,51 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
           const pageMatches = stdout.match(/\f/g);
           pageCount = pageMatches ? pageMatches.length + 1 : 1;
         } else {
-          // Scanned/Image-only PDF: render page images using pdftoppm and run Tesseract OCR
+          // Scanned/Image-only PDF: render page images using pdftoppm (bounded to first 5 pages max)
           this.logger.log(`PDF has insufficient text (${trimmed.length} chars). Performing pixel-level OCR via pdftoppm + Tesseract...`);
-          const tempPrefix = path.join(os.tmpdir(), `ocr_ppm_${tempId}`);
+          const tempPrefix = path.join(tempDir, "page");
           try {
-            await execFileAsync("pdftoppm", ["-png", "-r", "150", "-f", "1", "-l", "3", tempPdfPath, tempPrefix]);
-            
-            // Read generated PNGs
-            const files = await fs.readdir(os.tmpdir());
+            await execFileAsync("pdftoppm", ["-png", "-r", "150", "-f", "1", "-l", "5", tempPdfPath, tempPrefix]);
+
+            // Read generated PNGs inside isolated tempDir
+            const files = await fs.readdir(tempDir);
             const ppmPages = files
-              .filter((f) => f.startsWith(`ocr_ppm_${tempId}-`) && f.endsWith(".png"))
+              .filter((f) => f.startsWith("page-") && f.endsWith(".png"))
               .sort();
 
             pageCount = ppmPages.length || 1;
             if (ppmPages.length > 0) {
               const tesseract = await import("tesseract.js");
               const worker = await tesseract.createWorker("eng");
-              const textParts: string[] = [];
-
-              for (const pageFile of ppmPages) {
-                const pagePath = path.join(os.tmpdir(), pageFile);
-                const pageBuf = await fs.readFile(pagePath);
-                const ret = await worker.recognize(pageBuf);
-                if (ret.data?.text) {
-                  textParts.push(ret.data.text);
+              try {
+                const textParts: string[] = [];
+                for (const pageFile of ppmPages) {
+                  const pagePath = path.join(tempDir, pageFile);
+                  try {
+                    const pageBuf = await fs.readFile(pagePath);
+                    const ret = await worker.recognize(pageBuf);
+                    if (ret.data?.text) {
+                      textParts.push(ret.data.text);
+                    }
+                  } finally {
+                    await fs.unlink(pagePath).catch(() => {});
+                  }
                 }
-                await fs.unlink(pagePath).catch(() => {});
+                rawText = textParts.join("\n\n--- Page Break ---\n\n");
+                engine = "tesseract-pixel-ocr";
+              } finally {
+                await worker.terminate().catch(() => {});
               }
-              await worker.terminate();
-              rawText = textParts.join("\n\n--- Page Break ---\n\n");
-              engine = "tesseract-pixel-ocr";
             }
           } catch (ocrErr) {
             this.logger.warn(`Pixel OCR on scanned PDF failed: ${(ocrErr as any)?.message}`);
           }
         }
       } catch (err) {
+        if (err instanceof BadRequestException) throw err;
         this.logger.warn(`PDF processing error: ${(err as any)?.message}`);
       } finally {
-        await fs.unlink(tempPdfPath).catch(() => {});
+        await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
       }
     }
 
@@ -95,9 +112,12 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
         this.logger.log(`Running pixel-level OCR with Tesseract on image file (${fileName})...`);
         const tesseract = await import("tesseract.js");
         const worker = await tesseract.createWorker("eng");
-        const ret = await worker.recognize(fileBuffer);
-        rawText = ret.data?.text || "";
-        await worker.terminate();
+        try {
+          const ret = await worker.recognize(fileBuffer);
+          rawText = ret.data?.text || "";
+        } finally {
+          await worker.terminate().catch(() => {});
+        }
         engine = "tesseract-pixel-ocr";
         pageCount = 1;
       } catch (err) {
@@ -280,14 +300,28 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
       subtotal = grandTotal;
     }
 
-    const cgstMatch = rawText.match(/CGST(?:\s*\([^)]+\)|Total)?[:\s]+(?:Rs\.?|₹|\$|€|£)?\s*([0-9,]+\.?\d*)/i);
-    if (cgstMatch) cgstAmount = cgstMatch[1].replace(/,/g, "");
+    let detectedTaxRate: number | null = null;
 
-    const sgstMatch = rawText.match(/SGST(?:\s*\([^)]+\)|Total)?[:\s]+(?:Rs\.?|₹|\$|€|£)?\s*([0-9,]+\.?\d*)/i);
-    if (sgstMatch) sgstAmount = sgstMatch[1].replace(/,/g, "");
+    const cgstMatch = rawText.match(/CGST(?:\s*@?\s*(\d+(?:\.\d+)?)\s*%|\s*\(\s*(\d+(?:\.\d+)?)\s*%\s*\)|Total)?[:\s]+(?:Rs\.?|₹|\$|€|£)?\s*([0-9,]+\.?\d*)/i);
+    if (cgstMatch) {
+      const rate = cgstMatch[1] || cgstMatch[2];
+      if (rate) detectedTaxRate = (detectedTaxRate || 0) + parseFloat(rate);
+      cgstAmount = cgstMatch[3].replace(/,/g, "");
+    }
 
-    const igstMatch = rawText.match(/IGST(?:\s*\([^)]+\)|Total)?[:\s]+(?:Rs\.?|₹|\$|€|£)?\s*([0-9,]+\.?\d*)/i);
-    if (igstMatch) igstAmount = igstMatch[1].replace(/,/g, "");
+    const sgstMatch = rawText.match(/SGST(?:\s*@?\s*(\d+(?:\.\d+)?)\s*%|\s*\(\s*(\d+(?:\.\d+)?)\s*%\s*\)|Total)?[:\s]+(?:Rs\.?|₹|\$|€|£)?\s*([0-9,]+\.?\d*)/i);
+    if (sgstMatch) {
+      const rate = sgstMatch[1] || sgstMatch[2];
+      if (rate) detectedTaxRate = (detectedTaxRate || 0) + parseFloat(rate);
+      sgstAmount = sgstMatch[3].replace(/,/g, "");
+    }
+
+    const igstMatch = rawText.match(/IGST(?:\s*@?\s*(\d+(?:\.\d+)?)\s*%|\s*\(\s*(\d+(?:\.\d+)?)\s*%\s*\)|Total)?[:\s]+(?:Rs\.?|₹|\$|€|£)?\s*([0-9,]+\.?\d*)/i);
+    if (igstMatch) {
+      const rate = igstMatch[1] || igstMatch[2];
+      if (rate) detectedTaxRate = parseFloat(rate);
+      igstAmount = igstMatch[3].replace(/,/g, "");
+    }
 
     const roundMatch = rawText.match(/Round(?:\s*Off)?[:\s]+([+-]?[0-9,]+\.?\d*)/i);
     if (roundMatch) roundOff = roundMatch[1].replace(/,/g, "");
@@ -398,7 +432,7 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
     // 6. Generic Line Items Extraction
     const items: any[] = [];
     const tableHeaderIdx = lines.findIndex((l) =>
-      /Description|Particulars|Item\s+Name|Line\s+Items|Product/i.test(l),
+      /Description|Particulars|Item\s+Name|Line\s+Items|Product|Items\b|Goods\b|Material|વિગત|માલની\s*વિગત/i.test(l),
     );
     const headerLine = tableHeaderIdx >= 0 ? lines[tableHeaderIdx] : "";
     const priceHeaderIdx = headerLine.search(/\b(price|rate)\b/i);
@@ -411,14 +445,12 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
       const line = lines[i];
       const trimmed = line.trim();
 
-      // End of table check
+      // End of table check: only break if we have already extracted at least one item
       if (
-        /\bsubtotal\b|^\s*total\s*[:$]|^\s*amount\s+due\b|^\s*grand\s+total\b|^\s*authorized\s+signatory\b|paid\s+in\s+full/i.test(
-          trimmed,
-        )
+        items.length > 0 &&
+        /^\s*(?:subtotal|sub-total|grand\s*total|net\s*payable|amount\s*due)\b/i.test(trimmed)
       ) {
-        if (/^\s*subtotal|^\s*total\s*(?:in\s+[a-z]{3})?/i.test(trimmed)) break;
-        continue;
+        break;
       }
       if (
         !trimmed ||
@@ -538,6 +570,18 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
             .replace(/^\d+[\.\)]\s*/, "")
             .trim();
 
+          // Fallback: If desc is empty or tiny, but previous line had item description
+          if ((!desc || desc.length <= 2) && i > 0) {
+            const prev = lines[i - 1].trim();
+            if (
+              prev.length > 2 &&
+              !/invoice|bill\s+to|gstin|dated|subtotal|grand\s+total|cgst|sgst|igst|authorized|item\s+description|hsn/i.test(prev) &&
+              !/\d{4,}/.test(prev)
+            ) {
+              desc = prev.replace(/^\d+[\.\)]\s*/, "").trim();
+            }
+          }
+
           // Exclude header or metadata rows
           if (
             !/invoice|bill\s+to|gstin|dated|subtotal|grand\s+total|cgst|sgst|igst|authorized/i.test(
@@ -642,6 +686,18 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
               confidence: 90,
             });
           }
+        }
+      }
+    }
+
+    // Backfill tax rate from tax summary if individual item lines didn't specify it
+    if (detectedTaxRate && detectedTaxRate > 0) {
+      for (const it of items) {
+        if (!it.taxRate || it.taxRate === 0) {
+          it.taxRate = detectedTaxRate;
+          const taxable = Number(it.taxableAmount) || (it.quantity * it.unitPrice);
+          const tax = (taxable * detectedTaxRate) / 100;
+          it.totalAmount = taxable + tax;
         }
       }
     }

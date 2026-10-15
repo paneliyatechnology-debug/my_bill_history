@@ -29,6 +29,7 @@ import { QueryPurchasesDto } from "./dto/query-purchases.dto";
 import { CreatePurchaseReturnDto } from "./dto/create-purchase-return.dto";
 import { QueryPurchaseReturnsDto } from "./dto/query-purchase-returns.dto";
 import { RecordPurchasePaymentDto } from "./dto/record-purchase-payment.dto";
+import { isValidGstinChecksum } from "../common/validators/gstin.validator";
 
 @Injectable()
 export class PurchasesService {
@@ -159,11 +160,15 @@ export class PurchasesService {
       // 3. Tax follows the supplier GSTIN state and place of supply, not the buyer alone.
       let supplyDecision;
       try {
+        const hasValidGstin = Boolean(party.gstin && isValidGstinChecksum(party.gstin.trim()));
+        const validSupplierGstin = hasValidGstin && party.gstin ? party.gstin.trim().toUpperCase() : null;
+        const supplierState = party.stateCode || (validSupplierGstin ? validSupplierGstin.substring(0, 2) : (company.stateCode || "24"));
+
         supplyDecision = resolveInwardSupply({
-          supplierGstin: party.gstin,
-          supplierStateCode: party.stateCode,
-          placeOfSupply: dto.placeOfSupply,
-          recipientStateCode: company.stateCode,
+          supplierGstin: validSupplierGstin,
+          supplierStateCode: supplierState,
+          placeOfSupply: dto.placeOfSupply || supplierState || company.stateCode || "24",
+          recipientStateCode: company.stateCode || "24",
         });
       } catch (error) {
         throw new BadRequestException(error instanceof Error ? error.message : "Purchase tax could not be classified.");

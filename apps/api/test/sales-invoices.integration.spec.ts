@@ -1435,7 +1435,7 @@ describe("Phase 5: Sales Billing, POS Engine & Stock Ledger (Integration)", () =
       const upiDebit = debits.find(
         (d) =>
           d.account.name === "UPI Account" ||
-          (d.account.isBankLedger && d.lineNarration.includes("UPI")),
+          (d.account.isBankLedger && Boolean(d.lineNarration?.includes("UPI"))),
       );
       expect(upiDebit).toBeDefined();
       expect(Number(upiDebit!.debitAmount)).toBe(250.0);
@@ -1444,7 +1444,7 @@ describe("Phase 5: Sales Billing, POS Engine & Stock Ledger (Integration)", () =
         (d) =>
           d.account.name === "Bank Account" ||
           (d.account.isBankLedger &&
-            d.lineNarration.includes("Bank Transfer")),
+            Boolean(d.lineNarration?.includes("Bank Transfer"))),
       );
       expect(bankDebit).toBeDefined();
       expect(Number(bankDebit!.debitAmount)).toBe(140.0);

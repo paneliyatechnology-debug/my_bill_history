@@ -72,8 +72,17 @@ export class BillStorageService {
       return { mimeType: "image/jpeg", extension: "jpg" };
     }
 
+    // WebP magic bytes: RIFF....WEBP
+    if (
+      buffer.length >= 12 &&
+      buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 &&
+      buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50
+    ) {
+      return { mimeType: "image/webp", extension: "webp" };
+    }
+
     throw new BadRequestException(
-      "Invalid file type. Only standard PDF documents, JPG/JPEG and PNG image formats are supported.",
+      "Invalid file type. Only standard PDF documents, JPG/JPEG, PNG, and WebP image formats are supported.",
     );
   }
 
