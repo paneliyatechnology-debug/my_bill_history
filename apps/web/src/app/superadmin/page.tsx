@@ -185,14 +185,15 @@ export default function SuperAdminPortalPage() {
         if (!token) {
           if (isMounted) {
             setAuthStatus("unauthenticated");
-            router.replace("/login");
+            window.location.replace("/login?redirect=/superadmin");
           }
           return;
         }
 
         // 1. Authoritative identity check from server
         const me: any = await apiClient.get("/auth/me");
-        if (!me || me.role !== "SUPER_ADMIN") {
+        const authoritativeRole = me?.user?.role || me?.role;
+        if (!authoritativeRole || authoritativeRole !== "SUPER_ADMIN") {
           if (isMounted) setAuthStatus("forbidden");
           return;
         }
@@ -207,7 +208,7 @@ export default function SuperAdminPortalPage() {
         if (isMounted) {
           if (err?.statusCode === 401) {
             setAuthStatus("unauthenticated");
-            router.replace("/login");
+            window.location.replace("/login?redirect=/superadmin");
           } else {
             setAuthStatus("forbidden");
           }
@@ -486,9 +487,9 @@ export default function SuperAdminPortalPage() {
         reason: "Customer support & account inspection",
       });
       if (res?.targetContext) {
-        const originalToken = localStorage.getItem("billing_token");
+        const originalToken = localStorage.getItem("billing_auth_token");
         if (res.supportToken) {
-          localStorage.setItem("billing_token", res.supportToken);
+          localStorage.setItem("billing_auth_token", res.supportToken);
         }
         localStorage.setItem("billing_tenant_context", JSON.stringify(res.targetContext));
         localStorage.setItem(
@@ -546,7 +547,7 @@ export default function SuperAdminPortalPage() {
   }
 
   // 2. CHECKING AUTHORIZATION LOADING SCREEN
-  if (authStatus === "checking" || authLoading || isLoading) {
+  if (authStatus === "checking" || authLoading) {
     return (
       <div className="min-h-screen bg-[#F8F9FB] flex flex-col items-center justify-center p-4">
         <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-3xl shadow-lg shadow-purple-500/20 animate-pulse mb-3">
@@ -554,6 +555,19 @@ export default function SuperAdminPortalPage() {
         </div>
         <p className="text-base font-bold text-[#202124]">MyBill Master Operations</p>
         <p className="text-xs text-[#98A2B3] mt-1 font-mono">Verifying server authorization...</p>
+      </div>
+    );
+  }
+
+  // 3. UNAUTHENTICATED REDIRECT FALLBACK
+  if (authStatus === "unauthenticated") {
+    return (
+      <div className="min-h-screen bg-[#F8F9FB] flex flex-col items-center justify-center p-4">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#F47721] to-[#FF9B50] flex items-center justify-center text-white font-bold text-3xl shadow-saffron animate-pulse mb-3">
+          ₹
+        </div>
+        <p className="text-base font-bold text-[#202124]">Redirecting to Login...</p>
+        <p className="text-xs text-[#98A2B3] mt-1 font-mono">Platform administrator authentication required.</p>
       </div>
     );
   }
@@ -648,9 +662,7 @@ export default function SuperAdminPortalPage() {
           <div className="h-16 flex items-center justify-between px-4 border-b border-[#E5E7EB]">
             {!isSidebarCollapsed ? (
               <div className="flex items-center gap-2.5 truncate">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0">
-                  🛡️
-                </div>
+
                 <div className="flex flex-col truncate">
                   <div className="flex items-center gap-1.5">
                     <span className="font-extrabold text-sm tracking-tight text-[#202124] truncate">
@@ -667,7 +679,7 @@ export default function SuperAdminPortalPage() {
               </div>
             ) : (
               <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-lg mx-auto shadow-sm">
-                🛡️
+
               </div>
             )}
 
@@ -812,10 +824,7 @@ export default function SuperAdminPortalPage() {
           {/* Right: Actions, Language Switch, Store Switcher */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Live System Badge */}
-            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-[11px] font-bold text-emerald-700">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>PostgreSQL 16 (RLS Active)</span>
-            </div>
+
 
             {/* Launch Business Dashboard */}
             <Link
@@ -823,7 +832,7 @@ export default function SuperAdminPortalPage() {
               className="flex items-center gap-1.5 py-1.5 px-3 bg-[#FFF3E8] hover:bg-[#FFE5D0] text-[#F47721] border border-orange-200 rounded-xl text-xs font-bold transition-all shadow-xs"
               title="Launch SME Business Billing Portal"
             >
-              <span>🏬</span>
+
               <span className="hidden sm:inline">
                 {lang === "gu" ? "વેપારી ડેશબોર્ડ" : "Business Dashboard"}
               </span>
@@ -928,7 +937,7 @@ export default function SuperAdminPortalPage() {
                 <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 space-y-2 shadow-xs hover:shadow-card transition-all">
                   <div className="flex items-center justify-between text-[#667085] text-xs font-bold uppercase tracking-wider">
                     <span>{lang === "gu" ? "કુલ સંસ્થાઓ (Tenants)" : "Total Tenants"}</span>
-                    <span className="p-1.5 bg-purple-50 text-purple-700 rounded-lg">🏢</span>
+
                   </div>
                   <div className="text-3xl font-black text-[#202124] font-mono">
                     {stats.tenants.total}
@@ -943,7 +952,7 @@ export default function SuperAdminPortalPage() {
                 <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 space-y-2 shadow-xs hover:shadow-card transition-all">
                   <div className="flex items-center justify-between text-[#667085] text-xs font-bold uppercase tracking-wider">
                     <span>{lang === "gu" ? "કંપનીઓ અને શાખાઓ" : "Companies & Branches"}</span>
-                    <span className="p-1.5 bg-blue-50 text-blue-700 rounded-lg">🏬</span>
+
                   </div>
                   <div className="text-3xl font-black text-[#202124] font-mono">
                     {stats.infrastructure.companies}
@@ -958,7 +967,6 @@ export default function SuperAdminPortalPage() {
                 <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 space-y-2 shadow-xs hover:shadow-card transition-all">
                   <div className="flex items-center justify-between text-[#667085] text-xs font-bold uppercase tracking-wider">
                     <span>{lang === "gu" ? "કુલ બિલિંગ વોલ્યુમ (GMV)" : "Gross Billing Volume"}</span>
-                    <span className="p-1.5 bg-emerald-50 text-emerald-700 rounded-lg">₹</span>
                   </div>
                   <div className="text-3xl font-black text-[#202124] font-mono">
                     {formatInr(stats.businessVolume.grossVolume)}
@@ -971,7 +979,7 @@ export default function SuperAdminPortalPage() {
                 <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 space-y-2 shadow-xs hover:shadow-card transition-all">
                   <div className="flex items-center justify-between text-[#667085] text-xs font-bold uppercase tracking-wider">
                     <span>{lang === "gu" ? "ઓડિટ લોગ્સ (Audit Logs)" : "Audit Records"}</span>
-                    <span className="p-1.5 bg-amber-50 text-amber-700 rounded-lg">🛡️</span>
+
                   </div>
                   <div className="text-3xl font-black text-[#202124] font-mono">
                     {stats.systemHealth.totalAuditEvents}
@@ -1049,43 +1057,8 @@ export default function SuperAdminPortalPage() {
                   </div>
                 </div>
 
-                {/* Health & Architecture Card */}
-                <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 space-y-4 shadow-xs">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-[#202124]">
-                    {lang === "gu" ? "સિસ્ટમ સ્થિતિ" : "System Diagnostics"}
-                  </h3>
-                  <div className="space-y-3 text-xs">
-                    <div className="flex items-center justify-between p-2.5 bg-[#F8F9FB] rounded-xl border border-[#E5E7EB]">
-                      <span className="text-[#667085]">Database Engine</span>
-                      <span className="font-mono font-bold text-emerald-700 flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                        PostgreSQL 16 (RLS)
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between p-2.5 bg-[#F8F9FB] rounded-xl border border-[#E5E7EB]">
-                      <span className="text-[#667085]">Tenant Security</span>
-                      <span className="font-mono font-bold text-purple-700">Zero-Trust Isolated</span>
-                    </div>
-                    <div className="flex items-center justify-between p-2.5 bg-[#F8F9FB] rounded-xl border border-[#E5E7EB]">
-                      <span className="text-[#667085]">Service Uptime</span>
-                      <span className="font-mono font-bold text-[#202124]">
-                        {Math.floor(stats.systemHealth.uptimeSeconds / 60)} mins
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between p-2.5 bg-[#F8F9FB] rounded-xl border border-[#E5E7EB]">
-                      <span className="text-[#667085]">Backend Runtime</span>
-                      <span className="font-mono font-bold text-amber-700">Node {stats.systemHealth.nodeVersion}</span>
-                    </div>
-                  </div>
 
-                  <button
-                    onClick={() => setActiveSection("tenants")}
-                    className="w-full py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2"
-                  >
-                    <span>🏢</span>
-                    <span>{lang === "gu" ? "સંસ્થાઓ મેનેજ કરો" : "Manage All Tenants"}</span>
-                  </button>
-                </div>
+
               </div>
             </div>
           )}
@@ -1719,7 +1692,7 @@ export default function SuperAdminPortalPage() {
           <div className="bg-white rounded-2xl w-full max-w-lg p-6 space-y-5 text-[#202124] shadow-xl border border-[#E5E7EB] animate-scaleUp">
             <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
               <h3 className="text-base font-bold text-[#202124] flex items-center gap-2">
-                <span>🏢</span>
+
                 <span>{lang === "gu" ? "નવી સંસ્થા / ટેનન્ટ બનાવો" : "Provision New Business Tenant"}</span>
               </h3>
               <button
@@ -1869,7 +1842,7 @@ export default function SuperAdminPortalPage() {
           <div className="bg-white border border-[#E5E7EB] rounded-2xl w-full max-w-md p-6 space-y-5 text-[#202124] shadow-xl animate-scaleUp">
             <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
               <h3 className="text-base font-bold text-[#202124] flex items-center gap-2">
-                <span>🛡️</span>
+
                 <span>{lang === "gu" ? "સબ્સ્ક્રિપ્શન પ્લાન અને લાયસન્સ" : "Manage Tenant Subscription"}</span>
               </h3>
               <button
@@ -2149,7 +2122,7 @@ export default function SuperAdminPortalPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB]">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">🛡️</span>
+
                   <span className="font-bold text-sm text-[#202124]">SuperAdmin Console</span>
                 </div>
                 <button

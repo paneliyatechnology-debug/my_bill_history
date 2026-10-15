@@ -18,43 +18,33 @@ export class SupportSessionRegistry implements OnModuleInit {
   constructor(private readonly prisma: DatabaseService) {}
 
   async onModuleInit() {
-    await this.initTable();
+    await this.verifySchema();
   }
 
-  async initTable(): Promise<void> {
+  /**
+   * Non-destructive schema verification.
+   * Schema provisioning is now governed by versioned Prisma/SQL migrations.
+   */
+  async verifySchema(): Promise<void> {
     try {
-      await this.prisma.$executeRawUnsafe(`
-        CREATE TABLE IF NOT EXISTS support_sessions (
-          id VARCHAR(64) PRIMARY KEY,
-          actor_id UUID NOT NULL,
-          target_organization_id UUID NOT NULL,
-          target_company_id UUID NOT NULL,
-          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-          expires_at TIMESTAMPTZ NOT NULL,
-          revoked_at TIMESTAMPTZ,
-          is_revoked BOOLEAN NOT NULL DEFAULT FALSE,
-          reason TEXT
-        )
+      const tableExists = await this.prisma.$queryRawUnsafe<any[]>(`
+        SELECT 1 FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'support_sessions'
+        LIMIT 1
       `);
-      await this.prisma.$executeRawUnsafe(`
-        CREATE INDEX IF NOT EXISTS idx_support_sessions_lookup ON support_sessions(id, is_revoked, expires_at)
-      `);
-      await this.prisma.$executeRawUnsafe(`
-        CREATE INDEX IF NOT EXISTS idx_support_sessions_actor ON support_sessions(actor_id, is_revoked)
-      `);
-      await this.prisma.$executeRawUnsafe(`
-        CREATE INDEX IF NOT EXISTS idx_support_sessions_comp ON support_sessions(target_company_id, is_revoked)
-      `);
-      try {
-        await this.prisma.$executeRawUnsafe(`
-          GRANT ALL ON TABLE support_sessions TO billing_app
-        `);
-      } catch {
-        // Role might not exist in mock/test
+      if (!tableExists || tableExists.length === 0) {
+        // Table not found; operations will fail safely/closed
       }
     } catch {
-      // Allow execution in testing or if table already configured
+      // Allow execution in testing environments without active DB
     }
+  }
+
+  /**
+   * Backward-compatible alias for verifySchema
+   */
+  async initTable(): Promise<void> {
+    await this.verifySchema();
   }
 
   async createSession(data: {

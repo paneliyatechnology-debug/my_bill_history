@@ -1629,3 +1629,20 @@ model AdvanceAdjustment {
   @@index([companyId, adjustmentDate])
   @@map("advance_adjustments")
 }
+
+model SupportSession {
+  id                   String    @id @db.VarChar(64)
+  actorId              String    @map("actor_id") @db.Uuid
+  targetOrganizationId String    @map("target_organization_id") @db.Uuid
+  targetCompanyId      String    @map("target_company_id") @db.Uuid
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  expiresAt            DateTime  @map("expires_at") @db.Timestamptz
+  revokedAt            DateTime? @map("revoked_at") @db.Timestamptz
+  isRevoked            Boolean   @default(false) @map("is_revoked")
+  reason               String?   @db.Text
+
+  @@index([id, isRevoked, expiresAt], map: "idx_support_sessions_lookup")
+  @@index([actorId, isRevoked], map: "idx_support_sessions_actor")
+  @@index([targetCompanyId, isRevoked], map: "idx_support_sessions_comp")
+  @@map("support_sessions")
+}

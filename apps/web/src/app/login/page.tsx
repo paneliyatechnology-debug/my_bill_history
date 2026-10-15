@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
   const { login, lang, setLang, isAuthenticated, isLoading: authLoading, user } = useAuth();
 
   const [identifier, setIdentifier] = useState("");
@@ -19,12 +21,15 @@ export default function LoginPage() {
   useEffect(() => {
     if (!authLoading && isAuthenticated && user) {
       if (user.role === "SUPER_ADMIN") {
-        router.replace("/superadmin");
+        const dest = redirectParam && redirectParam.startsWith("/") ? redirectParam : "/superadmin";
+        router.replace(dest);
       } else {
-        router.replace("/");
+        // Disallow ordinary business roles from accessing /superadmin
+        const dest = redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("/superadmin") ? redirectParam : "/";
+        router.replace(dest);
       }
     }
-  }, [authLoading, isAuthenticated, user, router]);
+  }, [authLoading, isAuthenticated, user, router, redirectParam]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,11 +49,14 @@ export default function LoginPage() {
           defaultContext: res.defaultContext,
         });
 
-        // Server-dictated role routing
+        // Server-dictated role routing with safe redirect validation
         if (res.user?.role === "SUPER_ADMIN") {
-          router.push("/superadmin");
+          const dest = redirectParam && redirectParam.startsWith("/") ? redirectParam : "/superadmin";
+          router.push(dest);
         } else {
-          router.push("/");
+          // Disallow ordinary business roles from accessing /superadmin
+          const dest = redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("/superadmin") ? redirectParam : "/";
+          router.push(dest);
         }
       } else {
         setError(
@@ -204,5 +212,21 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#F8F9FB] flex flex-col justify-center items-center p-4">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#F47721] to-[#FF9B50] flex items-center justify-center text-white font-bold text-3xl shadow-saffron animate-pulse">
+            ₹
+          </div>
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }

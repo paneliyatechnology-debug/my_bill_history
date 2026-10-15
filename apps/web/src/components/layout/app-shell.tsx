@@ -89,7 +89,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     } finally {
       const orig = (supportSession as any)?.originalToken;
       if (orig) {
-        localStorage.setItem("billing_token", orig);
+        localStorage.setItem("billing_auth_token", orig);
       }
       localStorage.removeItem("billing_support_session");
       localStorage.removeItem("billing_tenant_context");
@@ -153,7 +153,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // If unauthenticated and finished loading, automatically redirect to login page
   useEffect(() => {
     if (!isLoading && !isAuthenticated && pathname !== "/login") {
-      router.replace("/login");
+      const redirectParam = pathname && pathname !== "/" ? `?redirect=${encodeURIComponent(pathname)}` : "";
+      router.replace(`/login${redirectParam}`);
     }
   }, [isLoading, isAuthenticated, pathname, router]);
 
@@ -700,7 +701,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className="flex items-center gap-1.5 py-1.5 px-3 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-button text-xs font-bold transition-all shrink-0 shadow-xs"
                 title="Open SuperAdmin Master Control Portal"
               >
-                <span>🛡️</span>
                 <span className="hidden sm:inline">SuperAdmin Portal</span>
               </Link>
             )}

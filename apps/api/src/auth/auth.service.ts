@@ -397,6 +397,7 @@ export class AuthService {
     });
 
     return {
+      role: user.role,
       user: {
         id: user.id,
         fullName: user.fullName,

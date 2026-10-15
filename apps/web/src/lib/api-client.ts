@@ -99,7 +99,9 @@ async function request<T>(
     if (!window.location.pathname.startsWith("/login")) {
       localStorage.removeItem("billing_auth_token");
       localStorage.removeItem("billing_user_profile");
-      window.location.href = "/login";
+      const currentTarget = window.location.pathname + window.location.search;
+      const redirectParam = currentTarget && currentTarget !== "/" ? `?redirect=${encodeURIComponent(currentTarget)}` : "";
+      window.location.href = `/login${redirectParam}`;
     }
   }
 

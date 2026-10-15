@@ -41,8 +41,8 @@ export class SuperAdminGuard implements CanActivate {
     // Disallow support session tokens from invoking platform-admin endpoints,
     // EXCEPT for the dedicated support exit route (/impersonate/exit)
     if (tokenUser.isSupportSession) {
-      const url = request.url || "";
-      if (!url.endsWith("/impersonate/exit")) {
+      const pathname = (request.url || "").split("?")[0];
+      if (!pathname.endsWith("/impersonate/exit")) {
         throw new ForbiddenException({
           statusCode: 403,
           message:
