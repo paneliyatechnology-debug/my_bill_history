@@ -30,7 +30,7 @@ export class InvoicesController {
   @Throttle({
     default: { limit: process.env.NODE_ENV === "test" ? 1000 : 30, ttl: 60000 },
   })
-  @Post("sales")
+  @Post(["", "sales"])
   @HttpCode(HttpStatus.CREATED)
   @Roles(
     UserRole.SUPER_ADMIN,
@@ -188,7 +188,7 @@ export class InvoicesController {
     );
   }
 
-  @Get("sales")
+  @Get(["", "sales"])
   async listSalesInvoices(
     @Query() query: QueryInvoicesDto,
     @CurrentTenant() tenant: TenantContext,

@@ -237,7 +237,7 @@ export default function NewInvoicePage() {
 
     try {
       const res: any = await apiClient.post(
-        "/invoices",
+        "/invoices/sales",
         {
           category,
           partyId: partyId || undefined,
