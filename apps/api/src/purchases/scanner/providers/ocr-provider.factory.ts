@@ -25,6 +25,10 @@ export class OcrProviderFactory {
 
     const selected = this.providers.get(configuredName.toLowerCase());
     if (selected) {
+      if (selected.name === "mock" && process.env.NODE_ENV !== "test") {
+        this.logger.warn("Mock OCR provider is forbidden outside of test environment. Falling back to local OCR provider.");
+        return this.localProvider;
+      }
       if (selected.name === "gemini" && !selected.isAvailable()) {
         this.logger.warn("Gemini OCR requested but GEMINI_API_KEY is not available. Falling back to local OCR provider.");
         return this.localProvider;

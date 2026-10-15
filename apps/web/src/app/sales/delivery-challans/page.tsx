@@ -62,6 +62,7 @@ interface ItemOption {
   hsnCode?: string;
   taxRate?: number;
   purchaseRate?: number;
+  retailPrice?: number;
 }
 
 export default function DeliveryChallansPage() {
@@ -102,10 +103,10 @@ export default function DeliveryChallansPage() {
       {
         itemId: "",
         description: "",
-        hsnCode: "1006",
-        quantity: 10,
-        unitPrice: 100,
-        taxRate: 5,
+        hsnCode: "",
+        quantity: 1,
+        unitPrice: 0,
+        taxRate: 0,
       },
     ] as Array<{
       itemId: string;
@@ -172,11 +173,11 @@ export default function DeliveryChallansPage() {
       items: [
         {
           itemId: items[0]?.id || "",
-          description: items[0]?.name || "Goods for Job Work",
-          hsnCode: items[0]?.hsnCode || "1006",
-          quantity: 10,
-          unitPrice: 100,
-          taxRate: items[0]?.taxRate || 5,
+          description: items[0]?.name || "",
+          hsnCode: items[0]?.hsnCode || "",
+          quantity: 1,
+          unitPrice: items[0]?.retailPrice || 0,
+          taxRate: items[0]?.taxRate || 0,
         },
       ],
     });
@@ -192,10 +193,10 @@ export default function DeliveryChallansPage() {
         {
           itemId: items[0]?.id || "",
           description: items[0]?.name || "",
-          hsnCode: items[0]?.hsnCode || "1006",
-          quantity: 10,
-          unitPrice: 100,
-          taxRate: items[0]?.taxRate || 5,
+          hsnCode: items[0]?.hsnCode || "",
+          quantity: 1,
+          unitPrice: items[0]?.retailPrice || 0,
+          taxRate: items[0]?.taxRate || 0,
         },
       ],
     }));

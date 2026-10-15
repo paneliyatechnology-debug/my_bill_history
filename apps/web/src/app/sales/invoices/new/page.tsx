@@ -52,7 +52,9 @@ export default function NewInvoicePage() {
     new Date().toISOString().split("T")[0]
   );
   const [paymentMode, setPaymentMode] = useState("UNPAID_CREDIT");
-  const [placeOfSupply, setPlaceOfSupply] = useState("24"); // Default Gujarat
+  const [placeOfSupply, setPlaceOfSupply] = useState(
+    currentCompany?.stateCode || "24",
+  );
   const [notes, setNotes] = useState("");
   const [isTaxInclusive, setIsTaxInclusive] = useState(false);
 
@@ -61,9 +63,9 @@ export default function NewInvoicePage() {
       itemId: "",
       hsnCode: "",
       quantity: 1,
-      unitPrice: 100,
+      unitPrice: "",
       discountPercent: 0,
-      taxRate: 5,
+      taxRate: 0,
     },
   ]);
 
@@ -108,6 +110,12 @@ export default function NewInvoicePage() {
       fetchData();
     }
   }, [tenantContext.companyId, fetchData]);
+
+  useEffect(() => {
+    if (currentCompany?.stateCode && parties.length === 0) {
+      setPlaceOfSupply(currentCompany.stateCode);
+    }
+  }, [currentCompany?.stateCode, parties.length]);
 
   const handlePartyChange = (id: string) => {
     setPartyId(id);

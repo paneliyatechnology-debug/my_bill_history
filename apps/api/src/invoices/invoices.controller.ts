@@ -143,8 +143,9 @@ export class InvoicesController {
   async posCheckout(
     @Body() dto: PosCheckoutDto,
     @CurrentTenant() tenant: TenantContext,
+    @Headers("idempotency-key") idempotencyKey?: string,
   ) {
-    return await this.invoicesService.posCheckout(dto, tenant);
+    return await this.invoicesService.posCheckout(dto, tenant, idempotencyKey);
   }
 
   @Post("pos-sync")

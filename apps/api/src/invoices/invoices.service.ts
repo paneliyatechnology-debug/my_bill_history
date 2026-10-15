@@ -73,6 +73,10 @@ export class InvoicesService {
       return await this.prisma.executeInTenantContext(tenant, async (tx) => {
         // 1. Idempotency Check: return existing invoice if clientOfflineUuid already processed
         if (offlineUuid) {
+          await tx.$executeRaw`
+            SELECT pg_advisory_xact_lock(hashtext(${`idemp_${tenant.companyId}_${offlineUuid}`})::bigint)
+          `;
+
           const existingInvoice = await tx.salesInvoice.findFirst({
             where: {
               companyId: tenant.companyId,
@@ -84,7 +88,27 @@ export class InvoicesService {
             },
           });
           if (existingInvoice) {
-            return existingInvoice;
+            this.assertMatchingIdempotentSale(existingInvoice, dto);
+
+            const voucher = await tx.voucher.findFirst({
+              where: {
+                companyId: tenant.companyId,
+                sourceDocument: "SALES_INVOICE",
+                sourceEntityId: existingInvoice.id,
+                isCancelled: false,
+              },
+            });
+
+            return {
+              ...existingInvoice,
+              voucher: voucher
+                ? {
+                    id: voucher.id,
+                    voucherNumber: voucher.voucherNumber,
+                    balanced: true,
+                  }
+                : null,
+            };
           }
         }
 
@@ -156,6 +180,31 @@ export class InvoicesService {
           }
           if (!party.isActive) {
             throw new BadRequestException(`Party "${party.name}" is inactive.`);
+          }
+        } else if (dto.customerPhone || dto.customerName) {
+          const phone = dto.customerPhone?.trim() || "9999999999";
+          const name = dto.customerName?.trim() || "Retail Cash Customer";
+          party = await tx.party.findFirst({
+            where: { companyId: tenant.companyId, phone },
+            include: { ledgerAccount: true },
+          });
+          if (!party) {
+            party = await tx.party.create({
+              data: {
+                organizationId: tenant.organizationId,
+                companyId: tenant.companyId,
+                type: "CUSTOMER",
+                name,
+                phone,
+                stateCode: company.stateCode || "24",
+                billingAddress: {
+                  city: company.city || "Ahmedabad",
+                  pincode: company.pincode || "380001",
+                },
+                isActive: true,
+              },
+              include: { ledgerAccount: true },
+            });
           }
         } else {
           // Walk-in retail customer fallback
@@ -361,7 +410,35 @@ export class InvoicesService {
         );
 
         // 10. Payment and Status Resolution
-        const paymentMode = this.normalizePaymentMode(dto.paymentMode);
+        let paymentMode = this.normalizePaymentMode(dto.paymentMode);
+        if (dto.tenderedSplit) {
+          paymentMode = PaymentMode.SPLIT;
+        }
+
+        let validatedSplit: any = null;
+        if (paymentMode === PaymentMode.SPLIT) {
+          validatedSplit = this.validateAndNormalizeSplitTender(
+            dto.tenderedSplit,
+            taxCalc.grandTotal,
+          );
+        } else if (
+          paymentMode !== PaymentMode.UNPAID_CREDIT &&
+          dto.receivedAmount !== undefined &&
+          dto.receivedAmount !== null
+        ) {
+          const recAmt = Number(dto.receivedAmount);
+          if (!Number.isFinite(recAmt) || recAmt < 0) {
+            throw new BadRequestException(
+              "Received amount must be a non-negative number.",
+            );
+          }
+          if (toMoney(recAmt).lessThan(taxCalc.grandTotal)) {
+            throw new BadRequestException(
+              `Received amount (₹${recAmt}) is less than invoice grand total (₹${taxCalc.grandTotal.toFixed(2)}).`,
+            );
+          }
+        }
+
         const isUnpaidCredit = paymentMode === PaymentMode.UNPAID_CREDIT;
         const paidAmount =
           isDraft || isUnpaidCredit ? 0 : taxCalc.grandTotal.toNumber();
@@ -512,8 +589,9 @@ export class InvoicesService {
           party,
           fy.id,
           taxCalc,
-          isUnpaidCredit,
+          paymentMode,
           invoiceDate,
+          validatedSplit,
         );
 
         // 15. Audit Log (atomic with invoice & voucher transaction)
@@ -564,7 +642,29 @@ export class InvoicesService {
           },
         });
         if (existing) {
-          return existing;
+          this.assertMatchingIdempotentSale(existing, dto);
+          const voucher = await this.prisma.voucher.findFirst({
+            where: {
+              companyId: tenant.companyId,
+              sourceDocument: "SALES_INVOICE",
+              sourceEntityId: existing.id,
+              isCancelled: false,
+            },
+          });
+          return {
+            ...existing,
+            voucher: voucher
+              ? {
+                  id: voucher.id,
+                  voucherNumber: voucher.voucherNumber,
+                  balanced: true,
+                }
+              : null,
+          };
+        } else {
+          throw new ConflictException(
+            "The clientOfflineUuid or idempotency key conflicts with an existing record.",
+          );
         }
       }
       throw err;
@@ -574,55 +674,42 @@ export class InvoicesService {
   /**
    * Fast POS retail checkout with cash or split tender
    */
-  async posCheckout(dto: PosCheckoutDto, tenant: TenantContext): Promise<any> {
-    let partyId = dto.partyId;
+  async posCheckout(
+    dto: PosCheckoutDto,
+    tenant: TenantContext,
+    idempotencyKey?: string,
+  ): Promise<any> {
+    const finalOfflineUuid = dto.clientOfflineUuid || idempotencyKey || null;
 
-    if (!partyId && (dto.customerPhone || dto.customerName)) {
-      const phone = dto.customerPhone?.trim() || "9999999999";
-      const name = dto.customerName?.trim() || "Retail Cash Customer";
+    const finalPaymentMode = dto.tenderedSplit
+      ? PaymentMode.SPLIT
+      : this.normalizePaymentMode(dto.paymentMode, PaymentMode.CASH);
 
-      partyId = await this.prisma.executeInTenantContext(tenant, async (tx) => {
-        let party = await tx.party.findFirst({
-          where: { companyId: tenant.companyId, phone },
-        });
-        if (!party) {
-          const company = await tx.company.findUnique({
-            where: { id: tenant.companyId },
-          });
-          party = await tx.party.create({
-            data: {
-              organizationId: tenant.organizationId,
-              companyId: tenant.companyId,
-              type: "CUSTOMER",
-              name,
-              phone,
-              stateCode: company?.stateCode || "24",
-              billingAddress: {
-                city: company?.city || "Ahmedabad",
-                pincode: company?.pincode || "380001",
-              },
-              isActive: true,
-            },
-          });
-        }
-        return party.id;
-      });
-    }
+    const notes =
+      dto.notes ||
+      (dto.offlineBillNumber ? `Offline Bill: ${dto.offlineBillNumber}` : undefined);
 
     const invoiceDto: CreateSalesInvoiceDto = {
       category: InvoiceCategory.TAX_INVOICE,
-      partyId,
+      clientOfflineUuid: finalOfflineUuid || undefined,
+      partyId: dto.partyId,
+      customerPhone: dto.customerPhone,
+      customerName: dto.customerName,
       invoiceDate: new Date().toISOString().split("T")[0],
-      paymentMode: this.normalizePaymentMode(dto.paymentMode, PaymentMode.CASH),
+      paymentMode: finalPaymentMode,
+      tenderedSplit: dto.tenderedSplit,
+      receivedAmount: dto.receivedAmount,
       items: dto.items,
       warehouseId: dto.warehouseId,
       branchId: dto.branchId,
-      notes: dto.tenderedSplit
-        ? `Tender Split: ${JSON.stringify(dto.tenderedSplit)}`
-        : dto.notes,
+      notes,
     };
 
-    return await this.createSalesInvoice(invoiceDto, tenant);
+    return await this.createSalesInvoice(
+      invoiceDto,
+      tenant,
+      finalOfflineUuid || undefined,
+    );
   }
 
   /**
@@ -635,13 +722,19 @@ export class InvoicesService {
 
     for (const inv of dto.invoices) {
       try {
+        const finalPaymentMode = inv.tenderedSplit
+          ? PaymentMode.SPLIT
+          : this.normalizePaymentMode(inv.paymentMode, PaymentMode.CASH);
+
         const createDto: CreateSalesInvoiceDto = {
           category: InvoiceCategory.TAX_INVOICE,
           clientOfflineUuid: inv.clientOfflineUuid,
           invoiceDate: inv.createdAt
             ? new Date(inv.createdAt).toISOString().split("T")[0]
             : new Date().toISOString().split("T")[0],
-          paymentMode: this.normalizePaymentMode(inv.paymentMode, PaymentMode.CASH),
+          paymentMode: finalPaymentMode,
+          tenderedSplit: inv.tenderedSplit,
+          receivedAmount: inv.receivedAmount,
           items: inv.items,
           notes: inv.offlineBillNumber
             ? `Offline Bill: ${inv.offlineBillNumber} | Terminal: ${dto.terminalId}`
@@ -1693,14 +1786,23 @@ export class InvoicesService {
     party: any,
     financialYearId: string,
     taxCalc: any,
-    isUnpaidCredit: boolean,
+    paymentModeOrIsCredit: PaymentMode | boolean,
     voucherDate: Date,
+    validatedSplit?: any,
   ): Promise<any> {
     await this.ensureRequiredLedgerAccounts(tx, tenant, party);
 
-    const debitAccountId = isUnpaidCredit
-      ? (await this.getOrCreatePartyLedgerAccount(tx, tenant, party)).id
-      : (await this.findAccountByName(tx, tenant.companyId, "Cash Account")).id;
+    let paymentMode: PaymentMode;
+    let isUnpaidCredit: boolean;
+    if (typeof paymentModeOrIsCredit === "boolean") {
+      isUnpaidCredit = paymentModeOrIsCredit;
+      paymentMode = isUnpaidCredit
+        ? PaymentMode.UNPAID_CREDIT
+        : PaymentMode.CASH;
+    } else {
+      paymentMode = paymentModeOrIsCredit;
+      isUnpaidCredit = paymentMode === PaymentMode.UNPAID_CREDIT;
+    }
 
     const salesAccountName = taxCalc.isIntraState
       ? "General Sales Account"
@@ -1718,13 +1820,130 @@ export class InvoicesService {
       lineNarration: string;
     }> = [];
 
-    // DR Customer / Cash for Grand Total
-    voucherLines.push({
-      accountId: debitAccountId,
-      debitAmount: taxCalc.grandTotal.toNumber(),
-      creditAmount: 0,
-      lineNarration: `Sales Bill #${invoiceNumber}`,
-    });
+    // DR Posting based on Payment Mode & Split Tender
+    if (isUnpaidCredit) {
+      const partyAcc = await this.getOrCreatePartyLedgerAccount(
+        tx,
+        tenant,
+        party,
+      );
+      voucherLines.push({
+        accountId: partyAcc.id,
+        debitAmount: taxCalc.grandTotal.toNumber(),
+        creditAmount: 0,
+        lineNarration: `Sales Bill #${invoiceNumber} (Credit)`,
+      });
+    } else if (paymentMode === PaymentMode.SPLIT && validatedSplit) {
+      // Split tender multi-debit posting
+      if (validatedSplit.cash && validatedSplit.cash.greaterThan(0)) {
+        const cashAcc = await this.resolvePaymentLedgerAccount(
+          tx,
+          tenant,
+          "CASH",
+        );
+        voucherLines.push({
+          accountId: cashAcc.id,
+          debitAmount: validatedSplit.cash.toNumber(),
+          creditAmount: 0,
+          lineNarration: `Sales Bill #${invoiceNumber} (Split: Cash)`,
+        });
+      }
+      if (validatedSplit.upiQr && validatedSplit.upiQr.greaterThan(0)) {
+        const upiAcc = await this.resolvePaymentLedgerAccount(
+          tx,
+          tenant,
+          "UPI",
+        );
+        voucherLines.push({
+          accountId: upiAcc.id,
+          debitAmount: validatedSplit.upiQr.toNumber(),
+          creditAmount: 0,
+          lineNarration: `Sales Bill #${invoiceNumber} (Split: UPI)`,
+        });
+      }
+      if (
+        validatedSplit.bankTransfer &&
+        validatedSplit.bankTransfer.greaterThan(0)
+      ) {
+        const bankAcc = await this.resolvePaymentLedgerAccount(
+          tx,
+          tenant,
+          "BANK",
+        );
+        voucherLines.push({
+          accountId: bankAcc.id,
+          debitAmount: validatedSplit.bankTransfer.toNumber(),
+          creditAmount: 0,
+          lineNarration: `Sales Bill #${invoiceNumber} (Split: Bank Transfer)`,
+        });
+      }
+      if (validatedSplit.card && validatedSplit.card.greaterThan(0)) {
+        const cardAcc = await this.resolvePaymentLedgerAccount(
+          tx,
+          tenant,
+          "CARD",
+        );
+        voucherLines.push({
+          accountId: cardAcc.id,
+          debitAmount: validatedSplit.card.toNumber(),
+          creditAmount: 0,
+          lineNarration: `Sales Bill #${invoiceNumber} (Split: Card)`,
+        });
+      }
+      if (validatedSplit.cheque && validatedSplit.cheque.greaterThan(0)) {
+        const chequeAcc = await this.resolvePaymentLedgerAccount(
+          tx,
+          tenant,
+          "BANK",
+        );
+        voucherLines.push({
+          accountId: chequeAcc.id,
+          debitAmount: validatedSplit.cheque.toNumber(),
+          creditAmount: 0,
+          lineNarration: `Sales Bill #${invoiceNumber} (Split: Cheque)`,
+        });
+      }
+    } else if (paymentMode === PaymentMode.UPI_QR) {
+      const upiAcc = await this.resolvePaymentLedgerAccount(
+        tx,
+        tenant,
+        "UPI",
+      );
+      voucherLines.push({
+        accountId: upiAcc.id,
+        debitAmount: taxCalc.grandTotal.toNumber(),
+        creditAmount: 0,
+        lineNarration: `Sales Bill #${invoiceNumber} (UPI)`,
+      });
+    } else if (
+      paymentMode === PaymentMode.BANK_TRANSFER ||
+      paymentMode === PaymentMode.CHEQUE
+    ) {
+      const bankAcc = await this.resolvePaymentLedgerAccount(
+        tx,
+        tenant,
+        "BANK",
+      );
+      voucherLines.push({
+        accountId: bankAcc.id,
+        debitAmount: taxCalc.grandTotal.toNumber(),
+        creditAmount: 0,
+        lineNarration: `Sales Bill #${invoiceNumber} (${paymentMode})`,
+      });
+    } else {
+      // CASH or other cash-like tender
+      const cashAcc = await this.resolvePaymentLedgerAccount(
+        tx,
+        tenant,
+        "CASH",
+      );
+      voucherLines.push({
+        accountId: cashAcc.id,
+        debitAmount: taxCalc.grandTotal.toNumber(),
+        creditAmount: 0,
+        lineNarration: `Sales Bill #${invoiceNumber} (Cash)`,
+      });
+    }
 
     // CR Sales Account for Taxable Amount
     voucherLines.push({
@@ -1883,6 +2102,297 @@ export class InvoicesService {
     });
     if (!cashAcc) {
       await this.ledgersService.seedStandardChartOfAccounts(tenant);
+    }
+  }
+
+  private async resolvePaymentLedgerAccount(
+    tx: any,
+    tenant: TenantContext,
+    paymentType: "CASH" | "BANK" | "UPI" | "CARD",
+  ): Promise<any> {
+    if (paymentType === "CASH") {
+      let cashAcc = await tx.ledgerAccount.findFirst({
+        where: {
+          companyId: tenant.companyId,
+          name: "Cash Account",
+          isActive: true,
+        },
+      });
+      if (!cashAcc) {
+        cashAcc = await tx.ledgerAccount.findFirst({
+          where: {
+            companyId: tenant.companyId,
+            isCashLedger: true,
+            isActive: true,
+          },
+        });
+      }
+      if (cashAcc) return cashAcc;
+
+      const group = await tx.ledgerGroup.findFirst({
+        where: { companyId: tenant.companyId, name: "Cash-in-hand" },
+      });
+      if (!group) {
+        throw new UnprocessableEntityException(
+          "No Cash ledger account found, and 'Cash-in-hand' group is missing.",
+        );
+      }
+      try {
+        return await tx.ledgerAccount.create({
+          data: {
+            organizationId: tenant.organizationId,
+            companyId: tenant.companyId,
+            groupId: group.id,
+            name: "Cash Account",
+            nameGujarati: "રોકડ ખાતું",
+            code: "1010",
+            isCashLedger: true,
+            isBankLedger: false,
+            isTaxLedger: false,
+            openingBalance: 0.0,
+            openingType: "DR",
+            currentBalance: 0.0,
+            isActive: true,
+          },
+        });
+      } catch {
+        return await tx.ledgerAccount.findFirst({
+          where: { companyId: tenant.companyId, name: "Cash Account" },
+        });
+      }
+    }
+
+    if (paymentType === "UPI") {
+      // 1. Look for explicit UPI Account
+      const upiAcc = await tx.ledgerAccount.findFirst({
+        where: {
+          companyId: tenant.companyId,
+          isActive: true,
+          OR: [
+            { name: "UPI Account" },
+            { name: "UPI Clearing Account" },
+          ],
+        },
+      });
+      if (upiAcc) return upiAcc;
+
+      // 2. Look for any active bank account with "UPI" in name
+      const upiBank = await tx.ledgerAccount.findFirst({
+        where: {
+          companyId: tenant.companyId,
+          isActive: true,
+          isBankLedger: true,
+          name: { contains: "UPI", mode: "insensitive" },
+        },
+      });
+      if (upiBank) return upiBank;
+
+      // 3. Look for standard "Bank Account" or active isBankLedger
+      const bankAcc = await tx.ledgerAccount.findFirst({
+        where: {
+          companyId: tenant.companyId,
+          isActive: true,
+          OR: [{ name: "Bank Account" }, { isBankLedger: true }],
+        },
+      });
+      if (bankAcc) return bankAcc;
+
+      // 4. Auto-provision under "Bank Accounts" group if group exists
+      const bankGroup = await tx.ledgerGroup.findFirst({
+        where: { companyId: tenant.companyId, name: "Bank Accounts" },
+      });
+      if (!bankGroup) {
+        throw new UnprocessableEntityException(
+          "No Bank or UPI ledger account found, and 'Bank Accounts' group is missing in chart of accounts.",
+        );
+      }
+      try {
+        return await tx.ledgerAccount.create({
+          data: {
+            organizationId: tenant.organizationId,
+            companyId: tenant.companyId,
+            groupId: bankGroup.id,
+            name: "UPI Account",
+            nameGujarati: "યુપીઆઇ ખાતું",
+            code: "1040",
+            isBankLedger: true,
+            isCashLedger: false,
+            isTaxLedger: false,
+            openingBalance: 0.0,
+            openingType: "DR",
+            currentBalance: 0.0,
+            isActive: true,
+          },
+        });
+      } catch {
+        return await tx.ledgerAccount.findFirst({
+          where: { companyId: tenant.companyId, name: "UPI Account" },
+        });
+      }
+    }
+
+    if (paymentType === "BANK" || paymentType === "CARD") {
+      const preferredName =
+        paymentType === "CARD" ? "Card Account" : "Bank Account";
+      // 1. Look for preferred name
+      const namedAcc = await tx.ledgerAccount.findFirst({
+        where: {
+          companyId: tenant.companyId,
+          name: preferredName,
+          isActive: true,
+        },
+      });
+      if (namedAcc) return namedAcc;
+
+      // 2. Look for "Bank Account"
+      if (paymentType === "CARD") {
+        const bankNamed = await tx.ledgerAccount.findFirst({
+          where: {
+            companyId: tenant.companyId,
+            name: "Bank Account",
+            isActive: true,
+          },
+        });
+        if (bankNamed) return bankNamed;
+      }
+
+      // 3. Look for any active isBankLedger
+      const bankLedger = await tx.ledgerAccount.findFirst({
+        where: {
+          companyId: tenant.companyId,
+          isBankLedger: true,
+          isActive: true,
+        },
+      });
+      if (bankLedger) return bankLedger;
+
+      // 4. Auto-provision under "Bank Accounts" group
+      const bankGroup = await tx.ledgerGroup.findFirst({
+        where: { companyId: tenant.companyId, name: "Bank Accounts" },
+      });
+      if (!bankGroup) {
+        throw new UnprocessableEntityException(
+          "No Bank ledger account found, and 'Bank Accounts' group is missing in chart of accounts.",
+        );
+      }
+      try {
+        return await tx.ledgerAccount.create({
+          data: {
+            organizationId: tenant.organizationId,
+            companyId: tenant.companyId,
+            groupId: bankGroup.id,
+            name: "Bank Account",
+            nameGujarati: "બેંક ખાતું",
+            code: "1030",
+            isBankLedger: true,
+            isCashLedger: false,
+            isTaxLedger: false,
+            openingBalance: 0.0,
+            openingType: "DR",
+            currentBalance: 0.0,
+            isActive: true,
+          },
+        });
+      } catch {
+        return await tx.ledgerAccount.findFirst({
+          where: { companyId: tenant.companyId, name: "Bank Account" },
+        });
+      }
+    }
+
+    throw new UnprocessableEntityException(
+      `Unsupported payment ledger type: ${paymentType}`,
+    );
+  }
+
+  private validateAndNormalizeSplitTender(
+    tenderedSplit: any,
+    grandTotal: Decimal,
+  ): {
+    cash: Decimal;
+    upiQr: Decimal;
+    bankTransfer: Decimal;
+    card: Decimal;
+    cheque: Decimal;
+  } {
+    if (!tenderedSplit || typeof tenderedSplit !== "object") {
+      throw new BadRequestException(
+        "Split tender payment requires a valid tenderedSplit breakdown.",
+      );
+    }
+
+    const parseAmount = (val: any, fieldName: string): Decimal => {
+      if (val === undefined || val === null) return toDecimal(0);
+      const num = Number(val);
+      if (!Number.isFinite(num) || num < 0) {
+        throw new BadRequestException(
+          `Tender amount for '${fieldName}' must be a non-negative, finite number.`,
+        );
+      }
+      return toMoney(num);
+    };
+
+    const cash = parseAmount(tenderedSplit.cash, "cash");
+    const upiQr = parseAmount(
+      tenderedSplit.upiQr ?? tenderedSplit.upi,
+      "upiQr",
+    );
+    const bankTransfer = parseAmount(
+      tenderedSplit.bankTransfer,
+      "bankTransfer",
+    );
+    const card = parseAmount(tenderedSplit.card, "card");
+    const cheque = parseAmount(tenderedSplit.cheque, "cheque");
+
+    const totalSplit = cash
+      .plus(upiQr)
+      .plus(bankTransfer)
+      .plus(card)
+      .plus(cheque);
+
+    if (totalSplit.lessThanOrEqualTo(0)) {
+      throw new BadRequestException(
+        "At least one tender amount in split payment must be greater than zero.",
+      );
+    }
+
+    if (!totalSplit.equals(grandTotal)) {
+      throw new BadRequestException(
+        `Split tender total (₹${totalSplit.toFixed(2)}) does not match invoice grand total (₹${grandTotal.toFixed(2)}).`,
+      );
+    }
+
+    return { cash, upiQr, bankTransfer, card, cheque };
+  }
+
+  private assertMatchingIdempotentSale(
+    existing: any,
+    dto: CreateSalesInvoiceDto,
+  ): void {
+    if (dto.partyId && existing.partyId && dto.partyId !== existing.partyId) {
+      throw new ConflictException(
+        `Conflicting idempotency key reuse: existing invoice belongs to party ${existing.partyId}, but request specified ${dto.partyId}.`,
+      );
+    }
+
+    const existingItems = existing.items || [];
+    if (!dto.items || dto.items.length !== existingItems.length) {
+      throw new ConflictException(
+        `Conflicting idempotency key reuse: line item count mismatch (existing: ${existingItems.length}, requested: ${dto.items?.length || 0}).`,
+      );
+    }
+
+    for (const reqItem of dto.items) {
+      const match = existingItems.find(
+        (ei: any) =>
+          ei.itemId === reqItem.itemId &&
+          Math.abs(Number(ei.quantity) - Number(reqItem.quantity)) < 0.0001,
+      );
+      if (!match) {
+        throw new ConflictException(
+          `Conflicting idempotency key reuse: item details do not match previously created invoice.`,
+        );
+      }
     }
   }
 

@@ -9,6 +9,14 @@ export interface PosSyncInvoiceDto {
   customerName?: string;
   grandTotal?: number;
   paymentMode?: PaymentMode;
+  receivedAmount?: number;
+  tenderedSplit?: {
+    cash?: number;
+    upiQr?: number;
+    bankTransfer?: number;
+    cheque?: number;
+    card?: number;
+  };
   items: CreateSalesInvoiceItemDto[];
 }
 

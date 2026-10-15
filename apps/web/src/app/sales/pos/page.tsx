@@ -181,8 +181,7 @@ export default function PosTerminalPage() {
       const res: any = await apiClient.post("/invoices/pos-checkout", orderPayload);
 
       setLastReceipt({
-        invoiceNumber:
-          res?.invoiceNumber || `POS-${Date.now().toString().slice(-4)}`,
+        invoiceNumber: res?.invoiceNumber || "—",
         grandTotal,
         paymentMode,
         changeDue,

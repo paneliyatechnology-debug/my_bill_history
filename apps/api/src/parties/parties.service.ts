@@ -706,8 +706,8 @@ export class PartiesService {
       };
     }
 
-    // 3. Check known registry (for tests and standard seeds)
-    if (KNOWN_GSTIN_REGISTRY[clean]) {
+    // 3. Check known registry (isolated strictly to test environment)
+    if (process.env.NODE_ENV === "test" && KNOWN_GSTIN_REGISTRY[clean]) {
       const reg = KNOWN_GSTIN_REGISTRY[clean];
       return {
         isValid: true,

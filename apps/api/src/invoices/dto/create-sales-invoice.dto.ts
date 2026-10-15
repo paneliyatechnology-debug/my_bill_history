@@ -20,6 +20,8 @@ export interface CreateSalesInvoiceItemDto {
 export interface CreateSalesInvoiceDto {
   category?: InvoiceCategory;
   partyId?: string;
+  customerPhone?: string;
+  customerName?: string;
   invoiceDate?: string;
   dueDate?: string;
   paymentMode?: PaymentMode;
@@ -34,6 +36,14 @@ export interface CreateSalesInvoiceDto {
   termsAndConditions?: string;
   notes?: string;
   clientOfflineUuid?: string;
+  receivedAmount?: number;
+  tenderedSplit?: {
+    cash?: number;
+    upiQr?: number;
+    bankTransfer?: number;
+    cheque?: number;
+    card?: number;
+  };
   autoGenerateEWayBill?: boolean;
   autoGenerateEInvoice?: boolean;
 }

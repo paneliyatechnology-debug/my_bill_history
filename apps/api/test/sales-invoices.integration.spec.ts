@@ -981,6 +981,635 @@ describe("Phase 5: Sales Billing, POS Engine & Stock Ledger (Integration)", () =
         syncResult.results[0].assignedInvoiceNumber,
       );
     });
+
+    it("should idempotently replay existing invoice on duplicate POS checkout retry with identical clientOfflineUuid", async () => {
+      const offlineUuid = "pos-retry-uuid-" + Date.now();
+      const payload = {
+        clientOfflineUuid: offlineUuid,
+        offlineBillNumber: "POS01-OFF-RETRY",
+        paymentMode: PaymentMode.CASH,
+        items: [
+          {
+            itemId: serviceConsultingId,
+            quantity: 1,
+            unitPrice: 500.0,
+            taxRate: 18.0,
+          },
+        ],
+      };
+
+      const res1 = await app.inject({
+        method: "POST",
+        url: "/api/v1/invoices/pos-checkout",
+        headers: { authorization: `Bearer ${tenantAToken}` },
+        payload,
+      });
+
+      expect(res1.statusCode).toBe(201);
+      const inv1 = JSON.parse(res1.body);
+      expect(inv1.clientOfflineUuid).toBe(offlineUuid);
+
+      // Duplicate retry with identical payload and clientOfflineUuid
+      const res2 = await app.inject({
+        method: "POST",
+        url: "/api/v1/invoices/pos-checkout",
+        headers: { authorization: `Bearer ${tenantAToken}` },
+        payload,
+      });
+
+      expect(res2.statusCode).toBe(201);
+      const inv2 = JSON.parse(res2.body);
+      expect(inv2.id).toBe(inv1.id);
+      expect(inv2.invoiceNumber).toBe(inv1.invoiceNumber);
+
+      // Verify in DB that only 1 invoice exists
+      const dbInvoices = await prisma.executeBypassRls(async (tx) => {
+        return await tx.salesInvoice.findMany({
+          where: {
+            companyId: tenantACompanyId,
+            clientOfflineUuid: offlineUuid,
+          },
+        });
+      });
+      expect(dbInvoices.length).toBe(1);
+
+      // Verify only 1 voucher was created
+      const dbVouchers = await prisma.executeBypassRls(async (tx) => {
+        return await tx.voucher.findMany({
+          where: {
+            companyId: tenantACompanyId,
+            sourceDocument: "SALES_INVOICE",
+            sourceEntityId: inv1.id,
+          },
+        });
+      });
+      expect(dbVouchers.length).toBe(1);
+    });
+
+    it("should handle concurrent duplicate POS checkout requests safely without duplicate records or extra vouchers", async () => {
+      const concurrentUuid = "pos-concurrent-" + Date.now();
+      const payload = {
+        clientOfflineUuid: concurrentUuid,
+        customerPhone: "9824099887",
+        customerName: "Concurrent Walk-in Customer",
+        paymentMode: PaymentMode.CASH,
+        items: [
+          {
+            itemId: serviceConsultingId,
+            quantity: 2,
+            unitPrice: 200.0,
+            taxRate: 18.0,
+          },
+        ],
+      };
+
+      const [res1, res2] = await Promise.all([
+        app.inject({
+          method: "POST",
+          url: "/api/v1/invoices/pos-checkout",
+          headers: { authorization: `Bearer ${tenantAToken}` },
+          payload,
+        }),
+        app.inject({
+          method: "POST",
+          url: "/api/v1/invoices/pos-checkout",
+          headers: { authorization: `Bearer ${tenantAToken}` },
+          payload,
+        }),
+      ]);
+
+      expect(res1.statusCode).toBe(201);
+      expect(res2.statusCode).toBe(201);
+
+      const inv1 = JSON.parse(res1.body);
+      const inv2 = JSON.parse(res2.body);
+      expect(inv1.id).toBe(inv2.id);
+      expect(inv1.invoiceNumber).toBe(inv2.invoiceNumber);
+
+      const dbInvoices = await prisma.executeBypassRls(async (tx) => {
+        return await tx.salesInvoice.findMany({
+          where: {
+            companyId: tenantACompanyId,
+            clientOfflineUuid: concurrentUuid,
+          },
+        });
+      });
+      expect(dbInvoices.length).toBe(1);
+
+      const dbVouchers = await prisma.executeBypassRls(async (tx) => {
+        return await tx.voucher.findMany({
+          where: {
+            companyId: tenantACompanyId,
+            sourceDocument: "SALES_INVOICE",
+            sourceEntityId: inv1.id,
+          },
+        });
+      });
+      expect(dbVouchers.length).toBe(1);
+    });
+
+    it("should reject conflicting idempotency key reuse with different sale details with 409 Conflict", async () => {
+      const conflictUuid = "pos-conflict-" + Date.now();
+
+      // Original checkout
+      const resOriginal = await app.inject({
+        method: "POST",
+        url: "/api/v1/invoices/pos-checkout",
+        headers: { authorization: `Bearer ${tenantAToken}` },
+        payload: {
+          clientOfflineUuid: conflictUuid,
+          paymentMode: PaymentMode.CASH,
+          items: [
+            {
+              itemId: serviceConsultingId,
+              quantity: 1,
+              unitPrice: 100.0,
+              taxRate: 18.0,
+            },
+          ],
+        },
+      });
+      expect(resOriginal.statusCode).toBe(201);
+
+      // Conflicting checkout reusing same clientOfflineUuid with different quantity
+      const resConflict = await app.inject({
+        method: "POST",
+        url: "/api/v1/invoices/pos-checkout",
+        headers: { authorization: `Bearer ${tenantAToken}` },
+        payload: {
+          clientOfflineUuid: conflictUuid,
+          paymentMode: PaymentMode.CASH,
+          items: [
+            {
+              itemId: serviceConsultingId,
+              quantity: 10, // CONFLICTING QUANTITY
+              unitPrice: 100.0,
+              taxRate: 18.0,
+            },
+          ],
+        },
+      });
+      expect(resConflict.statusCode).toBe(409);
+      const conflictErr = JSON.parse(resConflict.body);
+      expect(conflictErr.message).toMatch(/conflicting idempotency key reuse/i);
+    });
+
+    it("should deduplicate offline sync when bill was already checked out online", async () => {
+      const onlineUuid = "pos-online-then-sync-" + Date.now();
+
+      // 1. Process online POS checkout
+      const onlineRes = await app.inject({
+        method: "POST",
+        url: "/api/v1/invoices/pos-checkout",
+        headers: { authorization: `Bearer ${tenantAToken}` },
+        payload: {
+          clientOfflineUuid: onlineUuid,
+          offlineBillNumber: "POS01-OFF-ONLINE",
+          paymentMode: PaymentMode.CASH,
+          items: [
+            {
+              itemId: serviceConsultingId,
+              quantity: 1,
+              unitPrice: 250.0,
+              taxRate: 18.0,
+            },
+          ],
+        },
+      });
+      expect(onlineRes.statusCode).toBe(201);
+      const onlineInv = JSON.parse(onlineRes.body);
+
+      // 2. Client offline queue sends pos-sync for the same clientOfflineUuid
+      const syncRes = await app.inject({
+        method: "POST",
+        url: "/api/v1/invoices/pos-sync",
+        headers: { authorization: `Bearer ${tenantAToken}` },
+        payload: {
+          terminalId: "POS_TERMINAL_SURAT_01",
+          syncTimestamp: new Date().toISOString(),
+          invoices: [
+            {
+              clientOfflineUuid: onlineUuid,
+              offlineBillNumber: "POS01-OFF-ONLINE",
+              items: [
+                {
+                  itemId: serviceConsultingId,
+                  quantity: 1,
+                  unitPrice: 250.0,
+                  taxRate: 18.0,
+                },
+              ],
+            },
+          ],
+        },
+      });
+
+      expect(syncRes.statusCode).toBe(200);
+      const syncData = JSON.parse(syncRes.body);
+      expect(syncData.results[0].status).toBe("SYNCED");
+      expect(syncData.results[0].serverInvoiceId).toBe(onlineInv.id);
+      expect(syncData.results[0].assignedInvoiceNumber).toBe(
+        onlineInv.invoiceNumber,
+      );
+
+      // Ensure no duplicate invoices were created in DB
+      const dbInvoices = await prisma.executeBypassRls(async (tx) => {
+        return await tx.salesInvoice.findMany({
+          where: {
+            companyId: tenantACompanyId,
+            clientOfflineUuid: onlineUuid,
+          },
+        });
+      });
+      expect(dbInvoices.length).toBe(1);
+    });
+
+    it("should correctly route CASH payments to Cash Account in general ledger voucher", async () => {
+      const res = await app.inject({
+        method: "POST",
+        url: "/api/v1/invoices/pos-checkout",
+        headers: { authorization: `Bearer ${tenantAToken}` },
+        payload: {
+          paymentMode: PaymentMode.CASH,
+          items: [
+            {
+              itemId: serviceConsultingId,
+              quantity: 1,
+              unitPrice: 100.0,
+              taxRate: 18.0,
+            },
+          ],
+        },
+      });
+      expect(res.statusCode).toBe(201);
+      const inv = JSON.parse(res.body);
+
+      const voucher = await prisma.executeBypassRls(async (tx) => {
+        return await tx.voucher.findFirst({
+          where: {
+            sourceEntityId: inv.id,
+            companyId: tenantACompanyId,
+          },
+          include: {
+            journalEntries: {
+              include: { account: true },
+            },
+          },
+        });
+      });
+
+      expect(voucher).toBeDefined();
+      const drLine = voucher!.journalEntries.find(
+        (je) => Number(je.debitAmount) > 0,
+      );
+      expect(drLine).toBeDefined();
+      expect(drLine!.account.name).toBe("Cash Account");
+      expect(Number(drLine!.debitAmount)).toBe(118.0);
+    });
+
+    it("should correctly route UPI payments to UPI or Bank Account (not Cash Account)", async () => {
+      const res = await app.inject({
+        method: "POST",
+        url: "/api/v1/invoices/pos-checkout",
+        headers: { authorization: `Bearer ${tenantAToken}` },
+        payload: {
+          paymentMode: PaymentMode.UPI_QR,
+          items: [
+            {
+              itemId: serviceConsultingId,
+              quantity: 1,
+              unitPrice: 200.0,
+              taxRate: 18.0,
+            },
+          ],
+        },
+      });
+      expect(res.statusCode).toBe(201);
+      const inv = JSON.parse(res.body);
+
+      const voucher = await prisma.executeBypassRls(async (tx) => {
+        return await tx.voucher.findFirst({
+          where: {
+            sourceEntityId: inv.id,
+            companyId: tenantACompanyId,
+          },
+          include: {
+            journalEntries: {
+              include: { account: true },
+            },
+          },
+        });
+      });
+
+      expect(voucher).toBeDefined();
+      const drLine = voucher!.journalEntries.find(
+        (je) => Number(je.debitAmount) > 0,
+      );
+      expect(drLine).toBeDefined();
+      // Must NOT be Cash Account
+      expect(drLine!.account.name).not.toBe("Cash Account");
+      expect(
+        drLine!.account.name === "UPI Account" ||
+          drLine!.account.isBankLedger === true,
+      ).toBe(true);
+      expect(Number(drLine!.debitAmount)).toBe(236.0);
+    });
+
+    it("should correctly route CARD and Bank Transfer payments to Bank Account (not Cash Account)", async () => {
+      const res = await app.inject({
+        method: "POST",
+        url: "/api/v1/invoices/pos-checkout",
+        headers: { authorization: `Bearer ${tenantAToken}` },
+        payload: {
+          paymentMode: PaymentMode.BANK_TRANSFER,
+          items: [
+            {
+              itemId: serviceConsultingId,
+              quantity: 1,
+              unitPrice: 300.0,
+              taxRate: 18.0,
+            },
+          ],
+        },
+      });
+      expect(res.statusCode).toBe(201);
+      const inv = JSON.parse(res.body);
+
+      const voucher = await prisma.executeBypassRls(async (tx) => {
+        return await tx.voucher.findFirst({
+          where: {
+            sourceEntityId: inv.id,
+            companyId: tenantACompanyId,
+          },
+          include: {
+            journalEntries: {
+              include: { account: true },
+            },
+          },
+        });
+      });
+
+      expect(voucher).toBeDefined();
+      const drLine = voucher!.journalEntries.find(
+        (je) => Number(je.debitAmount) > 0,
+      );
+      expect(drLine).toBeDefined();
+      expect(drLine!.account.name).not.toBe("Cash Account");
+      expect(
+        drLine!.account.name === "Bank Account" ||
+          drLine!.account.isBankLedger === true,
+      ).toBe(true);
+      expect(Number(drLine!.debitAmount)).toBe(354.0);
+    });
+
+    it("should process split-tender checkout, posting balanced multi-debit voucher matching tendered amounts", async () => {
+      // 500 unit price * 1 + 18% GST (90) = 590 total
+      // Split: Cash 200, UPI 250, Bank Transfer 140 (Total: 590)
+      const res = await app.inject({
+        method: "POST",
+        url: "/api/v1/invoices/pos-checkout",
+        headers: { authorization: `Bearer ${tenantAToken}` },
+        payload: {
+          customerName: "Split Tender Customer",
+          tenderedSplit: {
+            cash: 200.0,
+            upiQr: 250.0,
+            bankTransfer: 140.0,
+          },
+          items: [
+            {
+              itemId: serviceConsultingId,
+              quantity: 1,
+              unitPrice: 500.0,
+              taxRate: 18.0,
+            },
+          ],
+        },
+      });
+
+      expect(res.statusCode).toBe(201);
+      const inv = JSON.parse(res.body);
+      expect(inv.status).toBe(InvoiceStatus.PAID);
+      expect(inv.paymentMode).toBe(PaymentMode.SPLIT);
+      expect(Number(inv.grandTotal)).toBe(590.0);
+
+      const voucher = await prisma.executeBypassRls(async (tx) => {
+        return await tx.voucher.findFirst({
+          where: {
+            sourceEntityId: inv.id,
+            companyId: tenantACompanyId,
+          },
+          include: {
+            journalEntries: {
+              include: { account: true },
+            },
+          },
+        });
+      });
+
+      expect(voucher).toBeDefined();
+      const debits = voucher!.journalEntries.filter(
+        (je) => Number(je.debitAmount) > 0,
+      );
+      const credits = voucher!.journalEntries.filter(
+        (je) => Number(je.creditAmount) > 0,
+      );
+
+      const totalDebit = debits.reduce(
+        (sum, d) => sum + Number(d.debitAmount),
+        0,
+      );
+      const totalCredit = credits.reduce(
+        (sum, c) => sum + Number(c.creditAmount),
+        0,
+      );
+
+      expect(totalDebit).toBe(590.0);
+      expect(totalCredit).toBe(590.0);
+
+      // Verify separate debit lines exist for Cash, UPI, and Bank
+      const cashDebit = debits.find((d) => d.account.name === "Cash Account");
+      expect(cashDebit).toBeDefined();
+      expect(Number(cashDebit!.debitAmount)).toBe(200.0);
+
+      const upiDebit = debits.find(
+        (d) =>
+          d.account.name === "UPI Account" ||
+          (d.account.isBankLedger && d.lineNarration.includes("UPI")),
+      );
+      expect(upiDebit).toBeDefined();
+      expect(Number(upiDebit!.debitAmount)).toBe(250.0);
+
+      const bankDebit = debits.find(
+        (d) =>
+          d.account.name === "Bank Account" ||
+          (d.account.isBankLedger &&
+            d.lineNarration.includes("Bank Transfer")),
+      );
+      expect(bankDebit).toBeDefined();
+      expect(Number(bankDebit!.debitAmount)).toBe(140.0);
+    });
+
+    it("should reject split-tender checkout with mismatched, negative, or invalid amounts", async () => {
+      // 100 * 1.18 = 118 total
+      // 1. Mismatched total (total 100 instead of 118)
+      const resMismatched = await app.inject({
+        method: "POST",
+        url: "/api/v1/invoices/pos-checkout",
+        headers: { authorization: `Bearer ${tenantAToken}` },
+        payload: {
+          tenderedSplit: {
+            cash: 50.0,
+            upiQr: 50.0,
+          },
+          items: [
+            {
+              itemId: serviceConsultingId,
+              quantity: 1,
+              unitPrice: 100.0,
+              taxRate: 18.0,
+            },
+          ],
+        },
+      });
+      expect(resMismatched.statusCode).toBe(400);
+      expect(JSON.parse(resMismatched.body).message).toMatch(
+        /does not match invoice grand total/i,
+      );
+
+      // 2. Negative amount in split
+      const resNegative = await app.inject({
+        method: "POST",
+        url: "/api/v1/invoices/pos-checkout",
+        headers: { authorization: `Bearer ${tenantAToken}` },
+        payload: {
+          tenderedSplit: {
+            cash: -50.0,
+            upiQr: 168.0,
+          },
+          items: [
+            {
+              itemId: serviceConsultingId,
+              quantity: 1,
+              unitPrice: 100.0,
+              taxRate: 18.0,
+            },
+          ],
+        },
+      });
+      expect(resNegative.statusCode).toBe(400);
+      expect(JSON.parse(resNegative.body).message).toMatch(
+        /non-negative, finite number/i,
+      );
+    });
+
+    it("should reject POS checkout when receivedAmount is less than invoice total", async () => {
+      const res = await app.inject({
+        method: "POST",
+        url: "/api/v1/invoices/pos-checkout",
+        headers: { authorization: `Bearer ${tenantAToken}` },
+        payload: {
+          paymentMode: PaymentMode.CASH,
+          receivedAmount: 50.0, // Invoice total is 118
+          items: [
+            {
+              itemId: serviceConsultingId,
+              quantity: 1,
+              unitPrice: 100.0,
+              taxRate: 18.0,
+            },
+          ],
+        },
+      });
+      expect(res.statusCode).toBe(400);
+      expect(JSON.parse(res.body).message).toMatch(
+        /received amount.*is less than invoice grand total/i,
+      );
+    });
+
+    it("should enforce tenant isolation so Tenant B cannot reuse or hijack Tenant A's idempotency key", async () => {
+      const isoUuid = "tenant-iso-uuid-" + Date.now();
+
+      // Tenant A creates invoice
+      const resA = await app.inject({
+        method: "POST",
+        url: "/api/v1/invoices/pos-checkout",
+        headers: { authorization: `Bearer ${tenantAToken}` },
+        payload: {
+          clientOfflineUuid: isoUuid,
+          paymentMode: PaymentMode.CASH,
+          items: [
+            {
+              itemId: serviceConsultingId,
+              quantity: 1,
+              unitPrice: 100.0,
+              taxRate: 18.0,
+            },
+          ],
+        },
+      });
+      expect(resA.statusCode).toBe(201);
+      const invA = JSON.parse(resA.body);
+
+      // Create an item for Tenant B so item resolution passes
+      const itemB = await prisma.executeBypassRls(async (tx) => {
+        let uom = await tx.unitOfMeasure.findFirst({
+          where: { companyId: tenantBCompanyId },
+        });
+        if (!uom) {
+          uom = await tx.unitOfMeasure.create({
+            data: {
+              organizationId: tenantBOrgId,
+              companyId: tenantBCompanyId,
+              name: "Piece",
+              symbol: "PCS",
+              uqcCode: "NOS",
+            },
+          });
+        }
+        return await tx.item.create({
+          data: {
+            organizationId: tenantBOrgId,
+            companyId: tenantBCompanyId,
+            type: "SERVICE",
+            name: "Tenant B Consulting Service",
+            hsnCode: "9983",
+            primaryUomId: uom.id,
+            taxRate: 18.0,
+            retailPrice: 100.0,
+          },
+        });
+      });
+
+      // Tenant B tries to checkout using Tenant A's clientOfflineUuid
+      const resB = await app.inject({
+        method: "POST",
+        url: "/api/v1/invoices/pos-checkout",
+        headers: { authorization: `Bearer ${tenantBToken}` },
+        payload: {
+          clientOfflineUuid: isoUuid,
+          paymentMode: PaymentMode.CASH,
+          items: [
+            {
+              itemId: itemB.id,
+              quantity: 1,
+              unitPrice: 100.0,
+              taxRate: 18.0,
+            },
+          ],
+        },
+      });
+      // Must be rejected with 409 Conflict
+      expect(resB.statusCode).toBe(409);
+
+      // Tenant B cannot view Tenant A's invoice
+      const viewResB = await app.inject({
+        method: "GET",
+        url: `/api/v1/invoices/sales/${invA.id}`,
+        headers: { authorization: `Bearer ${tenantBToken}` },
+      });
+      expect(viewResB.statusCode).toBe(404);
+    });
   });
 
   // --- REQUIREMENT 11: Draft vs Issued Invoice Lifecycle ---

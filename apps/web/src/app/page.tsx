@@ -108,10 +108,12 @@ export default function DashboardPage() {
         <div className="space-y-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-bold text-[#F47721] bg-[#FFF3E8] border border-[#FED7AA] px-2.5 py-0.5 rounded-full truncate max-w-full">
-              {currentCompany?.tradeName || currentCompany?.legalName || "My Store"}
+              {currentCompany?.tradeName ||
+                currentCompany?.legalName ||
+                (isLoading ? "Loading..." : "No Company Selected")}
             </span>
             <span className="text-xs text-[#667085] hidden sm:inline">
-              • {currentBranch?.name || "Main Branch"} • {currentFY?.name || "FY 2026-27"}
+              • {currentBranch?.name || "Main Branch"} • {currentFY?.name || (isLoading ? "Loading..." : "No Active FY")}
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-[#202124] tracking-tight truncate">

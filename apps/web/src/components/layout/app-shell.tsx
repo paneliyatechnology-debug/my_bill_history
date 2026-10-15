@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../../context/auth-context";
 
 interface SubNavItem {
@@ -24,9 +24,11 @@ interface NavSection {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const {
     user,
     isAuthenticated,
+    isLoading,
     lang,
     setLang,
     companies,
@@ -107,9 +109,34 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     };
   }, [isMobileMenuOpen]);
 
-  // If on login page, render children cleanly without shell
-  if (pathname === "/login") {
+  // If unauthenticated and finished loading, automatically redirect to login page
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated && pathname !== "/login") {
+      router.replace("/login");
+    }
+  }, [isLoading, isAuthenticated, pathname, router]);
+
+  // If on login page or dedicated superadmin portal, render children cleanly without standard business shell
+  if (pathname === "/login" || pathname.startsWith("/superadmin")) {
     return <>{children}</>;
+  }
+
+  // Elegant loading screen during initial authentication hydration
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FB] flex flex-col items-center justify-center p-4">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#F47721] to-[#FF9B50] flex items-center justify-center text-white font-bold text-3xl shadow-saffron animate-pulse mb-3">
+          ₹
+        </div>
+        <p className="text-base font-bold text-[#202124]">MyBill History</p>
+        <p className="text-xs text-[#98A2B3] mt-1 font-mono">Loading workspace...</p>
+      </div>
+    );
+  }
+
+  // Guard against unauthenticated flash before redirect
+  if (!isAuthenticated) {
+    return null;
   }
 
   // 9 Reorganized Navigation Groups specifically for Indian SMEs & Retailers
@@ -605,6 +632,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           {/* Right: Quick Action, Language Toggle & Profile Dropdown */}
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+            {/* SuperAdmin Portal shortcut if user has SUPER_ADMIN role */}
+            {user?.role === "SUPER_ADMIN" && (
+              <Link
+                href="/superadmin"
+                className="flex items-center gap-1.5 py-1.5 px-3 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-button text-xs font-bold transition-all shrink-0 shadow-xs"
+                title="Open SuperAdmin Master Control Portal"
+              >
+                <span>🛡️</span>
+                <span className="hidden sm:inline">SuperAdmin Portal</span>
+              </Link>
+            )}
+
             {/* Primary Action Button: Create Bill */}
             <Link
               href="/sales/invoices/new"

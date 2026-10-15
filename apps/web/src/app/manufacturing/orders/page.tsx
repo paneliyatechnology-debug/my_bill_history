@@ -143,7 +143,7 @@ export default function ProductionOrdersPage() {
     setCreateForm({
       bomId: boms[0]?.id || "",
       orderNumber: `MFG-${Date.now().toString().slice(-6)}`,
-      targetQuantity: 100,
+      targetQuantity: boms[0]?.batchYieldQty || 1,
       startDate: new Date().toISOString().split("T")[0],
     });
     setActionError(null);

@@ -27,6 +27,7 @@ import { ManufacturingModule } from "./manufacturing/manufacturing.module";
 import { DistributionModule } from "./distribution/distribution.module";
 import { ReconciliationModule } from "./reconciliation/reconciliation.module";
 import { GstModule } from "./gst/gst.module";
+import { SuperAdminModule } from "./super-admin/super-admin.module";
 
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 
@@ -49,6 +50,7 @@ import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
     AuditModule,
     AuthModule,
     TenantsModule,
+    SuperAdminModule,
     UnitsModule,
     CategoriesModule,
     PartiesModule,

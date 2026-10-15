@@ -24,9 +24,11 @@ type ReportTab =
   | "gstr-3b";
 
 export default function ReportsPage() {
-  const { lang, tenantContext } = useAuth();
+  const { lang, tenantContext, currentFY } = useAuth();
   const [activeTab, setActiveTab] = useState<ReportTab>("sales-register");
-  const [startDate, setStartDate] = useState("2026-04-01");
+  const [startDate, setStartDate] = useState(
+    currentFY?.startDate ? currentFY.startDate.split("T")[0] : "2026-04-01",
+  );
   const [endDate, setEndDate] = useState(
     new Date().toISOString().split("T")[0],
   );
@@ -57,6 +59,12 @@ export default function ReportsPage() {
       if (pid) setSelectedPartyId(pid);
     }
   }, []);
+
+  useEffect(() => {
+    if (currentFY?.startDate) {
+      setStartDate(currentFY.startDate.split("T")[0]);
+    }
+  }, [currentFY?.startDate]);
 
   // Fetch parties if on party-ledger tab
   useEffect(() => {
@@ -1592,37 +1600,1257 @@ export default function ReportsPage() {
               </div>
             )}
           </div>
-        ) : (
-          /* Generic Statement or Empty View */
-          <div>
-            {!reportData ? (
-              <ReportEmptyState
-                title="No report data loaded"
-                titleGu="કોઈ રિપોર્ટ ડેટા મળ્યો નથી"
-                description="Select a date range and click Apply Date Filters to generate this report."
-                descriptionGu="રિપોર્ટ જોવા માટે તારીખ પસંદ કરી ફિલ્ટર લાગુ કરો બટન દબાવો."
-                primaryAction={{
-                  label: "Apply Date Filters",
-                  labelGu: "ફિલ્ટર લાગુ કરો",
-                  onClick: fetchReport,
-                }}
-                secondaryAction={{
-                  label: "Reset Date Range",
-                  labelGu: "તારીખ રીસેટ કરો",
-                  onClick: handleResetDates,
-                }}
-                lang={lang}
-              />
-            ) : (
-              <div className="space-y-4">
-                <div className="p-4 bg-[#F8F9FB] rounded-xl border border-[#E5E7EB] overflow-x-auto w-full max-w-full">
-                  <pre className="text-xs font-mono text-[#202124] leading-relaxed max-h-96 overflow-y-auto">
-                    {JSON.stringify(reportData, null, 2)}
-                  </pre>
+
+        ) : activeTab === "receipt-payment" && reportData ? (
+          /* Receipt / Payment Register */
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <span className="text-[10px] text-emerald-800 uppercase font-bold">
+                  {lang === "gu" ? "કુલ આવક (Receipts)" : "Total Receipts"}
+                </span>
+                <p className="font-mono font-bold text-base text-emerald-900">
+                  ₹{Number(reportData.summary?.totalReceipts || 0).toFixed(2)}
+                </p>
+              </div>
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg">
+                <span className="text-[10px] text-rose-800 uppercase font-bold">
+                  {lang === "gu" ? "કુલ જાવક (Payments)" : "Total Payments"}
+                </span>
+                <p className="font-mono font-bold text-base text-rose-900">
+                  ₹{Number(reportData.summary?.totalPayments || 0).toFixed(2)}
+                </p>
+              </div>
+              <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+                <span className="text-[10px] text-indigo-800 uppercase font-bold">
+                  {lang === "gu" ? "કોન્ટ્રા એન્ટ્રી (Contra)" : "Contra Transfers"}
+                </span>
+                <p className="font-mono font-bold text-base text-indigo-900">
+                  ₹{Number(reportData.summary?.totalContra || 0).toFixed(2)}
+                </p>
+              </div>
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                <span className="text-[10px] text-slate-600 uppercase font-bold">
+                  {lang === "gu" ? "ચોખ્ખો રોકડ પ્રવાહ" : "Net Cash Movement"}
+                </span>
+                <p
+                  className={`font-mono font-bold text-base ${
+                    Number(reportData.summary?.netCashMovement || 0) >= 0
+                      ? "text-emerald-700"
+                      : "text-rose-700"
+                  }`}
+                >
+                  ₹{Number(reportData.summary?.netCashMovement || 0).toFixed(2)}
+                </p>
+              </div>
+            </div>
+
+            <div className="border border-slate-200 rounded-lg overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-semibold">
+                    <th className="py-2.5 px-3">
+                      {lang === "gu" ? "વાઉચર નં." : "Voucher No"}
+                    </th>
+                    <th className="py-2.5 px-3">
+                      {lang === "gu" ? "તારીખ" : "Date"}
+                    </th>
+                    <th className="py-2.5 px-3">
+                      {lang === "gu" ? "પ્રકાર" : "Type"}
+                    </th>
+                    <th className="py-2.5 px-3">
+                      {lang === "gu" ? "પાર્ટી / વિગત" : "Party / Account"}
+                    </th>
+                    <th className="py-2.5 px-3">
+                      {lang === "gu" ? "બેંક / રોકડ ખાતું" : "Bank / Cash Account"}
+                    </th>
+                    <th className="py-2.5 px-3">
+                      {lang === "gu" ? "લખાણ / વિગત" : "Narration"}
+                    </th>
+                    <th className="py-2.5 px-3 text-right">
+                      {lang === "gu" ? "રકમ (₹)" : "Amount (₹)"}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {!reportData.items || reportData.items.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-8 text-center text-slate-400">
+                        {lang === "gu"
+                          ? "પસંદ કરેલ સમયગાળામાં કોઈ વાઉચર મળ્યા નથી."
+                          : "No receipt or payment vouchers found for the selected period."}
+                      </td>
+                    </tr>
+                  ) : (
+                    reportData.items.map((item: any) => (
+                      <tr
+                        key={item.id}
+                        className="hover:bg-slate-50 transition-colors"
+                      >
+                        <td className="py-2.5 px-3 font-mono font-bold text-slate-900">
+                          {item.voucherNumber}
+                        </td>
+                        <td className="py-2.5 px-3 font-mono text-slate-600">
+                          {item.voucherDate}
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                              item.voucherType === "RECEIPT"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : item.voucherType === "PAYMENT"
+                                ? "bg-rose-100 text-rose-800"
+                                : "bg-indigo-100 text-indigo-800"
+                            }`}
+                          >
+                            {item.voucherType}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 font-medium text-slate-800">
+                          {item.partyOrAccountName}
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-600 font-mono text-[11px]">
+                          {item.bankCashAccount}
+                        </td>
+                        <td
+                          className="py-2.5 px-3 text-slate-500 max-w-xs truncate"
+                          title={item.narrationGujarati || item.narration}
+                        >
+                          {lang === "gu" && item.narrationGujarati
+                            ? item.narrationGujarati
+                            : item.narration || "—"}
+                        </td>
+                        <td
+                          className={`py-2.5 px-3 text-right font-mono font-bold ${
+                            item.voucherType === "RECEIPT"
+                              ? "text-emerald-700"
+                              : item.voucherType === "PAYMENT"
+                              ? "text-rose-700"
+                              : "text-indigo-700"
+                          }`}
+                        >
+                          ₹{Number(item.totalAmount || 0).toFixed(2)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : activeTab === "party-aging" && reportData ? (
+          /* Receivables Aging Analysis */
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <span className="text-[10px] text-blue-700 uppercase font-bold">
+                  {lang === "gu" ? "કુલ લેણાં" : "Total Due"}
+                </span>
+                <p className="font-mono font-bold text-sm text-blue-900">
+                  ₹{Number(reportData.summary?.totalReceivable || 0).toFixed(2)}
+                </p>
+              </div>
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <span className="text-[10px] text-emerald-700 uppercase font-bold">
+                  {lang === "gu" ? "મુદત બાકી" : "Not Due"}
+                </span>
+                <p className="font-mono font-bold text-sm text-emerald-900">
+                  ₹{Number(reportData.summary?.notDue || 0).toFixed(2)}
+                </p>
+              </div>
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <span className="text-[10px] text-amber-700 uppercase font-bold">
+                  {lang === "gu" ? "૧-૩૦ દિવસ" : "1-30 Days"}
+                </span>
+                <p className="font-mono font-bold text-sm text-amber-900">
+                  ₹{Number(reportData.summary?.overdue0to30 || 0).toFixed(2)}
+                </p>
+              </div>
+              <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <span className="text-[10px] text-orange-700 uppercase font-bold">
+                  {lang === "gu" ? "૩૧-૬૦ દિવસ" : "31-60 Days"}
+                </span>
+                <p className="font-mono font-bold text-sm text-orange-900">
+                  ₹{Number(reportData.summary?.overdue31to60 || 0).toFixed(2)}
+                </p>
+              </div>
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg">
+                <span className="text-[10px] text-rose-700 uppercase font-bold">
+                  {lang === "gu" ? "૬૧-૯૦ દિવસ" : "61-90 Days"}
+                </span>
+                <p className="font-mono font-bold text-sm text-rose-900">
+                  ₹{Number(reportData.summary?.overdue61to90 || 0).toFixed(2)}
+                </p>
+              </div>
+              <div className="p-3 bg-red-100 border border-red-300 rounded-lg">
+                <span className="text-[10px] text-red-800 uppercase font-bold">
+                  {lang === "gu" ? "> ૯૦ દિવસ" : "> 90 Days"}
+                </span>
+                <p className="font-mono font-bold text-sm text-red-950">
+                  ₹{Number(reportData.summary?.overdue90Plus || 0).toFixed(2)}
+                </p>
+              </div>
+              <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <span className="text-[10px] text-purple-700 uppercase font-bold">
+                  {lang === "gu" ? "ચડેલું વ્યાજ" : "Interest"}
+                </span>
+                <p className="font-mono font-bold text-sm text-purple-900">
+                  ₹{Number(reportData.summary?.totalAccruedInterest || 0).toFixed(2)}
+                </p>
+              </div>
+            </div>
+
+            <div className="border border-slate-200 rounded-lg overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-semibold">
+                    <th className="py-2.5 px-3">
+                      {lang === "gu" ? "પાર્ટીનું નામ" : "Party Name"}
+                    </th>
+                    <th className="py-2.5 px-3">
+                      {lang === "gu" ? "શાખ (દિવસો)" : "Credit Days"}
+                    </th>
+                    <th className="py-2.5 px-3 text-right">
+                      {lang === "gu" ? "મુદત બાકી" : "Not Due"}
+                    </th>
+                    <th className="py-2.5 px-3 text-right">
+                      {lang === "gu" ? "૧-૩૦ દિવસ" : "1-30 Days"}
+                    </th>
+                    <th className="py-2.5 px-3 text-right">
+                      {lang === "gu" ? "૩૧-૬૦ દિવસ" : "31-60 Days"}
+                    </th>
+                    <th className="py-2.5 px-3 text-right">
+                      {lang === "gu" ? "૬૧-૯૦ દિવસ" : "61-90 Days"}
+                    </th>
+                    <th className="py-2.5 px-3 text-right">
+                      {lang === "gu" ? "> ૯૦ દિવસ" : "> 90 Days"}
+                    </th>
+                    <th className="py-2.5 px-3 text-right">
+                      {lang === "gu" ? "વ્યાજ (₹)" : "Interest (₹)"}
+                    </th>
+                    <th className="py-2.5 px-3 text-right font-bold text-slate-900">
+                      {lang === "gu" ? "કુલ બાકી (₹)" : "Total Due (₹)"}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {!reportData.parties || reportData.parties.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="py-8 text-center text-slate-400">
+                        {lang === "gu"
+                          ? "કોઈ બાકી લેણાં મળ્યા નથી."
+                          : "No outstanding receivables found."}
+                      </td>
+                    </tr>
+                  ) : (
+                    reportData.parties.map((p: any) => (
+                      <tr
+                        key={p.partyId}
+                        className="hover:bg-slate-50 transition-colors"
+                      >
+                        <td className="py-2.5 px-3">
+                          <div className="font-semibold text-slate-900">
+                            {lang === "gu" && p.partyNameGujarati
+                              ? p.partyNameGujarati
+                              : p.partyName}
+                          </div>
+                          {p.phone && (
+                            <div className="text-[10px] text-slate-400 font-mono">
+                              {p.phone}
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-2.5 px-3 font-mono text-slate-600">
+                          {p.creditDays || 0}d
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-mono text-emerald-700">
+                          ₹{Number(p.notDue || 0).toFixed(2)}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-mono text-amber-700">
+                          ₹{Number(p.overdue0to30 || 0).toFixed(2)}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-mono text-orange-700">
+                          ₹{Number(p.overdue31to60 || 0).toFixed(2)}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-mono text-rose-700">
+                          ₹{Number(p.overdue61to90 || 0).toFixed(2)}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-mono font-bold text-red-700">
+                          ₹{Number(p.overdue90Plus || 0).toFixed(2)}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-mono text-purple-700">
+                          ₹{Number(p.accruedInterest || 0).toFixed(2)}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">
+                          ₹{Number(p.totalDue || 0).toFixed(2)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : activeTab === "profit-loss" && reportData ? (
+          /* Profit & Loss Statement */
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div
+                className={`p-4 rounded-xl border ${
+                  reportData.isGrossLoss
+                    ? "bg-rose-50 border-rose-200"
+                    : "bg-emerald-50 border-emerald-200"
+                }`}
+              >
+                <span
+                  className={`text-[10px] uppercase font-bold ${
+                    reportData.isGrossLoss ? "text-rose-700" : "text-emerald-700"
+                  }`}
+                >
+                  {lang === "gu"
+                    ? reportData.isGrossLoss
+                      ? "કાચી ખોટ (Gross Loss)"
+                      : "કાચો નફો (Gross Profit)"
+                    : reportData.isGrossLoss
+                    ? "Gross Loss"
+                    : "Gross Profit"}
+                </span>
+                <p
+                  className={`font-mono font-bold text-xl mt-1 ${
+                    reportData.isGrossLoss ? "text-rose-900" : "text-emerald-900"
+                  }`}
+                >
+                  ₹{Number(reportData.grossProfit || 0).toFixed(2)}
+                </p>
+              </div>
+
+              <div
+                className={`p-4 rounded-xl border ${
+                  reportData.isNetLoss
+                    ? "bg-rose-100 border-rose-300"
+                    : "bg-emerald-100 border-emerald-300"
+                }`}
+              >
+                <span
+                  className={`text-[10px] uppercase font-bold ${
+                    reportData.isNetLoss ? "text-rose-800" : "text-emerald-800"
+                  }`}
+                >
+                  {lang === "gu"
+                    ? reportData.isNetLoss
+                      ? "ચોખ્ખી ખોટ (Net Loss)"
+                      : "ચોખ્ખો નફો (Net Profit)"
+                    : reportData.isNetLoss
+                    ? "Net Loss"
+                    : "Net Profit"}
+                </span>
+                <p
+                  className={`font-mono font-bold text-xl mt-1 ${
+                    reportData.isNetLoss ? "text-rose-950" : "text-emerald-950"
+                  }`}
+                >
+                  ₹{Number(reportData.netProfit || 0).toFixed(2)}
+                </p>
+              </div>
+
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                <span className="text-[10px] text-slate-500 uppercase font-semibold">
+                  {lang === "gu" ? "વેચેલ માલની પડતર (COGS)" : "Cost of Goods Sold"}
+                </span>
+                <p className="font-mono font-bold text-xl text-slate-900 mt-1">
+                  ₹{Number(reportData.tradingAccount?.costOfGoodsSold || 0).toFixed(2)}
+                </p>
+              </div>
+
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                <span className="text-[10px] text-slate-500 uppercase font-semibold">
+                  {lang === "gu" ? "આખર સ્ટોક મૂલ્યાંકન" : "Closing Stock Valuation"}
+                </span>
+                <p className="font-mono font-bold text-xl text-slate-900 mt-1">
+                  ₹{Number(reportData.tradingAccount?.closingStockValuation || 0).toFixed(2)}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Expenses (Left) */}
+              <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                <div className="bg-rose-50 px-4 py-3 border-b border-rose-100 flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-rose-900">
+                    {lang === "gu" ? "ખર્ચાઓ (Expenses / Dr)" : "Expenses (Debit)"}
+                  </h3>
+                  <span className="font-mono font-bold text-xs text-rose-900">
+                    ₹{(
+                      Number(reportData.directExpenses?.total || 0) +
+                      Number(reportData.indirectExpenses?.total || 0)
+                    ).toFixed(2)}
+                  </span>
+                </div>
+
+                <div className="p-4 space-y-4 text-xs">
+                  <div>
+                    <div className="flex justify-between font-bold text-slate-700 border-b border-slate-100 pb-1.5 mb-2">
+                      <span>{lang === "gu" ? "પ્રત્યક્ષ ખર્ચા (Direct Expenses)" : "Direct Expenses"}</span>
+                      <span className="font-mono">₹{Number(reportData.directExpenses?.total || 0).toFixed(2)}</span>
+                    </div>
+                    <div className="space-y-1.5 pl-2">
+                      {reportData.directExpenses?.accounts?.length ? (
+                        reportData.directExpenses.accounts.map((acc: any, i: number) => (
+                          <div key={i} className="flex justify-between text-slate-600">
+                            <span>{acc.name}</span>
+                            <span className="font-mono">₹{Number(acc.amount || 0).toFixed(2)}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-slate-400 italic text-[11px]">
+                          {lang === "gu" ? "કોઈ પ્રત્યક્ષ ખર્ચ નથી" : "No direct expenses"}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100">
+                    <div className="flex justify-between font-bold text-slate-700 border-b border-slate-100 pb-1.5 mb-2">
+                      <span>{lang === "gu" ? "પરોક્ષ ખર્ચા (Indirect Expenses)" : "Indirect Expenses"}</span>
+                      <span className="font-mono">₹{Number(reportData.indirectExpenses?.total || 0).toFixed(2)}</span>
+                    </div>
+                    <div className="space-y-1.5 pl-2">
+                      {reportData.indirectExpenses?.accounts?.length ? (
+                        reportData.indirectExpenses.accounts.map((acc: any, i: number) => (
+                          <div key={i} className="flex justify-between text-slate-600">
+                            <span>{acc.name}</span>
+                            <span className="font-mono">₹{Number(acc.amount || 0).toFixed(2)}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-slate-400 italic text-[11px]">
+                          {lang === "gu" ? "કોઈ પરોક્ષ ખર્ચ નથી" : "No indirect expenses"}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
-            )}
+
+              {/* Incomes (Right) */}
+              <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                <div className="bg-emerald-50 px-4 py-3 border-b border-emerald-100 flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-900">
+                    {lang === "gu" ? "આવક (Income / Cr)" : "Income (Credit)"}
+                  </h3>
+                  <span className="font-mono font-bold text-xs text-emerald-900">
+                    ₹{(
+                      Number(reportData.directIncome?.total || 0) +
+                      Number(reportData.indirectIncome?.total || 0)
+                    ).toFixed(2)}
+                  </span>
+                </div>
+
+                <div className="p-4 space-y-4 text-xs">
+                  <div>
+                    <div className="flex justify-between font-bold text-slate-700 border-b border-slate-100 pb-1.5 mb-2">
+                      <span>{lang === "gu" ? "પ્રત્યક્ષ આવક / વેચાણ (Direct Income)" : "Direct Income / Sales"}</span>
+                      <span className="font-mono">₹{Number(reportData.directIncome?.total || 0).toFixed(2)}</span>
+                    </div>
+                    <div className="space-y-1.5 pl-2">
+                      {reportData.directIncome?.accounts?.length ? (
+                        reportData.directIncome.accounts.map((acc: any, i: number) => (
+                          <div key={i} className="flex justify-between text-slate-600">
+                            <span>{acc.name}</span>
+                            <span className="font-mono">₹{Number(acc.amount || 0).toFixed(2)}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-slate-400 italic text-[11px]">
+                          {lang === "gu" ? "કોઈ પ્રત્યક્ષ આવક નથી" : "No direct income"}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100">
+                    <div className="flex justify-between font-bold text-slate-700 border-b border-slate-100 pb-1.5 mb-2">
+                      <span>{lang === "gu" ? "પરોક્ષ આવક (Indirect Income)" : "Indirect Income"}</span>
+                      <span className="font-mono">₹{Number(reportData.indirectIncome?.total || 0).toFixed(2)}</span>
+                    </div>
+                    <div className="space-y-1.5 pl-2">
+                      {reportData.indirectIncome?.accounts?.length ? (
+                        reportData.indirectIncome.accounts.map((acc: any, i: number) => (
+                          <div key={i} className="flex justify-between text-slate-600">
+                            <span>{acc.name}</span>
+                            <span className="font-mono">₹{Number(acc.amount || 0).toFixed(2)}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-slate-400 italic text-[11px]">
+                          {lang === "gu" ? "કોઈ પરોક્ષ આવક નથી" : "No indirect income"}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+        ) : activeTab === "balance-sheet" && reportData ? (
+          /* Balance Sheet (Paku Sarvaiyu) */
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="p-4 bg-sky-50 border border-sky-200 rounded-xl">
+                <span className="text-[10px] text-sky-800 uppercase font-bold">
+                  {lang === "gu" ? "કુલ મિલકતો (Assets)" : "Total Assets"}
+                </span>
+                <p className="font-mono font-bold text-xl text-sky-950 mt-1">
+                  ₹{Number(reportData.assets?.total || 0).toFixed(2)}
+                </p>
+              </div>
+
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                <span className="text-[10px] text-amber-800 uppercase font-bold">
+                  {lang === "gu" ? "કુલ જવાબદારીઓ (Liabilities)" : "Total Liabilities"}
+                </span>
+                <p className="font-mono font-bold text-xl text-amber-950 mt-1">
+                  ₹{Number(reportData.liabilities?.total || 0).toFixed(2)}
+                </p>
+              </div>
+
+              <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-xl">
+                <span className="text-[10px] text-indigo-800 uppercase font-bold">
+                  {lang === "gu" ? "કુલ મૂડી / ઇક્વિટી (Equity)" : "Total Equity"}
+                </span>
+                <p className="font-mono font-bold text-xl text-indigo-950 mt-1">
+                  ₹{Number(reportData.equity?.total || 0).toFixed(2)}
+                </p>
+              </div>
+
+              <div
+                className={`p-4 rounded-xl border ${
+                  reportData.isBalanced
+                    ? "bg-emerald-50 border-emerald-200"
+                    : "bg-rose-50 border-rose-200"
+                }`}
+              >
+                <span
+                  className={`text-[10px] uppercase font-bold ${
+                    reportData.isBalanced ? "text-emerald-800" : "text-rose-800"
+                  }`}
+                >
+                  {lang === "gu" ? "સરવૈયું સ્થિતિ (Status)" : "Tally Status"}
+                </span>
+                <p
+                  className={`font-mono font-bold text-lg mt-1 flex items-center gap-1.5 ${
+                    reportData.isBalanced ? "text-emerald-900" : "text-rose-900"
+                  }`}
+                >
+                  {reportData.isBalanced ? (
+                    <>
+                      <span>✅</span> Balanced
+                    </>
+                  ) : (
+                    <>
+                      <span>⚠️</span> Diff: ₹
+                      {Number(reportData.difference || 0).toFixed(2)}
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Liabilities & Equity */}
+              <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                    {lang === "gu"
+                      ? "મૂડી અને જવાબદારીઓ (Liabilities & Equity)"
+                      : "Liabilities & Equity"}
+                  </h3>
+                  <span className="font-mono font-bold text-xs text-slate-900">
+                    ₹{Number(reportData.totalLiabilitiesAndEquity || 0).toFixed(2)}
+                  </span>
+                </div>
+
+                <div className="p-4 space-y-4 text-xs divide-y divide-slate-100">
+                  <div className="space-y-2 pb-3">
+                    <div className="flex justify-between font-bold text-slate-800">
+                      <span>{lang === "gu" ? "મૂડી ખાતાં (Equity & Reserves)" : "Capital & Equity"}</span>
+                      <span className="font-mono text-indigo-900">
+                        ₹{Number(reportData.equity?.total || 0).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="space-y-1.5 pl-2">
+                      {reportData.equity?.accounts?.map((acc: any) => (
+                        <div key={acc.id} className="flex justify-between text-slate-600">
+                          <span>
+                            {acc.name}{" "}
+                            <span className="text-[10px] text-slate-400">
+                              ({acc.groupName})
+                            </span>
+                          </span>
+                          <span className="font-mono">₹{Number(acc.amount || 0).toFixed(2)}</span>
+                        </div>
+                      ))}
+                      {reportData.equity?.netProfitOrLoss !== undefined && (
+                        <div className="flex justify-between font-semibold text-slate-800 pt-1">
+                          <span>
+                            {lang === "gu"
+                              ? "ચાલુ સમયગાળાનો ચોખ્ખો નફો/ખોટ"
+                              : "Net Profit / Loss for Period"}
+                          </span>
+                          <span
+                            className={`font-mono ${
+                              Number(reportData.equity.netProfitOrLoss) >= 0
+                                ? "text-emerald-700"
+                                : "text-rose-700"
+                            }`}
+                          >
+                            ₹{Number(reportData.equity.netProfitOrLoss || 0).toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 pt-3">
+                    <div className="flex justify-between font-bold text-slate-800">
+                      <span>{lang === "gu" ? "જવાબદારીઓ (Liabilities)" : "Liabilities"}</span>
+                      <span className="font-mono text-amber-900">
+                        ₹{Number(reportData.liabilities?.total || 0).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="space-y-1.5 pl-2">
+                      {reportData.liabilities?.accounts?.length ? (
+                        reportData.liabilities.accounts.map((acc: any) => (
+                          <div key={acc.id} className="flex justify-between text-slate-600">
+                            <span>
+                              {acc.name}{" "}
+                              <span className="text-[10px] text-slate-400">
+                                ({acc.groupName})
+                              </span>
+                            </span>
+                            <span className="font-mono">₹{Number(acc.amount || 0).toFixed(2)}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-slate-400 italic text-[11px]">
+                          {lang === "gu" ? "કોઈ જવાબદારીઓ નથી" : "No liabilities"}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Assets */}
+              <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                    {lang === "gu" ? "મિલકતો (Assets)" : "Assets"}
+                  </h3>
+                  <span className="font-mono font-bold text-xs text-sky-950">
+                    ₹{Number(reportData.assets?.total || 0).toFixed(2)}
+                  </span>
+                </div>
+
+                <div className="p-4 space-y-2 text-xs">
+                  {reportData.assets?.accounts?.length ? (
+                    reportData.assets.accounts.map((acc: any) => (
+                      <div
+                        key={acc.id}
+                        className="flex justify-between text-slate-600 py-1 border-b border-slate-50 last:border-0"
+                      >
+                        <span>
+                          {acc.name}{" "}
+                          <span className="text-[10px] text-slate-400">
+                            ({acc.groupName})
+                          </span>
+                        </span>
+                        <span className="font-mono font-semibold text-slate-800">
+                          ₹{Number(acc.amount || 0).toFixed(2)}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-slate-400 italic text-[11px]">
+                      {lang === "gu" ? "કોઈ મિલકત ખાતાં નથી" : "No asset accounts"}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : activeTab === "cash-flow" && reportData ? (
+          /* Cash Flow Statement */
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                <span className="text-[10px] text-slate-500 uppercase font-semibold">
+                  {lang === "gu" ? "શરૂઆતની રોકડ / બેંક સિલક" : "Opening Cash & Bank"}
+                </span>
+                <p className="font-mono font-bold text-xl text-slate-900 mt-1">
+                  ₹{Number(reportData.openingCashAndBank || 0).toFixed(2)}
+                </p>
+              </div>
+
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+                <span className="text-[10px] text-emerald-800 uppercase font-bold">
+                  {lang === "gu" ? "ઓપરેટિંગ પ્રવૃત્તિ" : "Operating Activities"}
+                </span>
+                <p className="font-mono font-bold text-xl text-emerald-950 mt-1">
+                  ₹{Number(reportData.operatingActivities?.netOperatingCashFlow || 0).toFixed(2)}
+                </p>
+              </div>
+
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <span className="text-[10px] text-blue-800 uppercase font-bold">
+                  {lang === "gu" ? "રોકડમાં ચોખ્ખો ફેરફાર" : "Net Cash Change"}
+                </span>
+                <p className="font-mono font-bold text-xl text-blue-950 mt-1">
+                  ₹{Number(reportData.netChangeInCashAndBank || 0).toFixed(2)}
+                </p>
+              </div>
+
+              <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-xl">
+                <span className="text-[10px] text-indigo-800 uppercase font-bold">
+                  {lang === "gu" ? "આખરની રોકડ / બેંક સિલક" : "Closing Cash & Bank"}
+                </span>
+                <p className="font-mono font-bold text-xl text-indigo-950 mt-1">
+                  ₹{Number(reportData.closingCashAndBank || 0).toFixed(2)}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* 1. Operating */}
+              <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
+                  <h4 className="text-xs font-bold uppercase text-slate-800">
+                    {lang === "gu"
+                      ? "૧. ધંધાકીય / ઓપરેટિંગ પ્રવૃત્તિઓ"
+                      : "1. Cash Flow from Operating Activities"}
+                  </h4>
+                  <span className="font-mono font-bold text-xs text-emerald-800">
+                    ₹{Number(reportData.operatingActivities?.netOperatingCashFlow || 0).toFixed(2)}
+                  </span>
+                </div>
+                <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  <div className="space-y-1.5">
+                    <span className="font-semibold text-slate-700 block mb-1">
+                      {lang === "gu" ? "આવક (Inflows)" : "Inflows"}
+                    </span>
+                    <div className="flex justify-between text-slate-600 pl-2">
+                      <span>{lang === "gu" ? "ગ્રાહકો પાસેથી વસૂલાત" : "Receipts from Customers"}</span>
+                      <span className="font-mono">
+                        ₹{Number(reportData.operatingActivities?.inflows?.receiptsFromCustomers || 0).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-slate-600 pl-2">
+                      <span>{lang === "gu" ? "રોકડ વેચાણ" : "Cash Sales"}</span>
+                      <span className="font-mono">
+                        ₹{Number(reportData.operatingActivities?.inflows?.cashSales || 0).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <span className="font-semibold text-slate-700 block mb-1">
+                      {lang === "gu" ? "જાવક (Outflows)" : "Outflows"}
+                    </span>
+                    <div className="flex justify-between text-slate-600 pl-2">
+                      <span>{lang === "gu" ? "વેપારીઓને ચૂકવણી" : "Payments to Suppliers"}</span>
+                      <span className="font-mono">
+                        ₹{Number(reportData.operatingActivities?.outflows?.paymentsToSuppliers || 0).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-slate-600 pl-2">
+                      <span>{lang === "gu" ? "રોકડ ખરીદી" : "Cash Purchases"}</span>
+                      <span className="font-mono">
+                        ₹{Number(reportData.operatingActivities?.outflows?.cashPurchases || 0).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-slate-600 pl-2">
+                      <span>{lang === "gu" ? "ઓપરેટિંગ ખર્ચાઓ" : "Operating Expenses"}</span>
+                      <span className="font-mono">
+                        ₹{Number(reportData.operatingActivities?.outflows?.operatingExpenses || 0).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Investing */}
+              <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
+                  <h4 className="text-xs font-bold uppercase text-slate-800">
+                    {lang === "gu"
+                      ? "૨. રોકાણ પ્રવૃત્તિઓ (Investing)"
+                      : "2. Cash Flow from Investing Activities"}
+                  </h4>
+                  <span className="font-mono font-bold text-xs text-blue-800">
+                    ₹{Number(reportData.investingActivities?.netInvestingCashFlow || 0).toFixed(2)}
+                  </span>
+                </div>
+                <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  <div className="flex justify-between text-slate-600 pl-2">
+                    <span>{lang === "gu" ? "રોકાણ આવક (મિલકત વેચાણ)" : "Inflows (Asset Sales)"}</span>
+                    <span className="font-mono">
+                      ₹{Number(reportData.investingActivities?.inflows || 0).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-slate-600 pl-2">
+                    <span>{lang === "gu" ? "રોકાણ જાવક (મિલકત ખરીદી)" : "Outflows (Capital Purchases)"}</span>
+                    <span className="font-mono">
+                      ₹{Number(reportData.investingActivities?.outflows || 0).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Financing */}
+              <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
+                  <h4 className="text-xs font-bold uppercase text-slate-800">
+                    {lang === "gu"
+                      ? "૩. નાણાકીય પ્રવૃત્તિઓ (Financing)"
+                      : "3. Cash Flow from Financing Activities"}
+                  </h4>
+                  <span className="font-mono font-bold text-xs text-indigo-800">
+                    ₹{Number(reportData.financingActivities?.netFinancingCashFlow || 0).toFixed(2)}
+                  </span>
+                </div>
+                <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  <div className="flex justify-between text-slate-600 pl-2">
+                    <span>{lang === "gu" ? "મૂડી / લોન આવક" : "Inflows (Equity / Loans)"}</span>
+                    <span className="font-mono">
+                      ₹{Number(reportData.financingActivities?.inflows || 0).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-slate-600 pl-2">
+                    <span>{lang === "gu" ? "ઉપાડ / લોન ચૂકવણી" : "Outflows (Drawings / Repayments)"}</span>
+                    <span className="font-mono">
+                      ₹{Number(reportData.financingActivities?.outflows || 0).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : activeTab === "daybook" && reportData ? (
+          /* Day Book / Rojmel */
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                <span className="text-[10px] text-slate-500 uppercase font-semibold">
+                  {lang === "gu" ? "શરૂઆતની સિલક (Opening)" : "Opening Cash"}
+                </span>
+                <p className="font-mono font-bold text-base text-slate-900">
+                  ₹{Number(reportData.openingCashBalance || 0).toFixed(2)}
+                </p>
+              </div>
+
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <span className="text-[10px] text-emerald-800 uppercase font-bold">
+                  {lang === "gu" ? "કુલ જમા (Total Jama / Cr)" : "Total Jama (Credit)"}
+                </span>
+                <p className="font-mono font-bold text-base text-emerald-900">
+                  ₹{Number(reportData.totalJama || 0).toFixed(2)}
+                </p>
+              </div>
+
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg">
+                <span className="text-[10px] text-rose-800 uppercase font-bold">
+                  {lang === "gu" ? "કુલ ઉધાર (Total Udhar / Dr)" : "Total Udhar (Debit)"}
+                </span>
+                <p className="font-mono font-bold text-base text-rose-900">
+                  ₹{Number(reportData.totalUdhar || 0).toFixed(2)}
+                </p>
+              </div>
+
+              <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+                <span className="text-[10px] text-indigo-800 uppercase font-bold">
+                  {lang === "gu" ? "આખર રોકડ સિલક (Closing)" : "Closing Cash"}
+                </span>
+                <p className="font-mono font-bold text-base text-indigo-950">
+                  ₹{Number(reportData.closingCashBalance || 0).toFixed(2)}
+                </p>
+              </div>
+            </div>
+
+            <div className="border border-slate-200 rounded-lg overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-semibold">
+                    <th className="py-2.5 px-3">{lang === "gu" ? "વાઉચર નં." : "Voucher No"}</th>
+                    <th className="py-2.5 px-3">{lang === "gu" ? "પ્રકાર / ખાતું" : "Type"}</th>
+                    <th className="py-2.5 px-3">{lang === "gu" ? "નામાની વિગત / લખાણ" : "Narration"}</th>
+                    <th className="py-2.5 px-3 text-right text-emerald-800">
+                      {lang === "gu" ? "જમા રકમ (₹)" : "Jama / Credit (₹)"}
+                    </th>
+                    <th className="py-2.5 px-3 text-right text-rose-800">
+                      {lang === "gu" ? "ઉધાર રકમ (₹)" : "Udhar / Debit (₹)"}
+                    </th>
+                    <th className="py-2.5 px-3 text-right">{lang === "gu" ? "કુલ રકમ (₹)" : "Total (₹)"}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {!reportData.entries || reportData.entries.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-slate-400">
+                        {lang === "gu"
+                          ? "આ દિવસે કોઈ રોજમેળ એન્ટ્રી નથી."
+                          : "No transactions recorded on this day."}
+                      </td>
+                    </tr>
+                  ) : (
+                    reportData.entries.map((entry: any, i: number) => (
+                      <tr key={i} className="hover:bg-slate-50 transition-colors">
+                        <td className="py-2.5 px-3 font-mono font-bold text-slate-900">
+                          {entry.voucherNumber}
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                              entry.type === "JAMA"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-rose-100 text-rose-800"
+                            }`}
+                          >
+                            {entry.voucherType} ({entry.type})
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-700">
+                          {lang === "gu" && entry.narrationGujarati
+                            ? entry.narrationGujarati
+                            : entry.narration || "—"}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-mono font-semibold text-emerald-700">
+                          {Number(entry.credit || 0) > 0 ? `₹${Number(entry.credit).toFixed(2)}` : "—"}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-mono font-semibold text-rose-700">
+                          {Number(entry.debit || 0) > 0 ? `₹${Number(entry.debit).toFixed(2)}` : "—"}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">
+                          ₹{Number(entry.totalAmount || 0).toFixed(2)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : activeTab === "stock-movement" && reportData ? (
+          /* Stock Movement Report */
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                <span className="text-[10px] text-slate-500 uppercase font-semibold">
+                  {lang === "gu" ? "શરૂઆત સિલક" : "Opening Qty"}
+                </span>
+                <p className="font-mono font-bold text-base text-slate-900">
+                  {Number(reportData.openingQuantity || reportData.openingStock || 0).toFixed(2)}
+                </p>
+              </div>
+
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <span className="text-[10px] text-emerald-800 uppercase font-bold">
+                  {lang === "gu" ? "કુલ આવક જથ્થો" : "Total Inward"}
+                </span>
+                <p className="font-mono font-bold text-base text-emerald-900">
+                  +{Number(reportData.totalIn || reportData.totalInward || 0).toFixed(2)}
+                </p>
+              </div>
+
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg">
+                <span className="text-[10px] text-rose-800 uppercase font-bold">
+                  {lang === "gu" ? "કુલ જાવક જથ્થો" : "Total Outward"}
+                </span>
+                <p className="font-mono font-bold text-base text-rose-900">
+                  -{Number(reportData.totalOut || reportData.totalOutward || 0).toFixed(2)}
+                </p>
+              </div>
+
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <span className="text-[10px] text-blue-800 uppercase font-bold">
+                  {lang === "gu" ? "આખર સિલક જથ્થો" : "Closing Qty"}
+                </span>
+                <p className="font-mono font-bold text-base text-blue-950">
+                  {Number(reportData.closingQuantity || reportData.closingStock || 0).toFixed(2)}
+                </p>
+              </div>
+            </div>
+
+            <div className="border border-slate-200 rounded-lg overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-semibold">
+                    <th className="py-2.5 px-3">{lang === "gu" ? "તારીખ" : "Date"}</th>
+                    <th className="py-2.5 px-3">{lang === "gu" ? "માલ / આઇટમ" : "Item"}</th>
+                    <th className="py-2.5 px-3">{lang === "gu" ? "ગોડાઉન" : "Warehouse"}</th>
+                    <th className="py-2.5 px-3">{lang === "gu" ? "દસ્તાવેજ" : "Doc Type"}</th>
+                    <th className="py-2.5 px-3 text-right text-emerald-700">
+                      {lang === "gu" ? "આવક (+)" : "In Qty (+)"}
+                    </th>
+                    <th className="py-2.5 px-3 text-right text-rose-700">
+                      {lang === "gu" ? "જાવક (-)" : "Out Qty (-)"}
+                    </th>
+                    <th className="py-2.5 px-3 text-right">{lang === "gu" ? "દર (₹)" : "Rate (₹)"}</th>
+                    <th className="py-2.5 px-3 text-right">{lang === "gu" ? "મૂલ્યાંકન (₹)" : "Valuation (₹)"}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {!reportData.transactions || reportData.transactions.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="py-8 text-center text-slate-400">
+                        {lang === "gu"
+                          ? "આ સમયગાળામાં કોઈ સ્ટોક હિલચાલ નથી."
+                          : "No stock movements recorded for the selected period."}
+                      </td>
+                    </tr>
+                  ) : (
+                    reportData.transactions.map((tx: any, i: number) => {
+                      const inQty = Number(
+                        tx.inQuantity || (Number(tx.quantity) > 0 ? tx.quantity : 0),
+                      );
+                      const outQty = Number(
+                        tx.outQuantity ||
+                          (Number(tx.quantity) < 0 ? Math.abs(Number(tx.quantity)) : 0),
+                      );
+                      const rate = Number(tx.valuationRate || tx.rate || 0);
+                      const val = Number(tx.totalValuation || tx.valuation || 0);
+                      return (
+                        <tr key={tx.id || i} className="hover:bg-slate-50 transition-colors">
+                          <td className="py-2.5 px-3 font-mono text-slate-600">
+                            {typeof tx.date === "string"
+                              ? tx.date.split("T")[0]
+                              : new Date(tx.date).toLocaleDateString("en-IN")}
+                          </td>
+                          <td className="py-2.5 px-3 font-semibold text-slate-800">
+                            {tx.item || reportData.item?.name || "—"}
+                          </td>
+                          <td className="py-2.5 px-3 text-slate-600">
+                            {tx.warehouseName || tx.warehouse || "Main Godown"}
+                          </td>
+                          <td className="py-2.5 px-3 font-mono text-[11px] text-slate-500">
+                            {tx.transactionType || tx.docType || "TX"}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono font-semibold text-emerald-700">
+                            {inQty > 0 ? `+${inQty.toFixed(2)}` : "—"}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono font-semibold text-rose-700">
+                            {outQty > 0 ? `-${outQty.toFixed(2)}` : "—"}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono text-slate-700">
+                            ₹{rate.toFixed(2)}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">
+                            ₹{val.toFixed(2)}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : activeTab === "gstr-3b" && reportData ? (
+          /* GSTR-3B Return Summary */
+          <div className="space-y-6">
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-bold text-slate-900 text-sm">
+                    {reportData.companyName || "Taxpayer"}
+                  </h2>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-100 text-blue-800">
+                    GSTIN: {reportData.gstin}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {lang === "gu" ? "જીએસટીઆર-૩બી માસિક પત્રક" : "Form GSTR-3B Monthly Return"} • Period:{" "}
+                  {reportData.fromDate} to {reportData.toDate}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`px-2.5 py-1 rounded text-xs font-bold ${
+                    reportData.filingStatus === "READY"
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-amber-100 text-amber-800"
+                  }`}
+                >
+                  {reportData.filingStatus || "DRAFT"}
+                </span>
+              </div>
+            </div>
+
+            {/* Table 3.1: Details of Outward Supplies */}
+            <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
+              <div className="bg-slate-50 px-4 py-3 border-b border-slate-200">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                  3.1 Details of Outward Supplies & Inward Supplies Liable to Reverse Charge
+                </h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50/50 border-b border-slate-200 text-slate-500 uppercase font-semibold">
+                      <th className="py-2.5 px-3">Nature of Supplies</th>
+                      <th className="py-2.5 px-3 text-right">Total Taxable Value (₹)</th>
+                      <th className="py-2.5 px-3 text-right">IGST (₹)</th>
+                      <th className="py-2.5 px-3 text-right">CGST (₹)</th>
+                      <th className="py-2.5 px-3 text-right">SGST/UTGST (₹)</th>
+                      <th className="py-2.5 px-3 text-right">Cess (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-mono">
+                    <tr>
+                      <td className="py-2.5 px-3 font-sans font-medium text-slate-800">
+                        (a) Outward taxable supplies (other than zero rated, nil rated and exempted)
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-bold text-slate-900">
+                        ₹{Number(reportData.table3_1_outwardSupplies?.taxableValue || 0).toFixed(2)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right">
+                        ₹{Number(reportData.table3_1_outwardSupplies?.igst || 0).toFixed(2)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right">
+                        ₹{Number(reportData.table3_1_outwardSupplies?.cgst || 0).toFixed(2)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right">
+                        ₹{Number(reportData.table3_1_outwardSupplies?.sgst || 0).toFixed(2)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right">
+                        ₹{Number(reportData.table3_1_outwardSupplies?.cess || 0).toFixed(2)}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-2.5 px-3 font-sans font-medium text-slate-800">
+                        (b) Outward taxable supplies (zero rated)
+                      </td>
+                      <td className="py-2.5 px-3 text-right">₹0.00</td>
+                      <td className="py-2.5 px-3 text-right">₹0.00</td>
+                      <td className="py-2.5 px-3 text-right">₹0.00</td>
+                      <td className="py-2.5 px-3 text-right">₹0.00</td>
+                      <td className="py-2.5 px-3 text-right">₹0.00</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2.5 px-3 font-sans font-medium text-slate-800">
+                        (c) Other outward supplies (Nil rated, exempted)
+                      </td>
+                      <td className="py-2.5 px-3 text-right">
+                        ₹{(
+                          Number(reportData.table3_1_nilRated?.taxableValue || 0) +
+                          Number(reportData.table3_1_exempt?.taxableValue || 0)
+                        ).toFixed(2)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right">—</td>
+                      <td className="py-2.5 px-3 text-right">—</td>
+                      <td className="py-2.5 px-3 text-right">—</td>
+                      <td className="py-2.5 px-3 text-right">—</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2.5 px-3 font-sans font-medium text-slate-800">
+                        (d) Inward supplies (liable to reverse charge)
+                      </td>
+                      <td className="py-2.5 px-3 text-right">
+                        ₹{Number(reportData.table3_1_inwardReverseCharge?.taxableValue || 0).toFixed(2)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right">
+                        ₹{Number(reportData.table3_1_inwardReverseCharge?.igst || 0).toFixed(2)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right">
+                        ₹{Number(reportData.table3_1_inwardReverseCharge?.cgst || 0).toFixed(2)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right">
+                        ₹{Number(reportData.table3_1_inwardReverseCharge?.sgst || 0).toFixed(2)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right">
+                        ₹{Number(reportData.table3_1_inwardReverseCharge?.cess || 0).toFixed(2)}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Table 4: Eligible ITC */}
+            <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
+              <div className="bg-slate-50 px-4 py-3 border-b border-slate-200">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                  4. Eligible ITC (Input Tax Credit)
+                </h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50/50 border-b border-slate-200 text-slate-500 uppercase font-semibold">
+                      <th className="py-2.5 px-3">Details</th>
+                      <th className="py-2.5 px-3 text-right">IGST (₹)</th>
+                      <th className="py-2.5 px-3 text-right">CGST (₹)</th>
+                      <th className="py-2.5 px-3 text-right">SGST/UTGST (₹)</th>
+                      <th className="py-2.5 px-3 text-right">Cess (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-mono">
+                    <tr>
+                      <td className="py-2.5 px-3 font-sans font-medium text-slate-800">
+                        (A) ITC Available (whether in full or part) - All other ITC
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-semibold text-emerald-700">
+                        ₹{Number(reportData.table4_eligibleItc?.allOtherItc?.igst || 0).toFixed(2)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-semibold text-emerald-700">
+                        ₹{Number(reportData.table4_eligibleItc?.allOtherItc?.cgst || 0).toFixed(2)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-semibold text-emerald-700">
+                        ₹{Number(reportData.table4_eligibleItc?.allOtherItc?.sgst || 0).toFixed(2)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-semibold text-emerald-700">
+                        ₹{Number(reportData.table4_eligibleItc?.allOtherItc?.cess || 0).toFixed(2)}
+                      </td>
+                    </tr>
+                    <tr className="bg-emerald-50/50">
+                      <td className="py-2.5 px-3 font-sans font-bold text-slate-900">
+                        (C) Net ITC Available
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-bold text-emerald-900">
+                        ₹{Number(reportData.table4_eligibleItc?.netItcAvailable?.igst || 0).toFixed(2)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-bold text-emerald-900">
+                        ₹{Number(reportData.table4_eligibleItc?.netItcAvailable?.cgst || 0).toFixed(2)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-bold text-emerald-900">
+                        ₹{Number(reportData.table4_eligibleItc?.netItcAvailable?.sgst || 0).toFixed(2)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-bold text-emerald-900">
+                        ₹{Number(reportData.table4_eligibleItc?.netItcAvailable?.cess || 0).toFixed(2)}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Empty or Unselected State Fallback */
+          <ReportEmptyState
+            title="No report data loaded"
+            titleGu="કોઈ રિપોર્ટ ડેટા મળ્યો નથી"
+            description="Select a date range and click Apply Date Filters to generate this report."
+            descriptionGu="રિપોર્ટ જોવા માટે તારીખ પસંદ કરી ફિલ્ટર લાગુ કરો બટન દબાવો."
+            primaryAction={{
+              label: "Apply Date Filters",
+              labelGu: "ફિલ્ટર લાગુ કરો",
+              onClick: fetchReport,
+            }}
+            secondaryAction={{
+              label: "Reset Date Range",
+              labelGu: "તારીખ રીસેટ કરો",
+              onClick: handleResetDates,
+            }}
+            lang={lang}
+          />
         )}
       </div>
     </div>

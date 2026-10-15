@@ -109,7 +109,7 @@ export default function StockTransfersPage() {
     fromWarehouseId: "",
     toWarehouseId: "",
     notes: "",
-    items: [{ itemId: "", quantity: 10 }] as Array<{
+    items: [{ itemId: "", quantity: 1 }] as Array<{
       itemId: string;
       quantity: number;
     }>,
@@ -162,7 +162,7 @@ export default function StockTransfersPage() {
       fromWarehouseId: warehouses[0]?.id || "",
       toWarehouseId: warehouses[1]?.id || warehouses[0]?.id || "",
       notes: "",
-      items: [{ itemId: items[0]?.id || "", quantity: 10 }],
+      items: [{ itemId: items[0]?.id || "", quantity: 1 }],
     });
     setActionError(null);
     setIsCreateModalOpen(true);
@@ -171,7 +171,7 @@ export default function StockTransfersPage() {
   const handleAddItem = () => {
     setCreateForm((prev) => ({
       ...prev,
-      items: [...prev.items, { itemId: items[0]?.id || "", quantity: 10 }],
+      items: [...prev.items, { itemId: items[0]?.id || "", quantity: 1 }],
     }));
   };
 

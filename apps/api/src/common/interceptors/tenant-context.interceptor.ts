@@ -62,6 +62,21 @@ export class TenantContextInterceptor implements NestInterceptor {
     const rawFyHeader = request.headers["x-financial-year-id"] as
       string | undefined;
 
+    // Zero Trust Override: SUPER_ADMIN role has platform-wide global bypass
+    if (user.role === UserRole.SUPER_ADMIN) {
+      const superOrgId = rawOrgHeader || user.organizationId || "";
+      const superCompanyId = rawCompanyHeader || "";
+      request[TENANT_CONTEXT_KEY] = {
+        organizationId: superOrgId,
+        companyId: superCompanyId,
+        branchId: rawBranchHeader,
+        financialYearId: rawFyHeader,
+        userId: user.id || user.userId || user.sub,
+        isSystemBypass: true,
+      };
+      return next.handle();
+    }
+
     // 1. Zero Trust: Organization Check
     if (
       rawOrgHeader &&

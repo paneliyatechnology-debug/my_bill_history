@@ -55,14 +55,14 @@ export default function NewVoucherPage() {
         setLines([
           {
             accountId: accList[0].id,
-            debitAmount: 1000,
-            creditAmount: 0,
+            debitAmount: "",
+            creditAmount: "",
             lineNarration: "",
           },
           {
             accountId: accList[1].id,
-            debitAmount: 0,
-            creditAmount: 1000,
+            debitAmount: "",
+            creditAmount: "",
             lineNarration: "",
           },
         ]);
