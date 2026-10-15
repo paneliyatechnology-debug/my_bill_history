@@ -5,6 +5,7 @@ import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { Badge, StatusBadge } from "../../../components/ui/badge";
+import { DataTable, ColumnDef } from "../../../components/ui/data-table";
 
 interface TransferItem {
   id: string;
@@ -368,14 +369,113 @@ export default function StockTransfersPage() {
 
   const filteredTransfers = transfers.filter((t) => {
     if (statusFilter !== "ALL" && t.status !== statusFilter) return false;
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      t.transferNumber.toLowerCase().includes(term) ||
-      t.fromWarehouse?.name.toLowerCase().includes(term) ||
-      t.toWarehouse?.name.toLowerCase().includes(term)
-    );
+    return true;
   });
+
+  const columns: ColumnDef<StockTransfer>[] = [
+    {
+      header: lang === "gu" ? "ટ્રાન્સફર #" : "Transfer #",
+      accessorKey: "transferNumber",
+      sortable: true,
+      cell: (tr) => (
+        <div className="font-mono font-medium text-slate-900">
+          <div>{tr.transferNumber}</div>
+          {tr.challanNumber && (
+            <span className="text-[10px] text-slate-400 block font-sans">
+              Challan: {tr.challanNumber}
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
+      header: lang === "gu" ? "તારીખ" : "Date",
+      accessorKey: "transferDate",
+      sortable: true,
+      cell: (tr) => (
+        <span className="text-xs text-slate-600 whitespace-nowrap">
+          {new Date(tr.transferDate).toLocaleDateString("en-IN")}
+        </span>
+      ),
+    },
+    {
+      header: lang === "gu" ? "મોકલનાર -> મેળવનાર ગોડાઉન" : "Route (From -> To)",
+      accessorKey: "fromWarehouseId",
+      cell: (tr) => (
+        <div className="flex items-center gap-1.5 font-medium text-slate-800">
+          <span>{tr.fromWarehouse?.name || "From"}</span>
+          <span className="text-slate-400">→</span>
+          <span>{tr.toWarehouse?.name || "To"}</span>
+        </div>
+      ),
+    },
+    {
+      header: lang === "gu" ? "સ્થિતિ" : "Status",
+      accessorKey: "status",
+      sortable: true,
+      className: "text-center",
+      cell: (tr) => <StatusBadge status={tr.status} />,
+    },
+    {
+      header: lang === "gu" ? "આઈટમ / જથ્થો" : "Items / Qty",
+      accessorKey: "items",
+      className: "text-right font-mono",
+      cell: (tr) => {
+        const totalQty = tr.items.reduce((s, i) => s + Number(i.quantity), 0);
+        return (
+          <div>
+            <div className="font-semibold text-slate-800">
+              {totalQty.toLocaleString()} units
+            </div>
+            <span className="text-[10px] text-slate-400 block font-sans">
+              {tr.items.length} {lang === "gu" ? "આઈટમો" : "line(s)"}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
+      className: "text-right space-x-1.5 whitespace-nowrap",
+      cell: (tr) => (
+        <div className="flex items-center justify-end gap-1.5">
+          <button
+            onClick={() => handleOpenRecon(tr)}
+            className="text-xs text-slate-600 hover:text-[#F47721] font-medium px-2 py-1 rounded hover:bg-slate-100"
+          >
+            {lang === "gu" ? "મેળવણી" : "Audit / Recon"}
+          </button>
+
+          {tr.status === "DRAFT" && (
+            <button
+              onClick={() => handleOpenDispatch(tr)}
+              className="text-xs bg-[#FFF3E8] text-[#F47721] hover:bg-[#F47721] hover:text-white font-semibold px-2.5 py-1 rounded transition-colors"
+            >
+              {lang === "gu" ? "રવાના કરો" : "Dispatch"}
+            </button>
+          )}
+
+          {tr.status === "DISPATCHED" && (
+            <button
+              onClick={() => handleOpenReceive(tr)}
+              className="text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold px-2.5 py-1 rounded"
+            >
+              {lang === "gu" ? "સ્વીકારો" : "Receive"}
+            </button>
+          )}
+
+          {tr.status === "DRAFT" && (
+            <button
+              onClick={() => handleOpenCancel(tr)}
+              className="text-xs text-rose-600 hover:text-rose-800 font-medium px-2 py-1 rounded hover:bg-rose-50"
+            >
+              {lang === "gu" ? "રદ કરો" : "Cancel"}
+            </button>
+          )}
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -405,55 +505,6 @@ export default function StockTransfersPage() {
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto flex-1">
-          <div className="relative w-full sm:w-80">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={
-                lang === "gu"
-                  ? "ટ્રાન્સફર # અથવા ગોડાઉનથી શોધો..."
-                  : "Search transfer # or warehouse..."
-              }
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#F47721]"
-            />
-            <svg
-              className="w-4 h-4 text-slate-400 absolute left-3 top-3"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-
-          <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-            {(["ALL", "DRAFT", "DISPATCHED", "RECEIVED", "CANCELLED"] as const).map((st) => (
-              <button
-                key={st}
-                onClick={() => setStatusFilter(st)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
-                  statusFilter === st
-                    ? "bg-[#F47721] text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                {st === "ALL" ? (lang === "gu" ? "બધા" : "All") : st.replace("_", " ")}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="text-xs text-slate-500 whitespace-nowrap">
-          {lang === "gu"
-            ? `કુલ ${filteredTransfers.length} ટ્રાન્સફર મળ્યા`
-            : `Showing ${filteredTransfers.length} transfer(s)`}
-        </div>
-      </div>
-
       {/* Error Banner */}
       {error && (
         <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-sm flex items-center justify-between">
@@ -464,134 +515,108 @@ export default function StockTransfersPage() {
         </div>
       )}
 
-      {/* Listing */}
-      {isLoading ? (
-        <div className="p-12 text-center text-slate-400 bg-white rounded-xl border border-slate-200">
-          <svg className="w-8 h-8 animate-spin mx-auto text-indigo-500 mb-2" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-          </svg>
-          <span className="text-sm font-medium">
-            {lang === "gu" ? "ડેટા લોડ થઈ રહ્યો છે..." : "Loading Transfers..."}
-          </span>
-        </div>
-      ) : filteredTransfers.length === 0 ? (
-        <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
-          <svg className="w-12 h-12 mx-auto text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-          </svg>
-          <h3 className="text-sm font-semibold text-slate-700">
-            {lang === "gu" ? "કોઈ સ્ટોક ટ્રાન્સફર મળ્યો નથી" : "No Stock Transfers found"}
-          </h3>
-          <p className="text-xs text-slate-500 mt-1">
-            {lang === "gu"
-              ? "ગોડાઉન વચ્ચે માલ મોકલવા માટે નવો સ્ટોક ટ્રાન્સફર બનાવો."
-              : "Create a stock transfer to move inventory between warehouses."}
-          </p>
-          <button
-            onClick={handleOpenCreate}
-            className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-[#FFF3E8] text-[#F47721] rounded-lg text-xs font-semibold hover:bg-[#F47721] hover:text-white transition-colors"
-          >
-            + {lang === "gu" ? "પ્રથમ ટ્રાન્સફર બનાવો" : "Create First Transfer"}
-          </button>
-        </div>
-      ) : (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-3 font-semibold">{lang === "gu" ? "ટ્રાન્સફર #" : "Transfer #"}</th>
-                  <th className="px-6 py-3 font-semibold">{lang === "gu" ? "તારીખ" : "Date"}</th>
-                  <th className="px-6 py-3 font-semibold">{lang === "gu" ? "મોકલનાર -> મેળવનાર ગોડાઉન" : "Route (From -> To)"}</th>
-                  <th className="px-6 py-3 font-semibold text-center">{lang === "gu" ? "સ્થિતિ" : "Status"}</th>
-                  <th className="px-6 py-3 font-semibold text-right">{lang === "gu" ? "આઈટમ / જથ્થો" : "Items / Qty"}</th>
-                  <th className="px-6 py-3 font-semibold text-right">{lang === "gu" ? "ક્રિયાઓ" : "Actions"}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredTransfers.map((tr) => {
-                  const totalQty = tr.items.reduce((s, i) => s + Number(i.quantity), 0);
-                  return (
-                    <tr key={tr.id} className="hover:bg-slate-50/75 transition-colors">
-                      <td className="px-6 py-4 font-mono font-medium text-slate-900">
-                        <div>{tr.transferNumber}</div>
-                        {tr.challanNumber && (
-                          <span className="text-[10px] text-slate-400 block font-sans">
-                            Challan: {tr.challanNumber}
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="px-6 py-4 text-xs text-slate-600 whitespace-nowrap">
-                        {new Date(tr.transferDate).toLocaleDateString()}
-                      </td>
-
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-1.5 font-medium text-slate-800">
-                          <span>{tr.fromWarehouse?.name || "From"}</span>
-                          <span className="text-slate-400">→</span>
-                          <span>{tr.toWarehouse?.name || "To"}</span>
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-4 text-center">
-                        <StatusBadge status={tr.status} />
-                      </td>
-
-                      <td className="px-6 py-4 text-right font-mono">
-                        <div className="font-semibold text-slate-800">
-                          {totalQty.toLocaleString()} units
-                        </div>
-                        <span className="text-[10px] text-slate-400 block">
-                          {tr.items.length} {lang === "gu" ? "આઈટમો" : "line(s)"}
-                        </span>
-                      </td>
-
-                      <td className="px-6 py-4 text-right space-x-1.5 whitespace-nowrap">
-                        <button
-                          onClick={() => handleOpenRecon(tr)}
-                          className="text-xs text-slate-600 hover:text-[#F47721] font-medium px-2 py-1 rounded hover:bg-slate-100"
-                        >
-                          {lang === "gu" ? "મેળવણી" : "Audit / Recon"}
-                        </button>
-
-                        {/* Lifecycle actions */}
-                        {tr.status === "DRAFT" && (
-                          <button
-                            onClick={() => handleOpenDispatch(tr)}
-                            className="text-xs bg-[#FFF3E8] text-[#F47721] hover:bg-[#F47721] hover:text-white font-semibold px-2.5 py-1 rounded transition-colors"
-                          >
-                            {lang === "gu" ? "રવાના કરો" : "Dispatch"}
-                          </button>
-                        )}
-
-                        {tr.status === "DISPATCHED" && (
-                          <button
-                            onClick={() => handleOpenReceive(tr)}
-                            className="text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold px-2.5 py-1 rounded"
-                          >
-                            {lang === "gu" ? "સ્વીકારો" : "Receive"}
-                          </button>
-                        )}
-
-                        {tr.status === "DRAFT" && (
-                          <button
-                            onClick={() => handleOpenCancel(tr)}
-                            className="text-xs text-rose-600 hover:text-rose-800 font-medium px-2 py-1 rounded hover:bg-rose-50"
-                          >
-                            {lang === "gu" ? "રદ કરો" : "Cancel"}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+      {/* Main DataTable */}
+      <DataTable<StockTransfer>
+        data={filteredTransfers}
+        columns={columns}
+        keyExtractor={(tr) => tr.id}
+        searchPlaceholder={
+          lang === "gu"
+            ? "ટ્રાન્સફર # અથવા ગોડાઉનથી શોધો..."
+            : "Search transfer # or warehouse..."
+        }
+        searchKeys={["transferNumber", "challanNumber"]}
+        defaultPageSize={10}
+        isLoading={isLoading}
+        emptyMessage={
+          lang === "gu"
+            ? "કોઈ સ્ટોક ટ્રાન્સફર મળ્યો નથી. ગોડાઉન વચ્ચે માલ મોકલવા માટે નવો સ્ટોક ટ્રાન્સફર બનાવો."
+            : "No Stock Transfers found. Create a stock transfer to move inventory between warehouses."
+        }
+        exportFilename="stock_transfers"
+        themeColor="saffron"
+        toolbarChildren={
+          <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
+            {(["ALL", "DRAFT", "DISPATCHED", "RECEIVED", "CANCELLED"] as const).map((st) => (
+              <button
+                key={st}
+                onClick={() => setStatusFilter(st)}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
+                  statusFilter === st
+                    ? "bg-[#F47721] text-white"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {st === "ALL" ? (lang === "gu" ? "બધા" : "All") : st.replace("_", " ")}
+              </button>
+            ))}
           </div>
-        </div>
-      )}
+        }
+        mobileCardRender={(tr) => {
+          const totalQty = tr.items.reduce((s, i) => s + Number(i.quantity), 0);
+          return (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="font-mono font-bold text-slate-900">
+                    {tr.transferNumber}
+                  </span>
+                  {tr.challanNumber && (
+                    <span className="text-[10px] text-slate-400 block">
+                      Challan: {tr.challanNumber}
+                    </span>
+                  )}
+                </div>
+                <StatusBadge status={tr.status} />
+              </div>
+              <div className="text-xs text-slate-500">
+                {new Date(tr.transferDate).toLocaleDateString("en-IN")}
+              </div>
+              <div className="text-xs font-medium text-slate-800">
+                {tr.fromWarehouse?.name || "From"} → {tr.toWarehouse?.name || "To"}
+              </div>
+              <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
+                <span className="text-slate-500">Items: {tr.items.length}</span>
+                <span className="font-mono font-bold text-slate-900">
+                  {totalQty.toLocaleString()} units
+                </span>
+              </div>
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <button
+                  onClick={() => handleOpenRecon(tr)}
+                  className="text-xs text-slate-600 font-medium"
+                >
+                  Audit
+                </button>
+                {tr.status === "DRAFT" && (
+                  <button
+                    onClick={() => handleOpenDispatch(tr)}
+                    className="text-xs text-[#F47721] font-semibold"
+                  >
+                    Dispatch
+                  </button>
+                )}
+                {tr.status === "DISPATCHED" && (
+                  <button
+                    onClick={() => handleOpenReceive(tr)}
+                    className="text-xs text-emerald-600 font-semibold"
+                  >
+                    Receive
+                  </button>
+                )}
+                {tr.status === "DRAFT" && (
+                  <button
+                    onClick={() => handleOpenCancel(tr)}
+                    className="text-xs text-rose-600 font-medium"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        }}
+      />
 
       {/* Create Transfer Modal */}
       <Modal

@@ -6,6 +6,7 @@ import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { Badge, StatusBadge } from "../../../components/ui/badge";
+import { DataTable, ColumnDef } from "../../../components/ui/data-table";
 
 interface JournalLine {
   id: string;
@@ -108,6 +109,92 @@ export default function VouchersPage() {
     PURCHASE: "danger",
   };
 
+  const columns: ColumnDef<Voucher>[] = [
+    {
+      header: lang === "gu" ? "વાઉચર નંબર" : "Voucher No.",
+      accessorKey: "voucherNumber",
+      sortable: true,
+      cell: (v) => (
+        <span className="font-mono font-bold text-slate-900">
+          {v.voucherNumber}
+        </span>
+      ),
+    },
+    {
+      header: lang === "gu" ? "તારીખ" : "Date",
+      accessorKey: "voucherDate",
+      sortable: true,
+      cell: (v) => (
+        <span className="font-mono text-slate-600">
+          {new Date(v.voucherDate).toLocaleDateString("en-IN")}
+        </span>
+      ),
+    },
+    {
+      header: lang === "gu" ? "પ્રકાર" : "Type",
+      accessorKey: "voucherType",
+      sortable: true,
+      cell: (v) => (
+        <Badge variant={typeColor[v.voucherType] || "neutral"}>
+          {v.voucherType}
+        </Badge>
+      ),
+    },
+    {
+      header: lang === "gu" ? "વિગત / લખાણ" : "Narration",
+      accessorKey: "narration",
+      cell: (v) => (
+        <span className="text-slate-600 max-w-xs truncate block">
+          {v.narration || "—"}
+        </span>
+      ),
+    },
+    {
+      header: lang === "gu" ? "રકમ (₹)" : "Amount (₹)",
+      accessorKey: "totalAmount",
+      sortable: true,
+      className: "text-right",
+      cell: (v) => (
+        <span className="font-mono font-bold text-slate-900">
+          ₹{Number(v.totalAmount).toFixed(2)}
+        </span>
+      ),
+    },
+    {
+      header: lang === "gu" ? "સ્થિતિ" : "Status",
+      accessorKey: "isCancelled",
+      cell: (v) => (
+        <StatusBadge status={v.isCancelled ? "REVERSED" : "POSTED"} />
+      ),
+    },
+    {
+      header: lang === "gu" ? "ક્રિયા" : "Action",
+      className: "text-right",
+      cell: (v) => (
+        <div className="flex items-center justify-end gap-2">
+          <button
+            onClick={() => setSelectedVoucher(v)}
+            className="text-xs text-[#F47721] hover:text-[#D95F12] font-semibold"
+          >
+            View Lines
+          </button>
+          {!v.isCancelled && (
+            <button
+              onClick={() => {
+                setReversalTarget(v);
+                setReversalReason("");
+                setReversalError(null);
+              }}
+              className="text-xs text-rose-600 hover:text-rose-800 font-semibold"
+            >
+              Reverse
+            </button>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -149,155 +236,94 @@ export default function VouchersPage() {
         </Link>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-border shadow-subtle flex flex-col sm:flex-row items-center gap-3">
-        <div className="relative flex-1 w-full">
-          <svg
-            className="w-4 h-4 absolute left-3.5 top-3 text-muted"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by voucher number, narration, or reference..."
-            className="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white text-slate-900 transition-all"
-          />
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-100 rounded-xl text-xs text-rose-700 font-medium">
+          {error}
         </div>
+      )}
 
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          className="w-full sm:w-auto text-xs bg-slate-50 border border-border text-slate-700 rounded-xl px-3.5 py-2.5 font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-all cursor-pointer"
-        >
-          <option value="ALL">All Voucher Types (તમામ વાઉચર)</option>
-          <option value="JOURNAL">JOURNAL (જર્નલ)</option>
-          <option value="RECEIPT">RECEIPT (આવક પહોંચ)</option>
-          <option value="PAYMENT">PAYMENT (ચૂકવણી વાઉચર)</option>
-          <option value="CONTRA">CONTRA (બેંક-રોકડ ફેરબદલ)</option>
-          <option value="SALES">SALES (વેચાણ નોંધ)</option>
-        </select>
-      </div>
-
-      {/* Voucher Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        {error && (
-          <div className="p-4 bg-rose-50 border-b border-rose-100 text-xs text-rose-700 font-medium">
-            {error}
+      {/* Main DataTable with Type Filter */}
+      <DataTable<Voucher>
+        data={vouchers}
+        columns={columns}
+        keyExtractor={(v) => v.id}
+        searchPlaceholder={
+          lang === "gu"
+            ? "વાઉચર નંબર, લખાણ થી શોધો..."
+            : "Search by voucher number, narration..."
+        }
+        searchKeys={["voucherNumber", "narration", "voucherType"]}
+        defaultPageSize={10}
+        isLoading={isLoading}
+        emptyMessage={
+          lang === "gu"
+            ? "કોઈ વાઉચર નોંધાયેલ નથી"
+            : "No vouchers recorded. Click 'Record New Voucher' to start."
+        }
+        exportFilename="vouchers_daybook"
+        themeColor="saffron"
+        toolbarChildren={
+          <div className="flex items-center gap-2">
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="text-xs bg-slate-50 border border-border text-slate-700 rounded-xl px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+            >
+              <option value="ALL">All Voucher Types (તમામ વાઉચર)</option>
+              <option value="JOURNAL">JOURNAL (જર્નલ)</option>
+              <option value="RECEIPT">RECEIPT (આવક પહોંચ)</option>
+              <option value="PAYMENT">PAYMENT (ચૂકવણી વાઉચર)</option>
+              <option value="CONTRA">CONTRA (બેંક-રોકડ ફેરબદલ)</option>
+              <option value="SALES">SALES (વેચાણ નોંધ)</option>
+            </select>
+          </div>
+        }
+        mobileCardRender={(v) => (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-mono font-bold text-slate-900">
+                {v.voucherNumber}
+              </span>
+              <StatusBadge status={v.isCancelled ? "REVERSED" : "POSTED"} />
+            </div>
+            <div className="flex items-center justify-between text-xs text-slate-500">
+              <span>{new Date(v.voucherDate).toLocaleDateString("en-IN")}</span>
+              <Badge variant={typeColor[v.voucherType] || "neutral"}>
+                {v.voucherType}
+              </Badge>
+            </div>
+            {v.narration && (
+              <p className="text-xs text-slate-600 italic">{v.narration}</p>
+            )}
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+              <span className="text-xs text-slate-500">Total:</span>
+              <span className="font-mono font-bold text-slate-900">
+                ₹{Number(v.totalAmount).toFixed(2)}
+              </span>
+            </div>
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                onClick={() => setSelectedVoucher(v)}
+                className="text-xs text-[#F47721] font-semibold"
+              >
+                View Lines
+              </button>
+              {!v.isCancelled && (
+                <button
+                  onClick={() => {
+                    setReversalTarget(v);
+                    setReversalReason("");
+                    setReversalError(null);
+                  }}
+                  className="text-xs text-rose-600 font-semibold"
+                >
+                  Reverse
+                </button>
+              )}
+            </div>
           </div>
         )}
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "વાઉચર નંબર" : "Voucher No."}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "તારીખ" : "Date"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "પ્રકાર" : "Type"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "વિગત / લખાણ" : "Narration"}
-                </th>
-                <th className="py-3 px-4 text-right">
-                  {lang === "gu" ? "રકમ (₹)" : "Amount (₹)"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "સ્થિતિ" : "Status"}
-                </th>
-                <th className="py-3 px-4 text-right">
-                  {lang === "gu" ? "ક્રિયા" : "Action"}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <div className="inline-block w-6 h-6 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin mb-2" />
-                    <p>Loading vouchers...</p>
-                  </td>
-                </tr>
-              ) : vouchers.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <p className="font-semibold text-slate-700 mb-1">
-                      No vouchers recorded
-                    </p>
-                    <p className="text-[11px]">
-                      Click &apos;Record New Voucher&apos; to enter journal
-                      lines.
-                    </p>
-                  </td>
-                </tr>
-              ) : (
-                vouchers.map((v) => (
-                  <tr
-                    key={v.id}
-                    className="hover:bg-slate-50 transition-colors"
-                  >
-                    <td className="py-3 px-4 font-mono font-bold text-slate-900">
-                      {v.voucherNumber}
-                    </td>
-                    <td className="py-3 px-4 font-mono text-slate-600">
-                      {new Date(v.voucherDate).toLocaleDateString("en-IN")}
-                    </td>
-                    <td className="py-3 px-4">
-                      <Badge variant={typeColor[v.voucherType] || "neutral"}>
-                        {v.voucherType}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4 text-slate-600 max-w-xs truncate">
-                      {v.narration || "—"}
-                    </td>
-                    <td className="py-3 px-4 text-right font-mono font-bold text-slate-900">
-                      ₹{Number(v.totalAmount).toFixed(2)}
-                    </td>
-                    <td className="py-3 px-4">
-                      <StatusBadge
-                        status={v.isCancelled ? "REVERSED" : "POSTED"}
-                      />
-                    </td>
-                    <td className="py-3 px-4 text-right space-x-2">
-                      <button
-                        onClick={() => setSelectedVoucher(v)}
-                        className="text-xs text-[#F47721] hover:text-[#D95F12] font-semibold"
-                      >
-                        View Lines
-                      </button>
-                      {!v.isCancelled && (
-                        <button
-                          onClick={() => {
-                            setReversalTarget(v);
-                            setReversalReason("");
-                            setReversalError(null);
-                          }}
-                          className="text-xs text-rose-600 hover:text-rose-800 font-semibold"
-                        >
-                          Reverse
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      />
 
       {/* Voucher Detail Modal */}
       {selectedVoucher && (

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
+import { DataTable, ColumnDef } from "../../../components/ui/data-table";
 
 interface Category {
   id: string;
@@ -169,91 +170,102 @@ export default function CategoriesPage() {
         </button>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        {error && (
-          <div className="p-4 bg-rose-50 border-b border-rose-100 text-xs text-rose-700 font-medium">
-            {error}
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-100 rounded-xl text-xs text-rose-700 font-medium">
+          {error}
+        </div>
+      )}
+
+      {/* Main DataTable */}
+      <DataTable<Category>
+        data={categories}
+        columns={[
+          {
+            header: lang === "gu" ? "શ્રેણીનું નામ" : "Category Name",
+            accessorKey: "name",
+            sortable: true,
+            cell: (c) => (
+              <span className="font-semibold text-slate-900">{c.name}</span>
+            ),
+          },
+          {
+            header: lang === "gu" ? "ગુજરાતી નામ" : "Gujarati Name",
+            accessorKey: "nameGujarati",
+            sortable: true,
+            cell: (c) => (
+              <span className="text-slate-600">{c.nameGujarati || "—"}</span>
+            ),
+          },
+          {
+            header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
+            className: "text-center",
+            cell: (c) => (
+              <div className="inline-flex items-center justify-center gap-1.5">
+                <button
+                  onClick={() => handleOpenEditModal(c)}
+                  className="px-2.5 py-1 text-xs font-semibold text-[#F47721] bg-[#FFF3E8] hover:bg-[#F47721] hover:text-white border border-[#F47721]/30 rounded transition-colors inline-flex items-center gap-1"
+                  title="Edit Category"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                  <span>{lang === "gu" ? "સુધારો" : "Edit"}</span>
+                </button>
+                <button
+                  onClick={() => setCategoryToDelete(c)}
+                  className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded transition-colors inline-flex items-center gap-1"
+                  title="Delete Category"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  <span>{lang === "gu" ? "કાઢી નાખો" : "Delete"}</span>
+                </button>
+              </div>
+            ),
+          },
+        ]}
+        keyExtractor={(c) => c.id}
+        searchPlaceholder={
+          lang === "gu"
+            ? "શ્રેણીના નામથી શોધો..."
+            : "Search categories by name..."
+        }
+        searchKeys={["name", "nameGujarati"]}
+        defaultPageSize={10}
+        isLoading={isLoading}
+        emptyMessage={
+          lang === "gu"
+            ? "કોઈ શ્રેણી મળી નથી. ઉપર 'નવી શ્રેણી ઉમેરો' પર ક્લિક કરો."
+            : "No categories found. Click 'Add Category' to organize your items."
+        }
+        exportFilename="categories_master"
+        themeColor="saffron"
+        mobileCardRender={(c) => (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-slate-900">{c.name}</span>
+              {c.nameGujarati && (
+                <span className="text-xs text-slate-500">{c.nameGujarati}</span>
+              )}
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100">
+              <button
+                onClick={() => handleOpenEditModal(c)}
+                className="text-xs text-[#F47721] font-semibold"
+              >
+                {lang === "gu" ? "સુધારો" : "Edit"}
+              </button>
+              <button
+                onClick={() => setCategoryToDelete(c)}
+                className="text-xs text-rose-600 font-semibold"
+              >
+                {lang === "gu" ? "કાઢી નાખો" : "Delete"}
+              </button>
+            </div>
           </div>
         )}
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "શ્રેણીનું નામ" : "Category Name"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "ગુજરાતી નામ" : "Gujarati Name"}
-                </th>
-                <th className="py-3 px-4 text-center">
-                  {lang === "gu" ? "ક્રિયાઓ" : "Actions"}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={3} className="py-12 text-center text-slate-400">
-                    <div className="inline-block w-6 h-6 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin mb-2" />
-                    <p>Loading categories...</p>
-                  </td>
-                </tr>
-              ) : categories.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="py-12 text-center text-slate-400">
-                    <p className="font-medium text-slate-600 mb-1">
-                      No categories found
-                    </p>
-                    <p className="text-[11px]">
-                      Click &apos;Add Category&apos; to organize your item
-                      catalog.
-                    </p>
-                  </td>
-                </tr>
-              ) : (
-                categories.map((c) => (
-                  <tr
-                    key={c.id}
-                    className="hover:bg-slate-50 transition-colors"
-                  >
-                    <td className="py-3 px-4 font-semibold text-slate-900">
-                      {c.name}
-                    </td>
-                    <td className="py-3 px-4 text-slate-600">
-                      {c.nameGujarati || "—"}
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <div className="inline-flex items-center justify-center gap-1.5">
-                        <button
-                          onClick={() => handleOpenEditModal(c)}
-                          className="px-2.5 py-1 text-xs font-semibold text-[#F47721] bg-[#FFF3E8] hover:bg-[#F47721] hover:text-white border border-[#F47721]/30 rounded transition-colors inline-flex items-center gap-1"
-                          title="Edit Category"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                          </svg>
-                          <span>{lang === "gu" ? "સુધારો" : "Edit"}</span>
-                        </button>
-                        <button
-                          onClick={() => setCategoryToDelete(c)}
-                          className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded transition-colors inline-flex items-center gap-1"
-                          title="Delete Category"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          <span>{lang === "gu" ? "કાઢી નાખો" : "Delete"}</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      />
 
       {/* Create Category Modal */}
       <Modal

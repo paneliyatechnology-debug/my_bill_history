@@ -12,6 +12,7 @@ import { useAuth } from "../../../context/auth-context";
 import { apiClient } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { StatCard } from "../../../components/ui/stat-card";
+import { DataTable, ColumnDef } from "../../../components/ui/data-table";
 
 interface ReturnItem {
   id: string;
@@ -573,285 +574,298 @@ function SalesReturnsContent() {
         />
       </div>
 
-      {/* Search and Filters Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
-        <div className="flex flex-1 flex-col sm:flex-row gap-3 w-full">
-          <div className="relative flex-1">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </span>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={
-                lang === "gu"
-                  ? "ક્રેડિટ નોટ નં, બિલ નં અથવા ગ્રાહક શોધો..."
-                  : "Search Credit Note #, Invoice # or customer..."
-              }
-              className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <select
-            value={selectedPartyFilter}
-            onChange={(e) => setSelectedPartyFilter(e.target.value)}
-            className="px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-          >
-            <option value="">
-              {lang === "gu" ? "તમામ ગ્રાહકો" : "All Customers"}
-            </option>
-            {partiesList.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name} {p.gstin ? `(${p.gstin})` : ""}
-              </option>
-            ))}
-          </select>
-
-          <div className="flex items-center gap-2">
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              title="Start Date"
-            />
-            <span className="text-slate-400 text-xs">to</span>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              title="End Date"
-            />
-          </div>
-        </div>
-
-        {(searchTerm || selectedPartyFilter || startDate || endDate) && (
-          <button
-            onClick={() => {
-              setSearchTerm("");
-              setSelectedPartyFilter("");
-              setStartDate("");
-              setEndDate("");
-            }}
-            className="text-xs text-rose-600 hover:text-rose-800 font-medium px-2 py-1"
-          >
-            {lang === "gu" ? "ફિલ્ટર દૂર કરો" : "Clear Filters"}
-          </button>
-        )}
-      </div>
-
-      {/* Main Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        {isLoading ? (
-          <div className="p-12 text-center text-slate-500">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
-            <p className="text-sm">
-              {lang === "gu"
-                ? "લોડ કરી રહ્યું છે..."
-                : "Loading Credit Notes..."}
-            </p>
-          </div>
-        ) : error ? (
-          <div className="p-8 text-center text-rose-600">
-            <p className="font-semibold">{error}</p>
-            <button
-              onClick={fetchReturns}
-              className="mt-3 px-4 py-1.5 text-xs bg-rose-50 text-rose-700 rounded-md border border-rose-200 hover:bg-rose-100"
-            >
-              {lang === "gu" ? "ફરી પ્રયાસ કરો" : "Retry"}
-            </button>
-          </div>
-        ) : returns.length === 0 ? (
-          <div className="p-16 text-center text-slate-500">
-            <svg
-              className="w-12 h-12 mx-auto text-slate-300 mb-3"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            <p className="text-base font-medium text-slate-700">
-              {lang === "gu"
-                ? "કોઈ ક્રેડિટ નોટ્સ મળી નથી"
-                : "No Sales Returns Found"}
-            </p>
-            <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-              {lang === "gu"
-                ? "નવી ક્રેડિટ નોટ બનાવવા માટે ઉપરના બટન પર ક્લિક કરો."
-                : "Create a credit note against an eligible sales invoice to get started."}
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                  <th className="py-3 px-4">
-                    {lang === "gu" ? "ક્રેડિટ નોટ નં" : "Credit Note #"}
-                  </th>
-                  <th className="py-3 px-4">
-                    {lang === "gu" ? "તારીખ" : "Date"}
-                  </th>
-                  <th className="py-3 px-4">
-                    {lang === "gu" ? "ગ્રાહક" : "Customer"}
-                  </th>
-                  <th className="py-3 px-4">
-                    {lang === "gu" ? "મૂળ બિલ નં" : "Original Invoice"}
-                  </th>
-                  <th className="py-3 px-4 text-right">
-                    {lang === "gu" ? "કરપાત્ર રકમ" : "Taxable Amt"}
-                  </th>
-                  <th className="py-3 px-4 text-right">
-                    {lang === "gu" ? "જીએસટી" : "GST Total"}
-                  </th>
-                  <th className="py-3 px-4 text-right">
-                    {lang === "gu" ? "કુલ ક્રેડિટ" : "Total Credit"}
-                  </th>
-                  <th className="py-3 px-4 text-center">
-                    {lang === "gu" ? "સ્થિતિ" : "Status"}
-                  </th>
-                  <th className="py-3 px-4 text-center">
-                    {lang === "gu" ? "ક્રિયાઓ" : "Actions"}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-sm">
-                {returns.map((ret) => {
-                  const gstTotal =
-                    (Number(ret.cgstAmount) || 0) +
-                    (Number(ret.sgstAmount) || 0) +
-                    (Number(ret.igstAmount) || 0);
-
-                  return (
-                    <tr
-                      key={ret.id}
-                      className="hover:bg-slate-50/70 transition-colors"
-                    >
-                      <td className="py-3 px-4 font-semibold text-blue-600">
-                        {ret.returnNumber}
-                      </td>
-                      <td className="py-3 px-4 text-slate-600">
-                        {new Date(ret.returnDate).toLocaleDateString("en-IN")}
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="font-medium text-slate-800">
-                          {ret.party?.name}
-                        </div>
-                        {ret.party?.gstin && (
-                          <div className="text-xs text-slate-400 font-mono">
-                            GSTIN: {ret.party.gstin}
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-slate-700 font-mono text-xs">
-                        {ret.salesInvoice?.invoiceNumber || "-"}
-                      </td>
-                      <td className="py-3 px-4 text-right text-slate-700 font-medium">
-                        ₹
-                        {Number(ret.taxableAmount).toLocaleString("en-IN", {
-                          minimumFractionDigits: 2,
-                        })}
-                      </td>
-                      <td className="py-3 px-4 text-right text-slate-700 font-medium">
-                        ₹
-                        {gstTotal.toLocaleString("en-IN", {
-                          minimumFractionDigits: 2,
-                        })}
-                      </td>
-                      <td className="py-3 px-4 text-right font-bold text-slate-900">
-                        ₹
-                        {Number(ret.grandTotal).toLocaleString("en-IN", {
-                          minimumFractionDigits: 2,
-                        })}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">
-                          {ret.status || "ISSUED"}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => {
-                              setSelectedReturnDetails(ret);
-                              setIsDetailsModalOpen(true);
-                            }}
-                            className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                            title={lang === "gu" ? "વિગતો જુઓ" : "View Details"}
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                              />
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                              />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => setPrintReturn(ret)}
-                            className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors"
-                            title={
-                              lang === "gu"
-                                ? "પ્રિન્ટ ક્રેડિટ નોટ"
-                                : "Print Credit Note"
-                            }
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
+      {/* Main DataTable */}
+      <DataTable<SalesReturn>
+        data={returns}
+        columns={[
+          {
+            header: lang === "gu" ? "ક્રેડિટ નોટ નં" : "Credit Note #",
+            accessorKey: "returnNumber",
+            sortable: true,
+            cell: (ret) => (
+              <span className="font-semibold text-blue-600">
+                {ret.returnNumber}
+              </span>
+            ),
+          },
+          {
+            header: lang === "gu" ? "તારીખ" : "Date",
+            accessorKey: "returnDate",
+            sortable: true,
+            cell: (ret) => (
+              <span className="text-slate-600 text-xs">
+                {new Date(ret.returnDate).toLocaleDateString("en-IN")}
+              </span>
+            ),
+          },
+          {
+            header: lang === "gu" ? "ગ્રાહક" : "Customer",
+            accessorKey: "partyId",
+            cell: (ret) => (
+              <div>
+                <div className="font-medium text-slate-800">
+                  {ret.party?.name}
+                </div>
+                {ret.party?.gstin && (
+                  <div className="text-xs text-slate-400 font-mono">
+                    GSTIN: {ret.party.gstin}
+                  </div>
+                )}
+              </div>
+            ),
+          },
+          {
+            header: lang === "gu" ? "મૂળ બિલ નં" : "Original Invoice",
+            accessorKey: "salesInvoiceId",
+            cell: (ret) => (
+              <span className="text-slate-700 font-mono text-xs">
+                {ret.salesInvoice?.invoiceNumber || "-"}
+              </span>
+            ),
+          },
+          {
+            header: lang === "gu" ? "કરપાત્ર રકમ" : "Taxable Amt",
+            accessorKey: "taxableAmount",
+            sortable: true,
+            className: "text-right font-medium text-slate-700",
+            cell: (ret) => (
+              <span>
+                ₹
+                {Number(ret.taxableAmount).toLocaleString("en-IN", {
+                  minimumFractionDigits: 2,
                 })}
-              </tbody>
-            </table>
+              </span>
+            ),
+          },
+          {
+            header: lang === "gu" ? "જીએસટી" : "GST Total",
+            accessorKey: "cgstAmount",
+            sortable: true,
+            className: "text-right font-medium text-slate-700",
+            cell: (ret) => {
+              const gstTotal =
+                (Number(ret.cgstAmount) || 0) +
+                (Number(ret.sgstAmount) || 0) +
+                (Number(ret.igstAmount) || 0);
+              return (
+                <span>
+                  ₹
+                  {gstTotal.toLocaleString("en-IN", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+              );
+            },
+          },
+          {
+            header: lang === "gu" ? "કુલ ક્રેડિટ" : "Total Credit",
+            accessorKey: "grandTotal",
+            sortable: true,
+            className: "text-right font-bold text-slate-900",
+            cell: (ret) => (
+              <span>
+                ₹
+                {Number(ret.grandTotal).toLocaleString("en-IN", {
+                  minimumFractionDigits: 2,
+                })}
+              </span>
+            ),
+          },
+          {
+            header: lang === "gu" ? "સ્થિતિ" : "Status",
+            accessorKey: "status",
+            sortable: true,
+            className: "text-center",
+            cell: (ret) => (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">
+                {ret.status || "ISSUED"}
+              </span>
+            ),
+          },
+          {
+            header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
+            className: "text-center",
+            cell: (ret) => (
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  onClick={() => {
+                    setSelectedReturnDetails(ret);
+                    setIsDetailsModalOpen(true);
+                  }}
+                  className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                  title={lang === "gu" ? "વિગતો જુઓ" : "View Details"}
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => setPrintReturn(ret)}
+                  className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors"
+                  title={
+                    lang === "gu"
+                      ? "પ્રિન્ટ ક્રેડિટ નોટ"
+                      : "Print Credit Note"
+                  }
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                    />
+                  </svg>
+                </button>
+              </div>
+            ),
+          },
+        ]}
+        keyExtractor={(ret) => ret.id}
+        searchPlaceholder={
+          lang === "gu"
+            ? "ક્રેડિટ નોટ નં, બિલ નં અથવા ગ્રાહક શોધો..."
+            : "Search Credit Note #, Invoice # or customer..."
+        }
+        searchKeys={["returnNumber"]}
+        defaultPageSize={10}
+        isLoading={isLoading}
+        emptyMessage={
+          lang === "gu"
+            ? "કોઈ ક્રેડિટ નોટ્સ મળી નથી. નવી ક્રેડિટ નોટ બનાવવા માટે ઉપરના બટન પર ક્લિક કરો."
+            : "No Sales Returns Found. Create a credit note against an eligible sales invoice."
+        }
+        exportFilename="sales_returns_credit_notes"
+        themeColor="saffron"
+        toolbarChildren={
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={selectedPartyFilter}
+              onChange={(e) => setSelectedPartyFilter(e.target.value)}
+              className="px-3 py-1.5 text-xs border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white text-slate-700 font-semibold"
+            >
+              <option value="">
+                {lang === "gu" ? "તમામ ગ્રાહકો" : "All Customers"}
+              </option>
+              {partiesList.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} {p.gstin ? `(${p.gstin})` : ""}
+                </option>
+              ))}
+            </select>
+
+            <div className="flex items-center gap-1.5 text-xs">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="px-2.5 py-1 text-xs border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 text-slate-700"
+                title="Start Date"
+              />
+              <span className="text-slate-400 text-xs">to</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="px-2.5 py-1 text-xs border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 text-slate-700"
+                title="End Date"
+              />
+            </div>
+
+            {(selectedPartyFilter || startDate || endDate) && (
+              <button
+                onClick={() => {
+                  setSelectedPartyFilter("");
+                  setStartDate("");
+                  setEndDate("");
+                }}
+                className="text-xs text-rose-600 hover:text-rose-800 font-semibold px-2 py-1"
+              >
+                {lang === "gu" ? "ફિલ્ટર દૂર કરો" : "Clear Filters"}
+              </button>
+            )}
           </div>
-        )}
-      </div>
+        }
+        mobileCardRender={(ret) => {
+          const gstTotal =
+            (Number(ret.cgstAmount) || 0) +
+            (Number(ret.sgstAmount) || 0) +
+            (Number(ret.igstAmount) || 0);
+
+          return (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-blue-600">
+                  {ret.returnNumber}
+                </span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">
+                  {ret.status || "ISSUED"}
+                </span>
+              </div>
+              <div className="text-xs text-slate-500">
+                {new Date(ret.returnDate).toLocaleDateString("en-IN")}
+                {ret.salesInvoice?.invoiceNumber && (
+                  <span className="ml-2 font-mono">
+                    Inv: {ret.salesInvoice.invoiceNumber}
+                  </span>
+                )}
+              </div>
+              <div className="text-xs font-medium text-slate-800">
+                {ret.party?.name}
+              </div>
+              <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
+                <span className="text-slate-500">
+                  Tax: ₹{gstTotal.toFixed(2)}
+                </span>
+                <span className="font-mono font-bold text-slate-900">
+                  Total: ₹
+                  {Number(ret.grandTotal).toLocaleString("en-IN", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+              <div className="flex items-center justify-end gap-3 pt-1">
+                <button
+                  onClick={() => {
+                    setSelectedReturnDetails(ret);
+                    setIsDetailsModalOpen(true);
+                  }}
+                  className="text-xs text-blue-600 font-semibold"
+                >
+                  View Details
+                </button>
+                <button
+                  onClick={() => setPrintReturn(ret)}
+                  className="text-xs text-emerald-600 font-semibold"
+                >
+                  Print
+                </button>
+              </div>
+            </div>
+          );
+        }}
+      />
 
       {/* CREATE CREDIT NOTE MODAL */}
       <Modal

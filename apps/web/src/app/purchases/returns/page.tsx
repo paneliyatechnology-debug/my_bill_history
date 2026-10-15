@@ -5,6 +5,7 @@ import { useAuth } from "../../../context/auth-context";
 import { apiClient } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { StatCard } from "../../../components/ui/stat-card";
+import { DataTable, ColumnDef } from "../../../components/ui/data-table";
 
 interface ReturnItem {
   id: string;
@@ -512,244 +513,254 @@ export default function PurchaseReturnsPage() {
         />
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
-        <div className="flex flex-1 flex-wrap items-center gap-3 w-full">
-          {/* Search box */}
-          <div className="relative flex-1 min-w-[220px]">
-            <input
-              type="text"
-              placeholder={
-                lang === "gu"
-                  ? "ડેબિટ નોટ નં, સપ્લાયર કે મૂળ બિલ નં થી શોધો..."
-                  : "Search return #, supplier or bill #..."
-              }
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            />
-            <svg
-              className="w-4 h-4 text-slate-400 absolute left-3 top-3"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
-
-          {/* Supplier Dropdown Filter */}
-          <select
-            value={selectedPartyFilter}
-            onChange={(e) => setSelectedPartyFilter(e.target.value)}
-            className="border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-          >
-            <option value="">
-              {lang === "gu" ? "બધા સપ્લાયર્સ" : "All Suppliers"}
-            </option>
-            {partiesList.map((p) => (
-              <option key={p.id} value={p.id}>
-                {lang === "gu" && p.nameGujarati ? p.nameGujarati : p.name}
-              </option>
-            ))}
-          </select>
-
-          {/* Date range filters */}
-          <div className="flex items-center gap-2">
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              title="Start Date"
-            />
-            <span className="text-slate-400 text-xs">to</span>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              title="End Date"
-            />
-          </div>
-        </div>
-
-        {(searchTerm || selectedPartyFilter || startDate || endDate) && (
-          <button
-            onClick={() => {
-              setSearchTerm("");
-              setSelectedPartyFilter("");
-              setStartDate("");
-              setEndDate("");
-            }}
-            className="text-xs text-slate-500 hover:text-slate-800 underline self-end md:self-center"
-          >
-            {lang === "gu" ? "ફિલ્ટર્સ સાફ કરો" : "Reset Filters"}
-          </button>
-        )}
-      </div>
-
-      {/* Main Table Register */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
-        {isLoading ? (
-          <div className="p-12 text-center text-slate-500 flex flex-col items-center">
-            <div className="w-8 h-8 border-4 border-[#F47721] border-t-transparent rounded-full animate-spin mb-3"></div>
-            <p className="text-sm">
-              {lang === "gu"
-                ? "ડેબિટ નોટ લોડ થઈ રહી છે..."
-                : "Loading purchase returns & debit notes..."}
-            </p>
-          </div>
-        ) : error ? (
-          <div className="p-6 bg-rose-50 border-b border-rose-100 text-rose-700 text-sm">
-            {error}
-          </div>
-        ) : returns.length === 0 ? (
-          <div className="p-12 text-center text-slate-500 flex flex-col items-center">
-            <svg
-              className="w-12 h-12 text-slate-300 mb-3"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            <p className="text-base font-medium text-slate-800">
-              {lang === "gu"
-                ? "કોઈ ડેબિટ નોટ મળી નથી"
-                : "No purchase returns recorded"}
-            </p>
-            <p className="text-xs text-slate-400 mt-1 max-w-sm">
-              {lang === "gu"
-                ? "જ્યારે સપ્લાયરને ખામીયુક્ત કે વધારાનો માલ પરત કરવામાં આવે ત્યારે નવી ડેબિટ નોટ બનાવો."
-                : "Issue your first debit note when returning damaged, excess or defective goods to suppliers."}
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-600">
-              <thead className="bg-slate-50/75 border-b border-slate-200 text-xs uppercase font-semibold text-slate-500">
-                <tr>
-                  <th className="py-3.5 px-4">
-                    {lang === "gu" ? "ડેબિટ નોટ નં" : "Debit Note #"}
-                  </th>
-                  <th className="py-3.5 px-4">
-                    {lang === "gu" ? "તારીખ" : "Date"}
-                  </th>
-                  <th className="py-3.5 px-4">
-                    {lang === "gu" ? "સપ્લાયર (પાર્ટી)" : "Supplier Party"}
-                  </th>
-                  <th className="py-3.5 px-4">
-                    {lang === "gu" ? "મૂળ ખરીદી બિલ" : "Original Bill #"}
-                  </th>
-                  <th className="py-3.5 px-4 text-center">
-                    {lang === "gu" ? "આઈટમ્સ" : "Items"}
-                  </th>
-                  <th className="py-3.5 px-4 text-right">
-                    {lang === "gu" ? "કરપાત્ર કિંમત" : "Taxable"}
-                  </th>
-                  <th className="py-3.5 px-4 text-right">
-                    {lang === "gu" ? "જીએસટી રિવર્સલ" : "Tax Reversal"}
-                  </th>
-                  <th className="py-3.5 px-4 text-right">
-                    {lang === "gu" ? "કુલ રકમ" : "Total Amount"}
-                  </th>
-                  <th className="py-3.5 px-4 text-center">
-                    {lang === "gu" ? "ક્રિયા" : "Action"}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200/70">
-                {returns.map((ret) => {
-                  const totalTax =
-                    Number(ret.cgstAmount || 0) +
-                    Number(ret.sgstAmount || 0) +
-                    Number(ret.igstAmount || 0);
-
-                  return (
-                    <tr
-                      key={ret.id}
-                      className="hover:bg-slate-50/60 transition-colors"
-                    >
-                      <td className="py-3.5 px-4 font-semibold text-indigo-700">
-                        {ret.returnNumber}
-                      </td>
-                      <td className="py-3.5 px-4 text-slate-600">
-                        {new Date(ret.returnDate).toLocaleDateString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <div className="font-medium text-slate-800">
-                          {lang === "gu" && ret.party?.nameGujarati
-                            ? ret.party.nameGujarati
-                            : ret.party?.name}
-                        </div>
-                        {ret.party?.gstin && (
-                          <div className="text-xs text-slate-400 font-mono">
-                            {ret.party.gstin}
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4 text-slate-700">
-                        <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs font-mono font-medium border border-slate-200">
-                          {ret.purchaseInvoice?.vendorInvoiceNumber || "—"}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-center">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                          {ret.items?.length || 0}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-right text-slate-700">
-                        ₹
-                        {Number(ret.taxableAmount).toLocaleString("en-IN", {
-                          minimumFractionDigits: 2,
-                        })}
-                      </td>
-                      <td className="py-3.5 px-4 text-right text-amber-700 font-medium">
-                        ₹
-                        {totalTax.toLocaleString("en-IN", {
-                          minimumFractionDigits: 2,
-                        })}
-                      </td>
-                      <td className="py-3.5 px-4 text-right font-bold text-slate-900">
-                        ₹
-                        {Number(ret.grandTotal).toLocaleString("en-IN", {
-                          minimumFractionDigits: 2,
-                        })}
-                      </td>
-                      <td className="py-3.5 px-4 text-center">
-                        <button
-                          onClick={() => {
-                            setSelectedReturnDetails(ret);
-                            setIsDetailsModalOpen(true);
-                          }}
-                          className="px-2.5 py-1 text-xs font-semibold text-[#F47721] hover:text-[#D95F12] bg-[#FFF3E8] hover:bg-[#F47721] hover:text-white rounded-md transition-colors"
-                        >
-                          {lang === "gu" ? "વિગતો જુઓ" : "View Details"}
-                        </button>
-                      </td>
-                    </tr>
-                  );
+      {/* Main DataTable Register */}
+      <DataTable<PurchaseReturn>
+        data={returns}
+        columns={[
+          {
+            header: lang === "gu" ? "ડેબિટ નોટ નં" : "Debit Note #",
+            accessorKey: "returnNumber",
+            sortable: true,
+            cell: (ret) => (
+              <span className="font-semibold text-indigo-700">
+                {ret.returnNumber}
+              </span>
+            ),
+          },
+          {
+            header: lang === "gu" ? "તારીખ" : "Date",
+            accessorKey: "returnDate",
+            sortable: true,
+            cell: (ret) => (
+              <span className="text-slate-600 text-xs">
+                {new Date(ret.returnDate).toLocaleDateString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
                 })}
-              </tbody>
-            </table>
+              </span>
+            ),
+          },
+          {
+            header: lang === "gu" ? "સપ્લાયર (પાર્ટી)" : "Supplier Party",
+            accessorKey: "partyId",
+            cell: (ret) => (
+              <div>
+                <div className="font-medium text-slate-800">
+                  {lang === "gu" && ret.party?.nameGujarati
+                    ? ret.party.nameGujarati
+                    : ret.party?.name}
+                </div>
+                {ret.party?.gstin && (
+                  <div className="text-xs text-slate-400 font-mono">
+                    {ret.party.gstin}
+                  </div>
+                )}
+              </div>
+            ),
+          },
+          {
+            header: lang === "gu" ? "મૂળ ખરીદી બિલ" : "Original Bill #",
+            accessorKey: "purchaseInvoiceId",
+            cell: (ret) => (
+              <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs font-mono font-medium border border-slate-200">
+                {ret.purchaseInvoice?.vendorInvoiceNumber || "—"}
+              </span>
+            ),
+          },
+          {
+            header: lang === "gu" ? "આઈટમ્સ" : "Items",
+            accessorKey: "id",
+            className: "text-center",
+            cell: (ret) => (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                {ret.items?.length || 0}
+              </span>
+            ),
+          },
+          {
+            header: lang === "gu" ? "કરપાત્ર કિંમત" : "Taxable",
+            accessorKey: "taxableAmount",
+            sortable: true,
+            className: "text-right text-slate-700",
+            cell: (ret) => (
+              <span>
+                ₹
+                {Number(ret.taxableAmount).toLocaleString("en-IN", {
+                  minimumFractionDigits: 2,
+                })}
+              </span>
+            ),
+          },
+          {
+            header: lang === "gu" ? "જીએસટી રિવર્સલ" : "Tax Reversal",
+            accessorKey: "cgstAmount",
+            sortable: true,
+            className: "text-right text-amber-700 font-medium",
+            cell: (ret) => {
+              const totalTax =
+                Number(ret.cgstAmount || 0) +
+                Number(ret.sgstAmount || 0) +
+                Number(ret.igstAmount || 0);
+              return (
+                <span>
+                  ₹
+                  {totalTax.toLocaleString("en-IN", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+              );
+            },
+          },
+          {
+            header: lang === "gu" ? "કુલ રકમ" : "Total Amount",
+            accessorKey: "grandTotal",
+            sortable: true,
+            className: "text-right font-bold text-slate-900",
+            cell: (ret) => (
+              <span>
+                ₹
+                {Number(ret.grandTotal).toLocaleString("en-IN", {
+                  minimumFractionDigits: 2,
+                })}
+              </span>
+            ),
+          },
+          {
+            header: lang === "gu" ? "ક્રિયા" : "Action",
+            className: "text-center",
+            cell: (ret) => (
+              <button
+                onClick={() => {
+                  setSelectedReturnDetails(ret);
+                  setIsDetailsModalOpen(true);
+                }}
+                className="px-2.5 py-1 text-xs font-semibold text-[#F47721] hover:text-[#D95F12] bg-[#FFF3E8] hover:bg-[#F47721] hover:text-white rounded-md transition-colors"
+              >
+                {lang === "gu" ? "વિગતો જુઓ" : "View Details"}
+              </button>
+            ),
+          },
+        ]}
+        keyExtractor={(ret) => ret.id}
+        searchPlaceholder={
+          lang === "gu"
+            ? "ડેબિટ નોટ નં, સપ્લાયર કે મૂળ બિલ નં થી શોધો..."
+            : "Search return #, supplier or bill #..."
+        }
+        searchKeys={["returnNumber"]}
+        defaultPageSize={10}
+        isLoading={isLoading}
+        emptyMessage={
+          lang === "gu"
+            ? "કોઈ ડેબિટ નોટ મળી નથી. સપ્લાયરને ખામીયુક્ત માલ પરત કરવા નવી ડેબિટ નોટ બનાવો."
+            : "No purchase returns recorded. Issue your first debit note when returning goods."
+        }
+        exportFilename="purchase_returns_debit_notes"
+        themeColor="saffron"
+        toolbarChildren={
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={selectedPartyFilter}
+              onChange={(e) => setSelectedPartyFilter(e.target.value)}
+              className="border border-border rounded-xl px-3 py-1.5 text-xs text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
+            >
+              <option value="">
+                {lang === "gu" ? "બધા સપ્લાયર્સ" : "All Suppliers"}
+              </option>
+              {partiesList.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {lang === "gu" && p.nameGujarati ? p.nameGujarati : p.name}
+                </option>
+              ))}
+            </select>
+
+            <div className="flex items-center gap-1.5 text-xs">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="border border-border rounded-xl px-2.5 py-1 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50"
+                title="Start Date"
+              />
+              <span className="text-slate-400 text-xs">to</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="border border-border rounded-xl px-2.5 py-1 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50"
+                title="End Date"
+              />
+            </div>
+
+            {(selectedPartyFilter || startDate || endDate) && (
+              <button
+                onClick={() => {
+                  setSelectedPartyFilter("");
+                  setStartDate("");
+                  setEndDate("");
+                }}
+                className="text-xs text-slate-500 hover:text-slate-800 underline ml-1"
+              >
+                {lang === "gu" ? "ફિલ્ટર્સ સાફ કરો" : "Reset Filters"}
+              </button>
+            )}
           </div>
-        )}
-      </div>
+        }
+        mobileCardRender={(ret) => {
+          const totalTax =
+            Number(ret.cgstAmount || 0) +
+            Number(ret.sgstAmount || 0) +
+            Number(ret.igstAmount || 0);
+
+          return (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-indigo-700">
+                  {ret.returnNumber}
+                </span>
+                <span className="text-xs text-slate-500">
+                  {new Date(ret.returnDate).toLocaleDateString("en-IN", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </span>
+              </div>
+              <div className="text-xs font-medium text-slate-800">
+                {lang === "gu" && ret.party?.nameGujarati
+                  ? ret.party.nameGujarati
+                  : ret.party?.name}
+              </div>
+              {ret.purchaseInvoice?.vendorInvoiceNumber && (
+                <div className="text-xs text-slate-500 font-mono">
+                  Bill: {ret.purchaseInvoice.vendorInvoiceNumber}
+                </div>
+              )}
+              <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
+                <span className="text-slate-500">Tax Rev: ₹{totalTax.toFixed(2)}</span>
+                <span className="font-mono font-bold text-slate-900">
+                  Total: ₹
+                  {Number(ret.grandTotal).toLocaleString("en-IN", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+              <div className="flex items-center justify-end pt-1">
+                <button
+                  onClick={() => {
+                    setSelectedReturnDetails(ret);
+                    setIsDetailsModalOpen(true);
+                  }}
+                  className="px-2.5 py-1 text-xs font-semibold text-[#F47721] bg-[#FFF3E8] rounded-md"
+                >
+                  {lang === "gu" ? "વિગતો જુઓ" : "View Details"}
+                </button>
+              </div>
+            </div>
+          );
+        }}
+      />
 
       {/* CREATE RETURN MODAL */}
       <Modal

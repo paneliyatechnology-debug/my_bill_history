@@ -5,6 +5,7 @@ import { useAuth } from "../../../context/auth-context";
 import { apiClient } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { Badge } from "../../../components/ui/badge";
+import { DataTable, ColumnDef } from "../../../components/ui/data-table";
 
 interface Warehouse {
   id: string;
@@ -181,101 +182,118 @@ export default function WarehousesPage() {
         </button>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        {error && (
-          <div className="p-4 bg-rose-50 border-b border-rose-100 text-xs text-rose-700 font-medium">
-            {error}
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-100 rounded-xl text-xs text-rose-700 font-medium">
+          {error}
+        </div>
+      )}
+
+      {/* Main DataTable */}
+      <DataTable<Warehouse>
+        data={warehouses}
+        columns={[
+          {
+            header: lang === "gu" ? "ગોડાઉનનું નામ" : "Warehouse Name",
+            accessorKey: "name",
+            sortable: true,
+            cell: (w) => (
+              <span className="font-semibold text-slate-900">{w.name}</span>
+            ),
+          },
+          {
+            header: lang === "gu" ? "સરનામું" : "Address",
+            accessorKey: "address",
+            sortable: true,
+            cell: (w) => (
+              <span className="text-slate-600">{w.address || "Main Branch Premises"}</span>
+            ),
+          },
+          {
+            header: lang === "gu" ? "ડીફોલ્ટ" : "Default Dispatch",
+            accessorKey: "isDefault",
+            sortable: true,
+            cell: (w) =>
+              w.isDefault ? (
+                <Badge variant="success">Primary Default</Badge>
+              ) : (
+                <span className="text-slate-400">Secondary</span>
+              ),
+          },
+          {
+            header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
+            className: "text-center",
+            cell: (w) => (
+              <div className="inline-flex items-center justify-center gap-1.5">
+                <button
+                  onClick={() => handleOpenEditModal(w)}
+                  className="px-2.5 py-1 text-xs font-semibold text-[#F47721] bg-[#FFF3E8] hover:bg-[#F47721] hover:text-white border border-[#F47721]/30 rounded transition-colors inline-flex items-center gap-1"
+                  title="Edit Warehouse"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                  <span>{lang === "gu" ? "સુધારો" : "Edit"}</span>
+                </button>
+                <button
+                  onClick={() => setWhToDelete(w)}
+                  className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded transition-colors inline-flex items-center gap-1"
+                  title="Delete Warehouse"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  <span>{lang === "gu" ? "કાઢી નાખો" : "Delete"}</span>
+                </button>
+              </div>
+            ),
+          },
+        ]}
+        keyExtractor={(w) => w.id}
+        searchPlaceholder={
+          lang === "gu"
+            ? "ગોડાઉનનું નામ અથવા સરનામું શોધો..."
+            : "Search warehouses by name or address..."
+        }
+        searchKeys={["name", "address"]}
+        defaultPageSize={10}
+        isLoading={isLoading}
+        emptyMessage={
+          lang === "gu"
+            ? "કોઈ ગોડાઉન મળ્યા નથી. ઉપર 'નવું ગોડાઉન ઉમેરો' પર ક્લિક કરો."
+            : "No warehouses found. Click 'Add Warehouse' to register your godown."
+        }
+        exportFilename="warehouses_master"
+        themeColor="saffron"
+        mobileCardRender={(w) => (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-slate-900">{w.name}</span>
+              {w.isDefault ? (
+                <Badge variant="success">Primary Default</Badge>
+              ) : (
+                <span className="text-xs text-slate-400">Secondary</span>
+              )}
+            </div>
+            <div className="text-xs text-slate-500">
+              {w.address || "Main Branch Premises"}
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100">
+              <button
+                onClick={() => handleOpenEditModal(w)}
+                className="text-xs text-[#F47721] font-semibold"
+              >
+                {lang === "gu" ? "સુધારો" : "Edit"}
+              </button>
+              <button
+                onClick={() => setWhToDelete(w)}
+                className="text-xs text-rose-600 font-semibold"
+              >
+                {lang === "gu" ? "કાઢી નાખો" : "Delete"}
+              </button>
+            </div>
           </div>
         )}
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "ગોડાઉનનું નામ" : "Warehouse Name"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "સરનામું" : "Address"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "ડીફોલ્ટ" : "Default Dispatch"}
-                </th>
-                <th className="py-3 px-4 text-center">
-                  {lang === "gu" ? "ક્રિયાઓ" : "Actions"}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={4} className="py-12 text-center text-slate-400">
-                    <div className="inline-block w-6 h-6 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin mb-2" />
-                    <p>Loading warehouses...</p>
-                  </td>
-                </tr>
-              ) : warehouses.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="py-12 text-center text-slate-400">
-                    <p className="font-medium text-slate-600 mb-1">
-                      No warehouses found
-                    </p>
-                    <p className="text-[11px]">
-                      Click &apos;Add Warehouse&apos; to register your primary
-                      godown.
-                    </p>
-                  </td>
-                </tr>
-              ) : (
-                warehouses.map((w) => (
-                  <tr
-                    key={w.id}
-                    className="hover:bg-slate-50 transition-colors"
-                  >
-                    <td className="py-3 px-4 font-semibold text-slate-900">
-                      {w.name}
-                    </td>
-                    <td className="py-3 px-4 text-slate-600">
-                      {w.address || "Main Branch Premises"}
-                    </td>
-                    <td className="py-3 px-4">
-                      {w.isDefault ? (
-                        <Badge variant="success">Primary Default</Badge>
-                      ) : (
-                        <span className="text-slate-400">Secondary</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <div className="inline-flex items-center justify-center gap-1.5">
-                        <button
-                          onClick={() => handleOpenEditModal(w)}
-                          className="px-2.5 py-1 text-xs font-semibold text-[#F47721] bg-[#FFF3E8] hover:bg-[#F47721] hover:text-white border border-[#F47721]/30 rounded transition-colors inline-flex items-center gap-1"
-                          title="Edit Warehouse"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                          </svg>
-                          <span>{lang === "gu" ? "સુધારો" : "Edit"}</span>
-                        </button>
-                        <button
-                          onClick={() => setWhToDelete(w)}
-                          className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded transition-colors inline-flex items-center gap-1"
-                          title="Delete Warehouse"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          <span>{lang === "gu" ? "કાઢી નાખો" : "Delete"}</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      />
 
       {/* Create Warehouse Modal */}
       <Modal

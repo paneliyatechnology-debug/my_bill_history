@@ -5,6 +5,7 @@ import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { Badge, StatusBadge } from "../../../components/ui/badge";
+import { DataTable, ColumnDef } from "../../../components/ui/data-table";
 
 interface BomItem {
   id?: string;
@@ -271,13 +272,112 @@ export default function BomPage() {
     }
   };
 
-  const filteredBoms = boms.filter((b) => {
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    const nameMatch = b.bomName.toLowerCase().includes(term);
-    const itemMatch = b.finishedItem?.name.toLowerCase().includes(term);
-    return nameMatch || itemMatch;
-  });
+  const columns: ColumnDef<BillOfMaterial>[] = [
+    {
+      id: "bomName",
+      header: lang === "gu" ? "BOM નું નામ" : "BOM Name",
+      accessorKey: "bomName",
+      sortable: true,
+      cell: (bom) => (
+        <div className="font-medium text-slate-900">
+          <div>{bom.bomName}</div>
+          <span className="text-[11px] text-slate-400 font-mono">
+            {new Date(bom.createdAt).toLocaleDateString()}
+          </span>
+        </div>
+      ),
+    },
+    {
+      id: "finishedItem",
+      header: lang === "gu" ? "તૈયાર માલ (Finished Item)" : "Finished Item",
+      accessorFn: (bom) => `${bom.finishedItem?.name || ""} ${bom.finishedItem?.sku || ""}`,
+      sortable: true,
+      cell: (bom) => (
+        <div>
+          <div className="font-medium text-slate-800">
+            {bom.finishedItem?.name || "Item"}
+          </div>
+          {bom.finishedItem?.sku && (
+            <span className="text-xs text-slate-400 font-mono">
+              SKU: {bom.finishedItem.sku}
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
+      id: "batchYieldQty",
+      header: lang === "gu" ? "બેચ આઉટપુટ (Yield Qty)" : "Yield Qty",
+      accessorKey: "batchYieldQty",
+      sortable: true,
+      align: "right",
+      cell: (bom) => (
+        <div className="text-right font-mono font-semibold text-slate-700">
+          {Number(bom.batchYieldQty).toLocaleString()}{" "}
+          <span className="text-xs font-normal text-slate-500">
+            {bom.finishedItem?.primaryUom?.code || "Unit"}
+          </span>
+        </div>
+      ),
+    },
+    {
+      id: "components",
+      header: lang === "gu" ? "ઘટકો (Components)" : "Components",
+      accessorFn: (bom) => bom.items.length,
+      sortable: true,
+      align: "center",
+      cell: (bom) => (
+        <div className="flex justify-center">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FFF3E8] text-[#F47721] border border-[#F47721]/30">
+            {bom.items.length}{" "}
+            {lang === "gu" ? "કાચો માલ" : "Raw Materials"}
+          </span>
+        </div>
+      ),
+    },
+    {
+      id: "overhead",
+      header: lang === "gu" ? "અંદાજિત ખર્ચ (Labor/OH)" : "Est. Overhead",
+      accessorFn: (bom) => Number(bom.laborCostEst || 0) + Number(bom.overheadCostEst || 0),
+      sortable: true,
+      align: "right",
+      cell: (bom) => (
+        <div className="text-right font-mono text-slate-700">
+          <div>₹{(Number(bom.laborCostEst || 0) + Number(bom.overheadCostEst || 0)).toFixed(2)}</div>
+          <span className="text-[10px] text-slate-400 block">
+            L: ₹{Number(bom.laborCostEst || 0).toFixed(0)} | OH: ₹{Number(bom.overheadCostEst || 0).toFixed(0)}
+          </span>
+        </div>
+      ),
+    },
+    {
+      id: "actions",
+      header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
+      align: "right",
+      cell: (bom) => (
+        <div className="flex items-center justify-end space-x-2 whitespace-nowrap">
+          <button
+            onClick={() => handleOpenView(bom)}
+            className="text-xs text-slate-600 hover:text-[#F47721] font-medium px-2 py-1 rounded hover:bg-slate-100 transition-colors"
+          >
+            {lang === "gu" ? "વિગતો" : "View"}
+          </button>
+          <button
+            onClick={() => handleOpenEdit(bom)}
+            className="text-xs text-[#F47721] hover:text-[#D95F12] font-semibold px-2 py-1 rounded hover:bg-[#FFF3E8] transition-colors"
+          >
+            {lang === "gu" ? "સુધારો" : "Edit"}
+          </button>
+          <button
+            onClick={() => setDeleteConfirmId(bom.id)}
+            className="text-xs text-rose-600 hover:text-rose-800 font-medium px-2 py-1 rounded hover:bg-rose-50 transition-colors"
+          >
+            {lang === "gu" ? "કાઢી નાખો" : "Delete"}
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -305,42 +405,6 @@ export default function BomPage() {
         </button>
       </div>
 
-      {/* Search and Filter */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="relative w-full sm:w-96">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder={
-              lang === "gu"
-                ? "BOM અથવા તૈયાર માલના નામથી શોધો..."
-                : "Search by BOM name or finished item..."
-            }
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#F47721] focus:bg-white transition-all"
-          />
-          <svg
-            className="w-4 h-4 text-slate-400 absolute left-3 top-3"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-        </div>
-
-        <div className="text-xs text-slate-500">
-          {lang === "gu"
-            ? `કુલ ${filteredBoms.length} રેસિપી મળ્યા`
-            : `Showing ${filteredBoms.length} BOM recipe(s)`}
-        </div>
-      </div>
-
       {/* Error Banner */}
       {error && (
         <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-sm flex items-center justify-between">
@@ -354,152 +418,94 @@ export default function BomPage() {
         </div>
       )}
 
-      {/* Listing Table / Responsive Cards */}
-      {isLoading ? (
-        <div className="p-12 text-center text-slate-400 bg-white rounded-xl border border-slate-200">
-          <svg
-            className="w-8 h-8 animate-spin mx-auto text-indigo-500 mb-2"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
+      {/* Listing with DataTable */}
+      <DataTable<BillOfMaterial>
+        data={boms}
+        columns={columns}
+        isLoading={isLoading}
+        searchPlaceholder={lang === "gu" ? "BOM અથવા તૈયાર માલના નામથી શોધો..." : "Search by BOM name or finished item..."}
+        exportFileName="bill_of_materials"
+        themeColor="saffron"
+        pageSize={10}
+        emptyState={
+          <div className="p-12 text-center bg-white rounded-xl">
+            <svg
+              className="w-12 h-12 mx-auto text-slate-300 mb-3"
+              fill="none"
+              viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8v8H4z"
-            />
-          </svg>
-          <span className="text-sm font-medium">
-            {lang === "gu" ? "ડેટા લોડ થઈ રહ્યો છે..." : "Loading Bills of Materials..."}
-          </span>
-        </div>
-      ) : filteredBoms.length === 0 ? (
-        <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
-          <svg
-            className="w-12 h-12 mx-auto text-slate-300 mb-3"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-            />
-          </svg>
-          <h3 className="text-sm font-semibold text-slate-700">
-            {lang === "gu" ? "કોઈ BOM મળ્યું નથી" : "No Bills of Materials found"}
-          </h3>
-          <p className="text-xs text-slate-500 mt-1">
-            {lang === "gu"
-              ? "તમારા ઉત્પાદન કાર્યો માટે નવું BOM બનાવો."
-              : "Create a BOM to start standardizing production formulas."}
-          </p>
-          <button
-            onClick={handleOpenCreate}
-            className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-[#FFF3E8] text-[#F47721] rounded-lg text-xs font-semibold hover:bg-[#F47721] hover:text-white transition-colors"
-          >
-            + {lang === "gu" ? "પ્રથમ BOM બનાવો" : "Create First BOM"}
-          </button>
-        </div>
-      ) : (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-3 font-semibold">
-                    {lang === "gu" ? "BOM નું નામ" : "BOM Name"}
-                  </th>
-                  <th className="px-6 py-3 font-semibold">
-                    {lang === "gu" ? "તૈયાર માલ (Finished Item)" : "Finished Item"}
-                  </th>
-                  <th className="px-6 py-3 font-semibold text-right">
-                    {lang === "gu" ? "બેચ આઉટપુટ (Yield Qty)" : "Yield Qty"}
-                  </th>
-                  <th className="px-6 py-3 font-semibold text-center">
-                    {lang === "gu" ? "ઘટકો (Components)" : "Components"}
-                  </th>
-                  <th className="px-6 py-3 font-semibold text-right">
-                    {lang === "gu" ? "અંદાજિત ખર્ચ (Labor/OH)" : "Est. Overhead"}
-                  </th>
-                  <th className="px-6 py-3 font-semibold text-right">
-                    {lang === "gu" ? "ક્રિયાઓ" : "Actions"}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredBoms.map((bom) => (
-                  <tr key={bom.id} className="hover:bg-slate-50/75 transition-colors">
-                    <td className="px-6 py-4 font-medium text-slate-900">
-                      <div>{bom.bomName}</div>
-                      <span className="text-[11px] text-slate-400 font-mono">
-                        {new Date(bom.createdAt).toLocaleDateString()}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-slate-800">
-                        {bom.finishedItem?.name || "Item"}
-                      </div>
-                      {bom.finishedItem?.sku && (
-                        <span className="text-xs text-slate-400 font-mono">
-                          SKU: {bom.finishedItem.sku}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right font-mono font-semibold text-slate-700">
-                      {Number(bom.batchYieldQty).toLocaleString()}{" "}
-                      <span className="text-xs font-normal text-slate-500">
-                        {bom.finishedItem?.primaryUom?.code || "Unit"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FFF3E8] text-[#F47721] border border-[#F47721]/30">
-                        {bom.items.length}{" "}
-                        {lang === "gu" ? "કાચો માલ" : "Raw Materials"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right font-mono text-slate-700">
-                      <div>₹{(Number(bom.laborCostEst || 0) + Number(bom.overheadCostEst || 0)).toFixed(2)}</div>
-                      <span className="text-[10px] text-slate-400 block">
-                        L: ₹{Number(bom.laborCostEst || 0).toFixed(0)} | OH: ₹{Number(bom.overheadCostEst || 0).toFixed(0)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
-                      <button
-                        onClick={() => handleOpenView(bom)}
-                        className="text-xs text-slate-600 hover:text-[#F47721] font-medium px-2 py-1 rounded hover:bg-slate-100 transition-colors"
-                      >
-                        {lang === "gu" ? "વિગતો" : "View"}
-                      </button>
-                      <button
-                        onClick={() => handleOpenEdit(bom)}
-                        className="text-xs text-[#F47721] hover:text-[#D95F12] font-semibold px-2 py-1 rounded hover:bg-[#FFF3E8] transition-colors"
-                      >
-                        {lang === "gu" ? "સુધારો" : "Edit"}
-                      </button>
-                      <button
-                        onClick={() => setDeleteConfirmId(bom.id)}
-                        className="text-xs text-rose-600 hover:text-rose-800 font-medium px-2 py-1 rounded hover:bg-rose-50 transition-colors"
-                      >
-                        {lang === "gu" ? "કાઢી નાખો" : "Delete"}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+              />
+            </svg>
+            <h3 className="text-sm font-semibold text-slate-700">
+              {lang === "gu" ? "કોઈ BOM મળ્યું નથી" : "No Bills of Materials found"}
+            </h3>
+            <p className="text-xs text-slate-500 mt-1">
+              {lang === "gu"
+                ? "તમારા ઉત્પાદન કાર્યો માટે નવું BOM બનાવો."
+                : "Create a BOM to start standardizing production formulas."}
+            </p>
+            <button
+              onClick={handleOpenCreate}
+              className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-[#FFF3E8] text-[#F47721] rounded-lg text-xs font-semibold hover:bg-[#F47721] hover:text-white transition-colors"
+            >
+              + {lang === "gu" ? "પ્રથમ BOM બનાવો" : "Create First BOM"}
+            </button>
           </div>
-        </div>
-      )}
+        }
+        mobileCardRender={(bom) => (
+          <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="font-semibold text-slate-900">{bom.bomName}</div>
+                <div className="text-xs text-slate-500 font-medium">{bom.finishedItem?.name || "Item"}</div>
+              </div>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#FFF3E8] text-[#F47721] border border-[#F47721]/30">
+                {bom.items.length} {lang === "gu" ? "કાચો માલ" : "Items"}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-slate-100">
+              <div>
+                <span className="text-slate-400 block text-[10px]">{lang === "gu" ? "બેચ આઉટપુટ" : "Yield Qty"}</span>
+                <span className="font-mono font-medium text-slate-700">
+                  {Number(bom.batchYieldQty).toLocaleString()} {bom.finishedItem?.primaryUom?.code || "Unit"}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px]">{lang === "gu" ? "અંદાજિત ઓવરહેડ" : "Est. Overhead"}</span>
+                <span className="font-mono font-medium text-slate-700">
+                  ₹{(Number(bom.laborCostEst || 0) + Number(bom.overheadCostEst || 0)).toFixed(2)}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100">
+              <button
+                onClick={() => handleOpenView(bom)}
+                className="text-xs text-slate-600 hover:text-[#F47721] font-medium px-2 py-1 rounded hover:bg-slate-100 transition-colors"
+              >
+                {lang === "gu" ? "વિગતો" : "View"}
+              </button>
+              <button
+                onClick={() => handleOpenEdit(bom)}
+                className="text-xs text-[#F47721] hover:text-[#D95F12] font-semibold px-2 py-1 rounded hover:bg-[#FFF3E8] transition-colors"
+              >
+                {lang === "gu" ? "સુધારો" : "Edit"}
+              </button>
+              <button
+                onClick={() => setDeleteConfirmId(bom.id)}
+                className="text-xs text-rose-600 hover:text-rose-800 font-medium px-2 py-1 rounded hover:bg-rose-50 transition-colors"
+              >
+                {lang === "gu" ? "કાઢી નાખો" : "Delete"}
+              </button>
+            </div>
+          </div>
+        )}
+      />
 
       {/* Create BOM Modal */}
       <Modal

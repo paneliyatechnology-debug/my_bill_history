@@ -5,6 +5,7 @@ import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { Badge, StatusBadge } from "../../../components/ui/badge";
 import { StatCard } from "../../../components/ui/stat-card";
+import { DataTable, ColumnDef } from "../../../components/ui/data-table";
 
 interface StockGlRecon {
   companyId: string;
@@ -502,46 +503,78 @@ export default function InventoryReconciliationPage() {
                     </span>
                   </div>
 
-                  {inTransitData.transfers.length === 0 ? (
-                    <div className="p-8 text-center text-slate-400 text-xs">
-                      No active goods currently in transit.
-                    </div>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs">
-                        <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
-                          <tr>
-                            <th className="px-4 py-2.5 font-semibold">Transfer #</th>
-                            <th className="px-4 py-2.5 font-semibold">Route</th>
-                            <th className="px-4 py-2.5 font-semibold">Dispatched At</th>
-                            <th className="px-4 py-2.5 font-semibold text-right">Items</th>
-                            <th className="px-4 py-2.5 font-semibold text-right">In-Transit Qty</th>
-                            <th className="px-4 py-2.5 font-semibold text-right">Valuation (₹)</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {inTransitData.transfers.map((t) => (
-                            <tr key={t.transferId}>
-                              <td className="px-4 py-3 font-mono font-medium text-slate-900">{t.transferNumber}</td>
-                              <td className="px-4 py-3 text-slate-800 font-medium">
-                                {t.fromWarehouse} → {t.toWarehouse}
-                              </td>
-                              <td className="px-4 py-3 text-slate-600">
-                                {new Date(t.dispatchedAt).toLocaleDateString()}
-                              </td>
-                              <td className="px-4 py-3 text-right font-mono">{t.itemsCount}</td>
-                              <td className="px-4 py-3 text-right font-mono font-bold text-indigo-700">
-                                {t.inTransitQuantity}
-                              </td>
-                              <td className="px-4 py-3 text-right font-mono font-bold text-slate-900">
-                                ₹{Number(t.inTransitValuation).toFixed(2)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
+                  <DataTable<InTransitRecon["transfers"][number]>
+                    data={inTransitData.transfers}
+                    columns={[
+                      {
+                        id: "transferNumber",
+                        header: lang === "gu" ? "ટ્રાન્સફર #" : "Transfer #",
+                        accessorKey: "transferNumber",
+                        sortable: true,
+                        cell: (t) => <span className="font-mono font-medium text-slate-900">{t.transferNumber}</span>,
+                      },
+                      {
+                        id: "route",
+                        header: lang === "gu" ? "રૂટ (ગોડાઉન)" : "Route",
+                        accessorFn: (t) => `${t.fromWarehouse} → ${t.toWarehouse}`,
+                        sortable: true,
+                        cell: (t) => <span className="text-slate-800 font-medium">{t.fromWarehouse} → {t.toWarehouse}</span>,
+                      },
+                      {
+                        id: "dispatchedAt",
+                        header: lang === "gu" ? "મોકલ્યા તારીખ" : "Dispatched At",
+                        accessorKey: "dispatchedAt",
+                        sortable: true,
+                        cell: (t) => <span className="text-slate-600">{new Date(t.dispatchedAt).toLocaleDateString()}</span>,
+                      },
+                      {
+                        id: "itemsCount",
+                        header: lang === "gu" ? "આઇટમ્સ" : "Items",
+                        accessorKey: "itemsCount",
+                        sortable: true,
+                        align: "right",
+                        cell: (t) => <span className="font-mono text-slate-700">{t.itemsCount}</span>,
+                      },
+                      {
+                        id: "inTransitQuantity",
+                        header: lang === "gu" ? "રસ્તામાં જથ્થો" : "In-Transit Qty",
+                        accessorKey: "inTransitQuantity",
+                        sortable: true,
+                        align: "right",
+                        cell: (t) => <span className="font-mono font-bold text-indigo-700">{t.inTransitQuantity}</span>,
+                      },
+                      {
+                        id: "inTransitValuation",
+                        header: lang === "gu" ? "કુલ મૂલ્ય (₹)" : "Valuation (₹)",
+                        accessorKey: "inTransitValuation",
+                        sortable: true,
+                        align: "right",
+                        cell: (t) => <span className="font-mono font-bold text-slate-900">₹{Number(t.inTransitValuation).toFixed(2)}</span>,
+                      },
+                    ]}
+                    searchPlaceholder={lang === "gu" ? "ટ્રાન્સફર # અથવા ગોડાઉન શોધો..." : "Search transfer # or warehouse..."}
+                    exportFileName="in_transit_goods"
+                    themeColor="saffron"
+                    pageSize={10}
+                    emptyState={
+                      <div className="p-8 text-center text-slate-400 text-xs">
+                        {lang === "gu" ? "કોઈ સક્રિય માલ રસ્તામાં નથી." : "No active goods currently in transit."}
+                      </div>
+                    }
+                    mobileCardRender={(t) => (
+                      <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-sm space-y-2 text-xs">
+                        <div className="flex justify-between items-start">
+                          <span className="font-mono font-bold text-slate-900">{t.transferNumber}</span>
+                          <span className="font-mono font-bold text-slate-900">₹{Number(t.inTransitValuation).toFixed(2)}</span>
+                        </div>
+                        <div className="text-slate-700 font-medium">{t.fromWarehouse} → {t.toWarehouse}</div>
+                        <div className="flex justify-between text-slate-500 pt-1 border-t border-slate-100">
+                          <span>Dispatched: {new Date(t.dispatchedAt).toLocaleDateString()}</span>
+                          <span className="font-mono text-indigo-700 font-bold">Qty: {t.inTransitQuantity}</span>
+                        </div>
+                      </div>
+                    )}
+                  />
                 </div>
               )}
 

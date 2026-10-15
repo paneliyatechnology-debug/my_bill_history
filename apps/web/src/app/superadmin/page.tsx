@@ -1478,6 +1478,7 @@ export default function SuperAdminPortalPage() {
                   );
                 }}
                 lang={lang}
+                themeColor="purple"
                 exportable
                 exportFileName="tenants_organizations"
                 filtersSlot={
@@ -1660,6 +1661,7 @@ export default function SuperAdminPortalPage() {
                   )
                 }
                 lang={lang}
+                themeColor="purple"
                 exportable
                 exportFileName="global_invoices"
               />
@@ -1698,6 +1700,7 @@ export default function SuperAdminPortalPage() {
                   )
                 }
                 lang={lang}
+                themeColor="purple"
                 exportable
                 exportFileName="platform_users"
                 filtersSlot={
@@ -1751,6 +1754,7 @@ export default function SuperAdminPortalPage() {
                   )
                 }
                 lang={lang}
+                themeColor="purple"
                 exportable
                 exportFileName="global_audit_trail"
                 filtersSlot={

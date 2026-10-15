@@ -5,6 +5,7 @@ import { useAuth } from "../../../context/auth-context";
 import { apiClient } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { Badge } from "../../../components/ui/badge";
+import { DataTable, ColumnDef } from "../../../components/ui/data-table";
 
 interface LedgerGroup {
   id: string;
@@ -105,6 +106,54 @@ export default function ChartOfAccountsPage() {
     EXPENSE: "danger",
   };
 
+  const columns: ColumnDef<LedgerGroup>[] = [
+    {
+      header: lang === "gu" ? "જૂથ કોડ" : "Group Code",
+      accessorKey: "code",
+      sortable: true,
+      cell: (g) => (
+        <span className="font-mono font-bold text-slate-800">{g.code}</span>
+      ),
+    },
+    {
+      header: lang === "gu" ? "જૂથનું નામ" : "Group Name",
+      accessorKey: "name",
+      sortable: true,
+      cell: (g) => (
+        <div>
+          <div className="font-semibold text-slate-900">{g.name}</div>
+          {g.nameGujarati && (
+            <div className="text-[11px] font-normal text-slate-500">
+              {g.nameGujarati}
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      header: lang === "gu" ? "નામા વર્ગીકરણ" : "Classification",
+      accessorKey: "classification",
+      sortable: true,
+      cell: (g) => (
+        <Badge
+          variant={classificationColor[g.classification] || "neutral"}
+        >
+          {g.classification}
+        </Badge>
+      ),
+    },
+    {
+      header: lang === "gu" ? "પ્રાથમિક જૂથ" : "Level",
+      accessorKey: "isPrimary",
+      sortable: true,
+      cell: (g) => (
+        <span className="text-slate-600">
+          {g.isPrimary ? "Primary Group" : "Sub Group"}
+        </span>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -187,83 +236,46 @@ export default function ChartOfAccountsPage() {
         </div>
       )}
 
-      {/* Group Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "જૂથ કોડ" : "Group Code"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "જૂથનું નામ" : "Group Name"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "નામા વર્ગીકરણ" : "Classification"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "પ્રાથમિક જૂથ" : "Level"}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={4} className="py-12 text-center text-slate-400">
-                    <div className="inline-block w-6 h-6 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin mb-2" />
-                    <p>Loading chart of accounts...</p>
-                  </td>
-                </tr>
-              ) : groups.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="py-12 text-center text-slate-400">
-                    <p className="font-semibold text-slate-700 mb-1">
-                      No Ledger Groups Seeded
-                    </p>
-                    <p className="text-[11px] mb-3">
-                      Click &apos;Seed Indian SME Accounts&apos; above to
-                      automatically populate standard Indian accounting ledger
-                      groups.
-                    </p>
-                  </td>
-                </tr>
-              ) : (
-                groups.map((g) => (
-                  <tr
-                    key={g.id}
-                    className="hover:bg-slate-50 transition-colors"
-                  >
-                    <td className="py-3 px-4 font-mono font-bold text-slate-800">
-                      {g.code}
-                    </td>
-                    <td className="py-3 px-4 font-semibold text-slate-900">
-                      <div>{g.name}</div>
-                      {g.nameGujarati && (
-                        <div className="text-[11px] font-normal text-slate-500">
-                          {g.nameGujarati}
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-3 px-4">
-                      <Badge
-                        variant={
-                          classificationColor[g.classification] || "neutral"
-                        }
-                      >
-                        {g.classification}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4 text-slate-600">
-                      {g.isPrimary ? "Primary Group" : "Sub Group"}
-                    </td>
-                  </tr>
-                ))
+      {/* Main DataTable */}
+      <DataTable<LedgerGroup>
+        data={groups}
+        columns={columns}
+        keyExtractor={(g) => g.id}
+        searchPlaceholder={
+          lang === "gu"
+            ? "જૂથ કોડ, નામ થી શોધો..."
+            : "Search by group code or name..."
+        }
+        searchKeys={["code", "name", "nameGujarati", "classification"]}
+        defaultPageSize={10}
+        isLoading={isLoading}
+        emptyMessage={
+          lang === "gu"
+            ? "કોઈ ખાતા જૂથ નથી. ઉપર 'ભારતીય SME ખાતાઓ સીડ કરો' પર ક્લિક કરો."
+            : "No Ledger Groups Seeded. Click 'Seed Indian SME Accounts' above."
+        }
+        exportFilename="chart_of_accounts_groups"
+        themeColor="saffron"
+        mobileCardRender={(g) => (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-mono font-bold text-slate-800">{g.code}</span>
+              <Badge variant={classificationColor[g.classification] || "neutral"}>
+                {g.classification}
+              </Badge>
+            </div>
+            <div>
+              <div className="font-semibold text-slate-900">{g.name}</div>
+              {g.nameGujarati && (
+                <div className="text-xs text-slate-500">{g.nameGujarati}</div>
               )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </div>
+            <div className="text-xs text-slate-500">
+              Level: {g.isPrimary ? "Primary Group" : "Sub Group"}
+            </div>
+          </div>
+        )}
+      />
 
       <Modal
         isOpen={isModalOpen}

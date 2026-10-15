@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { Badge, StatusBadge } from "../../../components/ui/badge";
 import { HsnSelector } from "../../../components/ui/hsn-selector";
+import { DataTable, ColumnDef } from "../../../components/ui/data-table";
 
 interface Item {
   id: string;
@@ -274,16 +275,138 @@ export default function ItemsPage() {
     }
   };
 
-  const filteredItems = items.filter((it) => {
-    if (typeFilter !== "ALL" && it.type !== typeFilter) return false;
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      it.name.toLowerCase().includes(term) ||
-      (it.sku && it.sku.toLowerCase().includes(term)) ||
-      (it.hsnCode && it.hsnCode.includes(term))
-    );
-  });
+  const displayItems = useMemo(() => {
+    if (typeFilter === "ALL") return items;
+    return items.filter((it) => it.type === typeFilter);
+  }, [items, typeFilter]);
+
+  const itemColumns = useMemo<ColumnDef<Item>[]>(
+    () => [
+      {
+        id: "name",
+        header: lang === "gu" ? "વસ્તુનું નામ" : "Item Name",
+        accessorKey: "name",
+        sortable: true,
+        cell: (it) => (
+          <div className="font-semibold text-slate-900">
+            <div>{it.name}</div>
+            {it.nameGujarati && (
+              <div className="text-[11px] font-normal text-slate-500">
+                {it.nameGujarati}
+              </div>
+            )}
+          </div>
+        ),
+      },
+      {
+        id: "type",
+        header: lang === "gu" ? "પ્રકાર" : "Type",
+        accessorKey: "type",
+        sortable: true,
+        cell: (it) => (
+          <Badge variant={it.type === "PRODUCT" ? "info" : "purple"}>
+            {it.type}
+          </Badge>
+        ),
+      },
+      {
+        id: "sku",
+        header: lang === "gu" ? "એસકેયુ / બારકોડ" : "SKU / Code",
+        accessorFn: (it) => it.sku || it.barcode || "—",
+        sortable: true,
+        className: "font-mono text-slate-600",
+      },
+      {
+        id: "hsnCode",
+        header: lang === "gu" ? "એચએસએન (HSN/SAC)" : "HSN/SAC",
+        accessorKey: "hsnCode",
+        sortable: true,
+        className: "font-mono font-medium text-slate-800",
+      },
+      {
+        id: "batches",
+        header: lang === "gu" ? "બેચ ટ્રેકિંગ" : "Batches",
+        cell: (it) =>
+          it.type === "PRODUCT" ? (
+            it.trackBatches ? (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                ✓ {lang === "gu" ? "સક્રિય" : "Enabled"}
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-500">
+                ✕ {lang === "gu" ? "નિષ્ક્રિય" : "Off"}
+              </span>
+            )
+          ) : (
+            <span className="text-[11px] text-slate-400 italic">N/A</span>
+          ),
+      },
+      {
+        id: "taxRate",
+        header: lang === "gu" ? "જીએસટી દર" : "GST Rate",
+        accessorKey: "taxRate",
+        sortable: true,
+        cell: (it) => (
+          <span className="inline-block bg-slate-100 font-mono font-semibold px-2 py-0.5 rounded text-slate-700">
+            {it.taxRate}%
+          </span>
+        ),
+      },
+      {
+        id: "retailPrice",
+        header: lang === "gu" ? "વેચાણ ભાવ (₹)" : "Retail Price (₹)",
+        accessorKey: "retailPrice",
+        sortable: true,
+        className: "text-right font-mono font-bold text-slate-900",
+        cell: (it) => `₹${Number(it.retailPrice).toFixed(2)}`,
+      },
+      {
+        id: "purchaseRate",
+        header: lang === "gu" ? "ખરીદ ભાવ (₹)" : "Purchase Rate (₹)",
+        accessorKey: "purchaseRate",
+        sortable: true,
+        className: "text-right font-mono text-slate-600",
+        cell: (it) => `₹${Number(it.purchaseRate || 0).toFixed(2)}`,
+      },
+      {
+        id: "status",
+        header: lang === "gu" ? "સ્થિતિ" : "Status",
+        accessorKey: "isActive",
+        sortable: true,
+        cell: (it) => <StatusBadge status={it.isActive ? "ACTIVE" : "INACTIVE"} />,
+      },
+      {
+        id: "actions",
+        header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
+        className: "text-center",
+        cell: (it) => (
+          <div className="inline-flex items-center justify-center gap-1.5">
+            <button
+              onClick={() => handleOpenEditModal(it)}
+              className="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded transition-colors inline-flex items-center gap-1 cursor-pointer"
+              title="Edit Item"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+              <span>{lang === "gu" ? "સુધારો" : "Edit"}</span>
+            </button>
+            <button
+              onClick={() => setItemToDelete(it)}
+              className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded transition-colors inline-flex items-center gap-1 cursor-pointer"
+              title="Delete Item"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <span>{lang === "gu" ? "કાઢી નાખો" : "Delete"}</span>
+            </button>
+          </div>
+        ),
+      },
+    ],
+    [lang]
+  );
 
   return (
     <div className="space-y-6">
@@ -327,214 +450,102 @@ export default function ItemsPage() {
         </button>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-border shadow-subtle flex flex-col sm:flex-row items-center gap-3">
-        <div className="relative flex-1 w-full">
-          <svg
-            className="w-4 h-4 absolute left-3.5 top-3 text-muted"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder={
-              lang === "gu"
-                ? "વસ્તુનું નામ, એસકેયુ અથવા એચએસએન કોડ દ્વારા શોધો..."
-                : "Search by item name, SKU, or HSN code..."
-            }
-            className="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white text-slate-900 transition-all"
-          />
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-100 text-xs text-rose-700 font-medium rounded-xl">
+          {error}
         </div>
+      )}
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="w-full sm:w-auto text-xs bg-slate-50 border border-border text-slate-700 rounded-xl px-3.5 py-2.5 font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-all cursor-pointer"
-          >
-            <option value="ALL">
-              {lang === "gu" ? "તમામ પ્રકાર (All Types)" : "All Types"}
-            </option>
-            <option value="PRODUCT">
-              {lang === "gu" ? "ઉત્પાદન (Product)" : "Products"}
-            </option>
-            <option value="SERVICE">
-              {lang === "gu" ? "સેવા (Service)" : "Services"}
-            </option>
-          </select>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        {error && (
-          <div className="p-4 bg-rose-50 border-b border-rose-100 text-xs text-rose-700 font-medium">
-            {error}
+      {/* Items Catalog DataTable */}
+      <DataTable<Item>
+        data={displayItems}
+        columns={itemColumns}
+        keyExtractor={(it) => it.id}
+        searchPlaceholder={
+          lang === "gu"
+            ? "વસ્તુનું નામ, એસકેયુ અથવા એચએસએન કોડ દ્વારા શોધો..."
+            : "Search by item name, SKU, or HSN code..."
+        }
+        searchKeys={["name", "sku", "barcode", "hsnCode"]}
+        customSearchFn={(it, q) =>
+          Boolean(
+            it.name.toLowerCase().includes(q) ||
+              (it.nameGujarati && it.nameGujarati.toLowerCase().includes(q)) ||
+              (it.sku && it.sku.toLowerCase().includes(q)) ||
+              (it.barcode && it.barcode.toLowerCase().includes(q)) ||
+              (it.hsnCode && it.hsnCode.includes(q))
+          )
+        }
+        isLoading={isLoading}
+        lang={lang}
+        themeColor="saffron"
+        exportable
+        exportFileName="items_catalog"
+        filtersSlot={
+          <div className="flex items-center gap-2">
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="text-xs bg-[#F8F9FB] border border-[#E5E7EB] text-[#202124] rounded-xl px-3 py-1.5 font-semibold focus:outline-none focus:bg-white cursor-pointer"
+            >
+              <option value="ALL">
+                {lang === "gu" ? "તમામ પ્રકાર (All Types)" : "All Types"}
+              </option>
+              <option value="PRODUCT">
+                {lang === "gu" ? "ઉત્પાદન (Product)" : "Products"}
+              </option>
+              <option value="SERVICE">
+                {lang === "gu" ? "સેવા (Service)" : "Services"}
+              </option>
+            </select>
+          </div>
+        }
+        mobileCardRender={(it) => (
+          <div key={it.id} className="p-3.5 hover:bg-slate-50 transition-colors space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-semibold text-slate-900 text-sm">{it.name}</span>
+              <Badge variant={it.type === "PRODUCT" ? "info" : "purple"}>{it.type}</Badge>
+            </div>
+            {it.nameGujarati && <p className="text-xs text-slate-500">{it.nameGujarati}</p>}
+            <div className="flex items-center justify-between text-xs text-slate-600 font-mono">
+              <span>SKU: {it.sku || it.barcode || "—"}</span>
+              <span>HSN: {it.hsnCode}</span>
+            </div>
+            <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex items-center justify-between text-xs">
+              <div>
+                <span className="text-[10px] text-slate-500 uppercase block">
+                  {lang === "gu" ? "વેચાણ ભાવ" : "Retail Price"}
+                </span>
+                <span className="font-mono font-bold text-slate-900">
+                  ₹{Number(it.retailPrice).toFixed(2)}
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-[10px] text-slate-500 uppercase block">
+                  {lang === "gu" ? "જીએસટી" : "Tax"}
+                </span>
+                <span className="font-mono font-semibold text-slate-700">{it.taxRate}%</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => handleOpenEditModal(it)}
+                className="px-3 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg cursor-pointer"
+              >
+                {lang === "gu" ? "સુધારો" : "Edit"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setItemToDelete(it)}
+                className="px-3 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg cursor-pointer"
+              >
+                {lang === "gu" ? "કાઢી નાખો" : "Delete"}
+              </button>
+            </div>
           </div>
         )}
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "વસ્તુનું નામ" : "Item Name"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "પ્રકાર" : "Type"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "એસકેયુ / બારકોડ" : "SKU / Code"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "એચએસએન (HSN/SAC)" : "HSN/SAC"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "બેચ ટ્રેકિંગ" : "Batches"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "જીએસટી દર" : "GST Rate"}
-                </th>
-                <th className="py-3 px-4 text-right">
-                  {lang === "gu" ? "વેચાણ ભાવ (₹)" : "Retail Price (₹)"}
-                </th>
-                <th className="py-3 px-4 text-right">
-                  {lang === "gu" ? "ખરીદ ભાવ (₹)" : "Purchase Rate (₹)"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "સ્થિતિ" : "Status"}
-                </th>
-                <th className="py-3 px-4 text-center">
-                  {lang === "gu" ? "ક્રિયાઓ" : "Actions"}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={10} className="py-12 text-center text-slate-400">
-                    <div className="inline-block w-6 h-6 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin mb-2" />
-                    <p>
-                      {lang === "gu"
-                        ? "વસ્તુઓ લોડ થઈ રહી છે..."
-                        : "Loading items..."}
-                    </p>
-                  </td>
-                </tr>
-              ) : filteredItems.length === 0 ? (
-                <tr>
-                  <td colSpan={10} className="py-12 text-center text-slate-400">
-                    <p className="font-medium text-slate-600 mb-1">
-                      {lang === "gu"
-                        ? "કોઈ વસ્તુઓ નોંધાયેલ નથી"
-                        : "No items found in catalog"}
-                    </p>
-                    <p className="text-[11px]">
-                      {lang === "gu"
-                        ? "નવું ઉત્પાદન કે સેવા ઉમેરવા માટે ઉપર આપેલ બટન દબાવો."
-                        : "Click 'Add New Item' to start building your product catalog."}
-                    </p>
-                  </td>
-                </tr>
-              ) : (
-                filteredItems.map((it) => (
-                  <tr
-                    key={it.id}
-                    className="hover:bg-slate-50 transition-colors"
-                  >
-                    <td className="py-3 px-4 font-semibold text-slate-900">
-                      <div>{it.name}</div>
-                      {it.nameGujarati && (
-                        <div className="text-[11px] font-normal text-slate-500">
-                          {it.nameGujarati}
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-3 px-4">
-                      <Badge
-                        variant={it.type === "PRODUCT" ? "info" : "purple"}
-                      >
-                        {it.type}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4 font-mono text-slate-600">
-                      {it.sku || it.barcode || "—"}
-                    </td>
-                    <td className="py-3 px-4 font-mono font-medium text-slate-800">
-                      {it.hsnCode}
-                    </td>
-                    <td className="py-3 px-4">
-                      {it.type === "PRODUCT" ? (
-                        it.trackBatches ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                            ✓ {lang === "gu" ? "સક્રિય" : "Enabled"}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-500">
-                            ✕ {lang === "gu" ? "નિષ્ક્રિય" : "Off"}
-                          </span>
-                        )
-                      ) : (
-                        <span className="text-[11px] text-slate-400 italic">N/A</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="inline-block bg-slate-100 font-mono font-semibold px-2 py-0.5 rounded text-slate-700">
-                        {it.taxRate}%
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-right font-mono font-bold text-slate-900">
-                      ₹{Number(it.retailPrice).toFixed(2)}
-                    </td>
-                    <td className="py-3 px-4 text-right font-mono text-slate-600">
-                      ₹{Number(it.purchaseRate || 0).toFixed(2)}
-                    </td>
-                    <td className="py-3 px-4">
-                      <StatusBadge
-                        status={it.isActive ? "ACTIVE" : "INACTIVE"}
-                      />
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <div className="inline-flex items-center justify-center gap-1.5">
-                        <button
-                          onClick={() => handleOpenEditModal(it)}
-                          className="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded transition-colors inline-flex items-center gap-1"
-                          title="Edit Item"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                          </svg>
-                          <span>{lang === "gu" ? "સુધારો" : "Edit"}</span>
-                        </button>
-                        <button
-                          onClick={() => setItemToDelete(it)}
-                          className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded transition-colors inline-flex items-center gap-1"
-                          title="Delete Item"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          <span>{lang === "gu" ? "કાઢી નાખો" : "Delete"}</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      />
 
       {/* Create Item Modal */}
       <Modal

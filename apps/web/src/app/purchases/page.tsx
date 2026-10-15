@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
 import { Modal } from "../../components/ui/modal";
 import { StatCard } from "../../components/ui/stat-card";
 import { BillScannerModal } from "./components/bill-scanner-modal";
+import { DataTable, ColumnDef } from "../../components/ui/data-table";
 
 interface PurchaseInvoice {
   id: string;
@@ -313,6 +314,118 @@ export default function PurchasesPage() {
     0,
   );
 
+  const purchaseColumns = useMemo<ColumnDef<PurchaseInvoice>[]>(
+    () => [
+      {
+        id: "vendorInvoiceNumber",
+        header: lang === "gu" ? "બિલ નંબર" : "Bill Number",
+        accessorKey: "vendorInvoiceNumber",
+        sortable: true,
+        className: "font-mono font-bold text-slate-900",
+      },
+      {
+        id: "invoiceDate",
+        header: lang === "gu" ? "તારીખ" : "Date",
+        accessorKey: "invoiceDate",
+        sortable: true,
+        className: "font-mono text-slate-600",
+        cell: (inv) => new Date(inv.invoiceDate).toLocaleDateString("en-IN"),
+      },
+      {
+        id: "partyName",
+        header: lang === "gu" ? "વેપારી" : "Supplier",
+        accessorFn: (inv) =>
+          lang === "gu" && inv.party?.nameGujarati
+            ? inv.party.nameGujarati
+            : inv.party?.name || "",
+        sortable: true,
+        cell: (inv) => (
+          <div>
+            <div className="font-semibold text-slate-900">
+              {lang === "gu" && inv.party?.nameGujarati
+                ? inv.party.nameGujarati
+                : inv.party?.name}
+            </div>
+            {inv.party?.gstin && (
+              <div className="text-[10px] text-[#F47721] font-bold font-mono">
+                GST: {inv.party.gstin}
+              </div>
+            )}
+          </div>
+        ),
+      },
+      {
+        id: "taxableAmount",
+        header: lang === "gu" ? "કરપાત્ર રકમ" : "Taxable (₹)",
+        accessorKey: "taxableAmount",
+        sortable: true,
+        className: "text-right font-mono text-slate-700",
+        cell: (inv) => `₹${Number(inv.taxableAmount).toFixed(2)}`,
+      },
+      {
+        id: "tax",
+        header: lang === "gu" ? "ટેક્સ (ITC)" : "Tax (ITC) (₹)",
+        accessorFn: (inv) =>
+          Number(inv.cgstAmount || 0) +
+          Number(inv.sgstAmount || 0) +
+          Number(inv.igstAmount || 0),
+        sortable: true,
+        className: "text-right font-mono text-emerald-700 font-semibold",
+        cell: (inv) => {
+          const tax =
+            Number(inv.cgstAmount || 0) +
+            Number(inv.sgstAmount || 0) +
+            Number(inv.igstAmount || 0);
+          return `₹${tax.toFixed(2)}`;
+        },
+      },
+      {
+        id: "grandTotal",
+        header: lang === "gu" ? "કુલ રકમ" : "Grand Total (₹)",
+        accessorKey: "grandTotal",
+        sortable: true,
+        className: "text-right font-mono font-bold text-slate-900",
+        cell: (inv) => `₹${Number(inv.grandTotal).toFixed(2)}`,
+      },
+      {
+        id: "balance",
+        header: lang === "gu" ? "બાકી રકમ" : "Balance (₹)",
+        accessorFn: (inv) => Number(inv.balanceAmount ?? inv.grandTotal),
+        sortable: true,
+        className: "text-right",
+        cell: (inv) => (
+          <div>
+            <div className="font-mono font-semibold text-slate-800">
+              ₹{Number(inv.balanceAmount ?? inv.grandTotal).toFixed(2)}
+            </div>
+            {canPay && Number(inv.balanceAmount ?? inv.grandTotal) > 0 ? (
+              <button
+                type="button"
+                className="mt-1 text-[11px] font-bold text-[#F47721] hover:text-[#D95F12] hover:underline inline-block cursor-pointer"
+                onClick={() => openPayment(inv)}
+              >
+                {lang === "gu" ? "💳 ચુકવણી કરો" : "💳 Record Pay"}
+              </button>
+            ) : null}
+          </div>
+        ),
+      },
+      {
+        id: "itcEligibility",
+        header: lang === "gu" ? "આઈટીસી સ્ટેટસ" : "ITC Eligibility",
+        accessorKey: "itcEligibility",
+        sortable: true,
+        className: "text-center",
+        cell: (inv) => (
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+            {inv.itcEligibility || "INPUT"}
+          </span>
+        ),
+      },
+    ],
+    [lang, canPay]
+  );
+
   return (
     <div className="space-y-6">
       {/* Top Header */}
@@ -476,161 +589,93 @@ export default function PurchasesPage() {
         />
       </div>
 
-      {/* Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-border shadow-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="relative w-full sm:w-96">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder={
-              lang === "gu"
-                ? "બિલ નંબર અથવા વેપારી શોધો..."
-                : "Search bill number or supplier..."
-            }
-            className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none transition-all"
-          />
-          <svg
-            className="w-4 h-4 text-muted absolute left-3.5 top-3"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+      {/* Purchases DataTable */}
+      <DataTable<PurchaseInvoice>
+        data={invoices}
+        columns={purchaseColumns}
+        keyExtractor={(inv) => inv.id}
+        searchPlaceholder={
+          lang === "gu"
+            ? "બિલ નંબર, વેપારી અથવા GSTIN શોધો..."
+            : "Search bill number, supplier, GSTIN..."
+        }
+        searchKeys={["vendorInvoiceNumber", "itcEligibility"]}
+        customSearchFn={(inv, q) =>
+          Boolean(
+            inv.vendorInvoiceNumber.toLowerCase().includes(q) ||
+              (inv.party?.name && inv.party.name.toLowerCase().includes(q)) ||
+              (inv.party?.nameGujarati && inv.party.nameGujarati.toLowerCase().includes(q)) ||
+              (inv.party?.gstin && inv.party.gstin.toLowerCase().includes(q)) ||
+              (inv.itcEligibility && inv.itcEligibility.toLowerCase().includes(q))
+          )
+        }
+        isLoading={isLoading}
+        lang={lang}
+        themeColor="saffron"
+        exportable
+        exportFileName="purchase_bills"
+        mobileCardRender={(inv) => (
+          <div
+            key={inv.id}
+            className="p-3.5 hover:bg-saffron-very-light/60 transition-colors space-y-2"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-        </div>
-      </div>
-
-      {/* Invoices List Table */}
-      <div className="bg-white rounded-2xl border border-border shadow-subtle overflow-hidden">
-        {isLoading ? (
-          <div className="p-8 text-center text-xs text-muted">
-            <div className="inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mb-2" />
-            <p>
-              {lang === "gu"
-                ? "ખરીદી બિલો લોડ થઈ રહ્યા છે..."
-                : "Loading purchase bills..."}
-            </p>
-          </div>
-        ) : error ? (
-          <div className="p-8 text-center text-xs text-rose-600 font-medium">{error}</div>
-        ) : invoices.length === 0 ? (
-          <div className="p-12 text-center text-muted">
-            <div className="w-12 h-12 rounded-full bg-saffron-light text-primary flex items-center justify-center mx-auto mb-2 text-xl font-bold">
-              📦
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-mono font-bold text-sm text-slate-900">
+                {inv.vendorInvoiceNumber}
+              </span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                {inv.itcEligibility || "INPUT"}
+              </span>
             </div>
-            <p className="text-sm font-semibold text-slate-800">
-              {lang === "gu"
-                ? "કોઈ ખરીદી બિલ મળ્યા નથી."
-                : "No purchase bills recorded yet."}
-            </p>
-            <p className="text-xs text-muted mt-1">
-              {lang === "gu"
-                ? "નવા સ્ટોક અને આઈટીસી માટે ખરીદી બિલ દાખલ કરો."
-                : "Record a supplier invoice to update inventory and GST input tax credit."}
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50/80 text-slate-500 text-[11px] font-bold uppercase tracking-wider border-b border-border">
-                <tr>
-                  <th className="px-5 py-3">
-                    {lang === "gu" ? "બિલ નંબર" : "Bill Number"}
-                  </th>
-                  <th className="px-5 py-3">
-                    {lang === "gu" ? "તારીખ" : "Date"}
-                  </th>
-                  <th className="px-5 py-3">
-                    {lang === "gu" ? "વેપારી" : "Supplier"}
-                  </th>
-                  <th className="px-5 py-3 text-right">
-                    {lang === "gu" ? "કરપાત્ર રકમ" : "Taxable (₹)"}
-                  </th>
-                  <th className="px-5 py-3 text-right">
-                    {lang === "gu" ? "ટેક્સ (ITC)" : "Tax (ITC) (₹)"}
-                  </th>
-                  <th className="px-5 py-3 text-right">
-                    {lang === "gu" ? "કુલ રકમ" : "Grand Total (₹)"}
-                  </th>
-                  <th className="px-5 py-3 text-right">
-                    {lang === "gu" ? "બાકી રકમ" : "Balance (₹)"}
-                  </th>
-                  <th className="px-5 py-3 text-center">
-                    {lang === "gu" ? "આઈટીસી સ્ટેટસ" : "ITC Eligibility"}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {invoices.map((inv) => {
-                  const tax =
-                    Number(inv.cgstAmount || 0) +
-                    Number(inv.sgstAmount || 0) +
-                    Number(inv.igstAmount || 0);
-                  return (
-                    <tr
-                      key={inv.id}
-                      className="hover:bg-saffron-very-light/60 transition-colors group"
-                    >
-                      <td className="px-5 py-3.5 font-mono font-bold text-slate-900">
-                        {inv.vendorInvoiceNumber}
-                      </td>
-                      <td className="px-5 py-3.5 font-mono text-slate-600">
-                        {new Date(inv.invoiceDate).toLocaleDateString("en-IN")}
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <div className="font-semibold text-slate-900">
-                          {lang === "gu" && inv.party.nameGujarati
-                            ? inv.party.nameGujarati
-                            : inv.party.name}
-                        </div>
-                        {inv.party.gstin && (
-                          <div className="text-[10px] text-primary font-bold font-mono">
-                            {inv.party.gstin}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-5 py-3.5 text-right font-mono text-slate-700">
-                        ₹{Number(inv.taxableAmount).toFixed(2)}
-                      </td>
-                      <td className="px-5 py-3.5 text-right font-mono text-emerald-700 font-semibold">
-                        ₹{tax.toFixed(2)}
-                      </td>
-                      <td className="px-5 py-3.5 text-right font-mono font-bold text-slate-900">
-                        ₹{Number(inv.grandTotal).toFixed(2)}
-                      </td>
-                      <td className="px-5 py-3.5 text-right">
-                        <div className="font-mono font-semibold text-slate-800">
-                          ₹{Number(inv.balanceAmount ?? inv.grandTotal).toFixed(2)}
-                        </div>
-                        {canPay && Number(inv.balanceAmount ?? inv.grandTotal) > 0 ? (
-                          <button
-                            type="button"
-                            className="mt-1 text-[11px] font-bold text-primary hover:text-primary-hover hover:underline inline-block"
-                            onClick={() => openPayment(inv)}
-                          >
-                            {lang === "gu" ? "💳 ચુકવણી કરો" : "💳 Record Pay"}
-                          </button>
-                        ) : null}
-                      </td>
-                      <td className="px-5 py-3.5 text-center">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                          {inv.itcEligibility || "INPUT"}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <div className="flex items-start justify-between gap-2 text-xs">
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-slate-900 truncate">
+                  {lang === "gu" && inv.party?.nameGujarati
+                    ? inv.party.nameGujarati
+                    : inv.party?.name}
+                </p>
+                {inv.party?.gstin && (
+                  <p className="text-[10px] text-[#F47721] font-mono font-bold">
+                    GST: {inv.party.gstin}
+                  </p>
+                )}
+              </div>
+              <span className="text-[11px] font-mono text-slate-500 shrink-0">
+                {new Date(inv.invoiceDate).toLocaleDateString("en-IN")}
+              </span>
+            </div>
+            <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex items-center justify-between text-xs">
+              <div>
+                <span className="text-[10px] text-slate-500 uppercase block">
+                  {lang === "gu" ? "કુલ રકમ" : "Total"}
+                </span>
+                <span className="font-mono font-bold text-slate-900">
+                  ₹{Number(inv.grandTotal).toFixed(2)}
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-[10px] text-slate-500 uppercase block">
+                  {lang === "gu" ? "બાકી રકમ" : "Due"}
+                </span>
+                <span className="font-mono font-bold text-amber-700">
+                  ₹{Number(inv.balanceAmount ?? inv.grandTotal).toFixed(2)}
+                </span>
+              </div>
+            </div>
+            {canPay && Number(inv.balanceAmount ?? inv.grandTotal) > 0 && (
+              <button
+                type="button"
+                onClick={() => openPayment(inv)}
+                className="w-full py-1.5 px-3 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold transition-all text-center cursor-pointer"
+              >
+                {lang === "gu"
+                  ? "💳 વેપારીને ચુકવણી કરો"
+                  : "💳 Record Supplier Payment"}
+              </button>
+            )}
           </div>
         )}
-      </div>
+      />
 
       <Modal
         isOpen={Boolean(payBill)}

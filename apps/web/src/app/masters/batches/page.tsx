@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
+import { DataTable, ColumnDef } from "../../../components/ui/data-table";
 
 interface Batch {
   id: string;
@@ -209,98 +210,128 @@ export default function BatchesPage() {
         </button>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        {error && (
-          <div className="p-4 bg-rose-50 border-b border-rose-100 text-xs text-rose-700 font-medium">
-            {error}
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-100 rounded-xl text-xs text-rose-700 font-medium">
+          {error}
+        </div>
+      )}
+
+      {/* Main DataTable */}
+      <DataTable<Batch>
+        data={batches}
+        columns={[
+          {
+            header: lang === "gu" ? "બેચ નંબર" : "Batch Number",
+            accessorKey: "batchNumber",
+            sortable: true,
+            cell: (b) => (
+              <span className="font-mono font-bold text-slate-900">
+                {b.batchNumber}
+              </span>
+            ),
+          },
+          {
+            header: lang === "gu" ? "વસ્તુ" : "Item",
+            accessorKey: "itemId",
+            sortable: true,
+            cell: (b) => (
+              <span className="font-medium text-slate-800">
+                {b.item?.name || "—"}
+              </span>
+            ),
+          },
+          {
+            header: lang === "gu" ? "બનાવટ તારીખ" : "Mfg Date",
+            accessorKey: "mfgDate",
+            sortable: true,
+            cell: (b) => (
+              <span className="font-mono text-slate-600">
+                {b.mfgDate
+                  ? new Date(b.mfgDate).toLocaleDateString("en-IN")
+                  : "—"}
+              </span>
+            ),
+          },
+          {
+            header: lang === "gu" ? "એક્સપાયરી તારીખ" : "Expiry Date",
+            accessorKey: "expiryDate",
+            sortable: true,
+            cell: (b) => (
+              <span className="font-mono text-amber-700">
+                {b.expiryDate
+                  ? new Date(b.expiryDate).toLocaleDateString("en-IN")
+                  : "—"}
+              </span>
+            ),
+          },
+          {
+            header: lang === "gu" ? "ખરીદ કિંમત (₹)" : "Purchase Rate (₹)",
+            accessorKey: "purchaseRate",
+            sortable: true,
+            className: "text-right font-mono text-slate-600",
+            cell: (b) => <span>₹{Number(b.purchaseRate || 0).toFixed(2)}</span>,
+          },
+          {
+            header: lang === "gu" ? "એમઆરપી (₹)" : "MRP (₹)",
+            accessorKey: "mrp",
+            sortable: true,
+            className: "text-right font-mono text-slate-800",
+            cell: (b) => <span>₹{Number(b.mrp || 0).toFixed(2)}</span>,
+          },
+          {
+            header: lang === "gu" ? "વેચાણ દર (₹)" : "Sale Rate (₹)",
+            accessorKey: "salePrice",
+            sortable: true,
+            className: "text-right font-mono font-bold text-emerald-700",
+            cell: (b) => (
+              <span>₹{Number(b.salePrice ?? b.saleRate ?? 0).toFixed(2)}</span>
+            ),
+          },
+        ]}
+        keyExtractor={(b) => b.id}
+        searchPlaceholder={
+          lang === "gu"
+            ? "બેચ નંબર અથવા વસ્તુના નામથી શોધો..."
+            : "Search by batch number or item..."
+        }
+        searchKeys={["batchNumber"]}
+        defaultPageSize={10}
+        isLoading={isLoading}
+        emptyMessage={
+          lang === "gu"
+            ? "કોઈ બેચ મળ્યા નથી. ઉપર 'નવો બેચ ઉમેરો' પર ક્લિક કરો."
+            : "No batches found. Click 'Add Batch' to track item batches."
+        }
+        exportFilename="batches_master"
+        themeColor="saffron"
+        mobileCardRender={(b) => (
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="font-mono font-bold text-slate-900">
+                {b.batchNumber}
+              </span>
+              <span className="font-mono font-bold text-emerald-700 text-xs">
+                Sale: ₹{Number(b.salePrice ?? b.saleRate ?? 0).toFixed(2)}
+              </span>
+            </div>
+            <div className="text-xs font-medium text-slate-800">
+              {b.item?.name || "—"}
+            </div>
+            <div className="flex items-center justify-between text-xs text-slate-500 font-mono">
+              <span>
+                Mfg: {b.mfgDate ? new Date(b.mfgDate).toLocaleDateString("en-IN") : "—"}
+              </span>
+              <span className="text-amber-700">
+                Exp: {b.expiryDate ? new Date(b.expiryDate).toLocaleDateString("en-IN") : "—"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-xs text-slate-600 pt-1 border-t border-slate-100 font-mono">
+              <span>Pur: ₹{Number(b.purchaseRate || 0).toFixed(2)}</span>
+              <span>MRP: ₹{Number(b.mrp || 0).toFixed(2)}</span>
+            </div>
           </div>
         )}
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "બેચ નંબર" : "Batch Number"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "વસ્તુ" : "Item"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "બનાવટ તારીખ" : "Mfg Date"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "એક્સપાયરી તારીખ" : "Expiry Date"}
-                </th>
-                <th className="py-3 px-4 text-right">
-                  {lang === "gu" ? "ખરીદ કિંમત (₹)" : "Purchase Rate (₹)"}
-                </th>
-                <th className="py-3 px-4 text-right">
-                  {lang === "gu" ? "એમઆરપી (₹)" : "MRP (₹)"}
-                </th>
-                <th className="py-3 px-4 text-right">
-                  {lang === "gu" ? "વેચાણ દર (₹)" : "Sale Rate (₹)"}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <div className="inline-block w-6 h-6 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin mb-2" />
-                    <p>Loading batches...</p>
-                  </td>
-                </tr>
-              ) : batches.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <p className="font-medium text-slate-600 mb-1">
-                      No batches found
-                    </p>
-                    <p className="text-[11px]">
-                      Click &apos;Add Batch&apos; to create a new trackable item
-                      batch.
-                    </p>
-                  </td>
-                </tr>
-              ) : (
-                batches.map((b) => (
-                  <tr
-                    key={b.id}
-                    className="hover:bg-slate-50 transition-colors"
-                  >
-                    <td className="py-3 px-4 font-mono font-bold text-slate-900">
-                      {b.batchNumber}
-                    </td>
-                    <td className="py-3 px-4 font-medium text-slate-800">
-                      {b.item?.name || "—"}
-                    </td>
-                    <td className="py-3 px-4 font-mono text-slate-600">
-                      {b.mfgDate
-                        ? new Date(b.mfgDate).toLocaleDateString("en-IN")
-                        : "—"}
-                    </td>
-                    <td className="py-3 px-4 font-mono text-amber-700">
-                      {b.expiryDate
-                        ? new Date(b.expiryDate).toLocaleDateString("en-IN")
-                        : "—"}
-                    </td>
-                    <td className="py-3 px-4 text-right font-mono text-slate-600">
-                      ₹{Number(b.purchaseRate || 0).toFixed(2)}
-                    </td>
-                    <td className="py-3 px-4 text-right font-mono text-slate-800">
-                      ₹{Number(b.mrp || 0).toFixed(2)}
-                    </td>
-                    <td className="py-3 px-4 text-right font-mono font-bold text-emerald-700">
-                      ₹{Number(b.salePrice ?? b.saleRate ?? 0).toFixed(2)}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      />
 
       <Modal
         isOpen={isModalOpen}

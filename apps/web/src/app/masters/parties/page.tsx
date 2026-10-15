@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { Badge, StatusBadge } from "../../../components/ui/badge";
+import { DataTable, ColumnDef } from "../../../components/ui/data-table";
 
 interface Party {
   id: string;
@@ -326,16 +327,149 @@ export default function PartiesPage() {
     }
   };
 
-  const filteredParties = parties.filter((p) => {
-    if (typeFilter !== "ALL" && p.type !== typeFilter) return false;
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      p.name.toLowerCase().includes(term) ||
-      (p.phone && p.phone.includes(term)) ||
-      (p.gstin && p.gstin.toLowerCase().includes(term))
-    );
-  });
+  const displayParties = useMemo(() => {
+    if (typeFilter === "ALL") return parties;
+    return parties.filter((p) => p.type === typeFilter);
+  }, [parties, typeFilter]);
+
+  const partyColumns = useMemo<ColumnDef<Party>[]>(
+    () => [
+      {
+        id: "name",
+        header: lang === "gu" ? "વેપારીનું નામ" : "Party Name",
+        accessorKey: "name",
+        sortable: true,
+        cell: (p) => (
+          <div className="font-semibold text-slate-900">
+            <div>{p.name}</div>
+            {p.nameGujarati && (
+              <div className="text-[11px] font-normal text-slate-500">
+                {p.nameGujarati}
+              </div>
+            )}
+          </div>
+        ),
+      },
+      {
+        id: "type",
+        header: lang === "gu" ? "પ્રકાર" : "Type",
+        accessorKey: "type",
+        sortable: true,
+        cell: (p) => (
+          <Badge
+            variant={
+              p.type === "CUSTOMER"
+                ? "info"
+                : p.type === "SUPPLIER"
+                  ? "purple"
+                  : "neutral"
+            }
+          >
+            {p.type}
+          </Badge>
+        ),
+      },
+      {
+        id: "phone",
+        header: lang === "gu" ? "મોબાઇલ" : "Phone",
+        accessorKey: "phone",
+        sortable: true,
+        className: "font-mono text-slate-700",
+        cell: (p) => p.phone || "—",
+      },
+      {
+        id: "gstin",
+        header: lang === "gu" ? "જીએસટી નંબર (GSTIN)" : "GSTIN",
+        accessorKey: "gstin",
+        sortable: true,
+        cell: (p) =>
+          p.gstin ? (
+            <span className="font-mono font-semibold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+              {p.gstin}
+            </span>
+          ) : (
+            <span className="text-slate-400">Unregistered</span>
+          ),
+      },
+      {
+        id: "stateCode",
+        header: lang === "gu" ? "રાજ્ય કોડ" : "State",
+        accessorKey: "stateCode",
+        sortable: true,
+        className: "font-mono text-slate-600",
+      },
+      {
+        id: "status",
+        header: lang === "gu" ? "સ્થિતિ" : "Status",
+        accessorKey: "isActive",
+        sortable: true,
+        cell: (p) => <StatusBadge status={p.isActive ? "ACTIVE" : "INACTIVE"} />,
+      },
+      {
+        id: "actions",
+        header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
+        className: "text-center",
+        cell: (p) => (
+          <div className="inline-flex items-center justify-center gap-1.5">
+            {p.phone && (
+              <button
+                type="button"
+                onClick={() => {
+                  const companyName =
+                    currentCompany?.tradeName ||
+                    currentCompany?.legalName ||
+                    "MyBill History";
+                  const text = `*Payment Reminder from ${companyName}*\nDear ${p.name},\nThis is a friendly reminder regarding your outstanding bill. Kindly arrange payment at your earliest convenience.\n\nThank you!`;
+                  const cleanPhone = p.phone.replace(/[^0-9]/g, "");
+                  const waUrl = cleanPhone
+                    ? `https://wa.me/${cleanPhone.startsWith("91") ? cleanPhone : "91" + cleanPhone}?text=${encodeURIComponent(text)}`
+                    : `https://wa.me/?text=${encodeURIComponent(text)}`;
+                  window.open(waUrl, "_blank");
+                }}
+                className="px-2 py-1 text-[11px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-medium rounded inline-flex items-center gap-1 cursor-pointer"
+                title="Send payment reminder via WhatsApp"
+              >
+                <span>💬 Remind</span>
+              </button>
+            )}
+            <Link
+              href={`/reports?tab=party-ledger&partyId=${p.id}`}
+              className="px-2.5 py-1 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded transition-colors inline-flex items-center gap-1"
+              title="View Party Statement / ખાતાવહી"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span>{lang === "gu" ? "ખાતાવહી" : "Ledger"}</span>
+            </Link>
+            <button
+              type="button"
+              onClick={() => handleOpenEditModal(p)}
+              className="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded transition-colors inline-flex items-center gap-1 cursor-pointer"
+              title="Edit Party"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+              <span>{lang === "gu" ? "સુધારો" : "Edit"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPartyToDelete(p)}
+              className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded transition-colors inline-flex items-center gap-1 cursor-pointer"
+              title="Delete Party"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <span>{lang === "gu" ? "કાઢી નાખો" : "Delete"}</span>
+            </button>
+          </div>
+        ),
+      },
+    ],
+    [lang, currentCompany]
+  );
 
   return (
     <div className="space-y-6">
@@ -376,227 +510,130 @@ export default function PartiesPage() {
         </button>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-border shadow-subtle flex flex-col sm:flex-row items-center gap-3">
-        <div className="relative flex-1 w-full">
-          <svg
-            className="w-4 h-4 absolute left-3.5 top-3 text-muted"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder={
-              lang === "gu"
-                ? "નામ, ફોન નંબર અથવા જીએસટી દ્વારા શોધો..."
-                : "Search by party name, phone, or GSTIN..."
-            }
-            className="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white text-slate-900 transition-all"
-          />
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-100 text-xs text-rose-700 font-medium rounded-xl">
+          {error}
         </div>
+      )}
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="w-full sm:w-auto text-xs bg-slate-50 border border-border text-slate-700 rounded-xl px-3.5 py-2.5 font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-all cursor-pointer"
-          >
-            <option value="ALL">
-              {lang === "gu" ? "તમામ પ્રકાર (All Types)" : "All Types"}
-            </option>
-            <option value="CUSTOMER">
-              {lang === "gu" ? "ગ્રાહક (Customers)" : "Customers"}
-            </option>
-            <option value="SUPPLIER">
-              {lang === "gu" ? "સપ્લાયર (Suppliers)" : "Suppliers"}
-            </option>
-            <option value="BOTH">
-              {lang === "gu" ? "બંને (Both)" : "Both"}
-            </option>
-          </select>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        {error && (
-          <div className="p-4 bg-rose-50 border-b border-rose-100 text-xs text-rose-700 font-medium">
-            {error}
+      {/* Parties DataTable */}
+      <DataTable<Party>
+        data={displayParties}
+        columns={partyColumns}
+        keyExtractor={(p) => p.id}
+        searchPlaceholder={
+          lang === "gu"
+            ? "નામ, ફોન નંબર અથવા જીએસટી દ્વારા શોધો..."
+            : "Search by party name, phone, or GSTIN..."
+        }
+        searchKeys={["name", "phone", "gstin", "stateCode"]}
+        customSearchFn={(p, q) =>
+          Boolean(
+            p.name.toLowerCase().includes(q) ||
+              (p.nameGujarati && p.nameGujarati.toLowerCase().includes(q)) ||
+              (p.phone && p.phone.includes(q)) ||
+              (p.gstin && p.gstin.toLowerCase().includes(q)) ||
+              (p.stateCode && p.stateCode.toLowerCase().includes(q))
+          )
+        }
+        isLoading={isLoading}
+        lang={lang}
+        themeColor="saffron"
+        exportable
+        exportFileName="parties_master"
+        filtersSlot={
+          <div className="flex items-center gap-2">
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="text-xs bg-[#F8F9FB] border border-[#E5E7EB] text-[#202124] rounded-xl px-3 py-1.5 font-semibold focus:outline-none focus:bg-white cursor-pointer"
+            >
+              <option value="ALL">
+                {lang === "gu" ? "તમામ પ્રકાર (All Types)" : "All Types"}
+              </option>
+              <option value="CUSTOMER">
+                {lang === "gu" ? "ગ્રાહક (Customers)" : "Customers"}
+              </option>
+              <option value="SUPPLIER">
+                {lang === "gu" ? "સપ્લાયર (Suppliers)" : "Suppliers"}
+              </option>
+              <option value="BOTH">
+                {lang === "gu" ? "બંને (Both)" : "Both"}
+              </option>
+            </select>
+          </div>
+        }
+        mobileCardRender={(p) => (
+          <div key={p.id} className="p-3.5 hover:bg-slate-50 transition-colors space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-semibold text-slate-900 text-sm">{p.name}</span>
+              <Badge
+                variant={
+                  p.type === "CUSTOMER"
+                    ? "info"
+                    : p.type === "SUPPLIER"
+                      ? "purple"
+                      : "neutral"
+                }
+              >
+                {p.type}
+              </Badge>
+            </div>
+            {p.nameGujarati && <p className="text-xs text-slate-500">{p.nameGujarati}</p>}
+            <div className="flex items-center justify-between text-xs text-slate-600 font-mono">
+              <span>📞 {p.phone || "—"}</span>
+              <span>State: {p.stateCode}</span>
+            </div>
+            {p.gstin && (
+              <div className="text-[11px] font-mono font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block">
+                GST: {p.gstin}
+              </div>
+            )}
+            <div className="flex flex-wrap items-center justify-end gap-1.5 pt-1">
+              {p.phone && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const companyName =
+                      currentCompany?.tradeName ||
+                      currentCompany?.legalName ||
+                      "MyBill History";
+                    const text = `*Payment Reminder from ${companyName}*\nDear ${p.name},\nThis is a friendly reminder regarding your outstanding bill. Kindly arrange payment at your earliest convenience.\n\nThank you!`;
+                    const cleanPhone = p.phone.replace(/[^0-9]/g, "");
+                    const waUrl = cleanPhone
+                      ? `https://wa.me/${cleanPhone.startsWith("91") ? cleanPhone : "91" + cleanPhone}?text=${encodeURIComponent(text)}`
+                      : `https://wa.me/?text=${encodeURIComponent(text)}`;
+                    window.open(waUrl, "_blank");
+                  }}
+                  className="px-2 py-1 text-[11px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-medium rounded inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <span>💬 Remind</span>
+                </button>
+              )}
+              <Link
+                href={`/reports?tab=party-ledger&partyId=${p.id}`}
+                className="px-2.5 py-1 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded transition-colors inline-flex items-center gap-1"
+              >
+                <span>{lang === "gu" ? "ખાતાવહી" : "Ledger"}</span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => handleOpenEditModal(p)}
+                className="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded cursor-pointer"
+              >
+                {lang === "gu" ? "સુધારો" : "Edit"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPartyToDelete(p)}
+                className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded cursor-pointer"
+              >
+                {lang === "gu" ? "કાઢી નાખો" : "Delete"}
+              </button>
+            </div>
           </div>
         )}
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "વેપારીનું નામ" : "Party Name"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "પ્રકાર" : "Type"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "મોબાઇલ" : "Phone"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "જીએસટી નંબર (GSTIN)" : "GSTIN"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "રાજ્ય કોડ" : "State"}
-                </th>
-                <th className="py-3 px-4">
-                  {lang === "gu" ? "સ્થિતિ" : "Status"}
-                </th>
-                <th className="py-3 px-4 text-center">
-                  {lang === "gu" ? "ક્રિયાઓ" : "Actions"}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <div className="inline-block w-6 h-6 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin mb-2" />
-                    <p>
-                      {lang === "gu"
-                        ? "ખાતાઓ લોડ થઈ રહ્યા છે..."
-                        : "Loading party records..."}
-                    </p>
-                  </td>
-                </tr>
-              ) : filteredParties.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <p className="font-medium text-slate-600 mb-1">
-                      {lang === "gu"
-                        ? "કોઈ વેપારી મળ્યા નથી"
-                        : "No party records found"}
-                    </p>
-                    <p className="text-[11px]">
-                      {lang === "gu"
-                        ? "નવો ગ્રાહક કે સપ્લાયર ઉમેરવા માટે ઉપર આપેલ બટન દબાવો."
-                        : "Click 'Add New Party' above to create your first customer or supplier."}
-                    </p>
-                  </td>
-                </tr>
-              ) : (
-                filteredParties.map((p) => (
-                  <tr
-                    key={p.id}
-                    className="hover:bg-slate-50 transition-colors"
-                  >
-                    <td className="py-3 px-4 font-semibold text-slate-900">
-                      <div>{p.name}</div>
-                      {p.nameGujarati && (
-                        <div className="text-[11px] font-normal text-slate-500">
-                          {p.nameGujarati}
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-3 px-4">
-                      <Badge
-                        variant={
-                          p.type === "CUSTOMER"
-                            ? "info"
-                            : p.type === "SUPPLIER"
-                              ? "purple"
-                              : "neutral"
-                        }
-                      >
-                        {p.type}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4 font-mono text-slate-700">
-                      {p.phone || "—"}
-                    </td>
-                    <td className="py-3 px-4 font-mono text-slate-700">
-                      {p.gstin ? (
-                        <span className="font-semibold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                          {p.gstin}
-                        </span>
-                      ) : (
-                        <span className="text-slate-400">Unregistered</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 font-mono text-slate-600">
-                      {p.stateCode}
-                    </td>
-                    <td className="py-3 px-4">
-                      <StatusBadge
-                        status={p.isActive ? "ACTIVE" : "INACTIVE"}
-                      />
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <div className="inline-flex items-center justify-center gap-1.5">
-                        {p.phone && (
-                          <button
-                            onClick={() => {
-                              const companyName =
-                                currentCompany?.tradeName ||
-                                currentCompany?.legalName ||
-                                "MyBill History";
-                              const text = `*Payment Reminder from ${companyName}*\nDear ${p.name},\nThis is a friendly reminder regarding your outstanding bill. Kindly arrange payment at your earliest convenience.\n\nThank you!`;
-                              const cleanPhone = p.phone.replace(/[^0-9]/g, "");
-                              const waUrl = cleanPhone
-                                ? `https://wa.me/${cleanPhone.startsWith("91") ? cleanPhone : "91" + cleanPhone}?text=${encodeURIComponent(text)}`
-                                : `https://wa.me/?text=${encodeURIComponent(text)}`;
-                              window.open(waUrl, "_blank");
-                            }}
-                            className="px-2 py-1 text-[11px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-medium rounded inline-flex items-center gap-1"
-                            title="Send payment reminder via WhatsApp"
-                          >
-                            <span>💬 Remind</span>
-                          </button>
-                        )}
-                        <Link
-                          href={`/reports?tab=party-ledger&partyId=${p.id}`}
-                          className="px-2.5 py-1 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded transition-colors inline-flex items-center gap-1"
-                          title="View Party Statement / ખાતાવહી"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          <span>{lang === "gu" ? "ખાતાવહી" : "Ledger"}</span>
-                        </Link>
-                        <button
-                          onClick={() => handleOpenEditModal(p)}
-                          className="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded transition-colors inline-flex items-center gap-1"
-                          title="Edit Party"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                          </svg>
-                          <span>{lang === "gu" ? "સુધારો" : "Edit"}</span>
-                        </button>
-                        <button
-                          onClick={() => setPartyToDelete(p)}
-                          className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded transition-colors inline-flex items-center gap-1"
-                          title="Delete Party"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          <span>{lang === "gu" ? "કાઢી નાખો" : "Delete"}</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      />
 
       {/* Create Party Modal */}
       <Modal

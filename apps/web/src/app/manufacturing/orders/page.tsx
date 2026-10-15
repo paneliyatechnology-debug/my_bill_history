@@ -5,6 +5,7 @@ import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { Badge, StatusBadge } from "../../../components/ui/badge";
+import { DataTable, ColumnDef } from "../../../components/ui/data-table";
 
 interface ProductionBatch {
   id: string;
@@ -294,14 +295,129 @@ export default function ProductionOrdersPage() {
     setIsViewModalOpen(true);
   };
 
-  const filteredOrders = orders.filter((o) => {
-    if (statusFilter !== "ALL" && o.status !== statusFilter) return false;
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    const orderMatch = o.orderNumber.toLowerCase().includes(term);
-    const itemMatch = o.bom?.finishedItem?.name.toLowerCase().includes(term);
-    return orderMatch || itemMatch;
-  });
+  const filteredOrders = statusFilter === "ALL" 
+    ? orders 
+    : orders.filter((o) => o.status === statusFilter);
+
+  const columns: ColumnDef<ProductionOrder>[] = [
+    {
+      id: "orderNumber",
+      header: lang === "gu" ? "ઓર્ડર નંબર" : "Order #",
+      accessorKey: "orderNumber",
+      sortable: true,
+      cell: (order) => (
+        <div className="font-mono font-medium text-slate-900">
+          <div>{order.orderNumber}</div>
+          <span className="text-[10px] text-slate-400 font-sans block">
+            ID: {order.id.slice(0, 8)}...
+          </span>
+        </div>
+      ),
+    },
+    {
+      id: "bom",
+      header: lang === "gu" ? "તૈયાર માલ / BOM" : "Finished Item / BOM",
+      accessorFn: (order) => `${order.bom?.finishedItem?.name || ""} ${order.bom?.bomName || ""}`,
+      sortable: true,
+      cell: (order) => (
+        <div>
+          <div className="font-semibold text-slate-800">
+            {order.bom?.finishedItem?.name || "Finished Item"}
+          </div>
+          <span className="text-xs text-indigo-600 font-medium block">
+            BOM: {order.bom?.bomName || "Standard"}
+          </span>
+        </div>
+      ),
+    },
+    {
+      id: "targetQuantity",
+      header: lang === "gu" ? "લક્ષ્ય જથ્થો" : "Target Qty",
+      accessorKey: "targetQuantity",
+      sortable: true,
+      align: "right",
+      cell: (order) => {
+        const batch = order.batches?.[0];
+        return (
+          <div className="text-right font-mono font-semibold text-slate-700">
+            {Number(order.targetQuantity).toLocaleString()}
+            {batch && (
+              <span className="text-[11px] text-emerald-600 block">
+                Yield: {Number(batch.actualProducedQty).toLocaleString()}
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      id: "status",
+      header: lang === "gu" ? "સ્થિતિ" : "Status",
+      accessorKey: "status",
+      sortable: true,
+      align: "center",
+      cell: (order) => (
+        <div className="flex justify-center">
+          <StatusBadge status={order.status} />
+        </div>
+      ),
+    },
+    {
+      id: "startDate",
+      header: lang === "gu" ? "તારીખ" : "Timeline",
+      accessorKey: "startDate",
+      sortable: true,
+      cell: (order) => (
+        <div className="text-xs text-slate-600">
+          <div>Start: {new Date(order.startDate).toLocaleDateString()}</div>
+          {order.completedDate && (
+            <span className="text-[11px] text-emerald-600 block">
+              End: {new Date(order.completedDate).toLocaleDateString()}
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
+      id: "actions",
+      header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
+      align: "right",
+      cell: (order) => (
+        <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+          <button
+            onClick={() => handleOpenView(order)}
+            className="text-xs text-slate-600 hover:text-indigo-600 font-medium px-2 py-1 rounded hover:bg-slate-100"
+          >
+            {lang === "gu" ? "વિગતો" : "View"}
+          </button>
+          {order.status === "PLANNED" && (
+            <button
+              onClick={() => handleOpenStart(order)}
+              className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold px-2.5 py-1 rounded"
+            >
+              {lang === "gu" ? "શરૂ કરો" : "Start"}
+            </button>
+          )}
+          {order.status === "IN_PROGRESS" && (
+            <button
+              onClick={() => handleOpenComplete(order)}
+              className="text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold px-2.5 py-1 rounded"
+            >
+              {lang === "gu" ? "પૂર્ણ કરો" : "Complete"}
+            </button>
+          )}
+          {(order.status === "PLANNED" || order.status === "IN_PROGRESS") && (
+            <button
+              onClick={() => handleOpenCancel(order)}
+              className="text-xs text-rose-600 hover:text-rose-800 font-medium px-2 py-1 rounded hover:bg-rose-50"
+            >
+              {lang === "gu" ? "રદ કરો" : "Cancel"}
+            </button>
+          )}
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -329,32 +445,53 @@ export default function ProductionOrdersPage() {
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto flex-1">
-          <div className="relative w-full sm:w-80">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={
-                lang === "gu"
-                  ? "ઓર્ડર નંબર અથવા તૈયાર માલથી શોધો..."
-                  : "Search order # or finished item..."
-              }
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#F47721] focus:bg-white"
-            />
-            <svg
-              className="w-4 h-4 text-slate-400 absolute left-3 top-3"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
+      {/* Error Banner */}
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-sm flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={fetchData} className="underline font-medium hover:text-rose-900 ml-4">
+            {lang === "gu" ? "ફરી પ્રયાસ કરો" : "Retry"}
+          </button>
+        </div>
+      )}
 
-          <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+      {/* Listing with DataTable */}
+      <DataTable<ProductionOrder>
+        data={filteredOrders}
+        columns={columns}
+        isLoading={isLoading}
+        searchPlaceholder={lang === "gu" ? "ઓર્ડર નંબર અથવા તૈયાર માલથી શોધો..." : "Search order # or finished item..."}
+        exportFileName="production_orders"
+        themeColor="saffron"
+        pageSize={10}
+        emptyState={
+          <div className="p-12 text-center bg-white rounded-xl">
+            <svg className="w-12 h-12 mx-auto text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+              />
+            </svg>
+            <h3 className="text-sm font-semibold text-slate-700">
+              {lang === "gu" ? "કોઈ ઉત્પાદન ઓર્ડર મળ્યો નથી" : "No Production Orders found"}
+            </h3>
+            <p className="text-xs text-slate-500 mt-1">
+              {lang === "gu"
+                ? "તૈયાર માલનું ઉત્પાદન શરૂ કરવા માટે ઓર્ડર બનાવો."
+                : "Launch a production order to start material consumption and batch yield."}
+            </p>
+            <button
+              onClick={handleOpenCreate}
+              className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-[#FFF3E8] text-[#F47721] rounded-lg text-xs font-semibold hover:bg-[#F47721] hover:text-white transition-colors"
+            >
+              + {lang === "gu" ? "પ્રથમ ઓર્ડર બનાવો" : "Create First Order"}
+            </button>
+          </div>
+        }
+        toolbarChildren={
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
             {(["ALL", "PLANNED", "IN_PROGRESS", "COMPLETED", "CANCELLED"] as const).map((st) => (
               <button
                 key={st}
@@ -369,162 +506,74 @@ export default function ProductionOrdersPage() {
               </button>
             ))}
           </div>
-        </div>
-
-        <div className="text-xs text-slate-500 whitespace-nowrap">
-          {lang === "gu"
-            ? `કુલ ${filteredOrders.length} ઓર્ડર મળ્યા`
-            : `Showing ${filteredOrders.length} order(s)`}
-        </div>
-      </div>
-
-      {/* Error Banner */}
-      {error && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-sm flex items-center justify-between">
-          <span>{error}</span>
-          <button onClick={fetchData} className="underline font-medium hover:text-rose-900 ml-4">
-            {lang === "gu" ? "ફરી પ્રયાસ કરો" : "Retry"}
-          </button>
-        </div>
-      )}
-
-      {/* Listing */}
-      {isLoading ? (
-        <div className="p-12 text-center text-slate-400 bg-white rounded-xl border border-slate-200">
-          <svg className="w-8 h-8 animate-spin mx-auto text-indigo-500 mb-2" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-          </svg>
-          <span className="text-sm font-medium">
-            {lang === "gu" ? "ડેટા લોડ થઈ રહ્યો છે..." : "Loading Production Orders..."}
-          </span>
-        </div>
-      ) : filteredOrders.length === 0 ? (
-        <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
-          <svg className="w-12 h-12 mx-auto text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-            />
-          </svg>
-          <h3 className="text-sm font-semibold text-slate-700">
-            {lang === "gu" ? "કોઈ ઉત્પાદન ઓર્ડર મળ્યો નથી" : "No Production Orders found"}
-          </h3>
-          <p className="text-xs text-slate-500 mt-1">
-            {lang === "gu"
-              ? "તૈયાર માલનું ઉત્પાદન શરૂ કરવા માટે ઓર્ડર બનાવો."
-              : "Launch a production order to start material consumption and batch yield."}
-          </p>
-          <button
-            onClick={handleOpenCreate}
-            className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-[#FFF3E8] text-[#F47721] rounded-lg text-xs font-semibold hover:bg-[#F47721] hover:text-white transition-colors"
-          >
-            + {lang === "gu" ? "પ્રથમ ઓર્ડર બનાવો" : "Create First Order"}
-          </button>
-        </div>
-      ) : (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-3 font-semibold">{lang === "gu" ? "ઓર્ડર નંબર" : "Order #"}</th>
-                  <th className="px-6 py-3 font-semibold">{lang === "gu" ? "તૈયાર માલ / BOM" : "Finished Item / BOM"}</th>
-                  <th className="px-6 py-3 font-semibold text-right">{lang === "gu" ? "લક્ષ્ય જથ્થો" : "Target Qty"}</th>
-                  <th className="px-6 py-3 font-semibold text-center">{lang === "gu" ? "સ્થિતિ" : "Status"}</th>
-                  <th className="px-6 py-3 font-semibold">{lang === "gu" ? "તારીખ" : "Timeline"}</th>
-                  <th className="px-6 py-3 font-semibold text-right">{lang === "gu" ? "ક્રિયાઓ" : "Actions"}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredOrders.map((order) => {
-                  const batch = order.batches?.[0];
-                  return (
-                    <tr key={order.id} className="hover:bg-slate-50/75 transition-colors">
-                      <td className="px-6 py-4 font-mono font-medium text-slate-900">
-                        <div>{order.orderNumber}</div>
-                        <span className="text-[10px] text-slate-400 font-sans block">
-                          ID: {order.id.slice(0, 8)}...
-                        </span>
-                      </td>
-
-                      <td className="px-6 py-4">
-                        <div className="font-semibold text-slate-800">
-                          {order.bom?.finishedItem?.name || "Finished Item"}
-                        </div>
-                        <span className="text-xs text-indigo-600 font-medium block">
-                          BOM: {order.bom?.bomName || "Standard"}
-                        </span>
-                      </td>
-
-                      <td className="px-6 py-4 text-right font-mono font-semibold text-slate-700">
-                        {Number(order.targetQuantity).toLocaleString()}
-                        {batch && (
-                          <span className="text-[11px] text-emerald-600 block">
-                            Yield: {Number(batch.actualProducedQty).toLocaleString()}
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="px-6 py-4 text-center">
-                        <StatusBadge status={order.status} />
-                      </td>
-
-                      <td className="px-6 py-4 text-xs text-slate-600">
-                        <div>Start: {new Date(order.startDate).toLocaleDateString()}</div>
-                        {order.completedDate && (
-                          <span className="text-[11px] text-emerald-600 block">
-                            End: {new Date(order.completedDate).toLocaleDateString()}
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="px-6 py-4 text-right space-x-1.5 whitespace-nowrap">
-                        <button
-                          onClick={() => handleOpenView(order)}
-                          className="text-xs text-slate-600 hover:text-indigo-600 font-medium px-2 py-1 rounded hover:bg-slate-100"
-                        >
-                          {lang === "gu" ? "વિગતો" : "View"}
-                        </button>
-
-                        {/* Lifecycle buttons */}
-                        {order.status === "PLANNED" && (
-                          <button
-                            onClick={() => handleOpenStart(order)}
-                            className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold px-2.5 py-1 rounded"
-                          >
-                            {lang === "gu" ? "શરૂ કરો" : "Start"}
-                          </button>
-                        )}
-
-                        {order.status === "IN_PROGRESS" && (
-                          <button
-                            onClick={() => handleOpenComplete(order)}
-                            className="text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold px-2.5 py-1 rounded"
-                          >
-                            {lang === "gu" ? "પૂર્ણ કરો" : "Complete"}
-                          </button>
-                        )}
-
-                        {(order.status === "PLANNED" || order.status === "IN_PROGRESS") && (
-                          <button
-                            onClick={() => handleOpenCancel(order)}
-                            className="text-xs text-rose-600 hover:text-rose-800 font-medium px-2 py-1 rounded hover:bg-rose-50"
-                          >
-                            {lang === "gu" ? "રદ કરો" : "Cancel"}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+        }
+        mobileCardRender={(order) => {
+          const batch = order.batches?.[0];
+          return (
+            <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="font-mono font-semibold text-slate-900">{order.orderNumber}</div>
+                  <div className="text-xs text-slate-500 font-medium">{order.bom?.finishedItem?.name || "Finished Item"}</div>
+                </div>
+                <StatusBadge status={order.status} />
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-slate-100">
+                <div>
+                  <span className="text-slate-400 block text-[10px]">{lang === "gu" ? "લક્ષ્ય જથ્થો" : "Target Qty"}</span>
+                  <span className="font-mono font-medium text-slate-700">{Number(order.targetQuantity).toLocaleString()}</span>
+                </div>
+                {batch && (
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">{lang === "gu" ? "વાસ્તવિક ઉત્પાદન" : "Yield Qty"}</span>
+                    <span className="font-mono font-medium text-emerald-600">{Number(batch.actualProducedQty).toLocaleString()}</span>
+                  </div>
+                )}
+                <div>
+                  <span className="text-slate-400 block text-[10px]">{lang === "gu" ? "શરૂ તારીખ" : "Start Date"}</span>
+                  <span className="text-slate-600">{new Date(order.startDate).toLocaleDateString()}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px]">BOM</span>
+                  <span className="text-indigo-600 font-medium truncate block">{order.bom?.bomName || "Standard"}</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-slate-100">
+                <button
+                  onClick={() => handleOpenView(order)}
+                  className="text-xs text-slate-600 hover:text-indigo-600 font-medium px-2 py-1 rounded hover:bg-slate-100"
+                >
+                  {lang === "gu" ? "વિગતો" : "View"}
+                </button>
+                {order.status === "PLANNED" && (
+                  <button
+                    onClick={() => handleOpenStart(order)}
+                    className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold px-2.5 py-1 rounded"
+                  >
+                    {lang === "gu" ? "શરૂ કરો" : "Start"}
+                  </button>
+                )}
+                {order.status === "IN_PROGRESS" && (
+                  <button
+                    onClick={() => handleOpenComplete(order)}
+                    className="text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold px-2.5 py-1 rounded"
+                  >
+                    {lang === "gu" ? "પૂર્ણ કરો" : "Complete"}
+                  </button>
+                )}
+                {(order.status === "PLANNED" || order.status === "IN_PROGRESS") && (
+                  <button
+                    onClick={() => handleOpenCancel(order)}
+                    className="text-xs text-rose-600 hover:text-rose-800 font-medium px-2 py-1 rounded hover:bg-rose-50"
+                  >
+                    {lang === "gu" ? "રદ કરો" : "Cancel"}
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        }}
+      />
 
       {/* Create Order Modal */}
       <Modal

@@ -9,6 +9,7 @@ export interface ColumnDef<T> {
   accessorFn?: (row: T) => any;
   cell?: (row: T, index: number) => React.ReactNode;
   sortable?: boolean;
+  align?: "left" | "center" | "right";
   className?: string;
   headerClassName?: string;
 }
@@ -16,17 +17,21 @@ export interface ColumnDef<T> {
 export interface DataTableProps<T> {
   data: T[];
   columns: ColumnDef<T>[];
-  keyExtractor: (row: T) => string;
+  keyExtractor?: (row: T, index?: number) => string;
   searchable?: boolean;
   searchPlaceholder?: string;
   searchKeys?: (keyof T | string)[];
   customSearchFn?: (row: T, query: string) => boolean;
   initialPageSize?: number;
+  pageSize?: number;
+  defaultPageSize?: number;
   pageSizeOptions?: number[];
   emptyMessage?: string;
   emptyMessageGujarati?: string;
+  emptyState?: React.ReactNode;
   lang?: "en" | "gu";
   filtersSlot?: React.ReactNode;
+  toolbarChildren?: React.ReactNode;
   actionsSlot?: React.ReactNode;
   isLoading?: boolean;
   defaultSortKey?: string;
@@ -34,6 +39,9 @@ export interface DataTableProps<T> {
   onRowClick?: (row: T) => void;
   exportable?: boolean;
   exportFileName?: string;
+  exportFilename?: string;
+  themeColor?: "saffron" | "purple";
+  mobileCardRender?: (row: T, index: number) => React.ReactNode;
 }
 
 function getCellValue<T>(row: T, col: ColumnDef<T>): any {
@@ -57,11 +65,15 @@ export function DataTable<T>({
   searchKeys,
   customSearchFn,
   initialPageSize = 10,
+  pageSize: pageSizeProp,
+  defaultPageSize,
   pageSizeOptions = [10, 25, 50, 100],
   emptyMessage = "No records found.",
   emptyMessageGujarati = "કોઈ રેકોર્ડ મળ્યા નથી.",
+  emptyState,
   lang = "en",
   filtersSlot,
+  toolbarChildren,
   actionsSlot,
   isLoading = false,
   defaultSortKey,
@@ -69,12 +81,21 @@ export function DataTable<T>({
   onRowClick,
   exportable = false,
   exportFileName = "table_export",
+  exportFilename,
+  themeColor = "saffron",
+  mobileCardRender,
 }: DataTableProps<T>) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [pageSize, setPageSize] = useState(initialPageSize);
+  const startingPageSize = pageSizeProp ?? defaultPageSize ?? initialPageSize ?? 10;
+  const [pageSize, setPageSize] = useState(startingPageSize);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortKey, setSortKey] = useState<string | null>(defaultSortKey || null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">(defaultSortOrder);
+
+  const activeExportFileName = exportFilename || exportFileName;
+  const resolveKey = keyExtractor 
+    ? ((row: T, idx?: number) => keyExtractor(row, idx)) 
+    : ((row: any, idx?: number) => row?.id || row?.key || row?.code || row?.transferId || String(idx));
 
   // 1. FILTERING
   const filteredData = useMemo(() => {
@@ -202,7 +223,7 @@ export function DataTable<T>({
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `${exportFileName}_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute("download", `${activeExportFileName}_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -227,6 +248,12 @@ export function DataTable<T>({
     return pages;
   };
 
+  const isSaffron = themeColor === "saffron";
+  const focusRingClass = isSaffron ? "focus:ring-[#F47721]" : "focus:ring-purple-500";
+  const activePageClass = isSaffron ? "bg-[#F47721] text-white shadow-sm" : "bg-purple-600 text-white shadow-sm";
+  const sortedHeaderClass = isSaffron ? "bg-[#FFF3E8] text-[#F47721]" : "bg-purple-50/70 text-purple-700";
+  const spinnerClass = isSaffron ? "border-[#F47721]" : "border-purple-600";
+
   return (
     <div className="w-full space-y-3">
       {/* ================= CONTROLS TOOLBAR ================= */}
@@ -242,7 +269,7 @@ export function DataTable<T>({
                 setPageSize(Number(e.target.value));
                 setCurrentPage(1);
               }}
-              className="bg-[#F8F9FB] border border-[#E5E7EB] text-xs font-semibold rounded-xl px-2.5 py-1.5 text-[#202124] focus:outline-none focus:bg-white focus:ring-1 focus:ring-purple-500 transition-all cursor-pointer"
+              className={`bg-[#F8F9FB] border border-[#E5E7EB] text-xs font-semibold rounded-xl px-2.5 py-1.5 text-[#202124] focus:outline-none focus:bg-white focus:ring-1 ${focusRingClass} transition-all cursor-pointer`}
             >
               {pageSizeOptions.map((opt) => (
                 <option key={opt} value={opt}>
@@ -265,7 +292,7 @@ export function DataTable<T>({
                 }
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full pl-8 pr-7 py-1.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-xs text-[#202124] placeholder-[#98A2B3] focus:bg-white focus:outline-none focus:ring-1 focus:ring-purple-500 transition-all"
+                className={`w-full pl-8 pr-7 py-1.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-xs text-[#202124] placeholder-[#98A2B3] focus:bg-white focus:outline-none focus:ring-1 ${focusRingClass} transition-all`}
               />
               {searchQuery && (
                 <button
@@ -283,12 +310,13 @@ export function DataTable<T>({
         {/* Right: Custom Filters Slot & Action Buttons */}
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
           {filtersSlot}
+          {toolbarChildren}
 
           {exportable && (
             <button
               onClick={handleExportCsv}
               disabled={sortedData.length === 0}
-              className="py-1.5 px-3 bg-white hover:bg-[#F8F9FB] disabled:opacity-50 text-[#202124] border border-[#E5E7EB] rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+              className="py-1.5 px-3 bg-white hover:bg-[#F8F9FB] disabled:opacity-50 text-[#202124] border border-[#E5E7EB] rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
               title="Export as CSV"
             >
               <span>📥</span>
@@ -301,35 +329,67 @@ export function DataTable<T>({
       </div>
 
       {/* ================= TABLE CONTAINER ================= */}
-      <div className="bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-xs">
-        <div className="overflow-x-auto min-h-[160px] relative">
-          {isLoading && (
-            <div className="absolute inset-0 bg-white/70 backdrop-blur-xs flex items-center justify-center z-10">
-              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-md border border-[#E5E7EB]">
-                <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
-                <span className="text-xs font-bold text-[#202124]">
-                  {lang === "gu" ? "ડેટા લોડ થઈ રહ્યો છે..." : "Loading records..."}
-                </span>
-              </div>
+      <div className="bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-xs relative">
+        {isLoading && (
+          <div className="absolute inset-0 bg-white/70 backdrop-blur-xs flex items-center justify-center z-10">
+            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-md border border-[#E5E7EB]">
+              <div className={`w-4 h-4 border-2 ${spinnerClass} border-t-transparent rounded-full animate-spin`} />
+              <span className="text-xs font-bold text-[#202124]">
+                {lang === "gu" ? "ડેટા લોડ થઈ રહ્યો છે..." : "Loading records..."}
+              </span>
             </div>
-          )}
+          </div>
+        )}
 
+        {/* Optional Mobile Card Presentation if mobileCardRender is provided */}
+        {mobileCardRender && (
+          <div className="block md:hidden divide-y divide-[#E5E7EB]">
+            {paginatedData.length === 0 ? (
+              emptyState ? (
+                <div className="p-4">{emptyState}</div>
+              ) : (
+                <div className="py-12 text-center text-[#98A2B3] px-4">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <span className="text-3xl">📄</span>
+                    <p className="text-xs font-bold text-[#667085]">
+                      {lang === "gu" ? emptyMessageGujarati : emptyMessage}
+                    </p>
+                    {searchQuery && (
+                      <p className="text-[11px] text-[#98A2B3]">
+                        {lang === "gu"
+                          ? `"${searchQuery}" માટે કોઈ પરિણામ મળ્યું નથી.`
+                          : `No results matching "${searchQuery}".`}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )
+            ) : (
+              paginatedData.map((row, idx) => mobileCardRender(row, (safePage - 1) * pageSize + idx))
+            )}
+          </div>
+        )}
+
+        {/* Desktop Table Presentation (or all screen sizes if mobileCardRender is not supplied) */}
+        <div className={`${mobileCardRender ? "hidden md:block" : "block"} overflow-x-auto min-h-[160px]`}>
           <table className="w-full text-left text-xs">
             <thead className="bg-[#FAFBFD] border-b border-[#E5E7EB] text-[#667085] uppercase font-mono tracking-wider select-none">
               <tr>
                 {columns.map((col, idx) => {
                   const colKey = col.id || (col.accessorKey ? String(col.accessorKey) : null);
                   const isSorted = colKey && sortKey === colKey;
+                  const alignFlex = col.align === "right" ? "justify-end" : col.align === "center" ? "justify-center" : "justify-start";
+                  const alignText = col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : "text-left";
 
                   return (
                     <th
                       key={colKey || idx}
                       onClick={() => handleSort(col)}
-                      className={`py-3.5 px-4 font-semibold ${col.headerClassName || ""} ${
+                      className={`py-3.5 px-4 font-semibold ${alignText} ${col.headerClassName || ""} ${
                         col.sortable ? "cursor-pointer hover:bg-[#F3F4F6] transition-colors" : ""
-                      } ${isSorted ? "bg-purple-50/70 text-purple-700" : ""}`}
+                      } ${isSorted ? sortedHeaderClass : ""}`}
                     >
-                      <div className="flex items-center gap-1.5">
+                      <div className={`flex items-center gap-1.5 ${alignFlex}`}>
                         <span>{col.header}</span>
                         {col.sortable && (
                           <span className="text-[10px] text-[#98A2B3]">
@@ -347,40 +407,47 @@ export function DataTable<T>({
               {paginatedData.length === 0 ? (
                 <tr>
                   <td colSpan={columns.length} className="py-12 text-center text-[#98A2B3]">
-                    <div className="flex flex-col items-center justify-center gap-2">
-                      <span className="text-3xl">📄</span>
-                      <p className="text-xs font-bold text-[#667085]">
-                        {lang === "gu" ? emptyMessageGujarati : emptyMessage}
-                      </p>
-                      {searchQuery && (
-                        <p className="text-[11px] text-[#98A2B3]">
-                          {lang === "gu"
-                            ? `"${searchQuery}" માટે કોઈ પરિણામ મળ્યું નથી.`
-                            : `No results matching "${searchQuery}".`}
+                    {emptyState ? (
+                      emptyState
+                    ) : (
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <span className="text-3xl">📄</span>
+                        <p className="text-xs font-bold text-[#667085]">
+                          {lang === "gu" ? emptyMessageGujarati : emptyMessage}
                         </p>
-                      )}
-                    </div>
+                        {searchQuery && (
+                          <p className="text-[11px] text-[#98A2B3]">
+                            {lang === "gu"
+                              ? `"${searchQuery}" માટે કોઈ પરિણામ મળ્યું નથી.`
+                              : `No results matching "${searchQuery}".`}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </td>
                 </tr>
               ) : (
                 paginatedData.map((row, rowIdx) => (
                   <tr
-                    key={keyExtractor(row)}
+                    key={resolveKey(row, (safePage - 1) * pageSize + rowIdx)}
                     onClick={() => onRowClick && onRowClick(row)}
                     className={`hover:bg-[#FAFBFD] transition-colors ${
                       onRowClick ? "cursor-pointer" : ""
                     }`}
                   >
-                    {columns.map((col, colIdx) => (
-                      <td
-                        key={col.id || (col.accessorKey ? String(col.accessorKey) : colIdx)}
-                        className={`py-3.5 px-4 ${col.className || ""}`}
-                      >
-                        {col.cell
-                          ? col.cell(row, rowIdx)
-                          : String(getCellValue(row, col) ?? "—")}
-                      </td>
-                    ))}
+                    {columns.map((col, colIdx) => {
+                      const cellAlign = col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : "text-left";
+                      return (
+                        <td
+                          key={col.id || (col.accessorKey ? String(col.accessorKey) : colIdx)}
+                          className={`py-3.5 px-4 ${cellAlign} ${col.className || ""}`}
+                        >
+                          {col.cell
+                            ? col.cell(row, (safePage - 1) * pageSize + rowIdx)
+                            : String(getCellValue(row, col) ?? "—")}
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))
               )}
@@ -424,7 +491,7 @@ export function DataTable<T>({
               <button
                 onClick={() => setCurrentPage(1)}
                 disabled={safePage === 1}
-                className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#202124] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F3F4F6] transition-all font-semibold"
+                className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#202124] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F3F4F6] transition-all font-semibold cursor-pointer"
                 title="First Page"
               >
                 «
@@ -434,7 +501,7 @@ export function DataTable<T>({
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={safePage === 1}
-                className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#202124] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F3F4F6] transition-all font-semibold"
+                className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#202124] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F3F4F6] transition-all font-semibold cursor-pointer"
                 title="Previous Page"
               >
                 {lang === "gu" ? "અગાઉનું" : "Previous"}
@@ -451,9 +518,9 @@ export function DataTable<T>({
                     <button
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum)}
-                      className={`min-w-[32px] h-8 rounded-lg text-xs font-bold transition-all ${
+                      className={`min-w-[32px] h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         safePage === pageNum
-                          ? "bg-purple-600 text-white shadow-sm"
+                          ? activePageClass
                           : "bg-white border border-[#E5E7EB] text-[#202124] hover:bg-[#F3F4F6]"
                       }`}
                     >
@@ -467,7 +534,7 @@ export function DataTable<T>({
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={safePage === totalPages}
-                className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#202124] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F3F4F6] transition-all font-semibold"
+                className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#202124] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F3F4F6] transition-all font-semibold cursor-pointer"
                 title="Next Page"
               >
                 {lang === "gu" ? "આગળનું" : "Next"}
@@ -477,7 +544,7 @@ export function DataTable<T>({
               <button
                 onClick={() => setCurrentPage(totalPages)}
                 disabled={safePage === totalPages}
-                className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#202124] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F3F4F6] transition-all font-semibold"
+                className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#202124] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F3F4F6] transition-all font-semibold cursor-pointer"
                 title="Last Page"
               >
                 »
