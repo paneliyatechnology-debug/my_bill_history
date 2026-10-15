@@ -31,6 +31,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     user,
     isAuthenticated,
     isLoading,
+    workspaceError,
+    retryWorkspace,
     lang,
     setLang,
     companies,
@@ -47,6 +49,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [loadingWatchdogTriggered, setLoadingWatchdogTriggered] = useState(false);
+
+  // Safety watchdog: If loading takes longer than 3.5 seconds, show graceful recovery options
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    if (isLoading) {
+      timer = setTimeout(() => {
+        setLoadingWatchdogTriggered(true);
+      }, 3500);
+    } else {
+      setLoadingWatchdogTriggered(false);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [isLoading]);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     sales: true,
     purchase: false,
@@ -135,19 +153,34 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     });
   };
 
-  // Close mobile drawer on route change & lock body scroll when open
+  // Close mobile drawer on route change & reset main scroll position to top
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    const mainEl = document.getElementById("main-content");
+    if (mainEl) {
+      mainEl.scrollTop = 0;
+    }
   }, [pathname]);
 
+  // Lock scrolling when mobile drawer is open and restore when closed
   useEffect(() => {
+    const mainEl = document.getElementById("main-content");
     if (isMobileMenuOpen) {
       document.body.style.overflow = "hidden";
+      if (mainEl) {
+        mainEl.style.overflow = "hidden";
+      }
     } else {
       document.body.style.overflow = "";
+      if (mainEl) {
+        mainEl.style.overflow = "";
+      }
     }
     return () => {
       document.body.style.overflow = "";
+      if (mainEl) {
+        mainEl.style.overflow = "";
+      }
     };
   }, [isMobileMenuOpen]);
 
@@ -164,15 +197,94 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
+  // Workspace Error Screen — If companies cannot be loaded and error occurred
+  if (!isLoading && isAuthenticated && workspaceError && companies.length === 0) {
+    return (
+      <div
+        className="h-full min-h-[100dvh] w-full bg-[#F8F9FB] flex flex-col items-center justify-center p-6 text-center"
+        style={{ minHeight: "100vh", backgroundColor: "#F8F9FB", fontFamily: "var(--font-inter), sans-serif" }}
+      >
+        <div
+          className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 font-bold text-2xl mb-4 shadow-sm"
+          style={{ width: "4rem", height: "4rem", borderRadius: "1rem", backgroundColor: "#FFFBEB" }}
+        >
+          ⚠️
+        </div>
+        <h2 className="text-xl font-bold text-[#202124] tracking-tight">
+          {lang === "gu" ? "વર્કસ્પેસ લોડ કરવામાં સમસ્યા" : "Unable to Load Workspace"}
+        </h2>
+        <p className="text-xs text-[#667085] mt-1.5 max-w-md">
+          {workspaceError}
+        </p>
+        <div className="flex items-center gap-3 mt-6">
+          <button
+            onClick={() => retryWorkspace()}
+            className="py-2.5 px-5 bg-[#F47721] hover:bg-[#D95F12] active:bg-[#B94B0A] text-white rounded-xl text-xs font-bold transition-all shadow-saffron"
+            style={{ backgroundColor: "#F47721", color: "#FFFFFF", padding: "10px 20px", borderRadius: "12px", fontWeight: "bold" }}
+          >
+            {lang === "gu" ? "પુનઃ પ્રયાસ કરો (Retry)" : "Retry Connection"}
+          </button>
+          <button
+            onClick={() => logout()}
+            className="py-2.5 px-5 bg-white border border-[#E5E7EB] hover:bg-slate-50 text-[#344054] rounded-xl text-xs font-semibold transition-all"
+            style={{ backgroundColor: "#FFFFFF", border: "1px solid #E5E7EB", padding: "10px 20px", borderRadius: "12px" }}
+          >
+            {lang === "gu" ? "લોગિન પર પાછા જાઓ" : "Return to Login"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Elegant loading screen during initial authentication hydration
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F8F9FB] flex flex-col items-center justify-center p-4">
-        <div className="w-16 h-16 rounded-2xl bg-linear-to-tr from-[#F47721] to-[#FF9B50] flex items-center justify-center text-white font-bold text-3xl shadow-saffron animate-pulse mb-3">
+      <div
+        className="h-full min-h-[100dvh] w-full bg-[#F8F9FB] flex flex-col items-center justify-center p-4 text-center"
+        style={{ minHeight: "100vh", backgroundColor: "#F8F9FB", fontFamily: "var(--font-inter), sans-serif" }}
+      >
+        <div
+          className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#F47721] to-[#FF9B50] flex items-center justify-center text-white font-bold text-3xl shadow-saffron animate-pulse mb-3"
+          style={{ width: "4rem", height: "4rem", borderRadius: "1rem", backgroundColor: "#F47721", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.875rem" }}
+        >
           ₹
         </div>
-        <p className="text-base font-bold text-[#202124]">MyBill History</p>
-        <p className="text-xs text-[#98A2B3] mt-1 font-mono">Loading workspace...</p>
+        <p className="text-base font-bold text-[#202124]" style={{ color: "#202124", fontWeight: 700 }}>
+          MyBill History
+        </p>
+        <p className="text-xs text-[#98A2B3] mt-1 font-mono" style={{ color: "#98A2B3" }}>
+          {lang === "gu" ? "વર્કસ્પેસ તૈયાર થઈ રહ્યું છે..." : "Loading workspace..."}
+        </p>
+
+        {/* Watchdog recovery options if loading is delayed */}
+        {loadingWatchdogTriggered && (
+          <div
+            className="mt-6 p-4 max-w-sm bg-white rounded-2xl border border-[#FED7AA] shadow-sm flex flex-col items-center"
+            style={{ maxWidth: "24rem", backgroundColor: "#FFFFFF", border: "1px solid #FED7AA", borderRadius: "1rem", padding: "1rem" }}
+          >
+            <p className="text-xs text-[#667085] mb-3">
+              {lang === "gu"
+                ? "સર્વર પ્રતિસાદ આપવા માટે સામાન્ય કરતાં વધુ સમય લઈ રહ્યું છે."
+                : "Workspace connection is taking longer than usual."}
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => window.location.reload()}
+                className="py-1.5 px-4 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-lg text-xs font-bold transition-all shadow-saffron"
+                style={{ backgroundColor: "#F47721", color: "#FFFFFF", padding: "6px 16px", borderRadius: "8px", fontWeight: "bold" }}
+              >
+                {lang === "gu" ? "રિફ્રેશ કરો" : "Reload"}
+              </button>
+              <button
+                onClick={() => logout()}
+                className="py-1.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-all"
+                style={{ backgroundColor: "#F1F5F9", color: "#334155", padding: "6px 16px", borderRadius: "8px" }}
+              >
+                {lang === "gu" ? "લોગિન" : "Login"}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -318,16 +430,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="min-h-[100dvh] w-full flex bg-[#F8F9FB]">
+    <div className="h-[100dvh] h-screen w-full flex overflow-hidden bg-[#F8F9FB]">
       {/* 1. DESKTOP COMPACT SIDEBAR */}
       <aside
-        className={`hidden lg:flex flex-col border-r border-[#E5E7EB] bg-white transition-all duration-300 z-30 select-none ${
+        className={`hidden lg:flex flex-col shrink-0 h-full border-r border-[#E5E7EB] bg-white transition-all duration-300 z-30 select-none ${
           isSidebarCollapsed ? "w-20" : "w-64"
         }`}
       >
         {/* Brand Header */}
         <div
-          className={`h-16 flex items-center border-b border-[#E5E7EB] bg-white transition-all relative ${
+          className={`h-16 shrink-0 flex items-center border-b border-[#E5E7EB] bg-white transition-all relative ${
             isSidebarCollapsed ? "justify-center px-2" : "justify-between px-4"
           }`}
         >
@@ -379,7 +491,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
 
         {/* Navigation Item Tree */}
-        <div className="flex-1 overflow-y-auto px-2 py-2 space-y-1">
+        <nav
+          aria-label="Sidebar Navigation"
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-2 py-2 space-y-1"
+        >
           {navigationSections.map((section) => {
             // Direct Link (Dashboard, Settings)
             if (section.href) {
@@ -528,11 +643,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </div>
             );
           })}
-        </div>
+        </nav>
 
         {/* Sidebar Footer: Store & Role */}
         {isSidebarCollapsed ? (
-          <div className="p-2 border-t border-[#E5E7EB] bg-[#FFFAF5] flex flex-col items-center gap-1.5">
+          <div className="shrink-0 p-2 border-t border-[#E5E7EB] bg-[#FFFAF5] flex flex-col items-center gap-1.5">
             <div
               className="w-9 h-9 rounded-full bg-[#FFF3E8] border border-[#FED7AA] flex items-center justify-center text-[#F47721] font-bold text-xs shrink-0 cursor-pointer"
               title={`${user?.fullName || "User"} (${currentCompany?.tradeName || "Main Company"})`}
@@ -550,7 +665,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
           </div>
         ) : (
-          <div className="p-3 border-t border-[#E5E7EB] bg-[#FFFAF5] flex items-center justify-between">
+          <div className="shrink-0 p-3 border-t border-[#E5E7EB] bg-[#FFFAF5] flex items-center justify-between">
             <div className="flex items-center gap-2 truncate">
               <div className="w-8 h-8 rounded-full bg-[#FFF3E8] border border-[#FED7AA] flex items-center justify-center text-[#F47721] font-bold text-xs shrink-0">
                 {user?.fullName?.charAt(0) || "U"}
@@ -578,10 +693,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* 2. MAIN APPLICATION CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-w-0 w-full min-h-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 h-full overflow-hidden">
         {/* SuperAdmin Active Support Session Banner */}
         {supportSession?.isSupportSession && (
-          <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-900 text-white px-4 py-2 text-xs flex items-center justify-between z-30 sticky top-0 shadow-md">
+          <div className="shrink-0 bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-900 text-white px-4 py-2 text-xs flex items-center justify-between z-30 shadow-md">
             <div className="flex items-center gap-2">
               <span className="bg-amber-400 text-purple-950 font-bold px-2 py-0.5 rounded text-[10px] uppercase font-mono tracking-wider">
                 Support Session
@@ -600,40 +715,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
 
         {/* TOPBAR HEADER */}
-        <header className="h-16 bg-white border-b border-[#E5E7EB] px-3 sm:px-6 flex items-center justify-between sticky top-0 z-20 shadow-xs max-w-full">
-          {/* Left: Mobile hamburger & Desktop sidebar toggle */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <button
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="lg:hidden p-1.5 sm:p-2 text-[#667085] hover:text-[#202124] hover:bg-[#F3F4F6] rounded-md shrink-0"
-              aria-label="Open mobile menu"
+        <header className="shrink-0 h-16 bg-white border-b border-[#E5E7EB] px-3 sm:px-6 flex items-center justify-between z-20 shadow-xs max-w-full min-w-0">
+          {/* Left: Active Company/Branch Context & Mobile Brand Logo */}
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
+            {/* Mobile Brand Logo when desktop sidebar is hidden (< lg) */}
+            <Link
+              href="/"
+              className="lg:hidden flex items-center gap-2 shrink-0 group mr-0.5"
+              title="MyBill History"
+              aria-label="MyBill History"
             >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-
-            {/* Desktop Quick Sidebar Collapse / Expand Toggle */}
-            <button
-              onClick={toggleSidebarCollapse}
-              className="hidden lg:flex p-1.5 text-[#667085] hover:text-[#202124] hover:bg-[#F3F4F6] rounded-md transition-colors shrink-0"
-              title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-              aria-label="Toggle sidebar"
-            >
-              <svg
-                className={`w-5 h-5 transition-transform duration-200 ${
-                  isSidebarCollapsed ? "rotate-180 text-[#F47721]" : ""
-                }`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
-              </svg>
-            </button>
+              <div className="w-8 h-8 rounded-lg bg-[#F47721] flex items-center justify-center text-white font-bold text-base shadow-saffron group-hover:scale-105 transition-transform">
+                ₹
+              </div>
+              <span className="hidden min-[480px]:inline font-bold text-xs sm:text-sm text-[#202124] tracking-tight">
+                MyBill History
+              </span>
+            </Link>
 
             {/* Active Company & Branch Context Switchers */}
-            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 sm:flex-initial">
               <CompanySwitcher />
 
               {/* Branch Pill */}
@@ -642,6 +743,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   value={currentBranch?.id || ""}
                   onChange={(e) => switchBranch(e.target.value)}
                   className="text-xs font-medium bg-[#F8F9FB] text-[#667085] border border-[#E5E7EB] rounded-md px-2 py-1 focus:outline-none cursor-pointer hidden md:block max-w-[120px] truncate"
+                  title={`Branch: ${currentBranch?.name || ""}`}
+                  aria-label="Select branch"
                 >
                   {branches.map((b) => (
                     <option key={b.id} value={b.id}>
@@ -658,15 +761,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          {/* Right: Quick Action, Language Toggle & Profile Dropdown */}
-          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          {/* Right: Quick Action, Language Toggle & User/Logout */}
+          <div className="flex items-center gap-1 min-[360px]:gap-1.5 sm:gap-3 shrink-0 ml-auto pl-1 sm:pl-2">
             {/* SuperAdmin Portal shortcut if user has SUPER_ADMIN role */}
             {user?.role === "SUPER_ADMIN" && (
               <Link
                 href="/superadmin"
-                className="flex items-center gap-1.5 py-1.5 px-3 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-button text-xs font-bold transition-all shrink-0 shadow-xs"
+                className="hidden min-[420px]:flex items-center gap-1 sm:gap-1.5 py-1 sm:py-1.5 px-2 sm:px-3 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-button text-[11px] sm:text-xs font-bold transition-all shrink-0 shadow-xs"
                 title="Open SuperAdmin Master Control Portal"
+                aria-label="SuperAdmin Portal"
               >
+                <svg className="w-3.5 h-3.5 shrink-0 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
                 <span className="hidden sm:inline">SuperAdmin Portal</span>
               </Link>
             )}
@@ -674,13 +781,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {/* Primary Action Button: Create Bill */}
             <Link
               href="/sales/invoices/new"
-              className="flex items-center gap-1.5 py-1.5 px-3 sm:px-3.5 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-button text-xs sm:text-sm font-semibold shadow-saffron transition-all shrink-0 whitespace-nowrap"
+              className="flex items-center gap-1 sm:gap-1.5 py-1.5 px-2 min-[360px]:px-2.5 sm:px-3.5 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-button text-xs sm:text-sm font-semibold shadow-saffron transition-all shrink-0 whitespace-nowrap active:scale-95"
               title={lang === "gu" ? "નવું વેચાણ બિલ (F2)" : "Create New Bill (F2)"}
+              aria-label={lang === "gu" ? "નવું બિલ બનાવો (Create New Bill)" : "Create New Bill"}
             >
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 4v16m8-8H4" />
               </svg>
-              <span>{lang === "gu" ? "નવું બિલ બનાવો" : "Create New Bill"}</span>
+              {/* Short label on mobile screens, full label on tablets and desktop */}
+              <span className="hidden sm:inline">
+                {lang === "gu" ? "નવું બિલ બનાવો" : "Create New Bill"}
+              </span>
+              <span className="inline sm:hidden font-bold">
+                {lang === "gu" ? "બિલ" : "Bill"}
+              </span>
             </Link>
 
             {/* Bilingual Language Switcher (EN | ગુજ) */}
@@ -688,32 +802,34 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => setLang("en")}
-                className={`px-1.5 sm:px-2 py-1 text-[11px] sm:text-xs font-bold rounded-md transition-all ${
+                className={`px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] min-[360px]:text-[11px] sm:text-xs font-bold rounded-md transition-all ${
                   lang === "en"
                     ? "bg-white text-[#F47721] shadow-xs"
                     : "text-[#667085] hover:text-[#202124]"
                 }`}
+                aria-label="Switch language to English"
               >
                 EN
               </button>
               <button
                 type="button"
                 onClick={() => setLang("gu")}
-                className={`px-1.5 sm:px-2 py-1 text-[11px] sm:text-xs font-bold rounded-md transition-all font-gujarati ${
+                className={`px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] min-[360px]:text-[11px] sm:text-xs font-bold rounded-md transition-all font-gujarati ${
                   lang === "gu"
                     ? "bg-white text-[#F47721] shadow-xs"
                     : "text-[#667085] hover:text-[#202124]"
                 }`}
+                aria-label="Switch language to Gujarati"
               >
                 <span className="hidden sm:inline">ગુજરાતી</span>
                 <span className="sm:hidden">ગુજ</span>
               </button>
             </div>
 
-            {/* Logout / User Trigger */}
+            {/* Logout / User Trigger: Hidden on mobile (< md), visible on desktop (>= md) */}
             <button
               onClick={logout}
-              className="p-1 sm:p-1.5 text-[#667085] hover:text-[#DC3545] hover:bg-rose-50 rounded-lg transition-colors shrink-0"
+              className="hidden md:inline-flex items-center justify-center p-1 sm:p-1.5 text-[#667085] hover:text-[#DC3545] hover:bg-rose-50 rounded-lg transition-colors shrink-0"
               title={lang === "gu" ? "લોગઆઉટ (Logout)" : "Logout"}
               aria-label="Logout"
             >
@@ -725,14 +841,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* 3. SCROLLABLE PAGE BODY */}
-        <main className="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl w-full min-w-0 mx-auto min-h-0">
-          {children}
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden p-3 sm:p-6 lg:p-8 pb-20 lg:pb-8 overscroll-y-contain focus:outline-none"
+        >
+          <div className="max-w-7xl w-full min-w-0 mx-auto">
+            {children}
+          </div>
         </main>
       </div>
 
       {/* 4. MOBILE DRAWER OVERLAY */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden flex" role="dialog" aria-modal="true">
+        <div
+          className="fixed inset-0 z-50 lg:hidden flex"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation drawer"
+        >
           <div
             className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
             onClick={() => setIsMobileMenuOpen(false)}
@@ -740,7 +867,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           />
           <div className="relative w-72 max-w-[85vw] bg-white h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-left duration-200">
             {/* Mobile Header with visible close button */}
-            <div className="h-16 flex items-center justify-between px-4 border-b border-[#E5E7EB] bg-[#FFFAF5]">
+            <div className="h-16 shrink-0 flex items-center justify-between px-4 border-b border-[#E5E7EB] bg-[#FFFAF5]">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-[#F47721] flex items-center justify-center text-white font-bold text-base shadow-saffron">
                   ₹
@@ -762,7 +889,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
 
             {/* Mobile Nav Items */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-1">
+            <nav
+              aria-label="Mobile Navigation"
+              className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain p-3 space-y-1"
+            >
               {navigationSections.map((sec) => (
                 <div key={sec.id} className="space-y-0.5">
                   {sec.href ? (
@@ -803,10 +933,142 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   )}
                 </div>
               ))}
+            </nav>
+
+            {/* Mobile Drawer Footer: Branch switch & user profile & logout */}
+            <div className="p-3 border-t border-[#E5E7EB] bg-[#FFFAF5] space-y-2 shrink-0">
+              {branches.length > 1 && (
+                <div>
+                  <label className="block text-[10px] font-bold text-[#667085] uppercase tracking-wider mb-1">
+                    {lang === "gu" ? "શાખા (Branch)" : "Current Branch"}
+                  </label>
+                  <select
+                    value={currentBranch?.id || ""}
+                    onChange={(e) => switchBranch(e.target.value)}
+                    className="w-full text-xs font-medium bg-white text-[#202124] border border-[#E5E7EB] rounded-md px-2 py-1.5 focus:outline-none"
+                    aria-label="Select branch"
+                  >
+                    {branches.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {user?.role === "SUPER_ADMIN" && (
+                <Link
+                  href="/superadmin"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-between w-full px-2.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-md text-xs font-bold transition-all"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span>⚡</span>
+                    <span>SuperAdmin Portal</span>
+                  </span>
+                  <span>→</span>
+                </Link>
+              )}
+
+              <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center gap-2 truncate">
+                  <div className="w-8 h-8 rounded-full bg-[#FFF3E8] border border-[#FED7AA] flex items-center justify-center text-[#F47721] font-bold text-xs shrink-0">
+                    {user?.fullName?.charAt(0) || "U"}
+                  </div>
+                  <div className="flex flex-col truncate">
+                    <span className="text-xs font-bold text-[#202124] truncate">
+                      {user?.fullName || "User"}
+                    </span>
+                    <span className="text-[10px] text-[#667085] truncate">
+                      {currentFY?.name || "FY 2026-27"}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={logout}
+                  className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-[#DC3545] hover:bg-rose-50 rounded-md transition-colors"
+                  title={lang === "gu" ? "લોગઆઉટ" : "Logout"}
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  <span>{lang === "gu" ? "લોગઆઉટ" : "Logout"}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* 5. MOBILE BOTTOM NAVIGATION BAR */}
+      <nav
+        aria-label="Mobile Navigation Bar"
+        className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-[#E5E7EB] z-40 px-2 py-1.5 flex items-center justify-around shadow-lg no-print"
+      >
+        <Link
+          href="/"
+          className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${
+            pathname === "/" ? "text-[#F47721]" : "text-[#667085] hover:text-[#202124]"
+          }`}
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+          <span>{lang === "gu" ? "ડેશબોર્ડ" : "Dashboard"}</span>
+        </Link>
+
+        <Link
+          href="/sales/invoices"
+          className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${
+            pathname.startsWith("/sales/invoices") ? "text-[#F47721]" : "text-[#667085] hover:text-[#202124]"
+          }`}
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span>{lang === "gu" ? "વેચાણ" : "Sales"}</span>
+        </Link>
+
+        <Link
+          href="/sales/pos"
+          className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${
+            pathname === "/sales/pos" ? "text-[#F47721]" : "text-[#667085] hover:text-[#202124]"
+          }`}
+        >
+          <div className="w-8 h-8 -mt-3 rounded-full bg-[#F47721] text-white flex items-center justify-center shadow-saffron">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 4v16m8-8H4" />
+            </svg>
+          </div>
+          <span>{lang === "gu" ? "ઝડપી POS" : "POS"}</span>
+        </Link>
+
+        <Link
+          href="/purchases"
+          className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${
+            pathname.startsWith("/purchases") ? "text-[#F47721]" : "text-[#667085] hover:text-[#202124]"
+          }`}
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+          <span>{lang === "gu" ? "ખરીદી" : "Purchase"}</span>
+        </Link>
+
+        <button
+          type="button"
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold text-[#667085] hover:text-[#202124] transition-colors"
+          aria-label="Open full navigation menu"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+          </svg>
+          <span>{lang === "gu" ? "મેનૂ" : "Menu"}</span>
+        </button>
+      </nav>
     </div>
   );
 }

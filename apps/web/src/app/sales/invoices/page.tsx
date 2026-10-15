@@ -499,7 +499,7 @@ export default function SalesInvoicesPage() {
                   />
                 </svg>
                 <span>
-                  {lang === "gu" ? " નવું બિલ બનાવો" : " Create New Bill"}
+                  {lang === "gu" ? "નવું બિલ બનાવો" : "Create New Bill"}
                 </span>
               </Link>
             </div>

@@ -42,7 +42,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${notoSansGujarati.variable}`}>
-      <body className="antialiased min-h-screen bg-[#F8F9FB] text-[#202124]">
+      <body className="antialiased h-full h-[100dvh] overflow-hidden bg-[#F8F9FB] text-[#202124]">
         <PwaRegister />
         <AuthProvider>
           <AppShell>{children}</AppShell>

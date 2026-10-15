@@ -457,7 +457,7 @@ export default function NewInvoicePage() {
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
               </svg>
-              <span>{lang === "gu" ? "+ વસ્તુ ઉમેરો (F2)" : "+ Add Item (F2)"}</span>
+              <span>{lang === "gu" ? "વસ્તુ ઉમેરો (F2)" : "Add Item (F2)"}</span>
             </button>
           </div>
         </div>

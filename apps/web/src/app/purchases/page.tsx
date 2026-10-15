@@ -385,7 +385,7 @@ export default function PurchasesPage() {
               />
             </svg>
             <span>
-              {lang === "gu" ? "મેન્યુઅલ બિલ ઉમેરો" : "+ Record Purchase Bill"}
+              {lang === "gu" ? "મેન્યુઅલ બિલ ઉમેરો" : "Record Purchase Bill"}
             </span>
           </button>
         </div>

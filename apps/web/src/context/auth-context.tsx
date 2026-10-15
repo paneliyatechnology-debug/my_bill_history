@@ -6,6 +6,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useRef,
 } from "react";
 import { apiClient } from "../lib/api-client";
 
@@ -78,6 +79,8 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isMetadataLoading: boolean;
+  workspaceError: string | null;
   lang: "en" | "gu";
   setLang: (lang: "en" | "gu") => void;
   tenantContext: TenantContextState;
@@ -98,6 +101,7 @@ interface AuthContextType {
   switchBranch: (branchId: string) => Promise<void>;
   switchFinancialYear: (financialYearId: string) => Promise<void>;
   refreshTenantMetadata: () => Promise<void>;
+  retryWorkspace: () => Promise<void>;
   createCompany: (dto: any) => Promise<any>;
 }
 
@@ -107,6 +111,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMetadataLoading, setIsMetadataLoading] = useState(false);
+  const [workspaceError, setWorkspaceError] = useState<string | null>(null);
   const [lang, setLangState] = useState<"en" | "gu">("en");
   const [tenantContext, setTenantContext] = useState<TenantContextState>({});
 
@@ -115,50 +121,111 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [financialYears, setFinancialYears] = useState<FinancialYearInfo[]>([]);
   const [entitlements, setEntitlements] = useState<PlanEntitlementsInfo | null>(null);
 
+  // In-flight promise ref to deduplicate concurrent refreshTenantMetadata requests
+  const inFlightRefreshRef = useRef<Promise<void> | null>(null);
+
   const setLang = (newLang: "en" | "gu") => {
     setLangState(newLang);
     if (typeof window !== "undefined") {
-      localStorage.setItem("billing_lang", newLang);
+      try {
+        localStorage.setItem("billing_lang", newLang);
+      } catch {
+        // Storage failover
+      }
     }
   };
 
   const refreshTenantMetadata = useCallback(async () => {
-    const storedToken = localStorage.getItem("billing_auth_token");
-    if (!storedToken) return;
-
-    try {
-      // 1. Fetch companies with plan entitlements
-      const res: any = await apiClient.get("/tenants/companies");
-      const compsList = Array.isArray(res) ? res : (res?.companies || []);
-      setCompanies(compsList);
-      if (res?.entitlements) {
-        setEntitlements(res.entitlements);
-      }
-
-      // 2. Fetch branches
-      const brs = await apiClient.get<BranchInfo[]>("/tenants/branches");
-      setBranches(brs || []);
-
-      // 3. Fetch financial years
-      const fys = await apiClient.get<FinancialYearInfo[]>(
-        "/tenants/financial-years",
-      );
-      setFinancialYears(fys || []);
-    } catch {
-      // Silent error on metadata refresh if user not yet fully loaded
+    const storedToken = typeof window !== "undefined" ? localStorage.getItem("billing_auth_token") : null;
+    if (!storedToken) {
+      setIsMetadataLoading(false);
+      return;
     }
+
+    // Deduplicate in-flight calls
+    if (inFlightRefreshRef.current) {
+      return inFlightRefreshRef.current;
+    }
+
+    setIsMetadataLoading(true);
+
+    const refreshPromise = (async () => {
+      try {
+        // Run tenant requests concurrently using Promise.allSettled
+        const [compSettled, branchSettled, fySettled] = await Promise.allSettled([
+          apiClient.get<any>("/tenants/companies"),
+          apiClient.get<BranchInfo[]>("/tenants/branches"),
+          apiClient.get<FinancialYearInfo[]>("/tenants/financial-years"),
+        ]);
+
+        let hasError = false;
+        let lastErrorMsg = "";
+
+        // 1. Process Companies
+        if (compSettled.status === "fulfilled") {
+          const res = compSettled.value;
+          const compsList = Array.isArray(res) ? res : res?.companies || [];
+          setCompanies(compsList);
+          if (res?.entitlements) {
+            setEntitlements(res.entitlements);
+          }
+        } else {
+          hasError = true;
+          lastErrorMsg = compSettled.reason?.message || "Failed to load companies";
+        }
+
+        // 2. Process Branches
+        if (branchSettled.status === "fulfilled") {
+          setBranches(branchSettled.value || []);
+        } else {
+          hasError = true;
+          lastErrorMsg = branchSettled.reason?.message || "Failed to load branches";
+        }
+
+        // 3. Process Financial Years
+        if (fySettled.status === "fulfilled") {
+          setFinancialYears(fySettled.value || []);
+        } else {
+          hasError = true;
+          lastErrorMsg = fySettled.reason?.message || "Failed to load financial years";
+        }
+
+        // If companies loaded, clear error even if secondary metadata had transient issue
+        if (compSettled.status === "fulfilled") {
+          setWorkspaceError(null);
+        } else if (hasError) {
+          setWorkspaceError(lastErrorMsg);
+        }
+      } catch (err: any) {
+        setWorkspaceError(err?.message || "Workspace initialization failed");
+      } finally {
+        setIsMetadataLoading(false);
+        inFlightRefreshRef.current = null;
+      }
+    })();
+
+    inFlightRefreshRef.current = refreshPromise;
+    return refreshPromise;
   }, []);
 
+  const retryWorkspace = useCallback(async () => {
+    setWorkspaceError(null);
+    await refreshTenantMetadata();
+  }, [refreshTenantMetadata]);
+
+  // Initial session hydration
   useEffect(() => {
-    // Initial hydration
-    if (typeof window !== "undefined") {
+    if (typeof window === "undefined") return;
+
+    try {
       const savedToken = localStorage.getItem("billing_auth_token");
       const savedUser = localStorage.getItem("billing_user_profile");
       const savedTenant = localStorage.getItem("billing_tenant_context");
-      const savedLang = localStorage.getItem("billing_lang") as
-        "en" | "gu" | null;
+      const savedLang = localStorage.getItem("billing_lang") as "en" | "gu" | null;
 
-      if (savedLang) setLangState(savedLang);
+      if (savedLang === "en" || savedLang === "gu") {
+        setLangState(savedLang);
+      }
 
       if (savedToken && savedUser) {
         setToken(savedToken);
@@ -166,11 +233,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const parsed = JSON.parse(savedUser);
           if (parsed && typeof parsed === "object") {
             parsed.name = parsed.name || parsed.fullName || "User";
+            setUser(parsed);
           }
-          setUser(parsed);
         } catch {
           setUser(null);
         }
+
         if (savedTenant) {
           try {
             setTenantContext(JSON.parse(savedTenant));
@@ -179,10 +247,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
       }
+    } catch {
+      // Safe fallback
+    } finally {
       setIsLoading(false);
     }
+
+    // Safety watchdog: Guarantee loading is false within 2.5s under all circumstances
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2500);
+
+    return () => clearTimeout(timer);
   }, []);
 
+  // Sync tenant metadata when authenticated and tenant context is available
   useEffect(() => {
     if (token && tenantContext.companyId) {
       refreshTenantMetadata();
@@ -202,20 +281,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(normalizedUser);
     const ctx = data.defaultContext || {};
     setTenantContext(ctx);
+    setWorkspaceError(null);
 
     if (typeof window !== "undefined") {
-      localStorage.setItem("billing_auth_token", data.accessToken);
-      localStorage.setItem(
-        "billing_user_profile",
-        JSON.stringify(normalizedUser),
-      );
-      localStorage.setItem("billing_tenant_context", JSON.stringify(ctx));
+      try {
+        localStorage.setItem("billing_auth_token", data.accessToken);
+        localStorage.setItem(
+          "billing_user_profile",
+          JSON.stringify(normalizedUser),
+        );
+        localStorage.setItem("billing_tenant_context", JSON.stringify(ctx));
+      } catch {
+        // Storage failover
+      }
     }
 
     try {
       await refreshTenantMetadata();
     } catch {
-      // ignore
+      // Ignore
     }
   };
 
@@ -226,12 +310,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setCompanies([]);
     setBranches([]);
     setFinancialYears([]);
+    setWorkspaceError(null);
 
     if (typeof window !== "undefined") {
-      localStorage.removeItem("billing_auth_token");
-      localStorage.removeItem("billing_user_profile");
-      localStorage.removeItem("billing_tenant_context");
-      window.location.href = "/login";
+      try {
+        localStorage.removeItem("billing_auth_token");
+        localStorage.removeItem("billing_user_profile");
+        localStorage.removeItem("billing_tenant_context");
+      } catch {
+        // Storage failover
+      }
+      window.location.replace("/login");
     }
   };
 
@@ -249,20 +338,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setTenantContext(updated);
     if (typeof window !== "undefined") {
-      localStorage.setItem("billing_tenant_context", JSON.stringify(updated));
-      // Dispatch company switched event across the application to reset caches
-      window.dispatchEvent(
-        new CustomEvent("billing_company_switched", {
-          detail: {
-            companyId: updated.companyId,
-            branchId: updated.branchId,
-            companyName: ctxData?.companyName,
-          },
-        }),
-      );
+      try {
+        localStorage.setItem("billing_tenant_context", JSON.stringify(updated));
+        window.dispatchEvent(
+          new CustomEvent("billing_company_switched", {
+            detail: {
+              companyId: updated.companyId,
+              branchId: updated.branchId,
+              companyName: ctxData?.companyName,
+            },
+          }),
+        );
+      } catch {
+        // Ignore
+      }
     }
 
-    // Refresh branches and financial years for the newly selected company
     await refreshTenantMetadata();
   };
 
@@ -282,7 +373,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
     setTenantContext(updated);
     if (typeof window !== "undefined") {
-      localStorage.setItem("billing_tenant_context", JSON.stringify(updated));
+      try {
+        localStorage.setItem("billing_tenant_context", JSON.stringify(updated));
+      } catch {
+        // Ignore
+      }
     }
   };
 
@@ -293,7 +388,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
     setTenantContext(updated);
     if (typeof window !== "undefined") {
-      localStorage.setItem("billing_tenant_context", JSON.stringify(updated));
+      try {
+        localStorage.setItem("billing_tenant_context", JSON.stringify(updated));
+      } catch {
+        // Ignore
+      }
     }
   };
 
@@ -318,6 +417,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         token,
         isAuthenticated: !!token && !!user,
         isLoading,
+        isMetadataLoading,
+        workspaceError,
         lang,
         setLang,
         tenantContext,
@@ -334,6 +435,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         switchBranch,
         switchFinancialYear,
         refreshTenantMetadata,
+        retryWorkspace,
         createCompany,
       }}
     >

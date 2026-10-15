@@ -167,7 +167,7 @@ export default function SettingsPage() {
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              <span>+ Add Company</span>
+              <span>Add Company</span>
             </button>
           )}
         </div>
@@ -492,7 +492,7 @@ export default function SettingsPage() {
       {activeTab === "companies" && (
         <div className="space-y-6">
           {/* Subscription Plan Entitlements Banner */}
-          <div className="bg-linear-to-r from-[#FFFAF5] via-white to-orange-50/30 p-6 rounded-2xl border border-[#FED7AA] shadow-xs">
+          <div className="bg-gradient-to-r from-[#FFFAF5] via-white to-orange-50/30 p-6 rounded-2xl border border-[#FED7AA] shadow-xs">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
@@ -532,7 +532,7 @@ export default function SettingsPage() {
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
-                    <span>+ Add Company</span>
+                    <span>Add Company</span>
                   </button>
                 ) : (
                   <div className="text-right">

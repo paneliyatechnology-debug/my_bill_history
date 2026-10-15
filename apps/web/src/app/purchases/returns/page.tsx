@@ -472,7 +472,7 @@ export default function PurchaseReturnsPage() {
               d="M12 4v16m8-8H4"
             />
           </svg>
-          {lang === "gu" ? "નવી ડેબિટ નોટ બનાવો" : "+ Create Debit Note / Return"}
+          {lang === "gu" ? "નવી ડેબિટ નોટ બનાવો" : "Create Debit Note / Return"}
         </button>
       </div>
 
@@ -593,6 +593,22 @@ export default function PurchaseReturnsPage() {
           </button>
         )}
       </div>
+
+      {/* Error Banner with Retry */}
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-sm flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-2">
+            <span className="text-base">⚠️</span>
+            <span className="font-medium">{error}</span>
+          </div>
+          <button
+            onClick={() => fetchReturns()}
+            className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs"
+          >
+            {lang === "gu" ? "ફરી પ્રયાસ કરો (Retry)" : "Retry"}
+          </button>
+        </div>
+      )}
 
       {/* Main Table Register */}
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">

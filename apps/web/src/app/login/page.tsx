@@ -9,6 +9,7 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get("redirect");
+  const reasonParam = searchParams.get("reason");
   const { login, lang, setLang, isAuthenticated, isLoading: authLoading, user } = useAuth();
 
   const [identifier, setIdentifier] = useState("");
@@ -17,9 +18,9 @@ function LoginContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // If already logged in, redirect accordingly
+  // If already logged in, redirect accordingly — but never if redirected due to expired session
   useEffect(() => {
-    if (!authLoading && isAuthenticated && user) {
+    if (!authLoading && isAuthenticated && user && !reasonParam) {
       if (user.role === "SUPER_ADMIN") {
         const dest = redirectParam && redirectParam.startsWith("/") ? redirectParam : "/superadmin";
         router.replace(dest);
@@ -29,7 +30,7 @@ function LoginContent() {
         router.replace(dest);
       }
     }
-  }, [authLoading, isAuthenticated, user, router, redirectParam]);
+  }, [authLoading, isAuthenticated, user, router, redirectParam, reasonParam]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,8 +83,14 @@ function LoginContent() {
     setError(null);
   };
 
+  const handleFillDemoSuperAdmin = () => {
+    setIdentifier("superadmin@billing.local");
+    setPassword("Password123#");
+    setError(null);
+  };
+
   return (
-    <div className="min-h-screen bg-[#F8F9FB] flex flex-col justify-center items-center p-4 relative overflow-hidden">
+    <div className="h-full min-h-[100dvh] w-full bg-[#F8F9FB] flex flex-col justify-center items-center p-4 relative overflow-y-auto">
       {/* Decorative background grid and warm saffron glow */}
       <div className="absolute inset-0 bg-[radial-gradient(#E5E7EB_1px,transparent_1px)] [background-size:16px_16px] opacity-60 pointer-events-none" />
       <div className="absolute -top-32 -right-32 w-96 h-96 bg-[#F47721]/10 rounded-full blur-3xl pointer-events-none" />
@@ -125,6 +132,17 @@ function LoginContent() {
               : "Indian GST Billing, Inventory & Double-Entry Accounting"}
           </p>
         </div>
+
+        {reasonParam === "session_expired" && !error && (
+          <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 font-semibold flex items-center gap-2.5 animate-fadeIn">
+            <span className="text-base">🔒</span>
+            <span>
+              {lang === "gu"
+                ? "તમારું સત્ર સમાપ્ત થઈ ગયું છે. કૃપા કરીને ચાલુ રાખવા માટે ફરીથી લોગિન કરો."
+                : "Your session has expired or authentication is required. Please sign in again."}
+            </span>
+          </div>
+        )}
 
         {error && (
           <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-semibold flex items-center gap-2.5 animate-fadeIn">
@@ -200,14 +218,21 @@ function LoginContent() {
           </button>
         </form>
 
-        {/* Demo Business Credentials Helper for Testing */}
+        {/* Demo Credentials Helper for Testing */}
         <div className="pt-4 border-t border-[#E5E7EB] flex items-center justify-between">
           <button
             type="button"
             onClick={handleFillDemoBusiness}
             className="text-xs text-[#F47721] hover:text-[#D95F12] hover:underline font-bold"
           >
-            {lang === "gu" ? "ડેમો વિગતો ભરો (Demo User)" : "Fill Demo Business User"}
+            {lang === "gu" ? "ડેમો બિઝનેસ યુઝર" : "Demo Business User"}
+          </button>
+          <button
+            type="button"
+            onClick={handleFillDemoSuperAdmin}
+            className="text-xs text-[#4F46E5] hover:text-[#4338CA] hover:underline font-bold"
+          >
+            {lang === "gu" ? "સુપર એડમિન યુઝર" : "Demo SuperAdmin"}
           </button>
         </div>
       </div>

@@ -372,7 +372,7 @@ export default function PartiesPage() {
               d="M12 4v16m8-8H4"
             />
           </svg>
-          <span>{lang === "gu" ? "નવો વેપારી ઉમેરો" : "+ Add New Party"}</span>
+          <span>{lang === "gu" ? "નવો વેપારી ઉમેરો" : "Add New Party"}</span>
         </button>
       </div>
 

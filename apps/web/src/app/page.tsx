@@ -222,7 +222,7 @@ export default function DashboardPage() {
             </svg>
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-xs font-bold text-[#202124] truncate">{lang === "gu" ? "+ નવી વસ્તુ" : "+ Add Item"}</div>
+            <div className="text-xs font-bold text-[#202124] truncate">{lang === "gu" ? "નવી વસ્તુ" : "Add Item"}</div>
             <div className="text-[10px] text-[#667085] truncate">{lang === "gu" ? "પ્રોડક્ટ માસ્ટર" : "Item Master"}</div>
           </div>
         </Link>
@@ -237,7 +237,7 @@ export default function DashboardPage() {
             </svg>
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-xs font-bold text-[#202124] truncate">{lang === "gu" ? "+ નવો ગ્રાહક" : "+ Add Customer"}</div>
+            <div className="text-xs font-bold text-[#202124] truncate">{lang === "gu" ? "નવો ગ્રાહક" : "Add Customer"}</div>
             <div className="text-[10px] text-[#667085] truncate">{lang === "gu" ? "ખાતું ખોલો" : "Parties Ledger"}</div>
           </div>
         </Link>
@@ -252,7 +252,7 @@ export default function DashboardPage() {
             </svg>
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-xs font-bold text-[#202124] truncate">{lang === "gu" ? "+ ખરીદી બિલ" : "+ Purchase Bill"}</div>
+            <div className="text-xs font-bold text-[#202124] truncate">{lang === "gu" ? "ખરીદી બિલ" : "Purchase Bill"}</div>
             <div className="text-[10px] text-[#667085] truncate">{lang === "gu" ? "ઇનવોઇસ સ્કેનર" : "Bill Scanner"}</div>
           </div>
         </Link>
@@ -267,7 +267,7 @@ export default function DashboardPage() {
             </svg>
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-xs font-bold text-[#202124] truncate">{lang === "gu" ? "+ દૈનિક ખર્ચ" : "+ Record Expense"}</div>
+            <div className="text-xs font-bold text-[#202124] truncate">{lang === "gu" ? "દૈનિક ખર્ચ" : "Record Expense"}</div>
             <div className="text-[10px] text-[#667085] truncate">{lang === "gu" ? "રોકડ / બેંક જાવક" : "Payment Out"}</div>
           </div>
         </Link>

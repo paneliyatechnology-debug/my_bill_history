@@ -169,7 +169,7 @@ export default function ChartOfAccountsPage() {
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            <span>{lang === "gu" ? "નવું ખાતા જૂથ" : "+ Add Group"}</span>
+            <span>{lang === "gu" ? "નવું ખાતા જૂથ" : "Add Group"}</span>
           </button>
         </div>
       </div>

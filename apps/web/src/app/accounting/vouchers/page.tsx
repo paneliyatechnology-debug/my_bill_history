@@ -145,7 +145,7 @@ export default function VouchersPage() {
               d="M12 4v16m8-8H4"
             />
           </svg>
-          <span>{lang === "gu" ? "નવું વાઉચર લખો" : "+ Record New Voucher"}</span>
+          <span>{lang === "gu" ? "નવું વાઉચર લખો" : "Record New Voucher"}</span>
         </Link>
       </div>
 
