@@ -99,34 +99,36 @@ export function CompanySwitcher() {
   const isOnlyOne = companies.length <= 1;
 
   return (
-    <div className="relative inline-block text-left" ref={containerRef}>
+    <div className="relative inline-flex items-center min-w-0 max-w-full flex-1 sm:flex-initial" ref={containerRef}>
       {/* Switcher Trigger Button */}
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="group flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-[#FED7AA] bg-[#FFFAF5] hover:bg-[#FFF5EB] hover:border-[#F47721]/50 text-left transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-[#F47721]/30 max-w-[150px] xs:max-w-[200px] sm:max-w-[260px] md:max-w-[320px] shadow-2xs"
+        title={displayName}
+        aria-label={`Current business: ${displayName}`}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
+        className="group flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg border border-[#FED7AA] bg-[#FFFAF5] hover:bg-[#FFF5EB] hover:border-[#F47721]/50 text-left transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-[#F47721]/30 w-full min-w-0 sm:max-w-[280px] md:max-w-[340px] lg:max-w-[420px] shadow-2xs select-none"
       >
-        <div className="w-6 h-6 rounded-md bg-[#F47721]/10 text-[#F47721] flex items-center justify-center shrink-0">
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-[#F47721]/10 text-[#F47721] flex items-center justify-center shrink-0">
+          <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
           </svg>
         </div>
 
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-bold text-[#202124] truncate group-hover:text-[#F47721] transition-colors">
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <div className="flex items-center gap-1 min-w-0">
+            <span className="block text-xs font-bold text-[#202124] truncate group-hover:text-[#F47721] transition-colors leading-tight">
               {displayName}
             </span>
             {currentCompany?.gstin && (
-              <span className="text-[10px] font-mono text-[#667085] bg-white border border-[#E5E7EB] px-1 rounded hidden lg:inline">
+              <span className="text-[9px] font-mono text-[#667085] bg-white border border-[#E5E7EB] px-1 rounded hidden lg:inline shrink-0">
                 {currentCompany.gstin.slice(0, 2)}
               </span>
             )}
           </div>
           {currentCompany?.city && (
-            <p className="text-[10px] text-[#667085] truncate hidden xs:block">
+            <p className="text-[10px] text-[#667085] truncate hidden sm:block leading-tight">
               {currentCompany.city}
             </p>
           )}
@@ -146,9 +148,9 @@ export function CompanySwitcher() {
 
       {/* Dropdown Popover */}
       {isOpen && (
-        <div className="absolute left-0 mt-1.5 w-80 sm:w-96 rounded-xl bg-white shadow-2xl border border-[#E5E7EB] z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+        <div className="fixed inset-x-2 top-16 mt-1 sm:absolute sm:inset-x-auto sm:left-0 sm:top-auto sm:mt-1.5 w-auto sm:w-96 max-w-sm rounded-xl bg-white shadow-2xl border border-[#E5E7EB] z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
           {/* Header & Plan Badge */}
-          <div className="p-3 bg-linear-to-r from-[#FFFAF5] to-white border-b border-[#FED7AA]/40 flex items-center justify-between">
+          <div className="p-3 bg-gradient-to-r from-[#FFFAF5] to-white border-b border-[#FED7AA]/40 flex items-center justify-between">
             <div>
               <p className="text-xs font-bold text-[#202124]">Switch Business / Company</p>
               <p className="text-[11px] text-[#667085]">
@@ -277,7 +279,7 @@ export function CompanySwitcher() {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                <span>+ Add Another Company (બીજી પેઢી ઉમેરો)</span>
+                <span>Add Another Company (બીજી પેઢી ઉમેરો)</span>
               </button>
             ) : (
               <div className="p-2 bg-amber-50 rounded-lg border border-amber-200 text-center">

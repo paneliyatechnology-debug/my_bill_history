@@ -123,7 +123,8 @@ export default function SuperAdminPortalPage() {
   const { user, isAuthenticated, isLoading: authLoading, logout, lang, setLang } = useAuth();
 
   // Authoritative Server-side Verification Status
-  const [authStatus, setAuthStatus] = useState<"checking" | "authorized" | "forbidden" | "unauthenticated">("checking");
+  const [authStatus, setAuthStatus] = useState<"checking" | "authorized" | "forbidden" | "unauthenticated" | "network_error">("checking");
+  const [authErrorMessage, setAuthErrorMessage] = useState<string | null>(null);
 
   // Sidebar and Navigation State
   const [activeSection, setActiveSection] = useState<NavSectionId>("overview");
@@ -178,54 +179,79 @@ export default function SuperAdminPortalPage() {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   // Server-Authoritative Zero-Trust Verification on Mount
-  useEffect(() => {
-    let isMounted = true;
+  const verifyServerAuthorization = useCallback(async () => {
+    setAuthStatus("checking");
+    setAuthErrorMessage(null);
 
-    async function verifyServerAuthorization() {
-      try {
-        const token = localStorage.getItem("billing_auth_token");
-        if (!token) {
-          if (isMounted) {
-            setAuthStatus("unauthenticated");
-            window.location.replace("/login?redirect=/superadmin");
-          }
-          return;
-        }
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("billing_auth_token") : null;
+      if (!token) {
+        setAuthStatus("unauthenticated");
+        try {
+          localStorage.removeItem("billing_auth_token");
+          localStorage.removeItem("billing_user_profile");
+          localStorage.removeItem("billing_tenant_context");
+        } catch {}
+        window.location.replace("/login?redirect=/superadmin");
+        return;
+      }
 
-        // 1. Authoritative identity check from server
-        const me: any = await apiClient.get("/auth/me");
-        const authoritativeRole = me?.user?.role || me?.role;
-        if (!authoritativeRole || authoritativeRole !== "SUPER_ADMIN") {
-          if (isMounted) setAuthStatus("forbidden");
-          return;
-        }
+      // 1. Authoritative identity check from server (with 8s timeout)
+      const me: any = await apiClient.get("/auth/me", undefined, undefined, { timeoutMs: 8000, skipAuthRedirect: true });
+      const authoritativeRole = me?.user?.role || me?.role;
+      if (!authoritativeRole || authoritativeRole !== "SUPER_ADMIN") {
+        setAuthStatus("forbidden");
+        return;
+      }
 
-        // 2. Authoritative SuperAdmin endpoint check
-        const statsData: any = await apiClient.get("/super-admin/stats");
-        if (isMounted) {
-          setStats(statsData);
-          setAuthStatus("authorized");
-        }
-      } catch (err: any) {
-        if (isMounted) {
-          if (err?.statusCode === 401) {
-            setAuthStatus("unauthenticated");
-            window.location.replace("/login?redirect=/superadmin");
-          } else {
-            setAuthStatus("forbidden");
-          }
-        }
+      // 2. Authoritative SuperAdmin endpoint check
+      const statsData: any = await apiClient.get("/super-admin/stats", undefined, undefined, { timeoutMs: 8000 });
+      setStats(statsData);
+      setAuthStatus("authorized");
+    } catch (err: any) {
+      if (err?.statusCode === 401) {
+        setAuthStatus("unauthenticated");
+        try {
+          localStorage.removeItem("billing_auth_token");
+          localStorage.removeItem("billing_user_profile");
+          localStorage.removeItem("billing_tenant_context");
+        } catch {}
+        window.location.replace("/login?redirect=/superadmin&reason=session_expired");
+      } else if (err?.statusCode === 403) {
+        setAuthStatus("forbidden");
+      } else {
+        // Network failure, timeout, or server unavailable
+        setAuthErrorMessage(err?.message || "Unable to reach server. Please check backend connection.");
+        setAuthStatus("network_error");
       }
     }
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
 
     if (!authLoading) {
       verifyServerAuthorization();
     }
 
+    // Safety watchdog: Prevent indefinite checking state
+    const watchdogTimer = setTimeout(() => {
+      if (isMounted) {
+        setAuthStatus((prev) => {
+          if (prev === "checking") {
+            setAuthErrorMessage("Server verification took too long to respond.");
+            return "network_error";
+          }
+          return prev;
+        });
+      }
+    }, 6000);
+
     return () => {
       isMounted = false;
+      clearTimeout(watchdogTimer);
     };
-  }, [authLoading, router]);
+  }, [authLoading, verifyServerAuthorization]);
 
   // Fetch Tenants
   const fetchTenants = useCallback(async () => {
@@ -966,28 +992,94 @@ export default function SuperAdminPortalPage() {
     );
   }
 
-  // 2. CHECKING AUTHORIZATION LOADING SCREEN
-  if (authStatus === "checking" || authLoading) {
+  // 2. NETWORK ERROR OR SERVER TIMEOUT SCREEN
+  if (authStatus === "network_error") {
     return (
-      <div className="min-h-screen bg-[#F8F9FB] flex flex-col items-center justify-center p-4">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-3xl shadow-lg shadow-purple-500/20 animate-pulse mb-3">
-          🛡️
+      <div
+        className="min-h-screen bg-[#F8F9FB] flex flex-col items-center justify-center p-6 text-center"
+        style={{ minHeight: "100vh", backgroundColor: "#F8F9FB", fontFamily: "var(--font-inter), sans-serif" }}
+      >
+        <div
+          className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 font-bold text-3xl mb-4 shadow-sm"
+          style={{ width: "4rem", height: "4rem", borderRadius: "1rem", backgroundColor: "#FFFBEB" }}
+        >
+          📡
         </div>
-        <p className="text-base font-bold text-[#202124]">MyBill Master Operations</p>
-        <p className="text-xs text-[#98A2B3] mt-1 font-mono">Verifying server authorization...</p>
+        <h1 className="text-2xl font-black text-[#202124] tracking-tight">
+          Backend Connection Failed
+        </h1>
+        <p className="text-xs text-[#667085] mt-1.5 max-w-md">
+          {authErrorMessage || "Unable to reach the server to verify administrative privileges. Please ensure the backend service is running."}
+        </p>
+        <div className="flex items-center gap-3 mt-6">
+          <button
+            onClick={() => verifyServerAuthorization()}
+            className="py-2.5 px-5 bg-[#F47721] hover:bg-[#D95F12] active:bg-[#B94B0A] text-white rounded-xl text-xs font-bold transition-all shadow-saffron"
+            style={{ backgroundColor: "#F47721", color: "#FFFFFF", padding: "10px 20px", borderRadius: "12px", fontWeight: "bold" }}
+          >
+            Retry Verification
+          </button>
+          <Link
+            href="/"
+            className="py-2.5 px-5 bg-white border border-[#E5E7EB] hover:bg-slate-50 text-[#344054] rounded-xl text-xs font-semibold transition-all"
+            style={{ backgroundColor: "#FFFFFF", border: "1px solid #E5E7EB", padding: "10px 20px", borderRadius: "12px" }}
+          >
+            ← Business Dashboard
+          </Link>
+          <Link
+            href="/login"
+            className="py-2.5 px-5 bg-slate-100 hover:bg-slate-200 text-[#344054] rounded-xl text-xs font-semibold transition-all"
+            style={{ backgroundColor: "#F1F5F9", padding: "10px 20px", borderRadius: "12px" }}
+          >
+            Login Screen
+          </Link>
+        </div>
       </div>
     );
   }
 
-  // 3. UNAUTHENTICATED REDIRECT FALLBACK
+  // 3. CHECKING AUTHORIZATION LOADING SCREEN
+  if (authStatus === "checking" || authLoading) {
+    return (
+      <div
+        className="min-h-screen bg-[#F8F9FB] flex flex-col items-center justify-center p-4 text-center"
+        style={{ minHeight: "100vh", backgroundColor: "#F8F9FB", fontFamily: "var(--font-inter), sans-serif" }}
+      >
+        <div
+          className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold text-3xl shadow-lg shadow-purple-500/20 animate-pulse mb-3"
+          style={{ width: "4rem", height: "4rem", borderRadius: "1rem", backgroundColor: "#7C3AED", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.875rem" }}
+        >
+          🛡️
+        </div>
+        <p className="text-base font-bold text-[#202124]" style={{ color: "#202124", fontWeight: 700 }}>
+          MyBill Master Operations
+        </p>
+        <p className="text-xs text-[#98A2B3] mt-1 font-mono" style={{ color: "#98A2B3" }}>
+          Verifying server authorization...
+        </p>
+      </div>
+    );
+  }
+
+  // 4. UNAUTHENTICATED REDIRECT FALLBACK
   if (authStatus === "unauthenticated") {
     return (
-      <div className="min-h-screen bg-[#F8F9FB] flex flex-col items-center justify-center p-4">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#F47721] to-[#FF9B50] flex items-center justify-center text-white font-bold text-3xl shadow-saffron animate-pulse mb-3">
+      <div
+        className="min-h-screen bg-[#F8F9FB] flex flex-col items-center justify-center p-4 text-center"
+        style={{ minHeight: "100vh", backgroundColor: "#F8F9FB", fontFamily: "var(--font-inter), sans-serif" }}
+      >
+        <div
+          className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#F47721] to-[#FF9B50] flex items-center justify-center text-white font-bold text-3xl shadow-saffron animate-pulse mb-3"
+          style={{ width: "4rem", height: "4rem", borderRadius: "1rem", backgroundColor: "#F47721", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.875rem" }}
+        >
           ₹
         </div>
-        <p className="text-base font-bold text-[#202124]">Redirecting to Login...</p>
-        <p className="text-xs text-[#98A2B3] mt-1 font-mono">Platform administrator authentication required.</p>
+        <p className="text-base font-bold text-[#202124]" style={{ color: "#202124", fontWeight: 700 }}>
+          Redirecting to Login...
+        </p>
+        <p className="text-xs text-[#98A2B3] mt-1 font-mono" style={{ color: "#98A2B3" }}>
+          Platform administrator authentication required.
+        </p>
       </div>
     );
   }

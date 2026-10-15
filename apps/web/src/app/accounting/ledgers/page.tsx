@@ -203,7 +203,7 @@ export default function LedgersPage() {
               d="M12 4v16m8-8H4"
             />
           </svg>
-          <span>{lang === "gu" ? "નવું ખાતું ખોલો" : "+ Create Ledger"}</span>
+          <span>{lang === "gu" ? "નવું ખાતું ખોલો" : "Create Ledger"}</span>
         </button>
       </div>
 

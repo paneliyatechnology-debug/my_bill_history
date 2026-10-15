@@ -9,18 +9,26 @@ export class ApiError extends Error {
   statusCode: number;
   messageGujarati?: string;
   originalError?: any;
+  isTimeout: boolean;
+  isNetworkError: boolean;
+  isAuthError: boolean;
 
   constructor(
     statusCode: number,
     message: string,
     messageGujarati?: string,
     originalError?: any,
+    isTimeout = false,
+    isNetworkError = false,
   ) {
     super(message);
     this.name = "ApiError";
     this.statusCode = statusCode;
     this.messageGujarati = messageGujarati;
     this.originalError = originalError;
+    this.isTimeout = isTimeout;
+    this.isNetworkError = isNetworkError;
+    this.isAuthError = statusCode === 401 || statusCode === 403;
   }
 }
 
@@ -30,6 +38,13 @@ export interface TenantHeaders {
   branchId?: string;
   financialYearId?: string;
 }
+
+export interface RequestOptions extends RequestInit {
+  timeoutMs?: number;
+  skipAuthRedirect?: boolean;
+}
+
+const DEFAULT_TIMEOUT_MS = 15000;
 
 const getStoredToken = (): string | null => {
   if (typeof window === "undefined") return null;
@@ -48,9 +63,34 @@ const getStoredTenant = (): TenantHeaders => {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
 
+let isRedirectingToLogin = false;
+
+export function handleUnauthorized(redirectTarget?: string) {
+  if (typeof window === "undefined" || isRedirectingToLogin) return;
+  if (window.location.pathname.startsWith("/login")) return;
+
+  isRedirectingToLogin = true;
+  try {
+    localStorage.removeItem("billing_auth_token");
+    localStorage.removeItem("billing_user_profile");
+    localStorage.removeItem("billing_tenant_context");
+  } catch {
+    // Ignore storage errors
+  }
+
+  const currentTarget = redirectTarget || (window.location.pathname + window.location.search);
+  const redirectParam =
+    currentTarget && currentTarget !== "/" && !currentTarget.startsWith("/login")
+      ? `?redirect=${encodeURIComponent(currentTarget)}`
+      : "";
+
+  // Use replace to avoid browser history trap
+  window.location.replace(`/login${redirectParam}`);
+}
+
 async function request<T>(
   path: string,
-  options: RequestInit = {},
+  options: RequestOptions = {},
   customTenant?: TenantHeaders,
   idempotencyKey?: string,
 ): Promise<T> {
@@ -94,39 +134,82 @@ async function request<T>(
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
   const url = `${API_BASE}${cleanPath}`;
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const controller = new AbortController();
+  let timedOut = false;
 
-  if (response.status === 401 && typeof window !== "undefined") {
-    // If unauthorized, redirect to login if not already on login page
-    if (!window.location.pathname.startsWith("/login")) {
-      localStorage.removeItem("billing_auth_token");
-      localStorage.removeItem("billing_user_profile");
-      const currentTarget = window.location.pathname + window.location.search;
-      const redirectParam = currentTarget && currentTarget !== "/" ? `?redirect=${encodeURIComponent(currentTarget)}` : "";
-      window.location.href = `/login${redirectParam}`;
+  const timeoutId = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
+
+  if (options.signal) {
+    options.signal.addEventListener("abort", () => {
+      controller.abort();
+    });
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+  } catch (fetchError: any) {
+    clearTimeout(timeoutId);
+    if (timedOut || fetchError?.name === "AbortError") {
+      throw new ApiError(
+        408,
+        `Request to ${cleanPath} timed out after ${timeoutMs}ms.`,
+        "વિનંતીનો સમય સમાપ્ત થયો. કૃપા કરીને પુનઃ પ્રયાસ કરો.",
+        fetchError,
+        true,
+        false,
+      );
     }
+    // Network failure (offline, connection refused, or DNS resolution failure)
+    throw new ApiError(
+      0,
+      `Unable to reach backend server (${fetchError?.message || "Connection failed"}).`,
+      "સર્વર સાથે કનેક્ટ કરવામાં અસમર્થ. સર્વર ચાલુ છે કે કેમ તે ચકાસો.",
+      fetchError,
+      false,
+      true,
+    );
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  if (response.status === 401 && typeof window !== "undefined" && !options.skipAuthRedirect) {
+    handleUnauthorized();
   }
 
   if (!response.ok) {
-    let errBody: ApiErrorResponse | null = null;
+    let errBody: any = null;
     try {
-      errBody = await response.json();
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        errBody = await response.json();
+      } else {
+        const text = await response.text();
+        errBody = { message: text || response.statusText };
+      }
     } catch {
-      // not JSON
+      errBody = { message: response.statusText || `HTTP ${response.status}` };
     }
 
     const message = Array.isArray(errBody?.message)
-      ? errBody?.message.join(", ")
-      : errBody?.message || response.statusText || "Request failed";
+      ? errBody.message.join(", ")
+      : errBody?.message || response.statusText || `Request failed with status ${response.status}`;
 
     throw new ApiError(
       response.status,
       message,
       errBody?.messageGujarati,
       errBody,
+      false,
+      false,
     );
   }
 
@@ -144,6 +227,7 @@ export const apiClient = {
     path: string,
     params?: Record<string, any>,
     tenant?: TenantHeaders,
+    options?: RequestOptions,
   ): Promise<T> {
     let fullPath = path;
     if (params) {
@@ -158,7 +242,7 @@ export const apiClient = {
         fullPath += (path.includes("?") ? "&" : "?") + queryStr;
       }
     }
-    return request<T>(fullPath, { method: "GET" }, tenant);
+    return request<T>(fullPath, { method: "GET", ...options }, tenant);
   },
 
   post<T>(
@@ -166,6 +250,7 @@ export const apiClient = {
     body?: any,
     tenant?: TenantHeaders,
     idempotencyKey?: string,
+    options?: RequestOptions,
   ): Promise<T> {
     const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
     return request<T>(
@@ -173,44 +258,62 @@ export const apiClient = {
       {
         method: "POST",
         body: isFormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
+        ...options,
       },
       tenant,
       idempotencyKey,
     );
   },
 
-  put<T>(path: string, body?: any, tenant?: TenantHeaders): Promise<T> {
+  put<T>(
+    path: string,
+    body?: any,
+    tenant?: TenantHeaders,
+    options?: RequestOptions,
+  ): Promise<T> {
     const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
     return request<T>(
       path,
       {
         method: "PUT",
         body: isFormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
+        ...options,
       },
       tenant,
     );
   },
 
-  patch<T>(path: string, body?: any, tenant?: TenantHeaders): Promise<T> {
+  patch<T>(
+    path: string,
+    body?: any,
+    tenant?: TenantHeaders,
+    options?: RequestOptions,
+  ): Promise<T> {
     const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
     return request<T>(
       path,
       {
         method: "PATCH",
         body: isFormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
+        ...options,
       },
       tenant,
     );
   },
 
-  delete<T>(path: string, tenant?: TenantHeaders): Promise<T> {
-    return request<T>(path, { method: "DELETE" }, tenant);
+  delete<T>(
+    path: string,
+    tenant?: TenantHeaders,
+    options?: RequestOptions,
+  ): Promise<T> {
+    return request<T>(path, { method: "DELETE", ...options }, tenant);
   },
 
   async downloadCsv(
     path: string,
     filename: string,
     params?: Record<string, any>,
+    options?: RequestOptions,
   ): Promise<void> {
     let fullPath = path;
     if (params) {
@@ -237,12 +340,28 @@ export const apiClient = {
     if (tenant.financialYearId)
       headers["x-financial-year-id"] = tenant.financialYearId;
 
-    const res = await fetch(
-      `${API_BASE}${fullPath.startsWith("/") ? fullPath : `/${fullPath}`}`,
-      {
-        headers,
-      },
-    );
+    const timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    let res: Response;
+    try {
+      res = await fetch(
+        `${API_BASE}${fullPath.startsWith("/") ? fullPath : `/${fullPath}`}`,
+        {
+          headers,
+          signal: controller.signal,
+        },
+      );
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      if (err?.name === "AbortError") {
+        throw new Error(`Report download timed out after ${timeoutMs}ms`);
+      }
+      throw new Error(`Failed to download report: ${err?.message || "Connection failed"}`);
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!res.ok) {
       throw new Error(`Failed to download report: ${res.statusText}`);

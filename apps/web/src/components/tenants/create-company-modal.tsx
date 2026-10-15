@@ -138,7 +138,7 @@ export function CreateCompanyModal({
     >
       <div className="bg-white rounded-xl shadow-2xl max-w-xl w-full overflow-hidden border border-[#E5E7EB] flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-150">
         {/* Modal Header */}
-        <div className="px-6 py-4 bg-linear-to-r from-[#FFFAF5] to-white border-b border-[#FED7AA]/50 flex items-center justify-between">
+        <div className="px-6 py-4 bg-gradient-to-r from-[#FFFAF5] to-white border-b border-[#FED7AA]/50 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-[#FFFAF5] border border-[#FED7AA] flex items-center justify-center text-[#F47721]">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

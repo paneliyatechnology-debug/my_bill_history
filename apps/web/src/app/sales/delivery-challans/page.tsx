@@ -138,18 +138,30 @@ export default function DeliveryChallansPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [chRes, ptRes, whRes, itRes]: any = await Promise.all([
+      const [chSettled, ptSettled, whSettled, itSettled] = await Promise.allSettled([
         apiClient.get("/distribution/challans"),
         apiClient.get("/parties"),
         apiClient.get("/warehouses"),
         apiClient.get("/items"),
       ]);
-      setChallans(extractList(chRes));
-      setParties(extractList(ptRes));
-      setWarehouses(extractList(whRes));
-      setItems(extractList(itRes));
+
+      if (chSettled.status === "fulfilled") {
+        setChallans(extractList(chSettled.value));
+      } else {
+        setError(chSettled.reason?.message || "Failed to load delivery challans.");
+      }
+
+      if (ptSettled.status === "fulfilled") {
+        setParties(extractList(ptSettled.value));
+      }
+      if (whSettled.status === "fulfilled") {
+        setWarehouses(extractList(whSettled.value));
+      }
+      if (itSettled.status === "fulfilled") {
+        setItems(extractList(itSettled.value));
+      }
     } catch (err: any) {
-      setError(err.message || "Failed to load delivery challans.");
+      setError(err?.message || "Failed to load delivery challans.");
     } finally {
       setIsLoading(false);
     }
@@ -158,6 +170,8 @@ export default function DeliveryChallansPage() {
   useEffect(() => {
     if (tenantContext.companyId) {
       fetchData();
+    } else {
+      setIsLoading(false);
     }
   }, [tenantContext.companyId, fetchData]);
 
@@ -535,7 +549,7 @@ export default function DeliveryChallansPage() {
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
           </svg>
-          {lang === "gu" ? "નવું ડિલિવરી ચલણ" : "+ New Delivery Challan"}
+          {lang === "gu" ? "નવું ડિલિવરી ચલણ" : "New Delivery Challan"}
         </button>
       </div>
 

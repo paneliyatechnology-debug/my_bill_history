@@ -544,7 +544,7 @@ function SalesReturnsContent() {
             />
           </svg>
           <span>
-            {lang === "gu" ? "નવી ક્રેડિટ નોટ બનાવો" : "+ Create Credit Note"}
+            {lang === "gu" ? "નવી ક્રેડિટ નોટ બનાવો" : "Create Credit Note"}
           </span>
         </button>
       </div>
