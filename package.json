@@ -16,7 +16,8 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
     "db:generate": "pnpm --filter @billing/database db:generate",
     "db:migrate": "pnpm --filter @billing/database db:migrate",
-    "db:push": "pnpm --filter @billing/database db:push"
+    "db:push": "pnpm --filter @billing/database db:push",
+    "db:seed": "pnpm --filter @billing/database db:seed"
   },
   "devDependencies": {
     "prettier": "^3.3.3",

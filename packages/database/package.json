@@ -8,6 +8,7 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:push": "prisma db push",
+    "db:seed": "node prisma/seed.js",
     "build": "prisma generate && tsc --build",
     "clean": "rm -rf dist tsconfig.tsbuildinfo node_modules/.prisma",
     "type-check": "tsc --noEmit"
