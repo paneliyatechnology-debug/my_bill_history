@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
+import { DataTable, ColumnDef } from "../../components/ui/data-table";
 
 interface SystemStats {
   tenants: {
@@ -371,7 +372,7 @@ export default function SuperAdminPortalPage() {
   };
 
   // Toggle Tenant Active / Suspend
-  const handleToggleTenantStatus = async (tenant: TenantItem) => {
+  const handleToggleTenantStatus = useCallback(async (tenant: TenantItem) => {
     setActionError(null);
     try {
       const newStatus = !tenant.isActive;
@@ -390,10 +391,10 @@ export default function SuperAdminPortalPage() {
     } catch (err: any) {
       setActionError(err.message || "Failed to toggle tenant status");
     }
-  };
+  }, [lang, fetchTenants]);
 
   // Toggle User Active / Inactive
-  const handleToggleUserStatus = async (userItem: UserItem) => {
+  const handleToggleUserStatus = useCallback(async (userItem: UserItem) => {
     setActionError(null);
     try {
       const newStatus = !userItem.isActive;
@@ -410,7 +411,7 @@ export default function SuperAdminPortalPage() {
     } catch (err: any) {
       setActionError(err.message || "Failed to toggle user status");
     }
-  };
+  }, [lang, fetchUsers]);
 
   // Reset User Password
   const handleResetPassword = async () => {
@@ -470,17 +471,17 @@ export default function SuperAdminPortalPage() {
   };
 
   // View Tenant Deep Details
-  const handleViewTenantDetails = async (tenantId: string) => {
+  const handleViewTenantDetails = useCallback(async (tenantId: string) => {
     try {
       const details = await apiClient.get(`/super-admin/tenants/${tenantId}`);
       setViewDetailsTenant(details);
     } catch (err: any) {
       setActionError(err.message || "Failed to load tenant details");
     }
-  };
+  }, []);
 
   // Secure Support Session / Impersonation
-  const handleImpersonateTenant = async (companyId: string, companyName: string) => {
+  const handleImpersonateTenant = useCallback(async (companyId: string, companyName: string) => {
     try {
       const res: any = await apiClient.post("/super-admin/impersonate", {
         companyId,
@@ -510,7 +511,7 @@ export default function SuperAdminPortalPage() {
     } catch (err: any) {
       setActionError(err.message || "Failed to enter tenant context");
     }
-  };
+  }, [router]);
 
   const formatInr = (val: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -519,6 +520,380 @@ export default function SuperAdminPortalPage() {
       maximumFractionDigits: 0,
     }).format(val);
   };
+
+  // ================= DATA TABLES COLUMN DEFINITIONS =================
+  const tenantColumns: ColumnDef<TenantItem>[] = useMemo(() => [
+    {
+      id: "organization",
+      header: lang === "gu" ? "સંસ્થા / ટેનન્ટ આઈડી" : "Organization / Tenant ID",
+      sortable: true,
+      accessorFn: (t) => t.organizations[0]?.name || "Main Organization",
+      cell: (t) => {
+        const firstOrg = t.organizations[0];
+        return (
+          <div>
+            <div className="font-bold text-[#202124] text-sm">
+              {firstOrg?.name || "Main Organization"}
+            </div>
+            <div className="text-[10px] text-[#98A2B3] font-mono truncate max-w-[180px]">
+              {t.id}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      id: "contact",
+      header: lang === "gu" ? "પ્રાથમિક સંપર્ક" : "Primary Contact",
+      sortable: true,
+      accessorKey: "primaryPhone",
+      cell: (t) => (
+        <div className="font-mono">
+          <div className="text-[#202124] font-bold">{t.primaryPhone}</div>
+          <div className="text-[10px] text-[#667085] truncate max-w-[150px]">
+            {t.primaryEmail || "No email registered"}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: "planTier",
+      header: lang === "gu" ? "પ્લાન ટિયર" : "Plan Tier",
+      sortable: true,
+      accessorKey: "subscriptionTier",
+      cell: (t) => (
+        <span
+          className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase font-mono ${
+            t.subscriptionTier === "MANUFACTURING_SUITE"
+              ? "bg-purple-50 text-purple-700 border border-purple-200"
+              : t.subscriptionTier === "WHOLESALE_PRO"
+              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+              : t.subscriptionTier === "DISTRIBUTION_ENTERPRISE"
+              ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
+              : "bg-amber-50 text-amber-700 border border-amber-200"
+          }`}
+        >
+          {t.subscriptionTier}
+        </span>
+      ),
+    },
+    {
+      id: "expiryDate",
+      header: lang === "gu" ? "સમાપ્તિ તારીખ" : "Expiry Date",
+      sortable: true,
+      accessorKey: "subscriptionEnds",
+      cell: (t) => {
+        const isExpired = new Date(t.subscriptionEnds) < new Date();
+        const daysLeft = Math.ceil(
+          (new Date(t.subscriptionEnds).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+        );
+        return (
+          <div className="font-mono">
+            <span className={isExpired ? "text-rose-600 font-bold" : "text-[#202124]"}>
+              {new Date(t.subscriptionEnds).toLocaleDateString()}
+            </span>
+            <span
+              className={`block text-[10px] font-bold ${
+                isExpired ? "text-rose-600" : daysLeft <= 15 ? "text-amber-600" : "text-[#98A2B3]"
+              }`}
+            >
+              {isExpired ? "Expired" : `${daysLeft} days left`}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      id: "companies",
+      header: lang === "gu" ? "કંપનીઓ અને બિલ" : "Companies & Invoices",
+      sortable: false,
+      cell: (t) => {
+        const firstOrg = t.organizations[0];
+        const firstCompany = firstOrg?.companies[0];
+        return (
+          <div>
+            <span className="font-semibold text-[#202124]">
+              {firstOrg?.companies?.length || 0} Company
+            </span>
+            <span className="block text-[10px] text-[#667085]">
+              {firstCompany?.invoicesCount || 0} Invoices • {firstOrg?.userCount || 1} User(s)
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      id: "status",
+      header: lang === "gu" ? "સ્થિતિ" : "Status",
+      sortable: true,
+      accessorFn: (t) => (t.isActive ? "Active" : "Suspended"),
+      cell: (t) => (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleToggleTenantStatus(t);
+          }}
+          className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-all ${
+            t.isActive
+              ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200"
+              : "bg-rose-50 text-rose-700 border border-rose-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200"
+          }`}
+          title="Toggle Active / Suspended"
+        >
+          {t.isActive ? "● Active" : "✕ Suspended"}
+        </button>
+      ),
+    },
+    {
+      id: "actions",
+      header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
+      headerClassName: "text-right",
+      className: "text-right whitespace-nowrap",
+      cell: (t) => {
+        const firstOrg = t.organizations[0];
+        const firstCompany = firstOrg?.companies[0];
+        return (
+          <div className="flex items-center justify-end gap-1.5">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedTenant(t);
+                setEditTier(t.subscriptionTier);
+              }}
+              className="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-md text-[11px] font-bold transition-all"
+            >
+              Manage License
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleViewTenantDetails(t.id);
+              }}
+              className="px-2 py-1 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#202124] rounded-md text-[11px] font-bold transition-all"
+              title="View deep tenant hierarchy"
+            >
+              Details
+            </button>
+            {firstCompany && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleImpersonateTenant(firstCompany.id, firstCompany.tradeName);
+                }}
+                className="px-2.5 py-1 bg-[#FFF3E8] hover:bg-[#FFE5D0] text-[#F47721] border border-orange-200 rounded-md text-[11px] font-bold transition-all"
+                title="Enter customer portal in support mode"
+              >
+                Enter Portal →
+              </button>
+            )}
+          </div>
+        );
+      },
+    },
+  ], [lang, handleToggleTenantStatus, handleViewTenantDetails, handleImpersonateTenant]);
+
+  const invoiceColumns: ColumnDef<InvoiceItem>[] = useMemo(() => [
+    {
+      id: "invoiceNumber",
+      header: lang === "gu" ? "ઇન્વૉઇસ નંબર" : "Invoice #",
+      sortable: true,
+      accessorKey: "invoiceNumber",
+      className: "font-mono font-bold text-purple-700",
+    },
+    {
+      id: "invoiceDate",
+      header: lang === "gu" ? "તારીખ" : "Date",
+      sortable: true,
+      accessorKey: "invoiceDate",
+      cell: (inv) => (
+        <span className="text-[#667085]">{new Date(inv.invoiceDate).toLocaleDateString()}</span>
+      ),
+    },
+    {
+      id: "company",
+      header: lang === "gu" ? "કંપની" : "Issuing Company",
+      sortable: true,
+      accessorFn: (inv) => inv.company?.tradeName || "Unknown",
+      className: "font-bold text-[#202124]",
+    },
+    {
+      id: "partyName",
+      header: lang === "gu" ? "ગ્રાહક / પાર્ટી" : "Party / Customer",
+      sortable: true,
+      accessorFn: (inv) => inv.partyName || "Cash Counter",
+      className: "text-[#667085]",
+    },
+    {
+      id: "grandTotal",
+      header: lang === "gu" ? "કુલ રકમ" : "Grand Total",
+      sortable: true,
+      accessorKey: "grandTotal",
+      className: "font-mono font-bold text-[#202124]",
+      cell: (inv) => formatInr(Number(inv.grandTotal)),
+    },
+    {
+      id: "status",
+      header: lang === "gu" ? "સ્થિતિ" : "Status",
+      sortable: true,
+      accessorKey: "status",
+      cell: (inv) => (
+        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          {inv.status}
+        </span>
+      ),
+    },
+  ], [lang]);
+
+  const userColumns: ColumnDef<UserItem>[] = useMemo(() => [
+    {
+      id: "fullName",
+      header: lang === "gu" ? "પૂરું નામ" : "Full Name",
+      sortable: true,
+      accessorKey: "fullName",
+      className: "font-bold text-[#202124]",
+    },
+    {
+      id: "phone",
+      header: lang === "gu" ? "ફોન / ઓળખકર્તા" : "Phone / Identifier",
+      sortable: true,
+      accessorKey: "phone",
+      className: "font-mono",
+    },
+    {
+      id: "email",
+      header: lang === "gu" ? "ઈમેલ એડ્રેસ" : "Email Address",
+      sortable: true,
+      accessorKey: "email",
+      className: "font-mono text-[#667085]",
+    },
+    {
+      id: "role",
+      header: lang === "gu" ? "ભૂમિકા" : "Role",
+      sortable: true,
+      accessorKey: "role",
+      cell: (u) => (
+        <span
+          className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
+            u.role === "SUPER_ADMIN"
+              ? "bg-purple-100 text-purple-800 border border-purple-300"
+              : u.role === "COMPANY_ADMIN"
+              ? "bg-orange-100 text-orange-800 border border-orange-300"
+              : "bg-slate-100 text-slate-700 border border-slate-200"
+          }`}
+        >
+          {u.role}
+        </span>
+      ),
+    },
+    {
+      id: "organization",
+      header: lang === "gu" ? "સંસ્થા" : "Organization",
+      sortable: true,
+      accessorFn: (u) => u.organization?.name || "Global HQ Operations",
+      className: "text-[#667085]",
+    },
+    {
+      id: "status",
+      header: lang === "gu" ? "સ્થિતિ" : "Status",
+      sortable: true,
+      accessorFn: (u) => (u.isActive ? "Active" : "Inactive"),
+      cell: (u) => (
+        <span
+          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+            u.isActive ? "text-emerald-700 bg-emerald-50" : "text-rose-700 bg-rose-50"
+          }`}
+        >
+          {u.isActive ? "Active" : "Inactive"}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
+      headerClassName: "text-right",
+      className: "text-right whitespace-nowrap",
+      cell: (u) => (
+        <div className="flex items-center justify-end gap-1.5">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setResetPasswordUser(u);
+              setNewPasswordVal("");
+            }}
+            className="px-2.5 py-1 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#202124] rounded-md text-[11px] font-bold transition-all"
+          >
+            Reset Password
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggleUserStatus(u);
+            }}
+            className="px-2.5 py-1 bg-white hover:bg-[#F8F9FB] text-[#667085] hover:text-[#202124] border border-[#E5E7EB] rounded-md text-[11px] font-semibold"
+          >
+            {u.isActive ? "Deactivate" : "Activate"}
+          </button>
+        </div>
+      ),
+    },
+  ], [lang, handleToggleUserStatus]);
+
+  const auditColumns: ColumnDef<AuditLogItem>[] = useMemo(() => [
+    {
+      id: "createdAt",
+      header: lang === "gu" ? "સમય" : "Timestamp",
+      sortable: true,
+      accessorKey: "createdAt",
+      cell: (log) => (
+        <span className="text-[#667085] font-mono text-[11px]">
+          {new Date(log.createdAt).toLocaleString()}
+        </span>
+      ),
+    },
+    {
+      id: "action",
+      header: lang === "gu" ? "ક્રિયા" : "Action",
+      sortable: true,
+      accessorKey: "action",
+      cell: (log) => (
+        <span className="font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200 font-mono text-[11px]">
+          {log.action}
+        </span>
+      ),
+    },
+    {
+      id: "entityName",
+      header: lang === "gu" ? "એન્ટિટી" : "Entity",
+      sortable: true,
+      accessorKey: "entityName",
+      className: "text-[#202124] font-mono text-[11px]",
+    },
+    {
+      id: "actor",
+      header: lang === "gu" ? "વપરાશકર્તા" : "Actor User",
+      sortable: true,
+      accessorFn: (log) => log.user?.fullName || "System Service",
+      className: "font-sans font-bold text-[#202124]",
+    },
+    {
+      id: "company",
+      header: lang === "gu" ? "કંપની સંદર્ભ" : "Company Context",
+      sortable: true,
+      accessorFn: (log) => log.company?.tradeName || "Global HQ",
+      className: "font-sans text-[#667085] truncate max-w-[140px]",
+    },
+    {
+      id: "hash",
+      header: lang === "gu" ? "ક્રિપ્ટોગ્રાફિક હેશ" : "Cryptographic Hash",
+      sortable: false,
+      className: "text-[#98A2B3] truncate max-w-[130px] font-mono text-[11px]",
+      cell: (log) => (
+        <span title={log.recordHash}>
+          {log.recordHash ? `${log.recordHash.substring(0, 16)}...` : "—"}
+        </span>
+      ),
+    },
+  ], [lang]);
 
   // 1. SAFE FORBIDDEN SCREEN — If user is not authorized on server
   if (authStatus === "forbidden") {
@@ -637,16 +1012,7 @@ export default function SuperAdminPortalPage() {
         </svg>
       ),
     },
-    {
-      id: "health" as NavSectionId,
-      name: "System Diagnostics & RLS",
-      nameGujarati: "સિસ્ટમ સ્થિતિ & RLS",
-      icon: (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-      ),
-    },
+    
   ];
 
   return (
@@ -1084,167 +1450,63 @@ export default function SuperAdminPortalPage() {
                 </button>
               </div>
 
-              {/* Filters Row */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-xs">
-                <div className="relative w-full sm:w-80">
-                  <span className="absolute left-3.5 top-2.5 text-xs text-[#98A2B3]">🔍</span>
-                  <input
-                    type="text"
-                    placeholder={lang === "gu" ? "ફોન, ઈમેલ અથવા સંસ્થા શોધો..." : "Search phone, email, org name..."}
-                    value={tenantSearch}
-                    onChange={(e) => setTenantSearch(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-xs text-[#202124] placeholder-[#98A2B3] focus:bg-white focus:outline-none focus:ring-1 focus:ring-purple-500"
-                  />
-                </div>
+              <DataTable<TenantItem>
+                data={tenants}
+                columns={tenantColumns}
+                keyExtractor={(t) => t.id}
+                searchPlaceholder={
+                  lang === "gu"
+                    ? "ફોન, ઈમેલ, સંસ્થા અથવા આઈડી શોધો..."
+                    : "Search phone, email, org name, tenant ID..."
+                }
+                searchKeys={["id", "primaryPhone", "primaryEmail", "subscriptionTier"]}
+                customSearchFn={(t, query) => {
+                  const firstOrg = t.organizations[0];
+                  return Boolean(
+                    t.id.toLowerCase().includes(query) ||
+                    t.primaryPhone.toLowerCase().includes(query) ||
+                    (t.primaryEmail && t.primaryEmail.toLowerCase().includes(query)) ||
+                    t.subscriptionTier.toLowerCase().includes(query) ||
+                    (firstOrg?.name && firstOrg.name.toLowerCase().includes(query)) ||
+                    (firstOrg?.companies &&
+                      firstOrg.companies.some(
+                        (c) =>
+                          c.legalName.toLowerCase().includes(query) ||
+                          c.tradeName.toLowerCase().includes(query) ||
+                          (c.gstin && c.gstin.toLowerCase().includes(query))
+                      ))
+                  );
+                }}
+                lang={lang}
+                exportable
+                exportFileName="tenants_organizations"
+                filtersSlot={
+                  <div className="flex flex-wrap items-center gap-2">
+                    <select
+                      value={tierFilter}
+                      onChange={(e) => setTierFilter(e.target.value)}
+                      className="bg-[#F8F9FB] border border-[#E5E7EB] text-xs font-semibold rounded-xl px-3 py-1.5 text-[#202124] focus:outline-none focus:bg-white"
+                    >
+                      <option value="">{lang === "gu" ? "તમામ સબ્સ્ક્રિપ્શન પ્લાન" : "All Subscription Tiers"}</option>
+                      <option value="TRIAL">Trial</option>
+                      <option value="RETAIL_BASIC">Retail Basic</option>
+                      <option value="WHOLESALE_PRO">Wholesale Pro</option>
+                      <option value="DISTRIBUTION_ENTERPRISE">Distribution Enterprise</option>
+                      <option value="MANUFACTURING_SUITE">Manufacturing Suite</option>
+                    </select>
 
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <select
-                    value={tierFilter}
-                    onChange={(e) => setTierFilter(e.target.value)}
-                    className="bg-[#F8F9FB] border border-[#E5E7EB] text-xs rounded-xl px-3 py-2 text-[#202124] focus:outline-none focus:bg-white"
-                  >
-                    <option value="">{lang === "gu" ? "તમામ સબ્સ્ક્રિપ્શન પ્લાન" : "All Subscription Tiers"}</option>
-                    <option value="TRIAL">Trial</option>
-                    <option value="RETAIL_BASIC">Retail Basic</option>
-                    <option value="WHOLESALE_PRO">Wholesale Pro</option>
-                    <option value="DISTRIBUTION_ENTERPRISE">Distribution Enterprise</option>
-                    <option value="MANUFACTURING_SUITE">Manufacturing Suite</option>
-                  </select>
-
-                  <select
-                    value={tenantStatusFilter}
-                    onChange={(e) => setTenantStatusFilter(e.target.value)}
-                    className="bg-[#F8F9FB] border border-[#E5E7EB] text-xs rounded-xl px-3 py-2 text-[#202124] focus:outline-none focus:bg-white"
-                  >
-                    <option value="">{lang === "gu" ? "તમામ સ્થિતિ (Status)" : "All Status"}</option>
-                    <option value="active">Active</option>
-                    <option value="suspended">Suspended</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Tenants Table */}
-              <div className="bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-xs">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-[#FAFBFD] border-b border-[#E5E7EB] text-[#667085] uppercase font-mono tracking-wider">
-                      <tr>
-                        <th className="py-3 px-4">Organization / Tenant ID</th>
-                        <th className="py-3 px-4">Primary Contact</th>
-                        <th className="py-3 px-4">Plan Tier</th>
-                        <th className="py-3 px-4">Expiry Date</th>
-                        <th className="py-3 px-4">Companies & Invoices</th>
-                        <th className="py-3 px-4">Status</th>
-                        <th className="py-3 px-4 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E5E7EB] text-[#202124]">
-                      {tenants.map((t) => {
-                        const firstOrg = t.organizations[0];
-                        const firstCompany = firstOrg?.companies[0];
-                        const isExpired = new Date(t.subscriptionEnds) < new Date();
-                        const daysLeft = Math.ceil(
-                          (new Date(t.subscriptionEnds).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-                        );
-
-                        return (
-                          <tr key={t.id} className="hover:bg-[#FAFBFD] transition-colors">
-                            <td className="py-3.5 px-4">
-                              <div className="font-bold text-[#202124] text-sm">
-                                {firstOrg?.name || "Main Organization"}
-                              </div>
-                              <div className="text-[10px] text-[#98A2B3] font-mono truncate max-w-[180px]">
-                                {t.id}
-                              </div>
-                            </td>
-                            <td className="py-3.5 px-4 font-mono">
-                              <div className="text-[#202124] font-bold">{t.primaryPhone}</div>
-                              <div className="text-[10px] text-[#667085] truncate max-w-[150px]">
-                                {t.primaryEmail || "No email registered"}
-                              </div>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span
-                                className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase font-mono ${
-                                  t.subscriptionTier === "MANUFACTURING_SUITE"
-                                    ? "bg-purple-50 text-purple-700 border border-purple-200"
-                                    : t.subscriptionTier === "WHOLESALE_PRO"
-                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                    : t.subscriptionTier === "DISTRIBUTION_ENTERPRISE"
-                                    ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
-                                    : "bg-amber-50 text-amber-700 border border-amber-200"
-                                }`}
-                              >
-                                {t.subscriptionTier}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 font-mono">
-                              <span className={isExpired ? "text-rose-600 font-bold" : "text-[#202124]"}>
-                                {new Date(t.subscriptionEnds).toLocaleDateString()}
-                              </span>
-                              <span
-                                className={`block text-[10px] font-bold ${
-                                  isExpired ? "text-rose-600" : daysLeft <= 15 ? "text-amber-600" : "text-[#98A2B3]"
-                                }`}
-                              >
-                                {isExpired ? "Expired" : `${daysLeft} days left`}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="font-semibold text-[#202124]">
-                                {firstOrg?.companies?.length || 0} Company
-                              </span>
-                              <span className="block text-[10px] text-[#667085]">
-                                {firstCompany?.invoicesCount || 0} Invoices • {firstOrg?.userCount || 1} User(s)
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <button
-                                onClick={() => handleToggleTenantStatus(t)}
-                                className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-all ${
-                                  t.isActive
-                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200"
-                                    : "bg-rose-50 text-rose-700 border border-rose-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200"
-                                }`}
-                                title="Toggle Active / Suspended"
-                              >
-                                {t.isActive ? "● Active" : "✕ Suspended"}
-                              </button>
-                            </td>
-                            <td className="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
-                              <button
-                                onClick={() => {
-                                  setSelectedTenant(t);
-                                  setEditTier(t.subscriptionTier);
-                                }}
-                                className="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-md text-[11px] font-bold transition-all"
-                              >
-                                Manage License
-                              </button>
-                              <button
-                                onClick={() => handleViewTenantDetails(t.id)}
-                                className="px-2 py-1 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#202124] rounded-md text-[11px] font-bold transition-all"
-                                title="View deep tenant hierarchy"
-                              >
-                                Details
-                              </button>
-                              {firstCompany && (
-                                <button
-                                  onClick={() => handleImpersonateTenant(firstCompany.id, firstCompany.tradeName)}
-                                  className="px-2.5 py-1 bg-[#FFF3E8] hover:bg-[#FFE5D0] text-[#F47721] border border-orange-200 rounded-md text-[11px] font-bold transition-all"
-                                  title="Enter customer portal in support mode"
-                                >
-                                  Enter Portal →
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                    <select
+                      value={tenantStatusFilter}
+                      onChange={(e) => setTenantStatusFilter(e.target.value)}
+                      className="bg-[#F8F9FB] border border-[#E5E7EB] text-xs font-semibold rounded-xl px-3 py-1.5 text-[#202124] focus:outline-none focus:bg-white"
+                    >
+                      <option value="">{lang === "gu" ? "તમામ સ્થિતિ (Status)" : "All Status"}</option>
+                      <option value="active">Active</option>
+                      <option value="suspended">Suspended</option>
+                    </select>
+                  </div>
+                }
+              />
             </div>
           )}
 
@@ -1379,61 +1641,28 @@ export default function SuperAdminPortalPage() {
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-xs">
-                <div className="relative w-full sm:w-80">
-                  <span className="absolute left-3.5 top-2.5 text-xs text-[#98A2B3]">🔍</span>
-                  <input
-                    type="text"
-                    placeholder="Search invoice #, customer, company..."
-                    value={invoiceSearch}
-                    onChange={(e) => setInvoiceSearch(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-xs text-[#202124] placeholder-[#98A2B3] focus:bg-white focus:outline-none focus:ring-1 focus:ring-purple-500"
-                  />
-                </div>
-              </div>
-
-              <div className="bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-xs">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-[#FAFBFD] border-b border-[#E5E7EB] text-[#667085] uppercase font-mono tracking-wider">
-                      <tr>
-                        <th className="py-3 px-4">Invoice #</th>
-                        <th className="py-3 px-4">Date</th>
-                        <th className="py-3 px-4">Issuing Company</th>
-                        <th className="py-3 px-4">Party / Customer</th>
-                        <th className="py-3 px-4">Grand Total</th>
-                        <th className="py-3 px-4">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E5E7EB] text-[#202124]">
-                      {invoices.map((inv) => (
-                        <tr key={inv.id} className="hover:bg-[#FAFBFD] transition-colors">
-                          <td className="py-3.5 px-4 font-mono font-bold text-purple-700">
-                            {inv.invoiceNumber}
-                          </td>
-                          <td className="py-3.5 px-4 text-[#667085]">
-                            {new Date(inv.invoiceDate).toLocaleDateString()}
-                          </td>
-                          <td className="py-3.5 px-4 font-bold text-[#202124]">
-                            {inv.company?.tradeName || "Unknown"}
-                          </td>
-                          <td className="py-3.5 px-4 text-[#667085]">
-                            {inv.partyName || "Cash Counter"}
-                          </td>
-                          <td className="py-3.5 px-4 font-mono font-bold text-[#202124]">
-                            {formatInr(Number(inv.grandTotal))}
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              {inv.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <DataTable<InvoiceItem>
+                data={invoices}
+                columns={invoiceColumns}
+                keyExtractor={(inv) => inv.id}
+                searchPlaceholder={
+                  lang === "gu"
+                    ? "બિલ નંબર, કંપની, ગ્રાહક શોધો..."
+                    : "Search invoice #, customer, company..."
+                }
+                searchKeys={["invoiceNumber", "partyName", "status"]}
+                customSearchFn={(inv, query) =>
+                  Boolean(
+                    inv.invoiceNumber.toLowerCase().includes(query) ||
+                    (inv.partyName && inv.partyName.toLowerCase().includes(query)) ||
+                    (inv.company?.tradeName && inv.company.tradeName.toLowerCase().includes(query)) ||
+                    inv.status.toLowerCase().includes(query)
+                  )
+                }
+                lang={lang}
+                exportable
+                exportFileName="global_invoices"
+              />
             </div>
           )}
 
@@ -1449,103 +1678,44 @@ export default function SuperAdminPortalPage() {
                 </p>
               </div>
 
-              {/* Filters */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-xs">
-                <div className="relative w-full sm:w-80">
-                  <span className="absolute left-3.5 top-2.5 text-xs text-[#98A2B3]">🔍</span>
-                  <input
-                    type="text"
-                    placeholder={lang === "gu" ? "નામ, ફોન અથવા ઈમેલ શોધો..." : "Search user name, phone, email..."}
-                    value={userSearch}
-                    onChange={(e) => setUserSearch(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-xs text-[#202124] placeholder-[#98A2B3] focus:bg-white focus:outline-none focus:ring-1 focus:ring-purple-500"
-                  />
-                </div>
-
-                <select
-                  value={userRoleFilter}
-                  onChange={(e) => setUserRoleFilter(e.target.value)}
-                  className="bg-[#F8F9FB] border border-[#E5E7EB] text-xs rounded-xl px-3 py-2 text-[#202124] focus:outline-none focus:bg-white w-full sm:w-auto"
-                >
-                  <option value="">{lang === "gu" ? "તમામ ભૂમિકાઓ (All Roles)" : "All User Roles"}</option>
-                  <option value="SUPER_ADMIN">Super Admin</option>
-                  <option value="COMPANY_ADMIN">Company Admin</option>
-                  <option value="ACCOUNTANT">Accountant</option>
-                  <option value="BRANCH_MANAGER">Branch Manager</option>
-                  <option value="CASHIER">Cashier</option>
-                  <option value="AUDITOR">Auditor</option>
-                </select>
-              </div>
-
-              {/* Users Table */}
-              <div className="bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-xs">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-[#FAFBFD] border-b border-[#E5E7EB] text-[#667085] uppercase font-mono tracking-wider">
-                      <tr>
-                        <th className="py-3 px-4">Full Name</th>
-                        <th className="py-3 px-4">Phone / Identifier</th>
-                        <th className="py-3 px-4">Email Address</th>
-                        <th className="py-3 px-4">Role</th>
-                        <th className="py-3 px-4">Organization</th>
-                        <th className="py-3 px-4">Status</th>
-                        <th className="py-3 px-4 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E5E7EB] text-[#202124]">
-                      {usersList.map((u) => (
-                        <tr key={u.id} className="hover:bg-[#FAFBFD] transition-colors">
-                          <td className="py-3.5 px-4 font-bold text-[#202124]">{u.fullName}</td>
-                          <td className="py-3.5 px-4 font-mono">{u.phone}</td>
-                          <td className="py-3.5 px-4 font-mono text-[#667085]">{u.email}</td>
-                          <td className="py-3.5 px-4">
-                            <span
-                              className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
-                                u.role === "SUPER_ADMIN"
-                                  ? "bg-purple-100 text-purple-800 border border-purple-300"
-                                  : u.role === "COMPANY_ADMIN"
-                                  ? "bg-orange-100 text-orange-800 border border-orange-300"
-                                  : "bg-slate-100 text-slate-700 border border-slate-200"
-                              }`}
-                            >
-                              {u.role}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-[#667085]">
-                            {u.organization?.name || "Global HQ Operations"}
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <span
-                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                u.isActive ? "text-emerald-700 bg-emerald-50" : "text-rose-700 bg-rose-50"
-                              }`}
-                            >
-                              {u.isActive ? "Active" : "Inactive"}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-right space-x-2">
-                            <button
-                              onClick={() => {
-                                setResetPasswordUser(u);
-                                setNewPasswordVal("");
-                              }}
-                              className="px-2.5 py-1 bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#202124] rounded-md text-[11px] font-bold transition-all"
-                            >
-                              Reset Password
-                            </button>
-                            <button
-                              onClick={() => handleToggleUserStatus(u)}
-                              className="px-2.5 py-1 bg-white hover:bg-[#F8F9FB] text-[#667085] hover:text-[#202124] border border-[#E5E7EB] rounded-md text-[11px] font-semibold"
-                            >
-                              {u.isActive ? "Deactivate" : "Activate"}
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <DataTable<UserItem>
+                data={usersList}
+                columns={userColumns}
+                keyExtractor={(u) => u.id}
+                searchPlaceholder={
+                  lang === "gu"
+                    ? "નામ, ફોન અથવા ઈમેલ શોધો..."
+                    : "Search user name, phone, email..."
+                }
+                searchKeys={["fullName", "phone", "email", "role"]}
+                customSearchFn={(u, query) =>
+                  Boolean(
+                    u.fullName.toLowerCase().includes(query) ||
+                    u.phone.toLowerCase().includes(query) ||
+                    u.email.toLowerCase().includes(query) ||
+                    u.role.toLowerCase().includes(query) ||
+                    (u.organization?.name && u.organization.name.toLowerCase().includes(query))
+                  )
+                }
+                lang={lang}
+                exportable
+                exportFileName="platform_users"
+                filtersSlot={
+                  <select
+                    value={userRoleFilter}
+                    onChange={(e) => setUserRoleFilter(e.target.value)}
+                    className="bg-[#F8F9FB] border border-[#E5E7EB] text-xs font-semibold rounded-xl px-3 py-1.5 text-[#202124] focus:outline-none focus:bg-white"
+                  >
+                    <option value="">{lang === "gu" ? "તમામ ભૂમિકાઓ (All Roles)" : "All User Roles"}</option>
+                    <option value="SUPER_ADMIN">Super Admin</option>
+                    <option value="COMPANY_ADMIN">Company Admin</option>
+                    <option value="ACCOUNTANT">Accountant</option>
+                    <option value="BRANCH_MANAGER">Branch Manager</option>
+                    <option value="CASHIER">Cashier</option>
+                    <option value="AUDITOR">Auditor</option>
+                  </select>
+                }
+              />
             </div>
           )}
 
@@ -1561,135 +1731,61 @@ export default function SuperAdminPortalPage() {
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-xs">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-[#202124]">
-                    Cryptographic Integrity:
-                  </span>
-                  <span className="text-[10px] font-mono text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 font-bold">
-                    ✓ SHA-256 Hash Chain Verified
-                  </span>
-                </div>
-
-                <select
-                  value={auditActionFilter}
-                  onChange={(e) => setAuditActionFilter(e.target.value)}
-                  className="bg-[#F8F9FB] border border-[#E5E7EB] text-xs rounded-xl px-3 py-2 text-[#202124] focus:outline-none focus:bg-white"
-                >
-                  <option value="">{lang === "gu" ? "તમામ ક્રિયાઓ (All Actions)" : "All Actions"}</option>
-                  <option value="AUTH_LOGIN">AUTH_LOGIN</option>
-                  <option value="AUTH_REGISTER">AUTH_REGISTER</option>
-                  <option value="SUPERADMIN_TENANT_UPDATE">SUPERADMIN_TENANT_UPDATE</option>
-                  <option value="SUPERADMIN_CREATE_TENANT">SUPERADMIN_CREATE_TENANT</option>
-                  <option value="SUPERADMIN_SUPPORT_SESSION_ENTER">SUPERADMIN_SUPPORT_SESSION_ENTER</option>
-                  <option value="SUPERADMIN_SUPPORT_SESSION_EXIT">SUPERADMIN_SUPPORT_SESSION_EXIT</option>
-                  <option value="INVOICE_CREATE">INVOICE_CREATE</option>
-                  <option value="VOUCHER_CREATE">VOUCHER_CREATE</option>
-                </select>
-              </div>
-
-              <div className="bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-xs">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-[#FAFBFD] border-b border-[#E5E7EB] text-[#667085] uppercase font-mono tracking-wider">
-                      <tr>
-                        <th className="py-3 px-4">Timestamp</th>
-                        <th className="py-3 px-4">Action</th>
-                        <th className="py-3 px-4">Entity</th>
-                        <th className="py-3 px-4">Actor User</th>
-                        <th className="py-3 px-4">Company Context</th>
-                        <th className="py-3 px-4">Cryptographic Hash</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E5E7EB] text-[#202124] font-mono text-[11px]">
-                      {auditLogs.map((log) => (
-                        <tr key={log.id} className="hover:bg-[#FAFBFD] transition-colors">
-                          <td className="py-3 px-4 text-[#667085]">
-                            {new Date(log.createdAt).toLocaleString()}
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className="font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
-                              {log.action}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 text-[#202124]">{log.entityName}</td>
-                          <td className="py-3 px-4 font-sans font-bold text-[#202124]">
-                            {log.user?.fullName || "System Service"}
-                          </td>
-                          <td className="py-3 px-4 font-sans text-[#667085] truncate max-w-[140px]">
-                            {log.company?.tradeName || "Global HQ"}
-                          </td>
-                          <td className="py-3 px-4 text-[#98A2B3] truncate max-w-[130px]" title={log.recordHash}>
-                            {log.recordHash ? `${log.recordHash.substring(0, 16)}...` : "—"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <DataTable<AuditLogItem>
+                data={auditLogs}
+                columns={auditColumns}
+                keyExtractor={(log) => log.id}
+                searchPlaceholder={
+                  lang === "gu"
+                    ? "ક્રિયા, એન્ટિટી, વપરાશકર્તા શોધો..."
+                    : "Search action, entity, user..."
+                }
+                searchKeys={["action", "entityName", "recordHash"]}
+                customSearchFn={(log, query) =>
+                  Boolean(
+                    log.action.toLowerCase().includes(query) ||
+                    log.entityName.toLowerCase().includes(query) ||
+                    (log.user?.fullName && log.user.fullName.toLowerCase().includes(query)) ||
+                    (log.company?.tradeName && log.company.tradeName.toLowerCase().includes(query)) ||
+                    log.recordHash.toLowerCase().includes(query)
+                  )
+                }
+                lang={lang}
+                exportable
+                exportFileName="global_audit_trail"
+                filtersSlot={
+                  <div className="flex flex-wrap items-center gap-2">
+                   
+                    <select
+                      value={auditActionFilter}
+                      onChange={(e) => setAuditActionFilter(e.target.value)}
+                      className="bg-[#F8F9FB] border border-[#E5E7EB] text-xs font-semibold rounded-xl px-3 py-1.5 text-[#202124] focus:outline-none focus:bg-white"
+                    >
+                      <option value="">{lang === "gu" ? "તમામ ક્રિયાઓ (All Actions)" : "All Actions"}</option>
+                      <option value="AUTH_LOGIN">AUTH_LOGIN</option>
+                      <option value="AUTH_REGISTER">AUTH_REGISTER</option>
+                      <option value="SUPERADMIN_TENANT_UPDATE">SUPERADMIN_TENANT_UPDATE</option>
+                      <option value="SUPERADMIN_CREATE_TENANT">SUPERADMIN_CREATE_TENANT</option>
+                      <option value="SUPERADMIN_SUPPORT_SESSION_ENTER">SUPERADMIN_SUPPORT_SESSION_ENTER</option>
+                      <option value="SUPERADMIN_SUPPORT_SESSION_EXIT">SUPERADMIN_SUPPORT_SESSION_EXIT</option>
+                      <option value="INVOICE_CREATE">INVOICE_CREATE</option>
+                      <option value="VOUCHER_CREATE">VOUCHER_CREATE</option>
+                    </select>
+                  </div>
+                }
+              />
             </div>
           )}
 
           {/* ================= SECTION 7: SYSTEM DIAGNOSTICS ================= */}
-          {activeSection === "health" && stats && (
-            <div className="space-y-6 animate-fadeIn">
-              <div>
-                <h1 className="text-xl font-bold text-[#202124] tracking-tight">
-                  {lang === "gu" ? "સિસ્ટમ ડાયગ્નોસ્ટિક્સ અને RLS સ્થિતિ" : "System Diagnostics & Security Health"}
-                </h1>
-                <p className="text-xs text-[#667085] mt-0.5">
-                  Deep health verification of PostgreSQL connections, Row-Level Security, and API services.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                <div className="p-5 bg-white border border-[#E5E7EB] rounded-2xl space-y-3 shadow-xs">
-                  <span className="text-xs text-[#667085] font-bold uppercase tracking-wider">Database Status</span>
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="font-mono font-bold text-emerald-700 text-sm">
-                      {diagnostics?.database?.status || "PostgreSQL Connected"}
-                    </span>
-                  </div>
-                  <p className="text-xs text-[#667085]">
-                    Ping Latency: <strong className="font-mono">{diagnostics?.database?.latencyMs || 2}ms</strong>. Active connection pool safe with `SET LOCAL` session variables.
-                  </p>
-                </div>
-
-                <div className="p-5 bg-white border border-[#E5E7EB] rounded-2xl space-y-3 shadow-xs">
-                  <span className="text-xs text-[#667085] font-bold uppercase tracking-wider">Tenant Isolation (RLS)</span>
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-purple-500" />
-                    <span className="font-mono font-bold text-purple-800 text-sm">PostgreSQL RLS Active</span>
-                  </div>
-                  <p className="text-xs text-[#667085]">
-                    Zero-Trust tenant separation enforced at the database engine level across all SME tables.
-                  </p>
-                </div>
-
-                <div className="p-5 bg-white border border-[#E5E7EB] rounded-2xl space-y-3 shadow-xs">
-                  <span className="text-xs text-[#667085] font-bold uppercase tracking-wider">Server Memory & Node</span>
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-blue-500" />
-                    <span className="font-mono font-bold text-blue-700 text-sm">
-                      Heap: {diagnostics?.system?.memoryHeapUsedMb || 45}MB / RSS: {diagnostics?.system?.memoryRssMb || 120}MB
-                    </span>
-                  </div>
-                  <p className="text-xs text-[#667085]">
-                    Running on Node {stats.systemHealth.nodeVersion} • Uptime {Math.floor(stats.systemHealth.uptimeSeconds / 60)} mins.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+          
         </main>
       </div>
 
       {/* ===================== MODAL 1: CREATE NEW TENANT ===================== */}
       {isCreateTenantOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 space-y-5 text-[#202124] shadow-xl border border-[#E5E7EB] animate-scaleUp">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 space-y-5 text-[#202124] shadow-xl border border-[#E5E7EB] animate-scaleUp max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
               <h3 className="text-base font-bold text-[#202124] flex items-center gap-2">
 
@@ -1839,7 +1935,7 @@ export default function SuperAdminPortalPage() {
       {/* ===================== MODAL 2: MANAGE LICENSE ===================== */}
       {selectedTenant && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-[#E5E7EB] rounded-2xl w-full max-w-md p-6 space-y-5 text-[#202124] shadow-xl animate-scaleUp">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl w-full max-w-md p-6 space-y-5 text-[#202124] shadow-xl animate-scaleUp max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
               <h3 className="text-base font-bold text-[#202124] flex items-center gap-2">
 
@@ -1944,7 +2040,7 @@ export default function SuperAdminPortalPage() {
       {/* ===================== MODAL 3: VIEW TENANT DEEP DETAILS ===================== */}
       {viewDetailsTenant && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-[#E5E7EB] rounded-2xl w-full max-w-2xl p-6 space-y-5 text-[#202124] shadow-xl animate-scaleUp">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl w-full max-w-2xl p-6 space-y-5 text-[#202124] shadow-xl animate-scaleUp max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
               <div>
                 <h3 className="text-base font-bold text-[#202124]">
@@ -2057,7 +2153,7 @@ export default function SuperAdminPortalPage() {
       {/* ===================== MODAL 4: RESET USER PASSWORD ===================== */}
       {resetPasswordUser && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-[#E5E7EB] rounded-2xl w-full max-w-sm p-6 space-y-4 text-[#202124] shadow-xl animate-scaleUp">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl w-full max-w-sm p-6 space-y-4 text-[#202124] shadow-xl animate-scaleUp max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
               <h3 className="text-base font-bold text-[#202124]">Reset User Password</h3>
               <button
