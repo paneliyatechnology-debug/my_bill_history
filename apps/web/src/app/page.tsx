@@ -91,6 +91,15 @@ export default function DashboardPage() {
     if (tenantContext.companyId) {
       fetchDashboardData();
     }
+
+    const handleSwitch = () => {
+      fetchDashboardData();
+    };
+
+    window.addEventListener("billing_company_switched", handleSwitch);
+    return () => {
+      window.removeEventListener("billing_company_switched", handleSwitch);
+    };
   }, [tenantContext.companyId, fetchDashboardData]);
 
   const formatInr = (val: number) => {

@@ -430,6 +430,10 @@ export class AuthService {
       throw new NotFoundException("User not found.");
     }
 
+    if (!user.isActive) {
+      throw new ForbiddenException("User account is deactivated.");
+    }
+
     // Verify company belongs to user's org
     const company = await this.prisma.company.findFirst({
       where: { id: dto.companyId, organizationId: user.organizationId },
@@ -466,10 +470,54 @@ export class AuthService {
           );
         }
       }
+    } else {
+      // If user has branch-constrained role, find their assigned branch in this company
+      if (
+        [UserRole.CASHIER, UserRole.BRANCH_MANAGER, UserRole.SALESMAN].includes(
+          user.role as UserRole,
+        )
+      ) {
+        const assignment = await this.prisma.userBranchAssignment.findFirst({
+          where: {
+            userId: user.id,
+            branch: { companyId: company.id },
+          },
+          include: { branch: true },
+        });
+        if (!assignment) {
+          throw new ForbiddenException(
+            "User has no assigned branch in this company.",
+          );
+        }
+        branch = assignment.branch;
+      } else {
+        // Resolve default main branch for company
+        branch = await this.prisma.branch.findFirst({
+          where: { companyId: company.id },
+          orderBy: [{ isMainBranch: "desc" }, { createdAt: "asc" }],
+        });
+      }
     }
 
     const fy = await this.prisma.financialYear.findFirst({
       where: { companyId: company.id, isCurrent: true },
+    });
+
+    // Record audit log for security compliance
+    await this.audit.record({
+      organizationId: user.organizationId,
+      companyId: company.id,
+      userId: user.id,
+      action: "AUTH_SWITCH_CONTEXT",
+      entityName: "Company",
+      entityId: company.id,
+      newState: {
+        companyId: company.id,
+        tradeName: company.tradeName,
+        branchId: branch?.id || null,
+        branchName: branch?.name || null,
+        financialYearId: fy?.id || null,
+      },
     });
 
     return {
@@ -478,8 +526,12 @@ export class AuthService {
         organizationId: user.organizationId,
         companyId: company.id,
         companyName: company.tradeName,
+        legalName: company.legalName,
+        gstin: company.gstin,
+        stateCode: company.stateCode,
         branchId: branch?.id || null,
         branchName: branch?.name || null,
+        branchCode: branch?.code || null,
         financialYearId: fy?.id || null,
         financialYear: fy?.name || null,
       },

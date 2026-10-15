@@ -44,6 +44,28 @@ export interface FinancialYearInfo {
   isLocked: boolean;
 }
 
+export interface PlanEntitlementsInfo {
+  tier: string;
+  name: string;
+  nameGujarati: string;
+  maxCompanies: number;
+  currentCount: number;
+  canAddCompany: boolean;
+  maxBranchesPerCompany: number;
+  maxUsers: number;
+  subscriptionEnds?: string | null;
+  isActive: boolean;
+  features: {
+    multiCompany: boolean;
+    multiBranch: boolean;
+    posCounter: boolean;
+    manufacturing: boolean;
+    distribution: boolean;
+    gstrReconciliation: boolean;
+    eInvoiceEWay: boolean;
+  };
+}
+
 export interface TenantContextState {
   organizationId?: string;
   companyId?: string;
@@ -62,6 +84,7 @@ interface AuthContextType {
   companies: CompanyInfo[];
   branches: BranchInfo[];
   financialYears: FinancialYearInfo[];
+  entitlements: PlanEntitlementsInfo | null;
   currentCompany: CompanyInfo | null;
   currentBranch: BranchInfo | null;
   currentFY: FinancialYearInfo | null;
@@ -75,6 +98,7 @@ interface AuthContextType {
   switchBranch: (branchId: string) => Promise<void>;
   switchFinancialYear: (financialYearId: string) => Promise<void>;
   refreshTenantMetadata: () => Promise<void>;
+  createCompany: (dto: any) => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -89,6 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [companies, setCompanies] = useState<CompanyInfo[]>([]);
   const [branches, setBranches] = useState<BranchInfo[]>([]);
   const [financialYears, setFinancialYears] = useState<FinancialYearInfo[]>([]);
+  const [entitlements, setEntitlements] = useState<PlanEntitlementsInfo | null>(null);
 
   const setLang = (newLang: "en" | "gu") => {
     setLangState(newLang);
@@ -102,9 +127,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!storedToken) return;
 
     try {
-      // 1. Fetch companies
-      const comps = await apiClient.get<CompanyInfo[]>("/tenants/companies");
-      setCompanies(comps || []);
+      // 1. Fetch companies with plan entitlements
+      const res: any = await apiClient.get("/tenants/companies");
+      const compsList = Array.isArray(res) ? res : (res?.companies || []);
+      setCompanies(compsList);
+      if (res?.entitlements) {
+        setEntitlements(res.entitlements);
+      }
 
       // 2. Fetch branches
       const brs = await apiClient.get<BranchInfo[]>("/tenants/branches");
@@ -207,15 +236,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const switchCompany = async (companyId: string) => {
+    // 1. Authoritative server-side context switch
+    const res: any = await apiClient.post("/auth/switch-context", { companyId });
+    const ctxData = res?.activeContext;
+
     const updated: TenantContextState = {
-      ...tenantContext,
-      companyId,
+      organizationId: ctxData?.organizationId || tenantContext.organizationId,
+      companyId: ctxData?.companyId || companyId,
+      branchId: ctxData?.branchId || undefined,
+      financialYearId: ctxData?.financialYearId || undefined,
     };
+
     setTenantContext(updated);
     if (typeof window !== "undefined") {
       localStorage.setItem("billing_tenant_context", JSON.stringify(updated));
+      // Dispatch company switched event across the application to reset caches
+      window.dispatchEvent(
+        new CustomEvent("billing_company_switched", {
+          detail: {
+            companyId: updated.companyId,
+            branchId: updated.branchId,
+            companyName: ctxData?.companyName,
+          },
+        }),
+      );
     }
+
+    // Refresh branches and financial years for the newly selected company
     await refreshTenantMetadata();
+  };
+
+  const createCompany = async (dto: any) => {
+    const res: any = await apiClient.post("/tenants/companies", dto);
+    await refreshTenantMetadata();
+    if (res?.company?.id) {
+      await switchCompany(res.company.id);
+    }
+    return res;
   };
 
   const switchBranch = async (branchId: string) => {
@@ -267,6 +324,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         companies,
         branches,
         financialYears,
+        entitlements,
         currentCompany,
         currentBranch,
         currentFY,
@@ -276,6 +334,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         switchBranch,
         switchFinancialYear,
         refreshTenantMetadata,
+        createCompany,
       }}
     >
       {children}

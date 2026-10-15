@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
+import { CompanySwitcher } from "../tenants/company-switcher";
 
 interface SubNavItem {
   name: string;
@@ -167,7 +168,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#F8F9FB] flex flex-col items-center justify-center p-4">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#F47721] to-[#FF9B50] flex items-center justify-center text-white font-bold text-3xl shadow-saffron animate-pulse mb-3">
+        <div className="w-16 h-16 rounded-2xl bg-linear-to-tr from-[#F47721] to-[#FF9B50] flex items-center justify-center text-white font-bold text-3xl shadow-saffron animate-pulse mb-3">
           ₹
         </div>
         <p className="text-base font-bold text-[#202124]">MyBill History</p>
@@ -633,23 +634,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
             {/* Active Company & Branch Context Switchers */}
             <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-              {companies.length > 1 ? (
-                <select
-                  value={currentCompany?.id || ""}
-                  onChange={(e) => switchCompany(e.target.value)}
-                  className="text-xs font-semibold bg-[#FFFAF5] text-[#F47721] border border-[#FED7AA] rounded-md px-2 py-1 sm:px-2.5 sm:py-1.5 focus:outline-none focus:ring-1 focus:ring-[#F47721] cursor-pointer max-w-[100px] xs:max-w-[130px] sm:max-w-xs truncate"
-                >
-                  {companies.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.tradeName || c.legalName}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <span className="text-xs font-bold text-[#202124] bg-[#FFFAF5] border border-[#FED7AA] text-[#F47721] px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md max-w-[100px] xs:max-w-[130px] sm:max-w-xs truncate inline-block">
-                  {currentCompany?.tradeName || currentCompany?.legalName || "Enterprise"}
-                </span>
-              )}
+              <CompanySwitcher />
 
               {/* Branch Pill */}
               {branches.length > 1 && (

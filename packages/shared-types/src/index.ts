@@ -36,6 +36,127 @@ export enum SubscriptionTier {
 }
 
 /**
+ * Plan Entitlements & Subscription Policies
+ */
+export interface PlanEntitlements {
+  tier: SubscriptionTier;
+  name: string;
+  nameGujarati: string;
+  maxCompanies: number;
+  maxBranchesPerCompany: number;
+  maxUsers: number;
+  features: {
+    multiCompany: boolean;
+    multiBranch: boolean;
+    posCounter: boolean;
+    manufacturing: boolean;
+    distribution: boolean;
+    gstrReconciliation: boolean;
+    eInvoiceEWay: boolean;
+  };
+}
+
+export const PLAN_ENTITLEMENTS: Record<SubscriptionTier, PlanEntitlements> = {
+  [SubscriptionTier.TRIAL]: {
+    tier: SubscriptionTier.TRIAL,
+    name: "Trial Plan",
+    nameGujarati: "ટ્રાયલ પ્લાન (મફત)",
+    maxCompanies: 1,
+    maxBranchesPerCompany: 1,
+    maxUsers: 2,
+    features: {
+      multiCompany: false,
+      multiBranch: false,
+      posCounter: true,
+      manufacturing: false,
+      distribution: false,
+      gstrReconciliation: true,
+      eInvoiceEWay: false,
+    },
+  },
+  [SubscriptionTier.RETAIL_BASIC]: {
+    tier: SubscriptionTier.RETAIL_BASIC,
+    name: "Retail Basic",
+    nameGujarati: "રિટેલ બેસિક",
+    maxCompanies: 1,
+    maxBranchesPerCompany: 2,
+    maxUsers: 3,
+    features: {
+      multiCompany: false,
+      multiBranch: true,
+      posCounter: true,
+      manufacturing: false,
+      distribution: false,
+      gstrReconciliation: true,
+      eInvoiceEWay: true,
+    },
+  },
+  [SubscriptionTier.WHOLESALE_PRO]: {
+    tier: SubscriptionTier.WHOLESALE_PRO,
+    name: "Wholesale Pro",
+    nameGujarati: "હોલસેલ પ્રો",
+    maxCompanies: 2,
+    maxBranchesPerCompany: 5,
+    maxUsers: 10,
+    features: {
+      multiCompany: true,
+      multiBranch: true,
+      posCounter: true,
+      manufacturing: false,
+      distribution: true,
+      gstrReconciliation: true,
+      eInvoiceEWay: true,
+    },
+  },
+  [SubscriptionTier.DISTRIBUTION_ENTERPRISE]: {
+    tier: SubscriptionTier.DISTRIBUTION_ENTERPRISE,
+    name: "Distribution Enterprise",
+    nameGujarati: "ડિસ્ટ્રિબ્યુશન એન્ટરપ્રાઇઝ",
+    maxCompanies: 5,
+    maxBranchesPerCompany: 15,
+    maxUsers: 25,
+    features: {
+      multiCompany: true,
+      multiBranch: true,
+      posCounter: true,
+      manufacturing: true,
+      distribution: true,
+      gstrReconciliation: true,
+      eInvoiceEWay: true,
+    },
+  },
+  [SubscriptionTier.MANUFACTURING_SUITE]: {
+    tier: SubscriptionTier.MANUFACTURING_SUITE,
+    name: "Manufacturing Suite",
+    nameGujarati: "મેન્યુફેક્ચરિંગ સ્યુટ",
+    maxCompanies: 10,
+    maxBranchesPerCompany: 30,
+    maxUsers: 50,
+    features: {
+      multiCompany: true,
+      multiBranch: true,
+      posCounter: true,
+      manufacturing: true,
+      distribution: true,
+      gstrReconciliation: true,
+      eInvoiceEWay: true,
+    },
+  },
+};
+
+export function getPlanEntitlements(tier?: SubscriptionTier | string): PlanEntitlements {
+  if (tier && tier in PLAN_ENTITLEMENTS) {
+    return PLAN_ENTITLEMENTS[tier as SubscriptionTier];
+  }
+  return PLAN_ENTITLEMENTS[SubscriptionTier.TRIAL];
+}
+
+export function canCreateCompany(tier: SubscriptionTier | string | undefined, currentCompanyCount: number): boolean {
+  const plan = getPlanEntitlements(tier);
+  return currentCompanyCount < plan.maxCompanies;
+}
+
+/**
  * GST Registration Types
  */
 export enum GstRegistrationType {
@@ -323,4 +444,60 @@ export interface PurchaseBillScanRecord {
     createdAt: string;
   } | null;
 }
+
+/**
+ * Statutory Indian GST State Codes and Names
+ */
+export const INDIAN_STATES: Record<
+  string,
+  { name: string; nameGujarati: string }
+> = {
+  "01": { name: "Jammu & Kashmir", nameGujarati: "જમ્મુ અને કાશ્મીર" },
+  "02": { name: "Himachal Pradesh", nameGujarati: "હિમાચલ પ્રદેશ" },
+  "03": { name: "Punjab", nameGujarati: "પંજાબ" },
+  "04": { name: "Chandigarh", nameGujarati: "ચંદીગઢ" },
+  "05": { name: "Uttarakhand", nameGujarati: "ઉત્તરાખંડ" },
+  "06": { name: "Haryana", nameGujarati: "હરિયાણા" },
+  "07": { name: "Delhi", nameGujarati: "દિલ્હી" },
+  "08": { name: "Rajasthan", nameGujarati: "રાજસ્થાન" },
+  "09": { name: "Uttar Pradesh", nameGujarati: "ઉત્તર પ્રદેશ" },
+  "10": { name: "Bihar", nameGujarati: "બિહાર" },
+  "11": { name: "Sikkim", nameGujarati: "સિક્કિમ" },
+  "12": { name: "Arunachal Pradesh", nameGujarati: "અરુણાચલ પ્રદેશ" },
+  "13": { name: "Nagaland", nameGujarati: "નાગાલેન્ડ" },
+  "14": { name: "Manipur", nameGujarati: "મણિપુર" },
+  "15": { name: "Mizoram", nameGujarati: "મિઝોરમ" },
+  "16": { name: "Tripura", nameGujarati: "ત્રિપુરા" },
+  "17": { name: "Meghalaya", nameGujarati: "મેઘાલય" },
+  "18": { name: "Assam", nameGujarati: "આસામ" },
+  "19": { name: "West Bengal", nameGujarati: "પશ્ચિમ બંગાળ" },
+  "20": { name: "Jharkhand", nameGujarati: "ઝારખંડ" },
+  "21": { name: "Odisha", nameGujarati: "ઓડિશા" },
+  "22": { name: "Chhattisgarh", nameGujarati: "છત્તીસગઢ" },
+  "23": { name: "Madhya Pradesh", nameGujarati: "મધ્ય પ્રદેશ" },
+  "24": { name: "Gujarat", nameGujarati: "ગુજરાત" },
+  "25": {
+    name: "Daman and Diu and Dadra and Nagar Haveli",
+    nameGujarati: "દમણ, દીવ અને દાદરા નગર હવેલી",
+  },
+  "26": { name: "Dadra and Nagar Haveli", nameGujarati: "દાદરા અને નગર હવેલી" },
+  "27": { name: "Maharashtra", nameGujarati: "મહારાષ્ટ્ર" },
+  "28": { name: "Andhra Pradesh (Old)", nameGujarati: "આંધ્ર પ્રદેશ" },
+  "29": { name: "Karnataka", nameGujarati: "કર્ણાટક" },
+  "30": { name: "Goa", nameGujarati: "ગોવા" },
+  "31": { name: "Lakshadweep", nameGujarati: "લક્ષદ્વીપ" },
+  "32": { name: "Kerala", nameGujarati: "કેરળ" },
+  "33": { name: "Tamil Nadu", nameGujarati: "તમિલનાડુ" },
+  "34": { name: "Puducherry", nameGujarati: "પુડુચેરી" },
+  "35": {
+    name: "Andaman and Nicobar Islands",
+    nameGujarati: "અંદામાન અને નિકોબાર દ્વીપસમૂહ",
+  },
+  "36": { name: "Telangana", nameGujarati: "તેલંગાણા" },
+  "37": { name: "Andhra Pradesh (New)", nameGujarati: "આંધ્ર પ્રદેશ" },
+  "38": { name: "Ladakh", nameGujarati: "લદ્દાખ" },
+  "96": { name: "Other Countries", nameGujarati: "અન્ય દેશો" },
+  "97": { name: "Other Territory", nameGujarati: "અન્ય કેન્દ્રશાસિત પ્રદેશ" },
+  "99": { name: "Centre Jurisdiction", nameGujarati: "કેન્દ્ર ન્યાયક્ષેત્ર" },
+};
 
