@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
@@ -67,6 +69,7 @@ interface ItemOption {
 }
 
 export default function DeliveryChallansPage() {
+  const router = useRouter();
   const { lang, tenantContext } = useAuth();
   const [challans, setChallans] = useState<DeliveryChallan[]>([]);
   const [parties, setParties] = useState<PartyOption[]>([]);
@@ -81,7 +84,6 @@ export default function DeliveryChallansPage() {
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
 
   // Modals
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isIssueModalOpen, setIsIssueModalOpen] = useState(false);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
@@ -91,33 +93,17 @@ export default function DeliveryChallansPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  // Create Form State
-  const [createForm, setCreateForm] = useState({
-    challanNumber: "",
-    challanDate: new Date().toISOString().split("T")[0],
-    challanType: "JOB_WORK" as "JOB_WORK" | "SUPPLY_ON_APPROVAL" | "BRANCH_TRANSFER" | "OTHER",
-    partyId: "",
-    warehouseId: "",
-    placeOfSupply: "24",
-    notes: "",
-    items: [
-      {
-        itemId: "",
-        description: "",
-        hsnCode: "",
-        quantity: 1,
-        unitPrice: 0,
-        taxRate: 0,
-      },
-    ] as Array<{
-      itemId: string;
-      description: string;
-      hsnCode: string;
-      quantity: number;
-      unitPrice: number;
-      taxRate: number;
-    }>,
-  });
+  // Keyboard shortcut (F2: New Delivery Challan)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "F2") {
+        e.preventDefault();
+        router.push("/sales/delivery-challans/new");
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [router]);
 
   // Issue Form
   const [issueEwbNumber, setIssueEwbNumber] = useState("");
@@ -176,110 +162,6 @@ export default function DeliveryChallansPage() {
   }, [tenantContext.companyId, fetchData]);
 
   // Handlers
-  const handleOpenCreate = () => {
-    setCreateForm({
-      challanNumber: `DC-${Date.now().toString().slice(-6)}`,
-      challanDate: new Date().toISOString().split("T")[0],
-      challanType: "JOB_WORK",
-      partyId: parties[0]?.id || "",
-      warehouseId: warehouses[0]?.id || "",
-      placeOfSupply: "24",
-      notes: "",
-      items: [
-        {
-          itemId: items[0]?.id || "",
-          description: items[0]?.name || "",
-          hsnCode: items[0]?.hsnCode || "",
-          quantity: 1,
-          unitPrice: items[0]?.retailPrice || 0,
-          taxRate: items[0]?.taxRate || 0,
-        },
-      ],
-    });
-    setActionError(null);
-    setIsCreateModalOpen(true);
-  };
-
-  const handleAddItem = () => {
-    setCreateForm((prev) => ({
-      ...prev,
-      items: [
-        ...prev.items,
-        {
-          itemId: items[0]?.id || "",
-          description: items[0]?.name || "",
-          hsnCode: items[0]?.hsnCode || "",
-          quantity: 1,
-          unitPrice: items[0]?.retailPrice || 0,
-          taxRate: items[0]?.taxRate || 0,
-        },
-      ],
-    }));
-  };
-
-  const handleRemoveItem = (idx: number) => {
-    setCreateForm((prev) => ({
-      ...prev,
-      items: prev.items.filter((_, i) => i !== idx),
-    }));
-  };
-
-  const handleItemChange = (idx: number, field: string, val: any) => {
-    setCreateForm((prev) => {
-      const updated = [...prev.items];
-      updated[idx] = { ...updated[idx], [field]: val };
-      if (field === "itemId") {
-        const matched = items.find((it) => it.id === val);
-        if (matched) {
-          updated[idx].description = matched.name;
-          updated[idx].hsnCode = matched.hsnCode || "1006";
-          updated[idx].taxRate = matched.taxRate || 5;
-        }
-      }
-      return { ...prev, items: updated };
-    });
-  };
-
-  const handleCreateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!createForm.warehouseId) {
-      setActionError(lang === "gu" ? "ગોડાઉન પસંદ કરો." : "Warehouse is required.");
-      return;
-    }
-    if (createForm.items.length === 0) {
-      setActionError(lang === "gu" ? "ઓછામાં ઓછી એક આઈટમ ઉમેરો." : "At least one item is required.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    setActionError(null);
-    try {
-      await apiClient.post("/distribution/challans", {
-        challanNumber: createForm.challanNumber || undefined,
-        challanDate: createForm.challanDate,
-        challanType: createForm.challanType,
-        partyId: createForm.partyId || undefined,
-        warehouseId: createForm.warehouseId,
-        placeOfSupply: createForm.placeOfSupply || undefined,
-        notes: createForm.notes || undefined,
-        items: createForm.items.map((it) => ({
-          itemId: it.itemId,
-          description: it.description || undefined,
-          hsnCode: it.hsnCode || undefined,
-          quantity: Number(it.quantity),
-          unitPrice: Number(it.unitPrice),
-          taxRate: Number(it.taxRate),
-        })),
-      });
-      setIsCreateModalOpen(false);
-      await fetchData();
-    } catch (err: any) {
-      setActionError(err.message || "Failed to create delivery challan.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   // Issue
   const handleOpenIssue = (ch: DeliveryChallan) => {
     setSelectedChallan(ch);
@@ -529,28 +411,25 @@ export default function DeliveryChallansPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-              {lang === "gu" ? "ડિલિવરી ચલણ (Delivery Challans)" : "Delivery Challans (Sec 55 GST)"}
-            </h1>
-          </div>
-          <p className="text-xs text-muted mt-1 ml-4.5">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            {lang === "gu" ? "ડિલિવરી ચલણ (Delivery Challans)" : "Delivery Challans (Sec 55 GST)"}
+          </h1>
+          <p className="text-xs text-muted mt-1">
             {lang === "gu"
               ? "જોબ વર્ક, અપ્રુવલ પર માલ મોકલવા અને બ્રાન્ચ ટ્રાન્સફર માટે જીએસટી નિયમ ૫૫ મુજબ ચલણ વ્યવસ્થા"
               : "Section 55 compliant non-sale delivery challans for Job Work, Supply on Approval, and Movement of Goods"}
           </p>
         </div>
 
-        <button
-          onClick={handleOpenCreate}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white rounded-xl text-xs sm:text-sm font-bold shadow-card hover:shadow-hover transition-all"
+        <Link
+          href="/sales/delivery-challans/new"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F47721] hover:bg-[#D95F12] active:bg-[#B94B0A] text-white rounded-xl text-xs sm:text-sm font-bold shadow-saffron transition-all"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
           </svg>
-          {lang === "gu" ? "નવું ડિલિવરી ચલણ" : "New Delivery Challan"}
-        </button>
+          {lang === "gu" ? "નવું ડિલિવરી ચલણ (F2)" : "Create Delivery Challan (F2)"}
+        </Link>
       </div>
 
       {/* Error Banner */}
@@ -678,229 +557,6 @@ export default function DeliveryChallansPage() {
           </div>
         )}
       />
-
-      {/* Create Delivery Challan Modal */}
-      <Modal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        title={lang === "gu" ? "નવું ડિલિવરી ચલણ બનાવો" : "Create Delivery Challan"}
-        titleGujarati="સેક્શન ૫૫ મુજબ નોન-સેલ ટ્રાન્સપોર્ટ ચલણ"
-        maxWidth="4xl"
-        footer={
-          <>
-            <button
-              type="button"
-              onClick={() => setIsCreateModalOpen(false)}
-              className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-100"
-            >
-              {lang === "gu" ? "રદ કરો" : "Cancel"}
-            </button>
-            <button
-              type="submit"
-              form="create-challan-form"
-              disabled={isSubmitting}
-              className="px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-lg text-sm font-semibold shadow-sm disabled:opacity-50 transition-colors"
-            >
-              {isSubmitting ? "..." : lang === "gu" ? "ચલણ બનાવો" : "Create Challan"}
-            </button>
-          </>
-        }
-      >
-        <form id="create-challan-form" onSubmit={handleCreateSubmit} className="space-y-4">
-          {actionError && (
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-xs">
-              {actionError}
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {lang === "gu" ? "ચલણ નંબર" : "Challan Number"}
-              </label>
-              <input
-                type="text"
-                value={createForm.challanNumber}
-                onChange={(e) => setCreateForm({ ...createForm, challanNumber: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {lang === "gu" ? "તારીખ *" : "Date *"}
-              </label>
-              <input
-                type="date"
-                value={createForm.challanDate}
-                onChange={(e) => setCreateForm({ ...createForm, challanDate: e.target.value })}
-                required
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {lang === "gu" ? "ચલણનો પ્રકાર *" : "Challan Type *"}
-              </label>
-              <select
-                value={createForm.challanType}
-                onChange={(e) => setCreateForm({ ...createForm, challanType: e.target.value as any })}
-                required
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm"
-              >
-                <option value="JOB_WORK">Job Work (Rule 55)</option>
-                <option value="SUPPLY_ON_APPROVAL">Supply on Approval</option>
-                <option value="BRANCH_TRANSFER">Branch Transfer</option>
-                <option value="OTHER">Other Movement</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {lang === "gu" ? "વેપારી / ગ્રાહક (Party)" : "Party / Recipient"}
-              </label>
-              <select
-                value={createForm.partyId}
-                onChange={(e) => setCreateForm({ ...createForm, partyId: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm"
-              >
-                <option value="">{lang === "gu" ? "-- પસંદ કરો --" : "-- Select Party --"}</option>
-                {parties.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} {p.gstin ? `(${p.gstin})` : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {lang === "gu" ? "ગોડાઉન (Warehouse) *" : "Dispatch Warehouse *"}
-              </label>
-              <select
-                value={createForm.warehouseId}
-                onChange={(e) => setCreateForm({ ...createForm, warehouseId: e.target.value })}
-                required
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm"
-              >
-                {warehouses.map((w) => (
-                  <option key={w.id} value={w.id}>
-                    {w.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {lang === "gu" ? "સપ્લાય સ્ટેટ કોડ" : "Place of Supply Code"}
-              </label>
-              <input
-                type="text"
-                value={createForm.placeOfSupply}
-                onChange={(e) => setCreateForm({ ...createForm, placeOfSupply: e.target.value })}
-                placeholder="24 (Gujarat)"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono"
-              />
-            </div>
-          </div>
-
-          {/* Items Table */}
-          <div className="border border-slate-200 rounded-xl overflow-hidden">
-            <div className="bg-slate-50 px-4 py-2.5 flex items-center justify-between border-b border-slate-200">
-              <span className="text-xs font-bold text-slate-700 uppercase">
-                {lang === "gu" ? "ચલણ માલસામાન યાદી" : "Goods List"}
-              </span>
-              <button
-                type="button"
-                onClick={handleAddItem}
-                className="text-xs text-indigo-600 font-semibold hover:text-indigo-800"
-              >
-                + {lang === "gu" ? "આઈટમ ઉમેરો" : "Add Item"}
-              </button>
-            </div>
-
-            <div className="p-3 space-y-3">
-              {createForm.items.map((it, idx) => (
-                <div key={idx} className="grid grid-cols-12 gap-2 items-center">
-                  <div className="col-span-12 sm:col-span-4">
-                    <label className="block text-[11px] font-medium text-slate-500 mb-0.5">Item</label>
-                    <select
-                      value={it.itemId}
-                      onChange={(e) => handleItemChange(idx, "itemId", e.target.value)}
-                      required
-                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                    >
-                      {items.map((opt) => (
-                        <option key={opt.id} value={opt.id}>
-                          {opt.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="col-span-4 sm:col-span-2">
-                    <label className="block text-[11px] font-medium text-slate-500 mb-0.5">HSN</label>
-                    <input
-                      type="text"
-                      value={it.hsnCode}
-                      onChange={(e) => handleItemChange(idx, "hsnCode", e.target.value)}
-                      className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono"
-                    />
-                  </div>
-                  <div className="col-span-4 sm:col-span-2">
-                    <label className="block text-[11px] font-medium text-slate-500 mb-0.5">Quantity</label>
-                    <input
-                      type="number"
-                      min="0.001"
-                      step="any"
-                      value={it.quantity}
-                      onChange={(e) => handleItemChange(idx, "quantity", parseFloat(e.target.value) || 0)}
-                      required
-                      className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono"
-                    />
-                  </div>
-                  <div className="col-span-4 sm:col-span-2">
-                    <label className="block text-[11px] font-medium text-slate-500 mb-0.5">Unit Price (₹)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={it.unitPrice}
-                      onChange={(e) => handleItemChange(idx, "unitPrice", parseFloat(e.target.value) || 0)}
-                      required
-                      className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono"
-                    />
-                  </div>
-                  <div className="col-span-4 sm:col-span-1">
-                    <label className="block text-[11px] font-medium text-slate-500 mb-0.5">GST %</label>
-                    <select
-                      value={it.taxRate}
-                      onChange={(e) => handleItemChange(idx, "taxRate", parseFloat(e.target.value) || 0)}
-                      className="w-full px-1.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono"
-                    >
-                      <option value="0">0%</option>
-                      <option value="5">5%</option>
-                      <option value="12">12%</option>
-                      <option value="18">18%</option>
-                      <option value="28">28%</option>
-                    </select>
-                  </div>
-                  <div className="col-span-1 text-right pt-3">
-                    {createForm.items.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveItem(idx)}
-                        className="text-slate-400 hover:text-rose-600"
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </form>
-      </Modal>
 
       {/* Issue Modal */}
       <Modal

@@ -7,6 +7,15 @@ import { useAuth } from "../../../../context/auth-context";
 import { apiClient } from "../../../../lib/api-client";
 import { Modal } from "../../../../components/ui/modal";
 import { StatusBadge } from "../../../../components/ui/badge";
+import {
+  InvoiceCustomization,
+  loadInvoiceCustomization,
+  saveInvoiceCustomization,
+  getActiveThemePreset,
+  INVOICE_THEMES,
+  InvoiceThemeId,
+  DEFAULT_INVOICE_CUSTOMIZATION,
+} from "@/lib/invoice-theme";
 
 interface InvoiceDetail {
   id: string;
@@ -81,6 +90,12 @@ export default function InvoiceDetailPage() {
   const [stockConfirmPrompt, setStockConfirmPrompt] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+
+  const [customization, setCustomization] = useState<InvoiceCustomization>(DEFAULT_INVOICE_CUSTOMIZATION);
+
+  useEffect(() => {
+    setCustomization(loadInvoiceCustomization());
+  }, []);
 
   const fetchInvoice = useCallback(async () => {
     setIsLoading(true);
@@ -235,8 +250,11 @@ export default function InvoiceDetailPage() {
     );
   }
 
+  const activePreset = getActiveThemePreset(customization);
+  const primaryColor = customization.customPrimaryColor || activePreset.primaryColor;
+
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-6 max-w-5xl mx-auto print:space-y-0 print:max-w-none print:w-full print:m-0 print:p-0">
       {/* Top Action Bar (Hidden on Print) */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-2xl border border-border shadow-subtle print:hidden">
         <div className="flex items-center gap-3">
@@ -271,7 +289,7 @@ export default function InvoiceDetailPage() {
                 {isIssuing
                   ? "Processing..."
                   : invoice.category === "PROFORMA_INVOICE"
-                    ? "Convert to Tax Invoice (પાકું બિલ)"
+                    ? (lang === "gu" ? "પાકું બિલ બનાવો (Tax Invoice)" : "Convert to Tax Invoice")
                     : "Issue Tax Invoice"}
               </span>
             </button>
@@ -349,9 +367,41 @@ export default function InvoiceDetailPage() {
             <span>💬 WhatsApp</span>
           </button>
 
+          {/* Theme Selector for Print / View */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FAFBFD] border border-[#E5E7EB] rounded-xl text-xs shadow-xs">
+            <span
+              className="w-3 h-3 rounded-full shrink-0 border border-black/10 shadow-xs"
+              style={{ backgroundColor: primaryColor }}
+            />
+            <select
+              value={customization.themeId}
+              onChange={(e) => {
+                const themeId = e.target.value as InvoiceThemeId;
+                const preset = INVOICE_THEMES[themeId];
+                const updated: InvoiceCustomization = {
+                  ...customization,
+                  themeId,
+                  customPrimaryColor: undefined,
+                  headerLayout: preset.headerLayout,
+                  fontFamily: preset.fontFamily,
+                };
+                setCustomization(updated);
+                saveInvoiceCustomization(updated);
+              }}
+              className="bg-transparent font-bold text-slate-800 text-xs focus:outline-none cursor-pointer"
+            >
+              {(Object.keys(INVOICE_THEMES) as InvoiceThemeId[]).map((tk) => (
+                <option key={tk} value={tk}>
+                  {lang === "gu" ? INVOICE_THEMES[tk].nameGujarati : INVOICE_THEMES[tk].name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <button
             onClick={() => window.print()}
             className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-card flex items-center gap-1.5 transition-all"
+            title="Print or Save as PDF"
           >
             <svg
               className="w-4 h-4"
@@ -366,7 +416,7 @@ export default function InvoiceDetailPage() {
                 d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
               />
             </svg>
-            <span>{lang === "gu" ? "પ્રિન્ટ બિલ (A4)" : "Print Invoice"}</span>
+            <span>{lang === "gu" ? "પ્રિન્ટ / PDF ડાઉનલોડ (A4)" : "Print / PDF (A4)"}</span>
           </button>
         </div>
       </div>
@@ -403,11 +453,29 @@ export default function InvoiceDetailPage() {
       )}
 
       {/* A4 Tax Invoice Container */}
-      <div className="bg-white p-8 sm:p-12 rounded-2xl border border-slate-200 shadow-lg text-slate-900 font-sans print:shadow-none print:border-none print:p-0">
+      <div
+        id="printable-invoice"
+        className={`bg-white p-8 sm:p-12 rounded-2xl border border-slate-200 shadow-lg text-slate-900 ${customization.fontFamily || "font-sans"} printable-invoice print:shadow-none print:border-none print:p-0 print:m-0 print:w-full print:max-w-none print:rounded-none relative`}
+      >
+        {/* Optional Watermark */}
+        {customization.watermarkText && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden select-none opacity-5 print:opacity-10">
+            <span className="text-6xl sm:text-7xl font-black uppercase -rotate-30 tracking-widest text-slate-900">
+              {customization.watermarkText}
+            </span>
+          </div>
+        )}
+
         {/* Header: Company & Tax Invoice Title */}
-        <div className="border-b-2 border-slate-900 pb-6 mb-6 flex flex-col sm:flex-row justify-between items-start gap-4">
+        <div
+          className="border-b-2 pb-6 mb-6 flex flex-col sm:flex-row justify-between items-start gap-4"
+          style={{ borderColor: primaryColor }}
+        >
           <div>
-            <h2 className="text-xl font-bold tracking-tight text-slate-900 uppercase">
+            <h2
+              className="text-xl font-bold tracking-tight uppercase"
+              style={{ color: primaryColor }}
+            >
               {currentCompany?.tradeName ||
                 currentCompany?.legalName ||
                 "MyBill History Enterprise"}
@@ -427,14 +495,17 @@ export default function InvoiceDetailPage() {
           </div>
 
           <div className="text-right sm:text-right">
-            <span className="inline-block bg-slate-900 text-white font-bold text-xs uppercase px-3 py-1 rounded tracking-wider mb-2">
+            <span
+              className="inline-block text-white font-bold text-xs uppercase px-3 py-1 rounded tracking-wider mb-2 shadow-xs"
+              style={{ backgroundColor: primaryColor }}
+            >
               {invoice.category === "PROFORMA_INVOICE"
-                ? "QUOTATION / ESTIMATE (કાચું બિલ)"
+                ? (lang === "gu" ? "કાચું બિલ (QUOTATION)" : "QUOTATION / ESTIMATE")
                 : invoice.category === "DELIVERY_CHALLAN"
-                  ? "DELIVERY CHALLAN (ચલણ)"
+                  ? (lang === "gu" ? "ડિલિવરી ચલણ" : "DELIVERY CHALLAN")
                   : invoice.category === "BILL_OF_SUPPLY"
-                    ? "BILL OF SUPPLY (મુક્તિ બિલ)"
-                    : "TAX INVOICE (પાકું બિલ)"}
+                    ? (lang === "gu" ? "મુક્તિ બિલ" : "BILL OF SUPPLY")
+                    : (lang === "gu" ? "પાકું બિલ (TAX INVOICE)" : "TAX INVOICE")}
             </span>
             <div className="text-xs text-slate-600 space-y-0.5">
               <p>
@@ -497,7 +568,14 @@ export default function InvoiceDetailPage() {
         <div className="border border-slate-300 rounded-lg overflow-hidden mb-6">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-slate-100 border-b border-slate-300 text-slate-700 font-bold uppercase tracking-wider">
+              <tr
+                className="border-b text-xs uppercase tracking-wider font-bold"
+                style={{
+                  backgroundColor: activePreset.tableHeaderBg,
+                  color: activePreset.tableHeaderText,
+                  borderColor: activePreset.borderColor,
+                }}
+              >
                 <th className="py-2.5 px-3 w-8">#</th>
                 <th className="py-2.5 px-3">Description of Goods / Services</th>
                 <th className="py-2.5 px-3 w-20">HSN/SAC</th>
@@ -644,7 +722,7 @@ export default function InvoiceDetailPage() {
                 </tbody>
                 <tfoot>
                   <tr className="bg-slate-100/80 border-t border-slate-300 font-bold text-slate-900 text-xs">
-                    <td className="py-2 px-3 font-sans">Total / કુલ કર:</td>
+                    <td className="py-2 px-3 font-sans">{lang === "gu" ? "કુલ કર:" : "Total Tax:"}</td>
                     <td className="py-2 px-3 text-right">
                       ₹{hsnList.reduce((s, x) => s + x.taxable, 0).toFixed(2)}
                     </td>
@@ -700,7 +778,7 @@ export default function InvoiceDetailPage() {
 
           <div className="w-full sm:w-80 space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-200">
             <div className="flex justify-between text-slate-700">
-              <span>{lang === "gu" ? "કરપાત્ર રકમ (Taxable Value):" : "Taxable Value (કરપાત્ર):"}</span>
+              <span>{lang === "gu" ? "કરપાત્ર રકમ (Taxable Value):" : "Taxable Value:"}</span>
               <span className="font-mono font-semibold text-slate-900">
                 ₹{Number(invoice.taxableAmount).toFixed(2)}
               </span>
@@ -743,9 +821,15 @@ export default function InvoiceDetailPage() {
                 </span>
               </div>
             )}
-            <div className="border-t-2 border-slate-300 pt-2 flex justify-between font-bold text-slate-900 text-sm">
+            <div
+              className="border-t-2 pt-2 flex justify-between font-bold text-slate-900 text-sm"
+              style={{ borderColor: primaryColor }}
+            >
               <span>{lang === "gu" ? "કુલ બિલ રકમ (Grand Total):" : "Invoice Grand Total:"}</span>
-              <span className="font-mono text-emerald-800 text-base">
+              <span
+                className="font-mono text-base font-black"
+                style={{ color: primaryColor }}
+              >
                 ₹{Number(invoice.grandTotal).toFixed(2)}
               </span>
             </div>
@@ -832,7 +916,7 @@ export default function InvoiceDetailPage() {
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3 print:hidden">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-              Issued Credit Notes / Sales Returns (વેચાણ પરત ઇતિહાસ)
+              {lang === "gu" ? "વેચાણ પરત ઇતિહાસ (Credit Notes)" : "Issued Credit Notes / Sales Returns"}
             </h3>
             <Link
               href="/sales/returns"
@@ -940,10 +1024,10 @@ export default function InvoiceDetailPage() {
               onChange={(e) => setPaymentMode(e.target.value)}
               className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
             >
-              <option value="CASH">CASH (રોકડ)</option>
-              <option value="BANK_TRANSFER">BANK TRANSFER (બેંક ખાતું)</option>
-              <option value="UPI_QR">UPI (ગૂગલ પે / ફોનપે)</option>
-              <option value="CHEQUE">CHEQUE (ચેક)</option>
+              <option value="CASH">{lang === "gu" ? "રોકડ (CASH)" : "CASH"}</option>
+              <option value="BANK_TRANSFER">{lang === "gu" ? "બેંક ખાતું (BANK TRANSFER)" : "BANK TRANSFER"}</option>
+              <option value="UPI_QR">{lang === "gu" ? "UPI (ગૂગલ પે / ફોનપે)" : "UPI (Google Pay / PhonePe)"}</option>
+              <option value="CHEQUE">{lang === "gu" ? "ચેક (CHEQUE)" : "CHEQUE"}</option>
             </select>
           </div>
 
@@ -1036,7 +1120,7 @@ export default function InvoiceDetailPage() {
       <Modal
         isOpen={!!stockConfirmPrompt}
         onClose={() => setStockConfirmPrompt(null)}
-        title="Stock Alert / સ્ટોક ચેતવણી"
+        title={lang === "gu" ? "સ્ટોક ચેતવણી" : "Stock Alert"}
         titleGujarati="ગોડાઉનમાં પૂરતો સ્ટોક ઉપલબ્ધ નથી"
         maxWidth="md"
       >

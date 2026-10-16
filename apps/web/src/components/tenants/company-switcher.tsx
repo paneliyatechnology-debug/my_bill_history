@@ -11,6 +11,7 @@ export function CompanySwitcher() {
     switchCompany,
     entitlements,
     user,
+    lang,
   } = useAuth();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -157,7 +158,7 @@ export function CompanySwitcher() {
                 {usedCount} of {maxLimit} Companies • {planName}
               </p>
             </div>
-            <span className="text-[10px] font-semibold text-[#F47721] bg-[#FFFAF5] border border-[#FED7AA] px-2 py-0.5 rounded-full">
+            <span className="text-[10px] font-semibold text-[#F47721] bg-[#FFFAF5] border border-[#FED7AA] px-2 py-0.5 rounded-md">
               {planName}
             </span>
           </div>
@@ -279,7 +280,7 @@ export function CompanySwitcher() {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                <span>Add Another Company (બીજી પેઢી ઉમેરો)</span>
+                <span>{lang === "gu" ? "બીજી પેઢી ઉમેરો" : "Add Another Company"}</span>
               </button>
             ) : (
               <div className="p-2 bg-amber-50 rounded-lg border border-amber-200 text-center">

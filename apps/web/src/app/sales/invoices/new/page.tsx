@@ -5,6 +5,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../../context/auth-context";
 import { apiClient, extractList } from "../../../../lib/api-client";
+import { InvoiceThemeSidebar } from "@/components/invoice/invoice-theme-sidebar";
+import { InvoiceLivePreviewModal } from "@/components/invoice/invoice-live-preview-modal";
+import {
+  InvoiceCustomization,
+  loadInvoiceCustomization,
+  DEFAULT_INVOICE_CUSTOMIZATION,
+  getActiveThemePreset,
+} from "@/lib/invoice-theme";
 
 interface PartyOption {
   id: string;
@@ -57,6 +65,15 @@ export default function NewInvoicePage() {
   );
   const [notes, setNotes] = useState("");
   const [isTaxInclusive, setIsTaxInclusive] = useState(false);
+
+  // Theme & Customization State
+  const [customization, setCustomization] = useState<InvoiceCustomization>(DEFAULT_INVOICE_CUSTOMIZATION);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isThemeDrawerOpen, setIsThemeDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    setCustomization(loadInvoiceCustomization());
+  }, []);
 
   const [rows, setRows] = useState<InvoiceItemRow[]>([
     {
@@ -275,10 +292,13 @@ export default function NewInvoicePage() {
     }
   };
 
+  const activePreset = getActiveThemePreset(customization);
+
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      {/* 1. TOP HEADER & BREADCRUMB */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <>
+      <div className={`space-y-6 max-w-[1440px] mx-auto pb-12 ${isPreviewOpen ? "print:hidden" : ""}`}>
+        {/* 1. TOP HEADER & BREADCRUMB */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-xs">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Link
@@ -288,27 +308,59 @@ export default function NewInvoicePage() {
               ← {lang === "gu" ? "બધા વેચાણ બિલ" : "Back to Invoices"}
             </Link>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[#202124] tracking-tight flex items-center gap-2">
-            <span>{lang === "gu" ? "નવું વેચાણ બિલ (New Bill)" : "Create Sales Invoice"}</span>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FFF3E8] text-[#F47721] border border-[#FED7AA]">
-              {category.replace(/_/g, " ")}
-            </span>
+          <h1 className="text-xl sm:text-2xl font-bold text-[#202124] tracking-tight">
+            {lang === "gu" ? "નવું વેચાણ બિલ (New Bill)" : "Create Sales Invoice"}
           </h1>
-          <p className="text-xs text-[#667085]">
+          <p className="text-xs text-[#667085] mt-1">
             {isInterState
               ? (lang === "gu" ? "આંતરરાજ્ય સપ્લાય (IGST લાગુ થશે)" : "Inter-State Supply (IGST Applicable)")
               : (lang === "gu" ? "સ્થાનિક ગુજરાત સપ્લાય (CGST 50% + SGST 50% લાગુ થશે)" : "Intra-State Supply (CGST + SGST Applicable)")}
           </p>
         </div>
 
-        {/* Live Grand Total Badge (Prominent for cashiers) */}
-        <div className="bg-[#FFFAF5] border border-[#FED7AA] rounded-card p-3 sm:px-5 flex items-center justify-between sm:justify-end gap-4 shadow-subtle border-r-4 border-r-[#F47721]">
-          <span className="text-xs font-bold text-[#667085] uppercase tracking-wider">
-            {lang === "gu" ? "કુલ બિલ રકમ" : "Grand Total"}
-          </span>
-          <span className="text-2xl sm:text-3xl font-extrabold text-[#F47721] font-mono tracking-tight">
-            {formatInr(roundedGrandTotal)}
-          </span>
+        {/* Right Header Action Cluster */}
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
+          {/* Active Theme Selector Pill (opens theme drawer on mobile or scrolls to side on desktop) */}
+          <button
+            type="button"
+            onClick={() => setIsThemeDrawerOpen(true)}
+            className="flex items-center gap-2 px-3 py-2 bg-[#FAFBFD] hover:bg-[#F3F4F6] rounded-xl border border-[#E5E7EB] text-xs transition-colors shadow-xs"
+            title={lang === "gu" ? "બિલ થીમ બદલો / કસ્ટમાઇઝ કરો" : "Change Invoice Theme & Style"}
+          >
+            <span
+              className="w-3.5 h-3.5 rounded-full shrink-0 border border-black/10 shadow-xs"
+              style={{ backgroundColor: customization.customPrimaryColor || activePreset.primaryColor }}
+            />
+            <div className="text-left">
+              <span className="text-[10px] text-[#667085] uppercase font-bold block leading-none">
+                {lang === "gu" ? "થીમ (Theme)" : "Theme"}
+              </span>
+              <span className="font-bold text-[#202124] leading-tight block">
+                {lang === "gu" ? activePreset.nameGujarati : activePreset.name}
+              </span>
+            </div>
+          </button>
+
+          {/* Live Preview Button */}
+          <button
+            type="button"
+            onClick={() => setIsPreviewOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all shadow-xs"
+            title={lang === "gu" ? "લાઇવ બિલ પ્રિવ્યૂ જુઓ" : "Open Live Invoice Preview"}
+          >
+            <span>👁️</span>
+            <span>{lang === "gu" ? "લાઇવ પ્રિવ્યૂ" : "Live Preview"}</span>
+          </button>
+
+          {/* Live Grand Total Badge */}
+          <div className="bg-[#FAFBFD] border border-[#E5E7EB] rounded-xl p-2.5 sm:px-4 flex items-center gap-3 shrink-0">
+            <span className="text-xs font-bold text-[#667085] uppercase tracking-wider">
+              {lang === "gu" ? "કુલ રકમ" : "Total"}
+            </span>
+            <span className="text-xl sm:text-2xl font-extrabold text-[#F47721] font-mono tracking-tight">
+              {formatInr(roundedGrandTotal)}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -321,104 +373,117 @@ export default function NewInvoicePage() {
         </div>
       )}
 
-      {/* 2. INVOICE META SETTINGS CARD */}
-      <div className="bg-white p-5 rounded-card border border-[#E5E7EB] shadow-card grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {/* Document Type */}
-        <div>
-          <label className="block text-xs font-bold text-[#202124] uppercase mb-1">
-            {lang === "gu" ? "બિલનો પ્રકાર *" : "Document Type *"}
-          </label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value as any)}
-            className="w-full text-xs p-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg font-bold text-[#202124] focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
-          >
-            <option value="TAX_INVOICE">{lang === "gu" ? "પાકું બિલ (Tax Invoice)" : "Tax Invoice"}</option>
-            <option value="PROFORMA_INVOICE">{lang === "gu" ? "કાચું બિલ / અંદાજપત્ર (Quotation)" : "Quotation / Estimate"}</option>
-            <option value="BILL_OF_SUPPLY">{lang === "gu" ? "બિલ ઓફ સપ્લાય (મુક્ત)" : "Bill of Supply"}</option>
-            <option value="DELIVERY_CHALLAN">{lang === "gu" ? "ડિલિવરી ચલણ" : "Delivery Challan"}</option>
-          </select>
-        </div>
+      {/* 2-COLUMN MAIN CONTENT (Left: Bill Form Cards, Right: Sticky Theme & Style Studio) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column (8 cols): Main Invoice Creation Form */}
+        <div className="lg:col-span-8 space-y-6 min-w-0">
+          {/* 2. INVOICE META SETTINGS CARD */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs overflow-hidden">
+            <div className="p-4 border-b border-[#E5E7EB] bg-[#FAFBFD] flex items-center gap-2">
+              <h2 className="text-xs font-bold text-[#202124] uppercase tracking-wider">
+                {lang === "gu" ? "બિલ વિગતો (Invoice Details)" : "Invoice Details"}
+              </h2>
+            </div>
+        <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {/* Document Type */}
+          <div>
+            <label className="block text-xs font-bold text-[#202124] uppercase mb-1">
+              {lang === "gu" ? "બિલનો પ્રકાર *" : "Document Type *"}
+            </label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value as any)}
+              className="w-full text-xs p-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg font-bold text-[#202124] focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
+            >
+              <option value="TAX_INVOICE">{lang === "gu" ? "પાકું બિલ (Tax Invoice)" : "Tax Invoice"}</option>
+              <option value="PROFORMA_INVOICE">{lang === "gu" ? "કાચું બિલ / અંદાજપત્ર (Quotation)" : "Quotation / Estimate"}</option>
+              <option value="BILL_OF_SUPPLY">{lang === "gu" ? "બિલ ઓફ સપ્લાય (મુક્ત)" : "Bill of Supply"}</option>
+              <option value="DELIVERY_CHALLAN">{lang === "gu" ? "ડિલિવરી ચલણ" : "Delivery Challan"}</option>
+            </select>
+          </div>
 
-        {/* Customer / Party */}
-        <div>
-          <label className="block text-xs font-bold text-[#202124] uppercase mb-1">
-            {lang === "gu" ? "ગ્રાહક (Customer) *" : "Customer / Party *"}
-          </label>
-          <select
-            value={partyId}
-            onChange={(e) => handlePartyChange(e.target.value)}
-            className="w-full text-xs p-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg font-semibold text-[#202124] focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
-          >
-            {parties.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name} {p.gstin ? `(${p.gstin})` : `(${p.phone || "Walk-in"})`}
-              </option>
-            ))}
-          </select>
-        </div>
+          {/* Customer / Party */}
+          <div>
+            <label className="block text-xs font-bold text-[#202124] uppercase mb-1">
+              {lang === "gu" ? "ગ્રાહક (Customer) *" : "Customer / Party *"}
+            </label>
+            <select
+              value={partyId}
+              onChange={(e) => handlePartyChange(e.target.value)}
+              className="w-full text-xs p-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg font-semibold text-[#202124] focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
+            >
+              {parties.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} {p.gstin ? `(${p.gstin})` : `(${p.phone || "Walk-in"})`}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        {/* Invoice Date */}
-        <div>
-          <label className="block text-xs font-bold text-[#202124] uppercase mb-1">
-            {lang === "gu" ? "તારીખ (Date) *" : "Invoice Date *"}
-          </label>
-          <input
-            type="date"
-            required
-            value={invoiceDate}
-            onChange={(e) => setInvoiceDate(e.target.value)}
-            className="w-full text-xs p-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg font-mono text-[#202124] focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
-          />
-        </div>
+          {/* Invoice Date */}
+          <div>
+            <label className="block text-xs font-bold text-[#202124] uppercase mb-1">
+              {lang === "gu" ? "તારીખ (Date) *" : "Invoice Date *"}
+            </label>
+            <input
+              type="date"
+              required
+              value={invoiceDate}
+              onChange={(e) => setInvoiceDate(e.target.value)}
+              className="w-full text-xs p-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg font-mono text-[#202124] focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
+            />
+          </div>
 
-        {/* Payment Mode */}
-        <div>
-          <label className="block text-xs font-bold text-[#202124] uppercase mb-1">
-            {lang === "gu" ? "ચુકવણી પ્રકાર *" : "Payment Mode *"}
-          </label>
-          <select
-            value={paymentMode}
-            onChange={(e) => setPaymentMode(e.target.value)}
-            className="w-full text-xs p-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg font-semibold text-[#202124] focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
-          >
-            <option value="UNPAID_CREDIT">{lang === "gu" ? "ઉધાર / બાકી (Credit)" : "CREDIT (Unpaid)"}</option>
-            <option value="CASH">{lang === "gu" ? "રોકડ (Cash)" : "CASH"}</option>
-            <option value="BANK_TRANSFER">{lang === "gu" ? "બેંક ટ્રાન્સફર (NEFT/RTGS)" : "BANK TRANSFER"}</option>
-            <option value="UPI_QR">{lang === "gu" ? "યુપીઆઇ (UPI QR)" : "UPI"}</option>
-            <option value="CHEQUE">{lang === "gu" ? "ચેક (Cheque)" : "CHEQUE"}</option>
-          </select>
-        </div>
+          {/* Payment Mode */}
+          <div>
+            <label className="block text-xs font-bold text-[#202124] uppercase mb-1">
+              {lang === "gu" ? "ચુકવણી પ્રકાર *" : "Payment Mode *"}
+            </label>
+            <select
+              value={paymentMode}
+              onChange={(e) => setPaymentMode(e.target.value)}
+              className="w-full text-xs p-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg font-semibold text-[#202124] focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
+            >
+              <option value="UNPAID_CREDIT">{lang === "gu" ? "ઉધાર / બાકી (Credit)" : "CREDIT (Unpaid)"}</option>
+              <option value="CASH">{lang === "gu" ? "રોકડ (Cash)" : "CASH"}</option>
+              <option value="BANK_TRANSFER">{lang === "gu" ? "બેંક ટ્રાન્સફર (NEFT/RTGS)" : "BANK TRANSFER"}</option>
+              <option value="UPI_QR">{lang === "gu" ? "યુપીઆઇ (UPI QR)" : "UPI"}</option>
+              <option value="CHEQUE">{lang === "gu" ? "ચેક (Cheque)" : "CHEQUE"}</option>
+            </select>
+          </div>
 
-        {/* Place of Supply */}
-        <div>
-          <label className="block text-xs font-bold text-[#202124] uppercase mb-1">
-            {lang === "gu" ? "સપ્લાય રાજ્ય કોડ *" : "Place of Supply *"}
-          </label>
-          <input
-            type="text"
-            required
-            value={placeOfSupply}
-            onChange={(e) => setPlaceOfSupply(e.target.value)}
-            placeholder="24 (Gujarat)"
-            className="w-full text-xs p-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg font-mono font-bold text-[#202124] focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
-          />
+          {/* Place of Supply */}
+          <div>
+            <label className="block text-xs font-bold text-[#202124] uppercase mb-1">
+              {lang === "gu" ? "સપ્લાય રાજ્ય કોડ *" : "Place of Supply *"}
+            </label>
+            <input
+              type="text"
+              required
+              value={placeOfSupply}
+              onChange={(e) => setPlaceOfSupply(e.target.value)}
+              placeholder="24 (Gujarat)"
+              className="w-full text-xs p-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg font-mono font-bold text-[#202124] focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
+            />
+          </div>
         </div>
       </div>
 
       {/* 3. ITEMS TABLE CARD */}
-      <div className="bg-white rounded-card border border-[#E5E7EB] shadow-card overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs overflow-hidden">
         {/* Table Controls Header */}
-        <div className="p-4 border-b border-[#E5E7EB] bg-[#FFFAF5] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div>
-            <h2 className="text-xs font-bold text-[#202124] uppercase tracking-wider">
-              {lang === "gu" ? "માલસામાનની વિગત (Items Entry)" : "Items & Tax Rates"}
-            </h2>
-            <p className="text-[11px] text-[#667085]">
-              {isTaxInclusive
-                ? (lang === "gu" ? "ભાવ GST સહિત છે (Tax-Inclusive)" : "Rates are Tax-Inclusive (GST is included in entered price)")
-                : (lang === "gu" ? "ભાવ GST વગરનો છે (Tax-Exclusive)" : "Rates are Tax-Exclusive (GST is added extra on base price)")}
-            </p>
+        <div className="p-4 border-b border-[#E5E7EB] bg-[#FAFBFD] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div>
+              <h2 className="text-xs font-bold text-[#202124] uppercase tracking-wider">
+                {lang === "gu" ? "માલસામાનની વિગત (Items Entry)" : "Items & Tax Rates"}
+              </h2>
+              <p className="text-[11px] text-[#667085]">
+                {isTaxInclusive
+                  ? (lang === "gu" ? "ભાવ GST સહિત છે (Tax-Inclusive)" : "Rates are Tax-Inclusive (GST is included in entered price)")
+                  : (lang === "gu" ? "ભાવ GST વગરનો છે (Tax-Exclusive)" : "Rates are Tax-Exclusive (GST is added extra on base price)")}
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -596,54 +661,64 @@ export default function NewInvoicePage() {
       {/* 4. TOTALS SUMMARY & SUBMISSION STRIP */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Notes & Terms */}
-        <div className="bg-white p-5 rounded-card border border-[#E5E7EB] shadow-card space-y-3">
-          <label className="block text-xs font-bold text-[#202124] uppercase">
-            {lang === "gu" ? "નોંધ / શરતો (Notes & Remarks)" : "Invoice Notes & Terms"}
-          </label>
-          <textarea
-            rows={3}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder={lang === "gu" ? "ગ્રાહક માટે વિશેષ નોંધ અથવા ચૂકવણી શરતો..." : "Special instructions or payment terms for the customer..."}
-            className="w-full text-xs p-3 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-[#202124] focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
-          />
-          <div className="text-[11px] text-[#667085] flex items-center gap-1.5">
-            <span>💡</span>
-            <span>{lang === "gu" ? "આ બિલ સાચવતા જ સ્ટોક અને ઉઘરાણી આપોઆપ અપડેટ થશે." : "Saving will automatically adjust inventory and customer ledger balance."}</span>
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs overflow-hidden">
+          <div className="p-4 border-b border-[#E5E7EB] bg-[#FAFBFD] flex items-center gap-2">
+            <h2 className="text-xs font-bold text-[#202124] uppercase tracking-wider">
+              {lang === "gu" ? "નોંધ / શરતો (Notes & Remarks)" : "Invoice Notes & Terms"}
+            </h2>
+          </div>
+          <div className="p-5 space-y-3">
+            <textarea
+              rows={3}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder={lang === "gu" ? "ગ્રાહક માટે વિશેષ નોંધ અથવા ચૂકવણી શરતો..." : "Special instructions or payment terms for the customer..."}
+              className="w-full text-xs p-3 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-[#202124] focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
+            />
+            <div className="text-[11px] text-[#667085] flex items-center gap-1.5">
+              <span>💡</span>
+              <span>{lang === "gu" ? "આ બિલ સાચવતા જ સ્ટોક અને ઉઘરાણી આપોઆપ અપડેટ થશે." : "Saving will automatically adjust inventory and customer ledger balance."}</span>
+            </div>
           </div>
         </div>
 
         {/* Tax Breakdown & Final Grand Total Card */}
-        <div className="bg-white p-5 rounded-card border border-[#E5E7EB] shadow-card space-y-3">
-          <div className="space-y-1.5 text-xs text-[#667085] pb-3 border-b border-[#E5E7EB]">
-            <div className="flex justify-between">
-              <span>{lang === "gu" ? "કરપાત્ર રકમ (Taxable Value)" : "Taxable Value"}:</span>
-              <span className="font-mono font-semibold text-[#202124]">{formatInr(totalTaxable)}</span>
-            </div>
-            {!isInterState ? (
-              <>
-                <div className="flex justify-between">
-                  <span>CGST (50%):</span>
-                  <span className="font-mono font-semibold text-[#202124]">{formatInr(totalCgst)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>SGST (50%):</span>
-                  <span className="font-mono font-semibold text-[#202124]">{formatInr(totalSgst)}</span>
-                </div>
-              </>
-            ) : (
-              <div className="flex justify-between">
-                <span>IGST (100%):</span>
-                <span className="font-mono font-semibold text-[#202124]">{formatInr(totalIgst)}</span>
-              </div>
-            )}
-            <div className="flex justify-between text-[#98A2B3]">
-              <span>{lang === "gu" ? "રાઉન્ડ ઓફ (Round Off)" : "Round Off"}:</span>
-              <span className="font-mono font-semibold">
-                {roundOff >= 0 ? `+${roundOff.toFixed(2)}` : roundOff.toFixed(2)}
-              </span>
-            </div>
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs overflow-hidden">
+          <div className="p-4 border-b border-[#E5E7EB] bg-[#FAFBFD] flex items-center gap-2">
+            <h2 className="text-xs font-bold text-[#202124] uppercase tracking-wider">
+              {lang === "gu" ? "કર અને ચૂકવણી સારાંશ (Tax & Summary)" : "Tax & Summary"}
+            </h2>
           </div>
+          <div className="p-5 space-y-3">
+            <div className="space-y-1.5 text-xs text-[#667085] pb-3 border-b border-[#E5E7EB]">
+              <div className="flex justify-between">
+                <span>{lang === "gu" ? "કરપાત્ર રકમ (Taxable Value)" : "Taxable Value"}:</span>
+                <span className="font-mono font-semibold text-[#202124]">{formatInr(totalTaxable)}</span>
+              </div>
+              {!isInterState ? (
+                <>
+                  <div className="flex justify-between">
+                    <span>CGST (50%):</span>
+                    <span className="font-mono font-semibold text-[#202124]">{formatInr(totalCgst)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>SGST (50%):</span>
+                    <span className="font-mono font-semibold text-[#202124]">{formatInr(totalSgst)}</span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex justify-between">
+                  <span>IGST (100%):</span>
+                  <span className="font-mono font-semibold text-[#202124]">{formatInr(totalIgst)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-[#98A2B3]">
+                <span>{lang === "gu" ? "રાઉન્ડ ઓફ (Round Off)" : "Round Off"}:</span>
+                <span className="font-mono font-semibold">
+                  {roundOff >= 0 ? `+${roundOff.toFixed(2)}` : roundOff.toFixed(2)}
+                </span>
+              </div>
+            </div>
 
           <div className="flex items-center justify-between pt-1">
             <span className="text-sm font-bold text-[#202124] uppercase">
@@ -689,5 +764,91 @@ export default function NewInvoicePage() {
         </div>
       </div>
     </div>
+  </div>
+
+  {/* Right Column (4 cols): Dedicated Invoice Theme & Style Studio */}
+  <div className="hidden lg:block lg:col-span-4 min-w-0">
+    <InvoiceThemeSidebar
+      customization={customization}
+      onChange={setCustomization}
+      lang={lang}
+      onOpenPreview={() => setIsPreviewOpen(true)}
+    />
+  </div>
+</div>
+
+{/* Mobile / Tablet Drawer when opened */}
+{isThemeDrawerOpen && (
+  <div className="fixed inset-0 z-50 lg:hidden bg-black/60 backdrop-blur-xs flex justify-end animate-fadeIn">
+    <div className="bg-white w-full max-w-sm h-full overflow-y-auto p-4 flex flex-col shadow-2xl">
+      <div className="flex justify-between items-center mb-3 pb-2 border-b border-slate-200">
+        <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2">
+          <span>🎨</span>
+          <span>{lang === "gu" ? "બિલ થીમ અને કસ્ટમાઇઝેશન" : "Invoice Theme & Studio"}</span>
+        </h3>
+        <button
+          type="button"
+          onClick={() => setIsThemeDrawerOpen(false)}
+          className="p-1 rounded-lg hover:bg-slate-100 text-slate-500 font-bold"
+        >
+          ✕
+        </button>
+      </div>
+      <InvoiceThemeSidebar
+        customization={customization}
+        onChange={setCustomization}
+        lang={lang}
+        onOpenPreview={() => {
+          setIsThemeDrawerOpen(false);
+          setIsPreviewOpen(true);
+        }}
+      />
+    </div>
+  </div>
+)}
+      </div>
+
+      {/* Live Invoice Preview Modal */}
+      <InvoiceLivePreviewModal
+  isOpen={isPreviewOpen}
+  onClose={() => setIsPreviewOpen(false)}
+  customization={customization}
+  lang={lang}
+  invoiceData={{
+    category,
+    invoiceNumber: "INV-2026-0042",
+    invoiceDate,
+    paymentMode,
+    placeOfSupply,
+    partyName: parties.find((p) => p.id === partyId)?.name || "Walk-in Cash Customer",
+    partyGstin: parties.find((p) => p.id === partyId)?.gstin,
+    partyPhone: parties.find((p) => p.id === partyId)?.phone,
+    companyName: currentCompany?.tradeName || currentCompany?.legalName || "MyBill Enterprise",
+    companyGstin: currentCompany?.gstin || "24AAAAA0000A1Z5",
+    companyState: currentCompany?.stateCode || "Gujarat (24)",
+    notes,
+    items: rows.map((r) => {
+      const found = items.find((i) => i.id === r.itemId);
+      return {
+        name: found?.name || "Item Product",
+        hsnCode: r.hsnCode,
+        quantity: Number(r.quantity) || 1,
+        unitPrice: Number(r.unitPrice) || 0,
+        discountPercent: Number(r.discountPercent) || 0,
+        taxRate: r.taxRate,
+      };
+    }),
+    totalTaxable,
+    totalCgst,
+    totalSgst,
+    totalIgst,
+    roundOff,
+    roundedGrandTotal,
+    isTaxInclusive,
+    isInterState,
+  }}
+/>
+    </>
   );
 }
+

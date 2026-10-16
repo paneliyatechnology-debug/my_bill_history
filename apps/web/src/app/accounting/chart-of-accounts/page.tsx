@@ -160,14 +160,13 @@ export default function ChartOfAccountsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
               {lang === "gu"
                 ? "ખાતાવહી માળખું (Chart of Accounts)"
                 : "Chart of Accounts (COA)"}
             </h1>
           </div>
-          <p className="text-xs text-muted mt-1 ml-4.5">
+          <p className="text-xs text-muted mt-1">
             {lang === "gu"
               ? "મિલકતો, દેવા, આવક અને ખર્ચના ખાતા જૂથો"
               : "Standard double-entry accounting hierarchy: Assets, Liabilities, Equity, Revenue, Expenses"}
@@ -332,7 +331,7 @@ export default function ChartOfAccountsPage() {
               onChange={(e) =>
                 setFormData({ ...formData, nameGujarati: e.target.value })
               }
-              placeholder="ચાલુ મિલકતો"
+              placeholder={lang === "gu" ? "ચાલુ મિલકતો" : "e.g. Current Assets"}
               className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
             />
           </div>
@@ -348,11 +347,11 @@ export default function ChartOfAccountsPage() {
               }
               className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
             >
-              <option value="ASSET">ASSET (મિલકત)</option>
-              <option value="LIABILITY">LIABILITY (દેવું)</option>
-              <option value="EQUITY">EQUITY (મૂડી)</option>
-              <option value="REVENUE">REVENUE (આવક)</option>
-              <option value="EXPENSE">EXPENSE (ખર્ચ)</option>
+              <option value="ASSET">{lang === "gu" ? "ASSET (મિલકત)" : "ASSET"}</option>
+              <option value="LIABILITY">{lang === "gu" ? "LIABILITY (દેવું)" : "LIABILITY"}</option>
+              <option value="EQUITY">{lang === "gu" ? "EQUITY (મૂડી)" : "EQUITY"}</option>
+              <option value="REVENUE">{lang === "gu" ? "REVENUE (આવક)" : "REVENUE"}</option>
+              <option value="EXPENSE">{lang === "gu" ? "EXPENSE (ખર્ચ)" : "EXPENSE"}</option>
             </select>
           </div>
 

@@ -311,16 +311,14 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6 w-full min-w-0 max-w-full pb-16">
       {/* 1. Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 sm:p-5 rounded-card border border-[#E5E7EB] shadow-card border-l-4 border-l-[#F47721]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-[#202124] tracking-tight">
-              {lang === "gu"
-                ? "અહેવાલ કેન્દ્ર (Financial Reports & GST)"
-                : "Reports & Statutory Center"}
-            </h1>
-          </div>
-          <p className="text-xs sm:text-sm text-[#667085] mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#202124] tracking-tight">
+            {lang === "gu"
+              ? "અહેવાલ કેન્દ્ર (Financial Reports & GST)"
+              : "Reports & Statutory Center"}
+          </h1>
+          <p className="text-xs text-muted mt-1">
             {lang === "gu"
               ? "ભારતીય નામા પદ્ધતિ અને જીએસટી માન્ય તમામ ૧૪ અહેવાલો"
               : "Authoritative financial statements, ledgers, trial balance, stock, and GSTR-1 summaries"}
@@ -876,7 +874,7 @@ export default function ReportsPage() {
                 className="px-3.5 py-1.5 bg-[#F8F9FB] hover:bg-[#FFF3E8] text-[#202124] hover:text-[#F47721] text-xs font-semibold rounded-lg border border-[#E5E7EB] inline-flex items-center gap-1.5 transition-colors"
               >
                 <span>🖨️</span>
-                <span>Print Statement (ખાતાવહી પ્રિન્ટ)</span>
+                <span>{lang === "gu" ? "ખાતાવહી પ્રિન્ટ કરો" : "Print Statement"}</span>
               </button>
             </div>
 
@@ -910,7 +908,7 @@ export default function ReportsPage() {
               </div>
               <div className="p-3.5 bg-[#EAF7EF] border border-[#A6E9C5] rounded-lg min-w-0">
                 <span className="text-[10px] text-[#16834A] uppercase font-bold block truncate">
-                  Closing Balance (સિલક)
+                  {lang === "gu" ? "સિલક (Closing Balance)" : "Closing Balance"}
                 </span>
                 <p className="font-mono font-bold text-base sm:text-lg text-[#16834A] truncate">
                   ₹{Number(reportData.closingBalance?.amount || 0).toFixed(2)}
@@ -1421,7 +1419,7 @@ export default function ReportsPage() {
               </div>
               <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-lg min-w-0">
                 <span className="text-[10px] text-blue-800 uppercase font-bold block truncate">
-                  Closing Cash (આખર રોકડ)
+                  {lang === "gu" ? "આખર રોકડ (Closing Cash)" : "Closing Cash"}
                 </span>
                 <p className="font-mono font-bold text-base sm:text-lg text-blue-900 truncate">
                   ₹{Number(reportData.closingCashBalance || 0).toFixed(2)}

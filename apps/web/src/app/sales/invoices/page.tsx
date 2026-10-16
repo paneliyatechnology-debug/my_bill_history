@@ -198,15 +198,12 @@ export default function SalesInvoicesPage() {
       {/* 1. Header with Title and Primary Saffron Action */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-[#E5E7EB] shadow-xs min-w-0">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-6 bg-[#F47721] rounded-full inline-block shrink-0" />
-            <h1 className="text-lg sm:text-2xl font-bold text-[#202124] tracking-tight truncate">
-              {lang === "gu"
-                ? "વેચાણ બિલોની યાદી (Sales Invoices)"
-                : "Sales Invoices & Billing"}
-            </h1>
-          </div>
-          <p className="text-xs text-[#667085] mt-1 ml-4.5 truncate">
+          <h1 className="text-lg sm:text-2xl font-bold text-[#202124] tracking-tight truncate">
+            {lang === "gu"
+              ? "વેચાણ બિલોની યાદી (Sales Invoices)"
+              : "Sales Invoices & Billing"}
+          </h1>
+          <p className="text-xs text-[#667085] mt-1 truncate">
             {lang === "gu"
               ? "ટેક્સ ઇન્વોઇસ, બિલ-બાય-બિલ ચુકવણી અને ગ્રાહકની બાકી રકમનું સંચાલન"
               : "GST Tax Invoices, bill-by-bill receivables, and payment allocations"}
@@ -463,12 +460,12 @@ export default function SalesInvoicesPage() {
               aria-label="Filter by invoice status"
               className="bg-[#F8F9FB] border border-[#E5E7EB] text-xs font-semibold rounded-xl px-3 py-1.5 text-[#202124] focus:outline-none focus:bg-white focus:ring-1 focus:ring-[#F47721] cursor-pointer"
             >
-              <option value="ALL">All Statuses (તમામ સ્થિતિ)</option>
-              <option value="ISSUED">ISSUED (ઇશ્યુ કરેલ)</option>
-              <option value="PAID">PAID (ચૂકતે થયેલ)</option>
-              <option value="PARTIALLY_PAID">PARTIALLY PAID (અંશતઃ બાકી)</option>
-              <option value="DRAFT">DRAFT (કાચું બિલ)</option>
-              <option value="CANCELLED">CANCELLED (રદ થયેલ)</option>
+              <option value="ALL">{lang === "gu" ? "તમામ સ્થિતિ (All Statuses)" : "All Statuses"}</option>
+              <option value="ISSUED">{lang === "gu" ? "ઇશ્યુ કરેલ (ISSUED)" : "ISSUED"}</option>
+              <option value="PAID">{lang === "gu" ? "ચૂકતે થયેલ (PAID)" : "PAID"}</option>
+              <option value="PARTIALLY_PAID">{lang === "gu" ? "અંશતઃ બાકી (PARTIALLY PAID)" : "PARTIALLY PAID"}</option>
+              <option value="DRAFT">{lang === "gu" ? "કાચું બિલ (DRAFT)" : "DRAFT"}</option>
+              <option value="CANCELLED">{lang === "gu" ? "રદ થયેલ (CANCELLED)" : "CANCELLED"}</option>
             </select>
           </div>
         }

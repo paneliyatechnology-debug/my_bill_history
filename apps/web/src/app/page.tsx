@@ -1,24 +1,34 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useAuth } from "../context/auth-context";
 import { apiClient, extractList } from "../lib/api-client";
 import { StatCard } from "../components/ui/stat-card";
 import { StatusBadge } from "../components/ui/badge";
+import { BillScannerModal } from "./purchases/components/bill-scanner-modal";
 
-interface InvoiceItem {
+interface DashboardTransaction {
   id: string;
-  invoiceNumber: string;
-  invoiceDate: string;
-  partyName?: string;
-  grandTotal: number;
-  outstandingBalance: number;
-  status: string;
+  date: string;
+  rawDate: Date;
+  type: string;
+  txnNo: string;
+  partyName: string;
+  amount: number;
+  url: string;
+}
+
+interface DaySalesData {
+  day: string;
+  fullDate: string;
+  displayDate: string;
+  sales: number;
+  invoices: number;
 }
 
 export default function DashboardPage() {
-  const { lang, tenantContext, currentCompany, currentBranch, currentFY } = useAuth();
+  const { lang, tenantContext } = useAuth();
 
   const [metrics, setMetrics] = useState({
     totalSales: 0,
@@ -27,19 +37,44 @@ export default function DashboardPage() {
     totalInventoryValue: 0,
   });
 
-  const [recentInvoices, setRecentInvoices] = useState<InvoiceItem[]>([]);
   const [lowStockCount, setLowStockCount] = useState<number>(0);
+  const [latestTransactions, setLatestTransactions] = useState<DashboardTransaction[]>([]);
+  const [allSalesInvoices, setAllSalesInvoices] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Filter state for Sales Report (Daily, Weekly, Monthly)
+  const [reportPeriod, setReportPeriod] = useState<"daily" | "weekly" | "monthly">("daily");
+
+  // Chart tooltip state
+  const [hoveredPointIndex, setHoveredPointIndex] = useState<number | null>(null);
+
+  // Bill Scanner Modal state & support data
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [partiesList, setPartiesList] = useState<any[]>([]);
+  const [itemsList, setItemsList] = useState<any[]>([]);
+  const [warehousesList, setWarehousesList] = useState<any[]>([]);
 
   const fetchDashboardData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [salesRes, outRes, stockRes, invListRes, itemsRes]: any = await Promise.all([
+      const [
+        salesRes,
+        outRes,
+        stockRes,
+        invListRes,
+        itemsRes,
+        partiesRes,
+        warehousesRes,
+        purchasesRes,
+      ]: any = await Promise.all([
         apiClient.get("/reports/sales-register").catch(() => null),
         apiClient.get("/reports/outstanding-balances").catch(() => null),
         apiClient.get("/reports/stock-summary").catch(() => null),
-        apiClient.get("/invoices", { limit: 6 }).catch(() => null),
+        apiClient.get("/invoices", { limit: 20 }).catch(() => null),
         apiClient.get("/items").catch(() => null),
+        apiClient.get("/parties").catch(() => null),
+        apiClient.get("/tenants/warehouses").catch(() => null),
+        apiClient.get("/purchases", { limit: 10 }).catch(() => null),
       ]);
 
       const totalSales = Number(
@@ -78,14 +113,61 @@ export default function DashboardPage() {
       });
       setLowStockCount(lowCount);
 
-      const invs = extractList(invListRes);
-      setRecentInvoices(invs.slice(0, 6));
+      // Store support lists for OCR scanner
+      setPartiesList(extractList(partiesRes));
+      setItemsList(allItems);
+      setWarehousesList(extractList(warehousesRes));
+
+      // Build Latest Transactions list
+      const salesInvs = extractList(invListRes);
+      setAllSalesInvoices(salesInvs);
+
+      const purchaseInvs = extractList(purchasesRes);
+
+      const transactions: DashboardTransaction[] = [
+        ...salesInvs.map((inv: any) => ({
+          id: inv.id,
+          date: new Date(inv.invoiceDate || inv.createdAt).toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          }),
+          rawDate: new Date(inv.invoiceDate || inv.createdAt),
+          type: "Sales Invoices",
+          txnNo: inv.invoiceNumber || "1",
+          partyName:
+            inv.party?.name ||
+            inv.partyName ||
+            (lang === "gu" ? "રોકડ ગ્રાહક (Walk-in)" : "Walk-in Customer"),
+          amount: Number(inv.grandTotal || 0),
+          url: `/sales/invoices/${inv.id}`,
+        })),
+        ...purchaseInvs.map((pur: any) => ({
+          id: pur.id,
+          date: new Date(pur.invoiceDate || pur.createdAt).toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          }),
+          rawDate: new Date(pur.invoiceDate || pur.createdAt),
+          type: "Purchase Invoices",
+          txnNo: pur.vendorInvoiceNumber || "1",
+          partyName:
+            pur.party?.name ||
+            pur.partyName ||
+            (lang === "gu" ? "વેપારી" : "Supplier"),
+          amount: Number(pur.grandTotal || 0),
+          url: `/purchases`,
+        })),
+      ].sort((a, b) => b.rawDate.getTime() - a.rawDate.getTime());
+
+      setLatestTransactions(transactions.slice(0, 5));
     } catch {
       // Graceful fallback on network glitch
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [lang]);
 
   useEffect(() => {
     if (tenantContext.companyId) {
@@ -110,10 +192,161 @@ export default function DashboardPage() {
     }).format(val || 0);
   };
 
+  // -------------------------------------------------------------
+  // Calculate Last 7 Days Sales Data & Date Range for the Report
+  // -------------------------------------------------------------
+  const { salesReportData, dateRangeString, last7DaysSales, last7DaysInvoicesCount } =
+    useMemo(() => {
+      const days: DaySalesData[] = [];
+      const today = new Date();
+
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        const fullDate = `${yyyy}-${mm}-${dd}`;
+
+        const dayName = d.toLocaleDateString("en-US", { weekday: "short" });
+        const displayDate = d.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+
+        days.push({
+          day: dayName,
+          fullDate,
+          displayDate,
+          sales: 0,
+          invoices: 0,
+        });
+      }
+
+      // Match invoices with the 7 days
+      allSalesInvoices.forEach((inv: any) => {
+        const invDateObj = new Date(inv.invoiceDate || inv.createdAt);
+        const yyyy = invDateObj.getFullYear();
+        const mm = String(invDateObj.getMonth() + 1).padStart(2, "0");
+        const dd = String(invDateObj.getDate()).padStart(2, "0");
+        const invDateStr = `${yyyy}-${mm}-${dd}`;
+
+        const matchedDay = days.find((d) => d.fullDate === invDateStr);
+        if (matchedDay) {
+          matchedDay.sales += Number(inv.grandTotal || 0);
+          matchedDay.invoices += 1;
+        }
+      });
+
+      const total7DaysSales = days.reduce((sum, d) => sum + d.sales, 0);
+      const total7DaysInvoices = days.reduce((sum, d) => sum + d.invoices, 0);
+
+      const firstDateStr = days[0]?.displayDate || "";
+      const lastDateStr = days[days.length - 1]?.displayDate || "";
+      const rangeStr = `${firstDateStr} to ${lastDateStr}`;
+
+      return {
+        salesReportData: days,
+        dateRangeString: rangeStr,
+        last7DaysSales: total7DaysSales,
+        last7DaysInvoicesCount: total7DaysInvoices,
+      };
+    }, [allSalesInvoices]);
+
+  // -------------------------------------------------------------
+  // Responsive SVG Line Chart Parameters
+  // -------------------------------------------------------------
+  const chartConfig = useMemo(() => {
+    const width = 540;
+    const height = 210;
+    const paddingLeft = 58;
+    const paddingRight = 20;
+    const paddingTop = 20;
+    const paddingBottom = 30;
+
+    const plotWidth = width - paddingLeft - paddingRight;
+    const plotHeight = height - paddingTop - paddingBottom;
+
+    const maxSales = Math.max(...salesReportData.map((d) => d.sales), 0);
+
+    // If all values are 0 (like in the reference screenshot)
+    // Ticks: 1, 0.8, 0.6, 0.4, 0.2, 0, -0.2, -0.4, -0.6, -0.8, -1
+    if (maxSales === 0) {
+      const zeroTicks = [1, 0.8, 0.6, 0.4, 0.2, 0, -0.2, -0.4, -0.6, -0.8, -1];
+      const yZero = paddingTop + plotHeight / 2;
+
+      const points = salesReportData.map((d, index) => {
+        const x = paddingLeft + (index * plotWidth) / (salesReportData.length - 1);
+        const y = yZero;
+        return { x, y, ...d };
+      });
+
+      const pathD = points
+        .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
+        .join(" ");
+
+      return {
+        width,
+        height,
+        paddingLeft,
+        paddingRight,
+        paddingTop,
+        paddingBottom,
+        plotWidth,
+        plotHeight,
+        ticks: zeroTicks.map((val, idx) => ({
+          label: `₹ ${val}`,
+          y: paddingTop + (idx * plotHeight) / (zeroTicks.length - 1),
+        })),
+        points,
+        pathD,
+      };
+    }
+
+    // Dynamic positive scale if sales exist
+    const niceMax = Math.ceil(maxSales * 1.25);
+    const tickValues = [
+      niceMax,
+      Math.round(niceMax * 0.75),
+      Math.round(niceMax * 0.5),
+      Math.round(niceMax * 0.25),
+      0,
+    ];
+
+    const points = salesReportData.map((d, index) => {
+      const x = paddingLeft + (index * plotWidth) / (salesReportData.length - 1);
+      const ratio = d.sales / niceMax;
+      const y = paddingTop + plotHeight - ratio * plotHeight;
+      return { x, y, ...d };
+    });
+
+    const pathD = points
+      .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
+      .join(" ");
+
+    return {
+      width,
+      height,
+      paddingLeft,
+      paddingRight,
+      paddingTop,
+      paddingBottom,
+      plotWidth,
+      plotHeight,
+      ticks: tickValues.map((val) => ({
+        label: `₹ ${val >= 1000 ? `${(val / 1000).toFixed(1)}k` : val}`,
+        y: paddingTop + plotHeight - (val / niceMax) * plotHeight,
+      })),
+      points,
+      pathD,
+    };
+  }, [salesReportData]);
+
   return (
     <div className="space-y-6">
       {/* 1. TOP PROMINENT ACTION BANNER */}
-      <div className="bg-white rounded-card p-4 sm:p-6 border border-[#E5E7EB] shadow-card flex flex-col md:flex-row md:items-center justify-between gap-4 border-l-4 border-l-[#F47721] min-w-0">
+      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-border shadow-subtle flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
         <div className="space-y-1 min-w-0">
           <h1 className="text-xl sm:text-2xl font-bold text-[#202124] tracking-tight truncate">
             {lang === "gu"
@@ -122,8 +355,8 @@ export default function DashboardPage() {
           </h1>
           <p className="text-xs sm:text-sm text-[#667085] break-words">
             {lang === "gu"
-              ? "આજના બિલ, ઉઘરાણી બાકી અને સ્ટોકની સ્થિતિ એક જ નજરે જુઓ."
-              : "Real-time summary of sales, customer dues, and inventory value."}
+              ? "આજના બિલ, ઉઘરાણી બાકી અને વેચાણ રિપોર્ટ એક જ નજરે જુઓ."
+              : "Real-time summary of sales, customer dues, and transactions overview."}
           </p>
         </div>
 
@@ -153,7 +386,6 @@ export default function DashboardPage() {
 
       {/* 2. REAL-TIME BUSINESS METRICS CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 min-w-0">
-        {/* Total Sales */}
         <StatCard
           title="Total Sales"
           titleGujarati="કુલ વેચાણ"
@@ -167,7 +399,6 @@ export default function DashboardPage() {
           }
         />
 
-        {/* Customer Receivables (Udhar) */}
         <StatCard
           title="Receivables"
           titleGujarati="ઉઘરાણી બાકી (લેણું)"
@@ -181,7 +412,6 @@ export default function DashboardPage() {
           }
         />
 
-        {/* Total Stock Valuation */}
         <StatCard
           title="Stock Valuation"
           titleGujarati="કુલ સ્ટોકની કિંમત"
@@ -195,7 +425,6 @@ export default function DashboardPage() {
           }
         />
 
-        {/* Low Stock Items Alert */}
         <StatCard
           title="Low Stock Alert"
           titleGujarati="ઓછો સ્ટોક ચેતવણી"
@@ -210,253 +439,342 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* 3. QUICK SHORTCUTS STRIP */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 min-w-0">
-        <Link
-          href="/masters/items"
-          className="p-3 bg-white rounded-card border border-[#E5E7EB] hover:border-[#F47721] hover:bg-[#FFFAF5] transition-all flex items-center gap-2.5 sm:gap-3 shadow-subtle group min-w-0 overflow-hidden"
-        >
-          <div className="p-2 bg-[#F3F4F6] group-hover:bg-[#FFF3E8] rounded-lg text-[#F47721] transition-colors shrink-0">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="text-xs font-bold text-[#202124] truncate">{lang === "gu" ? "નવી વસ્તુ" : "Add Item"}</div>
-            <div className="text-[10px] text-[#667085] truncate">{lang === "gu" ? "પ્રોડક્ટ માસ્ટર" : "Item Master"}</div>
-          </div>
-        </Link>
-
-        <Link
-          href="/masters/parties"
-          className="p-3 bg-white rounded-card border border-[#E5E7EB] hover:border-[#F47721] hover:bg-[#FFFAF5] transition-all flex items-center gap-2.5 sm:gap-3 shadow-subtle group min-w-0 overflow-hidden"
-        >
-          <div className="p-2 bg-[#F3F4F6] group-hover:bg-[#FFF3E8] rounded-lg text-[#F47721] transition-colors shrink-0">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-            </svg>
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="text-xs font-bold text-[#202124] truncate">{lang === "gu" ? "નવો ગ્રાહક" : "Add Customer"}</div>
-            <div className="text-[10px] text-[#667085] truncate">{lang === "gu" ? "ખાતું ખોલો" : "Parties Ledger"}</div>
-          </div>
-        </Link>
-
-        <Link
-          href="/purchases"
-          className="p-3 bg-white rounded-card border border-[#E5E7EB] hover:border-[#F47721] hover:bg-[#FFFAF5] transition-all flex items-center gap-2.5 sm:gap-3 shadow-subtle group min-w-0 overflow-hidden"
-        >
-          <div className="p-2 bg-[#F3F4F6] group-hover:bg-[#FFF3E8] rounded-lg text-[#F47721] transition-colors shrink-0">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="text-xs font-bold text-[#202124] truncate">{lang === "gu" ? "ખરીદી બિલ" : "Purchase Bill"}</div>
-            <div className="text-[10px] text-[#667085] truncate">{lang === "gu" ? "ઇનવોઇસ સ્કેનર" : "Bill Scanner"}</div>
-          </div>
-        </Link>
-
-        <Link
-          href="/finance/expenses"
-          className="p-3 bg-white rounded-card border border-[#E5E7EB] hover:border-[#F47721] hover:bg-[#FFFAF5] transition-all flex items-center gap-2.5 sm:gap-3 shadow-subtle group min-w-0 overflow-hidden"
-        >
-          <div className="p-2 bg-[#F3F4F6] group-hover:bg-[#FFF3E8] rounded-lg text-[#F47721] transition-colors shrink-0">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="text-xs font-bold text-[#202124] truncate">{lang === "gu" ? "દૈનિક ખર્ચ" : "Record Expense"}</div>
-            <div className="text-[10px] text-[#667085] truncate">{lang === "gu" ? "રોકડ / બેંક જાવક" : "Payment Out"}</div>
-          </div>
-        </Link>
-      </div>
-
-      {/* 4. RECENT INVOICES & QUICK RECONCILIATION TABLE / MOBILE CARD LIST */}
-      <div className="bg-white rounded-card border border-[#E5E7EB] shadow-card overflow-hidden min-w-0">
-        <div className="p-4 sm:p-5 border-b border-[#E5E7EB] flex items-center justify-between flex-wrap gap-2">
-          <div className="min-w-0">
-            <h2 className="text-sm font-bold text-[#202124] uppercase tracking-wider truncate">
-              {lang === "gu" ? "તાજેતરના વેચાણ બિલ (Recent Invoices)" : "Recent Sales Invoices"}
-            </h2>
-            <p className="text-xs text-[#667085] truncate">
-              {lang === "gu" ? "આજના નવા બિલ અને તેમની પેમેન્ટ સ્થિતિ" : "Latest customer transactions and payment tracking"}
-            </p>
-          </div>
-          <Link
-            href="/sales/invoices"
-            className="text-xs font-bold text-[#F47721] hover:text-[#D95F12] flex items-center gap-1 hover:underline shrink-0"
-          >
-            <span>{lang === "gu" ? "બધા બિલ જુઓ" : "View All Invoices"}</span>
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-        </div>
-
-        {/* Content Body: Loading, Empty State, or Desktop Table + Mobile Cards */}
-        {isLoading ? (
-          <div className="p-8 text-center text-[#667085]">
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-5 h-5 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin" />
-              <span className="text-sm font-medium">
-                {lang === "gu" ? "માહિતી લોડ થઈ રહી છે..." : "Loading dashboard data..."}
-              </span>
+      {/* 3. TWO-COLUMN OPERATIONAL DASHBOARD LAYOUT (MATCHING REFERENCE UI) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* LEFT COLUMN: Latest Transactions & Sales Report (lg:col-span-2) */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* CARD A: LATEST TRANSACTIONS */}
+          <div className="bg-white rounded-card border border-[#E5E7EB] shadow-card overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-[#E5E7EB] flex items-center justify-between">
+              <h3 className="font-bold text-base text-[#202124]">
+                {lang === "gu" ? "છેલ્લા વ્યવહારો (Latest Transactions)" : "Latest Transactions"}
+              </h3>
             </div>
-          </div>
-        ) : recentInvoices.length === 0 ? (
-          /* Proper Responsive Empty State decoupled from 7-column table */
-          <div className="p-8 sm:p-12 text-center">
-            <div className="max-w-sm mx-auto space-y-3">
-              <div className="w-12 h-12 rounded-full bg-[#FFF3E8] text-[#F47721] flex items-center justify-center mx-auto font-bold text-xl shadow-inner">
-                ₹
-              </div>
-              <p className="text-base font-bold text-[#202124]">
-                {lang === "gu" ? "હજુ સુધી કોઈ બિલ બનેલ નથી" : "No invoices issued yet"}
-              </p>
-              <p className="text-xs sm:text-sm text-[#667085] leading-relaxed">
-                {lang === "gu"
-                  ? "તમારા ગ્રાહક માટે પહેલું બિલ બનાવવા નીચેના બટન પર ક્લિક કરો."
-                  : "Click below to generate your first invoice in seconds and track payments."}
-              </p>
-              <div className="pt-2">
-                <Link
-                  href="/sales/invoices/new"
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-button text-xs sm:text-sm font-bold shadow-saffron transition-all"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                  </svg>
-                  <span>{lang === "gu" ? "પહેલું બિલ બનાવો" : "Create First Bill"}</span>
-                </Link>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* Desktop Table View (>= md: 768px) */}
-            <div className="hidden md:block overflow-x-auto">
+
+            {/* Desktop & Mobile Table View */}
+            <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#F8F9FB] text-[#667085] uppercase tracking-wider font-semibold border-b border-[#E5E7EB]">
+                <thead className="bg-[#FBFBFB] text-[#667085] uppercase tracking-wider font-semibold border-b border-[#E5E7EB]">
                   <tr>
-                    <th className="px-4 py-3">{lang === "gu" ? "બિલ નંબર" : "Invoice No"}</th>
-                    <th className="px-4 py-3">{lang === "gu" ? "તારીખ" : "Date"}</th>
-                    <th className="px-4 py-3">{lang === "gu" ? "ગ્રાહકનું નામ" : "Customer Name"}</th>
-                    <th className="px-4 py-3 text-right">{lang === "gu" ? "કુલ રકમ" : "Grand Total"}</th>
-                    <th className="px-4 py-3 text-right">{lang === "gu" ? "બાકી રકમ" : "Due Balance"}</th>
-                    <th className="px-4 py-3 text-center">{lang === "gu" ? "સ્થિતિ" : "Status"}</th>
-                    <th className="px-4 py-3 text-center">{lang === "gu" ? "ક્રિયા" : "Action"}</th>
+                    <th className="px-4 py-3">{lang === "gu" ? "તારીખ" : "DATE"}</th>
+                    <th className="px-4 py-3">{lang === "gu" ? "પ્રકાર" : "TYPE"}</th>
+                    <th className="px-4 py-3">{lang === "gu" ? "નંબર" : "TXN NO"}</th>
+                    <th className="px-4 py-3">{lang === "gu" ? "પાર્ટી નામ" : "PARTY NAME"}</th>
+                    <th className="px-4 py-3">{lang === "gu" ? "રકમ" : "AMOUNT"}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E5E7EB]">
-                  {recentInvoices.map((inv) => (
-                    <tr key={inv.id} className="hover:bg-[#FFFAF5] transition-colors">
-                      <td className="px-4 py-3 font-mono font-bold text-[#202124]">
-                        <Link href={`/sales/invoices/${inv.id}`} className="hover:text-[#F47721]">
-                          {inv.invoiceNumber}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3 text-[#667085]">
-                        {new Date(inv.invoiceDate).toLocaleDateString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </td>
-                      <td className="px-4 py-3 font-semibold text-[#202124]">
-                        {inv.partyName || (lang === "gu" ? "રોકડા ગ્રાહક (Walk-in)" : "Walk-in Customer")}
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono font-bold text-[#202124]">
-                        {formatInr(inv.grandTotal)}
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono font-semibold">
-                        {inv.outstandingBalance > 0 ? (
-                          <span className="text-[#DC3545]">{formatInr(inv.outstandingBalance)} Dr</span>
-                        ) : (
-                          <span className="text-[#16834A]">₹0.00</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <StatusBadge status={inv.status} />
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <Link
-                          href={`/sales/invoices/${inv.id}`}
-                          className="p-1.5 text-[#667085] hover:text-[#F47721] hover:bg-[#FFF3E8] rounded-md transition-colors inline-block"
-                          title="View & Print"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                        </Link>
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center text-[#667085]">
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="w-4 h-4 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin" />
+                          <span>Loading transactions...</span>
+                        </div>
                       </td>
                     </tr>
-                  ))}
+                  ) : latestTransactions.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center text-[#667085]">
+                        {lang === "gu" ? "હજુ સુધી કોઈ વ્યવહાર થયેલ નથી." : "No transactions recorded yet."}
+                      </td>
+                    </tr>
+                  ) : (
+                    latestTransactions.map((txn) => (
+                      <tr key={txn.id} className="hover:bg-[#FFFAF5] transition-colors">
+                        <td className="px-4 py-3.5 text-[#344054] whitespace-nowrap">
+                          {txn.date}
+                        </td>
+                        <td className="px-4 py-3.5 text-[#344054] whitespace-nowrap">
+                          {txn.type}
+                        </td>
+                        <td className="px-4 py-3.5 font-medium text-[#202124] whitespace-nowrap">
+                          <Link href={txn.url} className="hover:text-[#F47721] hover:underline">
+                            {txn.txnNo}
+                          </Link>
+                        </td>
+                        <td className="px-4 py-3.5 font-medium text-[#202124] uppercase truncate max-w-[200px]">
+                          {txn.partyName}
+                        </td>
+                        <td className="px-4 py-3.5 font-medium text-[#202124] whitespace-nowrap">
+                          ₹ {txn.amount.toLocaleString("en-IN")}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
 
-            {/* Mobile Card List (< md: 768px) */}
-            <div className="block md:hidden divide-y divide-[#E5E7EB]">
-              {recentInvoices.map((inv) => (
-                <div key={inv.id} className="p-3.5 hover:bg-[#FFFAF5] transition-colors space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <Link
-                      href={`/sales/invoices/${inv.id}`}
-                      className="font-mono font-bold text-sm text-[#202124] hover:text-[#F47721] truncate"
-                    >
-                      {inv.invoiceNumber}
-                    </Link>
-                    <StatusBadge status={inv.status} />
-                  </div>
+            {/* Bottom Link: See All Transactions */}
+            <div className="p-3 border-t border-[#E5E7EB] text-center bg-white">
+              <Link
+                href="/sales/invoices"
+                className="text-xs sm:text-sm font-semibold text-[#2563EB] hover:text-[#1D4ED8] hover:underline transition-colors inline-flex items-center gap-1"
+              >
+                <span>{lang === "gu" ? "બધા વ્યવહારો જુઓ" : "See All Transactions"}</span>
+              </Link>
+            </div>
+          </div>
 
-                  <div className="flex items-center justify-between text-xs text-[#667085]">
-                    <span className="font-medium text-[#344054] truncate max-w-[180px]">
-                      {inv.partyName || (lang === "gu" ? "રોકડા ગ્રાહક (Walk-in)" : "Walk-in Customer")}
-                    </span>
-                    <span className="shrink-0">
-                      {new Date(inv.invoiceDate).toLocaleDateString("en-IN", {
-                        day: "2-digit",
-                        month: "short",
-                      })}
-                    </span>
-                  </div>
+          {/* CARD B: SALES REPORT */}
+          <div className="bg-white rounded-card border border-[#E5E7EB] shadow-card overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <h3 className="font-bold text-sm sm:text-base text-[#202124]">
+                Sales Report - {dateRangeString}
+              </h3>
 
-                  <div className="flex items-center justify-between pt-1 border-t border-[#F3F4F6] text-xs">
-                    <div>
-                      <span className="text-[#667085]">{lang === "gu" ? "કુલ: " : "Total: "}</span>
-                      <span className="font-mono font-bold text-[#202124]">{formatInr(inv.grandTotal)}</span>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <div>
-                        {inv.outstandingBalance > 0 ? (
-                          <span className="font-mono font-semibold text-[#DC3545]">
-                            {formatInr(inv.outstandingBalance)} Dr
-                          </span>
-                        ) : (
-                          <span className="font-mono font-semibold text-[#16834A]">₹0.00 Due</span>
-                        )}
-                      </div>
-                      <Link
-                        href={`/sales/invoices/${inv.id}`}
-                        className="p-1 text-[#F47721] hover:bg-[#FFF3E8] rounded transition-colors"
-                        title="View Invoice"
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </Link>
-                    </div>
+              <div className="flex items-center gap-2">
+                <div className="relative inline-block text-left">
+                  <select
+                    value={reportPeriod}
+                    onChange={(e: any) => setReportPeriod(e.target.value)}
+                    className="block appearance-none bg-white border border-[#E5E7EB] hover:border-[#D1D5DB] px-3 py-1.5 pr-8 rounded-lg text-xs font-semibold text-[#374151] shadow-xs focus:outline-none focus:ring-1 focus:ring-[#F47721] cursor-pointer"
+                  >
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#667085]">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
-          </>
-        )}
+
+            {/* Chart + 7 Days Metric Overview */}
+            <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
+              {/* Interactive Vector Line Chart (md:col-span-3) */}
+              <div className="md:col-span-3 relative w-full overflow-hidden">
+                <svg
+                  viewBox={`0 0 ${chartConfig.width} ${chartConfig.height}`}
+                  className="w-full h-auto overflow-visible select-none"
+                >
+                  <defs>
+                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#22C55E" stopOpacity="0.15" />
+                      <stop offset="100%" stopColor="#22C55E" stopOpacity="0.0" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* Horizontal Gridlines and Y-Axis Labels */}
+                  {chartConfig.ticks.map((tick, idx) => (
+                    <g key={`y-tick-${idx}`}>
+                      <line
+                        x1={chartConfig.paddingLeft}
+                        y1={tick.y}
+                        x2={chartConfig.width - chartConfig.paddingRight}
+                        y2={tick.y}
+                        stroke="#F1F3F5"
+                        strokeWidth="1"
+                      />
+                      <text
+                        x={chartConfig.paddingLeft - 8}
+                        y={tick.y + 3.5}
+                        textAnchor="end"
+                        fontSize="10"
+                        fill="#868E96"
+                        fontFamily="inherit"
+                      >
+                        {tick.label}
+                      </text>
+                    </g>
+                  ))}
+
+                  {/* Vertical Day Lines & X-Axis Day Labels */}
+                  {chartConfig.points.map((p, idx) => (
+                    <g key={`x-tick-${idx}`}>
+                      <line
+                        x1={p.x}
+                        y1={chartConfig.paddingTop}
+                        x2={p.x}
+                        y2={chartConfig.height - chartConfig.paddingBottom}
+                        stroke="#F8F9FA"
+                        strokeWidth="1"
+                      />
+                      <text
+                        x={p.x}
+                        y={chartConfig.height - 10}
+                        textAnchor="middle"
+                        fontSize="11"
+                        fontWeight="500"
+                        fill="#6B7280"
+                      >
+                        {p.day}
+                      </text>
+                    </g>
+                  ))}
+
+                  {/* Green Trend Line */}
+                  <path
+                    d={chartConfig.pathD}
+                    fill="none"
+                    stroke="#22C55E"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+
+                  {/* Data Points with Hover Interaction */}
+                  {chartConfig.points.map((p, idx) => (
+                    <g
+                      key={`point-${idx}`}
+                      className="cursor-pointer group"
+                      onMouseEnter={() => setHoveredPointIndex(idx)}
+                      onMouseLeave={() => setHoveredPointIndex(null)}
+                    >
+                      {/* Invisible wider hit target */}
+                      <circle cx={p.x} cy={p.y} r="14" fill="transparent" />
+
+                      {/* Visible dot */}
+                      <circle
+                        cx={p.x}
+                        cy={p.y}
+                        r={hoveredPointIndex === idx ? 5 : 3.5}
+                        fill="#FFFFFF"
+                        stroke="#22C55E"
+                        strokeWidth={hoveredPointIndex === idx ? 2.5 : 2}
+                        className="transition-all duration-150"
+                      />
+                    </g>
+                  ))}
+                </svg>
+
+                {/* Floating Tooltip when hovering over a chart point */}
+                {hoveredPointIndex !== null && chartConfig.points[hoveredPointIndex] && (
+                  <div
+                    className="absolute bg-[#1F2937] text-white px-2.5 py-1.5 rounded-md text-[11px] shadow-lg pointer-events-none transform -translate-x-1/2 -translate-y-full mb-2 z-10 whitespace-nowrap"
+                    style={{
+                      left: `${(chartConfig.points[hoveredPointIndex].x / chartConfig.width) * 100}%`,
+                      top: `${(chartConfig.points[hoveredPointIndex].y / chartConfig.height) * 100}%`,
+                    }}
+                  >
+                    <div className="font-semibold">{chartConfig.points[hoveredPointIndex].displayDate}</div>
+                    <div className="text-[#86EFAC]">
+                      Sales: ₹ {chartConfig.points[hoveredPointIndex].sales.toLocaleString("en-IN")}
+                    </div>
+                    <div className="text-gray-300">
+                      Invoices: {chartConfig.points[hoveredPointIndex].invoices}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Right Side 7-day Summary Metrics */}
+              <div className="space-y-6 md:border-l md:border-[#F1F3F5] md:pl-6 text-left">
+                <div>
+                  <p className="text-xs text-[#667085] font-medium">Last 7 days sales</p>
+                  <p className="text-2xl font-bold text-[#202124] tracking-tight mt-1">
+                    ₹ {last7DaysSales.toLocaleString("en-IN")}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-[#667085] font-medium">Invoices Made</p>
+                  <p className="text-2xl font-bold text-[#202124] tracking-tight mt-1">
+                    {last7DaysInvoicesCount}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: Scan & Record Bills (lg:col-span-1) */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-card border border-[#E5E7EB] shadow-card p-5">
+            {/* Header: Icon + Title */}
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-[#F47721] flex items-center justify-center text-white shadow-saffron shrink-0">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 7V5a2 2 0 012-2h2m10 0h2a2 2 0 012 2v2m0 10v2a2 2 0 01-2 2h-2m-10 0H5a2 2 0 01-2-2v-2M9 9h6m-6 3h6m-6 3h4"
+                  />
+                </svg>
+              </div>
+
+              <div className="min-w-0">
+                <h3 className="font-bold text-base text-[#202124] truncate">
+                  Scan & Record Bills
+                </h3>
+                <p className="text-xs text-[#667085] font-medium mt-0.5">
+                  {lang === "gu" ? "ઝડપી બિલ સ્કેનિંગ અને રેકોર્ડ" : "Quick Bill Scanning & Recording"}
+                </p>
+              </div>
+            </div>
+
+            {/* Quick Action Buttons */}
+            <div className="grid grid-cols-2 gap-2.5 mt-5">
+              <Link
+                href="/sales/invoices/new"
+                className="flex items-center justify-center gap-2 px-3 py-2.5 bg-[#F9FAFB] hover:bg-[#F3F4F6] text-[#344054] rounded-lg text-xs font-semibold border border-[#E5E7EB] transition-colors shadow-xs"
+              >
+                <svg className="w-4 h-4 text-[#667085]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>Create Sales</span>
+              </Link>
+
+              <Link
+                href="/purchases"
+                className="flex items-center justify-center gap-2 px-3 py-2.5 bg-[#FFF8F3] hover:bg-[#FFF3E8] text-[#F47721] rounded-lg text-xs font-semibold border border-[#FDBA74] transition-colors shadow-xs"
+              >
+                <svg className="w-4 h-4 text-[#F47721]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                <span>Create Purchase</span>
+              </Link>
+            </div>
+
+            {/* Peach Drag & Drop Upload Zone */}
+            <div
+              onClick={() => setIsScannerOpen(true)}
+              className="mt-4 p-8 rounded-xl border-2 border-dashed border-[#F59E0B] bg-[#FFF6EE] hover:bg-[#FEEDDC] transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-2.5 group"
+            >
+              <div className="w-12 h-12 rounded-full bg-[#FFE8D6] text-[#EA580C] flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                  />
+                </svg>
+              </div>
+
+              <div>
+                <p className="text-sm font-bold text-[#C2410C]">
+                  Drag & Drop or Upload file
+                </p>
+                <p className="text-[11px] text-[#667085] mt-0.5">
+                  (PDF, JPG, JPEG & PNG file supported, max 5MB)
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* 4. BILL SCANNER MODAL (LAUNCHABLE FROM DASHBOARD) */}
+      {isScannerOpen && (
+        <BillScannerModal
+          isOpen={isScannerOpen}
+          onClose={() => setIsScannerOpen(false)}
+          onSuccess={() => {
+            setIsScannerOpen(false);
+            fetchDashboardData();
+          }}
+          lang={lang}
+          parties={partiesList}
+          itemsList={itemsList}
+          warehouses={warehousesList}
+        />
+      )}
     </div>
   );
 }

@@ -161,14 +161,13 @@ export default function LedgersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
               {lang === "gu"
                 ? "ખાતાઓનું રજિસ્ટર (Ledger Accounts)"
                 : "Ledger Accounts Register"}
             </h1>
           </div>
-          <p className="text-xs text-muted mt-1 ml-4.5">
+          <p className="text-xs text-muted mt-1">
             {lang === "gu"
               ? "રોકડ, બેંક, ગ્રાહકો, સપ્લાયર્સ અને ખર્ચના ખાતાઓ"
               : "Manage individual ledgers, opening balances, and double-entry postings"}
@@ -241,7 +240,7 @@ export default function LedgersPage() {
                 onChange={(e) => setGroupFilter(e.target.value)}
                 className="text-xs bg-slate-50 border border-border text-slate-700 rounded-xl px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
               >
-                <option value="ALL">All Ledger Groups (તમામ જૂથ)</option>
+                <option value="ALL">{lang === "gu" ? "તમામ જૂથ (All Groups)" : "All Ledger Groups"}</option>
                 {groups.map((g) => (
                   <option key={g.id} value={g.id}>
                     {g.name}
@@ -331,7 +330,7 @@ export default function LedgersPage() {
               onChange={(e) =>
                 setFormData({ ...formData, nameGujarati: e.target.value })
               }
-              placeholder="એચડીએફસી બેંક ખાતું"
+              placeholder={lang === "gu" ? "એચડીએફસી બેંક ખાતું" : "e.g. HDFC Bank Account"}
               className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
             />
           </div>
@@ -387,8 +386,8 @@ export default function LedgersPage() {
                 }
                 className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded"
               >
-                <option value="DEBIT">Debit (Dr - ઉધાર)</option>
-                <option value="CREDIT">Credit (Cr - જમા)</option>
+                <option value="DEBIT">{lang === "gu" ? "ઉધાર (Dr - Debit)" : "Debit (Dr)"}</option>
+                <option value="CREDIT">{lang === "gu" ? "જમા (Cr - Credit)" : "Credit (Cr)"}</option>
               </select>
             </div>
           </div>

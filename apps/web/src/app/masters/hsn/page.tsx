@@ -300,26 +300,14 @@ export default function HsnMasterPage() {
   return (
     <div className="space-y-6 pb-12">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
-            <span>{lang === "gu" ? "માસ્ટર ડેટા" : "Master Data"}</span>
-            <span>/</span>
-            <span className="text-slate-900 font-medium">
-              {lang === "gu" ? "એચએસએન / એસએસી કોડ" : "HSN / SAC Master"}
-            </span>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <span>
-              {lang === "gu"
-                ? "એચએસએન અને એસએસી કોડ માસ્ટર"
-                : "HSN & SAC Code Master"}
-            </span>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
-              GST Official
-            </span>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            {lang === "gu"
+              ? "એચએસએન અને એસએસી કોડ માસ્ટર"
+              : "HSN & SAC Code Master"}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs text-muted mt-1">
             {lang === "gu"
               ? "કેન્દ્રીય જીએસટી વર્ગીકરણ, માન્ય કર સ્લેબ અને કંપની કસ્ટમ કોડ્સ"
               : "Centralized GST goods & services classification, statutory tax slabs & company custom codes."}
@@ -331,7 +319,7 @@ export default function HsnMasterPage() {
             setFormError(null);
             setIsCreateOpen(true);
           }}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow transition-all"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
         >
           <svg
             className="w-4 h-4"
@@ -959,8 +947,8 @@ export default function HsnMasterPage() {
                 }
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
               >
-                <option value="HSN">HSN (Goods / માલસામાન)</option>
-                <option value="SAC">SAC (Services / સેવાઓ)</option>
+                <option value="HSN">{lang === "gu" ? "માલસામાન (Goods - HSN)" : "Goods (HSN)"}</option>
+                <option value="SAC">{lang === "gu" ? "સેવાઓ (Services - SAC)" : "Services (SAC)"}</option>
               </select>
             </div>
 
@@ -1006,11 +994,11 @@ export default function HsnMasterPage() {
           {/* Description Gujarati */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Description (Gujarati / ગુજરાતી વિગત)
+              {lang === "gu" ? "ગુજરાતી વિગત" : "Description (Gujarati - Optional)"}
             </label>
             <input
               type="text"
-              placeholder="દા.ત. ઔદ્યોગિક મશીનરી સ્પેરપાર્ટ્સ"
+              placeholder={lang === "gu" ? "દા.ત. ઔદ્યોગિક મશીનરી સ્પેરપાર્ટ્સ" : "e.g. Industrial Machinery Spare Parts"}
               value={formData.descriptionGujarati}
               onChange={(e) =>
                 setFormData({ ...formData, descriptionGujarati: e.target.value })

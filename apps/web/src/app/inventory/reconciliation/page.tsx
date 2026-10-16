@@ -142,14 +142,16 @@ export default function InventoryReconciliationPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            {lang === "gu"
-              ? "ઇન્વેન્ટરી અને ખાતાવહી મેળવણી (Inventory Reconciliation)"
-              : "Inventory & General Ledger Reconciliation"}
-          </h1>
-          <p className="text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              {lang === "gu"
+                ? "ઇન્વેન્ટરી અને ખાતાવહી મેળવણી (Inventory Reconciliation)"
+                : "Inventory & General Ledger Reconciliation"}
+            </h1>
+          </div>
+          <p className="text-xs text-muted mt-1">
             {lang === "gu"
               ? "વાસ્તવિક સ્ટોક સિલક, ઇન-ટ્રાન્ઝિટ માલ, મેન્યુફેક્ચરિંગ WIP અને જનરલ લેજર ખાતાવહીનું મેળવણું"
               : "Audited stock subledger reconciliation against GL purchase & asset ledgers under Periodic & Perpetual policies"}

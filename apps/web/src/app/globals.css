@@ -72,24 +72,154 @@ body {
   outline-offset: 1px;
 }
 
-/* Print Utilities for both standard A4 and 58mm/80mm Thermal Receipts */
+/* Print Utilities for Clean A4 GST Invoices and Thermal Receipts */
 @media print {
+  /* Set standard A4 page with appropriate print margins */
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+  }
+
+  /* Reset document root to eliminate viewport scrolling & background tint */
   html,
   body {
     height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
     overflow: visible !important;
-    background: #FFFFFF !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
     color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
+  /* Explicitly hide application navigation, aside, header, and buttons */
+  aside,
+  header,
+  nav,
+  footer,
+  button,
+  select,
+  textarea {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Specifically target mobile bottom bar and drawer */
+  nav[aria-label="Mobile Navigation Bar"],
+  nav[aria-label="Sidebar Navigation"],
+  nav[aria-label="Mobile Navigation"] {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Hide print-hidden utility classes */
+  .no-print,
+  .print-hide,
+  .wave-background,
+  [data-print-hide="true"],
+  [class*="print:hidden"],
+  [class*="no-print"] {
+    display: none !important;
+  }
+
+  /* Ensure #main-content and all wrappers are visible and flow normally */
   #main-content,
   main {
     height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    position: static !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Ensure shell container divs expand and do not clip */
+  div {
     overflow: visible !important;
   }
-  
-  .no-print {
-    display: none !important;
+
+  /* When printing from within a modal (e.g. Live Preview Modal), flatten modal wrappers */
+  #invoice-live-preview-modal {
+    position: static !important;
+    display: block !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    z-index: auto !important;
+  }
+
+  #invoice-live-preview-modal > div {
+    border: none !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    width: 100% !important;
+    height: auto !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  /* Standard Printable Invoice container */
+  #printable-invoice,
+  .printable-invoice,
+  [data-printable-invoice="true"] {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    page-break-inside: auto;
+  }
+
+  /* Table repeating header across multi-page invoices */
+  thead {
+    display: table-header-group;
+  }
+
+  tfoot {
+    display: table-footer-group;
+  }
+
+  /* Avoid awkward page break cuts inside rows, header blocks, and totals */
+  tr,
+  .page-break-avoid,
+  .printable-invoice table tr,
+  .printable-invoice .summary-card {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Force background colors and borders to print accurately */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .print-only {
@@ -100,7 +230,7 @@ body {
   .thermal-receipt {
     width: 78mm !important;
     max-width: 78mm !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     padding: 2mm !important;
     font-size: 11px !important;
     line-height: 1.25 !important;

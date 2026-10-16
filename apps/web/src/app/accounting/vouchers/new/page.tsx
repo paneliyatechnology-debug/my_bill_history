@@ -175,14 +175,13 @@ export default function NewVoucherPage() {
             </Link>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
               {lang === "gu"
                 ? "દ્વિનોંધી નામા વાઉચર લખો (New Double-Entry Voucher)"
                 : "Record New Journal / Voucher"}
             </h1>
           </div>
-          <p className="text-xs text-muted mt-1 ml-4.5">
+          <p className="text-xs text-muted mt-1">
             {lang === "gu"
               ? "ઉધાર અને જમા સરખા હોવા આવશ્યક છે (Total Debits == Total Credits)"
               : "Strict double-entry accounting invariants enforced on client and authoritative server"}
@@ -209,10 +208,10 @@ export default function NewVoucherPage() {
               onChange={(e: any) => setVoucherType(e.target.value)}
               className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg font-semibold text-slate-900 focus:bg-white focus:ring-1 focus:ring-emerald-500"
             >
-              <option value="JOURNAL">JOURNAL (જર્નલ નોંધ)</option>
-              <option value="RECEIPT">RECEIPT (પહોંચ / આવક)</option>
-              <option value="PAYMENT">PAYMENT (ચૂકવણી)</option>
-              <option value="CONTRA">CONTRA (બેંક ⇄ રોકડ)</option>
+              <option value="JOURNAL">{lang === "gu" ? "જર્નલ નોંધ (JOURNAL)" : "JOURNAL"}</option>
+              <option value="RECEIPT">{lang === "gu" ? "પહોંચ / આવક (RECEIPT)" : "RECEIPT"}</option>
+              <option value="PAYMENT">{lang === "gu" ? "ચૂકવણી (PAYMENT)" : "PAYMENT"}</option>
+              <option value="CONTRA">{lang === "gu" ? "બેંક ⇄ રોકડ (CONTRA)" : "CONTRA"}</option>
             </select>
           </div>
 
@@ -420,7 +419,7 @@ export default function NewVoucherPage() {
         {/* Global Narration */}
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
           <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-            General Narration / શેરો
+            {lang === "gu" ? "શેરો / વિગત (General Narration)" : "General Narration"}
           </label>
           <textarea
             rows={2}

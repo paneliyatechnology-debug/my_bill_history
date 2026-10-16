@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
+import { WaveBackground } from "../../components/ui/wave-background";
 
 function LoginContent() {
   const router = useRouter();
@@ -91,9 +92,8 @@ function LoginContent() {
 
   return (
     <div className="h-full min-h-[100dvh] w-full bg-[#F8F9FB] flex flex-col justify-center items-center p-4 relative overflow-y-auto">
-      {/* Decorative background grid and warm saffron glow */}
-      <div className="absolute inset-0 bg-[radial-gradient(#E5E7EB_1px,transparent_1px)] [background-size:16px_16px] opacity-60 pointer-events-none" />
-      <div className="absolute -top-32 -right-32 w-96 h-96 bg-[#F47721]/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Minimalist Abstract Wave Lines Background */}
+      <WaveBackground />
 
       {/* Language Switcher in top corner */}
       <div className="absolute top-5 right-5 z-10 flex items-center bg-white p-1 rounded-xl border border-[#E5E7EB] shadow-xs">

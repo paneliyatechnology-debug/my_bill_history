@@ -15,7 +15,7 @@ export function CreateCompanyModal({
   onClose,
   onSuccess,
 }: CreateCompanyModalProps) {
-  const { entitlements, createCompany } = useAuth();
+  const { entitlements, createCompany, lang } = useAuth();
 
   const [tradeName, setTradeName] = useState("");
   const [legalName, setLegalName] = useState("");
@@ -82,7 +82,7 @@ export function CreateCompanyModal({
     setError(null);
 
     if (!tradeName.trim()) {
-      setError("Business / Trade Name is required (વેપાર નામ જરૂરી છે).");
+      setError(lang === "gu" ? "વેપાર નામ જરૂરી છે." : "Business / Trade Name is required.");
       return;
     }
 
@@ -128,7 +128,7 @@ export function CreateCompanyModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs transition-opacity duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-200"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -136,7 +136,8 @@ export function CreateCompanyModal({
         if (e.key === "Escape" && !isSubmitting) onClose();
       }}
     >
-      <div className="bg-white rounded-xl shadow-2xl max-w-xl w-full overflow-hidden border border-[#E5E7EB] flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-150">
+      <div className="fixed inset-0 bg-transparent" onClick={() => !isSubmitting && onClose()} aria-hidden="true" />
+      <div className="relative z-10 bg-white rounded-xl shadow-2xl max-w-xl w-full overflow-hidden border border-[#D1D5DB] flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-150 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]">
         {/* Modal Header */}
         <div className="px-6 py-4 bg-gradient-to-r from-[#FFFAF5] to-white border-b border-[#FED7AA]/50 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -150,7 +151,9 @@ export function CreateCompanyModal({
                 Create New Business / Company
               </h2>
               <p className="text-xs text-[#667085]">
-                નવો વેપાર / પેઢી ઉમેરો • Indian GST & Accounting
+                {lang === "gu"
+                  ? "નવો વેપાર / પેઢી ઉમેરો • Indian GST & Accounting"
+                  : "Add New Business / Company • Indian GST & Accounting"}
               </p>
             </div>
           </div>
@@ -196,7 +199,7 @@ export function CreateCompanyModal({
             {/* Trade Name */}
             <div className="sm:col-span-2">
               <label className="block text-xs font-semibold text-[#374151] mb-1">
-                Trade / Business Name (વેપાર નામ) <span className="text-red-500">*</span>
+                {lang === "gu" ? "વેપાર નામ (Trade Name)" : "Trade / Business Name"} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -212,7 +215,7 @@ export function CreateCompanyModal({
             {/* Legal Name */}
             <div className="sm:col-span-2">
               <label className="block text-xs font-semibold text-[#374151] mb-1">
-                Legal Entity Name (કાનૂની નામ - Optional)
+                {lang === "gu" ? "કાનૂની નામ (Legal Entity Name - Optional)" : "Legal Entity Name (Optional)"}
               </label>
               <input
                 type="text"
@@ -259,7 +262,7 @@ export function CreateCompanyModal({
             {/* State */}
             <div>
               <label className="block text-xs font-semibold text-[#374151] mb-1">
-                GST State (રાજ્ય) <span className="text-red-500">*</span>
+                {lang === "gu" ? "રાજ્ય (GST State)" : "GST State"} <span className="text-red-500">*</span>
               </label>
               <select
                 value={stateCode}
@@ -269,7 +272,7 @@ export function CreateCompanyModal({
               >
                 {Object.entries(INDIAN_STATES).map(([code, s]) => (
                   <option key={code} value={code}>
-                    {code} - {s.name} ({s.nameGujarati})
+                    {code} - {lang === "gu" ? `${s.nameGujarati} (${s.name})` : s.name}
                   </option>
                 ))}
               </select>
@@ -278,7 +281,7 @@ export function CreateCompanyModal({
             {/* City */}
             <div>
               <label className="block text-xs font-semibold text-[#374151] mb-1">
-                City / Town (શહેર)
+                {lang === "gu" ? "શહેર (City / Town)" : "City / Town"}
               </label>
               <input
                 type="text"
@@ -293,7 +296,7 @@ export function CreateCompanyModal({
             {/* Address */}
             <div className="sm:col-span-2">
               <label className="block text-xs font-semibold text-[#374151] mb-1">
-                Business Address (સરનામું)
+                {lang === "gu" ? "સરનામું (Business Address)" : "Business Address"}
               </label>
               <input
                 type="text"
@@ -324,7 +327,7 @@ export function CreateCompanyModal({
             {/* Phone */}
             <div>
               <label className="block text-xs font-semibold text-[#374151] mb-1">
-                Contact Phone (સંપર્ક નંબર)
+                {lang === "gu" ? "સંપર્ક નંબર (Contact Phone)" : "Contact Phone"}
               </label>
               <input
                 type="tel"

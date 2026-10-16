@@ -439,15 +439,12 @@ export default function PurchaseReturnsPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-              {lang === "gu"
-                ? "ડેબિટ નોટ / ખરીદી પરત રજિસ્ટર"
-                : "Debit Notes & Purchase Returns"}
-            </h1>
-          </div>
-          <p className="text-xs text-muted mt-1 ml-4.5">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+            {lang === "gu"
+              ? "ડેબિટ નોટ / ખરીદી પરત રજિસ્ટર"
+              : "Debit Notes & Purchase Returns"}
+          </h1>
+          <p className="text-xs text-muted mt-1">
             {lang === "gu"
               ? "સપ્લાયરને માલ પરત કરો, ઇન્વેન્ટરી આઉટવર્ડ કપાત કરો અને ડેબિટ નોટ વાઉચર બનાવો."
               : "Record goods returned to suppliers, deduct inventory, and issue double-entry Debit Notes."}
@@ -589,7 +586,7 @@ export default function PurchaseReturnsPage() {
             accessorKey: "id",
             className: "text-center",
             cell: (ret) => (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-700">
                 {ret.items?.length || 0}
               </span>
             ),
@@ -1038,7 +1035,7 @@ export default function PurchaseReturnsPage() {
               </label>
               <input
                 type="text"
-                placeholder="દા.ત. ખામીયુક્ત માલ / તૂટી ગયેલ"
+                placeholder={lang === "gu" ? "દા.ત. ખામીયુક્ત માલ / તૂટી ગયેલ" : "e.g. Defective Goods / Damaged"}
                 value={returnReasonGujarati}
                 onChange={(e) => setReturnReasonGujarati(e.target.value)}
                 className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
@@ -1300,7 +1297,7 @@ export default function PurchaseReturnsPage() {
             {/* Tax & Total Summary */}
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
               <div className="flex justify-between text-slate-600">
-                <span>Taxable Amount (કરપાત્ર મૂલ્ય):</span>
+                <span>{lang === "gu" ? "કરપાત્ર મૂલ્ય (Taxable Amount):" : "Taxable Amount:"}</span>
                 <span className="font-semibold text-slate-800">
                   ₹
                   {Number(selectedReturnDetails.taxableAmount).toLocaleString(
@@ -1311,7 +1308,7 @@ export default function PurchaseReturnsPage() {
               </div>
               {Number(selectedReturnDetails.cgstAmount) > 0 && (
                 <div className="flex justify-between text-slate-600">
-                  <span>Input CGST Reversal (કેન્દ્રીય જીએસટી રિવર્સલ):</span>
+                  <span>{lang === "gu" ? "કેન્દ્રીય જીએસટી રિવર્સલ (Input CGST Reversal):" : "Input CGST Reversal:"}</span>
                   <span className="font-semibold text-amber-700">
                     ₹
                     {Number(selectedReturnDetails.cgstAmount).toLocaleString(
@@ -1323,7 +1320,7 @@ export default function PurchaseReturnsPage() {
               )}
               {Number(selectedReturnDetails.sgstAmount) > 0 && (
                 <div className="flex justify-between text-slate-600">
-                  <span>Input SGST Reversal (રાજ્ય જીએસટી રિવર્સલ):</span>
+                  <span>{lang === "gu" ? "રાજ્ય જીએસટી રિવર્સલ (Input SGST Reversal):" : "Input SGST Reversal:"}</span>
                   <span className="font-semibold text-amber-700">
                     ₹
                     {Number(selectedReturnDetails.sgstAmount).toLocaleString(
@@ -1335,7 +1332,7 @@ export default function PurchaseReturnsPage() {
               )}
               {Number(selectedReturnDetails.igstAmount) > 0 && (
                 <div className="flex justify-between text-slate-600">
-                  <span>Input IGST Reversal (આંતરરાજ્ય જીએસટી રિવર્સલ):</span>
+                  <span>{lang === "gu" ? "આંતરરાજ્ય જીએસટી રિવર્સલ (Input IGST Reversal):" : "Input IGST Reversal:"}</span>
                   <span className="font-semibold text-amber-700">
                     ₹
                     {Number(selectedReturnDetails.igstAmount).toLocaleString(
@@ -1346,7 +1343,7 @@ export default function PurchaseReturnsPage() {
                 </div>
               )}
               <div className="flex justify-between text-sm font-bold text-slate-900 pt-2 border-t border-slate-200">
-                <span>Total Debit Note Value (કુલ ડેબિટ નોટ રકમ):</span>
+                <span>{lang === "gu" ? "કુલ ડેબિટ નોટ રકમ (Total Debit Note Value):" : "Total Debit Note Value:"}</span>
                 <span className="text-indigo-700">
                   ₹
                   {Number(selectedReturnDetails.grandTotal).toLocaleString(

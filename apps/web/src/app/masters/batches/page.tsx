@@ -175,14 +175,14 @@ export default function BatchesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
             {lang === "gu"
               ? "વસ્તુ બેચ વ્યવસ્થા (Item Batches)"
               : "Item Batches & Expiry"}
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted mt-1">
             {lang === "gu"
               ? "દવાઓ, ખાદ્યપદાર્થો અને એક્સપાયરી તારીખ મુજબ બેચ ટ્રેકિંગ અને ખરીદ/વેચાણ કિંમત"
               : "Track batch numbers, manufacturing dates, expiry, purchase rates, and batch MRPs"}
@@ -191,7 +191,7 @@ export default function BatchesPage() {
 
         <button
           onClick={handleOpenModal}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white text-sm font-semibold rounded-lg shadow-sm transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
         >
           <svg
             className="w-4 h-4"

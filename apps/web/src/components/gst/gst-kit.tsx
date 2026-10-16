@@ -76,7 +76,7 @@ export function GstFrame({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { currentCompany, currentFY } = useAuth();
+  const { currentCompany, currentFY, lang } = useAuth();
   const period = useGstPeriodState();
   return (
     <GstPeriodContext.Provider value={period}>
@@ -84,10 +84,9 @@ export function GstFrame({
       <div className="bg-white p-5 rounded-2xl border border-border shadow-subtle flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">{title}</h1>
           </div>
-          <p className="text-xs text-muted mt-1 ml-4.5">
+          <p className="text-xs text-muted mt-1">
             {currentCompany?.tradeName || currentCompany?.legalName || "No company selected"} · GSTIN:{" "}
             <span className="font-mono font-bold text-primary">{currentCompany?.gstin || "Not configured"}</span> · {currentFY?.name || "Financial Year"}
           </p>
@@ -111,7 +110,7 @@ export function GstFrame({
       </div>
       <div className="bg-white border border-border rounded-2xl p-4 shadow-subtle flex flex-wrap gap-4 items-end">
         <label className="text-xs font-bold text-slate-700">
-          Month (મહિનો)
+          {lang === "gu" ? "મહિનો (Month)" : "Month"}
           <select
             className="mt-1 block border border-border rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-900 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
             value={period.month}
@@ -125,7 +124,7 @@ export function GstFrame({
           </select>
         </label>
         <label className="text-xs font-bold text-slate-700">
-          Year (વર્ષ)
+          {lang === "gu" ? "વર્ષ (Year)" : "Year"}
           <input
             className="mt-1 block w-24 border border-border rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-slate-900 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             type="number"

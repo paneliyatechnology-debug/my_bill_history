@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
 import { CompanySwitcher } from "../tenants/company-switcher";
+import { WaveBackground } from "../ui/wave-background";
 
 interface SubNavItem {
   name: string;
@@ -430,10 +431,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="h-[100dvh] h-screen w-full flex overflow-hidden bg-[#F8F9FB]">
+    <div className="h-[100dvh] h-screen w-full flex overflow-hidden bg-[#F8F9FB] print:h-auto print:min-h-0 print:overflow-visible print:bg-white print:block">
       {/* 1. DESKTOP COMPACT SIDEBAR */}
       <aside
-        className={`hidden lg:flex flex-col shrink-0 h-full border-r border-[#E5E7EB] bg-white transition-all duration-300 z-30 select-none ${
+        className={`hidden lg:flex flex-col shrink-0 h-full border-r border-[#E5E7EB] bg-white transition-all duration-300 z-30 select-none print:hidden ${
           isSidebarCollapsed ? "w-20" : "w-64"
         }`}
       >
@@ -516,7 +517,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             : "text-[#667085] hover:text-[#202124] hover:bg-[#F8F9FB]"
                         }`
                   }`}
-                  title={`${section.name} (${section.nameGujarati})`}
+                  title={lang === "gu" ? section.nameGujarati : section.name}
                 >
                   <span className={isActive ? "text-[#F47721]" : "text-[#667085]"}>
                     {section.icon}
@@ -545,7 +546,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         ? "bg-[#FFF3E8] text-[#F47721] font-bold shadow-xs ring-1 ring-[#FED7AA]"
                         : "text-[#667085] hover:text-[#202124] hover:bg-[#F8F9FB]"
                     }`}
-                    title={`${section.name} (${section.nameGujarati})`}
+                    title={lang === "gu" ? section.nameGujarati : section.name}
                   >
                     <span className={hasActiveChild ? "text-[#F47721]" : "text-[#667085]"}>
                       {section.icon}
@@ -556,7 +557,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <div className="hidden group-hover:block absolute left-full top-0 ml-2 w-56 bg-white rounded-xl shadow-xl border border-[#E5E7EB] py-2 z-50 animate-fadeIn">
                     <div className="px-3.5 py-1.5 border-b border-[#F3F4F6] mb-1">
                       <p className="text-xs font-bold text-[#202124]">{section.name}</p>
-                      <p className="text-[10px] text-[#F47721] font-gujarati">{section.nameGujarati}</p>
+                      {lang === "gu" && (
+                        <p className="text-[10px] text-[#F47721] font-gujarati">{section.nameGujarati}</p>
+                      )}
                     </div>
                     <div className="space-y-0.5 px-1.5">
                       {section.items?.map((item) => {
@@ -572,9 +575,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             }`}
                           >
                             <div className="truncate">{item.name}</div>
-                            <div className="text-[10px] text-[#98A2B3] font-gujarati truncate">
-                              {item.nameGujarati}
-                            </div>
+                            {lang === "gu" && (
+                              <div className="text-[10px] text-[#98A2B3] font-gujarati truncate">
+                                {item.nameGujarati}
+                              </div>
+                            )}
                           </Link>
                         );
                       })}
@@ -693,10 +698,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* 2. MAIN APPLICATION CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-0 h-full overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 h-full overflow-hidden print:h-auto print:min-h-0 print:overflow-visible print:block print:w-full relative">
+        {/* Minimalist Abstract Wave Lines Background (Fixed in Canvas) */}
+        <WaveBackground />
+
         {/* SuperAdmin Active Support Session Banner */}
         {supportSession?.isSupportSession && (
-          <div className="shrink-0 bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-900 text-white px-4 py-2 text-xs flex items-center justify-between z-30 shadow-md">
+          <div className="shrink-0 bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-900 text-white px-4 py-2 text-xs flex items-center justify-between z-30 shadow-md print:hidden">
             <div className="flex items-center gap-2">
               <span className="bg-amber-400 text-purple-950 font-bold px-2 py-0.5 rounded text-[10px] uppercase font-mono tracking-wider">
                 Support Session
@@ -715,7 +723,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
 
         {/* TOPBAR HEADER */}
-        <header className="shrink-0 h-16 bg-white border-b border-[#E5E7EB] px-3 sm:px-6 flex items-center justify-between z-20 shadow-xs max-w-full min-w-0">
+        <header className="shrink-0 h-16 bg-white border-b border-[#E5E7EB] px-3 sm:px-6 flex items-center justify-between z-20 shadow-xs max-w-full min-w-0 print:hidden">
           {/* Left: Active Company/Branch Context & Mobile Brand Logo */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
             {/* Mobile Brand Logo when desktop sidebar is hidden (< lg) */}
@@ -830,7 +838,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <button
               onClick={logout}
               className="hidden md:inline-flex items-center justify-center p-1 sm:p-1.5 text-[#667085] hover:text-[#DC3545] hover:bg-rose-50 rounded-lg transition-colors shrink-0"
-              title={lang === "gu" ? "લોગઆઉટ (Logout)" : "Logout"}
+              title={lang === "gu" ? "લોગઆઉટ" : "Logout"}
               aria-label="Logout"
             >
               <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -844,9 +852,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main
           id="main-content"
           tabIndex={-1}
-          className="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden p-3 sm:p-6 lg:p-8 pb-20 lg:pb-8 overscroll-y-contain focus:outline-none"
+          className="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden p-3 sm:p-6 lg:p-8 pb-20 lg:pb-8 overscroll-y-contain focus:outline-none print:p-0 print:m-0 print:overflow-visible print:h-auto print:w-full print:block relative z-10"
         >
-          <div className="max-w-7xl w-full min-w-0 mx-auto">
+          <div className="max-w-7xl w-full min-w-0 mx-auto print:max-w-none print:w-full print:p-0 print:m-0">
             {children}
           </div>
         </main>
@@ -855,7 +863,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* 4. MOBILE DRAWER OVERLAY */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 z-50 lg:hidden flex"
+          className="fixed inset-0 z-50 lg:hidden flex print:hidden"
           role="dialog"
           aria-modal="true"
           aria-label="Navigation drawer"
@@ -940,7 +948,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {branches.length > 1 && (
                 <div>
                   <label className="block text-[10px] font-bold text-[#667085] uppercase tracking-wider mb-1">
-                    {lang === "gu" ? "શાખા (Branch)" : "Current Branch"}
+                    {lang === "gu" ? "શાખા" : "Current Branch"}
                   </label>
                   <select
                     value={currentBranch?.id || ""}
@@ -1005,7 +1013,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* 5. MOBILE BOTTOM NAVIGATION BAR */}
       <nav
         aria-label="Mobile Navigation Bar"
-        className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-[#E5E7EB] z-40 px-2 py-1.5 flex items-center justify-around shadow-lg no-print"
+        className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-[#E5E7EB] z-40 px-2 py-1.5 flex items-center justify-around shadow-lg no-print print:hidden print-hide"
+        data-print-hide="true"
       >
         <Link
           href="/"

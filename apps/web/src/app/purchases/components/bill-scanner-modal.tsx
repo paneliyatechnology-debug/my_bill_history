@@ -1177,8 +1177,9 @@ export function BillScannerModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-7xl max-h-[96vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-200">
+      <div className="fixed inset-0 bg-transparent" onClick={onClose} aria-hidden="true" />
+      <div className="relative z-10 bg-white rounded-2xl shadow-2xl border border-slate-300 w-full max-w-7xl max-h-[96vh] flex flex-col overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]">
         {/* Top Header */}
         <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -1191,8 +1192,8 @@ export function BillScannerModal({
             <div>
               <h2 className="text-lg font-bold text-slate-900">
                 {lang === "gu"
-                  ? "AI સ્માર્ટ ખરીદી બિલ સ્કેનર (Purchase Bill Scanner)"
-                  : "AI Smart Purchase Bill Scanner & Auto-Entry"}
+                  ? "ખરીદી બિલ સ્કેનર (Purchase Bill Scanner)"
+                  : "Purchase Bill Scanner & Auto-Entry"}
               </h2>
               <p className="text-xs text-slate-500">
                 {lang === "gu"
@@ -1210,7 +1211,7 @@ export function BillScannerModal({
                     Engine: {scanRecord.extractedData.documentMetadata.engine}
                   </span>
                 )}
-                <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-100 text-emerald-800">
                   ● {lang === "gu" ? "ચકાસણી માટે તૈયાર" : "Ready for Review"}
                 </span>
               </>
@@ -1296,7 +1297,7 @@ export function BillScannerModal({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
                     <span>{lang === "gu" ? "ગેલેરી / ફાઇલમાંથી પસંદ કરો" : "Choose from Gallery / Files"}</span>
-                    <span className="bg-emerald-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-normal">
+                    <span className="bg-emerald-500 text-white text-[10px] px-1.5 py-0.5 rounded-md font-normal">
                       {lang === "gu" ? "લો-મેમરી સેફ" : "Safe"}
                     </span>
                   </button>
@@ -1372,51 +1373,6 @@ export function BillScannerModal({
                   }
                 }}
               />
-
-              {/* Security & Feature Badges */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
-                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                  <div className="flex items-center gap-2 text-indigo-600 font-semibold text-xs">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                    <span>{lang === "gu" ? "સુરક્ષિત આઇસોલેશન" : "Tenant-Isolated Vault"}</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 mt-1">
-                    {lang === "gu"
-                      ? "તમારા બિલો ખાનગી અને એન્ક્રિપ્ટેડ સ્ટોરેજમાં સચવાય છે."
-                      : "Private document storage with authorized access only."}
-                  </p>
-                </div>
-
-                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                  <div className="flex items-center gap-2 text-emerald-600 font-semibold text-xs">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                    <span>{lang === "gu" ? "ઓટો મેચિંગ" : "Smart Matching"}</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 mt-1">
-                    {lang === "gu"
-                      ? "GSTIN, બારકોડ અને SKU દ્વારા આપમેળે ઉત્પાદનો શોધી કાઢે છે."
-                      : "Instant mapping to parties, GSTIN, SKUs & barcodes."}
-                  </p>
-                </div>
-
-                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                  <div className="flex items-center gap-2 text-amber-600 font-semibold text-xs">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                    <span>{lang === "gu" ? "ચોક્કસ ટેક્સ હિસાબ" : "GST Precision"}</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 mt-1">
-                    {lang === "gu"
-                      ? "CGST, SGST, IGST અને રાઉન્ડ-ઓફની સચોટ ગણતરી."
-                      : "Double-entry verified GST ledger calculation."}
-                  </p>
-                </div>
-              </div>
             </div>
           )}
 
@@ -1425,8 +1381,10 @@ export function BillScannerModal({
             <div className="p-16 flex flex-col items-center justify-center text-center space-y-6">
               <div className="relative">
                 <div className="w-20 h-20 rounded-full border-4 border-[#FFF3E8] border-t-[#F47721] animate-spin" />
-                <div className="absolute inset-0 flex items-center justify-center text-[#F47721] font-bold text-xs">
-                  AI
+                <div className="absolute inset-0 flex items-center justify-center text-[#F47721]">
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
                 </div>
               </div>
               <div className="space-y-2">
@@ -2150,8 +2108,9 @@ export function BillScannerModal({
           )}
           {/* Supplier Master Creation Dialog */}
           {isSupplierModalOpen && (
-            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-              <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-fadeIn">
+              <div className="fixed inset-0 bg-transparent" onClick={() => setIsSupplierModalOpen(false)} aria-hidden="true" />
+              <div className="relative z-10 bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-300 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]">
                 <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                   <div className="flex items-center gap-2">
                     <span className="p-1.5 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-bold">🏪</span>
@@ -2344,7 +2303,7 @@ export function BillScannerModal({
             {/* Description */}
             <p className="text-xs text-slate-600 leading-relaxed mb-5">
               {lang === "gu"
-                ? "બિલનો ફોટો પાડીને AI દ્વારા માલની વિગતો અને GST ઓટોમેટિક ભરવા માટે તમારા ડિવાઇસના કેમેરાની પરવાનગી આપો."
+                ? "બિલનો ફોટો પાડીને માલની વિગતો અને GST ઓટોમેટિક ભરવા માટે તમારા ડિવાઇસના કેમેરાની પરવાનગી આપો."
                 : "MyBill History needs access to your camera to capture bills, auto-read GSTIN, and create inward purchase entries."}
             </p>
 

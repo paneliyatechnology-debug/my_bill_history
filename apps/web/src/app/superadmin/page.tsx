@@ -808,7 +808,7 @@ export default function SuperAdminPortalPage() {
       sortable: true,
       accessorKey: "status",
       cell: (inv) => (
-        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
           {inv.status}
         </span>
       ),
@@ -870,7 +870,7 @@ export default function SuperAdminPortalPage() {
       accessorFn: (u) => (u.isActive ? "Active" : "Inactive"),
       cell: (u) => (
         <span
-          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+          className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
             u.isActive ? "text-emerald-700 bg-emerald-50" : "text-rose-700 bg-rose-50"
           }`}
         >
@@ -1257,7 +1257,7 @@ export default function SuperAdminPortalPage() {
                     <div className="flex-1 flex items-center justify-between truncate">
                       <span className="truncate">{lang === "gu" ? item.nameGujarati : item.name}</span>
                       {item.badge && (
-                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-mono font-medium ${
+                        <span className={`text-[11px] px-2 py-0.5 rounded-md font-mono font-medium ${
                           isActive ? "bg-purple-100 text-[#7C3AED]" : "bg-slate-100 text-slate-500"
                         }`}>
                           {item.badge}
@@ -2060,7 +2060,7 @@ export default function SuperAdminPortalPage() {
                   <ul className="text-xs text-[#202124] space-y-2 pt-2 border-t border-[#E5E7EB]">
                     <li className="flex items-center gap-2">✓ Barcode Scanning & Thermal Print</li>
                     <li className="flex items-center gap-2">✓ Cash & UPI Payment Recording</li>
-                    <li className="flex items-center gap-2">✓ Day-End Cash Book (રોજમેળ)</li>
+                    <li className="flex items-center gap-2">✓ {lang === "gu" ? "Day-End Cash Book (રોજમેળ)" : "Day-End Cash Book"}</li>
                   </ul>
                 </div>
 
@@ -2288,8 +2288,9 @@ export default function SuperAdminPortalPage() {
 
       {/* ===================== MODAL 1: CREATE NEW TENANT ===================== */}
       {isCreateTenantOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 space-y-5 text-[#202124] shadow-xl border border-[#E5E7EB] animate-scaleUp max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-transparent z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-transparent" onClick={() => setIsCreateTenantOpen(false)} aria-hidden="true" />
+          <div className="relative z-10 bg-white rounded-2xl w-full max-w-lg p-6 space-y-5 text-[#202124] shadow-2xl border border-[#D1D5DB] animate-scaleUp max-h-[90vh] overflow-y-auto shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]">
             <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
               <h3 className="text-base font-bold text-[#202124] flex items-center gap-2">
 
@@ -2438,8 +2439,9 @@ export default function SuperAdminPortalPage() {
 
       {/* ===================== MODAL 2: MANAGE LICENSE ===================== */}
       {selectedTenant && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-[#E5E7EB] rounded-2xl w-full max-w-md p-6 space-y-5 text-[#202124] shadow-xl animate-scaleUp max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-transparent z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-transparent" onClick={() => setSelectedTenant(null)} aria-hidden="true" />
+          <div className="relative z-10 bg-white border border-[#D1D5DB] rounded-2xl w-full max-w-md p-6 space-y-5 text-[#202124] shadow-2xl animate-scaleUp max-h-[90vh] overflow-y-auto shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]">
             <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
               <h3 className="text-base font-bold text-[#202124] flex items-center gap-2">
 
@@ -2543,8 +2545,9 @@ export default function SuperAdminPortalPage() {
 
       {/* ===================== MODAL 3: VIEW TENANT DEEP DETAILS ===================== */}
       {viewDetailsTenant && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-[#E5E7EB] rounded-2xl w-full max-w-2xl p-6 space-y-5 text-[#202124] shadow-xl animate-scaleUp max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-transparent z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-transparent" onClick={() => setViewDetailsTenant(null)} aria-hidden="true" />
+          <div className="relative z-10 bg-white border border-[#D1D5DB] rounded-2xl w-full max-w-2xl p-6 space-y-5 text-[#202124] shadow-2xl animate-scaleUp max-h-[90vh] overflow-y-auto shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]">
             <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
               <div>
                 <h3 className="text-base font-bold text-[#202124]">
@@ -2656,8 +2659,9 @@ export default function SuperAdminPortalPage() {
 
       {/* ===================== MODAL 4: RESET USER PASSWORD ===================== */}
       {resetPasswordUser && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-[#E5E7EB] rounded-2xl w-full max-w-sm p-6 space-y-4 text-[#202124] shadow-xl animate-scaleUp max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-transparent z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-transparent" onClick={() => setResetPasswordUser(null)} aria-hidden="true" />
+          <div className="relative z-10 bg-white border border-[#D1D5DB] rounded-2xl w-full max-w-sm p-6 space-y-4 text-[#202124] shadow-2xl animate-scaleUp max-h-[90vh] overflow-y-auto shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]">
             <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
               <h3 className="text-base font-bold text-[#202124]">Reset User Password</h3>
               <button

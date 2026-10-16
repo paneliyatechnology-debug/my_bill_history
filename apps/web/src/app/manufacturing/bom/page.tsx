@@ -328,7 +328,7 @@ export default function BomPage() {
       align: "center",
       cell: (bom) => (
         <div className="flex justify-center">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FFF3E8] text-[#F47721] border border-[#F47721]/30">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-[#FFF3E8] text-[#F47721] border border-[#F47721]/30">
             {bom.items.length}{" "}
             {lang === "gu" ? "કાચો માલ" : "Raw Materials"}
           </span>
@@ -382,12 +382,14 @@ export default function BomPage() {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            {lang === "gu" ? "બિલ ઓફ મટિરીયલ્સ (BOM / સામગ્રી યાદી)" : "Bill of Materials (BOM)"}
-          </h1>
-          <p className="text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              {lang === "gu" ? "બિલ ઓફ મટિરીયલ્સ (BOM / સામગ્રી યાદી)" : "Bill of Materials (BOM)"}
+            </h1>
+          </div>
+          <p className="text-xs text-muted mt-1">
             {lang === "gu"
               ? "તૈયાર માલનું ઉત્પાદન કરવા માટે જોઈતી કાચી સામગ્રી, બગાડ અને અંદાજિત ખર્ચનું માળખું"
               : "Standard multi-level formula recipes, raw material consumption ratios, wastage & cost estimates"}
@@ -396,7 +398,7 @@ export default function BomPage() {
 
         <button
           onClick={handleOpenCreate}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-lg text-sm font-semibold shadow-sm transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -465,7 +467,7 @@ export default function BomPage() {
                 <div className="font-semibold text-slate-900">{bom.bomName}</div>
                 <div className="text-xs text-slate-500 font-medium">{bom.finishedItem?.name || "Item"}</div>
               </div>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#FFF3E8] text-[#F47721] border border-[#F47721]/30">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-[#FFF3E8] text-[#F47721] border border-[#F47721]/30">
                 {bom.items.length} {lang === "gu" ? "કાચો માલ" : "Items"}
               </span>
             </div>

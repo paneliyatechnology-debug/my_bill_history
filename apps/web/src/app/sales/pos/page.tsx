@@ -604,7 +604,7 @@ export default function PosTerminalPage() {
                 <div className="bg-amber-50 border border-amber-300 rounded-lg p-2 mt-2 font-sans text-left space-y-1">
                   <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-900">
                     <span>⚠️</span>
-                    <span>PROVISIONAL ESTIMATE / કાચો અંદાજ</span>
+                    <span>{lang === "gu" ? "કાચો અંદાજ (PROVISIONAL ESTIMATE)" : "PROVISIONAL ESTIMATE"}</span>
                   </div>
                   <p className="text-[10px] text-amber-800 leading-tight">
                     {lang === "gu"
@@ -642,7 +642,7 @@ export default function PosTerminalPage() {
               </div>
             )}
 
-            <div className="pt-4 flex gap-2">
+            <div className="pt-4 flex gap-2 print:hidden">
               <button
                 onClick={() => window.print()}
                 className="py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl font-sans shadow-sm flex items-center justify-center gap-1.5 transition-all"

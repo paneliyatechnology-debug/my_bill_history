@@ -431,15 +431,12 @@ export default function PurchasesPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-              {lang === "gu"
-                ? "ખરીદી બિલો (Purchase Bills)"
-                : "Purchase Bills & Inward Stock"}
-            </h1>
-          </div>
-          <p className="text-xs text-muted mt-1 ml-4.5">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            {lang === "gu"
+              ? "ખરીદી બિલો (Purchase Bills)"
+              : "Purchase Bills & Inward Stock"}
+          </h1>
+          <p className="text-xs text-muted mt-1">
             {lang === "gu"
               ? "વેપારી ખરીદી, ઇનપુટ ટેક્સ ક્રેડિટ (ITC) અને સ્ટોકની આવક"
               : "Vendor bills, Input Tax Credit (ITC), and inward inventory receipts"}
@@ -475,8 +472,8 @@ export default function PurchasesPage() {
             </svg>
             <span>
               {lang === "gu"
-                ? "AI સ્માર્ટ બિલ સ્કેનર (Scan Bill)"
-                : "Scan Bill (AI Auto-Entry)"}
+                ? "સ્માર્ટ બિલ સ્કેનર (Scan Bill)"
+                : "Scan Bill (Auto-Entry)"}
             </span>
           </button>
 
@@ -987,7 +984,7 @@ export default function PurchasesPage() {
         </form>
       </Modal>
 
-      {/* AI Bill Scanner & Review Modal */}
+      {/* Bill Scanner & Review Modal */}
       <BillScannerModal
         isOpen={isScannerModalOpen}
         onClose={() => setIsScannerModalOpen(false)}

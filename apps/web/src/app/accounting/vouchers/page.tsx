@@ -201,14 +201,13 @@ export default function VouchersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
               {lang === "gu"
                 ? "નામા વાઉચર રજિસ્ટર (Vouchers Register)"
                 : "Double-Entry Voucher Register"}
             </h1>
           </div>
-          <p className="text-xs text-muted mt-1 ml-4.5">
+          <p className="text-xs text-muted mt-1">
             {lang === "gu"
               ? "રોજમેળ, જમા-ઉધાર, જર્નલ, બેંક અને રોકડ વાઉચરોનું રજિસ્ટર"
               : "Immutable journal entries, receipts, payments, and contra vouchers"}
@@ -269,12 +268,12 @@ export default function VouchersPage() {
               onChange={(e) => setTypeFilter(e.target.value)}
               className="text-xs bg-slate-50 border border-border text-slate-700 rounded-xl px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
             >
-              <option value="ALL">All Voucher Types (તમામ વાઉચર)</option>
-              <option value="JOURNAL">JOURNAL (જર્નલ)</option>
-              <option value="RECEIPT">RECEIPT (આવક પહોંચ)</option>
-              <option value="PAYMENT">PAYMENT (ચૂકવણી વાઉચર)</option>
-              <option value="CONTRA">CONTRA (બેંક-રોકડ ફેરબદલ)</option>
-              <option value="SALES">SALES (વેચાણ નોંધ)</option>
+              <option value="ALL">{lang === "gu" ? "તમામ વાઉચર (All Types)" : "All Voucher Types"}</option>
+              <option value="JOURNAL">{lang === "gu" ? "જર્નલ (JOURNAL)" : "JOURNAL"}</option>
+              <option value="RECEIPT">{lang === "gu" ? "આવક પહોંચ (RECEIPT)" : "RECEIPT"}</option>
+              <option value="PAYMENT">{lang === "gu" ? "ચૂકવણી વાઉચર (PAYMENT)" : "PAYMENT"}</option>
+              <option value="CONTRA">{lang === "gu" ? "બેંક-રોકડ ફેરબદલ (CONTRA)" : "CONTRA"}</option>
+              <option value="SALES">{lang === "gu" ? "વેચાણ નોંધ (SALES)" : "SALES"}</option>
             </select>
           </div>
         }

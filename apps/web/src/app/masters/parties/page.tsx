@@ -435,7 +435,7 @@ export default function PartiesPage() {
             <Link
               href={`/reports?tab=party-ledger&partyId=${p.id}`}
               className="px-2.5 py-1 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded transition-colors inline-flex items-center gap-1"
-              title="View Party Statement / ખાતાવહી"
+              title={lang === "gu" ? "ખાતાવહી જુઓ" : "View Party Statement"}
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -476,13 +476,10 @@ export default function PartiesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-              {lang === "gu" ? "વેપારીઓ / ગ્રાહક ખાતાઓ (Parties)" : "Parties & Customer Khata"}
-            </h1>
-          </div>
-          <p className="text-xs text-muted mt-1 ml-4.5">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            {lang === "gu" ? "વેપારીઓ / ગ્રાહક ખાતાઓ" : "Parties & Customer Accounts"}
+          </h1>
+          <p className="text-xs text-muted mt-1">
             {lang === "gu"
               ? "ગ્રાહકો, સપ્લાયરો, જીએસટી નંબર અને ખાતાની માહિતી મેનેજ કરો"
               : "Manage customers, suppliers, GSTINs, credit terms, and ledger limits"}
@@ -662,9 +659,9 @@ export default function PartiesPage() {
                 }
                 className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
               >
-                <option value="CUSTOMER">Customer (ગ્રાહક)</option>
-                <option value="SUPPLIER">Supplier (વેપારી / સપ્લાયર)</option>
-                <option value="BOTH">Both (ગ્રાહક અને સપ્લાયર)</option>
+                <option value="CUSTOMER">{lang === "gu" ? "ગ્રાહક (Customer)" : "Customer"}</option>
+                <option value="SUPPLIER">{lang === "gu" ? "વેપારી / સપ્લાયર (Supplier)" : "Supplier"}</option>
+                <option value="BOTH">{lang === "gu" ? "ગ્રાહક અને સપ્લાયર (Both)" : "Both (Customer & Supplier)"}</option>
               </select>
             </div>
 
@@ -824,7 +821,7 @@ export default function PartiesPage() {
               onChange={(e) =>
                 setFormData({ ...formData, nameGujarati: e.target.value })
               }
-              placeholder="દા.ત. શ્રી ગણેશ પ્રોવિઝન સ્ટોર"
+              placeholder={lang === "gu" ? "દા.ત. શ્રી ગણેશ પ્રોવિઝન સ્ટોર" : "e.g. Shree Ganesh Provision Store"}
               className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
             />
           </div>
@@ -904,7 +901,7 @@ export default function PartiesPage() {
           setIsEditModalOpen(false);
           setEditingParty(null);
         }}
-        title={lang === "gu" ? "વેપારીની વિગતો સુધારો (Edit Party)" : "Edit Party Details"}
+        title={lang === "gu" ? "વેપારીની વિગતો સુધારો" : "Edit Party Details"}
         titleGujarati={editingParty ? `${editingParty.name}` : ""}
         maxWidth="lg"
       >
@@ -927,10 +924,10 @@ export default function PartiesPage() {
                 }
                 className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
               >
-                <option value="CUSTOMER">Customer (ગ્રાહક)</option>
-                <option value="SUPPLIER">Supplier (વેપારી / સપ્લાયર)</option>
-                <option value="BOTH">Both (ગ્રાહક અને સપ્લાયર)</option>
-                <option value="BROKER">Broker (દલાલ / બ્રોકર)</option>
+                <option value="CUSTOMER">{lang === "gu" ? "ગ્રાહક (Customer)" : "Customer"}</option>
+                <option value="SUPPLIER">{lang === "gu" ? "વેપારી / સપ્લાયર (Supplier)" : "Supplier"}</option>
+                <option value="BOTH">{lang === "gu" ? "ગ્રાહક અને સપ્લાયર (Both)" : "Both (Customer & Supplier)"}</option>
+                <option value="BROKER">{lang === "gu" ? "દલાલ / બ્રોકર (Broker)" : "Broker"}</option>
               </select>
             </div>
 
@@ -1090,7 +1087,7 @@ export default function PartiesPage() {
               onChange={(e) =>
                 setEditFormData({ ...editFormData, nameGujarati: e.target.value })
               }
-              placeholder="દા.ત. શ્રી ગણેશ પ્રોવિઝન સ્ટોર"
+              placeholder={lang === "gu" ? "દા.ત. શ્રી ગણેશ પ્રોવિઝન સ્ટોર" : "e.g. Shree Ganesh Provision Store"}
               className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
             />
           </div>

@@ -504,18 +504,13 @@ function SalesReturnsContent() {
   return (
     <div className="space-y-6 pb-12">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-slate-800">
-              {lang === "gu"
-                ? "ક્રેડિટ નોટ / વેચાણ પરત"
-                : "Sales Returns & Credit Notes"}
-            </h1>
-            <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-saffron-light text-primary border border-primary/25">
-              GST Compliant
-            </span>
-          </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            {lang === "gu"
+              ? "ક્રેડિટ નોટ / વેચાણ પરત"
+              : "Sales Returns & Credit Notes"}
+          </h1>
           <p className="text-xs text-muted mt-1">
             {lang === "gu"
               ? "વેચાણ બિલ સામે માલ પરત સ્વીકારો, જીએસટી રિવર્સલ કરો અને ગ્રાહકને ક્રેડિટ નોટ આપો."
@@ -1199,7 +1194,7 @@ function SalesReturnsContent() {
                 type="text"
                 value={returnReasonGujarati}
                 onChange={(e) => setReturnReasonGujarati(e.target.value)}
-                placeholder="દા.ત. ગુણવત્તામાં ખામી, વધારાનો માલ"
+                placeholder={lang === "gu" ? "દા.ત. ગુણવત્તામાં ખામી, વધારાનો માલ" : "e.g. Defective quality, excess supply"}
                 className="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -1460,7 +1455,10 @@ function SalesReturnsContent() {
         }
       >
         {printReturn && (
-          <div className="p-6 bg-white text-slate-800 text-xs font-sans print:p-0 print:m-0">
+          <div
+            id="printable-invoice"
+            className="p-6 bg-white text-slate-800 text-xs font-sans printable-invoice print:p-0 print:m-0 print:w-full print:max-w-none print:shadow-none print:border-none"
+          >
             {/* Header */}
             <div className="text-center border-b pb-4 mb-4">
               <span className="text-xs uppercase tracking-widest text-slate-500 font-semibold">

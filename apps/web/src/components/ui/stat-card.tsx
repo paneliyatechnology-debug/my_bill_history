@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useContext } from "react";
+import { AuthContext } from "../../context/auth-context";
 
 interface StatCardProps {
   title: string;
@@ -22,6 +23,9 @@ export function StatCard({
   trend,
   variant = "default",
 }: StatCardProps) {
+  const auth = useContext(AuthContext);
+  const isGu = auth?.lang === "gu";
+
   const borderVariants = {
     default: "border-[#E5E7EB] hover:border-[#D1D5DB] bg-white",
     primary: "border-[#FED7AA] bg-[#FFFAF5] hover:border-[#F47721]",
@@ -49,12 +53,7 @@ export function StatCard({
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1 min-w-0 flex-1">
           <p className="text-xs font-semibold text-[#667085] uppercase tracking-wider truncate">
-            {title}
-            {titleGujarati && (
-              <span className="text-[#98A2B3] font-normal ml-1">
-                ({titleGujarati})
-              </span>
-            )}
+            {isGu && titleGujarati ? titleGujarati : title}
           </p>
           <div className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-[#202124] font-mono truncate">
             {value}

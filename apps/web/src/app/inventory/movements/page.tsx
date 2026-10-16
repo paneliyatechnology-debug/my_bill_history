@@ -64,14 +64,16 @@ export default function StockMovementsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            {lang === "gu"
-              ? "સ્ટોક આવક-જાવક હિસાબ (Stock Movements)"
-              : "Stock Movement Audit Ledger"}
-          </h1>
-          <p className="text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              {lang === "gu"
+                ? "સ્ટોક આવક-જાવક હિસાબ (Stock Movements)"
+                : "Stock Movement Audit Ledger"}
+            </h1>
+          </div>
+          <p className="text-xs text-muted mt-1">
             {lang === "gu"
               ? "વેચાણ રવાનગી, પરત અને એડજસ્ટમેન્ટનો હિસાબ"
               : "Append-only immutable audit trail for every physical stock transaction"}

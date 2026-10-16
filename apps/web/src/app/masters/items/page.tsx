@@ -414,15 +414,12 @@ export default function ItemsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-              {lang === "gu"
-                ? "વસ્તુઓની યાદી (Item Catalog)"
-                : "Products & Item Catalog"}
-            </h1>
-          </div>
-          <p className="text-xs text-muted mt-1 ml-4.5">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            {lang === "gu"
+              ? "વસ્તુઓની યાદી (Item Catalog)"
+              : "Products & Item Catalog"}
+          </h1>
+          <p className="text-xs text-muted mt-1">
             {lang === "gu"
               ? "તમામ ઉત્પાદનો, સેવાઓ, બેચ ટ્રેકિંગ, એચએસએન કોડ અને જીએસટી દરોનું સંચાલન"
               : "Manage products, services, batch tracking, HSN/SAC codes, tax rates, and prices"}
@@ -574,8 +571,8 @@ export default function ItemsPage() {
                 }
                 className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
               >
-                <option value="PRODUCT">Product (ઉત્પાદન / માલસામાન)</option>
-                <option value="SERVICE">Service (સેવા)</option>
+                <option value="PRODUCT">{lang === "gu" ? "ઉત્પાદન / માલસામાન (Product)" : "Product"}</option>
+                <option value="SERVICE">{lang === "gu" ? "સેવા (Service)" : "Service"}</option>
               </select>
             </div>
 
@@ -621,7 +618,7 @@ export default function ItemsPage() {
               onChange={(e) =>
                 setFormData({ ...formData, nameGujarati: e.target.value })
               }
-              placeholder="દા.ત. બાસમતી ચોખા ૨૫ કિલો"
+              placeholder={lang === "gu" ? "દા.ત. બાસમતી ચોખા ૨૫ કિલો" : "e.g. Basmati Rice 25kg"}
               className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
             />
           </div>
@@ -771,8 +768,8 @@ export default function ItemsPage() {
                 />
                 <span className="text-xs font-semibold text-slate-800">
                   {lang === "gu"
-                    ? "બેચ અને એક્સપાયરી ટ્રેકિંગ સક્ષમ કરો (Enable Batch & Expiry Tracking)"
-                    : "Enable Batch & Expiry Tracking (trackBatches)"}
+                    ? "બેચ અને એક્સપાયરી ટ્રેકિંગ સક્ષમ કરો"
+                    : "Enable Batch & Expiry Tracking"}
                 </span>
               </label>
               <p className="text-[11px] text-slate-500 mt-1 pl-6">
@@ -813,7 +810,7 @@ export default function ItemsPage() {
           setIsEditModalOpen(false);
           setEditingItem(null);
         }}
-        title={lang === "gu" ? "વસ્તુમાં ફેરફાર કરો (Edit Item)" : "Edit Item Details"}
+        title={lang === "gu" ? "વસ્તુમાં ફેરફાર કરો" : "Edit Item Details"}
         titleGujarati={editingItem ? `${editingItem.name}` : ""}
         maxWidth="lg"
       >
@@ -836,8 +833,8 @@ export default function ItemsPage() {
                 }
                 className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
               >
-                <option value="PRODUCT">Product (ઉત્પાદન / માલસામાન)</option>
-                <option value="SERVICE">Service (સેવા)</option>
+                <option value="PRODUCT">{lang === "gu" ? "ઉત્પાદન / માલસામાન (Product)" : "Product"}</option>
+                <option value="SERVICE">{lang === "gu" ? "સેવા (Service)" : "Service"}</option>
               </select>
             </div>
 
@@ -883,7 +880,7 @@ export default function ItemsPage() {
               onChange={(e) =>
                 setEditFormData({ ...editFormData, nameGujarati: e.target.value })
               }
-              placeholder="દા.ત. બાસમતી ચોખા ૨૫ કિલો"
+              placeholder={lang === "gu" ? "દા.ત. બાસમતી ચોખા ૨૫ કિલો" : "e.g. Basmati Rice 25kg"}
               className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
             />
           </div>

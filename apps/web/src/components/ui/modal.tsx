@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useContext } from "react";
+import { AuthContext } from "../../context/auth-context";
 
 interface ModalProps {
   isOpen: boolean;
@@ -21,6 +22,9 @@ export function Modal({
   maxWidth = "lg",
   footer,
 }: ModalProps) {
+  const auth = useContext(AuthContext);
+  const isGu = auth?.lang === "gu";
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -47,17 +51,19 @@ export function Modal({
   }[maxWidth];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-xs animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 animate-fadeIn print:p-0 print:m-0 print:static print:block print:overflow-visible">
+      {/* Clickable transparent backdrop overlay without gray tint */}
+      <div className="fixed inset-0 bg-transparent print:hidden" onClick={onClose} aria-hidden="true" />
       <div
-        className={`bg-white rounded-card shadow-2xl border border-[#E5E7EB] w-full ${widthClasses} max-w-[calc(100vw-1.5rem)] max-h-[92vh] flex flex-col overflow-hidden transition-all transform scale-100`}
+        className={`relative z-10 bg-white rounded-card shadow-2xl border border-[#D1D5DB] w-full ${widthClasses} max-w-[calc(100vw-1.5rem)] max-h-[92vh] flex flex-col overflow-hidden transition-all transform scale-100 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] print:shadow-none print:border-none print:p-0 print:m-0 print:max-h-none print:max-w-none print:w-full print:rounded-none print:overflow-visible`}
         role="dialog"
         aria-modal="true"
       >
         {/* Header with Bhagwa accent bar */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-[#E5E7EB] bg-[#FFFAF5] border-t-4 border-t-[#F47721]">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-[#E5E7EB] bg-[#FFFAF5] border-t-4 border-t-[#F47721] print:hidden">
           <div>
             <h3 className="text-base font-bold text-[#202124]">{title}</h3>
-            {titleGujarati && (
+            {isGu && titleGujarati && (
               <p className="text-xs text-[#F47721] font-medium font-gujarati">
                 {titleGujarati}
               </p>
@@ -85,11 +91,11 @@ export function Modal({
         </div>
 
         {/* Content body */}
-        <div className="p-4 sm:p-6 overflow-y-auto flex-1">{children}</div>
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 print:p-0 print:overflow-visible">{children}</div>
 
         {/* Footer */}
         {footer && (
-          <div className="px-4 sm:px-6 py-3 sm:py-3.5 bg-[#F8F9FB] border-t border-[#E5E7EB] flex items-center justify-end gap-2.5 sm:gap-3 flex-wrap">
+          <div className="px-4 sm:px-6 py-3 sm:py-3.5 bg-[#F8F9FB] border-t border-[#E5E7EB] flex items-center justify-end gap-2.5 sm:gap-3 flex-wrap print:hidden">
             {footer}
           </div>
         )}

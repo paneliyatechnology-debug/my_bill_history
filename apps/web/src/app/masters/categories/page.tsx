@@ -131,14 +131,14 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
             {lang === "gu"
               ? "વસ્તુઓની શ્રેણીઓ (Item Categories)"
               : "Item Categories"}
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted mt-1">
             {lang === "gu"
               ? "અનાજ, કરિયાણું, તેલ, પીણાં જેવી કેટેગરીઓનું સંચાલન"
               : "Organize items into structured product categories"}
@@ -151,7 +151,7 @@ export default function CategoriesPage() {
             setFormError(null);
             setIsModalOpen(true);
           }}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white text-sm font-semibold rounded-lg shadow-sm transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
         >
           <svg
             className="w-4 h-4"
@@ -308,7 +308,7 @@ export default function CategoriesPage() {
               onChange={(e) =>
                 setFormData({ ...formData, nameGujarati: e.target.value })
               }
-              placeholder="દા.ત. મસાલા અને તેજાના"
+              placeholder={lang === "gu" ? "દા.ત. મસાલા અને તેજાના" : "e.g. Spices & Condiments"}
               className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
             />
           </div>
@@ -339,7 +339,7 @@ export default function CategoriesPage() {
           setIsEditModalOpen(false);
           setEditingCategory(null);
         }}
-        title={lang === "gu" ? "શ્રેણી સુધારો (Edit Category)" : "Edit Category"}
+        title={lang === "gu" ? "શ્રેણી સુધારો" : "Edit Category"}
         titleGujarati={editingCategory ? editingCategory.name : ""}
         maxWidth="md"
       >
@@ -376,7 +376,7 @@ export default function CategoriesPage() {
               onChange={(e) =>
                 setEditFormData({ ...editFormData, nameGujarati: e.target.value })
               }
-              placeholder="દા.ત. મસાલા અને તેજાના"
+              placeholder={lang === "gu" ? "દા.ત. મસાલા અને તેજાના" : "e.g. Spices & Condiments"}
               className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
             />
           </div>

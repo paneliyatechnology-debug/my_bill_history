@@ -156,14 +156,13 @@ export default function StockSummaryPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
               {lang === "gu"
                 ? "સ્ટોક સિલક અને મૂલ્યાંકન (Stock Summary)"
                 : "Physical Stock Summary & Valuation"}
             </h1>
           </div>
-          <p className="text-xs text-muted mt-1 ml-4.5">
+          <p className="text-xs text-muted mt-1">
             {lang === "gu"
               ? "તમામ માલસામાનની વાસ્તવિક સિલક અને WAC/FIFO મૂલ્યાંકન"
               : "Live database-backed physical quantities, inward/outward totals, and valuation"}

@@ -142,15 +142,12 @@ export default function SettingsPage() {
       <div className="bg-white p-5 rounded-2xl border border-border shadow-subtle space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-6 bg-primary rounded-full inline-block"></span>
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                {lang === "gu"
-                  ? "કંપની પ્રોફાઇલ અને વ્યવસાય સંચાલન"
-                  : "Company Profile & Multi-Business Management"}
-              </h1>
-            </div>
-            <p className="text-xs text-muted mt-1 ml-4.5">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              {lang === "gu"
+                ? "કંપની પ્રોફાઇલ અને વ્યવસાય સંચાલન"
+                : "Company Profile & Multi-Business Management"}
+            </h1>
+            <p className="text-xs text-muted mt-1">
               {lang === "gu"
                 ? "કાયદેસર માહિતી, જીએસટી, મલ્ટી-કંપની સેટિંગ્સ અને બિલિંગ પસંદગીઓ"
                 : "Legal details, GSTIN, multi-company entitlements, and business preferences"}
@@ -496,7 +493,7 @@ export default function SettingsPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#F47721] text-white">
+                  <span className="px-2.5 py-0.5 rounded-md text-xs font-bold bg-[#F47721] text-white">
                     {entitlements?.name || "Standard Plan"}
                   </span>
                   <span className="text-xs font-semibold text-[#667085]">
@@ -607,7 +604,7 @@ export default function SettingsPage() {
                       </div>
 
                       {isSelected && (
-                        <span className="px-2.5 py-0.5 bg-[#FFF3E8] border border-[#FED7AA] text-[#F47721] rounded-full text-[10px] font-bold shrink-0">
+                        <span className="px-2.5 py-0.5 bg-[#FFF3E8] border border-[#FED7AA] text-[#F47721] rounded-md text-[10px] font-bold shrink-0">
                           Active Context
                         </span>
                       )}
