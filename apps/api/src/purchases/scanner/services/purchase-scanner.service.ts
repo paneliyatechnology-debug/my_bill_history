@@ -444,11 +444,15 @@ export class PurchaseScannerService {
       rawMsg.includes("unparseable json") ||
       rawMsg.includes("invalid or unparseable json") ||
       rawMsg.includes("empty extraction response") ||
-      rawMsg.includes("could not parse")
+      rawMsg.includes("could not parse") ||
+      rawMsg.includes("invalid_union") ||
+      rawMsg.includes("invalid_type") ||
+      (rawMsg.startsWith("[") && rawMsg.includes('"code"')) ||
+      rawMsg.includes("zoderror")
     ) {
       return {
         category: "DOCUMENT_PARSE_ERROR",
-        message: "AI could not extract structured invoice fields from this document. Please verify the image is clear or edit manually.",
+        message: "AI document extraction encountered incomplete item fields (e.g. taxable amount or tax rate). Please click Retry OCR or verify the image is clear.",
       };
     }
 

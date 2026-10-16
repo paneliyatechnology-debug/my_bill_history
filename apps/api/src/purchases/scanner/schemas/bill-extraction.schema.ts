@@ -1,31 +1,86 @@
 import { z } from "zod";
 
 /**
+ * Preprocessor for numeric fields (e.g., quantity, price, taxes) that gracefully
+ * handles null, undefined, empty strings, and comma-formatted strings without failing.
+ */
+const flexibleNumber = (defaultValue: number = 0) =>
+  z.preprocess((val) => {
+    if (val === null || val === undefined || val === "") return defaultValue;
+    if (typeof val === "string") {
+      const cleaned = val.replace(/,/g, "").trim();
+      const n = Number(cleaned);
+      return isNaN(n) ? defaultValue : n;
+    }
+    if (typeof val === "number") return isNaN(val) ? defaultValue : val;
+    return defaultValue;
+  }, z.union([z.number(), z.string()]).default(defaultValue));
+
+/**
+ * Preprocessor for confidence scores (0 to 100), defaulting to 80 if null/invalid.
+ */
+const flexibleConfidence = (defaultValue: number = 80) =>
+  z.preprocess((val) => {
+    if (typeof val === "number" && !isNaN(val)) {
+      return Math.min(100, Math.max(0, val));
+    }
+    if (typeof val === "string") {
+      const n = Number(val.trim());
+      if (!isNaN(n)) return Math.min(100, Math.max(0, n));
+    }
+    return defaultValue;
+  }, z.number().min(0).max(100).default(defaultValue));
+
+/**
+ * Preprocessor for boolean flags, handling null, undefined, and truthy string values.
+ */
+const flexibleBoolean = (defaultValue: boolean = false) =>
+  z.preprocess((val) => {
+    if (val === null || val === undefined) return defaultValue;
+    if (typeof val === "boolean") return val;
+    if (typeof val === "string") {
+      const s = val.toLowerCase().trim();
+      return s === "true" || s === "1" || s === "yes";
+    }
+    return Boolean(val);
+  }, z.boolean().default(defaultValue));
+
+/**
+ * Preprocessor for item descriptions ensuring non-empty string.
+ */
+const flexibleDescription = () =>
+  z.preprocess((val) => {
+    if (val === null || val === undefined) return "Item";
+    const s = String(val).trim();
+    return s.length > 0 ? s : "Item";
+  }, z.string().default("Item"));
+
+/**
  * Zod schema for extracted purchase line items.
  */
 export const ExtractedBillItemSchema = z.object({
   id: z.string().optional(),
-  description: z.string().min(1, "Item description is required"),
-  rawText: z.string().optional(),
+  description: flexibleDescription(),
+  rawText: z.string().nullable().optional(),
   hsnCode: z.string().nullable().optional(),
-  quantity: z.union([z.number(), z.string()]).default(1),
+  quantity: flexibleNumber(1),
   unit: z.string().nullable().optional(),
-  unitPrice: z.union([z.number(), z.string()]).default(0),
-  discountAmount: z.union([z.number(), z.string()]).nullable().optional().default(0),
-  taxableAmount: z.union([z.number(), z.string()]).default(0),
-  taxRate: z.union([z.number(), z.string()]).default(18),
-  cgstAmount: z.union([z.number(), z.string()]).nullable().optional().default(0),
-  sgstAmount: z.union([z.number(), z.string()]).nullable().optional().default(0),
-  igstAmount: z.union([z.number(), z.string()]).nullable().optional().default(0),
-  cessAmount: z.union([z.number(), z.string()]).nullable().optional(),
-  totalAmount: z.union([z.number(), z.string()]).default(0),
-  confidence: z.number().min(0).max(100).default(80),
-  itemType: z.enum(["PRODUCT", "SERVICE"]).optional().default("PRODUCT"),
-  isAmbiguous: z.boolean().optional().default(false),
+  unitPrice: flexibleNumber(0),
+  discountAmount: flexibleNumber(0),
+  taxableAmount: flexibleNumber(0),
+  taxRate: flexibleNumber(18),
+  cgstAmount: flexibleNumber(0),
+  sgstAmount: flexibleNumber(0),
+  igstAmount: flexibleNumber(0),
+  cessAmount: flexibleNumber(0),
+  totalAmount: flexibleNumber(0),
+  confidence: flexibleConfidence(80),
+  itemType: z.preprocess((val) => (val === "SERVICE" ? "SERVICE" : "PRODUCT"), z.enum(["PRODUCT", "SERVICE"]).default("PRODUCT")),
+  isAmbiguous: flexibleBoolean(false),
   matchedItemId: z.string().nullable().optional(),
   matchedItemName: z.string().nullable().optional(),
-  matchedItemScore: z.number().optional(),
-  matchType: z.enum(["BARCODE", "SKU", "EXACT_NAME", "FUZZY_NAME", "NEW_PRODUCT"]).optional(),
+  matchedItemScore: z.number().nullable().optional(),
+  matchType: z.enum(["BARCODE", "SKU", "EXACT_NAME", "FUZZY_NAME", "NEW_PRODUCT"]).nullable().optional(),
   suggestedItems: z.array(
     z.object({
       id: z.string(),
@@ -45,7 +100,7 @@ export const ExtractedBillDataSchema = z.object({
   currency: z.string().default("INR"),
   exchangeRate: z.number().nullable().optional(),
   sourceGrandTotal: z.string().nullable().optional(),
-  isRcm: z.boolean().optional().default(false),
+  isRcm: flexibleBoolean(false),
   buyerGstin: z.string().nullable().optional(),
   supplier: z.object({
     name: z.string().nullable().optional(),
@@ -53,12 +108,12 @@ export const ExtractedBillDataSchema = z.object({
     address: z.string().nullable().optional(),
     phone: z.string().nullable().optional(),
     email: z.string().nullable().optional(),
-    confidence: z.number().min(0).max(100).default(80),
+    confidence: flexibleConfidence(80),
     matchedPartyId: z.string().nullable().optional(),
     matchedPartyName: z.string().nullable().optional(),
     matchedPartyGstin: z.string().nullable().optional(),
-    matchedPartyScore: z.number().optional(),
-    isNewSupplier: z.boolean().optional().default(false),
+    matchedPartyScore: z.number().nullable().optional(),
+    isNewSupplier: flexibleBoolean(false),
   }),
   invoice: z.object({
     invoiceNumber: z.string().nullable().optional(),
@@ -66,8 +121,8 @@ export const ExtractedBillDataSchema = z.object({
     dueDate: z.string().nullable().optional(),
     placeOfSupply: z.string().nullable().optional(),
     paymentTerms: z.string().nullable().optional(),
-    confidence: z.number().min(0).max(100).default(80),
-    isDuplicateWarning: z.boolean().optional().default(false),
+    confidence: flexibleConfidence(80),
+    isDuplicateWarning: flexibleBoolean(false),
   }),
   financials: z.object({
     subtotal: z.string().nullable().optional(),
@@ -80,19 +135,19 @@ export const ExtractedBillDataSchema = z.object({
     otherCharges: z.string().nullable().optional(),
     roundOff: z.string().nullable().optional(),
     grandTotal: z.string().nullable().optional(),
-    isTaxMismatch: z.boolean().optional().default(false),
+    isTaxMismatch: flexibleBoolean(false),
     taxMismatchReason: z.string().nullable().optional(),
-    confidence: z.number().min(0).max(100).default(80),
+    confidence: flexibleConfidence(80),
   }),
   items: z.array(ExtractedBillItemSchema).default([]),
   documentMetadata: z.object({
     fileName: z.string().default("bill.pdf"),
-    pageCount: z.number().int().min(1).default(1),
-    isMultiPage: z.boolean().default(false),
-    overallConfidence: z.number().min(0).max(100).default(80),
-    warnings: z.array(z.string()).default([]),
+    pageCount: z.preprocess((val) => (typeof val === "number" && val > 0 ? Math.floor(val) : 1), z.number().int().min(1).default(1)),
+    isMultiPage: flexibleBoolean(false),
+    overallConfidence: flexibleConfidence(80),
+    warnings: z.preprocess((val) => (Array.isArray(val) ? val : []), z.array(z.string()).default([])),
     engine: z.string().optional(),
-    isUnreadable: z.boolean().optional().default(false),
+    isUnreadable: flexibleBoolean(false),
   }),
 });
 
