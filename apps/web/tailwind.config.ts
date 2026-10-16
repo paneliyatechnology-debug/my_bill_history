@@ -8,6 +8,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      screens: {
+        xs: "380px",
+      },
       colors: {
         // Bhagwa Saffron Primary Brand Tokens
         primary: {
@@ -86,6 +89,9 @@ const config: Config = {
         ],
         gujarati: [
           "var(--font-noto-gujarati)",
+          "Shruti",
+          "Nirmala UI",
+          "Gujarati Sangam MN",
           "sans-serif",
         ],
         mono: [

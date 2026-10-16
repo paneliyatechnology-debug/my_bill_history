@@ -185,24 +185,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     };
   }, [isMobileMenuOpen]);
 
-  // If unauthenticated and finished loading, automatically redirect to login page (except for intro / landing pages)
+  // If unauthenticated and finished loading, automatically redirect to login page (except for public pages like intro, features, landing)
   useEffect(() => {
     if (
       !isLoading &&
       !isAuthenticated &&
       pathname !== "/login" &&
       pathname !== "/" &&
-      pathname !== "/intro"
+      pathname !== "/intro" &&
+      pathname !== "/features"
     ) {
       const redirectParam = pathname ? `?redirect=${encodeURIComponent(pathname)}` : "";
       router.replace(`/login${redirectParam}`);
     }
   }, [isLoading, isAuthenticated, pathname, router]);
 
-  // If on login page, intro page, unauthenticated home page, or dedicated superadmin portal, render children cleanly without standard business shell
+  // If on public pages (login, intro, features, unauthenticated home) or dedicated superadmin portal, render children cleanly without standard business shell
   if (
     pathname === "/login" ||
     pathname === "/intro" ||
+    pathname === "/features" ||
     pathname.startsWith("/superadmin") ||
     (!isAuthenticated && pathname === "/")
   ) {
