@@ -713,10 +713,10 @@ export default function NewDeliveryChallanPage() {
             </div>
 
             {/* Submit Action Buttons */}
-            <div className="pt-3 flex items-center justify-end gap-3">
+            <div className="pt-3 flex flex-row items-center justify-end gap-2.5 sm:gap-3 w-full">
               <Link
                 href="/sales/delivery-challans"
-                className="px-4 py-2.5 bg-[#F8F9FB] hover:bg-[#F3F4F6] text-[#667085] border border-[#E5E7EB] rounded-xl text-xs font-semibold transition-colors"
+                className="flex-1 sm:flex-initial px-4 py-2.5 bg-[#F8F9FB] hover:bg-[#F3F4F6] text-[#667085] border border-[#E5E7EB] rounded-xl text-xs font-semibold transition-colors text-center justify-center whitespace-nowrap"
               >
                 {lang === "gu" ? "રદ કરો" : "Cancel"}
               </Link>
@@ -724,7 +724,7 @@ export default function NewDeliveryChallanPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-2.5 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-xl text-xs sm:text-sm font-bold shadow-saffron transition-all disabled:opacity-50 flex items-center gap-2"
+                className="flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-xl text-xs sm:text-sm font-bold shadow-saffron transition-all disabled:opacity-50 flex items-center justify-center gap-2 whitespace-nowrap"
               >
                 {isSubmitting ? (
                   <>
@@ -733,7 +733,7 @@ export default function NewDeliveryChallanPage() {
                   </>
                 ) : (
                   <>
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                     <span>{lang === "gu" ? "ચલણ સાચવો" : "Create Delivery Challan"}</span>

@@ -786,24 +786,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </Link>
             )}
 
-            {/* Primary Action Button: Create Bill */}
-            <Link
-              href="/sales/invoices/new"
-              className="flex items-center gap-1 sm:gap-1.5 py-1.5 px-2 min-[360px]:px-2.5 sm:px-3.5 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-button text-xs sm:text-sm font-semibold shadow-saffron transition-all shrink-0 whitespace-nowrap active:scale-95"
-              title={lang === "gu" ? "નવું વેચાણ બિલ (F2)" : "Create New Bill (F2)"}
-              aria-label={lang === "gu" ? "નવું બિલ બનાવો (Create New Bill)" : "Create New Bill"}
-            >
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 4v16m8-8H4" />
-              </svg>
-              {/* Short label on mobile screens, full label on tablets and desktop */}
-              <span className="hidden sm:inline">
-                {lang === "gu" ? "નવું બિલ બનાવો" : "Create New Bill"}
-              </span>
-              <span className="inline sm:hidden font-bold">
-                {lang === "gu" ? "બિલ" : "Bill"}
-              </span>
-            </Link>
+            {/* Primary Action Button: Create Bill (hidden if already on new bill page) */}
+            {pathname !== "/sales/invoices/new" && (
+              <Link
+                href="/sales/invoices/new"
+                className="flex items-center gap-1 sm:gap-1.5 py-1.5 px-2 min-[360px]:px-2.5 sm:px-3.5 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-button text-xs sm:text-sm font-semibold shadow-saffron transition-all shrink-0 whitespace-nowrap active:scale-95"
+                title={lang === "gu" ? "નવું વેચાણ બિલ (F2)" : "Create New Bill (F2)"}
+                aria-label={lang === "gu" ? "નવું બિલ બનાવો (Create New Bill)" : "Create New Bill"}
+              >
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 4v16m8-8H4" />
+                </svg>
+                {/* Short label on mobile screens, full label on tablets and desktop */}
+                <span className="hidden sm:inline">
+                  {lang === "gu" ? "નવું બિલ બનાવો" : "Create New Bill"}
+                </span>
+                <span className="inline sm:hidden font-bold">
+                  {lang === "gu" ? "બિલ" : "Bill"}
+                </span>
+              </Link>
+            )}
 
             {/* Bilingual Language Switcher (EN | ગુજ) */}
             <div className="flex items-center bg-[#F3F4F6] p-0.5 rounded-lg border border-[#E5E7EB] shrink-0">
