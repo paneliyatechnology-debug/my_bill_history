@@ -992,6 +992,16 @@ export function BillScannerModal({
         userFacingMessage = lang === "gu"
           ? "નેટવર્ક કનેક્શનમાં ક્ષતિ. સર્વર કનેક્શન (LAN / Wi-Fi) ચકાસો અને ફરી પ્રયાસ કરો."
           : "Network connection error. Please verify Wi-Fi / LAN connection and retry.";
+      } else if (
+        rawMsg.includes("invalid_union") ||
+        rawMsg.includes("invalid_type") ||
+        (rawMsg.startsWith("[") && rawMsg.includes('"code"')) ||
+        rawMsg.includes("zoderror")
+      ) {
+        errorCategory = "DOCUMENT_PARSE_ERROR";
+        userFacingMessage = lang === "gu"
+          ? "બિલની વસ્તુઓની વિગતો (ટેક્સ અથવા રકમ) વાંચવામાં ક્ષતિ આવી. કૃપા કરીને ફરીથી OCR કરો અથવા સ્પષ્ટ ફોટો અપલોડ કરો."
+          : "AI extraction encountered incomplete item fields. Please click 'Retry OCR' or try with a clearer photo.";
       } else if (err?.messageGujarati && lang === "gu") {
         userFacingMessage = err.messageGujarati;
       }
@@ -1415,20 +1425,26 @@ export function BillScannerModal({
 
         {/* Global Error Alert */}
         {errorMessage && (
-          <div className="px-6 py-3 bg-rose-50 border-b border-rose-200 text-rose-700 text-sm flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="px-4 sm:px-6 py-2.5 sm:py-3 bg-rose-50 border-b border-rose-200 text-rose-700 text-sm flex items-center justify-between">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
               <svg className="w-5 h-5 text-rose-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
-              <div>
-                <div className="font-semibold text-rose-900">
-                  <span className="font-mono text-xs bg-rose-200/80 px-1.5 py-0.5 rounded mr-2 text-rose-800">
+              <div className="min-w-0 flex-1">
+                <div className="font-semibold text-rose-900 text-xs sm:text-sm">
+                  <span className="font-mono text-[10px] sm:text-xs bg-rose-200/80 px-1.5 py-0.5 rounded mr-2 text-rose-800">
                     STAGE: {diagnosticStage}
                   </span>
-                  {errorMessage}
+                  <span className="break-words">
+                    {errorMessage.startsWith("[") && errorMessage.includes('"code"')
+                      ? (lang === "gu"
+                          ? "બિલની વસ્તુઓની વિગતો (ટેક્સ અથવા રકમ) વાંચવામાં ક્ષતિ આવી. કૃપા કરીને ફરીથી OCR કરો."
+                          : "AI extraction encountered incomplete item fields. Please click 'Retry OCR'.")
+                      : errorMessage}
+                  </span>
                 </div>
                 {diagnosticDetails && (
-                  <div className="text-xs text-rose-600 font-mono mt-0.5">
+                  <div className="text-[10px] sm:text-xs text-rose-600 font-mono mt-0.5 truncate">
                     {diagnosticDetails}
                   </div>
                 )}

@@ -243,6 +243,45 @@ Respond with ONLY a raw JSON object (no markdown code blocks, no backticks, no e
         throw new BadRequestException("Gemini returned invalid or unparseable JSON for this invoice document.");
       }
 
+      // Pre-sanitize parsed object before Zod schema validation
+      if (parsed && typeof parsed === "object") {
+        if (Array.isArray(parsed.items)) {
+          parsed.items = parsed.items.map((item: any, idx: number) => {
+            if (!item || typeof item !== "object") {
+              return { description: `Item ${idx + 1}`, quantity: 1, unitPrice: 0, taxableAmount: 0, taxRate: 18, totalAmount: 0 };
+            }
+            const qty = Number(item.quantity) || 1;
+            const rate = Number(item.unitPrice) || 0;
+            const discount = Number(item.discountAmount) || 0;
+            const rawTaxable = item.taxableAmount !== null && item.taxableAmount !== undefined && item.taxableAmount !== ""
+              ? (Number(item.taxableAmount) || 0)
+              : Math.max(0, qty * rate - discount);
+
+            const rawTaxRate = item.taxRate !== null && item.taxRate !== undefined && item.taxRate !== ""
+              ? (Number(item.taxRate) || 0)
+              : 18;
+
+            const rawTotal = item.totalAmount !== null && item.totalAmount !== undefined && item.totalAmount !== ""
+              ? (Number(item.totalAmount) || 0)
+              : rawTaxable + (rawTaxable * rawTaxRate / 100);
+
+            return {
+              ...item,
+              description: item.description ? String(item.description).trim() : `Item ${idx + 1}`,
+              quantity: item.quantity !== null && item.quantity !== undefined ? item.quantity : qty,
+              unitPrice: item.unitPrice !== null && item.unitPrice !== undefined ? item.unitPrice : rate,
+              taxableAmount: item.taxableAmount !== null && item.taxableAmount !== undefined ? item.taxableAmount : rawTaxable,
+              taxRate: item.taxRate !== null && item.taxRate !== undefined ? item.taxRate : rawTaxRate,
+              totalAmount: item.totalAmount !== null && item.totalAmount !== undefined ? item.totalAmount : rawTotal,
+              discountAmount: item.discountAmount !== null && item.discountAmount !== undefined ? item.discountAmount : discount,
+              cgstAmount: item.cgstAmount !== null && item.cgstAmount !== undefined ? item.cgstAmount : 0,
+              sgstAmount: item.sgstAmount !== null && item.sgstAmount !== undefined ? item.sgstAmount : 0,
+              igstAmount: item.igstAmount !== null && item.igstAmount !== undefined ? item.igstAmount : 0,
+            };
+          });
+        }
+      }
+
       // Strict schema validation using Zod
       const validatedData: ExtractedBillDataDto = ExtractedBillDataSchema.parse(parsed);
 
