@@ -332,7 +332,7 @@ export function GreetingBanner({
                       className="w-full text-xs font-mono p-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg focus:outline-none focus:border-[#F47721]"
                     />
                   </div>
-                </div>
+                </div> 
 
                 <div className="pt-1 flex items-center justify-end gap-2">
                   <button
