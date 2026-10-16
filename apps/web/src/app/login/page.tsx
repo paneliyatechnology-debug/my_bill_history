@@ -95,6 +95,18 @@ function LoginContent() {
       {/* Minimalist Abstract Wave Lines Background */}
       <WaveBackground variant="login" />
 
+      {/* Back to Home / Introduction link */}
+      <div className="absolute top-5 left-5 z-10">
+        <button
+          type="button"
+          onClick={() => router.push("/")}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-[#FFF8F3] text-xs font-bold text-[#667085] hover:text-[#F47721] rounded-xl border border-[#E5E7EB] shadow-xs transition-all"
+        >
+          <span>←</span>
+          <span>{lang === "gu" ? "હોમ પેજ" : "Home"}</span>
+        </button>
+      </div>
+
       {/* Language Switcher in top corner */}
       <div className="absolute top-5 right-5 z-10 flex items-center bg-white p-1 rounded-xl border border-[#E5E7EB] shadow-xs">
         <button

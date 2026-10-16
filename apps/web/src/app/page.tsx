@@ -13,6 +13,7 @@ import { TopCustomersCard } from "../components/dashboard/top-customers-card";
 import { StockMovementCard, StockMovementItem } from "../components/dashboard/stock-movement-card";
 import { UpcomingActivitiesCard } from "../components/dashboard/upcoming-activities-card";
 import { StatusBadge } from "../components/ui/badge";
+import { IntroductionPage } from "../components/landing/introduction-page";
 
 interface InvoiceItem {
   id: string;
@@ -24,7 +25,7 @@ interface InvoiceItem {
   status: string;
 }
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { lang, tenantContext, currentFY } = useAuth();
 
   // Date range state for dashboard filtering (defaults to Today in local time)
@@ -494,3 +495,28 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+export default function Page() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // Initial authentication hydration
+  if (isLoading) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-[#FAFBFD]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-9 h-9 border-3 border-[#F47721] border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs font-bold text-[#667085] tracking-tight">Loading MyBill History...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // If visitor is unauthenticated, show the rich introduction / landing page
+  if (!isAuthenticated) {
+    return <IntroductionPage />;
+  }
+
+  // If authenticated, render standard business operational dashboard
+  return <DashboardContent />;
+}
+
