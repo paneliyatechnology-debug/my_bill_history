@@ -295,6 +295,7 @@ describe("Hardened Real Document OCR & Extraction Verification Suite", () => {
           cgstAmount: 0,
           sgstAmount: 0,
           igstAmount: 0,
+          cessAmount: 0,
           totalAmount: 570,
           confidence: 90,
           isAmbiguous: false,

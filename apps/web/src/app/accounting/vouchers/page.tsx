@@ -198,16 +198,16 @@ export default function VouchersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle">
+        <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-xl sm:text-2xl lg:text-[1.75rem] font-bold text-[#202124] tracking-tight leading-tight">
               {lang === "gu"
                 ? "નામા વાઉચર રજિસ્ટર (Vouchers Register)"
                 : "Double-Entry Voucher Register"}
             </h1>
           </div>
-          <p className="text-xs text-muted mt-1">
+          <p className="text-xs sm:text-sm text-[#667085] mt-1 leading-relaxed break-words font-normal">
             {lang === "gu"
               ? "રોજમેળ, જમા-ઉધાર, જર્નલ, બેંક અને રોકડ વાઉચરોનું રજિસ્ટર"
               : "Immutable journal entries, receipts, payments, and contra vouchers"}
@@ -216,7 +216,7 @@ export default function VouchersPage() {
 
         <Link
           href="/accounting/vouchers/new"
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F47721] hover:bg-[#D95F12] active:bg-[#B94B0A] text-white text-xs sm:text-sm font-bold rounded-xl shadow-saffron transition-all w-full sm:w-auto shrink-0"
         >
           <svg
             className="w-4 h-4"
@@ -266,7 +266,7 @@ export default function VouchersPage() {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="text-xs bg-slate-50 border border-border text-slate-700 rounded-xl px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+              className="text-xs bg-[#F8FAFC] border border-[#E5E7EB] text-[#202124] rounded-xl px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 focus:border-[#F47721] transition-all cursor-pointer"
             >
               <option value="ALL">{lang === "gu" ? "તમામ વાઉચર (All Types)" : "All Voucher Types"}</option>
               <option value="JOURNAL">{lang === "gu" ? "જર્નલ (JOURNAL)" : "JOURNAL"}</option>

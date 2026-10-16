@@ -429,14 +429,14 @@ export default function PurchasesPage() {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl lg:text-[1.75rem] font-bold text-[#202124] tracking-tight leading-tight">
             {lang === "gu"
               ? "ખરીદી બિલો (Purchase Bills)"
               : "Purchase Bills & Inward Stock"}
           </h1>
-          <p className="text-xs text-muted mt-1">
+          <p className="text-xs sm:text-sm text-[#667085] mt-1 leading-relaxed break-words font-normal">
             {lang === "gu"
               ? "વેપારી ખરીદી, ઇનપુટ ટેક્સ ક્રેડિટ (ITC) અને સ્ટોકની આવક"
               : "Vendor bills, Input Tax Credit (ITC), and inward inventory receipts"}

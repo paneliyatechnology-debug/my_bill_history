@@ -196,14 +196,14 @@ export default function SalesInvoicesPage() {
   return (
     <div className="space-y-4 sm:space-y-6 max-w-full min-w-0">
       {/* 1. Header with Title and Primary Saffron Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-[#E5E7EB] shadow-xs min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle min-w-0">
         <div className="min-w-0">
-          <h1 className="text-lg sm:text-2xl font-bold text-[#202124] tracking-tight truncate">
+          <h1 className="text-xl sm:text-2xl lg:text-[1.75rem] font-bold text-[#202124] tracking-tight leading-tight">
             {lang === "gu"
               ? "વેચાણ બિલોની યાદી (Sales Invoices)"
               : "Sales Invoices & Billing"}
           </h1>
-          <p className="text-xs text-[#667085] mt-1 truncate">
+          <p className="text-xs sm:text-sm text-[#667085] mt-1 leading-relaxed break-words font-normal">
             {lang === "gu"
               ? "ટેક્સ ઇન્વોઇસ, બિલ-બાય-બિલ ચુકવણી અને ગ્રાહકની બાકી રકમનું સંચાલન"
               : "GST Tax Invoices, bill-by-bill receivables, and payment allocations"}

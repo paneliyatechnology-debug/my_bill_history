@@ -437,14 +437,14 @@ export default function PurchaseReturnsPage() {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl lg:text-[1.75rem] font-bold tracking-tight text-[#202124] leading-tight">
             {lang === "gu"
               ? "ડેબિટ નોટ / ખરીદી પરત રજિસ્ટર"
               : "Debit Notes & Purchase Returns"}
           </h1>
-          <p className="text-xs text-muted mt-1">
+          <p className="text-xs sm:text-sm text-[#667085] mt-1 leading-relaxed break-words font-normal">
             {lang === "gu"
               ? "સપ્લાયરને માલ પરત કરો, ઇન્વેન્ટરી આઉટવર્ડ કપાત કરો અને ડેબિટ નોટ વાઉચર બનાવો."
               : "Record goods returned to suppliers, deduct inventory, and issue double-entry Debit Notes."}
@@ -455,7 +455,7 @@ export default function PurchaseReturnsPage() {
             resetForm();
             setIsCreateModalOpen(true);
           }}
-          className="inline-flex items-center justify-center px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white font-bold text-xs sm:text-sm rounded-xl shadow-card hover:shadow-hover transition-all gap-2"
+          className="inline-flex items-center justify-center px-5 py-2.5 bg-[#F47721] hover:bg-[#D95F12] active:bg-[#B94B0A] text-white font-bold text-xs sm:text-sm rounded-xl shadow-saffron transition-all gap-2 w-full sm:w-auto shrink-0"
         >
           <svg
             className="w-4 h-4"

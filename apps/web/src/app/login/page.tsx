@@ -93,7 +93,7 @@ function LoginContent() {
   return (
     <div className="h-full min-h-[100dvh] w-full bg-[#F8F9FB] flex flex-col justify-center items-center p-4 relative overflow-y-auto">
       {/* Minimalist Abstract Wave Lines Background */}
-      <WaveBackground />
+      <WaveBackground variant="login" />
 
       {/* Language Switcher in top corner */}
       <div className="absolute top-5 right-5 z-10 flex items-center bg-white p-1 rounded-xl border border-[#E5E7EB] shadow-xs">

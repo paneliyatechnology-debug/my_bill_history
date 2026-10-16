@@ -59,6 +59,8 @@ const config: Config = {
         },
         // Borders
         divider: "#E5E7EB",
+        border: "#E5E7EB",
+        muted: "#667085",
         // Semantic Indicators
         status: {
           success: "#16834A",

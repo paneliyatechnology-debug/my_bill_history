@@ -139,15 +139,15 @@ export default function SettingsPage() {
   return (
     <div className="max-w-4xl space-y-6">
       {/* Page Title & Navigation Tabs */}
-      <div className="bg-white p-5 rounded-2xl border border-border shadow-subtle space-y-4">
+      <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl lg:text-[1.75rem] font-bold text-[#202124] tracking-tight leading-tight">
               {lang === "gu"
                 ? "કંપની પ્રોફાઇલ અને વ્યવસાય સંચાલન"
                 : "Company Profile & Multi-Business Management"}
             </h1>
-            <p className="text-xs text-muted mt-1">
+            <p className="text-xs sm:text-sm text-[#667085] mt-1 leading-relaxed break-words font-normal">
               {lang === "gu"
                 ? "કાયદેસર માહિતી, જીએસટી, મલ્ટી-કંપની સેટિંગ્સ અને બિલિંગ પસંદગીઓ"
                 : "Legal details, GSTIN, multi-company entitlements, and business preferences"}

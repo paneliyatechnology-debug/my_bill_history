@@ -315,14 +315,14 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6 w-full min-w-0 max-w-full pb-16">
       {/* 1. Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[#202124] tracking-tight">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl lg:text-[1.75rem] font-bold text-[#202124] tracking-tight leading-tight">
             {lang === "gu"
               ? "અહેવાલ કેન્દ્ર (Financial Reports & GST)"
               : "Reports & Statutory Center"}
           </h1>
-          <p className="text-xs text-muted mt-1">
+          <p className="text-xs sm:text-sm text-[#667085] mt-1 leading-relaxed break-words font-normal">
             {lang === "gu"
               ? "ભારતીય નામા પદ્ધતિ અને જીએસટી માન્ય તમામ ૧૪ અહેવાલો"
               : "Authoritative financial statements, ledgers, trial balance, stock, and GSTR-1 summaries"}
@@ -333,7 +333,7 @@ export default function ReportsPage() {
           <button
             onClick={handleExportCsv}
             disabled={isExporting}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#FFF3E8] hover:bg-[#FED7AA] text-[#B94B0A] border border-[#FDBA74] text-xs sm:text-sm font-bold rounded-button shadow-xs transition-all w-full sm:w-auto shrink-0"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#FFF3E8] hover:bg-[#FED7AA] text-[#B94B0A] border border-[#FDBA74] text-xs sm:text-sm font-bold rounded-xl shadow-xs transition-all w-full sm:w-auto shrink-0"
           >
             <span>📥</span>
             <span>{isExporting ? "Downloading..." : "Export Sales CSV"}</span>
@@ -342,7 +342,7 @@ export default function ReportsPage() {
       </div>
 
       {/* 2. Responsive Filter Bar */}
-      <div className="bg-white p-4 sm:p-5 rounded-card border border-[#E5E7EB] shadow-card flex flex-col lg:flex-row lg:items-end justify-between gap-4 w-full min-w-0">
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#E5E7EB] shadow-subtle flex flex-col lg:flex-row lg:items-end justify-between gap-4 w-full min-w-0">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-end gap-3 w-full lg:w-auto flex-1 min-w-0">
           <div className="w-full sm:w-auto flex-1 min-w-[140px]">
             <label className="block text-[11px] font-bold text-[#667085] uppercase tracking-wider mb-1">
@@ -463,7 +463,7 @@ export default function ReportsPage() {
       </div>
 
       {/* 4. Report Content Section */}
-      <div className="bg-white rounded-card border border-[#E5E7EB] shadow-card p-4 sm:p-6 w-full min-w-0 max-w-full min-h-[350px]">
+      <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-subtle p-4 sm:p-6 w-full min-w-0 max-w-full min-h-[350px]">
         {/* Error State with Retry Button */}
         {error && (
           <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">

@@ -80,15 +80,15 @@ export function GstFrame({
   const period = useGstPeriodState();
   return (
     <GstPeriodContext.Provider value={period}>
-    <div className="p-4 sm:p-6 space-y-4">
-      <div className="bg-white p-5 rounded-2xl border border-border shadow-subtle flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">{title}</h1>
+            <h1 className="text-xl sm:text-2xl lg:text-[1.75rem] font-bold text-[#202124] tracking-tight leading-tight">{title}</h1>
           </div>
-          <p className="text-xs text-muted mt-1">
+          <p className="text-xs sm:text-sm text-[#667085] mt-1 leading-relaxed break-words font-normal">
             {currentCompany?.tradeName || currentCompany?.legalName || "No company selected"} · GSTIN:{" "}
-            <span className="font-mono font-bold text-primary">{currentCompany?.gstin || "Not configured"}</span> · {currentFY?.name || "Financial Year"}
+            <span className="font-mono font-bold text-[#F47721]">{currentCompany?.gstin || "Not configured"}</span> · {currentFY?.name || "Financial Year"}
           </p>
         </div>
       </div>
@@ -100,7 +100,7 @@ export function GstFrame({
               key={link.href}
               href={link.href}
               className={`shrink-0 rounded-xl px-3.5 py-2 text-xs font-semibold border transition-all ${
-                active ? "bg-primary text-white border-primary shadow-card font-bold" : "bg-white text-slate-700 border-border hover:border-primary/40 hover:bg-saffron-very-light"
+                active ? "bg-[#F47721] text-white border-[#F47721] shadow-saffron font-bold" : "bg-white text-[#202124] border-[#E5E7EB] hover:border-[#F47721]/40 hover:bg-[#FFFAF5]"
               }`}
             >
               {link.label}
@@ -108,11 +108,11 @@ export function GstFrame({
           );
         })}
       </div>
-      <div className="bg-white border border-border rounded-2xl p-4 shadow-subtle flex flex-wrap gap-4 items-end">
-        <label className="text-xs font-bold text-slate-700">
+      <div className="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-subtle flex flex-wrap gap-4 items-end">
+        <label className="text-xs font-bold text-[#667085]">
           {lang === "gu" ? "મહિનો (Month)" : "Month"}
           <select
-            className="mt-1 block border border-border rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-900 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+            className="mt-1 block border border-[#E5E7EB] rounded-xl px-3 py-1.5 text-xs font-semibold text-[#202124] bg-[#F8FAFC] focus:bg-white focus:ring-2 focus:ring-[#F47721]/20 focus:border-[#F47721] transition-all cursor-pointer"
             value={period.month}
             onChange={(event) => period.setMonth(Number(event.target.value))}
           >
@@ -123,10 +123,10 @@ export function GstFrame({
             ))}
           </select>
         </label>
-        <label className="text-xs font-bold text-slate-700">
+        <label className="text-xs font-bold text-[#667085]">
           {lang === "gu" ? "વર્ષ (Year)" : "Year"}
           <input
-            className="mt-1 block w-24 border border-border rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-slate-900 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            className="mt-1 block w-24 border border-[#E5E7EB] rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-[#202124] bg-[#F8FAFC] focus:bg-white focus:ring-2 focus:ring-[#F47721]/20 focus:border-[#F47721] transition-all"
             type="number"
             value={period.year}
             onChange={(event) => period.setYear(Number(event.target.value))}

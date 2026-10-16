@@ -698,9 +698,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* 2. MAIN APPLICATION CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-0 h-full overflow-hidden print:h-auto print:min-h-0 print:overflow-visible print:block print:w-full relative">
-        {/* Minimalist Abstract Wave Lines Background (Fixed in Canvas) */}
-        <WaveBackground />
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 h-full overflow-hidden print:h-auto print:min-h-0 print:overflow-visible print:block print:w-full relative bg-[#F7F8FA]">
+        {/* Background treatment: subtle neutral for inner pages, elegant branded depth for dashboard */}
+        <WaveBackground variant={pathname === "/" ? "dashboard" : "inner"} />
 
         {/* SuperAdmin Active Support Session Banner */}
         {supportSession?.isSupportSession && (
@@ -852,7 +852,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main
           id="main-content"
           tabIndex={-1}
-          className={`flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden ${
+          className={`flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden relative z-10 ${
             pathname === "/" ? "p-3 sm:p-5 lg:p-6" : "p-3 sm:p-6 lg:p-8"
           } pb-24 lg:pb-8 overscroll-y-contain focus:outline-none print:p-0 print:m-0 print:overflow-visible print:h-auto print:w-full print:block`}
         >
