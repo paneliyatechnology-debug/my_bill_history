@@ -21,6 +21,12 @@ export interface CreateItemDto {
   mrp?: number;
   minStockLevel?: number;
   reorderQuantity?: number;
+  openingStock?: number;
+  openingStockDate?: string;
+  openingBatchNumber?: string;
+  openingMfgDate?: string;
+  openingExpiryDate?: string;
+  warehouseId?: string;
   trackBatches?: boolean;
   trackSerialNo?: boolean;
   valuationMethod?: ValuationMethod;
