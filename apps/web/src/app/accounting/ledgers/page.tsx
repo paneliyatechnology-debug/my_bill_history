@@ -287,7 +287,7 @@ export default function LedgersPage() {
           ) : undefined
         }
         mobileCardRender={(l) => (
-          <div className="space-y-2">
+          <div key={l.id || l.code} className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="font-mono font-bold text-slate-800">{l.code}</span>
               <StatusBadge status={l.isActive ? "ACTIVE" : "INACTIVE"} />

@@ -512,7 +512,7 @@ export default function ProductionOrdersPage() {
         mobileCardRender={(order) => {
           const batch = order.batches?.[0];
           return (
-            <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3">
+            <div key={order.id} className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3">
               <div className="flex items-start justify-between">
                 <div>
                   <div className="font-mono font-semibold text-slate-900">{order.orderNumber}</div>

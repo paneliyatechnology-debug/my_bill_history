@@ -305,7 +305,7 @@ export default function BatchesPage() {
         exportFilename="batches_master"
         themeColor="saffron"
         mobileCardRender={(b) => (
-          <div className="space-y-1.5">
+          <div key={b.id} className="space-y-1.5">
             <div className="flex items-center justify-between">
               <span className="font-mono font-bold text-slate-900">
                 {b.batchNumber}

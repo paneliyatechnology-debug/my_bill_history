@@ -555,7 +555,7 @@ export default function StockTransfersPage() {
         mobileCardRender={(tr) => {
           const totalQty = tr.items.reduce((s, i) => s + Number(i.quantity), 0);
           return (
-            <div className="space-y-2">
+            <div key={tr.id} className="space-y-2">
               <div className="flex items-center justify-between">
                 <div>
                   <span className="font-mono font-bold text-slate-900">

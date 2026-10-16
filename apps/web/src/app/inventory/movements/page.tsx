@@ -178,7 +178,7 @@ export default function StockMovementsPage() {
             "SALES_CANCELLATION",
           ].includes(m.transactionType);
           return (
-            <div className="space-y-1.5">
+            <div key={m.id} className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-slate-900">
                   {m.item?.name || "Inventory Item"}

@@ -298,7 +298,7 @@ export default function NewInvoicePage() {
     <>
       <div className={`space-y-6 max-w-[1440px] mx-auto pb-12 ${isPreviewOpen ? "print:hidden" : ""}`}>
         {/* 1. TOP HEADER & BREADCRUMB */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3.5 sm:gap-4 bg-white p-3.5 sm:p-5 rounded-2xl border border-[#E5E7EB] shadow-xs">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Link
@@ -318,46 +318,49 @@ export default function NewInvoicePage() {
           </p>
         </div>
 
-        {/* Right Header Action Cluster */}
-        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
+        {/* Right Header Action Cluster (Theme, Live Preview, Total) in one neat line */}
+        <div className="grid grid-cols-3 gap-1.5 sm:flex sm:items-center sm:gap-3 w-full sm:w-auto shrink-0">
           {/* Active Theme Selector Pill (opens theme drawer on mobile or scrolls to side on desktop) */}
           <button
             type="button"
             onClick={() => setIsThemeDrawerOpen(true)}
-            className="flex items-center gap-2 px-3 py-2 bg-[#FAFBFD] hover:bg-[#F3F4F6] rounded-xl border border-[#E5E7EB] text-xs transition-colors shadow-xs"
+            className="flex items-center justify-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 bg-[#FAFBFD] hover:bg-[#F3F4F6] rounded-xl border border-[#E5E7EB] text-xs transition-colors shadow-xs h-10 w-full sm:w-auto min-w-0 active:scale-95"
             title={lang === "gu" ? "બિલ થીમ બદલો / કસ્ટમાઇઝ કરો" : "Change Invoice Theme & Style"}
           >
             <span
-              className="w-3.5 h-3.5 rounded-full shrink-0 border border-black/10 shadow-xs"
+              className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full shrink-0 border border-black/10 shadow-xs"
               style={{ backgroundColor: customization.customPrimaryColor || activePreset.primaryColor }}
             />
-            <div className="text-left">
-              <span className="text-[10px] text-[#667085] uppercase font-bold block leading-none">
-                {lang === "gu" ? "થીમ (Theme)" : "Theme"}
+            <div className="text-left min-w-0 truncate">
+              <span className="hidden sm:block text-[9px] text-[#667085] uppercase font-bold leading-none">
+                {lang === "gu" ? "થીમ" : "Theme"}
               </span>
-              <span className="font-bold text-[#202124] leading-tight block">
+              <span className="font-bold text-[#202124] text-[11px] sm:text-xs leading-tight truncate block">
                 {lang === "gu" ? activePreset.nameGujarati : activePreset.name}
               </span>
             </div>
+            <svg className="w-3.5 h-3.5 text-[#667085] shrink-0 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
           </button>
 
           {/* Live Preview Button */}
           <button
             type="button"
             onClick={() => setIsPreviewOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all shadow-xs"
+            className="inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] sm:text-xs font-bold rounded-xl transition-all shadow-xs h-10 w-full sm:w-auto min-w-0 active:scale-95 whitespace-nowrap"
             title={lang === "gu" ? "લાઇવ બિલ પ્રિવ્યૂ જુઓ" : "Open Live Invoice Preview"}
           >
-            <span>👁️</span>
-            <span>{lang === "gu" ? "લાઇવ પ્રિવ્યૂ" : "Live Preview"}</span>
+            <span className="text-sm">👁️</span>
+            <span className="truncate">{lang === "gu" ? "પ્રિવ્યૂ" : "Preview"}</span>
           </button>
 
           {/* Live Grand Total Badge */}
-          <div className="bg-[#FAFBFD] border border-[#E5E7EB] rounded-xl p-2.5 sm:px-4 flex items-center gap-3 shrink-0">
-            <span className="text-xs font-bold text-[#667085] uppercase tracking-wider">
-              {lang === "gu" ? "કુલ રકમ" : "Total"}
+          <div className="bg-[#FFF8F3] border border-[#FED7AA] rounded-xl px-2 py-1 sm:px-3.5 flex flex-col sm:flex-row items-center justify-center sm:gap-2 h-10 w-full sm:w-auto min-w-0 whitespace-nowrap">
+            <span className="text-[9px] sm:text-[11px] font-bold text-[#C2410C] uppercase tracking-wider leading-none">
+              {lang === "gu" ? "કુલ" : "Total"}
             </span>
-            <span className="text-xl sm:text-2xl font-extrabold text-[#F47721] font-mono tracking-tight">
+            <span className="text-xs sm:text-lg font-black text-[#F47721] font-mono tracking-tight leading-none truncate">
               {formatInr(roundedGrandTotal)}
             </span>
           </div>
@@ -486,30 +489,30 @@ export default function NewInvoicePage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end overflow-x-auto scrollbar-none pb-0.5">
             {/* Tax Inclusive / Exclusive Switch */}
-            <div className="flex items-center bg-[#F3F4F6] p-0.5 rounded-lg border border-[#E5E7EB] text-xs">
+            <div className="flex items-center bg-[#F3F4F6] p-0.5 rounded-lg border border-[#E5E7EB] text-xs shrink-0">
               <button
                 type="button"
                 onClick={() => setIsTaxInclusive(false)}
-                className={`px-3 py-1 rounded-md font-bold transition-all ${
+                className={`px-2.5 sm:px-3 py-1 rounded-md font-bold text-[11px] sm:text-xs transition-all ${
                   !isTaxInclusive
                     ? "bg-white text-[#F47721] shadow-xs"
                     : "text-[#667085] hover:text-[#202124]"
                 }`}
               >
-                {lang === "gu" ? "GST અલગથી (+Extra)" : "Tax Exclusive"}
+                {lang === "gu" ? "GST અલગ" : "Tax Excl"}
               </button>
               <button
                 type="button"
                 onClick={() => setIsTaxInclusive(true)}
-                className={`px-3 py-1 rounded-md font-bold transition-all ${
+                className={`px-2.5 sm:px-3 py-1 rounded-md font-bold text-[11px] sm:text-xs transition-all ${
                   isTaxInclusive
                     ? "bg-white text-[#F47721] shadow-xs"
                     : "text-[#667085] hover:text-[#202124]"
                 }`}
               >
-                {lang === "gu" ? "GST સહિત (Inclusive)" : "Tax Inclusive"}
+                {lang === "gu" ? "GST સહિત" : "Tax Incl"}
               </button>
             </div>
 
@@ -517,12 +520,12 @@ export default function NewInvoicePage() {
             <button
               type="button"
               onClick={handleAddRow}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-button text-xs font-bold shadow-saffron transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-button text-xs font-bold shadow-saffron transition-colors shrink-0"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
               </svg>
-              <span>{lang === "gu" ? "વસ્તુ ઉમેરો (F2)" : "Add Item (F2)"}</span>
+              <span>{lang === "gu" ? "વસ્તુ ઉમેરો" : "Add Item"}</span>
             </button>
           </div>
         </div>
@@ -730,33 +733,33 @@ export default function NewInvoicePage() {
           </div>
 
           {/* Submission Buttons */}
-          <div className="pt-3 flex items-center justify-end gap-3">
+          <div className="pt-3 flex flex-row items-center justify-end gap-2.5 sm:gap-3 w-full">
             <button
               type="button"
               disabled={isSubmitting}
               onClick={() => handleSubmit(true)}
-              className="px-4 py-2.5 bg-[#F8F9FB] hover:bg-[#F3F4F6] text-[#667085] border border-[#E5E7EB] rounded-button text-xs font-semibold transition-colors disabled:opacity-50"
+              className="flex-1 sm:flex-initial px-3 sm:px-4 py-2.5 bg-[#F8F9FB] hover:bg-[#F3F4F6] text-[#667085] border border-[#E5E7EB] rounded-button text-xs font-semibold transition-colors disabled:opacity-50 text-center justify-center whitespace-nowrap"
             >
-              {lang === "gu" ? "કાચું સાચવો (Draft)" : "Save Draft"}
+              {lang === "gu" ? "કાચું સાચવો" : "Save Draft"}
             </button>
 
             <button
               type="button"
               disabled={isSubmitting}
               onClick={() => handleSubmit(false)}
-              className="px-6 py-2.5 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-button text-xs sm:text-sm font-bold shadow-saffron transition-all disabled:opacity-50 flex items-center gap-2"
+              className="flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-button text-xs sm:text-sm font-bold shadow-saffron transition-all disabled:opacity-50 flex items-center justify-center gap-2 whitespace-nowrap"
             >
               {isSubmitting ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>{lang === "gu" ? "બિલ બની રહ્યું છે..." : "Generating Bill..."}</span>
+                  <span>{lang === "gu" ? "બની રહ્યું છે..." : "Saving..."}</span>
                 </>
               ) : (
                 <>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span>{lang === "gu" ? "સાચવો અને પ્રિન્ટ કરો (Save & Print)" : "Save & Print Bill"}</span>
+                  <span>{lang === "gu" ? "સાચવો & પ્રિન્ટ" : "Save & Print"}</span>
                 </>
               )}
             </button>

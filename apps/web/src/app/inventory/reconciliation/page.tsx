@@ -564,7 +564,7 @@ export default function InventoryReconciliationPage() {
                       </div>
                     }
                     mobileCardRender={(t) => (
-                      <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-sm space-y-2 text-xs">
+                      <div key={t.transferId || t.transferNumber} className="p-3 bg-white rounded-xl border border-slate-200 shadow-sm space-y-2 text-xs">
                         <div className="flex justify-between items-start">
                           <span className="font-mono font-bold text-slate-900">{t.transferNumber}</span>
                           <span className="font-mono font-bold text-slate-900">₹{Number(t.inTransitValuation).toFixed(2)}</span>

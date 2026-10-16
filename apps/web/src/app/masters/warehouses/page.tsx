@@ -265,7 +265,7 @@ export default function WarehousesPage() {
         exportFilename="warehouses_master"
         themeColor="saffron"
         mobileCardRender={(w) => (
-          <div className="space-y-2">
+          <div key={w.id} className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="font-semibold text-slate-900">{w.name}</span>
               {w.isDefault ? (

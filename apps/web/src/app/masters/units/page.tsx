@@ -265,7 +265,7 @@ export default function UnitsPage() {
         exportFilename="units_master"
         themeColor="saffron"
         mobileCardRender={(u) => (
-          <div className="space-y-2">
+          <div key={u.id || u.code} className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="font-semibold text-slate-900">{u.name}</span>
               <span className="bg-slate-100 text-slate-800 px-2 py-0.5 rounded border border-slate-200 font-mono font-bold text-xs">

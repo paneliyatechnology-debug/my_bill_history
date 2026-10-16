@@ -727,7 +727,7 @@ export default function PurchaseReturnsPage() {
             Number(ret.igstAmount || 0);
 
           return (
-            <div className="space-y-2">
+            <div key={ret.id} className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-indigo-700">
                   {ret.returnNumber}
