@@ -242,7 +242,7 @@ export default function CategoriesPage() {
         exportFilename="categories_master"
         themeColor="saffron"
         mobileCardRender={(c) => (
-          <div className="space-y-2">
+          <div key={c.id} className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="font-semibold text-slate-900">{c.name}</span>
               {c.nameGujarati && (

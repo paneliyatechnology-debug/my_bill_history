@@ -278,7 +278,7 @@ export default function VouchersPage() {
           </div>
         }
         mobileCardRender={(v) => (
-          <div className="space-y-2">
+          <div key={v.id} className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="font-mono font-bold text-slate-900">
                 {v.voucherNumber}

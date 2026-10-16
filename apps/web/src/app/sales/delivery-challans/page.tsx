@@ -497,7 +497,7 @@ export default function DeliveryChallansPage() {
           </div>
         }
         mobileCardRender={(ch) => (
-          <div className="space-y-2">
+          <div key={ch.id} className="space-y-2">
             <div className="flex items-center justify-between">
               <div>
                 <span className="font-mono font-bold text-slate-900">{ch.challanNumber}</span>

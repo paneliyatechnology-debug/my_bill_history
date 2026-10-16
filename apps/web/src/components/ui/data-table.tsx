@@ -112,9 +112,30 @@ export function DataTable<T>({
   }, []);
 
   const activeExportFileName = exportFilename || exportFileName;
-  const resolveKey = keyExtractor 
-    ? ((row: T, idx?: number) => keyExtractor(row, idx)) 
-    : ((row: any, idx?: number) => row?.id || row?.key || row?.code || row?.transferId || String(idx));
+  const resolveKey = (row: any, idx: number): React.Key => {
+    if (keyExtractor) {
+      try {
+        const extracted = keyExtractor(row, idx);
+        if (extracted !== undefined && extracted !== null && extracted !== "") {
+          return String(extracted);
+        }
+      } catch {}
+    }
+    const candidate =
+      row?.id ??
+      row?._id ??
+      row?.key ??
+      row?.code ??
+      row?.transferId ??
+      row?.challanId ??
+      row?.voucherId ??
+      row?.orderId ??
+      row?.uuid;
+    if (candidate !== undefined && candidate !== null && candidate !== "") {
+      return String(candidate);
+    }
+    return `row-${idx}`;
+  };
 
   // 1. FILTERING
   const filteredData = useMemo(() => {
@@ -390,7 +411,21 @@ export function DataTable<T>({
                 </div>
               )
             ) : (
-              paginatedData.map((row, idx) => mobileCardRender(row, (safePage - 1) * pageSize + idx))
+              paginatedData.map((row, idx) => {
+                const globalIdx = (safePage - 1) * pageSize + idx;
+                const uniqueKey = resolveKey(row, globalIdx);
+                const card = mobileCardRender(row, globalIdx);
+                if (React.isValidElement(card)) {
+                  return React.cloneElement(card as React.ReactElement<any>, {
+                    key: card.key != null ? card.key : uniqueKey,
+                  });
+                }
+                return (
+                  <div key={uniqueKey}>
+                    {card}
+                  </div>
+                );
+              })
             )}
           </div>
         )}

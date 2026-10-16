@@ -256,7 +256,7 @@ export default function ChartOfAccountsPage() {
         exportFilename="chart_of_accounts_groups"
         themeColor="saffron"
         mobileCardRender={(g) => (
-          <div className="space-y-2">
+          <div key={g.id || g.code} className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="font-mono font-bold text-slate-800">{g.code}</span>
               <Badge variant={classificationColor[g.classification] || "neutral"}>

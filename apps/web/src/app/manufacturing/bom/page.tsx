@@ -461,7 +461,7 @@ export default function BomPage() {
           </div>
         }
         mobileCardRender={(bom) => (
-          <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3">
+          <div key={bom.id} className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3">
             <div className="flex items-start justify-between">
               <div>
                 <div className="font-semibold text-slate-900">{bom.bomName}</div>
