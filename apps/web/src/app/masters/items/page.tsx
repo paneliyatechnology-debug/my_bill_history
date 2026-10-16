@@ -21,6 +21,7 @@ interface Item {
   mrp?: number;
   purchaseRate?: number;
   minStockLevel?: number;
+  currentStock?: number;
   trackBatches?: boolean;
   trackSerialNo?: boolean;
   isActive: boolean;
@@ -30,6 +31,7 @@ interface Item {
     id: string;
     name: string;
     code: string;
+    symbol?: string;
   };
 }
 
@@ -44,11 +46,18 @@ interface Category {
   name: string;
 }
 
+interface Warehouse {
+  id: string;
+  name: string;
+  isDefault?: boolean;
+}
+
 export default function ItemsPage() {
   const { lang, tenantContext } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,6 +110,11 @@ export default function ItemsPage() {
     mrp: 100,
     purchaseRate: 80,
     minStockLevel: 10,
+    openingStock: 0,
+    warehouseId: "",
+    openingBatchNumber: "",
+    openingExpiryDate: "",
+    openingMfgDate: "",
     trackBatches: false,
   });
 
@@ -108,18 +122,20 @@ export default function ItemsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [itemsRes, unitsRes, catsRes]: any = await Promise.all([
+      const [itemsRes, unitsRes, catsRes, whRes]: any = await Promise.all([
         apiClient.get("/items", {
           search: searchTerm || undefined,
           type: typeFilter !== "ALL" ? typeFilter : undefined,
         }),
         apiClient.get("/units"),
         apiClient.get("/categories"),
+        apiClient.get("/warehouses").catch(() => []),
       ]);
 
       setItems(extractList(itemsRes));
       setUnits(extractList(unitsRes));
       setCategories(extractList(catsRes));
+      setWarehouses(extractList(whRes));
     } catch (err: any) {
       setError(err.message || "Failed to load item catalog.");
     } finally {
@@ -134,6 +150,8 @@ export default function ItemsPage() {
   }, [tenantContext.companyId, fetchData]);
 
   const handleOpenCreateModal = () => {
+    const defaultWh =
+      warehouses.find((w) => w.isDefault)?.id || warehouses[0]?.id || "";
     setFormData({
       type: "PRODUCT",
       name: "",
@@ -148,6 +166,11 @@ export default function ItemsPage() {
       mrp: 100,
       purchaseRate: 80,
       minStockLevel: 10,
+      openingStock: 0,
+      warehouseId: defaultWh,
+      openingBatchNumber: "",
+      openingExpiryDate: "",
+      openingMfgDate: "",
       trackBatches: false,
     });
     setFormError(null);
@@ -179,7 +202,25 @@ export default function ItemsPage() {
         mrp: Number(formData.mrp) || Number(formData.retailPrice) || 0,
         purchaseRate: Number(formData.purchaseRate) || 0,
         minStockLevel: Number(formData.minStockLevel) || 0,
-        trackBatches: formData.type === "PRODUCT" ? Boolean(formData.trackBatches) : false,
+        openingStock:
+          formData.type === "PRODUCT"
+            ? Number(formData.openingStock) || 0
+            : 0,
+        warehouseId: formData.warehouseId || undefined,
+        openingBatchNumber:
+          formData.trackBatches && formData.openingBatchNumber
+            ? formData.openingBatchNumber.trim()
+            : undefined,
+        openingExpiryDate:
+          formData.trackBatches && formData.openingExpiryDate
+            ? formData.openingExpiryDate
+            : undefined,
+        openingMfgDate:
+          formData.trackBatches && formData.openingMfgDate
+            ? formData.openingMfgDate
+            : undefined,
+        trackBatches:
+          formData.type === "PRODUCT" ? Boolean(formData.trackBatches) : false,
       });
 
       setIsModalOpen(false);
@@ -204,7 +245,8 @@ export default function ItemsPage() {
       sku: item.sku || "",
       barcode: item.barcode || "",
       hsnCode: item.hsnCode || "1006",
-      primaryUomId: item.primaryUomId || item.primaryUom?.id || units[0]?.id || "",
+      primaryUomId:
+        item.primaryUomId || item.primaryUom?.id || units[0]?.id || "",
       categoryId: item.categoryId || "",
       taxRate: Number(item.taxRate) || 0,
       retailPrice: Number(item.retailPrice) || 0,
@@ -239,7 +281,10 @@ export default function ItemsPage() {
         mrp: Number(editFormData.mrp) || Number(editFormData.retailPrice) || 0,
         purchaseRate: Number(editFormData.purchaseRate) || 0,
         minStockLevel: Number(editFormData.minStockLevel) || 0,
-        trackBatches: editFormData.type === "PRODUCT" ? Boolean(editFormData.trackBatches) : false,
+        trackBatches:
+          editFormData.type === "PRODUCT"
+            ? Boolean(editFormData.trackBatches)
+            : false,
         isActive: Boolean(editFormData.isActive),
       });
 
@@ -340,6 +385,36 @@ export default function ItemsPage() {
           ) : (
             <span className="text-[11px] text-slate-400 italic">N/A</span>
           ),
+      },
+      {
+        id: "stock",
+        header: lang === "gu" ? "સ્ટોક જથ્થો" : "Stock Qty",
+        sortable: true,
+        accessorFn: (it) => (it.type === "PRODUCT" ? Number(it.currentStock || 0) : -1),
+        className: "text-center",
+        cell: (it) => {
+          if (it.type === "SERVICE") {
+            return <span className="text-slate-400 text-xs font-mono">—</span>;
+          }
+          const stock = Number(it.currentStock || 0);
+          const min = Number(it.minStockLevel || 0);
+          const uom = it.primaryUom?.code || it.primaryUom?.symbol || "";
+          const isLow = stock <= min;
+
+          return (
+            <span
+              className={`inline-flex items-center gap-1 font-mono text-xs px-2.5 py-0.5 rounded-full font-bold border ${
+                isLow
+                  ? "bg-amber-50 text-amber-700 border-amber-300"
+                  : "bg-emerald-50 text-emerald-800 border-emerald-200"
+              }`}
+              title={isLow ? `Low stock alert! (Min level: ${min})` : `In stock`}
+            >
+              {isLow && <span className="text-[10px]">⚠️</span>}
+              {stock} {uom}
+            </span>
+          );
+        },
       },
       {
         id: "taxRate",
@@ -507,13 +582,31 @@ export default function ItemsPage() {
               <span>SKU: {it.sku || it.barcode || "—"}</span>
               <span>HSN: {it.hsnCode}</span>
             </div>
-            <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex items-center justify-between text-xs">
+            <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 grid grid-cols-3 gap-2 text-xs">
               <div>
                 <span className="text-[10px] text-slate-500 uppercase block">
                   {lang === "gu" ? "વેચાણ ભાવ" : "Retail Price"}
                 </span>
                 <span className="font-mono font-bold text-slate-900">
                   ₹{Number(it.retailPrice).toFixed(2)}
+                </span>
+              </div>
+              <div className="text-center">
+                <span className="text-[10px] text-slate-500 uppercase block">
+                  {lang === "gu" ? "સ્ટોક" : "Stock"}
+                </span>
+                <span
+                  className={`font-mono font-bold text-xs ${
+                    it.type === "SERVICE"
+                      ? "text-slate-400"
+                      : Number(it.currentStock || 0) <= Number(it.minStockLevel || 0)
+                      ? "text-amber-600"
+                      : "text-emerald-700"
+                  }`}
+                >
+                  {it.type === "SERVICE"
+                    ? "—"
+                    : `${Number(it.currentStock || 0)} ${it.primaryUom?.code || it.primaryUom?.symbol || ""}`}
                 </span>
               </div>
               <div className="text-right">
@@ -752,6 +845,149 @@ export default function ItemsPage() {
               />
             </div>
           </div>
+
+          {/* Stock & Inventory Section (Only for Products) */}
+          {formData.type === "PRODUCT" && (
+            <div className="p-4 bg-amber-50/40 border border-amber-200/80 rounded-xl space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-[#F47721]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                  {lang === "gu" ? "સ્ટોક અને ઇન્વેન્ટરી વિગતો" : "Stock & Inventory Details"}
+                </span>
+                {Number(formData.openingStock) > 0 && (
+                  <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-100/80 px-2.5 py-0.5 rounded-full border border-emerald-300 font-mono">
+                    {lang === "gu" ? "મૂલ્યાંકન: " : "Valuation: "}
+                    ₹{(Number(formData.openingStock) * Number(formData.purchaseRate || formData.retailPrice || 0)).toFixed(2)}
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                    {lang === "gu" ? "શરૂઆતનો સ્ટોક (Opening Stock Qty)" : "Opening Stock Quantity"}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="any"
+                      min="0"
+                      value={formData.openingStock}
+                      onFocus={(e) => e.target.select()}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          openingStock: e.target.value === "" ? 0 : Number(e.target.value),
+                        })
+                      }
+                      placeholder="0"
+                      className="w-full text-xs p-2 bg-white border border-slate-300 rounded font-mono font-bold text-slate-900 focus:bg-white focus:ring-1 focus:ring-emerald-500 pr-14"
+                    />
+                    <span className="absolute right-2.5 top-2 text-[11px] font-semibold text-slate-400">
+                      {units.find((u) => u.id === formData.primaryUomId)?.code || "Units"}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    {lang === "gu"
+                      ? "હાલમાં તમારી પાસે ઉપલબ્ધ શરૂઆતનો જથ્થો"
+                      : "Current available quantity on hand"}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                    {lang === "gu" ? "લઘુત્તમ સ્ટોક એલર્ટ (Min Stock Level)" : "Low Stock Alert (Min Qty)"}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="any"
+                      min="0"
+                      value={formData.minStockLevel}
+                      onFocus={(e) => e.target.select()}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          minStockLevel: e.target.value === "" ? 0 : Number(e.target.value),
+                        })
+                      }
+                      placeholder="10"
+                      className="w-full text-xs p-2 bg-white border border-slate-300 rounded font-mono font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-emerald-500 pr-14"
+                    />
+                    <span className="absolute right-2.5 top-2 text-[11px] font-semibold text-slate-400">
+                      {units.find((u) => u.id === formData.primaryUomId)?.code || "Units"}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    {lang === "gu"
+                      ? "આ જથ્થાથી ઓછો સ્ટોક થાય ત્યારે ચેતવણી મળશે"
+                      : "Alert when stock falls below this level"}
+                  </p>
+                </div>
+              </div>
+
+              {warehouses.length > 1 && (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                    {lang === "gu" ? "ગોડાઉન / વેરહાઉસ" : "Warehouse / Godown"}
+                  </label>
+                  <select
+                    value={formData.warehouseId}
+                    onChange={(e) =>
+                      setFormData({ ...formData, warehouseId: e.target.value })
+                    }
+                    className="w-full text-xs p-2 bg-white border border-slate-300 rounded"
+                  >
+                    {warehouses.map((wh) => (
+                      <option key={wh.id} value={wh.id}>
+                        {wh.name} {wh.isDefault ? "(Default)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {formData.trackBatches && Number(formData.openingStock) > 0 && (
+                <div className="pt-2 border-t border-amber-200/60 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                      {lang === "gu" ? "શરૂઆતનો બેચ નંબર" : "Opening Batch Number"}
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.openingBatchNumber}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          openingBatchNumber: e.target.value,
+                        })
+                      }
+                      placeholder="e.g. BATCH-01"
+                      className="w-full text-xs p-2 bg-white border border-slate-300 rounded font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                      {lang === "gu" ? "એક્સપાયરી તારીખ" : "Expiry Date (Optional)"}
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.openingExpiryDate}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          openingExpiryDate: e.target.value,
+                        })
+                      }
+                      className="w-full text-xs p-2 bg-white border border-slate-300 rounded"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Batch Tracking Toggle (Only for Products) */}
           {formData.type === "PRODUCT" && (
@@ -1014,6 +1250,49 @@ export default function ItemsPage() {
               />
             </div>
           </div>
+
+          {/* Stock & Low Stock Alert in Edit Modal */}
+          {editFormData.type === "PRODUCT" && (
+            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-[#F47721]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                  {lang === "gu" ? "સ્ટોક નિયંત્રણ (Stock & Inventory)" : "Stock & Inventory Alert"}
+                </span>
+                {editingItem && (
+                  <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    {lang === "gu" ? "હાલનો સ્ટોક: " : "Current Stock: "}
+                    {Number(editingItem.currentStock || 0)} {editingItem.primaryUom?.code || editingItem.primaryUom?.symbol || ""}
+                  </span>
+                )}
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                  {lang === "gu" ? "લઘુત્તમ સ્ટોક એલર્ટ (Min Stock Level)" : "Low Stock Alert (Min Qty)"}
+                </label>
+                <input
+                  type="number"
+                  step="any"
+                  min="0"
+                  value={editFormData.minStockLevel}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      minStockLevel: Number(e.target.value),
+                    })
+                  }
+                  className="w-full text-xs p-2 bg-white border border-slate-300 rounded font-mono font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-emerald-500"
+                />
+                <p className="text-[10px] text-slate-500 mt-1">
+                  {lang === "gu"
+                    ? "જ્યારે સ્ટોક આ સ્તરથી નીચે જશે ત્યારે સિસ્ટમ ચેતવણી આપશે."
+                    : "System alerts when on-hand stock falls below this quantity."}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Batch Tracking Toggle & Active Toggle */}
           <div className="space-y-3 pt-2">

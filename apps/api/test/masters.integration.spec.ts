@@ -57,6 +57,9 @@ describe("Phase 3: Master Data & Party/Item Catalogs (Integration)", () => {
         await tx.userBranchAssignment.deleteMany({
           where: { branch: { organizationId: { in: orgIds } } },
         });
+        await tx.stockTransaction.deleteMany({
+          where: { organizationId: { in: orgIds } },
+        });
         await tx.itemBatch.deleteMany({
           where: { item: { organizationId: { in: orgIds } } },
         });
@@ -719,6 +722,44 @@ describe("Phase 3: Master Data & Party/Item Catalogs (Integration)", () => {
       expect(serviceItem.type).toBe(ItemType.SERVICE);
       expect(serviceItem.trackBatches).toBe(false);
       expect(serviceItem.trackSerialNo).toBe(false);
+    });
+
+    it("should create Product item with opening stock and initialize StockTransaction", async () => {
+      const res = await app.inject({
+        method: "POST",
+        url: "/api/v1/items",
+        headers: { authorization: `Bearer ${tenantAToken}` },
+        payload: {
+          type: ItemType.PRODUCT,
+          name: "Premium Basmati Rice 25kg",
+          nameGujarati: "પ્રીમિયમ બાસમતી ચોખા ૨૫ કિલો",
+          sku: "RICE-BAS-25",
+          barcode: "8901234567899",
+          hsnCode: "1006",
+          primaryUomId: uomBoxId,
+          taxRate: 5.0,
+          purchaseRate: 80.0,
+          retailPrice: 100.0,
+          minStockLevel: 10.0,
+          openingStock: 50.0,
+        },
+      });
+
+      expect(res.statusCode).toBe(201);
+      const item = JSON.parse(res.body);
+      expect(item.name).toBe("Premium Basmati Rice 25kg");
+      expect(Number(item.currentStock)).toBe(50);
+
+      // Verify list endpoint includes currentStock
+      const listRes = await app.inject({
+        method: "GET",
+        url: `/api/v1/items?search=RICE-BAS-25`,
+        headers: { authorization: `Bearer ${tenantAToken}` },
+      });
+      expect(listRes.statusCode).toBe(200);
+      const listData = JSON.parse(listRes.body);
+      expect(listData.items.length).toBe(1);
+      expect(Number(listData.items[0].currentStock)).toBe(50);
     });
 
     it("should reject duplicate SKU and duplicate Barcode within company (409 Conflict)", async () => {

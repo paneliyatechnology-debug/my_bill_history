@@ -10,6 +10,7 @@ import {
   TenantContext,
   ItemType,
   ValuationMethod,
+  StockTransactionType,
 } from "@billing/shared-types";
 import { CreateItemDto } from "./dto/create-item.dto";
 import { UpdateItemDto, QueryItemsDto } from "./dto/update-item.dto";
@@ -211,7 +212,108 @@ export class ItemsService {
         },
       });
 
-      // 6. Audit Log
+      // 6. Record Opening Stock Transaction if initial stock quantity is provided for Product
+      let initialStock = 0;
+      if (
+        type === ItemType.PRODUCT &&
+        dto.openingStock !== undefined &&
+        Number(dto.openingStock) > 0
+      ) {
+        initialStock = Number(dto.openingStock);
+        const valRate = Number(dto.purchaseRate || dto.retailPrice || 0);
+        const totalVal = initialStock * valRate;
+
+        // Resolve Warehouse
+        let warehouseId = dto.warehouseId;
+        if (!warehouseId) {
+          const defaultWh = await tx.warehouse.findFirst({
+            where: { companyId: ctx.companyId, isDefault: true },
+          });
+          if (defaultWh) {
+            warehouseId = defaultWh.id;
+          } else {
+            const anyWh = await tx.warehouse.findFirst({
+              where: { companyId: ctx.companyId },
+            });
+            if (anyWh) {
+              warehouseId = anyWh.id;
+            } else {
+              let resolvedBranchId = ctx.branchId;
+              if (!resolvedBranchId) {
+                const branch = await tx.branch.findFirst({
+                  where: { companyId: ctx.companyId },
+                });
+                if (branch) {
+                  resolvedBranchId = branch.id;
+                } else {
+                  const newBranch = await tx.branch.create({
+                    data: {
+                      organizationId: ctx.organizationId,
+                      companyId: ctx.companyId,
+                      name: "Main Branch",
+                      code: "MAIN",
+                      isMainBranch: true,
+                      addressLine1: "Main Office",
+                      city: "Ahmedabad",
+                      pincode: "380001",
+                      stateCode: "24",
+                      phone: "9999999999",
+                    },
+                  });
+                  resolvedBranchId = newBranch.id;
+                }
+              }
+              const createdWh = await tx.warehouse.create({
+                data: {
+                  organizationId: ctx.organizationId,
+                  companyId: ctx.companyId,
+                  branchId: resolvedBranchId,
+                  name: "Main Warehouse",
+                  isDefault: true,
+                },
+              });
+              warehouseId = createdWh.id;
+            }
+          }
+        }
+
+        // Optional Batch for Opening Stock if trackBatches is enabled
+        let batchId: string | null = null;
+        if (trackBatches) {
+          const batchNumber = dto.openingBatchNumber?.trim() || "OPENING-BATCH";
+          const batch = await tx.itemBatch.create({
+            data: {
+              itemId: item.id,
+              batchNumber,
+              mfgDate: dto.openingMfgDate ? new Date(dto.openingMfgDate) : null,
+              expiryDate: dto.openingExpiryDate ? new Date(dto.openingExpiryDate) : null,
+              purchaseRate: valRate,
+              mrp: dto.mrp ?? dto.retailPrice,
+              salePrice: dto.retailPrice,
+            },
+          });
+          batchId = batch.id;
+        }
+
+        await tx.stockTransaction.create({
+          data: {
+            organizationId: ctx.organizationId,
+            companyId: ctx.companyId,
+            warehouseId,
+            itemId: item.id,
+            batchId,
+            transactionType: StockTransactionType.OPENING,
+            transactionDate: dto.openingStockDate ? new Date(dto.openingStockDate) : new Date(),
+            quantity: initialStock,
+            valuationRate: valRate,
+            totalValuation: totalVal,
+            referenceDocType: "OPENING_BALANCE",
+            referenceDocId: item.id,
+          },
+        });
+      }
+
+      // 7. Audit Log
       if (ctx.userId) {
         await this.audit.record({
           organizationId: ctx.organizationId,
@@ -220,11 +322,14 @@ export class ItemsService {
           action: "ITEM_CREATE",
           entityName: "Item",
           entityId: item.id,
-          newState: item,
+          newState: { ...item, currentStock: initialStock },
         });
       }
 
-      return item;
+      return {
+        ...item,
+        currentStock: initialStock,
+      };
     });
   }
 
@@ -254,6 +359,10 @@ export class ItemsService {
             orderBy: { createdAt: "desc" },
             take: 5,
           },
+          stockTransactions: {
+            where: { companyId: ctx.companyId },
+            select: { quantity: true },
+          },
         },
       });
 
@@ -266,7 +375,15 @@ export class ItemsService {
         });
       }
 
-      return item;
+      const currentStock = (item.stockTransactions || []).reduce(
+        (sum, st) => sum + Number(st.quantity),
+        0,
+      );
+      const { stockTransactions, ...rest } = item;
+      return {
+        ...rest,
+        currentStock,
+      };
     });
   }
 
@@ -311,6 +428,10 @@ export class ItemsService {
             secondaryUom: true,
             category: true,
             hsnMaster: true,
+            stockTransactions: {
+              where: { companyId: ctx.companyId },
+              select: { quantity: true },
+            },
           },
           orderBy: { name: "asc" },
           skip,
@@ -319,8 +440,20 @@ export class ItemsService {
         tx.item.count({ where }),
       ]);
 
+      const itemsWithStock = items.map((it) => {
+        const currentStock = (it.stockTransactions || []).reduce(
+          (sum, st) => sum + Number(st.quantity),
+          0,
+        );
+        const { stockTransactions, ...rest } = it;
+        return {
+          ...rest,
+          currentStock,
+        };
+      });
+
       return {
-        items,
+        items: itemsWithStock,
         total,
         page,
         limit,
@@ -339,6 +472,10 @@ export class ItemsService {
           category: true,
           batches: true,
           hsnMaster: true,
+          stockTransactions: {
+            where: { companyId: ctx.companyId },
+            select: { quantity: true },
+          },
         },
       });
 
@@ -350,7 +487,15 @@ export class ItemsService {
         });
       }
 
-      return item;
+      const currentStock = (item.stockTransactions || []).reduce(
+        (sum, st) => sum + Number(st.quantity),
+        0,
+      );
+      const { stockTransactions, ...rest } = item;
+      return {
+        ...rest,
+        currentStock,
+      };
     });
   }
 
