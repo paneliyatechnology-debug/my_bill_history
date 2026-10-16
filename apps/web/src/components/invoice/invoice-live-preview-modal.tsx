@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   InvoiceCustomization,
   getActiveThemePreset,
@@ -51,7 +52,27 @@ export function InvoiceLivePreviewModal({
   lang,
   invoiceData,
 }: InvoiceLivePreviewModalProps) {
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Lock body scroll and listen for Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen || !mounted) return null;
 
   const preset = getActiveThemePreset(customization);
   const primaryColor = customization.customPrimaryColor || preset.primaryColor;
@@ -84,14 +105,14 @@ export function InvoiceLivePreviewModal({
       ? "font-mono"
       : "font-sans";
 
-  return (
+  return createPortal(
     <div
       id="invoice-live-preview-modal"
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-fadeIn print:p-0 print:m-0 print:bg-white print:static print:overflow-visible print:block"
+      className="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 my-0 animate-fadeIn print:p-0 print:m-0 print:bg-white print:static print:overflow-visible print:block"
     >
-      <div className="bg-[#F3F4F6] rounded-2xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-300 overflow-hidden print:max-w-none print:w-full print:max-h-none print:h-auto print:border-none print:shadow-none print:bg-white print:overflow-visible print:p-0 print:m-0 print:rounded-none">
+      <div className="bg-[#F3F4F6] rounded-2xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-300 overflow-hidden relative print:max-w-none print:w-full print:max-h-none print:h-auto print:border-none print:shadow-none print:bg-white print:overflow-visible print:p-0 print:m-0 print:rounded-none">
         {/* Top Control Bar */}
-        <div className="bg-white px-5 py-3 border-b border-slate-200 flex items-center justify-between shrink-0 print:hidden">
+        <div className="bg-white px-5 py-3 border-b border-slate-200 flex items-center justify-between shrink-0 sticky top-0 z-30 print:hidden">
           <div className="flex items-center gap-2.5">
             <span
               className="w-3.5 h-3.5 rounded-full"
@@ -529,6 +550,7 @@ export function InvoiceLivePreviewModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
