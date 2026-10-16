@@ -75,3 +75,9 @@ export interface QueryGstr1ReportDto {
   fromDate?: string;
   toDate?: string;
 }
+
+export interface QueryFinancialSummaryDto {
+  asOfDate?: string;
+}
+
+export type { FinancialSummaryDto } from "@billing/shared-types";

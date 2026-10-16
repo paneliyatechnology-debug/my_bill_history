@@ -23,6 +23,8 @@ import {
   QueryStockSummaryDto,
   QueryStockMovementReportDto,
   QueryGstr1ReportDto,
+  QueryFinancialSummaryDto,
+  type FinancialSummaryDto,
 } from "./dto/query-reports.dto";
 
 @Controller("reports")
@@ -36,6 +38,43 @@ import {
 )
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
+
+  // 0. Live Financial Summary (To Collect, To Pay, Cash + Bank)
+  @Get("financial-summary")
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.ORG_ADMIN,
+    UserRole.COMPANY_ADMIN,
+    UserRole.ACCOUNTANT,
+    UserRole.AUDITOR,
+    UserRole.BRANCH_MANAGER,
+    UserRole.CASHIER,
+    UserRole.SALESMAN,
+  )
+  async getFinancialSummary(
+    @CurrentTenant() tenant: TenantContext,
+    @Query() query: QueryFinancialSummaryDto,
+  ): Promise<FinancialSummaryDto> {
+    return await this.reportsService.getFinancialSummary(tenant, query);
+  }
+
+  @Get("dashboard-summary")
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.ORG_ADMIN,
+    UserRole.COMPANY_ADMIN,
+    UserRole.ACCOUNTANT,
+    UserRole.AUDITOR,
+    UserRole.BRANCH_MANAGER,
+    UserRole.CASHIER,
+    UserRole.SALESMAN,
+  )
+  async getDashboardSummary(
+    @CurrentTenant() tenant: TenantContext,
+    @Query() query: QueryFinancialSummaryDto,
+  ): Promise<FinancialSummaryDto> {
+    return await this.reportsService.getFinancialSummary(tenant, query);
+  }
 
   // 1. Sales Register
   @Get("sales-register")

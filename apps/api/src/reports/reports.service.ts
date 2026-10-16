@@ -39,6 +39,8 @@ import {
   QueryStockSummaryDto,
   QueryStockMovementReportDto,
   QueryGstr1ReportDto,
+  QueryFinancialSummaryDto,
+  type FinancialSummaryDto,
 } from "./dto/query-reports.dto";
 
 /**
@@ -67,6 +69,18 @@ export function generateCsv(
   const headerLine = headers.map(formatCsvCell).join(",");
   const rowLines = rows.map((r) => r.map(formatCsvCell).join(","));
   return [headerLine, ...rowLines].join("\r\n");
+}
+
+export function parseStartOfDay(dateStr?: string): Date | undefined {
+  if (!dateStr) return undefined;
+  if (dateStr.includes("T")) return new Date(dateStr);
+  return new Date(`${dateStr}T00:00:00.000Z`);
+}
+
+export function parseEndOfDay(dateStr?: string): Date | undefined {
+  if (!dateStr) return undefined;
+  if (dateStr.includes("T")) return new Date(dateStr);
+  return new Date(`${dateStr}T23:59:59.999Z`);
 }
 
 @Injectable()
@@ -103,10 +117,10 @@ export class ReportsService {
       if (query.fromDate || query.toDate) {
         where.invoiceDate = {};
         if (query.fromDate) {
-          where.invoiceDate.gte = new Date(query.fromDate);
+          where.invoiceDate.gte = parseStartOfDay(query.fromDate);
         }
         if (query.toDate) {
-          where.invoiceDate.lte = new Date(query.toDate);
+          where.invoiceDate.lte = parseEndOfDay(query.toDate);
         }
       }
 
@@ -435,10 +449,10 @@ export class ReportsService {
       if (query.fromDate || query.toDate) {
         where.voucherDate = {};
         if (query.fromDate) {
-          where.voucherDate.gte = new Date(query.fromDate);
+          where.voucherDate.gte = parseStartOfDay(query.fromDate);
         }
         if (query.toDate) {
-          where.voucherDate.lte = new Date(query.toDate);
+          where.voucherDate.lte = parseEndOfDay(query.toDate);
         }
       }
 
@@ -551,6 +565,205 @@ export class ReportsService {
   }
 
   // --------------------------------------------------------------------------
+  // 3b. LIVE FINANCIAL SUMMARY (TO COLLECT, TO PAY, CASH + BANK)
+  // --------------------------------------------------------------------------
+  async getFinancialSummary(
+    tenant: TenantContext,
+    query?: QueryFinancialSummaryDto,
+  ): Promise<FinancialSummaryDto> {
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const asOfDateObj = query?.asOfDate ? parseEndOfDay(query.asOfDate) : null;
+
+      // 1. To Collect (Customer Receivables)
+      const customerParties = await tx.party.findMany({
+        where: {
+          companyId: tenant.companyId,
+          isActive: true,
+          type: { in: [PartyType.CUSTOMER, PartyType.BOTH] },
+        },
+        select: {
+          id: true,
+          type: true,
+          ledgerAccount: {
+            select: {
+              id: true,
+              openingBalance: true,
+              openingType: true,
+              currentBalance: true,
+            },
+          },
+          salesInvoices: {
+            where: {
+              status: { notIn: [InvoiceStatus.CANCELLED, InvoiceStatus.DRAFT] },
+              balanceAmount: { not: 0 },
+              ...(asOfDateObj ? { invoiceDate: { lte: asOfDateObj } } : {}),
+            },
+            select: {
+              balanceAmount: true,
+            },
+          },
+        },
+      });
+
+      let totalReceivables = new Decimal(0);
+      for (const p of customerParties) {
+        let invoiceBal = new Decimal(0);
+        for (const inv of p.salesInvoices) {
+          invoiceBal = invoiceBal.plus(toMoney(inv.balanceAmount));
+        }
+
+        if (invoiceBal.gt(0)) {
+          totalReceivables = totalReceivables.plus(invoiceBal);
+        } else if (p.ledgerAccount) {
+          const ledgerBal = toMoney(p.ledgerAccount.currentBalance);
+          if (ledgerBal.gt(0)) {
+            totalReceivables = totalReceivables.plus(ledgerBal);
+          }
+        }
+      }
+
+      // 2. To Pay (Supplier Payables)
+      const supplierParties = await tx.party.findMany({
+        where: {
+          companyId: tenant.companyId,
+          isActive: true,
+          type: { in: [PartyType.SUPPLIER, PartyType.BOTH] },
+        },
+        select: {
+          id: true,
+          type: true,
+          ledgerAccount: {
+            select: {
+              id: true,
+              openingBalance: true,
+              openingType: true,
+              currentBalance: true,
+            },
+          },
+          purchaseInvoices: {
+            where: {
+              balanceAmount: { not: 0 },
+              ...(asOfDateObj ? { invoiceDate: { lte: asOfDateObj } } : {}),
+            },
+            select: {
+              balanceAmount: true,
+            },
+          },
+        },
+      });
+
+      let totalPayables = new Decimal(0);
+      for (const p of supplierParties) {
+        let purchaseBal = new Decimal(0);
+        for (const pinv of p.purchaseInvoices || []) {
+          purchaseBal = purchaseBal.plus(toMoney(pinv.balanceAmount));
+        }
+
+        if (purchaseBal.gt(0)) {
+          totalPayables = totalPayables.plus(purchaseBal);
+        } else if (p.ledgerAccount) {
+          const ledgerBal = toMoney(p.ledgerAccount.currentBalance);
+          if (ledgerBal.gt(0)) {
+            totalPayables = totalPayables.plus(ledgerBal);
+          }
+        }
+      }
+
+      // 3. Cash & Bank Balances (Posted uncancelled journal entries + opening balances)
+      const cashBankAccounts = await tx.ledgerAccount.findMany({
+        where: {
+          companyId: tenant.companyId,
+          isActive: true,
+          OR: [{ isCashLedger: true }, { isBankLedger: true }],
+        },
+        select: {
+          id: true,
+          name: true,
+          code: true,
+          isCashLedger: true,
+          isBankLedger: true,
+          openingBalance: true,
+          openingType: true,
+        },
+      });
+
+      let totalCash = new Decimal(0);
+      let totalBank = new Decimal(0);
+
+      if (cashBankAccounts.length > 0) {
+        const accountIds = cashBankAccounts.map((a) => a.id);
+
+        const journalTotals: Array<{
+          accountId: string;
+          totalDebit: string | number;
+          totalCredit: string | number;
+        }> = asOfDateObj
+          ? await tx.$queryRaw`
+              SELECT 
+                je.account_id AS "accountId",
+                COALESCE(SUM(je.debit_amount), 0)::text AS "totalDebit",
+                COALESCE(SUM(je.credit_amount), 0)::text AS "totalCredit"
+              FROM journal_entries je
+              JOIN vouchers v ON v.id = je.voucher_id
+              WHERE v.company_id = ${tenant.companyId}::uuid
+                AND v.is_cancelled = false
+                AND v.voucher_date <= ${asOfDateObj}
+                AND je.account_id = ANY(${accountIds}::uuid[])
+              GROUP BY je.account_id
+            `
+          : await tx.$queryRaw`
+              SELECT 
+                je.account_id AS "accountId",
+                COALESCE(SUM(je.debit_amount), 0)::text AS "totalDebit",
+                COALESCE(SUM(je.credit_amount), 0)::text AS "totalCredit"
+              FROM journal_entries je
+              JOIN vouchers v ON v.id = je.voucher_id
+              WHERE v.company_id = ${tenant.companyId}::uuid
+                AND v.is_cancelled = false
+                AND je.account_id = ANY(${accountIds}::uuid[])
+              GROUP BY je.account_id
+            `;
+
+        const journalMap = new Map<string, { dr: Decimal; cr: Decimal }>();
+        for (const row of journalTotals) {
+          journalMap.set(row.accountId, {
+            dr: toMoney(row.totalDebit),
+            cr: toMoney(row.totalCredit),
+          });
+        }
+
+        for (const acc of cashBankAccounts) {
+          const openBal = toMoney(acc.openingBalance);
+          let accBalance = acc.openingType === "CR" ? openBal.negated() : openBal;
+
+          const jTotals = journalMap.get(acc.id);
+          if (jTotals) {
+            accBalance = accBalance.plus(jTotals.dr).minus(jTotals.cr);
+          }
+
+          if (acc.isCashLedger) {
+            totalCash = totalCash.plus(accBalance);
+          } else if (acc.isBankLedger) {
+            totalBank = totalBank.plus(accBalance);
+          }
+        }
+      }
+
+      const totalCashBank = totalCash.plus(totalBank);
+
+      return {
+        toCollect: totalReceivables.toFixed(2),
+        toPay: totalPayables.toFixed(2),
+        cashBalance: totalCash.toFixed(2),
+        bankBalance: totalBank.toFixed(2),
+        totalCashBankBalance: totalCashBank.toFixed(2),
+        currency: "INR",
+        asOf: (query?.asOfDate ? new Date(query.asOfDate) : new Date()).toISOString(),
+      };
+    });
+  }
+
+  // --------------------------------------------------------------------------
   // 4. OUTSTANDING BALANCES & PARTY AGING
   // --------------------------------------------------------------------------
   async getOutstandingBalances(
@@ -657,17 +870,25 @@ export class ReportsService {
         if (p.type === PartyType.CUSTOMER) {
           if (invoiceBalance.gt(0)) {
             totalReceivables = totalReceivables.plus(invoiceBalance);
+          } else if (p.ledgerAccount && toMoney(p.ledgerAccount.currentBalance).gt(0)) {
+            totalReceivables = totalReceivables.plus(toMoney(p.ledgerAccount.currentBalance));
           }
         } else if (p.type === PartyType.SUPPLIER) {
           if (purchaseBalance.gt(0)) {
             totalPayables = totalPayables.plus(purchaseBalance);
+          } else if (p.ledgerAccount && toMoney(p.ledgerAccount.currentBalance).gt(0)) {
+            totalPayables = totalPayables.plus(toMoney(p.ledgerAccount.currentBalance));
           }
         } else if (p.type === PartyType.BOTH) {
           if (invoiceBalance.gt(0)) {
             totalReceivables = totalReceivables.plus(invoiceBalance);
+          } else if (p.ledgerAccount && toMoney(p.ledgerAccount.currentBalance).gt(0)) {
+            totalReceivables = totalReceivables.plus(toMoney(p.ledgerAccount.currentBalance));
           }
           if (purchaseBalance.gt(0)) {
             totalPayables = totalPayables.plus(purchaseBalance);
+          } else if (p.ledgerAccount && toMoney(p.ledgerAccount.currentBalance).gt(0)) {
+            totalPayables = totalPayables.plus(toMoney(p.ledgerAccount.currentBalance));
           }
         }
 
@@ -698,13 +919,31 @@ export class ReportsService {
         };
       });
 
+      const customerCount = items.filter(
+        (p) => p.partyType === PartyType.CUSTOMER || p.partyType === PartyType.BOTH,
+      ).length;
+      const supplierCount = items.filter(
+        (p) => p.partyType === PartyType.SUPPLIER || p.partyType === PartyType.BOTH,
+      ).length;
+
+      const summary = {
+        totalReceivables: totalReceivables.toFixed(2),
+        totalPayables: totalPayables.toFixed(2),
+        netOutstanding: totalReceivables.minus(totalPayables).toFixed(2),
+        totalParties: parties.length,
+      };
+
+      const totals = {
+        totalCustomerOutstanding: totalReceivables.toFixed(2),
+        totalSupplierOutstanding: totalPayables.toFixed(2),
+        totalNetReceivable: totalReceivables.minus(totalPayables).toFixed(2),
+        customerCount,
+        supplierCount,
+      };
+
       return {
-        summary: {
-          totalReceivables: totalReceivables.toFixed(2),
-          totalPayables: totalPayables.toFixed(2),
-          netOutstanding: totalReceivables.minus(totalPayables).toFixed(2),
-          totalParties: parties.length,
-        },
+        summary,
+        totals,
         parties: items,
       };
     });
@@ -1686,7 +1925,7 @@ export class ReportsService {
           currentStockQuantity: onHandQty.toFixed(4),
           totalValuation: valuation.toFixed(2),
           minStockLevel: minStock.toFixed(4),
-          isLowStock: onHandQty.lte(minStock) && onHandQty.gt(0),
+          isLowStock: (minStock.gt(0) && onHandQty.lte(minStock)) || onHandQty.lte(0),
           costingMethod: "MOVING_AVERAGE",
         };
       });

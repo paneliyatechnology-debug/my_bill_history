@@ -35,6 +35,7 @@ export default function ReportsPage() {
 
   const [selectedPartyId, setSelectedPartyId] = useState<string>("");
   const [partiesList, setPartiesList] = useState<any[]>([]);
+  const [outstandingPartyFilter, setOutstandingPartyFilter] = useState<string>("ALL");
 
   const [reportData, setReportData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -55,8 +56,10 @@ export default function ReportsPage() {
       const sp = new URLSearchParams(window.location.search);
       const tab = sp.get("tab") as ReportTab | null;
       const pid = sp.get("partyId");
+      const ptype = sp.get("partyType");
       if (tab) setActiveTab(tab);
       if (pid) setSelectedPartyId(pid);
+      if (ptype) setOutstandingPartyFilter(ptype.toUpperCase());
     }
   }, []);
 
@@ -122,6 +125,7 @@ export default function ReportsPage() {
         case "outstanding":
           data = await apiClient.get("/reports/outstanding-balances", {
             asOfDate: endDate,
+            partyType: outstandingPartyFilter !== "ALL" ? outstandingPartyFilter : undefined,
           });
           break;
         case "party-ledger":
@@ -178,7 +182,7 @@ export default function ReportsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [activeTab, startDate, endDate, selectedPartyId, lang]);
+  }, [activeTab, startDate, endDate, selectedPartyId, outstandingPartyFilter, lang]);
 
   useEffect(() => {
     if (tenantContext.companyId) {

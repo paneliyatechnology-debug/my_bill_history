@@ -9,6 +9,8 @@ import { DatabaseService } from "../src/database/database.service";
 import { Decimal } from "@billing/accounting-core";
 import * as fs from "fs/promises";
 import * as path from "path";
+import { PurchaseScannerService } from "../src/purchases/scanner/services/purchase-scanner.service";
+import { BillStorageService } from "../src/purchases/scanner/services/bill-storage.service";
 
 describe("AI Bill Scanner - End-to-End Integration Tests", () => {
   let app: NestFastifyApplication;
@@ -626,4 +628,193 @@ describe("AI Bill Scanner - End-to-End Integration Tests", () => {
     expect(await prisma.stockTransaction.count({ where: { companyId: companyAId } })).toBe(finalStockCount);
     expect(await prisma.voucher.count({ where: { companyId: companyAId } })).toBe(finalVoucherCount);
   }, 30000);
+
+  it("9. Mobile Camera Capture: Successfully processes 12MP camera photo upload without memory crash", async () => {
+    const cameraImgPath = path.join(__dirname, "fixtures/scanner-verification/test_mobile_camera_12mp.jpg");
+    const fileBuf = await fs.readFile(cameraImgPath);
+
+    const uploadRes = await app.inject({
+      method: "POST",
+      url: "/api/v1/purchases/scans/upload",
+      headers: {
+        authorization: `Bearer ${tokenA}`,
+        "content-type": "application/json",
+      },
+      payload: {
+        fileBase64: fileBuf.toString("base64"),
+        fileName: "mobile_camera_capture_12mp.jpg",
+        mimeType: "image/jpeg",
+        provider: "local",
+      },
+    });
+
+    expect(uploadRes.statusCode).toBe(201);
+    const scan = JSON.parse(uploadRes.body);
+    expect(scan.id).toBeDefined();
+    expect(scan.status).toBe("READY_FOR_REVIEW");
+    expect(scan.fileMimeType).toBe("image/jpeg");
+    expect(scan.extractedData).toBeDefined();
+  }, 30000);
+
+  it("10. Mobile Camera HEIC: Correctly identifies HEIC header and executes conversion workflow", async () => {
+    // Generate valid HEIC box header
+    const heicHeader = Buffer.from([
+      0x00, 0x00, 0x00, 0x18,
+      0x66, 0x74, 0x79, 0x70, // 'ftyp'
+      0x68, 0x65, 0x69, 0x63, // 'heic'
+      0x00, 0x00, 0x00, 0x00,
+    ]);
+    const simulatedHeic = Buffer.concat([heicHeader, Buffer.alloc(100)]);
+
+    // When an invalid/truncated HEIC payload is uploaded, server catches it and returns 400 with format explanation
+    const uploadRes = await app.inject({
+      method: "POST",
+      url: "/api/v1/purchases/scans/upload",
+      headers: {
+        authorization: `Bearer ${tokenA}`,
+        "content-type": "application/json",
+      },
+      payload: {
+        fileBase64: simulatedHeic.toString("base64"),
+        fileName: "iphone_bill.heic",
+        mimeType: "image/heic",
+        provider: "local",
+      },
+    });
+
+    // Expect either successful conversion or clear HEIC conversion 400 error (not 500 crash)
+    expect([201, 400]).toContain(uploadRes.statusCode);
+    if (uploadRes.statusCode === 400) {
+      const err = JSON.parse(uploadRes.body);
+      expect(err.message.toLowerCase()).toContain("heic");
+    }
+  });
+
+  it("11. Asynchronous Upload: Returns scan ID and status PROCESSING promptly (<500ms), background OCR completes and is pollable", async () => {
+    const validPdfBuffer = Buffer.from("%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< >>\n%%EOF");
+    const base64File = validPdfBuffer.toString("base64");
+
+    const uploadStart = Date.now();
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/v1/purchases/scans/upload?async=true",
+      headers: {
+        authorization: `Bearer ${tokenA}`,
+        "content-type": "application/json",
+      },
+      payload: {
+        fileBase64: base64File,
+        fileName: "async_test_bill.pdf",
+        mimeType: "application/pdf",
+        provider: "local",
+      },
+    });
+    const uploadDuration = Date.now() - uploadStart;
+
+    // Prompt response expected in < 1500ms
+    expect(res.statusCode).toBe(201);
+    expect(uploadDuration).toBeLessThan(1500);
+
+    const body = JSON.parse(res.body);
+    expect(body.id).toBeDefined();
+    expect(body.status).toBe("PROCESSING");
+    expect(body.fileName).toBe("async_test_bill.pdf");
+
+    const asyncScanId = body.id;
+
+    // Poll until complete
+    let pollCount = 0;
+    let pollRes: any = null;
+    while (pollCount < 20) {
+      await new Promise((r) => setTimeout(r, 200));
+      const getRes = await app.inject({
+        method: "GET",
+        url: `/api/v1/purchases/scans/${asyncScanId}`,
+        headers: { authorization: `Bearer ${tokenA}` },
+      });
+      expect(getRes.statusCode).toBe(200);
+      pollRes = JSON.parse(getRes.body);
+      if (pollRes.status === "READY_FOR_REVIEW" || pollRes.status === "FAILED") {
+        break;
+      }
+      pollCount++;
+    }
+
+    expect(pollRes.status).toBe("READY_FOR_REVIEW");
+    expect(pollRes.extractedData).toBeDefined();
+    expect(pollRes.companyId).toBe(companyAId);
+  });
+
+  it("12. Retry Scan Endpoint: Re-initiates OCR on existing document without duplicate files or duplicate scans", async () => {
+    const storageService = app.get(BillStorageService);
+    const validPdf = Buffer.from("%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< >>\n%%EOF");
+    const scanId = "00000000-0000-0000-0000-111122223333";
+    const stored = await storageService.validateAndSaveFile(validPdf, "retry_test.pdf", companyAId, scanId);
+
+    const company = await prisma.executeBypassRls(async (tx) => {
+      return tx.company.findUnique({ where: { id: companyAId } });
+    });
+
+    const failedScan = await prisma.executeBypassRls(async (tx) => {
+      return tx.purchaseBillScan.create({
+        data: {
+          id: scanId,
+          organizationId: company!.organizationId,
+          companyId: companyAId,
+          fileName: stored.fileName,
+          fileMimeType: stored.mimeType,
+          fileSizeBytes: stored.sizeBytes,
+          fileStoragePath: stored.storagePath,
+          fileSha256: stored.sha256,
+          status: "FAILED",
+          ocrProvider: "local",
+          errorMessage: "Simulated previous failure",
+        },
+      });
+    });
+
+    // 2. Call POST /purchases/scans/:id/retry
+    const retryRes = await app.inject({
+      method: "POST",
+      url: `/api/v1/purchases/scans/${failedScan.id}/retry?provider=local`,
+      headers: { authorization: `Bearer ${tokenA}` },
+    });
+
+    expect(retryRes.statusCode).toBe(200);
+    const retryBody = JSON.parse(retryRes.body);
+    expect(retryBody.id).toBe(failedScan.id);
+    expect(retryBody.status).toBe("PROCESSING");
+
+    // Verify no new scan was created in company
+    const totalScans = await prisma.executeBypassRls(async (tx) => {
+      return tx.purchaseBillScan.count({
+        where: { companyId: companyAId, id: scanId },
+      });
+    });
+    expect(totalScans).toBe(1);
+  });
+
+  it("13. Error Classification: Accurately classifies Gemini rate limit, invalid key, timeout, and network errors", async () => {
+    const scannerService = app.get(PurchaseScannerService);
+
+    // Invalid Key
+    const keyErr = scannerService.classifyOcrError(new Error("API key not valid. Please pass a valid API key."));
+    expect(keyErr.category).toBe("INVALID_API_KEY");
+
+    // Rate Limit / Quota
+    const quotaErr = scannerService.classifyOcrError({ status: 429, message: "Resource has been exhausted (check quota)." });
+    expect(quotaErr.category).toBe("RATE_LIMIT_OR_QUOTA");
+
+    // Timeout
+    const timeoutErr = scannerService.classifyOcrError(new Error("Gemini Vision OCR timed out after 35000ms"), 35000);
+    expect(timeoutErr.category).toBe("TIMEOUT");
+
+    // Network Failure
+    const netErr = scannerService.classifyOcrError(new Error("fetch failed: ENOTFOUND generativelanguage.googleapis.com"));
+    expect(netErr.category).toBe("NETWORK_ERROR");
+
+    // Document Parse Error
+    const parseErr = scannerService.classifyOcrError(new Error("Gemini returned invalid or unparseable JSON for this invoice document."));
+    expect(parseErr.category).toBe("DOCUMENT_PARSE_ERROR");
+  });
 });

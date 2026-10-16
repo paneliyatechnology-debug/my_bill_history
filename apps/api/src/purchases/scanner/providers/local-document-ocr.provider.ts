@@ -509,41 +509,134 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
         }
 
         // Standard column format: Sr | Description | HSN | Qty | Unit | Rate | Taxable | Total
-        if (parts.length >= 4 && !/description|particulars/i.test(parts[0])) {
-          const desc = parts[1] || parts[0];
-          const hsn = parts[2]?.match(/\d{4,8}/) ? parts[2].match(/\d{4,8}/)![0] : null;
-          const qty = parseFloat(parts[3]) || 1;
-          const unit = parts[4] || "PCS";
-          const rate = parseFloat(parts[5]?.replace(/,/g, "") || "") || 0;
-          const taxable = parts[6] ? parseFloat(parts[6].replace(/,/g, "")) : qty * rate;
-          const total = parseFloat(parts[parts.length - 1].replace(/,/g, "")) || taxable;
+        if (parts.length >= 3 && !/description|particulars|item\s+name|sr\.?\s*no/i.test(parts[0])) {
+          // Identify which part contains the description vs Sr No
+          let descRaw = "";
+          let hsn: string | null = null;
+          let qty = 1;
+          let unit = "PCS";
+          let rate = 0;
+          let taxable = 0;
+          let total = 0;
+
+          const activeParts = parts[0] === "" ? parts.slice(1) : parts;
+          let colIdx = 0;
+          if (/^\d{1,3}$/.test(activeParts[0]?.trim())) {
+            colIdx = 1;
+          }
+
+          descRaw = (activeParts[colIdx] || activeParts[0] || "").trim();
+
+          // Check if descRaw contains merged HSN and Quantity (e.g. "MIxBOPP TAPE 3919909 135.00")
+          const mergedHsnQtyMatch = descRaw.match(/^(.*?)(?:\s+(\d{4,8}))(?:\s+(\d+(?:\.\d+)?))\s*$/);
+          if (mergedHsnQtyMatch) {
+            descRaw = mergedHsnQtyMatch[1].replace(/^(?:MIx|Mrx|M\/s\.?)\s*/i, "").trim();
+            hsn = mergedHsnQtyMatch[2];
+            qty = parseFloat(mergedHsnQtyMatch[3]) || 1;
+          } else {
+            const mergedHsnMatch = descRaw.match(/^(.*?)\s+(\d{4,8})\s*$/);
+            if (mergedHsnMatch) {
+              descRaw = mergedHsnMatch[1].trim();
+              hsn = mergedHsnMatch[2];
+            }
+          }
+
+          // Search remaining columns for HSN, Qty, Rate, Taxable, and GST %
+          const remainingText = activeParts.slice(colIdx + 1).join(" ");
+          const allNumbers: number[] = [];
+          const numMatches = remainingText.match(/[\d,]+(?:\.\d+)?/g) || [];
+          for (const m of numMatches) {
+            const parsed = parseFloat(m.replace(/,/g, ""));
+            if (!isNaN(parsed) && parsed > 0) {
+              allNumbers.push(parsed);
+            }
+          }
+
           const taxRateMatch = trimmed.match(/(\d+(?:\.\d+)?)\s*%/);
-          const taxRate = taxRateMatch ? parseFloat(taxRateMatch[1]) : 0;
+          let taxRate = taxRateMatch ? parseFloat(taxRateMatch[1]) : 0;
+          const pctMatches = trimmed.match(/(\d+(?:\.\d+)?)\s*%/g) || [];
+          if (pctMatches.length >= 2 && pctMatches[0] === pctMatches[1] && parseFloat(pctMatches[0]) === 9) {
+            taxRate = 18;
+          }
+
+          if (allNumbers.length >= 2) {
+            const sorted = [...allNumbers].sort((a, b) => a - b);
+            const largest = sorted[sorted.length - 1];
+
+            if (qty > 1) {
+              const matchedRate = allNumbers.find(
+                (n) => Math.abs(qty * n - largest) < 1 || Math.abs(n * qty - largest) / largest < 0.02,
+              );
+              if (matchedRate) {
+                rate = matchedRate;
+                taxable = qty * rate;
+                total = largest;
+              } else {
+                rate = allNumbers[0];
+                taxable = qty * rate;
+                total = largest;
+              }
+            } else {
+              let foundMatch = false;
+              for (const a of allNumbers) {
+                for (const b of allNumbers) {
+                  if (
+                    a !== b &&
+                    allNumbers.some((c) => Math.abs(a * b - c) < 1 || Math.abs(a * b - c) / c < 0.02)
+                  ) {
+                    qty = Math.min(a, b);
+                    rate = Math.max(a, b);
+                    taxable = qty * rate;
+                    total = largest;
+                    foundMatch = true;
+                    break;
+                  }
+                }
+                if (foundMatch) break;
+              }
+              if (!foundMatch) {
+                rate = allNumbers[0];
+                taxable = allNumbers[allNumbers.length - 1];
+                total = taxable;
+              }
+            }
+          } else if (allNumbers.length === 1) {
+            taxable = allNumbers[0];
+            rate = taxable;
+            total = taxable;
+          }
+
+          const unitMatch = remainingText.match(/\b(PCS|ROL|ROLLS?|NOS|BAGS?|BOX|KG|MTR|COIL|SET)\b/i);
+          if (unitMatch) {
+            unit = unitMatch[1].toUpperCase();
+          }
 
           const isService =
             (hsn && hsn.startsWith("99")) ||
             /service|installation|repair|subscription|consulting|maintenance|license|tokens|hosting|software|freight|loading|support|calls|plus|pro/i.test(
-              desc,
+              descRaw,
             );
 
-          items.push({
-            description: desc,
-            rawText: line,
-            hsnCode: hsn,
-            quantity: qty,
-            unit,
-            unitPrice: rate,
-            discountAmount: 0,
-            taxableAmount: taxable,
-            taxRate,
-            cgstAmount: 0,
-            sgstAmount: 0,
-            igstAmount: 0,
-            totalAmount: total,
-            itemType: isService ? "SERVICE" : "PRODUCT",
-            confidence: 88,
-          });
-          continue;
+          if (descRaw && descRaw.length >= 2 && !/total|subtotal|amount|summary|tax\b/i.test(descRaw)) {
+            items.push({
+              description: descRaw,
+              rawText: line,
+              hsnCode: hsn,
+              quantity: qty,
+              unit,
+              unitPrice: rate,
+              discountAmount: 0,
+              taxableAmount: taxable,
+              taxRate,
+              cgstAmount: taxRate > 0 ? (taxable * (taxRate / 2)) / 100 : 0,
+              sgstAmount: taxRate > 0 ? (taxable * (taxRate / 2)) / 100 : 0,
+              igstAmount: 0,
+              totalAmount: total > taxable ? total : taxable * (1 + taxRate / 100),
+              itemType: isService ? "SERVICE" : "PRODUCT",
+              confidence: 88,
+            });
+            continue;
+          }
         }
       }
 

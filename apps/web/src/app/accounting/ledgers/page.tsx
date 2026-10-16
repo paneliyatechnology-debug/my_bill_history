@@ -34,6 +34,15 @@ export default function LedgersPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [groupFilter, setGroupFilter] = useState("ALL");
+  const [specialFilter, setSpecialFilter] = useState<string>("ALL");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      const f = sp.get("filter") || sp.get("type");
+      if (f) setSpecialFilter(f.toLowerCase());
+    }
+  }, []);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -96,6 +105,14 @@ export default function LedgersPage() {
   };
 
   const filtered = ledgers.filter((l) => {
+    if (specialFilter === "cash_bank") {
+      const isCashOrBank =
+        Boolean((l as any).isCashLedger) ||
+        Boolean((l as any).isBankLedger) ||
+        l.group?.name?.toLowerCase().includes("cash") ||
+        l.group?.name?.toLowerCase().includes("bank");
+      if (!isCashOrBank) return false;
+    }
     if (groupFilter !== "ALL" && l.groupId !== groupFilter) return false;
     return true;
   });
@@ -210,6 +227,25 @@ export default function LedgersPage() {
       {error && (
         <div className="p-4 bg-rose-50 border border-rose-100 rounded-xl text-xs text-rose-700 font-medium">
           {error}
+        </div>
+      )}
+
+      {specialFilter === "cash_bank" && (
+        <div className="flex items-center justify-between p-3 bg-sky-50 border border-sky-200 rounded-xl text-xs text-sky-800">
+          <div className="flex items-center gap-2 font-medium">
+            <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
+            <span>
+              {lang === "gu"
+                ? "રોકડ અને બેંક ખાતા ફિલ્ટર સક્રિય છે (Cash & Bank Accounts Filter Active)"
+                : "Filtered: Showing only Cash & Bank accounts"}
+            </span>
+          </div>
+          <button
+            onClick={() => setSpecialFilter("ALL")}
+            className="text-xs font-bold text-sky-700 hover:text-sky-900 underline ml-2"
+          >
+            {lang === "gu" ? "બધા ખાતાઓ બતાવો" : "Show All Accounts"}
+          </button>
         </div>
       )}
 

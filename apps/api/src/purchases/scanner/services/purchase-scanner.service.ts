@@ -37,6 +37,8 @@ export class PurchaseScannerService {
 
   /**
    * Uploads, extracts, normalizes, matches, and creates a PurchaseBillScan draft.
+   * When isAsync is true, returns immediately after storing file with status: PROCESSING,
+   * running OCR and document intelligence asynchronously in the background.
    */
   async uploadAndProcessBill(
     fileBuffer: Buffer,
@@ -45,10 +47,13 @@ export class PurchaseScannerService {
     tenant: TenantContext,
     idempotencyKey?: string,
     requestedProvider?: string,
+    isAsync: boolean = false,
   ): Promise<any> {
     if (!fileBuffer || fileBuffer.length === 0) {
       throw new BadRequestException("Uploaded file buffer cannot be empty.");
     }
+
+    const uploadStartTime = Date.now();
 
     // 1. Check Idempotency Key
     if (idempotencyKey) {
@@ -99,7 +104,7 @@ export class PurchaseScannerService {
             fileStoragePath: storedFile.storagePath,
             fileSha256: storedFile.sha256,
             status: "PROCESSING",
-            ocrProvider: requestedProvider || "local",
+            ocrProvider: requestedProvider || "gemini",
             idempotencyKey: idempotencyKey || null,
             createdById: tenant.userId || null,
           },
@@ -107,12 +112,106 @@ export class PurchaseScannerService {
       },
     );
 
-    // 5. OCR & AI Extraction
+    const storageDurationMs = Date.now() - uploadStartTime;
+    this.logger.log(
+      `[DIAGNOSTIC] Stage: UPLOAD_STORED | ScanId: ${scanId} | StorageDurationMs: ${storageDurationMs} | Async: ${isAsync} | Provider: ${requestedProvider || "gemini"}`,
+    );
+
+    // 5. Asynchronous path: return prompt response to client and process in background
+    if (isAsync) {
+      setImmediate(() => {
+        this.processScanOcr(
+          scanId,
+          tenant,
+          requestedProvider,
+          fileBuffer,
+          storedFile,
+          company,
+          true,
+        ).catch((err) => {
+          this.logger.error(
+            `[DIAGNOSTIC] Stage: ASYNC_BACKGROUND_OCR_FAILED | ScanId: ${scanId} | Error: ${err.message}`,
+            err.stack,
+          );
+        });
+      });
+
+      return {
+        id: scanId,
+        status: "PROCESSING",
+        fileName: storedFile.fileName,
+        fileSizeBytes: storedFile.sizeBytes,
+        fileMimeType: storedFile.mimeType,
+        ocrProvider: requestedProvider || "gemini",
+        createdAt: initialScan.createdAt,
+      };
+    }
+
+    // Synchronous execution for legacy / non-async callers
+    return await this.processScanOcr(
+      scanId,
+      tenant,
+      requestedProvider,
+      fileBuffer,
+      storedFile,
+      company,
+      false,
+    );
+  }
+
+  /**
+   * Performs OCR extraction, normalization, item/supplier matching, duplicate detection,
+   * and updates the PurchaseBillScan record to READY_FOR_REVIEW or FAILED.
+   */
+  async processScanOcr(
+    scanId: string,
+    tenant: TenantContext,
+    requestedProvider?: string,
+    preloadedBuffer?: Buffer,
+    preloadedStoredFile?: { fileName: string; mimeType: string; storagePath: string; sha256: string },
+    preloadedCompany?: { stateCode?: string | null; legalName?: string | null; gstin?: string | null } | null,
+    isAsync: boolean = true,
+  ): Promise<any> {
     const startTime = Date.now();
+
+    // 1. Load scan metadata and file buffer if not preloaded (e.g., in retry)
+    let storedFile = preloadedStoredFile;
+    let fileBuffer = preloadedBuffer;
+    let company = preloadedCompany;
+
+    if (!storedFile || !fileBuffer) {
+      const scan = await this.prisma.executeInTenantContext(tenant, async (tx) => {
+        return tx.purchaseBillScan.findFirst({
+          where: { id: scanId, companyId: tenant.companyId },
+        });
+      });
+
+      if (!scan) {
+        throw new NotFoundException(`Purchase bill scan '${scanId}' not found.`);
+      }
+
+      storedFile = {
+        fileName: scan.fileName,
+        mimeType: scan.fileMimeType,
+        storagePath: scan.fileStoragePath,
+        sha256: scan.fileSha256,
+      };
+
+      fileBuffer = await this.storage.readFile(scan.fileStoragePath);
+    }
+
+    if (company === undefined) {
+      company = await this.prisma.company.findUnique({
+        where: { id: tenant.companyId },
+        select: { stateCode: true, legalName: true, gstin: true },
+      });
+    }
+
+    // 2. OCR & AI Extraction
     let ocrResult: any;
     const provider = this.ocrFactory.getProvider(requestedProvider);
     this.logger.log(
-      `[DIAGNOSTIC] Stage: UPLOAD_RECEIVED | ScanId: ${scanId} | File: ${storedFile.fileName} | Mime: ${storedFile.mimeType} | SizeBytes: ${storedFile.sizeBytes} | Provider: ${provider.name} (configured: ${provider.isAvailable()})`,
+      `[DIAGNOSTIC] Stage: OCR_START | ScanId: ${scanId} | File: ${storedFile.fileName} | Mime: ${storedFile.mimeType} | SizeBytes: ${fileBuffer.length} | Provider: ${provider.name} (available: ${provider.isAvailable()})`,
     );
 
     try {
@@ -124,26 +223,24 @@ export class PurchaseScannerService {
         companyName: company?.legalName || undefined,
       });
 
+      const ocrDurationMs = Date.now() - startTime;
       this.logger.log(
-        `[DIAGNOSTIC] Stage: OCR_COMPLETED | ScanId: ${scanId} | DurationMs: ${Date.now() - startTime} | HasRawText: ${!!ocrResult.rawText} | RawTextLength: ${ocrResult.rawText?.length || 0} | PageCount: ${ocrResult.extractedData?.documentMetadata?.pageCount || 1} | ExtractedItems: ${ocrResult.extractedData?.items?.length || 0}`,
+        `[DIAGNOSTIC] Stage: OCR_COMPLETED | ScanId: ${scanId} | DurationMs: ${ocrDurationMs} | Provider: ${ocrResult.provider} | HasRawText: ${!!ocrResult.rawText} | RawTextLength: ${ocrResult.rawText?.length || 0} | ExtractedItems: ${ocrResult.extractedData?.items?.length || 0}`,
       );
     } catch (err: any) {
       const durationMs = Date.now() - startTime;
-      const errorCategory = err instanceof BadRequestException
-        ? "BAD_REQUEST"
-        : err.message?.toLowerCase().includes("timeout")
-          ? "OCR_PROVIDER_TIMEOUT"
-          : "OCR_PROCESSING_FAILED";
+      const classified = this.classifyOcrError(err, durationMs);
 
       this.logger.error(
-        `[DIAGNOSTIC] Stage: OCR_FAILED | ScanId: ${scanId} | DurationMs: ${durationMs} | ErrorCategory: ${errorCategory} | Error: ${err.message}`,
+        `[DIAGNOSTIC] Stage: OCR_FAILED | ScanId: ${scanId} | DurationMs: ${durationMs} | Category: ${classified.category} | Error: ${classified.message}`,
         err.stack,
       );
+
       await this.prisma.purchaseBillScan.update({
         where: { id: scanId },
         data: {
           status: "FAILED",
-          errorMessage: err.message || "OCR document extraction failed.",
+          errorMessage: classified.message,
         },
       });
 
@@ -154,25 +251,30 @@ export class PurchaseScannerService {
         action: "PURCHASE_BILL_SCAN_FAILED",
         entityName: "PurchaseBillScan",
         entityId: scanId,
-        newState: { error: err.message, fileName: storedFile.fileName },
+        newState: {
+          errorCategory: classified.category,
+          error: classified.message,
+          fileName: storedFile.fileName,
+          durationMs,
+        },
       });
 
-      if (err instanceof HttpException) {
-        throw err;
+      if (!isAsync) {
+        if (err instanceof HttpException) {
+          throw err;
+        }
+        throw new BadRequestException(classified.message);
       }
-
-      throw new BadRequestException(
-        `Document extraction failed: ${err.message || "Could not read bill text."}`,
-      );
+      return;
     }
 
-    // 6. Normalization
+    // 3. Normalization
     const normalizedData = this.normalizer.normalizeBillData(
       ocrResult.extractedData,
       company?.stateCode || "24",
     );
 
-    // 7. Intelligent Supplier & Item Matching
+    // 4. Intelligent Supplier & Item Matching
     const supplierMatch = await this.matcher.matchSupplier(
       normalizedData.supplier,
       tenant,
@@ -192,7 +294,7 @@ export class PurchaseScannerService {
       tenant,
     );
 
-    // 8. Duplicate Invoice Detection (Check vendor invoice number against company purchase invoices)
+    // 5. Duplicate Invoice Detection (Check vendor invoice number against company purchase invoices)
     if (
       normalizedData.invoice?.invoiceNumber &&
       supplierMatch.matchedPartyId
@@ -226,7 +328,7 @@ export class PurchaseScannerService {
       );
     }
 
-    // 9. Update Scan to READY_FOR_REVIEW
+    // 6. Update Scan to READY_FOR_REVIEW
     const updatedScan = await this.prisma.executeInTenantContext(
       tenant,
       async (tx) => {
@@ -242,6 +344,7 @@ export class PurchaseScannerService {
             rawOcrText: ocrResult.rawText || null,
             matchedPartyId: supplierMatch.matchedPartyId,
             matchedPartyScore: supplierMatch.matchedPartyScore,
+            errorMessage: null,
           },
           include: {
             matchedParty: true,
@@ -250,7 +353,7 @@ export class PurchaseScannerService {
       },
     );
 
-    // 10. Audit Event
+    // 7. Audit Event
     await this.audit.record({
       organizationId: tenant.organizationId,
       companyId: tenant.companyId,
@@ -271,6 +374,143 @@ export class PurchaseScannerService {
     );
 
     return updatedScan;
+  }
+
+  /**
+   * Classifies OCR failure into distinct actionable categories:
+   * - INVALID_API_KEY
+   * - RATE_LIMIT_OR_QUOTA
+   * - TIMEOUT
+   * - NETWORK_ERROR
+   * - DOCUMENT_PARSE_ERROR
+   * - OCR_PROCESSING_FAILED
+   */
+  classifyOcrError(err: any, durationMs?: number): { category: string; message: string } {
+    const rawMsg = (err?.message || String(err)).toLowerCase();
+    const status = err?.status || err?.statusCode || err?.response?.status;
+
+    if (
+      rawMsg.includes("api key not valid") ||
+      rawMsg.includes("api_key_invalid") ||
+      rawMsg.includes("unauthorized") ||
+      rawMsg.includes("gemini_api_key is not configured")
+    ) {
+      return {
+        category: "INVALID_API_KEY",
+        message: "Gemini API key is invalid or not configured on the server.",
+      };
+    }
+
+    if (
+      status === 429 ||
+      rawMsg.includes("quota") ||
+      rawMsg.includes("resource_exhausted") ||
+      rawMsg.includes("rate limit") ||
+      rawMsg.includes("too many requests")
+    ) {
+      return {
+        category: "RATE_LIMIT_OR_QUOTA",
+        message: "Gemini Vision rate limit or quota exceeded. Please wait a moment and click Retry OCR.",
+      };
+    }
+
+    if (
+      err?.name === "GatewayTimeoutException" ||
+      rawMsg.includes("timed out") ||
+      rawMsg.includes("timeout") ||
+      status === 504 ||
+      status === 408
+    ) {
+      return {
+        category: "TIMEOUT",
+        message: `OCR document analysis timed out${durationMs ? ` after ${Math.round(durationMs / 1000)}s` : ""}. Click Retry OCR to try again.`,
+      };
+    }
+
+    if (
+      rawMsg.includes("fetch failed") ||
+      rawMsg.includes("enotfound") ||
+      rawMsg.includes("econnrefused") ||
+      rawMsg.includes("econnreset") ||
+      rawMsg.includes("network")
+    ) {
+      return {
+        category: "NETWORK_ERROR",
+        message: "Network failure while connecting to OCR service. Please check server internet connectivity and click Retry OCR.",
+      };
+    }
+
+    if (
+      rawMsg.includes("unparseable json") ||
+      rawMsg.includes("invalid or unparseable json") ||
+      rawMsg.includes("empty extraction response") ||
+      rawMsg.includes("could not parse")
+    ) {
+      return {
+        category: "DOCUMENT_PARSE_ERROR",
+        message: "AI could not extract structured invoice fields from this document. Please verify the image is clear or edit manually.",
+      };
+    }
+
+    return {
+      category: "OCR_PROCESSING_FAILED",
+      message: err?.message || "OCR document extraction failed. Please retry.",
+    };
+  }
+
+  /**
+   * Retries OCR processing for an existing scan record without uploading duplicate documents.
+   */
+  async retryScanOcr(
+    id: string,
+    tenant: TenantContext,
+    requestedProvider?: string,
+  ): Promise<any> {
+    const scan = await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      return tx.purchaseBillScan.findFirst({
+        where: { id, companyId: tenant.companyId },
+      });
+    });
+
+    if (!scan) {
+      throw new NotFoundException(`Purchase bill scan '${id}' not found.`);
+    }
+
+    if (scan.status === "CONFIRMED") {
+      throw new BadRequestException("Cannot retry an already confirmed purchase bill scan.");
+    }
+
+    // Set status back to PROCESSING and clear previous error message
+    const updated = await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      return tx.purchaseBillScan.update({
+        where: { id },
+        data: {
+          status: "PROCESSING",
+          errorMessage: null,
+          ocrProvider: requestedProvider || scan.ocrProvider,
+        },
+      });
+    });
+
+    this.logger.log(
+      `[DIAGNOSTIC] Stage: RETRY_INITIATED | ScanId: ${id} | CompanyId: ${tenant.companyId} | Provider: ${requestedProvider || scan.ocrProvider}`,
+    );
+
+    // Run OCR asynchronously in background
+    setImmediate(() => {
+      this.processScanOcr(id, tenant, requestedProvider || scan.ocrProvider).catch((err) => {
+        this.logger.error(`Background retry OCR failed for scan ${id}: ${err.message}`, err.stack);
+      });
+    });
+
+    return {
+      id: scan.id,
+      status: "PROCESSING",
+      message: "OCR processing re-initiated.",
+      ocrProvider: requestedProvider || scan.ocrProvider,
+      fileName: scan.fileName,
+      updatedAt: updated.updatedAt,
+    };
   }
 
   /**

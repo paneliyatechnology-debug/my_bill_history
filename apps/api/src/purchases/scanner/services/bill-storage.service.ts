@@ -81,8 +81,21 @@ export class BillStorageService {
       return { mimeType: "image/webp", extension: "webp" };
     }
 
+    // HEIC/HEIF magic bytes: ISOBMFF box with 'ftyp' at bytes 4-7 and compatible brand
+    if (buffer.length >= 12 && buffer.toString("ascii", 4, 8) === "ftyp") {
+      const brand = buffer.toString("ascii", 8, 12).toLowerCase();
+      const compatibleSlice = buffer.toString("ascii", 8, Math.min(buffer.length, 36)).toLowerCase();
+      if (
+        brand === "heic" || brand === "heix" || brand === "hevc" ||
+        brand === "mif1" || brand === "msf1" || brand === "heim" || brand === "heis" ||
+        compatibleSlice.includes("heic") || compatibleSlice.includes("mif1")
+      ) {
+        return { mimeType: "image/heic", extension: "heic" };
+      }
+    }
+
     throw new BadRequestException(
-      "Invalid file type. Only standard PDF documents, JPG/JPEG, PNG, and WebP image formats are supported.",
+      "Invalid file type. Only standard PDF documents, JPG/JPEG, PNG, WebP, and HEIC image formats are supported.",
     );
   }
 
@@ -102,7 +115,30 @@ export class BillStorageService {
     }
 
     // Validate true MIME type and signature
-    const { mimeType, extension } = this.validateFileSignature(fileBuffer);
+    let { mimeType, extension } = this.validateFileSignature(fileBuffer);
+
+    // Convert HEIC/HEIF to JPEG on the server
+    if (mimeType === "image/heic") {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const heicConvert = require("heic-convert");
+        const converted = await heicConvert({
+          buffer: fileBuffer,
+          format: "JPEG",
+          quality: 0.88,
+        });
+        fileBuffer = Buffer.from(converted);
+        mimeType = "image/jpeg";
+        extension = "jpg";
+        this.logger.log(`Successfully converted camera HEIC image to JPEG (${fileBuffer.length} bytes) for scan: ${scanId}`);
+      } catch (heicErr: any) {
+        this.logger.error("HEIC conversion failed:", heicErr);
+        throw new BadRequestException(
+          `HEIC/HEIF camera photo conversion failed: ${heicErr?.message || "Unsupported HEIC variant"}. Please capture in standard JPEG mode or choose from gallery.`,
+        );
+      }
+    }
+
     const sha256 = this.computeSha256(fileBuffer);
 
     // Sanitize companyId and scanId (must be valid UUID format)

@@ -341,6 +341,7 @@ export interface ExtractedBillItem {
   cgstAmount?: number | string;
   sgstAmount?: number | string;
   igstAmount?: number | string;
+  cessAmount?: number | string;
   totalAmount: number | string;
   confidence: number;
   itemType?: "PRODUCT" | "SERVICE";
@@ -362,6 +363,7 @@ export interface ExtractedBillData {
   exchangeRate?: number | null;
   sourceGrandTotal?: string | null;
   isRcm?: boolean;
+  buyerGstin?: string | null;
   supplier: {
     name: string | null;
     gstin: string | null;
@@ -380,6 +382,7 @@ export interface ExtractedBillData {
     invoiceDate: string | null;
     dueDate: string | null;
     placeOfSupply: string | null;
+    paymentTerms?: string | null;
     confidence: number;
     isDuplicateWarning?: boolean;
   };
@@ -501,3 +504,15 @@ export const INDIAN_STATES: Record<
   "99": { name: "Centre Jurisdiction", nameGujarati: "કેન્દ્ર ન્યાયક્ષેત્ર" },
 };
 
+/**
+ * Financial Summary KPI Card Data for Dashboard
+ */
+export interface FinancialSummaryDto {
+  toCollect: string;
+  toPay: string;
+  cashBalance: string;
+  bankBalance: string;
+  totalCashBankBalance: string;
+  currency: string;
+  asOf: string;
+}
