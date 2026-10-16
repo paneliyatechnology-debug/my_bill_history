@@ -44,7 +44,7 @@ export interface RequestOptions extends RequestInit {
   skipAuthRedirect?: boolean;
 }
 
-const DEFAULT_TIMEOUT_MS = 15000;
+const DEFAULT_TIMEOUT_MS = 30000;
 
 const getStoredToken = (): string | null => {
   if (typeof window === "undefined") return null;

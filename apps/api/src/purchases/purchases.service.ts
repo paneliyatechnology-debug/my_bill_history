@@ -31,6 +31,18 @@ import { QueryPurchaseReturnsDto } from "./dto/query-purchase-returns.dto";
 import { RecordPurchasePaymentDto } from "./dto/record-purchase-payment.dto";
 import { isValidGstinChecksum } from "../common/validators/gstin.validator";
 
+function parseStartOfDay(dateStr?: string): Date | undefined {
+  if (!dateStr) return undefined;
+  if (dateStr.includes("T")) return new Date(dateStr);
+  return new Date(`${dateStr}T00:00:00.000Z`);
+}
+
+function parseEndOfDay(dateStr?: string): Date | undefined {
+  if (!dateStr) return undefined;
+  if (dateStr.includes("T")) return new Date(dateStr);
+  return new Date(`${dateStr}T23:59:59.999Z`);
+}
+
 @Injectable()
 export class PurchasesService {
   private readonly logger = new Logger(PurchasesService.name);
@@ -719,10 +731,10 @@ export class PurchasesService {
     if (dto.startDate || dto.endDate) {
       where.invoiceDate = {};
       if (dto.startDate) {
-        where.invoiceDate.gte = new Date(dto.startDate);
+        where.invoiceDate.gte = parseStartOfDay(dto.startDate);
       }
       if (dto.endDate) {
-        where.invoiceDate.lte = new Date(dto.endDate);
+        where.invoiceDate.lte = parseEndOfDay(dto.endDate);
       }
     }
 

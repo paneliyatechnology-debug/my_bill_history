@@ -9,6 +9,7 @@ import {
   Body,
   Req,
   Res,
+  Headers,
   HttpCode,
   HttpStatus,
   BadRequestException,
@@ -40,6 +41,8 @@ export class PurchaseScansController {
   )
   async uploadBill(
     @Req() req: FastifyRequest,
+    @Query("async") isAsyncQuery: string,
+    @Headers("x-async-processing") asyncHeader: string,
     @CurrentTenant() tenant: TenantContext,
   ) {
     let fileBuffer: Buffer | null = null;
@@ -47,6 +50,7 @@ export class PurchaseScansController {
     let mimeType = "application/pdf";
     let idempotencyKey: string | undefined;
     let provider: string | undefined;
+    let multipartAsync = false;
 
     // Check if multipart form data
     if ((req as any).isMultipart && (req as any).isMultipart()) {
@@ -60,6 +64,8 @@ export class PurchaseScansController {
           idempotencyKey = part.value as string;
         } else if (part.fieldname === "provider") {
           provider = part.value as string;
+        } else if (part.fieldname === "async") {
+          multipartAsync = part.value === "true" || (part.value as any) === true;
         }
       }
     } else {
@@ -71,6 +77,9 @@ export class PurchaseScansController {
         mimeType = body.mimeType || "application/pdf";
         idempotencyKey = body.idempotencyKey;
         provider = body.provider;
+        if (body.async === true || body.async === "true") {
+          multipartAsync = true;
+        }
       }
     }
 
@@ -80,6 +89,8 @@ export class PurchaseScansController {
       );
     }
 
+    const isAsync = isAsyncQuery === "true" || asyncHeader === "true" || multipartAsync === true;
+
     return await this.scannerService.uploadAndProcessBill(
       fileBuffer,
       fileName,
@@ -87,7 +98,25 @@ export class PurchaseScansController {
       tenant,
       idempotencyKey,
       provider,
+      isAsync,
     );
+  }
+
+  @Post(":id/retry")
+  @HttpCode(HttpStatus.OK)
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.ORG_ADMIN,
+    UserRole.COMPANY_ADMIN,
+    UserRole.ACCOUNTANT,
+    UserRole.BRANCH_MANAGER,
+  )
+  async retryScan(
+    @Param("id") id: string,
+    @Query("provider") provider: string,
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.scannerService.retryScanOcr(id, tenant, provider);
   }
 
   @Get()

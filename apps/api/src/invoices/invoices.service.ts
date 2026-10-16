@@ -42,6 +42,18 @@ import { QueryStockTransactionsDto } from "./dto/query-stock.dto";
 import { CreateSalesReturnDto } from "./dto/create-sales-return.dto";
 import { QuerySalesReturnsDto } from "./dto/query-sales-returns.dto";
 
+function parseStartOfDay(dateStr?: string): Date | undefined {
+  if (!dateStr) return undefined;
+  if (dateStr.includes("T")) return new Date(dateStr);
+  return new Date(`${dateStr}T00:00:00.000Z`);
+}
+
+function parseEndOfDay(dateStr?: string): Date | undefined {
+  if (!dateStr) return undefined;
+  if (dateStr.includes("T")) return new Date(dateStr);
+  return new Date(`${dateStr}T23:59:59.999Z`);
+}
+
 @Injectable()
 export class InvoicesService {
   private readonly logger = new Logger(InvoicesService.name);
@@ -996,8 +1008,8 @@ export class InvoicesService {
       if (query.category) where.category = query.category;
       if (query.startDate || query.endDate) {
         where.invoiceDate = {};
-        if (query.startDate) where.invoiceDate.gte = new Date(query.startDate);
-        if (query.endDate) where.invoiceDate.lte = new Date(query.endDate);
+        if (query.startDate) where.invoiceDate.gte = parseStartOfDay(query.startDate);
+        if (query.endDate) where.invoiceDate.lte = parseEndOfDay(query.endDate);
       }
       if (query.search) {
         where.invoiceNumber = { contains: query.search, mode: "insensitive" };
@@ -1705,8 +1717,8 @@ export class InvoicesService {
       if (query.startDate || query.endDate) {
         where.transactionDate = {};
         if (query.startDate)
-          where.transactionDate.gte = new Date(query.startDate);
-        if (query.endDate) where.transactionDate.lte = new Date(query.endDate);
+          where.transactionDate.gte = parseStartOfDay(query.startDate);
+        if (query.endDate) where.transactionDate.lte = parseEndOfDay(query.endDate);
       }
 
       const [items, total] = await Promise.all([

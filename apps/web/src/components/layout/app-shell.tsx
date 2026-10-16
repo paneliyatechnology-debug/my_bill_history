@@ -852,9 +852,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main
           id="main-content"
           tabIndex={-1}
-          className="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden p-3 sm:p-6 lg:p-8 pb-20 lg:pb-8 overscroll-y-contain focus:outline-none print:p-0 print:m-0 print:overflow-visible print:h-auto print:w-full print:block relative z-10"
+          className={`flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden ${
+            pathname === "/" ? "p-3 sm:p-5 lg:p-6" : "p-3 sm:p-6 lg:p-8"
+          } pb-24 lg:pb-8 overscroll-y-contain focus:outline-none print:p-0 print:m-0 print:overflow-visible print:h-auto print:w-full print:block relative z-10`}
         >
-          <div className="max-w-7xl w-full min-w-0 mx-auto print:max-w-none print:w-full print:p-0 print:m-0">
+          <div className={`${pathname === "/" ? "w-full min-w-0" : "max-w-7xl w-full min-w-0 mx-auto"} print:max-w-none print:w-full print:p-0 print:m-0`}>
             {children}
           </div>
         </main>

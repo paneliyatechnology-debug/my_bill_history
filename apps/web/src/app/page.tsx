@@ -1,34 +1,44 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useAuth } from "../context/auth-context";
 import { apiClient, extractList } from "../lib/api-client";
-import { StatCard } from "../components/ui/stat-card";
+import { GreetingBanner, DateRangeState, formatDateToLocalYmd } from "../components/dashboard/greeting-banner";
+import { FinancialSummaryCards } from "../components/dashboard/financial-summary-cards";
+import { StatMetricCards } from "../components/dashboard/stat-metric-cards";
+import { QuickActionsBar } from "../components/dashboard/quick-actions-bar";
+import { SalesVsPurchaseChart, DailyChartPoint } from "../components/dashboard/sales-vs-purchase-chart";
+import { TopCustomersCard } from "../components/dashboard/top-customers-card";
+import { StockMovementCard, StockMovementItem } from "../components/dashboard/stock-movement-card";
+import { UpcomingActivitiesCard } from "../components/dashboard/upcoming-activities-card";
 import { StatusBadge } from "../components/ui/badge";
-import { BillScannerModal } from "./purchases/components/bill-scanner-modal";
 
-interface DashboardTransaction {
+interface InvoiceItem {
   id: string;
-  date: string;
-  rawDate: Date;
-  type: string;
-  txnNo: string;
-  partyName: string;
-  amount: number;
-  url: string;
-}
-
-interface DaySalesData {
-  day: string;
-  fullDate: string;
-  displayDate: string;
-  sales: number;
-  invoices: number;
+  invoiceNumber: string;
+  invoiceDate: string;
+  partyName?: string;
+  grandTotal: number;
+  outstandingBalance: number;
+  status: string;
 }
 
 export default function DashboardPage() {
-  const { lang, tenantContext } = useAuth();
+  const { lang, tenantContext, currentFY } = useAuth();
+
+  // Date range state for dashboard filtering (defaults to Today in local time)
+  const [dateRange, setDateRange] = useState<DateRangeState>(() => {
+    const todayStr = formatDateToLocalYmd(new Date());
+    return {
+      startDate: todayStr,
+      endDate: todayStr,
+      label: "Today",
+    };
+  });
+
+  const dateRangeRef = useRef<DateRangeState>(dateRange);
+  dateRangeRef.current = dateRange;
 
   const [metrics, setMetrics] = useState({
     totalSales: 0,
@@ -37,73 +47,143 @@ export default function DashboardPage() {
     totalInventoryValue: 0,
   });
 
+  const [recentInvoices, setRecentInvoices] = useState<InvoiceItem[]>([]);
+  const [purchasesTotal, setPurchasesTotal] = useState<number>(0);
   const [lowStockCount, setLowStockCount] = useState<number>(0);
-  const [latestTransactions, setLatestTransactions] = useState<DashboardTransaction[]>([]);
-  const [allSalesInvoices, setAllSalesInvoices] = useState<any[]>([]);
+  const [stockMovements, setStockMovements] = useState<StockMovementItem[]>([]);
+  const [chartDailyData, setChartDailyData] = useState<DailyChartPoint[]>([]);
+  const [pendingOrdersCount, setPendingOrdersCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Filter state for Sales Report (Daily, Weekly, Monthly)
-  const [reportPeriod, setReportPeriod] = useState<"daily" | "weekly" | "monthly">("daily");
-
-  // Chart tooltip state
-  const [hoveredPointIndex, setHoveredPointIndex] = useState<number | null>(null);
-
-  // Bill Scanner Modal state & support data
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
-  const [partiesList, setPartiesList] = useState<any[]>([]);
-  const [itemsList, setItemsList] = useState<any[]>([]);
-  const [warehousesList, setWarehousesList] = useState<any[]>([]);
-
-  const fetchDashboardData = useCallback(async () => {
+  const fetchDashboardData = useCallback(async (customRange?: DateRangeState) => {
     setIsLoading(true);
-    try {
-      const [
-        salesRes,
-        outRes,
-        stockRes,
-        invListRes,
-        itemsRes,
-        partiesRes,
-        warehousesRes,
-        purchasesRes,
-      ]: any = await Promise.all([
-        apiClient.get("/reports/sales-register").catch(() => null),
-        apiClient.get("/reports/outstanding-balances").catch(() => null),
-        apiClient.get("/reports/stock-summary").catch(() => null),
-        apiClient.get("/invoices", { limit: 20 }).catch(() => null),
-        apiClient.get("/items").catch(() => null),
-        apiClient.get("/parties").catch(() => null),
-        apiClient.get("/tenants/warehouses").catch(() => null),
-        apiClient.get("/purchases", { limit: 10 }).catch(() => null),
-      ]);
+    const activeRange = customRange || dateRangeRef.current;
+    const fromDate = activeRange.startDate || undefined;
+    const toDate = activeRange.endDate || undefined;
 
+    try {
+      // 7-day window for the Sales vs Purchase chart (ending on toDate or today)
+      const chartEndDate = toDate ? new Date(toDate) : new Date();
+      const chartStartDate = new Date(chartEndDate);
+      chartStartDate.setDate(chartEndDate.getDate() - 6);
+      const chartStartIso = formatDateToLocalYmd(chartStartDate);
+      const chartEndIso = formatDateToLocalYmd(chartEndDate);
+
+      const [salesRes, finRes, stockRes, invListRes, purchRes, movRes, chartSalesRes, chartPurchRes]: any =
+        await Promise.all([
+          apiClient.get("/reports/sales-register", { fromDate, toDate }).catch(() => null),
+          apiClient.get("/reports/financial-summary", toDate ? { asOfDate: toDate } : undefined).catch(() => null),
+          apiClient.get("/reports/stock-summary", toDate ? { asOfDate: toDate } : undefined).catch(() => null),
+          apiClient.get("/invoices", { startDate: fromDate, endDate: toDate, limit: 10 }).catch(() => null),
+          apiClient.get("/purchases", { startDate: fromDate, endDate: toDate, limit: 10 }).catch(() => null),
+          apiClient.get("/invoices/stock/transactions", { startDate: fromDate, endDate: toDate, limit: 6 }).catch(() => null),
+          apiClient.get("/invoices", { startDate: chartStartIso, endDate: chartEndIso, limit: 200 }).catch(() => null),
+          apiClient.get("/purchases", { startDate: chartStartIso, endDate: chartEndIso, limit: 200 }).catch(() => null),
+        ]);
+
+      // Metrics calculation
       const totalSales = Number(
-        salesRes?.summary?.totalGrandTotal || salesRes?.totalSales || 0
+        salesRes?.summary?.totalGrandTotal ?? salesRes?.totalSales ?? 0
       );
       const totalInvoices = Number(
-        salesRes?.summary?.totalInvoices || salesRes?.invoices?.length || 0
+        salesRes?.summary?.totalInvoices ?? salesRes?.invoices?.length ?? 0
       );
-      const totalOutstanding = Number(
-        outRes?.totals?.totalCustomerOutstanding ||
-          outRes?.totalCustomerOutstanding ||
-          outRes?.totalOutstanding ||
-          0
-      );
+      const isAllTime = !fromDate && !toDate;
+      const periodBalance = Number(salesRes?.summary?.totalBalance ?? 0);
+      const liveLedgerReceivables = Number(finRes?.toCollect ?? 0);
+      const totalOutstanding = isAllTime ? liveLedgerReceivables : periodBalance;
 
       const stockItems = stockRes?.items || (Array.isArray(stockRes) ? stockRes : []);
       const totalInventoryValue = Number(
-        stockRes?.totals?.totalValuation ||
-          stockItems.reduce(
-            (sum: number, it: any) => sum + (Number(it.totalValuation || it.closingValue) || 0),
-            0
-          )
+        stockRes?.totals?.grandStockValuation ??
+        stockRes?.totals?.totalValuation ??
+        (stockItems.length > 0
+          ? stockItems.reduce(
+              (sum: number, it: any) => sum + (Number(it.totalValuation || it.closingValue) || 0),
+              0
+            )
+          : 0)
       );
 
-      // Low stock count
-      const allItems = extractList(itemsRes);
-      const lowCount = allItems.filter(
-        (it: any) => Number(it.stockQuantity || 0) <= Number(it.minStockAlert || 5)
-      ).length;
+      // Low stock count dynamically computed from stock items
+      const calculatedLowCount = stockItems.filter((it: any) => {
+        if (it.isLowStock !== undefined) return Boolean(it.isLowStock);
+        const min = Number(it.minStockLevel || 0);
+        const current = Number(it.currentStockQuantity ?? it.closingQty ?? 0);
+        return min > 0 ? current <= min : current <= 0;
+      }).length;
+
+      // Purchases total
+      const rawPurchases = extractList(purchRes);
+      const pTotal = rawPurchases.reduce(
+        (sum: number, p: any) => sum + Number(p.grandTotal || p.totalAmount || 0),
+        0
+      );
+
+      // Recent invoices (100% dynamic from database - zero fallback arrays)
+      const rawInvs = (salesRes?.items && Array.isArray(salesRes.items))
+        ? salesRes.items
+        : extractList(invListRes);
+
+      const formattedInvoices: InvoiceItem[] = rawInvs.map((it: any) => ({
+        id: it.id,
+        invoiceNumber: it.invoiceNumber,
+        invoiceDate: it.invoiceDate,
+        partyName: it.party?.name || (it.partyName ? it.partyName : undefined),
+        grandTotal: Number(it.grandTotal || 0),
+        outstandingBalance: Number(it.balanceAmount ?? it.outstandingBalance ?? 0),
+        status: it.status,
+      }));
+
+      // Stock movements (100% dynamic)
+      const rawMovs = extractList(movRes);
+      const formattedMovements: StockMovementItem[] = rawMovs.map((m: any) => {
+        const qty = Number(m.quantity || 0);
+        const isPositive = qty >= 0;
+        return {
+          id: m.id,
+          type: isPositive ? "IN" : "OUT",
+          title: isPositive ? "Stock In - Purchase Bill" : "Stock Out - Sale Invoice",
+          dateStr: new Date(m.transactionDate || m.createdAt).toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          }),
+          refNo: m.referenceDocNumber || m.referenceDocType || "—",
+          quantityStr: `${isPositive ? "+" : ""}${Math.abs(qty)} Pcs`,
+          itemName: m.item?.name || m.itemName || "Item",
+        };
+      });
+
+      // Daily 7-day breakdown for Sales vs Purchase chart (100% dynamic from database)
+      const chartInvs = extractList(chartSalesRes);
+      const chartPurchs = extractList(chartPurchRes);
+      const daysPoints: DailyChartPoint[] = [];
+
+      for (let i = 6; i >= 0; i--) {
+        const dayDate = new Date(chartEndDate);
+        dayDate.setDate(chartEndDate.getDate() - i);
+        const dayIso = formatDateToLocalYmd(dayDate);
+        const label = dayDate.toLocaleDateString(lang === "gu" ? "gu-IN" : "en-IN", {
+          day: "2-digit",
+          month: "short",
+        });
+
+        const daySales = chartInvs
+          .filter((inv: any) => (inv.invoiceDate || "").startsWith(dayIso))
+          .reduce((sum: number, inv: any) => sum + Number(inv.grandTotal || 0), 0);
+
+        const dayPurchases = chartPurchs
+          .filter((p: any) => (p.billDate || p.createdAt || "").startsWith(dayIso))
+          .reduce((sum: number, p: any) => sum + Number(p.grandTotal || p.totalAmount || 0), 0);
+
+        daysPoints.push({
+          date: dayIso,
+          label,
+          sales: Math.round(daySales),
+          purchase: Math.round(dayPurchases),
+        });
+      }
 
       setMetrics({
         totalSales,
@@ -111,78 +191,62 @@ export default function DashboardPage() {
         totalOutstanding,
         totalInventoryValue,
       });
-      setLowStockCount(lowCount);
-
-      // Store support lists for OCR scanner
-      setPartiesList(extractList(partiesRes));
-      setItemsList(allItems);
-      setWarehousesList(extractList(warehousesRes));
-
-      // Build Latest Transactions list
-      const salesInvs = extractList(invListRes);
-      setAllSalesInvoices(salesInvs);
-
-      const purchaseInvs = extractList(purchasesRes);
-
-      const transactions: DashboardTransaction[] = [
-        ...salesInvs.map((inv: any) => ({
-          id: inv.id,
-          date: new Date(inv.invoiceDate || inv.createdAt).toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          }),
-          rawDate: new Date(inv.invoiceDate || inv.createdAt),
-          type: "Sales Invoices",
-          txnNo: inv.invoiceNumber || "1",
-          partyName:
-            inv.party?.name ||
-            inv.partyName ||
-            (lang === "gu" ? "રોકડ ગ્રાહક (Walk-in)" : "Walk-in Customer"),
-          amount: Number(inv.grandTotal || 0),
-          url: `/sales/invoices/${inv.id}`,
-        })),
-        ...purchaseInvs.map((pur: any) => ({
-          id: pur.id,
-          date: new Date(pur.invoiceDate || pur.createdAt).toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          }),
-          rawDate: new Date(pur.invoiceDate || pur.createdAt),
-          type: "Purchase Invoices",
-          txnNo: pur.vendorInvoiceNumber || "1",
-          partyName:
-            pur.party?.name ||
-            pur.partyName ||
-            (lang === "gu" ? "વેપારી" : "Supplier"),
-          amount: Number(pur.grandTotal || 0),
-          url: `/purchases`,
-        })),
-      ].sort((a, b) => b.rawDate.getTime() - a.rawDate.getTime());
-
-      setLatestTransactions(transactions.slice(0, 5));
-    } catch {
-      // Graceful fallback on network glitch
+      setLowStockCount(calculatedLowCount);
+      setPurchasesTotal(pTotal);
+      setRecentInvoices(formattedInvoices);
+      setStockMovements(formattedMovements);
+      setChartDailyData(daysPoints);
+      setPendingOrdersCount(rawPurchases.filter((p: any) => p.status === "PENDING" || p.status === "DRAFT").length);
+    } catch (err) {
+      console.error("[Dashboard] Error loading dashboard data:", err);
     } finally {
       setIsLoading(false);
     }
-  }, [lang]);
+  }, [tenantContext.companyId, tenantContext.branchId, currentFY?.id, lang]);
+
+  const handleDateRangeChange = (newRange: DateRangeState) => {
+    dateRangeRef.current = newRange;
+    setDateRange(newRange);
+    fetchDashboardData(newRange);
+  };
 
   useEffect(() => {
     if (tenantContext.companyId) {
       fetchDashboardData();
     }
 
-    const handleSwitch = () => {
+    const handleRefresh = () => {
       fetchDashboardData();
     };
 
-    window.addEventListener("billing_company_switched", handleSwitch);
+    window.addEventListener("billing_company_switched", handleRefresh);
+    window.addEventListener("billing_branch_switched", handleRefresh);
+    window.addEventListener("billing_fy_switched", handleRefresh);
+    window.addEventListener("billing_transaction_posted", handleRefresh);
+    window.addEventListener("billing_invoice_created", handleRefresh);
+    window.addEventListener("billing_payment_posted", handleRefresh);
+    window.addEventListener("focus", handleRefresh);
+
     return () => {
-      window.removeEventListener("billing_company_switched", handleSwitch);
+      window.removeEventListener("billing_company_switched", handleRefresh);
+      window.removeEventListener("billing_branch_switched", handleRefresh);
+      window.removeEventListener("billing_fy_switched", handleRefresh);
+      window.removeEventListener("billing_transaction_posted", handleRefresh);
+      window.removeEventListener("billing_invoice_created", handleRefresh);
+      window.removeEventListener("billing_payment_posted", handleRefresh);
+      window.removeEventListener("focus", handleRefresh);
     };
-  }, [tenantContext.companyId, fetchDashboardData]);
+  }, [tenantContext.companyId, tenantContext.branchId, currentFY?.id, fetchDashboardData]);
+
+  // Derived overdue statistics for activities
+  const overdueStats = useMemo(() => {
+    const overdueInvs = recentInvoices.filter((it) => it.outstandingBalance > 0);
+    const sum = overdueInvs.reduce((acc, it) => acc + it.outstandingBalance, 0);
+    return {
+      count: overdueInvs.length,
+      amount: sum,
+    };
+  }, [recentInvoices]);
 
   const formatInr = (val: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -192,312 +256,140 @@ export default function DashboardPage() {
     }).format(val || 0);
   };
 
-  // -------------------------------------------------------------
-  // Calculate Last 7 Days Sales Data & Date Range for the Report
-  // -------------------------------------------------------------
-  const { salesReportData, dateRangeString, last7DaysSales, last7DaysInvoicesCount } =
-    useMemo(() => {
-      const days: DaySalesData[] = [];
-      const today = new Date();
-
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(today);
-        d.setDate(today.getDate() - i);
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth() + 1).padStart(2, "0");
-        const dd = String(d.getDate()).padStart(2, "0");
-        const fullDate = `${yyyy}-${mm}-${dd}`;
-
-        const dayName = d.toLocaleDateString("en-US", { weekday: "short" });
-        const displayDate = d.toLocaleDateString("en-GB", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        });
-
-        days.push({
-          day: dayName,
-          fullDate,
-          displayDate,
-          sales: 0,
-          invoices: 0,
-        });
-      }
-
-      // Match invoices with the 7 days
-      allSalesInvoices.forEach((inv: any) => {
-        const invDateObj = new Date(inv.invoiceDate || inv.createdAt);
-        const yyyy = invDateObj.getFullYear();
-        const mm = String(invDateObj.getMonth() + 1).padStart(2, "0");
-        const dd = String(invDateObj.getDate()).padStart(2, "0");
-        const invDateStr = `${yyyy}-${mm}-${dd}`;
-
-        const matchedDay = days.find((d) => d.fullDate === invDateStr);
-        if (matchedDay) {
-          matchedDay.sales += Number(inv.grandTotal || 0);
-          matchedDay.invoices += 1;
-        }
-      });
-
-      const total7DaysSales = days.reduce((sum, d) => sum + d.sales, 0);
-      const total7DaysInvoices = days.reduce((sum, d) => sum + d.invoices, 0);
-
-      const firstDateStr = days[0]?.displayDate || "";
-      const lastDateStr = days[days.length - 1]?.displayDate || "";
-      const rangeStr = `${firstDateStr} to ${lastDateStr}`;
-
-      return {
-        salesReportData: days,
-        dateRangeString: rangeStr,
-        last7DaysSales: total7DaysSales,
-        last7DaysInvoicesCount: total7DaysInvoices,
-      };
-    }, [allSalesInvoices]);
-
-  // -------------------------------------------------------------
-  // Responsive SVG Line Chart Parameters
-  // -------------------------------------------------------------
-  const chartConfig = useMemo(() => {
-    const width = 540;
-    const height = 210;
-    const paddingLeft = 58;
-    const paddingRight = 20;
-    const paddingTop = 20;
-    const paddingBottom = 30;
-
-    const plotWidth = width - paddingLeft - paddingRight;
-    const plotHeight = height - paddingTop - paddingBottom;
-
-    const maxSales = Math.max(...salesReportData.map((d) => d.sales), 0);
-
-    // If all values are 0 (like in the reference screenshot)
-    // Ticks: 1, 0.8, 0.6, 0.4, 0.2, 0, -0.2, -0.4, -0.6, -0.8, -1
-    if (maxSales === 0) {
-      const zeroTicks = [1, 0.8, 0.6, 0.4, 0.2, 0, -0.2, -0.4, -0.6, -0.8, -1];
-      const yZero = paddingTop + plotHeight / 2;
-
-      const points = salesReportData.map((d, index) => {
-        const x = paddingLeft + (index * plotWidth) / (salesReportData.length - 1);
-        const y = yZero;
-        return { x, y, ...d };
-      });
-
-      const pathD = points
-        .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
-        .join(" ");
-
-      return {
-        width,
-        height,
-        paddingLeft,
-        paddingRight,
-        paddingTop,
-        paddingBottom,
-        plotWidth,
-        plotHeight,
-        ticks: zeroTicks.map((val, idx) => ({
-          label: `₹ ${val}`,
-          y: paddingTop + (idx * plotHeight) / (zeroTicks.length - 1),
-        })),
-        points,
-        pathD,
-      };
-    }
-
-    // Dynamic positive scale if sales exist
-    const niceMax = Math.ceil(maxSales * 1.25);
-    const tickValues = [
-      niceMax,
-      Math.round(niceMax * 0.75),
-      Math.round(niceMax * 0.5),
-      Math.round(niceMax * 0.25),
-      0,
-    ];
-
-    const points = salesReportData.map((d, index) => {
-      const x = paddingLeft + (index * plotWidth) / (salesReportData.length - 1);
-      const ratio = d.sales / niceMax;
-      const y = paddingTop + plotHeight - ratio * plotHeight;
-      return { x, y, ...d };
-    });
-
-    const pathD = points
-      .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
-      .join(" ");
-
-    return {
-      width,
-      height,
-      paddingLeft,
-      paddingRight,
-      paddingTop,
-      paddingBottom,
-      plotWidth,
-      plotHeight,
-      ticks: tickValues.map((val) => ({
-        label: `₹ ${val >= 1000 ? `${(val / 1000).toFixed(1)}k` : val}`,
-        y: paddingTop + plotHeight - (val / niceMax) * plotHeight,
-      })),
-      points,
-      pathD,
-    };
-  }, [salesReportData]);
-
   return (
-    <div className="space-y-6">
-      {/* 1. TOP PROMINENT ACTION BANNER */}
-      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-border shadow-subtle flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
-        <div className="space-y-1 min-w-0">
-          <h1 className="text-xl sm:text-2xl font-bold text-[#202124] tracking-tight truncate">
-            {lang === "gu"
-              ? "વેપાર ડેશબોર્ડ (Business Overview)"
-              : "Business Dashboard"}
-          </h1>
-          <p className="text-xs sm:text-sm text-[#667085] break-words">
-            {lang === "gu"
-              ? "આજના બિલ, ઉઘરાણી બાકી અને વેચાણ રિપોર્ટ એક જ નજરે જુઓ."
-              : "Real-time summary of sales, customer dues, and transactions overview."}
-          </p>
-        </div>
+    <div className="space-y-3.5 sm:space-y-5 lg:space-y-6">
+      {/* 1. TOP GREETING & BUSINESS GLANCE BANNER WITH INTERACTIVE DATE FILTER */}
+      <GreetingBanner
+        startDate={dateRange.startDate}
+        endDate={dateRange.endDate}
+        selectedLabel={dateRange.label}
+        onDateRangeChange={handleDateRangeChange}
+      />
 
-        {/* Primary Action Button (Create Bill) & Secondary Shortcuts */}
-        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap w-full md:w-auto">
-          <Link
-            href="/sales/invoices/new"
-            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-button font-bold text-sm shadow-saffron transition-all transform active:scale-98 whitespace-nowrap"
-          >
-            <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-            </svg>
-            <span>{lang === "gu" ? "નવું વેચાણ બિલ (F2)" : "Create New Bill"}</span>
-          </Link>
+      {/* 2. THREE HERO FINANCIAL SUMMARY CARDS (Customer Receivables, Supplier Payables, Cash & Bank) */}
+      <FinancialSummaryCards asOfDate={dateRange.endDate} />
 
-          <Link
-            href="/sales/pos"
-            className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-3.5 py-2.5 bg-[#FFF3E8] hover:bg-[#FED7AA] text-[#B94B0A] rounded-button font-semibold text-xs sm:text-sm border border-[#FDBA74] transition-colors whitespace-nowrap"
-          >
-            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            <span>{lang === "gu" ? "ઝડપી POS" : "POS Counter"}</span>
-          </Link>
-        </div>
-      </div>
+      {/* 3. FOUR METRIC STAT CARDS (Total Sales, Receivables, Stock Valuation, Low Stock Alert) */}
+      <StatMetricCards
+        totalSales={metrics.totalSales}
+        totalInvoices={metrics.totalInvoices}
+        totalReceivables={metrics.totalOutstanding}
+        stockValuation={metrics.totalInventoryValue}
+        lowStockCount={lowStockCount}
+        isLoading={isLoading}
+      />
 
-      {/* 2. REAL-TIME BUSINESS METRICS CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 min-w-0">
-        <StatCard
-          title="Total Sales"
-          titleGujarati="કુલ વેચાણ"
-          value={isLoading ? "..." : formatInr(metrics.totalSales)}
-          subtext={`${metrics.totalInvoices} Invoices Issued`}
-          variant="primary"
-          icon={
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-          }
-        />
+      {/* 4. QUICK ACTIONS STRIP (6 Daily Shortcuts) */}
+      <QuickActionsBar />
 
-        <StatCard
-          title="Receivables"
-          titleGujarati="ઉઘરાણી બાકી (લેણું)"
-          value={isLoading ? "..." : formatInr(metrics.totalOutstanding)}
-          subtext={lang === "gu" ? "ગ્રાહકો પાસેથી લેવાના બાકી" : "Customer balance to collect"}
-          variant={metrics.totalOutstanding > 0 ? "warning" : "default"}
-          icon={
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          }
-        />
+      {/* 5. MAIN 2-COLUMN GRID (Left ~68% / Right ~32%) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-5 min-w-0">
+        {/* LEFT COLUMN (lg:col-span-8): Recent Invoices + Stock Movement + Upcoming Activities */}
+        <div className="lg:col-span-8 space-y-3.5 sm:space-y-5 min-w-0">
+          {/* Recent Sales Invoices Card */}
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs overflow-hidden min-w-0">
+            {/* Header */}
+            <div className="p-3.5 sm:p-5 border-b border-[#F1F5F9] flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center shrink-0">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-[#111827]">
+                    {lang === "gu" ? "તાજેતરના વેચાણ બિલ" : "Recent Sales Invoices"}
+                  </h2>
+                  <p className="text-[11px] text-[#6B7280]">
+                    {lang === "gu" ? "આ સમયગાળાના બિલ અને તેમની પેમેન્ટ સ્થિતિ" : "Customer transactions and payment tracking"}
+                  </p>
+                </div>
+              </div>
 
-        <StatCard
-          title="Stock Valuation"
-          titleGujarati="કુલ સ્ટોકની કિંમત"
-          value={isLoading ? "..." : formatInr(metrics.totalInventoryValue)}
-          subtext={lang === "gu" ? "ગોડાઉન માલસામાન કિંમત (AS-2)" : "Closing stock at cost"}
-          variant="default"
-          icon={
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
-          }
-        />
-
-        <StatCard
-          title="Low Stock Alert"
-          titleGujarati="ઓછો સ્ટોક ચેતવણી"
-          value={isLoading ? "..." : `${lowStockCount} Items`}
-          subtext={lowStockCount > 0 ? (lang === "gu" ? "તરત ઓર્ડર આપવો જરૂરી" : "Needs reorder soon") : (lang === "gu" ? "સ્ટોક પૂરતો છે" : "Stock is healthy")}
-          variant={lowStockCount > 0 ? "danger" : "success"}
-          icon={
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          }
-        />
-      </div>
-
-      {/* 3. TWO-COLUMN OPERATIONAL DASHBOARD LAYOUT (MATCHING REFERENCE UI) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* LEFT COLUMN: Latest Transactions & Sales Report (lg:col-span-2) */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* CARD A: LATEST TRANSACTIONS */}
-          <div className="bg-white rounded-card border border-[#E5E7EB] shadow-card overflow-hidden">
-            <div className="p-4 sm:p-5 border-b border-[#E5E7EB] flex items-center justify-between">
-              <h3 className="font-bold text-base text-[#202124]">
-                {lang === "gu" ? "છેલ્લા વ્યવહારો (Latest Transactions)" : "Latest Transactions"}
-              </h3>
+              <Link
+                href="/sales/invoices"
+                className="text-xs font-semibold text-[#F47721] hover:text-[#D95F12] flex items-center gap-1 hover:underline shrink-0"
+              >
+                <span>{lang === "gu" ? "બધા બિલ જુઓ" : "View All Invoices"}</span>
+                <span aria-hidden="true">&rarr;</span>
+              </Link>
             </div>
 
-            {/* Desktop & Mobile Table View */}
-            <div className="overflow-x-auto">
+            {/* Desktop Table (>= md) */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#FBFBFB] text-[#667085] uppercase tracking-wider font-semibold border-b border-[#E5E7EB]">
+                <thead className="bg-[#F8FAFC] text-[#64748B] uppercase tracking-wider font-bold border-b border-[#E2E8F0]">
                   <tr>
+                    <th className="px-4 py-3">{lang === "gu" ? "બિલ નંબર" : "INVOICE NO"}</th>
                     <th className="px-4 py-3">{lang === "gu" ? "તારીખ" : "DATE"}</th>
-                    <th className="px-4 py-3">{lang === "gu" ? "પ્રકાર" : "TYPE"}</th>
-                    <th className="px-4 py-3">{lang === "gu" ? "નંબર" : "TXN NO"}</th>
-                    <th className="px-4 py-3">{lang === "gu" ? "પાર્ટી નામ" : "PARTY NAME"}</th>
-                    <th className="px-4 py-3">{lang === "gu" ? "રકમ" : "AMOUNT"}</th>
+                    <th className="px-4 py-3">{lang === "gu" ? "ગ્રાહકનું નામ" : "CUSTOMER NAME"}</th>
+                    <th className="px-4 py-3 text-right">{lang === "gu" ? "કુલ રકમ" : "GRAND TOTAL"}</th>
+                    <th className="px-4 py-3 text-right">{lang === "gu" ? "બાકી રકમ" : "DUE BALANCE"}</th>
+                    <th className="px-4 py-3 text-center">{lang === "gu" ? "સ્થિતિ" : "STATUS"}</th>
+                    <th className="px-4 py-3 text-center">{lang === "gu" ? "ક્રિયા" : "ACTION"}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E5E7EB]">
+                <tbody className="divide-y divide-[#F1F5F9]">
                   {isLoading ? (
                     <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-[#667085]">
-                        <div className="flex items-center justify-center gap-2">
-                          <div className="w-4 h-4 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin" />
-                          <span>Loading transactions...</span>
-                        </div>
+                      <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
+                        {lang === "gu" ? "બિલ લોડ થઈ રહ્યા છે..." : "Loading invoices..."}
                       </td>
                     </tr>
-                  ) : latestTransactions.length === 0 ? (
+                  ) : recentInvoices.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-[#667085]">
-                        {lang === "gu" ? "હજુ સુધી કોઈ વ્યવહાર થયેલ નથી." : "No transactions recorded yet."}
+                      <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
+                        {lang === "gu"
+                          ? "આ સમયગાળા માટે કોઈ વેચાણ બિલ નોંધાયેલ નથી."
+                          : "No sales invoices recorded for this period."}
                       </td>
                     </tr>
                   ) : (
-                    latestTransactions.map((txn) => (
-                      <tr key={txn.id} className="hover:bg-[#FFFAF5] transition-colors">
-                        <td className="px-4 py-3.5 text-[#344054] whitespace-nowrap">
-                          {txn.date}
-                        </td>
-                        <td className="px-4 py-3.5 text-[#344054] whitespace-nowrap">
-                          {txn.type}
-                        </td>
-                        <td className="px-4 py-3.5 font-medium text-[#202124] whitespace-nowrap">
-                          <Link href={txn.url} className="hover:text-[#F47721] hover:underline">
-                            {txn.txnNo}
+                    recentInvoices.map((inv) => (
+                      <tr key={inv.id} className="hover:bg-slate-50/60 transition-colors">
+                        <td className="px-4 py-3 font-mono font-bold text-[#111827]">
+                          <Link href={`/sales/invoices/${inv.id}`} className="hover:text-[#F47721]">
+                            {inv.invoiceNumber}
                           </Link>
                         </td>
-                        <td className="px-4 py-3.5 font-medium text-[#202124] uppercase truncate max-w-[200px]">
-                          {txn.partyName}
+                        <td className="px-4 py-3 text-[#4B5563]">
+                          {new Date(inv.invoiceDate).toLocaleDateString("en-IN", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
                         </td>
-                        <td className="px-4 py-3.5 font-medium text-[#202124] whitespace-nowrap">
-                          ₹ {txn.amount.toLocaleString("en-IN")}
+                        <td className="px-4 py-3 font-medium text-[#111827]">
+                          {inv.partyName || (lang === "gu" ? "રોકડા ગ્રાહક (Walk-in)" : "Walk-in Retail Cash Customer")}
+                        </td>
+                        <td className="px-4 py-3 text-right font-mono font-bold text-[#111827]">
+                          {formatInr(inv.grandTotal)}
+                        </td>
+                        <td className="px-4 py-3 text-right font-mono font-semibold">
+                          {inv.outstandingBalance > 0 ? (
+                            <span className="text-[#DC2626] font-bold">
+                              {formatInr(inv.outstandingBalance)} Dr
+                            </span>
+                          ) : (
+                            <span className="text-[#16A34A]">₹0.00</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <StatusBadge status={inv.status} />
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <Link
+                              href={`/sales/invoices/${inv.id}`}
+                              className="p-1.5 text-[#64748B] hover:text-[#F47721] hover:bg-[#FFF3E8] rounded-lg transition-colors inline-block"
+                              title="View Invoice"
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                            </Link>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -506,275 +398,99 @@ export default function DashboardPage() {
               </table>
             </div>
 
-            {/* Bottom Link: See All Transactions */}
-            <div className="p-3 border-t border-[#E5E7EB] text-center bg-white">
-              <Link
-                href="/sales/invoices"
-                className="text-xs sm:text-sm font-semibold text-[#2563EB] hover:text-[#1D4ED8] hover:underline transition-colors inline-flex items-center gap-1"
-              >
-                <span>{lang === "gu" ? "બધા વ્યવહારો જુઓ" : "See All Transactions"}</span>
-              </Link>
+            {/* Mobile Card List (< md) */}
+            <div className="block md:hidden divide-y divide-[#F1F5F9]">
+              {isLoading ? (
+                <div className="p-4 text-center text-slate-400 text-xs">
+                  {lang === "gu" ? "બિલ લોડ થઈ રહ્યા છે..." : "Loading invoices..."}
+                </div>
+              ) : recentInvoices.length === 0 ? (
+                <div className="p-6 text-center text-slate-400 text-xs">
+                  {lang === "gu"
+                    ? "આ સમયગાળા માટે કોઈ વેચાણ બિલ નોંધાયેલ નથી."
+                    : "No sales invoices recorded for this period."}
+                </div>
+              ) : (
+                recentInvoices.map((inv) => (
+                  <div key={inv.id} className="p-3 sm:p-3.5 hover:bg-slate-50/60 transition-colors space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <Link
+                        href={`/sales/invoices/${inv.id}`}
+                        className="font-mono font-bold text-xs sm:text-sm text-[#111827] hover:text-[#F47721] truncate"
+                      >
+                        {inv.invoiceNumber}
+                      </Link>
+                      <StatusBadge status={inv.status} />
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs text-[#6B7280]">
+                      <span className="font-medium text-[#374151] truncate max-w-[160px] sm:max-w-[220px]">
+                        {inv.partyName || (lang === "gu" ? "રોકડા ગ્રાહક (Walk-in)" : "Walk-in Retail Cash Customer")}
+                      </span>
+                      <span className="shrink-0 text-[11px] sm:text-xs">
+                        {new Date(inv.invoiceDate).toLocaleDateString("en-IN", {
+                          day: "2-digit",
+                          month: "short",
+                        })}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1 border-t border-[#F1F5F9] text-xs">
+                      <div>
+                        <span className="text-[#6B7280]">{lang === "gu" ? "કુલ: " : "Total: "}</span>
+                        <span className="font-mono font-bold text-xs sm:text-sm text-[#111827]">{formatInr(inv.grandTotal)}</span>
+                      </div>
+
+                      <div className="flex items-center gap-2.5 sm:gap-3">
+                        <div>
+                          {inv.outstandingBalance > 0 ? (
+                            <span className="font-mono font-semibold text-xs text-[#DC2626]">
+                              {formatInr(inv.outstandingBalance)} Dr
+                            </span>
+                          ) : (
+                            <span className="font-mono font-semibold text-xs text-[#16A34A]">₹0.00</span>
+                          )}
+                        </div>
+                        <Link
+                          href={`/sales/invoices/${inv.id}`}
+                          className="p-1 text-[#F47721] hover:bg-[#FFF3E8] rounded transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
-          {/* CARD B: SALES REPORT */}
-          <div className="bg-white rounded-card border border-[#E5E7EB] shadow-card overflow-hidden">
-            <div className="p-4 sm:p-5 border-b border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <h3 className="font-bold text-sm sm:text-base text-[#202124]">
-                Sales Report - {dateRangeString}
-              </h3>
-
-              <div className="flex items-center gap-2">
-                <div className="relative inline-block text-left">
-                  <select
-                    value={reportPeriod}
-                    onChange={(e: any) => setReportPeriod(e.target.value)}
-                    className="block appearance-none bg-white border border-[#E5E7EB] hover:border-[#D1D5DB] px-3 py-1.5 pr-8 rounded-lg text-xs font-semibold text-[#374151] shadow-xs focus:outline-none focus:ring-1 focus:ring-[#F47721] cursor-pointer"
-                  >
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#667085]">
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Chart + 7 Days Metric Overview */}
-            <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
-              {/* Interactive Vector Line Chart (md:col-span-3) */}
-              <div className="md:col-span-3 relative w-full overflow-hidden">
-                <svg
-                  viewBox={`0 0 ${chartConfig.width} ${chartConfig.height}`}
-                  className="w-full h-auto overflow-visible select-none"
-                >
-                  <defs>
-                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#22C55E" stopOpacity="0.15" />
-                      <stop offset="100%" stopColor="#22C55E" stopOpacity="0.0" />
-                    </linearGradient>
-                  </defs>
-
-                  {/* Horizontal Gridlines and Y-Axis Labels */}
-                  {chartConfig.ticks.map((tick, idx) => (
-                    <g key={`y-tick-${idx}`}>
-                      <line
-                        x1={chartConfig.paddingLeft}
-                        y1={tick.y}
-                        x2={chartConfig.width - chartConfig.paddingRight}
-                        y2={tick.y}
-                        stroke="#F1F3F5"
-                        strokeWidth="1"
-                      />
-                      <text
-                        x={chartConfig.paddingLeft - 8}
-                        y={tick.y + 3.5}
-                        textAnchor="end"
-                        fontSize="10"
-                        fill="#868E96"
-                        fontFamily="inherit"
-                      >
-                        {tick.label}
-                      </text>
-                    </g>
-                  ))}
-
-                  {/* Vertical Day Lines & X-Axis Day Labels */}
-                  {chartConfig.points.map((p, idx) => (
-                    <g key={`x-tick-${idx}`}>
-                      <line
-                        x1={p.x}
-                        y1={chartConfig.paddingTop}
-                        x2={p.x}
-                        y2={chartConfig.height - chartConfig.paddingBottom}
-                        stroke="#F8F9FA"
-                        strokeWidth="1"
-                      />
-                      <text
-                        x={p.x}
-                        y={chartConfig.height - 10}
-                        textAnchor="middle"
-                        fontSize="11"
-                        fontWeight="500"
-                        fill="#6B7280"
-                      >
-                        {p.day}
-                      </text>
-                    </g>
-                  ))}
-
-                  {/* Green Trend Line */}
-                  <path
-                    d={chartConfig.pathD}
-                    fill="none"
-                    stroke="#22C55E"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-
-                  {/* Data Points with Hover Interaction */}
-                  {chartConfig.points.map((p, idx) => (
-                    <g
-                      key={`point-${idx}`}
-                      className="cursor-pointer group"
-                      onMouseEnter={() => setHoveredPointIndex(idx)}
-                      onMouseLeave={() => setHoveredPointIndex(null)}
-                    >
-                      {/* Invisible wider hit target */}
-                      <circle cx={p.x} cy={p.y} r="14" fill="transparent" />
-
-                      {/* Visible dot */}
-                      <circle
-                        cx={p.x}
-                        cy={p.y}
-                        r={hoveredPointIndex === idx ? 5 : 3.5}
-                        fill="#FFFFFF"
-                        stroke="#22C55E"
-                        strokeWidth={hoveredPointIndex === idx ? 2.5 : 2}
-                        className="transition-all duration-150"
-                      />
-                    </g>
-                  ))}
-                </svg>
-
-                {/* Floating Tooltip when hovering over a chart point */}
-                {hoveredPointIndex !== null && chartConfig.points[hoveredPointIndex] && (
-                  <div
-                    className="absolute bg-[#1F2937] text-white px-2.5 py-1.5 rounded-md text-[11px] shadow-lg pointer-events-none transform -translate-x-1/2 -translate-y-full mb-2 z-10 whitespace-nowrap"
-                    style={{
-                      left: `${(chartConfig.points[hoveredPointIndex].x / chartConfig.width) * 100}%`,
-                      top: `${(chartConfig.points[hoveredPointIndex].y / chartConfig.height) * 100}%`,
-                    }}
-                  >
-                    <div className="font-semibold">{chartConfig.points[hoveredPointIndex].displayDate}</div>
-                    <div className="text-[#86EFAC]">
-                      Sales: ₹ {chartConfig.points[hoveredPointIndex].sales.toLocaleString("en-IN")}
-                    </div>
-                    <div className="text-gray-300">
-                      Invoices: {chartConfig.points[hoveredPointIndex].invoices}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Right Side 7-day Summary Metrics */}
-              <div className="space-y-6 md:border-l md:border-[#F1F3F5] md:pl-6 text-left">
-                <div>
-                  <p className="text-xs text-[#667085] font-medium">Last 7 days sales</p>
-                  <p className="text-2xl font-bold text-[#202124] tracking-tight mt-1">
-                    ₹ {last7DaysSales.toLocaleString("en-IN")}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs text-[#667085] font-medium">Invoices Made</p>
-                  <p className="text-2xl font-bold text-[#202124] tracking-tight mt-1">
-                    {last7DaysInvoicesCount}
-                  </p>
-                </div>
-              </div>
-            </div>
+          {/* Bottom Row: Stock Movement & Upcoming Activities */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-5 min-w-0">
+            <StockMovementCard movements={stockMovements} isLoading={isLoading} />
+            <UpcomingActivitiesCard
+              lowStockCount={lowStockCount}
+              overdueInvoicesCount={overdueStats.count}
+              overdueAmount={overdueStats.amount}
+              pendingOrdersCount={pendingOrdersCount}
+              isLoading={isLoading}
+            />
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Scan & Record Bills (lg:col-span-1) */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-card border border-[#E5E7EB] shadow-card p-5">
-            {/* Header: Icon + Title */}
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-[#F47721] flex items-center justify-center text-white shadow-saffron shrink-0">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 7V5a2 2 0 012-2h2m10 0h2a2 2 0 012 2v2m0 10v2a2 2 0 01-2 2h-2m-10 0H5a2 2 0 01-2-2v-2M9 9h6m-6 3h6m-6 3h4"
-                  />
-                </svg>
-              </div>
-
-              <div className="min-w-0">
-                <h3 className="font-bold text-base text-[#202124] truncate">
-                  Scan & Record Bills
-                </h3>
-                <p className="text-xs text-[#667085] font-medium mt-0.5">
-                  {lang === "gu" ? "ઝડપી બિલ સ્કેનિંગ અને રેકોર્ડ" : "Quick Bill Scanning & Recording"}
-                </p>
-              </div>
-            </div>
-
-            {/* Quick Action Buttons */}
-            <div className="grid grid-cols-2 gap-2.5 mt-5">
-              <Link
-                href="/sales/invoices/new"
-                className="flex items-center justify-center gap-2 px-3 py-2.5 bg-[#F9FAFB] hover:bg-[#F3F4F6] text-[#344054] rounded-lg text-xs font-semibold border border-[#E5E7EB] transition-colors shadow-xs"
-              >
-                <svg className="w-4 h-4 text-[#667085]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <span>Create Sales</span>
-              </Link>
-
-              <Link
-                href="/purchases"
-                className="flex items-center justify-center gap-2 px-3 py-2.5 bg-[#FFF8F3] hover:bg-[#FFF3E8] text-[#F47721] rounded-lg text-xs font-semibold border border-[#FDBA74] transition-colors shadow-xs"
-              >
-                <svg className="w-4 h-4 text-[#F47721]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-                <span>Create Purchase</span>
-              </Link>
-            </div>
-
-            {/* Peach Drag & Drop Upload Zone */}
-            <div
-              onClick={() => setIsScannerOpen(true)}
-              className="mt-4 p-8 rounded-xl border-2 border-dashed border-[#F59E0B] bg-[#FFF6EE] hover:bg-[#FEEDDC] transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-2.5 group"
-            >
-              <div className="w-12 h-12 rounded-full bg-[#FFE8D6] text-[#EA580C] flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                  />
-                </svg>
-              </div>
-
-              <div>
-                <p className="text-sm font-bold text-[#C2410C]">
-                  Drag & Drop or Upload file
-                </p>
-                <p className="text-[11px] text-[#667085] mt-0.5">
-                  (PDF, JPG, JPEG & PNG file supported, max 5MB)
-                </p>
-              </div>
-            </div>
-          </div>
+        {/* RIGHT COLUMN (lg:col-span-4): Sales vs Purchase + Top 5 Customers */}
+        <div className="lg:col-span-4 space-y-3.5 sm:space-y-5 min-w-0">
+          <SalesVsPurchaseChart
+            salesTotal={metrics.totalSales}
+            purchasesTotal={purchasesTotal}
+            dailyData={chartDailyData}
+            isLoading={isLoading}
+          />
+          <TopCustomersCard recentInvoices={recentInvoices} isLoading={isLoading} />
         </div>
       </div>
-
-      {/* 4. BILL SCANNER MODAL (LAUNCHABLE FROM DASHBOARD) */}
-      {isScannerOpen && (
-        <BillScannerModal
-          isOpen={isScannerOpen}
-          onClose={() => setIsScannerOpen(false)}
-          onSuccess={() => {
-            setIsScannerOpen(false);
-            fetchDashboardData();
-          }}
-          lang={lang}
-          parties={partiesList}
-          itemsList={itemsList}
-          warehouses={warehousesList}
-        />
-      )}
     </div>
   );
 }

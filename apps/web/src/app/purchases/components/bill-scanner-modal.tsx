@@ -47,8 +47,81 @@ export function logDiagnosticStage(
 // Memory-Safe Image Optimization
 // 1. Decodes via createImageBitmap hardware downsampling when supported (avoids 200MB uncompressed bitmap allocation)
 // 2. Immediate bitmap.close() and canvas backing store zeroing
-// 3. Fallback: If device memory pressure or decode fails, and file <= 12MB,
-//    safely passes the original File directly to FormData (server supports up to 15MB)
+// ─────────────────────────────────────────────────────────────
+// Fast, Zero-Heap Image Header Dimension Parser
+// Reads only first 64KB slice to determine width & height without full bitmap allocation
+// ─────────────────────────────────────────────────────────────
+async function getFastImageDimensions(
+  file: File,
+): Promise<{ width: number; height: number } | null> {
+  try {
+    const slice = await file.slice(0, 65536).arrayBuffer();
+    const bytes = new Uint8Array(slice);
+    const view = new DataView(slice);
+
+    // 1. PNG Header (bytes 16-23: width, height big-endian 32-bit uint)
+    if (
+      bytes[0] === 0x89 &&
+      bytes[1] === 0x50 &&
+      bytes[2] === 0x4e &&
+      bytes[3] === 0x47 &&
+      bytes.length >= 24
+    ) {
+      return { width: view.getUint32(16, false), height: view.getUint32(20, false) };
+    }
+
+    // 2. JPEG Header (Scan SOF0, SOF1, SOF2 markers)
+    if (bytes[0] === 0xff && bytes[1] === 0xd8) {
+      let offset = 2;
+      while (offset < bytes.length - 8) {
+        while (offset < bytes.length && bytes[offset] !== 0xff) offset++;
+        while (offset < bytes.length && bytes[offset] === 0xff) offset++;
+        if (offset >= bytes.length) break;
+        const marker = bytes[offset];
+        offset++;
+        if (marker === 0xc0 || marker === 0xc1 || marker === 0xc2) {
+          const height = view.getUint16(offset + 3, false);
+          const width = view.getUint16(offset + 5, false);
+          return { width, height };
+        }
+        if (marker === 0xd9 || marker === 0xda) break; // SOS or EOI
+        const len = view.getUint16(offset, false);
+        offset += len;
+      }
+    }
+
+    // 3. WebP Header (VP8 / VP8L / VP8X)
+    if (
+      bytes[0] === 0x52 &&
+      bytes[1] === 0x49 &&
+      bytes[2] === 0x46 &&
+      bytes[3] === 0x46 &&
+      bytes.length >= 30
+    ) {
+      if (bytes[12] === 0x56 && bytes[13] === 0x50 && bytes[14] === 0x38 && bytes[15] === 0x58) {
+        // VP8X extended
+        const width = 1 + view.getUint32(24, true) & 0xffffff;
+        const height = 1 + (view.getUint32(27, true) >> 8) & 0xffffff;
+        return { width, height };
+      }
+      if (bytes[12] === 0x56 && bytes[13] === 0x50 && bytes[14] === 0x38 && bytes[15] === 0x20) {
+        // VP8 lossy
+        const width = view.getUint16(26, true) & 0x3fff;
+        const height = view.getUint16(28, true) & 0x3fff;
+        return { width, height };
+      }
+    }
+  } catch (err) {
+    console.warn("Fast dimension parse warning:", err);
+  }
+  return null;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Memory-Safe Image Optimization
+// 1. Decodes via createImageBitmap hardware downsampling with BOTH width & height
+// 2. Immediate bitmap.close() and canvas backing store zeroing
+// 3. Fallback: Bounded OffscreenCanvas / HTMLCanvas downsampling
 // ─────────────────────────────────────────────────────────────
 async function memorySafeProcessImage(
   source: File,
@@ -59,26 +132,41 @@ async function memorySafeProcessImage(
   const originalSizeBytes = source.size;
   const overallStart = performance.now();
 
-  // Try createImageBitmap (Native Skia/libjpeg downsampling without full-resolution heap allocation)
+  // If already small (< 450 KB JPEG/PNG) or is a PDF, skip compression
+  const isPdf = source.type === "application/pdf" || /\.pdf$/i.test(source.name);
+  if (isPdf) {
+    return { processFile: source, originalSizeBytes, finalSizeBytes: source.size };
+  }
+
+  // Fast header inspection for proportional target calculation
+  onStageChange?.("IMAGE_DECODE_START", {
+    fileName: source.name,
+    mimeType: source.type,
+    originalSizeBytes,
+  });
+  logDiagnosticStage("IMAGE_DECODE_START", {
+    fileName: source.name,
+    mimeType: source.type,
+    originalSizeBytes,
+  });
+
+  const decodeStart = performance.now();
+  const fastDims = await getFastImageDimensions(source);
+  let targetWidth = maxDimension;
+  let targetHeight = Math.round((maxDimension * 3) / 4);
+
+  if (fastDims && fastDims.width > 0 && fastDims.height > 0) {
+    const scale = Math.min(1, maxDimension / Math.max(fastDims.width, fastDims.height));
+    targetWidth = Math.max(1, Math.round(fastDims.width * scale));
+    targetHeight = Math.max(1, Math.round(fastDims.height * scale));
+  }
+
+  // 1. Primary: Native Skia downsampling during decode with BOTH dimensions
   if (typeof window !== "undefined" && typeof window.createImageBitmap === "function") {
     try {
-      const decodeStart = performance.now();
-      onStageChange?.("IMAGE_DECODE_START", {
-        fileName: source.name,
-        mimeType: source.type,
-        originalSizeBytes,
-        method: "createImageBitmap",
-      });
-      logDiagnosticStage("IMAGE_DECODE_START", {
-        fileName: source.name,
-        mimeType: source.type,
-        originalSizeBytes,
-        method: "createImageBitmap",
-      });
-
-      // Note: passing resizeWidth downsamples during decode in browser engine
       const bitmap = await window.createImageBitmap(source, {
-        resizeWidth: maxDimension,
+        resizeWidth: targetWidth,
+        resizeHeight: targetHeight,
         resizeQuality: "medium",
       });
       const decodeDuration = Math.round(performance.now() - decodeStart);
@@ -107,27 +195,26 @@ async function memorySafeProcessImage(
       const canvas = document.createElement("canvas");
       canvas.width = bitmap.width;
       canvas.height = bitmap.height;
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext("2d", { alpha: false });
 
       if (!ctx) {
         bitmap.close();
-        throw new Error("Canvas 2D context unavailable on this device");
+        throw new Error("Canvas 2D context unavailable");
       }
 
       ctx.drawImage(bitmap, 0, 0);
-      // Immediately free the ImageBitmap memory from GPU / heap
-      bitmap.close();
+      bitmap.close(); // Instantly release uncompressed GPU bitmap
 
       const blob = await new Promise<Blob | null>((resolve) =>
         canvas.toBlob(resolve, "image/jpeg", targetQuality),
       );
 
-      // Immediately release canvas backing buffer
+      // Instantly release canvas backing store
       canvas.width = 0;
       canvas.height = 0;
 
       if (!blob) {
-        throw new Error("Canvas toBlob failed to produce JPEG");
+        throw new Error("Canvas toBlob produced empty blob");
       }
 
       const compDuration = Math.round(performance.now() - compStart);
@@ -159,46 +246,20 @@ async function memorySafeProcessImage(
         originalSizeBytes,
         finalSizeBytes: blob.size,
       };
-    } catch (bitmapErr: any) {
-      console.warn("createImageBitmap compression path warning:", bitmapErr);
-      // If client-side compression hits memory pressure, check fallback
+    } catch (bitmapErr) {
+      console.warn("createImageBitmap downscale failed, using bounded canvas fallback:", bitmapErr);
     }
   }
 
-  // Safe Fallback: If original file is within server limit (<= 12 MB),
-  // stream original File directly via FormData without risking mobile browser heap crash!
-  if (source.size <= 12 * 1024 * 1024) {
-    const totalDuration = Math.round(performance.now() - overallStart);
-    onStageChange?.("IMAGE_COMPRESSION_END", {
-      originalSizeBytes,
-      compressedSizeBytes: source.size,
-      method: "direct_original_fallback",
-      note: "Used original file directly (<=12MB) to protect client memory",
-      totalDurationMs: totalDuration,
-    });
-    logDiagnosticStage("IMAGE_COMPRESSION_END", {
-      originalSizeBytes,
-      compressedSizeBytes: source.size,
-      method: "direct_original_fallback",
-      note: "Used original file directly (<=12MB) to protect client memory",
-      totalDurationMs: totalDuration,
-    });
-    return {
-      processFile: source,
-      originalSizeBytes,
-      finalSizeBytes: source.size,
-    };
-  }
-
-  // Fallback for huge files (> 12 MB) using bounded HTMLImageElement with cleanup
-  return new Promise((resolve, reject) => {
-    const decodeStart = performance.now();
+  // 2. Secondary Fallback: Bounded HTMLImageElement with cleanup
+  return new Promise((resolve) => {
     const url = URL.createObjectURL(source);
     const img = new Image();
 
     img.onload = () => {
       URL.revokeObjectURL(url);
       const decodeDuration = Math.round(performance.now() - decodeStart);
+
       onStageChange?.("IMAGE_DECODE_END", {
         width: img.width,
         height: img.height,
@@ -210,54 +271,34 @@ async function memorySafeProcessImage(
         durationMs: decodeDuration,
       });
 
-      onStageChange?.("IMAGE_COMPRESSION_START", {
-        width: img.width,
-        height: img.height,
-      });
-      logDiagnosticStage("IMAGE_COMPRESSION_START", {
-        width: img.width,
-        height: img.height,
-      });
+      const scale = Math.min(1, maxDimension / Math.max(img.width, img.height));
+      const w = Math.max(1, Math.round(img.width * scale));
+      const h = Math.max(1, Math.round(img.height * scale));
 
       const compStart = performance.now();
       const canvas = document.createElement("canvas");
-      const scale = Math.min(1, maxDimension / Math.max(img.width, img.height));
-      canvas.width = Math.round(img.width * scale);
-      canvas.height = Math.round(img.height * scale);
-      const ctx = canvas.getContext("2d");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d", { alpha: false });
 
       if (!ctx) {
         canvas.width = 0;
         canvas.height = 0;
-        if (source.size <= 12 * 1024 * 1024) {
-          resolve({
-            processFile: source,
-            originalSizeBytes,
-            finalSizeBytes: source.size,
-          });
-          return;
-        }
-        reject(new Error("Canvas context unavailable"));
+        resolve({ processFile: source, originalSizeBytes, finalSizeBytes: source.size });
         return;
       }
 
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, w, h);
       canvas.toBlob(
         (blob) => {
           canvas.width = 0;
           canvas.height = 0;
+
           if (!blob) {
-            if (source.size <= 12 * 1024 * 1024) {
-              resolve({
-                processFile: source,
-                originalSizeBytes,
-                finalSizeBytes: source.size,
-              });
-              return;
-            }
-            reject(new Error("Canvas compression failed"));
+            resolve({ processFile: source, originalSizeBytes, finalSizeBytes: source.size });
             return;
           }
+
           const compDuration = Math.round(performance.now() - compStart);
           const totalDuration = Math.round(performance.now() - overallStart);
 
@@ -279,6 +320,7 @@ async function memorySafeProcessImage(
             source.name.replace(/\.[^.]+$/, ".jpg"),
             { type: "image/jpeg" },
           );
+
           resolve({
             processFile: compressedFile,
             originalSizeBytes,
@@ -292,15 +334,8 @@ async function memorySafeProcessImage(
 
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      if (source.size <= 12 * 1024 * 1024) {
-        resolve({
-          processFile: source,
-          originalSizeBytes,
-          finalSizeBytes: source.size,
-        });
-        return;
-      }
-      reject(new Error("Browser could not decode image format"));
+      // If decoding fails on client (e.g. raw HEIC), pass file to backend for server-side conversion
+      resolve({ processFile: source, originalSizeBytes, finalSizeBytes: source.size });
     };
 
     img.src = url;
@@ -395,7 +430,9 @@ export function BillScannerModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mobileCameraInputRef = useRef<HTMLInputElement>(null);
   const previewBlobUrlRef = useRef<string | null>(null);
-  const handleFileProcessRef = useRef<(file: File) => Promise<void>>();
+  const handleFileProcessRef =useRef<((file: File) => Promise<void>) | undefined>(undefined);
+  const [failedScanId, setFailedScanId] = useState<string | null>(null);
+  const lastProcessedFileRef = useRef<File | null>(null);
 
   useEffect(() => {
     previewBlobUrlRef.current = previewBlobUrl;
@@ -410,6 +447,8 @@ export function BillScannerModal({
       setDiagnosticStage("IDLE");
       setDiagnosticDetails("");
       setScanRecord(null);
+      setFailedScanId(null);
+      lastProcessedFileRef.current = null;
       if (previewBlobUrlRef.current) {
         URL.revokeObjectURL(previewBlobUrlRef.current);
         previewBlobUrlRef.current = null;
@@ -551,13 +590,11 @@ export function BillScannerModal({
 
     ctx.drawImage(video, 0, 0, targetW, targetH);
 
-    // Stop the video stream immediately to free camera hardware memory
-    stopCameraStream();
-
     // Export directly to compressed JPEG blob without duplicate memory copies
     canvas.toBlob(
       async (blob) => {
-        // Clear canvas dimensions to release backing store memory
+        // Stop stream and release canvas backing store memory
+        stopCameraStream();
         canvas.width = 0;
         canvas.height = 0;
 
@@ -591,10 +628,132 @@ export function BillScannerModal({
     );
   }, [isCameraReady, stopCameraStream, lang]);
 
+  // Reusable Form Populator for initial upload and retry review steps
+  const populateReviewForm = (scan: any, localFile?: File | null) => {
+    const ext: ExtractedBillData = scan?.extractedData || {};
+
+    // Local instant preview (zero network latency, zero duplicate server download)
+    if (localFile) {
+      try {
+        const localPreview = URL.createObjectURL(localFile);
+        setPreviewBlobUrl(localPreview);
+      } catch (prevErr) {
+        console.warn("Could not create local preview blob:", prevErr);
+      }
+    } else if (scan?.id) {
+      setPreviewBlobUrl(`/api/v1/purchases/scans/${scan.id}/file`);
+    }
+
+    // Populate Editable Fields
+    setScanRecord(scan);
+    const matchedId = scan.matchedPartyId || ext.supplier?.matchedPartyId || "";
+    if (matchedId) {
+      setSelectedPartyId(matchedId);
+    } else if (ext.supplier?.name) {
+      setSelectedPartyId("__NEW_SUPPLIER__");
+    } else {
+      setSelectedPartyId("");
+    }
+    setVendorInvoiceNumber(ext.invoice?.invoiceNumber || "");
+    setInvoiceDate(ext.invoice?.invoiceDate || "");
+    setDueDate(ext.invoice?.dueDate || "");
+    setPlaceOfSupply(ext.invoice?.placeOfSupply || "24");
+    setCurrency(ext.currency || "INR");
+    setExchangeRate(ext.exchangeRate || 83.5);
+    setIsRcm(!!ext.isRcm);
+    setIsDiscrepancyAcknowledged(!ext.financials?.isTaxMismatch);
+
+    const items = ext.items || [];
+    setLineItems(items);
+
+    // Map proposed new products with Service vs Product classification
+    const newFlags: Record<number, boolean> = {};
+    const newDetails: Record<number, any> = {};
+    items.forEach((item, index) => {
+      if (!item.matchedItemId) {
+        newFlags[index] = true;
+        const isService = item.itemType === "SERVICE" || (item.hsnCode && item.hsnCode.startsWith("99"));
+        newDetails[index] = {
+          name: item.description,
+          itemType: isService ? "SERVICE" : "PRODUCT",
+          hsnCode: item.hsnCode || (isService ? "9983" : "0000"),
+          unitSymbol: item.unit || (isService ? "NOS" : "PCS"),
+          taxRate: Number(item.taxRate) || 18,
+          purchasePrice: Number(item.unitPrice) || 0,
+          retailPrice: Number(item.unitPrice) || 0,
+        };
+      }
+    });
+    setIsNewProductFlags(newFlags);
+    setNewProductDetails(newDetails);
+
+    setStep("review");
+  };
+
+  // Re-run OCR on stored document without duplicate upload
+  const handleRetryOcr = async () => {
+    if (!failedScanId) return;
+    try {
+      setErrorMessage(null);
+      setStep("processing");
+      setProcessingStage(
+        lang === "gu" ? "AI જેમિની વિઝન પુનઃ પ્રયાસ કરી રહ્યું છે..." : "Retrying AI Gemini Vision OCR...",
+      );
+      setDiagnosticStage("Processing OCR");
+      setDiagnosticDetails("Re-initiating OCR on stored document...");
+
+      await apiClient.post(`/purchases/scans/${failedScanId}/retry`);
+
+      const pollStart = performance.now();
+      const MAX_POLL_MS = 90000;
+      const POLL_INTERVAL_MS = 1200;
+      let pollRes: any = null;
+
+      while (true) {
+        if (performance.now() - pollStart > MAX_POLL_MS) {
+          throw new Error(
+            lang === "gu"
+              ? "AI વિશ્લેષણમાં અપેક્ષા કરતાં વધુ સમય લાગ્યો. કૃપા કરીને પુનઃ પ્રયાસ કરો."
+              : "AI analysis timed out. Please click Retry OCR to try again.",
+          );
+        }
+        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+        const elapsedSec = Math.round((performance.now() - pollStart) / 1000);
+        setDiagnosticDetails(`AI Gemini Vision analyzing... (${elapsedSec}s)`);
+
+        pollRes = await apiClient.get<any>(`/purchases/scans/${failedScanId}`, undefined, undefined, {
+          timeoutMs: 15000,
+        });
+
+        if (pollRes?.status === "READY_FOR_REVIEW") {
+          break;
+        }
+
+        if (pollRes?.status === "FAILED") {
+          throw new Error(pollRes.errorMessage || "OCR document extraction failed.");
+        }
+      }
+
+      setDiagnosticStage("Ready for review");
+      setDiagnosticDetails("OCR Retry successful | Status: READY_FOR_REVIEW");
+      setFailedScanId(null);
+      populateReviewForm(pollRes, lastProcessedFileRef.current);
+    } catch (err: any) {
+      console.error("Retry OCR failed:", err);
+      setDiagnosticStage("PIPELINE_ERROR");
+      setDiagnosticDetails(`[RETRY_FAILED] ${err.message || String(err)}`);
+      setErrorMessage(err.message || "Failed to retry OCR. Please try again.");
+      setStep("upload");
+    }
+  };
+
   // Handle File Selection (Drag & Drop, File Browser, Camera) with memory-safe streaming
   const handleFileProcess = async (file: File) => {
     if (!file) return;
 
+    lastProcessedFileRef.current = file;
+    setFailedScanId(null);
+    let lastUploadedScanId: string | null = null;
     const overallStart = performance.now();
     let currentStage = "CAMERA_FILE_RECEIVED";
 
@@ -624,14 +783,14 @@ export function BillScannerModal({
         throw err;
       }
 
-      const isImage = file.type.startsWith("image/") || /\.(jpe?g|png|webp|bmp)$/i.test(file.name);
+      const isImage = file.type.startsWith("image/") || /\.(jpe?g|png|webp|bmp|heic|heif)$/i.test(file.name);
       const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
 
       if (!isImage && !isPdf) {
         throw new Error(
           lang === "gu"
-            ? "માત્ર PDF, JPG, અથવા PNG ફાઇલો સપોર્ટેડ છે."
-            : "Unsupported file type. Please upload a PDF, JPG, or PNG document.",
+            ? "માત્ર PDF, JPG, PNG અથવા HEIC ફાઇલો સપોર્ટેડ છે."
+            : "Unsupported file type. Please upload a PDF, JPG, PNG, WebP or HEIC document.",
         );
       }
 
@@ -678,7 +837,7 @@ export function BillScannerModal({
 
       // 3. UPLOAD_START
       currentStage = "UPLOAD_START";
-      setDiagnosticStage(currentStage);
+      setDiagnosticStage("Uploading");
       setDiagnosticDetails(`Sending ${(processFile.size / 1024).toFixed(1)} KB to API...`);
       setProcessingStage(
         lang === "gu" ? "બિલ દસ્તાવેજ અપલોડ થઈ રહ્યો છે..." : "Uploading bill document...",
@@ -694,13 +853,20 @@ export function BillScannerModal({
       const formData = new FormData();
       formData.append("file", processFile, processFile.name);
 
-      // Direct streaming multipart upload (NO Base64 / readAsDataURL fallback)
-      const response: any = await apiClient.post("/purchases/scans/upload", formData);
+      // Streaming multipart upload with async processing flag and 60s network upload allowance
+      const response: any = await apiClient.post(
+        "/purchases/scans/upload?async=true",
+        formData,
+        undefined,
+        undefined,
+        { timeoutMs: 60000 },
+      );
       const uploadDuration = Math.round(performance.now() - uploadStart);
+      lastUploadedScanId = response?.id;
 
       // 4. UPLOAD_RESPONSE
       currentStage = "UPLOAD_RESPONSE";
-      setDiagnosticStage(currentStage);
+      setDiagnosticStage("Uploading");
       setDiagnosticDetails(`Uploaded in ${uploadDuration}ms (Scan: ${response?.id?.substring(0, 8)})`);
       logDiagnosticStage("UPLOAD_RESPONSE", {
         scanId: response?.id,
@@ -708,75 +874,66 @@ export function BillScannerModal({
         durationMs: uploadDuration,
       });
 
-      // 5. OCR_RESPONSE
-      currentStage = "OCR_RESPONSE";
-      const ext: ExtractedBillData = response?.extractedData || {};
-      const itemCount = (ext.items || []).length;
-      setDiagnosticStage(currentStage);
-      setDiagnosticDetails(`Extracted ${itemCount} items | Status: ${response?.status}`);
-      logDiagnosticStage("OCR_RESPONSE", {
-        scanId: response?.id,
-        status: response?.status,
-        itemCount,
-        hasSupplier: !!(ext.supplier?.name || response?.matchedPartyId),
-        confidence: ext.documentMetadata?.overallConfidence,
-      });
+      // 5. OCR PROCESSING (Polling for asynchronous background completion)
+      let finalScanRecord = response;
+      if (response?.status === "PROCESSING" || response?.status === "PENDING") {
+        currentStage = "OCR_PROCESSING";
+        setDiagnosticStage("Processing OCR");
+        setProcessingStage(
+          lang === "gu"
+            ? "AI જેમિની વિઝન બિલનું વિશ્લેષણ કરી રહ્યું છે..."
+            : "AI Gemini Vision is analyzing bill...",
+        );
 
-      // Local instant preview (zero network latency, zero duplicate server download)
-      try {
-        const localPreview = URL.createObjectURL(processFile);
-        setPreviewBlobUrl(localPreview);
-      } catch (prevErr) {
-        console.warn("Could not create local preview blob:", prevErr);
-      }
+        const pollStart = performance.now();
+        const MAX_POLL_MS = 90000; // 90s safety cutoff
+        const POLL_INTERVAL_MS = 1200;
 
-      // Populate Editable Fields
-      setScanRecord(response);
-      const matchedId = response.matchedPartyId || ext.supplier?.matchedPartyId || "";
-      if (matchedId) {
-        setSelectedPartyId(matchedId);
-      } else if (ext.supplier?.name) {
-        setSelectedPartyId("__NEW_SUPPLIER__");
-      } else {
-        setSelectedPartyId("");
-      }
-      setVendorInvoiceNumber(ext.invoice?.invoiceNumber || "");
-      setInvoiceDate(ext.invoice?.invoiceDate || "");
-      setDueDate(ext.invoice?.dueDate || "");
-      setPlaceOfSupply(ext.invoice?.placeOfSupply || "24");
-      setCurrency(ext.currency || "INR");
-      setExchangeRate(ext.exchangeRate || 83.5);
-      setIsRcm(!!ext.isRcm);
-      setIsDiscrepancyAcknowledged(!ext.financials?.isTaxMismatch);
+        while (finalScanRecord.status === "PROCESSING" || finalScanRecord.status === "PENDING") {
+          if (performance.now() - pollStart > MAX_POLL_MS) {
+            throw new Error(
+              lang === "gu"
+                ? "AI વિશ્લેષણમાં અપેક્ષા કરતાં વધુ સમય લાગ્યો. કૃપા કરીને 'ફરીથી OCR કરો' બટન દબાવો."
+                : "AI document analysis timed out after 90s. Please click 'Retry OCR' to try again.",
+            );
+          }
+          await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+          const elapsedSec = Math.round((performance.now() - pollStart) / 1000);
+          setDiagnosticDetails(`AI Gemini Vision analyzing... (${elapsedSec}s)`);
 
-      const items = ext.items || [];
-      setLineItems(items);
-
-      // Map proposed new products with Service vs Product classification
-      const newFlags: Record<number, boolean> = {};
-      const newDetails: Record<number, any> = {};
-      items.forEach((item, index) => {
-        if (!item.matchedItemId) {
-          newFlags[index] = true;
-          const isService = item.itemType === "SERVICE" || (item.hsnCode && item.hsnCode.startsWith("99"));
-          newDetails[index] = {
-            name: item.description,
-            itemType: isService ? "SERVICE" : "PRODUCT",
-            hsnCode: item.hsnCode || (isService ? "9983" : "0000"),
-            unitSymbol: item.unit || (isService ? "NOS" : "PCS"),
-            taxRate: Number(item.taxRate) || 18,
-            purchasePrice: Number(item.unitPrice) || 0,
-            retailPrice: Number(item.unitPrice) || 0,
-          };
+          finalScanRecord = await apiClient.get<any>(
+            `/purchases/scans/${response.id}`,
+            undefined,
+            undefined,
+            { timeoutMs: 15000 },
+          );
         }
-      });
-      setIsNewProductFlags(newFlags);
-      setNewProductDetails(newDetails);
 
-      setStep("review");
+        if (finalScanRecord.status === "FAILED") {
+          throw new Error(finalScanRecord.errorMessage || "OCR document extraction failed.");
+        }
+
+        const ocrDuration = Math.round(performance.now() - pollStart);
+        currentStage = "OCR_RESPONSE";
+        setDiagnosticStage("Ready for review");
+        setDiagnosticDetails(`Extracted in ${ocrDuration}ms | Status: READY_FOR_REVIEW`);
+        logDiagnosticStage("OCR_RESPONSE", {
+          scanId: finalScanRecord.id,
+          status: finalScanRecord.status,
+          durationMs: ocrDuration,
+          totalDurationMs: uploadDuration + ocrDuration,
+        });
+      }
+
+      setFailedScanId(null);
+      populateReviewForm(finalScanRecord, processFile);
     } catch (err: any) {
       console.error("Scan pipeline failed at stage", currentStage, err);
       const errorDuration = Math.round(performance.now() - overallStart);
+
+      if (lastUploadedScanId) {
+        setFailedScanId(lastUploadedScanId);
+      }
 
       let errorCategory = "SERVER_OR_PROCESSING_ERROR";
       let userFacingMessage = err?.message || "An unexpected error occurred.";
@@ -785,7 +942,7 @@ export function BillScannerModal({
       if (
         err?.name === "QuotaExceededError" ||
         rawMsg.includes("out of memory") ||
-        rawMsg.includes("quota") ||
+        rawMsg.includes("quota exceeded") ||
         rawMsg.includes("memory") ||
         rawMsg.includes("heap")
       ) {
@@ -801,7 +958,36 @@ export function BillScannerModal({
       } else if (err?.statusCode === 422) {
         errorCategory = "UNPROCESSABLE_DOCUMENT";
         userFacingMessage = err?.messageGujarati && lang === "gu" ? err.messageGujarati : err?.message;
-      } else if (rawMsg.includes("failed to fetch") || rawMsg.includes("network") || rawMsg.includes("timeout")) {
+      } else if (
+        err?.isTimeout ||
+        err?.statusCode === 408 ||
+        rawMsg.includes("timeout") ||
+        rawMsg.includes("timed out")
+      ) {
+        errorCategory = "OCR_TIMEOUT";
+        userFacingMessage = lang === "gu"
+          ? "બિલ વિશ્લેષણમાં સમય સમાપ્ત થયો. દસ્તાવેજ સર્વર પર સચવાયેલ છે. કૃપા કરીને 'ફરીથી OCR કરો' બટન દબાવો."
+          : "Document processing timed out. The file is safely stored. Please click 'Retry OCR' to re-analyze.";
+      } else if (
+        rawMsg.includes("rate limit") ||
+        rawMsg.includes("quota") ||
+        rawMsg.includes("resource_exhausted")
+      ) {
+        errorCategory = "RATE_LIMIT_EXCEEDED";
+        userFacingMessage = lang === "gu"
+          ? "AI રેટ લિમિટ અથવા ક્વોટા મર્યાદા આવી ગઈ. કૃપા કરીને થોડીવાર રાહ જુઓ અને 'ફરીથી OCR કરો' દબાવો."
+          : "AI rate limit reached. Please wait a few moments and click 'Retry OCR'.";
+      } else if (rawMsg.includes("invalid") && rawMsg.includes("key")) {
+        errorCategory = "INVALID_API_KEY";
+        userFacingMessage = lang === "gu"
+          ? "AI API કી અમાન્ય છે. કૃપા કરીને સર્વર રૂપરેખાંકન તપાસો."
+          : "AI API key is invalid or unauthorized. Please verify server configuration.";
+      } else if (
+        err?.isNetworkError ||
+        rawMsg.includes("failed to fetch") ||
+        rawMsg.includes("network") ||
+        rawMsg.includes("unable to reach")
+      ) {
         errorCategory = "NETWORK_ERROR";
         userFacingMessage = lang === "gu"
           ? "નેટવર્ક કનેક્શનમાં ક્ષતિ. સર્વર કનેક્શન (LAN / Wi-Fi) ચકાસો અને ફરી પ્રયાસ કરો."
@@ -1248,12 +1434,27 @@ export function BillScannerModal({
                 )}
               </div>
             </div>
-            <button
-              onClick={() => setErrorMessage(null)}
-              className="text-rose-500 hover:text-rose-700 text-xs font-semibold shrink-0 ml-3"
-            >
-              Dismiss
-            </button>
+            <div className="flex items-center gap-2 shrink-0 ml-3">
+              {failedScanId && (
+                <button
+                  type="button"
+                  onClick={handleRetryOcr}
+                  className="px-3 py-1 bg-[#F47721] hover:bg-[#E06410] text-white rounded-lg text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  {lang === "gu" ? "ફરીથી OCR કરો" : "Retry OCR"}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setErrorMessage(null)}
+                className="text-rose-500 hover:text-rose-700 text-xs font-semibold"
+              >
+                Dismiss
+              </button>
+            </div>
           </div>
         )}
 
@@ -1331,7 +1532,7 @@ export function BillScannerModal({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/png,application/pdf"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
                 className="hidden"
                 onChange={(e) => {
                   const f = e.target.files?.[0];
@@ -1350,11 +1551,11 @@ export function BillScannerModal({
                 }}
               />
 
-              {/* Native mobile camera input (Restricted to standard JPEG/PNG to avoid RAW/HEIC camera intent memory spike) */}
+              {/* Native mobile camera input */}
               <input
                 ref={mobileCameraInputRef}
                 type="file"
-                accept="image/jpeg,image/png"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
                 capture="environment"
                 className="hidden"
                 onChange={(e) => {

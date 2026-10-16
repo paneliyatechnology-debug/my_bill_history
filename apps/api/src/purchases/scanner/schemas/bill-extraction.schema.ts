@@ -17,6 +17,7 @@ export const ExtractedBillItemSchema = z.object({
   cgstAmount: z.union([z.number(), z.string()]).nullable().optional().default(0),
   sgstAmount: z.union([z.number(), z.string()]).nullable().optional().default(0),
   igstAmount: z.union([z.number(), z.string()]).nullable().optional().default(0),
+  cessAmount: z.union([z.number(), z.string()]).nullable().optional(),
   totalAmount: z.union([z.number(), z.string()]).default(0),
   confidence: z.number().min(0).max(100).default(80),
   itemType: z.enum(["PRODUCT", "SERVICE"]).optional().default("PRODUCT"),
@@ -45,6 +46,7 @@ export const ExtractedBillDataSchema = z.object({
   exchangeRate: z.number().nullable().optional(),
   sourceGrandTotal: z.string().nullable().optional(),
   isRcm: z.boolean().optional().default(false),
+  buyerGstin: z.string().nullable().optional(),
   supplier: z.object({
     name: z.string().nullable().optional(),
     gstin: z.string().nullable().optional(),
@@ -63,6 +65,7 @@ export const ExtractedBillDataSchema = z.object({
     invoiceDate: z.string().nullable().optional(),
     dueDate: z.string().nullable().optional(),
     placeOfSupply: z.string().nullable().optional(),
+    paymentTerms: z.string().nullable().optional(),
     confidence: z.number().min(0).max(100).default(80),
     isDuplicateWarning: z.boolean().optional().default(false),
   }),

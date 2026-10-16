@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, Suspense } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient } from "../../../lib/api-client";
 import { Badge } from "../../../components/ui/badge";
@@ -19,10 +21,14 @@ interface StockSummaryRow {
   valuationRate: number;
   closingValue: number;
   minStockLevel?: number;
+  isLowStock?: boolean;
 }
 
-export default function StockSummaryPage() {
+function StockSummaryContent() {
   const { lang, tenantContext } = useAuth();
+  const searchParams = useSearchParams();
+  const filterParam = searchParams.get("filter");
+
   const [stock, setStock] = useState<StockSummaryRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,20 +39,29 @@ export default function StockSummaryPage() {
     try {
       const res: any = await apiClient.get("/reports/stock-summary");
       const rawRows = res?.items || (Array.isArray(res) ? res : []);
-      const rows: StockSummaryRow[] = rawRows.map((r: any) => ({
-        itemId: r.itemId || r.id,
-        itemName: r.name || r.itemName || "Item",
-        itemCode: r.itemCode,
-        sku: r.sku || "—",
-        uom: r.uomSymbol || r.uom || "Unit",
-        openingQty: Number(r.openingQty || 0),
-        inwardQty: Number(r.inwardQty || 0),
-        outwardQty: Number(r.outwardQty || 0),
-        closingQty: Number(r.currentStockQuantity ?? r.closingQty ?? 0),
-        valuationRate: Number(r.purchaseRate ?? r.valuationRate ?? 0),
-        closingValue: Number(r.totalValuation ?? r.closingValue ?? 0),
-        minStockLevel: r.minStockLevel,
-      }));
+      const rows: StockSummaryRow[] = rawRows.map((r: any) => {
+        const closing = Number(r.currentStockQuantity ?? r.closingQty ?? 0);
+        const min = r.minStockLevel !== undefined && r.minStockLevel !== null ? Number(r.minStockLevel) : undefined;
+        const isLow = r.isLowStock !== undefined
+          ? Boolean(r.isLowStock)
+          : (min !== undefined && min > 0 ? closing <= min : closing <= 0);
+
+        return {
+          itemId: r.itemId || r.id,
+          itemName: r.name || r.itemName || "Item",
+          itemCode: r.itemCode,
+          sku: r.sku || "—",
+          uom: r.uomSymbol || r.uom || "Unit",
+          openingQty: Number(r.openingQty || 0),
+          inwardQty: Number(r.inwardQty || 0),
+          outwardQty: Number(r.outwardQty || 0),
+          closingQty: closing,
+          valuationRate: Number(r.purchaseRate ?? r.valuationRate ?? 0),
+          closingValue: Number(r.totalValuation ?? r.closingValue ?? 0),
+          minStockLevel: min,
+          isLowStock: isLow,
+        };
+      });
       setStock(rows);
     } catch (err: any) {
       setError(err.message || "Failed to load stock summary.");
@@ -61,9 +76,31 @@ export default function StockSummaryPage() {
     }
   }, [tenantContext.companyId, fetchStock]);
 
+  const isLowStockRow = useCallback((s: StockSummaryRow) => {
+    if (s.isLowStock !== undefined) {
+      return Boolean(s.isLowStock);
+    }
+    const min = s.minStockLevel !== undefined && s.minStockLevel !== null ? Number(s.minStockLevel) : 0;
+    if (min > 0) {
+      return s.closingQty <= min;
+    }
+    return s.closingQty <= 0;
+  }, []);
+
+  const lowStockCount = useMemo(() => {
+    return stock.filter(isLowStockRow).length;
+  }, [stock, isLowStockRow]);
+
+  const filteredStock = useMemo(() => {
+    if (filterParam === "low") {
+      return stock.filter(isLowStockRow);
+    }
+    return stock;
+  }, [stock, filterParam, isLowStockRow]);
+
   const totalInventoryValue = useMemo(() => {
-    return stock.reduce((sum, s) => sum + (Number(s.closingValue) || 0), 0);
-  }, [stock]);
+    return filteredStock.reduce((sum, s) => sum + (Number(s.closingValue) || 0), 0);
+  }, [filteredStock]);
 
   const stockColumns = useMemo<ColumnDef<StockSummaryRow>[]>(
     () => [
@@ -129,9 +166,8 @@ export default function StockSummaryPage() {
         id: "status",
         header: lang === "gu" ? "સ્થિતિ" : "Stock Alert",
         cell: (s) => {
-          const isLowStock =
-            s.minStockLevel !== undefined && s.closingQty <= s.minStockLevel;
-          return isLowStock ? (
+          const isLow = isLowStockRow(s);
+          return isLow ? (
             <Badge variant="danger">
               {lang === "gu" ? "ઓછો સ્ટોક" : "Low Stock"}
             </Badge>
@@ -147,7 +183,7 @@ export default function StockSummaryPage() {
         },
       },
     ],
-    [lang]
+    [lang, isLowStockRow]
   );
 
   return (
@@ -188,9 +224,61 @@ export default function StockSummaryPage() {
         </div>
       )}
 
+      {/* Stock Filter Tabs & Active Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-semibold">
+          <Link
+            href="/inventory/stock"
+            className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+              filterParam !== "low"
+                ? "bg-white text-slate-900 shadow-xs font-bold"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <span>{lang === "gu" ? "બધો સ્ટોક" : "All Stock"}</span>
+            <span className="px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 text-[10px]">
+              {stock.length}
+            </span>
+          </Link>
+          <Link
+            href="/inventory/stock?filter=low"
+            className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+              filterParam === "low"
+                ? "bg-rose-500 text-white shadow-xs font-bold"
+                : "text-rose-600 hover:text-rose-800"
+            }`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse"></span>
+            <span>{lang === "gu" ? "ઓછો સ્ટોક (Low Stock)" : "Low Stock Alert"}</span>
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+              filterParam === "low" ? "bg-rose-700 text-white" : "bg-rose-100 text-rose-800"
+            }`}>
+              {lowStockCount}
+            </span>
+          </Link>
+        </div>
+
+        {filterParam === "low" && (
+          <div className="flex items-center gap-2 text-xs text-rose-700 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl font-medium">
+            <span>
+              {lang === "gu"
+                ? `ફક્ત ઓછો સ્ટોક દર્શાવેલ છે (${filteredStock.length} વસ્તુઓ)`
+                : `Showing ${filteredStock.length} Low Stock Items`}
+            </span>
+            <Link
+              href="/inventory/stock"
+              className="text-rose-900 font-bold hover:underline ml-1"
+              title="Clear Filter"
+            >
+              &times; {lang === "gu" ? "દૂર કરો" : "Clear"}
+            </Link>
+          </div>
+        )}
+      </div>
+
       {/* Stock DataTable */}
       <DataTable<StockSummaryRow>
-        data={stock}
+        data={filteredStock}
         columns={stockColumns}
         keyExtractor={(s) => s.itemId}
         searchPlaceholder={
@@ -212,8 +300,7 @@ export default function StockSummaryPage() {
         exportable
         exportFileName="stock_summary"
         mobileCardRender={(s) => {
-          const isLowStock =
-            s.minStockLevel !== undefined && s.closingQty <= s.minStockLevel;
+          const isLowStock = isLowStockRow(s);
           return (
             <div
               key={s.itemId}
@@ -280,5 +367,19 @@ export default function StockSummaryPage() {
         }}
       />
     </div>
+  );
+}
+
+export default function StockSummaryPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 text-center text-slate-500 font-medium">
+          Loading stock summary...
+        </div>
+      }
+    >
+      <StockSummaryContent />
+    </Suspense>
   );
 }
