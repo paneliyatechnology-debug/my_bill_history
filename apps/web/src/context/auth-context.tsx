@@ -138,11 +138,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== "undefined") {
       try {
         localStorage.setItem("billing_lang", newLang);
+        document.documentElement.lang = newLang;
+        document.documentElement.setAttribute("data-lang", newLang);
+        if (newLang === "gu") {
+          document.documentElement.classList.add("lang-gu");
+          document.documentElement.classList.remove("lang-en");
+        } else {
+          document.documentElement.classList.add("lang-en");
+          document.documentElement.classList.remove("lang-gu");
+        }
       } catch {
         // Storage failover
       }
     }
   };
+
+  // Keep document element lang and class synchronized with lang state
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = lang;
+      document.documentElement.setAttribute("data-lang", lang);
+      if (lang === "gu") {
+        document.documentElement.classList.add("lang-gu");
+        document.documentElement.classList.remove("lang-en");
+      } else {
+        document.documentElement.classList.add("lang-en");
+        document.documentElement.classList.remove("lang-gu");
+      }
+    }
+  }, [lang]);
 
   const refreshTenantMetadata = useCallback(async () => {
     const storedToken = typeof window !== "undefined" ? localStorage.getItem("billing_auth_token") : null;
