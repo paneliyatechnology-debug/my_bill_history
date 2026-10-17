@@ -1175,11 +1175,6 @@ export function IntroductionPage() {
       <section id="sales-billing" className="py-12 sm:py-20 px-3.5 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-[#E5E7EB] scroll-mt-20 sm:scroll-mt-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 items-center">
           <div className="reveal-from-left space-y-4 sm:space-y-5">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#FFF3E8] border border-[#FED7AA] text-[#C2410C] text-xs font-bold">
-              <span>🧾</span>
-              <span>{lang === "gu" ? "વેચાણ અને બિલિંગ એન્જિન" : "Sales & Invoicing Module"}</span>
-            </div>
-
             <h2 className="text-xl xs:text-2xl sm:text-4xl font-extrabold text-[#18263B] tracking-tight break-words">
               {lang === "gu"
                 ? "ઝડપી જીએસટી બિલિંગ, પીઓએસ અને ડિલિવરી ચલણ"
@@ -1334,11 +1329,6 @@ export function IntroductionPage() {
           </div>
 
           <div className="reveal-from-right space-y-4 sm:space-y-5 order-1 lg:order-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-purple-50 border border-purple-200 text-purple-800 text-xs font-bold">
-              <span>📥</span>
-              <span>{lang === "gu" ? "ખરીદી અને સ્ટોક સિસ્ટમ" : "Purchases & Inventory Module"}</span>
-            </div>
-
             <h2 className="text-xl xs:text-2xl sm:text-4xl font-extrabold text-[#18263B] tracking-tight break-words">
               {lang === "gu"
                 ? "ઓટોમેટેડ બિલ સ્કેનર અને મલ્ટી-ગોડાઉન સ્ટોક"
@@ -1396,11 +1386,6 @@ export function IntroductionPage() {
       <section id="accounting-ledgers" className="py-12 sm:py-20 px-3.5 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-[#E5E7EB] scroll-mt-20 sm:scroll-mt-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 items-center">
           <div className="reveal-from-left space-y-4 sm:space-y-5">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold">
-              <span>📚</span>
-              <span>{lang === "gu" ? "દેશી નામા પદ્ધતિ અને હિસાબ" : "Double-Entry Accounting & Ledgers"}</span>
-            </div>
-
             <h2 className="text-xl xs:text-2xl sm:text-4xl font-extrabold text-[#18263B] tracking-tight break-words">
               {lang === "gu"
                 ? "રોજમેળ, ખાતાવહી અને સંપૂર્ણ વાઉચર વ્યવસ્થા"
@@ -1575,11 +1560,6 @@ export function IntroductionPage() {
       <section id="reports-analytics" className="py-12 sm:py-20 px-3.5 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-[#E5E7EB] scroll-mt-20 sm:scroll-mt-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 items-center">
           <div className="reveal-from-left space-y-4">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold">
-              <span>📊</span>
-              <span>{lang === "gu" ? "અધિકૃત અહેવાલ કેન્દ્ર" : "Reports & Statutory Center"}</span>
-            </div>
-
             <h2 className="text-xl xs:text-2xl sm:text-4xl font-extrabold text-[#18263B] tracking-tight break-words">
               {lang === "gu"
                 ? "૧૪+ વાસ્તવિક બિઝનેસ રિપોર્ટ્સ અને નફા-નુકસાન સ્ટેટમેન્ટ"
@@ -1976,11 +1956,6 @@ export function IntroductionPage() {
                 {lang === "gu" ? "સામાન્ય પ્રશ્નોત્તરી (FAQ)" : "Frequently Asked Questions"}
               </a>
             </p>
-            <div className="pt-2">
-              <span className="text-[10px] bg-[#FFF3E8] text-[#C2410C] px-2.5 py-1 rounded-md font-bold border border-[#FED7AA] inline-block shadow-sm">
-                {lang === "gu" ? "૧૦૦% ભારતીય જીએસટી અને દેશી નામા પદ્ધતિ" : "100% Indian GST & Nama Ready"}
-              </span>
-            </div>
           </div>
         </div>
       </footer>

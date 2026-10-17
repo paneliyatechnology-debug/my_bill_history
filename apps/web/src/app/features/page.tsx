@@ -85,15 +85,15 @@ export default function FeaturesPage() {
         icon: "📥",
       },
       {
-        id: "gemini-ocr",
+        id: "smart-ocr",
         category: "purchases",
-        nameEn: "Google Gemini AI Bill Scanner",
-        nameGu: "Google Gemini AI બિલ સ્કેનર",
-        descEn: "Smart multimodal purchase bill scanner. Snap a smartphone photo or upload vendor PDF to automatically extract vendor GSTIN, invoice date, line items, rates, and taxes.",
-        descGu: "સ્માર્ટ AI બિલ સ્કેનર. સપ્લાયરના કાગળના બિલનો ફોટો પાડો કે PDF અપલોડ કરો. Gemini AI આપમેળે GSTIN, તારીખ, દરેક આઇટમ, ભાવ અને ટેક્સ વાંચી લે છે.",
+        nameEn: "Smart OCR Bill Scanner",
+        nameGu: "સ્માર્ટ OCR બિલ સ્કેનર",
+        descEn: "Multimodal purchase bill scanner. Snap a smartphone photo or upload vendor PDF to automatically extract vendor GSTIN, invoice date, line items, rates, and taxes.",
+        descGu: "સ્માર્ટ બિલ સ્કેનર. સપ્લાયરના કાગળના બિલનો ફોટો પાડો કે PDF અપલોડ કરો. સ્કેનર આપમેળે GSTIN, તારીખ, દરેક આઇટમ, ભાવ અને ટેક્સ વાંચી લે છે.",
         badges: ["Multimodal OCR", "Zero Data Entry", "Auto Extraction"],
         link: "/purchases",
-        icon: "🤖",
+        icon: "📥",
       },
       {
         id: "purchases-returns",
@@ -355,7 +355,7 @@ export default function FeaturesPage() {
   const categoriesMeta = [
     { id: "all", labelEn: "All Features", labelGu: "તમામ સુવિધાઓ", count: features.length, icon: "✨" },
     { id: "sales", labelEn: "Sales & Billing", labelGu: "વેચાણ અને બિલિંગ", count: features.filter((f) => f.category === "sales").length, icon: "🧾" },
-    { id: "purchases", labelEn: "Purchases & AI", labelGu: "ખરીદી અને AI સ્કેનર", count: features.filter((f) => f.category === "purchases").length, icon: "🤖" },
+    { id: "purchases", labelEn: "Purchases & Bill Scanner", labelGu: "ખરીદી અને બિલ સ્કેનર", count: features.filter((f) => f.category === "purchases").length, icon: "📥" },
     { id: "inventory", labelEn: "Inventory & Stock", labelGu: "ઇન્વેન્ટરી અને ગોડાઉન", count: features.filter((f) => f.category === "inventory").length, icon: "📦" },
     { id: "accounting", labelEn: "Accounting & Ledgers", labelGu: "નામા પદ્ધતિ અને ખાતાવહી", count: features.filter((f) => f.category === "accounting").length, icon: "📚" },
     { id: "gst", labelEn: "GST & Compliance", labelGu: "જીએસટી અને વૈધાનિક", count: features.filter((f) => f.category === "gst").length, icon: "🇮🇳" },
@@ -598,8 +598,8 @@ export default function FeaturesPage() {
         {/* Subtitle */}
         <p className="mt-3.5 sm:mt-5 text-xs sm:text-base text-[#667085] max-w-2xl mx-auto leading-relaxed break-words">
           {lang === "gu"
-            ? "ઝડપી જીએસટી બિલિંગ, Google Gemini AI બિલ સ્કેનર, મલ્ટી-ગોડાઉન ઇન્વેન્ટરી, પાકી ખાતાવહી અને સરકારી GSTR રિટર્ન પત્રકો — સંપૂર્ણપણે ભારતીય MSME વેપારીઓ માટે તૈયાર."
-            : "Lightning-fast GST tax invoices, Gemini AI purchase bill scanner, multi-godown stock, true double-entry ledgers, and statutory GSTR return files — designed specifically for Indian MSMEs."}
+            ? "ઝડપી જીએસટી બિલિંગ, સ્માર્ટ ખરીદી બિલ સ્કેનર, મલ્ટી-ગોડાઉન ઇન્વેન્ટરી, પાકી ખાતાવહી અને સરકારી GSTR રિટર્ન પત્રકો — સંપૂર્ણપણે ભારતીય MSME વેપારીઓ માટે તૈયાર."
+            : "Lightning-fast GST tax invoices, smart purchase bill scanner, multi-godown stock, true double-entry ledgers, and statutory GSTR return files — designed specifically for Indian MSMEs."}
         </p>
 
         {/* Live Search Bar */}
@@ -776,7 +776,7 @@ export default function FeaturesPage() {
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
               {lang === "gu"
                 ? "કોઈ પણ ક્રેડિટ કાર્ડ વગર ૧ મિનિટમાં એકાઉન્ટ બનાવો. તમારા તમામ સેલ્સ, ખરીદી, સ્ટોક અને જીએસટી ખાતાવહી એક જ સ્થળે સંભાળો."
-                : "Free registration with zero credit card commitment. Start managing invoices, Gemini AI purchase scans, double-entry accounts, and GSTR summaries instantly."}
+                : "Free registration with zero credit card commitment. Start managing invoices, smart purchase scans, double-entry accounts, and GSTR summaries instantly."}
             </p>
 
             <div className="pt-2 flex flex-col xs:flex-row items-stretch xs:items-center gap-3">
