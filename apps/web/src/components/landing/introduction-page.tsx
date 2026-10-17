@@ -1983,12 +1983,6 @@ export function IntroductionPage() {
             </div>
           </div>
         </div>
-
-        {/* Footer Bottom Row */}
-        <div className="max-w-7xl mx-auto mt-8 pt-6 border-t border-[#F3F4F6] flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-[#98A2B3] text-center sm:text-left reveal-on-scroll reveal-delay-2">
-          <p>© {new Date().getFullYear()} MyBill History by Paneliya Technology. {lang === "gu" ? "સર્વાધિકાર સુરક્ષિત." : "All rights reserved."}</p>
-          <p>{lang === "gu" ? "ગુજરાત, ભારતના વેપારીઓ અને MSME માટે પ્રેમથી નિર્મિત ❤️" : "Designed with ❤️ for Indian MSMEs & Retailers in Gujarat, India."}</p>
-        </div>
       </footer>
     </div>
   );
