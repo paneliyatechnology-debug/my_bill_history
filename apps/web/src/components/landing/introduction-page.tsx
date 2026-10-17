@@ -13,7 +13,6 @@ export function IntroductionPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const featuresDropdownRef = useRef<HTMLDivElement>(null);
   const [activePreviewTab, setActivePreviewTab] = useState<"invoice" | "dashboard" | "scanner" | "ledger">("invoice");
-  const [activeTheme, setActiveTheme] = useState<"saffron" | "blue" | "emerald" | "purple">("saffron");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -58,7 +57,7 @@ export function IntroductionPage() {
     };
   }, []);
 
-  // IntersectionObserver for once-only scroll-triggered element reveals
+  // IntersectionObserver for true scroll-triggered element animations
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -80,67 +79,46 @@ export function IntroductionPage() {
       },
       {
         threshold: 0.08,
-        rootMargin: "0px 0px -25px 0px",
+        rootMargin: "0px 0px -40px 0px",
       }
     );
 
     const elements = document.querySelectorAll(
       ".reveal-on-scroll, .reveal-from-left, .reveal-from-right, .reveal-scale-in"
     );
-    elements.forEach((el) => observer.observe(el));
 
-    // Fallback: If elements somehow haven't intersected after 2s, ensure they become visible
-    const timer = setTimeout(() => {
-      document.querySelectorAll(".reveal-on-scroll, .reveal-from-left, .reveal-from-right, .reveal-scale-in").forEach((el) => {
+    elements.forEach((el) => {
+      // Elements already visible in initial viewport on page load should reveal immediately
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight && rect.bottom > 0) {
         el.classList.add("revealed");
-      });
-    }, 2000);
+      } else {
+        observer.observe(el);
+      }
+    });
 
     return () => {
-      clearTimeout(timer);
       observer.disconnect();
     };
   }, []);
 
-  // Re-synchronize revealed state whenever language changes so React re-renders never hide revealed content
+  // Re-synchronize revealed state whenever language changes without pre-revealing below-the-fold content
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const scrollY = window.scrollY || window.pageYOffset || 0;
     const viewportHeight = window.innerHeight || 800;
 
     document.querySelectorAll<HTMLElement>(
       ".reveal-on-scroll, .reveal-from-left, .reveal-from-right, .reveal-scale-in"
     ).forEach((el) => {
       const rect = el.getBoundingClientRect();
-      // If element is in viewport or page is scrolled, ensure it remains revealed
-      if (rect.top <= viewportHeight + 100 || scrollY > 0) {
+      // Only keep elements revealed if they are already above or inside the current viewport
+      if (rect.top <= viewportHeight) {
         el.classList.add("revealed");
       }
     });
   }, [lang]);
 
-  const themeColors = {
-    saffron: {
-      primary: "#F47721",
-      name: lang === "gu" ? "કેસરી (Saffron)" : "Saffron Elegance",
-      badgeBg: "bg-orange-50 text-[#F47721] border-[#FED7AA]",
-    },
-    blue: {
-      primary: "#1E40AF",
-      name: lang === "gu" ? "કોર્પોરેટ બ્લુ (Corporate)" : "Classic Corporate",
-      badgeBg: "bg-blue-50 text-blue-700 border-blue-200",
-    },
-    emerald: {
-      primary: "#059669",
-      name: lang === "gu" ? "વેપારી ગ્રીન (Emerald)" : "Emerald Merchant",
-      badgeBg: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    },
-    purple: {
-      primary: "#7C3AED",
-      name: lang === "gu" ? "રોયલ પર્પલ (Royal)" : "Royal Modern",
-      badgeBg: "bg-purple-50 text-purple-700 border-purple-200",
-    },
-  };
+
 
   const compactFeatureCategories = [
     {
@@ -148,42 +126,42 @@ export function IntroductionPage() {
       desc: lang === "gu" ? "જીએસટી ઇન્વોઇસિંગ, POS & ચલણ" : "Invoices, POS counter & challans",
       icon: "🧾",
       anchor: "#sales-billing",
-      tag: "POS & GST",
+      tag: lang === "gu" ? "POS & જીએસટી" : "POS & GST",
     },
     {
       title: lang === "gu" ? "ખરીદી વ્યવસ્થાપન" : "Purchases",
-      desc: lang === "gu" ? "વેન્ડર બિલો & Gemini AI સ્કેનર" : "Vendor bills & Gemini AI scanner",
-      icon: "🤖",
+      desc: lang === "gu" ? "વેન્ડર બિલો & ડિજિટલ સ્કેનર" : "Vendor bills & digital scanner",
+      icon: "📥",
       anchor: "#purchases-inventory",
-      tag: "Gemini AI",
+      tag: lang === "gu" ? "બિલ & સ્કેનર" : "Bills & OCR",
     },
     {
       title: lang === "gu" ? "ઇન્વેન્ટરી અને સ્ટોક" : "Inventory & Stock",
       desc: lang === "gu" ? "લાઇવ સ્ટોક & ગોડાઉન ટ્રાન્સફર" : "Live stock ledger & godowns",
       icon: "📦",
       anchor: "#purchases-inventory",
-      tag: "Godowns",
+      tag: lang === "gu" ? "ગોડાઉન" : "Godowns",
     },
     {
       title: lang === "gu" ? "નામા પદ્ધતિ (એકાઉન્ટિંગ)" : "Accounting",
       desc: lang === "gu" ? "ખાતાવહી, વાઉચર્સ & રોજમેળ" : "Party ledgers & double-entry",
       icon: "📚",
       anchor: "#accounting-ledgers",
-      tag: "Nama",
+      tag: lang === "gu" ? "નામા પદ્ધતિ" : "Nama",
     },
     {
       title: lang === "gu" ? "જીએસટી અને રિપોર્ટ્સ" : "GST & Reports",
       desc: lang === "gu" ? "GSTR-1, 3B & ૧૪+ રિપોર્ટ્સ" : "GSTR-1, 3B & 14+ registers",
       icon: "🇮🇳",
       anchor: "#gst-statutory",
-      tag: "GSTR-1/3B",
+      tag: lang === "gu" ? "GSTR-1/3B" : "GSTR-1/3B",
     },
     {
       title: lang === "gu" ? "વેપાર સંચાલન" : "Business Management",
       desc: lang === "gu" ? "પાર્ટી KYC, BOM & માસ્ટર્સ" : "Parties KYC, BOM & multi-user",
       icon: "🏢",
       anchor: "#business-types",
-      tag: "BOM & ERP",
+      tag: lang === "gu" ? "ઉત્પાદન & ERP" : "BOM & ERP",
     },
   ];
 
@@ -249,12 +227,12 @@ export function IntroductionPage() {
     {
       q:
         lang === "gu"
-          ? "Google Gemini AI બિલ સ્કેનર કેવી રીતે કામ કરે છે?"
-          : "How does the Google Gemini AI Purchase Bill Scanner work?",
+          ? "ખરીદી (Purchase) બિલ સ્કેનર કેવી રીતે કામ કરે છે?"
+          : "How does the Purchase Bill Scanner work?",
       a:
         lang === "gu"
-          ? "તમે સપ્લાયરના કાગળના બિલનો ફોટો પાડો અથવા PDF અપલોડ કરો. Google Gemini AI ઓટોમેટિકલી સપ્લાયરનું નામ, GSTIN, બિલ નંબર, તારીખ, દરેક આઇટમ, HSN કોડ, ભાવ અને જીએસટી દરો વાંચીને ખરીદી એન્ટ્રી ફોર્મમાં ભરી દે છે."
-          : "Simply snap a photo of a vendor's paper bill or upload a PDF. Google Gemini AI extracts the vendor name, GSTIN, invoice number, invoice date, line items, HSN codes, unit rates, and GST taxes, automatically populating the purchase bill entry form.",
+          ? "તમે સપ્લાયરના કાગળના બિલનો ફોટો પાડો અથવા PDF અપલોડ કરો. સ્માર્ટ સ્કેનર ઓટોમેટિકલી સપ્લાયરનું નામ, GSTIN, બિલ નંબર, તારીખ, દરેક આઇટમ, HSN કોડ, ભાવ અને જીએસટી દરો વાંચીને ખરીદી એન્ટ્રી ફોર્મમાં ભરી દે છે."
+          : "Simply snap a photo of a vendor's paper bill or upload a PDF. The smart scanner extracts the vendor name, GSTIN, invoice number, invoice date, line items, HSN codes, unit rates, and GST taxes, automatically populating the purchase bill entry form.",
     },
     {
       q:
@@ -328,27 +306,7 @@ export function IntroductionPage() {
       {/* Background Ambience */}
       <WaveBackground variant="dashboard" />
 
-      {/* ================= 1. ANNOUNCEMENT BAR ================= */}
-      <div className="relative z-50 bg-gradient-to-r from-[#F47721] via-[#E05D06] to-[#C2410C] text-white text-[11px] sm:text-xs py-2 px-4 text-center font-medium shadow-xs">
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 flex-wrap">
-          <span className="bg-white/20 px-2 py-0.5 rounded-full font-bold text-[10px] uppercase tracking-wider">
-            {lang === "gu" ? "નવી સુવિધા" : "New"}
-          </span>
-          <span>
-            {lang === "gu"
-              ? "✨ Google Gemini AI બિલ સ્કેનર અને ૧૪+ અધિકૃત જીએસટી રિપોર્ટ્સ હવે લાઇવ છે!"
-              : "✨ Google Gemini AI Purchase Bill Scanner & Statutory GST Invoicing are live!"}
-          </span>
-          <Link
-            href="/login?mode=signup"
-            className="underline font-bold hover:text-white/80 transition-colors ml-1"
-          >
-            {lang === "gu" ? "હમણાં શરૂ કરો →" : "Get Started Free →"}
-          </Link>
-        </div>
-      </div>
-
-      {/* ================= 2. STICKY MAIN HEADER & MEGA-MENU ================= */}
+      {/* ================= 1. STICKY MAIN HEADER & MEGA-MENU ================= */}
       <header
         className={`sticky top-0 z-40 transition-all duration-300 ${
           isScrolled
@@ -356,30 +314,30 @@ export function IntroductionPage() {
             : "bg-white/85 backdrop-blur-md border-b border-[#E5E7EB]/70"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2 sm:gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-5 xl:px-8 h-16 sm:h-20 flex items-center justify-between gap-2 lg:gap-3 xl:gap-4">
           {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-2 sm:gap-3 shrink-0 group">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 shrink-0 group min-w-0 whitespace-nowrap">
             <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-tr from-[#F47721] to-[#FF9343] flex items-center justify-center text-white font-extrabold text-lg sm:text-xl shadow-saffron group-hover:scale-105 transition-transform shrink-0">
               ₹
             </div>
-            <div className="flex flex-col">
-              <span className="font-extrabold text-base sm:text-xl text-[#202124] tracking-tight leading-tight whitespace-nowrap">
+            <div className="flex flex-col min-w-0">
+              <span className="font-extrabold text-sm xs:text-base sm:text-xl text-[#202124] tracking-tight leading-tight whitespace-nowrap">
                 MyBill <span className="text-[#F47721]">History</span>
               </span>
-              <span className="text-[9px] sm:text-[10px] text-[#667085] tracking-wider uppercase font-semibold hidden xs:inline">
+              <span className="text-[9px] sm:text-[10px] text-[#667085] tracking-wider uppercase font-semibold hidden xs:inline truncate">
                 Paneliya Technology
               </span>
             </div>
           </Link>
 
           {/* Navigation Links with Features Dropdown (Desktop) */}
-          <nav className="hidden lg:flex items-center gap-6 text-xs font-semibold text-[#475467]">
+          <nav className="hidden lg:flex items-center gap-2.5 xl:gap-4 2xl:gap-6 text-xs font-semibold text-[#475467] shrink-0">
             {/* Compact Features Dropdown Trigger */}
             <div ref={featuresDropdownRef} className="relative">
               <button
                 type="button"
                 onClick={() => setIsFeaturesDropdownOpen(!isFeaturesDropdownOpen)}
-                className={`group/btn flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F47721] ${
+                className={`group/btn flex items-center gap-1.5 py-1.5 px-2.5 xl:px-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F47721] whitespace-nowrap ${
                   isFeaturesDropdownOpen
                     ? "text-[#F47721] bg-[#FFF3E8] shadow-2xs border border-[#FED7AA]"
                     : "text-[#475467] hover:text-[#F47721] hover:bg-[#FFF8F3] border border-transparent"
@@ -387,9 +345,9 @@ export function IntroductionPage() {
                 aria-expanded={isFeaturesDropdownOpen}
                 aria-haspopup="true"
               >
-                <span>{lang === "gu" ? "તમામ સુવિધાઓ" : "Features"}</span>
+                <span className="whitespace-nowrap">{lang === "gu" ? "તમામ સુવિધાઓ" : "Features"}</span>
                 <svg
-                  className={`w-3.5 h-3.5 transition-transform duration-250 ease-out ${
+                  className={`w-3.5 h-3.5 transition-transform duration-250 ease-out shrink-0 ${
                     isFeaturesDropdownOpen ? "rotate-180 text-[#F47721]" : "text-[#98A2B3] group-hover/btn:text-[#F47721]"
                   }`}
                   fill="none"
@@ -413,7 +371,7 @@ export function IntroductionPage() {
                     <span className="w-1.5 h-1.5 rounded-full bg-[#F47721] animate-pulse" />
                     {lang === "gu" ? "ઝડપી સુવિધાઓ" : "Core Modules"}
                   </span>
-                  <span className="text-[#F47721] font-semibold text-[10px] font-mono">6 Categories</span>
+                  <span className="text-[#F47721] font-semibold text-[10px] font-mono">{lang === "gu" ? "૬ મોડ્યુલ્સ" : "6 Categories"}</span>
                 </div>
 
                 {/* Items List */}
@@ -474,35 +432,34 @@ export function IntroductionPage() {
               </div>
             </div>
 
-            <a href="#sales-billing" className="hover:text-[#F47721] transition-colors">
+            <a href="#sales-billing" className="hover:text-[#F47721] transition-colors whitespace-nowrap py-1">
               {lang === "gu" ? "જીએસટી બિલિંગ" : "Invoicing"}
             </a>
-            <a href="#purchases-inventory" className="hover:text-[#F47721] transition-colors flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              {lang === "gu" ? "AI બિલ સ્કેનર" : "Gemini AI OCR"}
+            <a href="#purchases-inventory" className="hover:text-[#F47721] transition-colors whitespace-nowrap py-1">
+              {lang === "gu" ? "બિલ સ્કેનર" : "Bill Scanner"}
             </a>
-            <a href="#accounting-ledgers" className="hover:text-[#F47721] transition-colors">
+            <a href="#accounting-ledgers" className="hover:text-[#F47721] transition-colors whitespace-nowrap py-1">
               {lang === "gu" ? "નામા પદ્ધતિ" : "Accounting"}
             </a>
-            <a href="#gst-statutory" className="hover:text-[#F47721] transition-colors">
+            <a href="#gst-statutory" className="hover:text-[#F47721] transition-colors whitespace-nowrap py-1">
               {lang === "gu" ? "જીએસટી સેન્ટર" : "GST Center"}
             </a>
-            <a href="#business-types" className="hover:text-[#F47721] transition-colors">
+            <a href="#business-types" className="hover:text-[#F47721] transition-colors whitespace-nowrap py-1">
               {lang === "gu" ? "વેપારી ઉકેલો" : "Solutions"}
             </a>
-            <a href="#faq" className="hover:text-[#F47721] transition-colors">
+            <a href="#faq" className="hover:text-[#F47721] transition-colors whitespace-nowrap py-1">
               {lang === "gu" ? "પ્રશ્નોત્તરી" : "FAQ"}
             </a>
           </nav>
 
           {/* Right Action Cluster */}
-          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* Bilingual Switcher (EN | ગુજ) */}
-            <div className="flex items-center bg-[#F3F4F6] p-0.5 rounded-xl border border-[#E5E7EB]">
+            <div className="flex items-center bg-[#F3F4F6] p-0.5 rounded-xl border border-[#E5E7EB] shrink-0 whitespace-nowrap">
               <button
                 type="button"
                 onClick={() => setLang("en")}
-                className={`px-1.5 sm:px-2.5 py-1 text-[11px] sm:text-xs font-bold rounded-lg transition-all min-h-[32px] ${
+                className={`px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs font-bold rounded-lg transition-all min-h-[32px] whitespace-nowrap ${
                   lang === "en" ? "bg-white text-[#F47721] shadow-xs" : "text-[#667085] hover:text-[#202124]"
                 }`}
                 aria-label="Switch to English"
@@ -512,19 +469,20 @@ export function IntroductionPage() {
               <button
                 type="button"
                 onClick={() => setLang("gu")}
-                className={`px-1.5 sm:px-2.5 py-1 text-[11px] sm:text-xs font-bold rounded-lg transition-all font-gujarati min-h-[32px] ${
+                className={`px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs font-bold rounded-lg transition-all font-gujarati min-h-[32px] whitespace-nowrap ${
                   lang === "gu" ? "bg-white text-[#F47721] shadow-xs" : "text-[#667085] hover:text-[#202124]"
                 }`}
                 aria-label="Switch to Gujarati"
               >
-                ગુજરાતી
+                <span className="hidden sm:inline whitespace-nowrap">ગુજરાતી</span>
+                <span className="sm:hidden whitespace-nowrap">ગુજ</span>
               </button>
             </div>
 
             {/* Login Button (Hidden on < sm: because mobile drawer prominently presents it) */}
             <Link
               href="/login"
-              className="hidden sm:inline-flex px-3 sm:px-3.5 py-2 text-xs sm:text-sm font-bold text-[#475467] hover:text-[#F47721] hover:bg-[#FFF3E8] rounded-xl transition-all border border-transparent hover:border-[#FED7AA] active:scale-95 min-h-[40px] items-center"
+              className="hidden sm:inline-flex px-2.5 sm:px-3 py-2 text-xs sm:text-sm font-bold text-[#475467] hover:text-[#F47721] hover:bg-[#FFF3E8] rounded-xl transition-all border border-transparent hover:border-[#FED7AA] active:scale-95 min-h-[40px] items-center whitespace-nowrap shrink-0"
             >
               {lang === "gu" ? "લોગિન" : "Sign In"}
             </Link>
@@ -532,18 +490,18 @@ export function IntroductionPage() {
             {/* Create Account / Sign Up Button */}
             <Link
               href="/login?mode=signup"
-              className="hidden md:inline-flex px-3 sm:px-3.5 py-2 text-xs sm:text-sm font-bold text-[#F47721] bg-white border border-[#FED7AA] hover:bg-[#FFF3E8] hover:border-[#F47721] rounded-xl transition-all shadow-xs hover:shadow-sm active:scale-95 min-h-[40px] items-center"
+              className="hidden md:inline-flex px-2.5 sm:px-3 py-2 text-xs sm:text-sm font-bold text-[#F47721] bg-white border border-[#FED7AA] hover:bg-[#FFF3E8] hover:border-[#F47721] rounded-xl transition-all shadow-xs hover:shadow-sm active:scale-95 min-h-[40px] items-center whitespace-nowrap shrink-0"
             >
               {lang === "gu" ? "સાઇન અપ" : "Sign Up"}
             </Link>
 
-            {/* Get Started Button (Hidden on tiny < xs: screens, visible from xs: up, full on sm:) */}
+            {/* Get Started Button (Hidden on mobile < sm: screens, visible from sm: up) */}
             <Link
               href="/login?mode=signup"
-              className="hidden xs:inline-flex px-2.5 sm:px-4 py-2 sm:py-2.5 bg-[#F47721] hover:bg-[#D95F12] text-white text-[11px] sm:text-sm font-bold rounded-xl btn-primary-glow items-center gap-1.5 whitespace-nowrap group cursor-pointer min-h-[36px] sm:min-h-[44px]"
+              className="hidden sm:inline-flex px-3 sm:px-4 py-2 sm:py-2.5 bg-[#F47721] hover:bg-[#D95F12] text-white text-xs sm:text-sm font-bold rounded-xl btn-primary-glow items-center gap-1.5 whitespace-nowrap group cursor-pointer min-h-[40px] shrink-0"
             >
-              <span>{lang === "gu" ? "શરૂ કરો" : "Get Started"}</span>
-              <svg className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform hidden sm:inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="whitespace-nowrap">{lang === "gu" ? "શરૂ કરો" : "Get Started"}</span>
+              <svg className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </Link>
@@ -594,7 +552,7 @@ export function IntroductionPage() {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block px-3 py-2.5 rounded-lg text-xs font-semibold text-[#202124] hover:bg-[#FFF3E8] hover:text-[#F47721] min-h-[40px] flex items-center"
               >
-                🤖 {lang === "gu" ? "Gemini AI બિલ સ્કેનર & સ્ટોક" : "Purchases & AI OCR"}
+                📥 {lang === "gu" ? "ખરીદી અને બિલ સ્કેનર & સ્ટોક" : "Purchases & Bill Scanner"}
               </a>
               <a
                 href="#accounting-ledgers"
@@ -689,16 +647,6 @@ export function IntroductionPage() {
         />
 
         <div className="relative z-10 text-center max-w-3xl mx-auto space-y-4 sm:space-y-6">
-          {/* Hero Pill Badge */}
-          <div className="inline-flex max-w-full items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 rounded-full bg-[#FFF3E8] border border-[#FED7AA] text-[#C2410C] text-[11px] sm:text-xs font-semibold shadow-2xs animate-float-subtle text-left sm:text-center">
-            <span className="w-2 h-2 rounded-full bg-[#F47721] animate-ping shrink-0" />
-            <span className="break-words">
-              {lang === "gu"
-                ? "🚀 ગુજરાત અને ભારતના વેપાર માટે સ્માર્ટ જીએસટી ERP સોફ્ટવેર"
-                : "🚀 Professional Indian GST Billing & Accounting ERP Platform"}
-            </span>
-          </div>
-
           {/* Main Headline */}
           <h1
             data-hero="true"
@@ -734,19 +682,19 @@ export function IntroductionPage() {
             }`}
           >
             {lang === "gu"
-              ? "૧૦ સેકન્ડમાં કાયદેસર જીએસટી બિલ બનાવો, Google Gemini AI વડે ખરીદીના બિલ સ્કેન કરો, મલ્ટી-ગોડાઉન સ્ટોક સંભાળો અને પાકી નામા પદ્ધતિ સાથે વ્યાપાર ચલાવો."
-              : "Generate statutory GST invoices in under 10 seconds, auto-extract vendor purchase bills with Google Gemini AI, manage multi-godown inventory, and keep authoritative double-entry books."}
+              ? "૧૦ સેકન્ડમાં કાયદેસર જીએસટી બિલ બનાવો, ખરીદીના બિલ સરળતાથી નોંધો, મલ્ટી-ગોડાઉન સ્ટોક સંભાળો અને પાકી નામા પદ્ધતિ સાથે વ્યાપાર ચલાવો."
+              : "Generate statutory GST invoices in under 10 seconds, quickly record vendor purchase bills, manage multi-godown inventory, and keep authoritative double-entry books."}
           </p>
 
           {/* Primary Action Buttons */}
-          <div data-hero="true" className="hero-content pt-2 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 max-w-lg mx-auto w-full">
+          <div data-hero="true" className="hero-content pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 max-w-md sm:max-w-lg mx-auto w-full px-2 sm:px-0">
             <Link
               href="/login?mode=signup"
-              className="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2 px-6 sm:px-7 py-3 sm:py-3.5 bg-[#F47721] hover:bg-[#D95F12] text-white text-sm sm:text-base font-bold rounded-2xl btn-primary-glow group cursor-pointer min-h-[44px]"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 sm:px-7 py-3.5 bg-[#F47721] hover:bg-[#D95F12] text-white text-sm sm:text-base font-bold rounded-2xl btn-primary-glow group cursor-pointer min-h-[46px] text-center"
             >
               <span>{lang === "gu" ? "હમણાં મફત શરૂ કરો" : "Get Started Free"}</span>
               <svg
-                className="w-4 h-4 group-hover:translate-x-1.5 transition-transform"
+                className="w-4 h-4 shrink-0 group-hover:translate-x-1.5 transition-transform"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -757,9 +705,9 @@ export function IntroductionPage() {
 
             <Link
               href="/login"
-              className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 sm:py-3.5 bg-white text-[#F47721] border-2 border-[#FED7AA] hover:border-[#F47721] text-sm sm:text-base font-bold rounded-2xl btn-secondary-interactive cursor-pointer min-h-[44px]"
+              className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 bg-white text-[#F47721] border-2 border-[#FED7AA] hover:border-[#F47721] text-sm sm:text-base font-bold rounded-2xl btn-secondary-interactive cursor-pointer min-h-[46px] text-center"
             >
-              {lang === "gu" ? "પ્રવેશ કરો (Sign In)" : "Sign In to Workspace"}
+              <span>{lang === "gu" ? "પ્રવેશ કરો (Sign In)" : "Sign In to Workspace"}</span>
             </Link>
           </div>
 
@@ -778,10 +726,10 @@ export function IntroductionPage() {
             </div>
 
             <div className="saas-card-interactive bg-white p-3 sm:p-3.5 rounded-xl border border-[#E5E7EB] shadow-2xs flex items-center gap-2.5 sm:gap-3 group">
-              <span className="text-xl group-hover:scale-110 transition-transform duration-200 shrink-0">🤖</span>
+              <span className="text-xl group-hover:scale-110 transition-transform duration-200 shrink-0">📥</span>
               <div className="min-w-0">
                 <p className="text-xs font-bold text-[#18263B] truncate">
-                  {lang === "gu" ? "Gemini AI સ્કેનર" : "Gemini AI Bill OCR"}
+                  {lang === "gu" ? "ડિજિટલ બિલ સ્કેનર" : "Digital Bill Scanner"}
                 </p>
                 <p className="text-[10px] text-[#667085] truncate">
                   {lang === "gu" ? "ઓટો પર્ચેઝ એન્ટ્રી" : "Auto Purchase Extraction"}
@@ -818,11 +766,11 @@ export function IntroductionPage() {
         {/* ================= 4. INTERACTIVE APPLICATION SHOWCASE ================= */}
         <div id="preview" className="reveal-scale-in reveal-delay-2 mt-10 sm:mt-16 relative max-w-5xl mx-auto scroll-mt-20 sm:scroll-mt-24 w-full">
           {/* Showcase Tabs */}
-          <div className="flex items-center justify-start sm:justify-center gap-2 mb-4 overflow-x-auto pb-2 px-1 max-w-full scrollbar-none">
+          <div className="flex items-center justify-start sm:justify-center gap-2 mb-4 overflow-x-auto pb-2 -mx-3.5 px-3.5 sm:mx-0 sm:px-0 max-w-full scrollbar-none">
             <button
               type="button"
               onClick={() => setActivePreviewTab("invoice")}
-              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all duration-200 shrink-0 cursor-pointer active:scale-95 min-h-[38px] ${
+              className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all duration-200 shrink-0 cursor-pointer active:scale-95 min-h-[40px] whitespace-nowrap ${
                 activePreviewTab === "invoice"
                   ? "bg-[#F47721] text-white shadow-saffron btn-primary-glow"
                   : "bg-white text-[#667085] hover:text-[#202124] hover:bg-[#FFF8F3] hover:border-[#FED7AA] border border-[#E5E7EB]"
@@ -833,7 +781,7 @@ export function IntroductionPage() {
             <button
               type="button"
               onClick={() => setActivePreviewTab("dashboard")}
-              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all duration-200 shrink-0 cursor-pointer active:scale-95 min-h-[38px] ${
+              className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all duration-200 shrink-0 cursor-pointer active:scale-95 min-h-[40px] whitespace-nowrap ${
                 activePreviewTab === "dashboard"
                   ? "bg-[#F47721] text-white shadow-saffron btn-primary-glow"
                   : "bg-white text-[#667085] hover:text-[#202124] hover:bg-[#FFF8F3] hover:border-[#FED7AA] border border-[#E5E7EB]"
@@ -844,18 +792,18 @@ export function IntroductionPage() {
             <button
               type="button"
               onClick={() => setActivePreviewTab("scanner")}
-              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all duration-200 shrink-0 cursor-pointer active:scale-95 min-h-[38px] ${
+              className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all duration-200 shrink-0 cursor-pointer active:scale-95 min-h-[40px] whitespace-nowrap ${
                 activePreviewTab === "scanner"
                   ? "bg-[#F47721] text-white shadow-saffron btn-primary-glow"
                   : "bg-white text-[#667085] hover:text-[#202124] hover:bg-[#FFF8F3] hover:border-[#FED7AA] border border-[#E5E7EB]"
               }`}
             >
-              🤖 {lang === "gu" ? "Gemini AI બિલ સ્કેનર" : "Gemini AI Bill Scanner"}
+              📥 {lang === "gu" ? "ડિજિટલ બિલ સ્કેનર" : "Digital Bill Scanner"}
             </button>
             <button
               type="button"
               onClick={() => setActivePreviewTab("ledger")}
-              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all duration-200 shrink-0 cursor-pointer active:scale-95 min-h-[38px] ${
+              className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all duration-200 shrink-0 cursor-pointer active:scale-95 min-h-[40px] whitespace-nowrap ${
                 activePreviewTab === "ledger"
                   ? "bg-[#F47721] text-white shadow-saffron btn-primary-glow"
                   : "bg-white text-[#667085] hover:text-[#202124] hover:bg-[#FFF8F3] hover:border-[#FED7AA] border border-[#E5E7EB]"
@@ -874,27 +822,24 @@ export function IntroductionPage() {
                 <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-400" />
                 <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-400" />
                 <span className="ml-1 sm:ml-2 text-xs font-bold text-[#667085] hidden md:inline">
-                  MyBill History ERP — {activePreviewTab === "invoice" ? "Invoice Engine" : activePreviewTab === "dashboard" ? "Financial Dashboard" : activePreviewTab === "scanner" ? "Gemini 2.5 AI OCR" : "Chart of Accounts"}
+                  MyBill History ERP — {
+                    activePreviewTab === "invoice"
+                      ? (lang === "gu" ? "જીએસટી ઇન્વોઇસ એન્જિન" : "Invoice Engine")
+                      : activePreviewTab === "dashboard"
+                      ? (lang === "gu" ? "નાણાકીય ડેશબોર્ડ" : "Financial Dashboard")
+                      : activePreviewTab === "scanner"
+                      ? (lang === "gu" ? "સ્માર્ટ બિલ સ્કેનર" : "Smart Bill OCR")
+                      : (lang === "gu" ? "ખાતાવહી અને હિસાબ" : "Chart of Accounts")
+                  }
                 </span>
               </div>
 
               {activePreviewTab === "invoice" && (
-                <div className="flex items-center gap-1 sm:gap-1.5 bg-white p-1 rounded-xl border border-[#E5E7EB] text-xs shrink-0">
-                  <span className="text-[10px] font-bold text-[#667085] px-1 uppercase hidden sm:inline">
-                    {lang === "gu" ? "થીમ:" : "Theme:"}
+                <div className="flex items-center gap-1.5 bg-[#FFF3E8] px-2.5 py-1 rounded-lg border border-[#FED7AA] text-xs shrink-0">
+                  <span className="w-2 h-2 rounded-full bg-[#F47721] animate-pulse" />
+                  <span className="text-[10px] sm:text-xs font-bold text-[#C2410C]">
+                    {lang === "gu" ? "જીએસટી ટેક્સ ઇન્વોઇસ" : "GST Tax Invoice"}
                   </span>
-                  {(["saffron", "blue", "emerald", "purple"] as const).map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => setActiveTheme(t)}
-                      className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full border transition-all ${
-                        activeTheme === t ? "ring-2 ring-offset-1 ring-[#202124] scale-110" : "opacity-70 hover:opacity-100"
-                      }`}
-                      style={{ backgroundColor: themeColors[t].primary }}
-                      title={themeColors[t].name}
-                    />
-                  ))}
                 </div>
               )}
             </div>
@@ -910,7 +855,7 @@ export function IntroductionPage() {
                         : "Tax Invoice • #INV-2026-0089 • Original for Recipient"}
                     </span>
                     <h3 className="text-sm sm:text-lg font-bold text-[#202124] mt-0.5">
-                      Shreeji Enterprise (Surat, Gujarat)
+                      {lang === "gu" ? "શ્રીજી એન્ટરપ્રાઇઝ (સુરત, ગુજરાત)" : "Shreeji Enterprise (Surat, Gujarat)"}
                     </h3>
                     <p className="text-[11px] sm:text-xs text-[#667085]">
                       {lang === "gu"
@@ -919,12 +864,9 @@ export function IntroductionPage() {
                     </p>
                   </div>
 
-                  <div className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border text-xs font-bold flex items-center gap-2 self-start sm:self-auto shrink-0 ${themeColors[activeTheme].badgeBg}`}>
-                    <span
-                      className="w-2.5 h-2.5 rounded-full"
-                      style={{ backgroundColor: themeColors[activeTheme].primary }}
-                    />
-                    <span>{themeColors[activeTheme].name}</span>
+                  <div className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-[#FED7AA] bg-[#FFF3E8] text-[#C2410C] text-xs font-bold flex items-center gap-2 self-start sm:self-auto shrink-0">
+                    <span className="w-2 h-2 rounded-full bg-[#F47721]" />
+                    <span>{lang === "gu" ? "મૂળ નકલ (Original)" : "Original for Recipient"}</span>
                   </div>
                 </div>
 
@@ -936,7 +878,7 @@ export function IntroductionPage() {
                         <th className="py-2.5 px-2.5 sm:px-3">
                           {lang === "gu" ? "આઇટમ વિગત" : "Item Description"}
                         </th>
-                        <th className="py-2.5 px-2 font-mono">HSN</th>
+                        <th className="py-2.5 px-2 font-mono">{lang === "gu" ? "HSN કોડ" : "HSN"}</th>
                         <th className="py-2.5 px-2 text-right">
                           {lang === "gu" ? "જથ્થો" : "Qty"}
                         </th>
@@ -1044,7 +986,7 @@ export function IntroductionPage() {
                 <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-[#E5E7EB]">
                   <div>
                     <span className="text-[10px] uppercase font-bold text-[#667085]">
-                      {lang === "gu" ? "કુલ વેચાણ (FY 26-27)" : "Total Sales (FY 26-27)"}
+                      {lang === "gu" ? "કુલ વેચાણ (નાણાકીય વર્ષ ૨૬-૨૭)" : "Total Sales (FY 26-27)"}
                     </span>
                     <p className="text-base sm:text-lg font-bold font-mono text-[#202124]">₹48,92,400.00</p>
                   </div>
@@ -1058,7 +1000,7 @@ export function IntroductionPage() {
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-[#667085]">
-                      {lang === "gu" ? "સ્ટોક મૂલ્યાંકન" : "Inventory Valuation"}
+                      {lang === "gu" ? "સ્ટોકનું મૂલ્યાંકન" : "Inventory Valuation"}
                     </span>
                     <p className="text-base sm:text-lg font-bold font-mono text-[#202124]">₹14,20,500.00</p>
                   </div>
@@ -1074,17 +1016,17 @@ export function IntroductionPage() {
               </div>
             )}
 
-            {/* TAB 3: GEMINI AI BILL SCANNER PREVIEW */}
+            {/* TAB 3: DIGITAL BILL SCANNER PREVIEW */}
             {activePreviewTab === "scanner" && (
               <div className="p-3.5 sm:p-7 space-y-4 bg-white">
                 <div className="p-3 sm:p-4 bg-purple-50 border border-purple-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold text-lg sm:text-xl shrink-0">
-                      🤖
+                      📥
                     </div>
                     <div>
                       <h4 className="text-xs sm:text-sm font-bold text-purple-950">
-                        {lang === "gu" ? "Google Gemini AI OCR સ્કેનર પાઇપલાઇન" : "Google Gemini AI OCR Pipeline"}
+                        {lang === "gu" ? "ડિજિટલ OCR સ્કેનર પાઇપલાઇન" : "Digital OCR Bill Pipeline"}
                       </h4>
                       <p className="text-[11px] sm:text-xs text-purple-700">
                         {lang === "gu"
@@ -1093,7 +1035,7 @@ export function IntroductionPage() {
                       </p>
                     </div>
                   </div>
-                  <span className="px-2.5 sm:px-3 py-1 bg-white text-purple-800 rounded-full text-[10px] sm:text-xs font-bold border border-purple-200 shadow-2xs">
+                  <span className="px-2.5 sm:px-3 py-1 bg-white text-purple-800 rounded-md text-[10px] sm:text-xs font-bold border border-purple-200 shadow-2xs">
                     {lang === "gu" ? "✓ ૩ આઇટમ્સ આપમેળે સ્કેન થઈ" : "✓ 3 Items Extracted Automatically"}
                   </span>
                 </div>
@@ -1103,14 +1045,18 @@ export function IntroductionPage() {
                     <span className="text-[#667085] block font-semibold text-[11px]">
                       {lang === "gu" ? "ઓળખાયેલ વેન્ડર:" : "Vendor Extracted:"}
                     </span>
-                    <span className="font-bold text-[#202124]">Ambica Textile Mills</span>
+                    <span className="font-bold text-[#202124]">
+                      {lang === "gu" ? "અંબિકા ટેક્સટાઇલ મિલ્સ" : "Ambica Textile Mills"}
+                    </span>
                     <span className="block font-mono text-[10px] text-[#F47721]">GSTIN: 24AAACA5555M1Z9</span>
                   </div>
                   <div className="p-3 bg-[#F8F9FB] rounded-xl border border-[#E5E7EB]">
                     <span className="text-[#667085] block font-semibold text-[11px]">
                       {lang === "gu" ? "બિલ વિગતો:" : "Bill Details:"}
                     </span>
-                    <span className="font-bold text-[#202124]">Invoice #ATM-4019</span>
+                    <span className="font-bold text-[#202124]">
+                      {lang === "gu" ? "બિલ #ATM-4019" : "Invoice #ATM-4019"}
+                    </span>
                     <span className="block text-[10px] text-[#667085]">
                       {lang === "gu" ? "તારીખ: ૧૪ ઓક્ટો ૨૦૨૬" : "Date: 14 Oct 2026"}
                     </span>
@@ -1175,34 +1121,46 @@ export function IntroductionPage() {
                     </thead>
                     <tbody className="divide-y divide-[#F3F4F6] text-[#202124]">
                       <tr>
-                        <td className="py-2 px-2.5 sm:px-3 font-sans">01 Oct 2026</td>
+                        <td className="py-2 px-2.5 sm:px-3 font-sans">
+                          {lang === "gu" ? "૦૧ ઓક્ટો ૨૦૨૬" : "01 Oct 2026"}
+                        </td>
                         <td className="py-2 px-2.5 sm:px-3 font-sans font-semibold">
                           {lang === "gu" ? "શરૂઆતની બાકી (Opening Balance)" : "Opening Balance"}
                         </td>
                         <td className="py-2 px-2.5 sm:px-3 text-[#667085]">OP-01</td>
                         <td className="py-2 px-2.5 sm:px-3 text-right font-bold text-slate-800">10,000.00</td>
                         <td className="py-2 px-2.5 sm:px-3 text-right text-[#667085]">0.00</td>
-                        <td className="py-2 px-2.5 sm:px-3 text-right font-bold text-slate-800">10,000.00 Dr</td>
+                        <td className="py-2 px-2.5 sm:px-3 text-right font-bold text-slate-800">
+                          {lang === "gu" ? "10,000.00 ઉધાર" : "10,000.00 Dr"}
+                        </td>
                       </tr>
                       <tr>
-                        <td className="py-2 px-2.5 sm:px-3 font-sans">05 Oct 2026</td>
+                        <td className="py-2 px-2.5 sm:px-3 font-sans">
+                          {lang === "gu" ? "૦૫ ઓક્ટો ૨૦૨૬" : "05 Oct 2026"}
+                        </td>
                         <td className="py-2 px-2.5 sm:px-3 font-sans font-semibold text-[#F47721]">
                           {lang === "gu" ? "વેચાણ જીએસટી ટેક્સ ઇન્વોઇસ" : "Sales Tax Invoice"}
                         </td>
                         <td className="py-2 px-2.5 sm:px-3 text-[#667085]">INV-2026-0038</td>
                         <td className="py-2 px-2.5 sm:px-3 text-right font-bold text-slate-800">44,500.00</td>
                         <td className="py-2 px-2.5 sm:px-3 text-right text-[#667085]">0.00</td>
-                        <td className="py-2 px-2.5 sm:px-3 text-right font-bold text-slate-800">54,500.00 Dr</td>
+                        <td className="py-2 px-2.5 sm:px-3 text-right font-bold text-slate-800">
+                          {lang === "gu" ? "54,500.00 ઉધાર" : "54,500.00 Dr"}
+                        </td>
                       </tr>
                       <tr>
-                        <td className="py-2 px-2.5 sm:px-3 font-sans">10 Oct 2026</td>
+                        <td className="py-2 px-2.5 sm:px-3 font-sans">
+                          {lang === "gu" ? "૧૦ ઓક્ટો ૨૦૨૬" : "10 Oct 2026"}
+                        </td>
                         <td className="py-2 px-2.5 sm:px-3 font-sans font-semibold text-emerald-700">
                           {lang === "gu" ? "બેંક જમા પહોંચ (Receipt Voucher)" : "Bank Receipt Voucher"}
                         </td>
                         <td className="py-2 px-2.5 sm:px-3 text-[#667085]">REC-9021 (HDFC)</td>
                         <td className="py-2 px-2.5 sm:px-3 text-right text-[#667085]">0.00</td>
                         <td className="py-2 px-2.5 sm:px-3 text-right font-bold text-emerald-700">20,000.00</td>
-                        <td className="py-2 px-2.5 sm:px-3 text-right font-bold text-[#F47721]">34,500.00 Dr</td>
+                        <td className="py-2 px-2.5 sm:px-3 text-right font-bold text-[#F47721]">
+                          {lang === "gu" ? "34,500.00 ઉધાર" : "34,500.00 Dr"}
+                        </td>
                       </tr>
                     </tbody>
                   </table>
@@ -1217,7 +1175,7 @@ export function IntroductionPage() {
       <section id="sales-billing" className="py-12 sm:py-20 px-3.5 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-[#E5E7EB] scroll-mt-20 sm:scroll-mt-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 items-center">
           <div className="reveal-from-left space-y-4 sm:space-y-5">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF3E8] border border-[#FED7AA] text-[#C2410C] text-xs font-bold">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#FFF3E8] border border-[#FED7AA] text-[#C2410C] text-xs font-bold">
               <span>🧾</span>
               <span>{lang === "gu" ? "વેચાણ અને બિલિંગ એન્જિન" : "Sales & Invoicing Module"}</span>
             </div>
@@ -1235,7 +1193,7 @@ export function IntroductionPage() {
             </p>
 
             <div className="space-y-3 pt-2">
-              <div className="flex items-start gap-3">
+              <div className="reveal-on-scroll reveal-delay-1 flex items-start gap-3">
                 <span className="w-5 h-5 rounded-full bg-[#FFF3E8] text-[#F47721] flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">✓</span>
                 <div>
                   <h4 className="text-xs font-bold text-[#18263B]">
@@ -1247,7 +1205,7 @@ export function IntroductionPage() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3">
+              <div className="reveal-on-scroll reveal-delay-2 flex items-start gap-3">
                 <span className="w-5 h-5 rounded-full bg-[#FFF3E8] text-[#F47721] flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">✓</span>
                 <div>
                   <h4 className="text-xs font-bold text-[#18263B]">
@@ -1259,7 +1217,7 @@ export function IntroductionPage() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3">
+              <div className="reveal-on-scroll reveal-delay-3 flex items-start gap-3">
                 <span className="w-5 h-5 rounded-full bg-[#FFF3E8] text-[#F47721] flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">✓</span>
                 <div>
                   <h4 className="text-xs font-bold text-[#18263B]">
@@ -1275,22 +1233,44 @@ export function IntroductionPage() {
 
           <div className="reveal-from-right bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-[#E5E7EB] shadow-subtle space-y-4 saas-card-interactive w-full">
             <div className="flex items-center justify-between pb-3 border-b border-[#F3F4F6] gap-2">
-              <span className="text-xs font-bold text-[#18263B]">Supported Invoice Formats & Themes</span>
-              <span className="text-xs text-[#F47721] font-bold shrink-0">4 Color Options</span>
+              <span className="text-xs font-bold text-[#18263B]">
+                {lang === "gu" ? "માન્ય ઇન્વોઇસ ફોર્મેટ્સ અને થીમ્સ" : "Supported Invoice Formats & Themes"}
+              </span>
+              <span className="text-xs text-[#F47721] font-bold shrink-0">
+                {lang === "gu" ? "૪ કલર વિકલ્પો" : "4 Color Options"}
+              </span>
             </div>
             <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 text-xs">
-              <div className="p-3 bg-[#FFF8F3] rounded-xl border border-[#FED7AA] saas-card-interactive group">
-                <span className="font-bold text-[#C2410C] block group-hover:text-[#F47721] transition-colors">A4 GST Tax Invoice</span>
-                <span className="text-[10px] text-[#667085] leading-tight block mt-0.5">Official corporate template with bank QR, terms, and HSN summary.</span>
+              <div className="reveal-on-scroll reveal-delay-1 p-3 bg-[#FFF8F3] rounded-xl border border-[#FED7AA] saas-card-interactive group">
+                <span className="font-bold text-[#C2410C] block group-hover:text-[#F47721] transition-colors">
+                  {lang === "gu" ? "A4 જીએસટી ટેક્સ ઇન્વોઇસ" : "A4 GST Tax Invoice"}
+                </span>
+                <span className="text-[10px] text-[#667085] leading-tight block mt-0.5">
+                  {lang === "gu"
+                    ? "ઓફિશિયલ વેપારી ટેમ્પલેટ - બેંક QR કોડ, શરતો અને HSN સમરી સાથે."
+                    : "Official corporate template with bank QR, terms, and HSN summary."}
+                </span>
               </div>
-              <div className="p-3 bg-[#F8FAFC] rounded-xl border border-[#E5E7EB] saas-card-interactive group">
-                <span className="font-bold text-[#18263B] block group-hover:text-[#F47721] transition-colors">POS Thermal Receipt</span>
-                <span className="text-[10px] text-[#667085] leading-tight block mt-0.5">Compact 58mm/80mm receipt with item totals and GST split.</span>
+              <div className="reveal-on-scroll reveal-delay-2 p-3 bg-[#F8FAFC] rounded-xl border border-[#E5E7EB] saas-card-interactive group">
+                <span className="font-bold text-[#18263B] block group-hover:text-[#F47721] transition-colors">
+                  {lang === "gu" ? "POS થર્મલ રસીદ પ્રિન્ટ" : "POS Thermal Receipt"}
+                </span>
+                <span className="text-[10px] text-[#667085] leading-tight block mt-0.5">
+                  {lang === "gu"
+                    ? "કાઉન્ટર માટે 58mm/80mm થર્મલ રસીદ - આઇટમ્સ અને જીએસટી વિભાજન સાથે."
+                    : "Compact 58mm/80mm receipt with item totals and GST split."}
+                </span>
               </div>
             </div>
-            <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-800 saas-card-interactive">
-              <p className="font-bold">Keyboard First Design</p>
-              <p className="text-[11px] text-emerald-700 mt-0.5">Press F2 anywhere in the app to open the invoice creator, and F4 to accept payment.</p>
+            <div className="reveal-on-scroll reveal-delay-3 p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-800 saas-card-interactive">
+              <p className="font-bold">
+                {lang === "gu" ? "કીબોર્ડ આધારિત સ્પીડ ડિઝાઇન" : "Keyboard First Design"}
+              </p>
+              <p className="text-[11px] text-emerald-700 mt-0.5">
+                {lang === "gu"
+                  ? "સોફ્ટવેરમાં ગમે ત્યાંથી F2 દબાવી નવું બિલ બનાવો અને F4 દબાવી પેમેન્ટ સ્વીકારો."
+                  : "Press F2 anywhere in the app to open the invoice creator, and F4 to accept payment."}
+              </p>
             </div>
           </div>
         </div>
@@ -1301,58 +1281,82 @@ export function IntroductionPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 items-center">
           <div className="reveal-from-left bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-[#E5E7EB] shadow-subtle space-y-4 order-2 lg:order-1 saas-card-interactive w-full">
             <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-2xl border border-purple-200">
-              <span className="text-2xl shrink-0">🤖</span>
+              <span className="text-2xl shrink-0">📥</span>
               <div>
-                <h4 className="text-xs font-bold text-purple-950">Gemini 2.5 Flash AI Bill Parsing</h4>
-                <p className="text-[10px] text-purple-700">Automated OCR for physical vendor bills, scans, and PDFs</p>
+                <h4 className="text-xs font-bold text-purple-950">
+                  {lang === "gu" ? "ઓટોમેટેડ ખરીદી બિલ સ્કેનિંગ" : "Automated Purchase Bill Parsing"}
+                </h4>
+                <p className="text-[10px] text-purple-700">
+                  {lang === "gu"
+                    ? "કાગળના બિલો, ફોટા અને PDF નું ઓટોમેટિક સ્કેનિંગ"
+                    : "Automated OCR for physical vendor bills, scans, and PDFs"}
+                </p>
               </div>
             </div>
 
             <div className="space-y-2 text-xs">
-              <div className="flex justify-between items-center p-2.5 bg-[#F8F9FB] rounded-xl border border-[#E5E7EB] saas-card-interactive group gap-2">
-                <span className="font-semibold text-[#667085] text-[11px]">Vendor Name & GSTIN</span>
-                <span className="font-mono font-bold text-[#18263B] group-hover:text-[#F47721] transition-colors text-[11px] text-right">Auto-Matched</span>
+              <div className="reveal-on-scroll reveal-delay-1 flex justify-between items-center p-2.5 bg-[#F8F9FB] rounded-xl border border-[#E5E7EB] saas-card-interactive group gap-2">
+                <span className="font-semibold text-[#667085] text-[11px]">
+                  {lang === "gu" ? "વેન્ડરનું નામ અને GSTIN" : "Vendor Name & GSTIN"}
+                </span>
+                <span className="font-mono font-bold text-[#18263B] group-hover:text-[#F47721] transition-colors text-[11px] text-right">
+                  {lang === "gu" ? "ઓટો-મેચ થયું" : "Auto-Matched"}
+                </span>
               </div>
-              <div className="flex justify-between items-center p-2.5 bg-[#F8F9FB] rounded-xl border border-[#E5E7EB] saas-card-interactive group gap-2">
-                <span className="font-semibold text-[#667085] text-[11px]">Item Descriptions & HSN</span>
-                <span className="font-mono font-bold text-[#18263B] group-hover:text-[#F47721] transition-colors text-[11px] text-right">Mapped Catalog</span>
+              <div className="reveal-on-scroll reveal-delay-2 flex justify-between items-center p-2.5 bg-[#F8F9FB] rounded-xl border border-[#E5E7EB] saas-card-interactive group gap-2">
+                <span className="font-semibold text-[#667085] text-[11px]">
+                  {lang === "gu" ? "આઇટમ વિગતો અને HSN" : "Item Descriptions & HSN"}
+                </span>
+                <span className="font-mono font-bold text-[#18263B] group-hover:text-[#F47721] transition-colors text-[11px] text-right">
+                  {lang === "gu" ? "કેટલોગ મેપિંગ" : "Mapped Catalog"}
+                </span>
               </div>
-              <div className="flex justify-between items-center p-2.5 bg-[#F8F9FB] rounded-xl border border-[#E5E7EB] saas-card-interactive group gap-2">
-                <span className="font-semibold text-[#667085] text-[11px]">ITC Eligibility Status</span>
-                <span className="font-mono font-bold text-emerald-600 text-[11px] text-right">INPUT / CAPITAL</span>
+              <div className="reveal-on-scroll reveal-delay-3 flex justify-between items-center p-2.5 bg-[#F8F9FB] rounded-xl border border-[#E5E7EB] saas-card-interactive group gap-2">
+                <span className="font-semibold text-[#667085] text-[11px]">
+                  {lang === "gu" ? "ITC પાત્રતા સ્થિતિ" : "ITC Eligibility Status"}
+                </span>
+                <span className="font-mono font-bold text-emerald-600 text-[11px] text-right">
+                  {lang === "gu" ? "ઇનપુટ / કેપિટલ" : "INPUT / CAPITAL"}
+                </span>
               </div>
             </div>
 
-            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-800 saas-card-interactive">
-              <span className="font-bold">Multi-Godown Stock Transfers:</span>
-              <p className="text-[11px] text-amber-700 mt-0.5">Move items from Head Office Warehouse to Shop Counter with dispatch approval, in-transit status, and transit damage logging.</p>
+            <div className="reveal-on-scroll reveal-delay-4 p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-800 saas-card-interactive">
+              <span className="font-bold">
+                {lang === "gu" ? "મલ્ટી-ગોડાઉન સ્ટોક ટ્રાન્સફર:" : "Multi-Godown Stock Transfers:"}
+              </span>
+              <p className="text-[11px] text-amber-700 mt-0.5">
+                {lang === "gu"
+                  ? "મુખ્ય ગોડાઉનથી દુકાન કાઉન્ટર પર માલ રવાનગી, ઇન-ટ્રાન્ઝિટ સ્ટેટસ અને નુકસાની ટ્રેકિંગ સાથે ટ્રાન્સફર કરો."
+                  : "Move items from Head Office Warehouse to Shop Counter with dispatch approval, in-transit status, and transit damage logging."}
+              </p>
             </div>
           </div>
 
           <div className="reveal-from-right space-y-4 sm:space-y-5 order-1 lg:order-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-800 text-xs font-bold">
-              <span>🤖</span>
-              <span>{lang === "gu" ? "AI ખરીદી અને સ્ટોક સિસ્ટમ" : "AI Purchases & Inventory Module"}</span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-purple-50 border border-purple-200 text-purple-800 text-xs font-bold">
+              <span>📥</span>
+              <span>{lang === "gu" ? "ખરીદી અને સ્ટોક સિસ્ટમ" : "Purchases & Inventory Module"}</span>
             </div>
 
             <h2 className="text-xl xs:text-2xl sm:text-4xl font-extrabold text-[#18263B] tracking-tight break-words">
               {lang === "gu"
-                ? "Google Gemini AI બિલ સ્કેનર અને મલ્ટી-ગોડાઉન સ્ટોક"
-                : "Google Gemini AI OCR & Multi-Godown Stock Transfers"}
+                ? "ઓટોમેટેડ બિલ સ્કેનર અને મલ્ટી-ગોડાઉન સ્ટોક"
+                : "Automated Bill OCR & Multi-Godown Stock Transfers"}
             </h2>
 
             <p className="text-xs sm:text-sm text-[#667085] leading-relaxed break-words">
               {lang === "gu"
-                ? "પેપર બિલ ટાઇપ કરવાનો કંટાળો હવે ભૂલી જાઓ! Gemini AI આપોઆપ સપ્લાયર, આઇટમ્સ, HSN અને ટેક્સ વાંચીને ખરીદી એન્ટ્રી ભરી આપે છે. સાથે બેચ અને એક્સપાયરી મેનેજમેન્ટ."
-                : "Eliminate manual data entry. Upload physical purchase bills or PDF invoices to have Google Gemini AI auto-extract items, rates, taxes, and vendor details in seconds. Seamlessly paired with multi-godown transfers and batch tracking."}
+                ? "પેપર બિલ ટાઇપ કરવાનો કંટાળો હવે ભૂલી જાઓ! ડિજિટલ સ્કેનર આપોઆપ સપ્લાયર, આઇટમ્સ, HSN અને ટેક્સ વાંચીને ખરીદી એન્ટ્રી ભરી આપે છે. સાથે બેચ અને એક્સપાયરી મેનેજમેન્ટ."
+                : "Eliminate manual data entry. Upload physical purchase bills or PDF invoices to auto-extract items, rates, taxes, and vendor details in seconds. Seamlessly paired with multi-godown transfers and batch tracking."}
             </p>
 
             <div className="space-y-3 pt-2">
-              <div className="flex items-start gap-3">
+              <div className="reveal-on-scroll reveal-delay-1 flex items-start gap-3">
                 <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">✓</span>
                 <div>
                   <h4 className="text-xs font-bold text-[#18263B]">
-                    {lang === "gu" ? "Gemini 2.5 Flash OCR પાઇપલાઇન" : "Gemini 2.5 Flash AI Engine"}
+                    {lang === "gu" ? "હાઇ-એક્યુરેસી OCR પાઇપલાઇન" : "High-Accuracy Bill OCR Engine"}
                   </h4>
                   <p className="text-[11px] text-[#667085]">
                     {lang === "gu" ? "PDF, JPEG, PNG અને HEIC ફોર્મેટ સપોર્ટ" : "High-accuracy bill extraction with Tesseract OCR fallback"}
@@ -1360,7 +1364,7 @@ export function IntroductionPage() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3">
+              <div className="reveal-on-scroll reveal-delay-2 flex items-start gap-3">
                 <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">✓</span>
                 <div>
                   <h4 className="text-xs font-bold text-[#18263B]">
@@ -1372,7 +1376,7 @@ export function IntroductionPage() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3">
+              <div className="reveal-on-scroll reveal-delay-3 flex items-start gap-3">
                 <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">✓</span>
                 <div>
                   <h4 className="text-xs font-bold text-[#18263B]">
@@ -1392,7 +1396,7 @@ export function IntroductionPage() {
       <section id="accounting-ledgers" className="py-12 sm:py-20 px-3.5 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-[#E5E7EB] scroll-mt-20 sm:scroll-mt-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 items-center">
           <div className="reveal-from-left space-y-4 sm:space-y-5">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold">
               <span>📚</span>
               <span>{lang === "gu" ? "દેશી નામા પદ્ધતિ અને હિસાબ" : "Double-Entry Accounting & Ledgers"}</span>
             </div>
@@ -1410,42 +1414,80 @@ export function IntroductionPage() {
             </p>
 
             <div className="grid grid-cols-1 xs:grid-cols-2 gap-2.5 sm:gap-3 pt-2 text-xs">
-              <div className="p-3 bg-white rounded-xl border border-[#E5E7EB] shadow-2xs saas-card-interactive group">
-                <span className="text-[#F47721] font-bold block mb-1 group-hover:translate-x-0.5 transition-transform">આવક પહોંચ (Receipt)</span>
-                <span className="text-[11px] text-[#667085]">ગ્રાહકો પાસેથી મળેલ રોકડ કે બેંક પેમેન્ટ</span>
+              <div className="reveal-on-scroll reveal-delay-1 p-3 bg-white rounded-xl border border-[#E5E7EB] shadow-2xs saas-card-interactive group">
+                <span className="text-[#F47721] font-bold block mb-1 group-hover:translate-x-0.5 transition-transform">
+                  {lang === "gu" ? "આવક પહોંચ (Receipt)" : "Receipt Voucher"}
+                </span>
+                <span className="text-[11px] text-[#667085]">
+                  {lang === "gu" ? "ગ્રાહકો પાસેથી મળેલ રોકડ કે બેંક પેમેન્ટ" : "Cash and bank collections from customers"}
+                </span>
               </div>
-              <div className="p-3 bg-white rounded-xl border border-[#E5E7EB] shadow-2xs saas-card-interactive group">
-                <span className="text-rose-600 font-bold block mb-1 group-hover:translate-x-0.5 transition-transform">ચૂકવણી વાઉચર (Payment)</span>
-                <span className="text-[11px] text-[#667085]">વેપારીઓ અને દૈનિક ખર્ચની ચુકવણી</span>
+              <div className="reveal-on-scroll reveal-delay-2 p-3 bg-white rounded-xl border border-[#E5E7EB] shadow-2xs saas-card-interactive group">
+                <span className="text-rose-600 font-bold block mb-1 group-hover:translate-x-0.5 transition-transform">
+                  {lang === "gu" ? "ચૂકવણી વાઉચર (Payment)" : "Payment Voucher"}
+                </span>
+                <span className="text-[11px] text-[#667085]">
+                  {lang === "gu" ? "વેપારીઓ અને દૈનિક ખર્ચની ચુકવણી" : "Vendor disbursements and day-to-day expenses"}
+                </span>
               </div>
-              <div className="p-3 bg-white rounded-xl border border-[#E5E7EB] shadow-2xs saas-card-interactive group">
-                <span className="text-blue-600 font-bold block mb-1 group-hover:translate-x-0.5 transition-transform">બેંક ફેરબદલ (Contra)</span>
-                <span className="text-[11px] text-[#667085]">રોકડ જમા/ઉપાડ અને બેંક-ટુ-બેંક ટ્રાન્સફર</span>
+              <div className="reveal-on-scroll reveal-delay-3 p-3 bg-white rounded-xl border border-[#E5E7EB] shadow-2xs saas-card-interactive group">
+                <span className="text-blue-600 font-bold block mb-1 group-hover:translate-x-0.5 transition-transform">
+                  {lang === "gu" ? "બેંક ફેરબદલ (Contra)" : "Contra Voucher"}
+                </span>
+                <span className="text-[11px] text-[#667085]">
+                  {lang === "gu" ? "રોકડ જમા/ઉપાડ અને બેંક-ટુ-બેંક ટ્રાન્સફર" : "Cash deposit/withdrawal and bank-to-bank transfer"}
+                </span>
               </div>
-              <div className="p-3 bg-white rounded-xl border border-[#E5E7EB] shadow-2xs saas-card-interactive group">
-                <span className="text-purple-600 font-bold block mb-1 group-hover:translate-x-0.5 transition-transform">હવાલા વાઉચર (Journal)</span>
-                <span className="text-[11px] text-[#667085]">એડજસ્ટમેન્ટ એન્ટ્રી અને ખાતા ફેરબદલ</span>
+              <div className="reveal-on-scroll reveal-delay-4 p-3 bg-white rounded-xl border border-[#E5E7EB] shadow-2xs saas-card-interactive group">
+                <span className="text-purple-600 font-bold block mb-1 group-hover:translate-x-0.5 transition-transform">
+                  {lang === "gu" ? "હવાલા વાઉચર (Journal)" : "Journal Voucher"}
+                </span>
+                <span className="text-[11px] text-[#667085]">
+                  {lang === "gu" ? "એડજસ્ટમેન્ટ એન્ટ્રી અને ખાતા ફેરબદલ" : "Account adjustments, depreciation & closing entries"}
+                </span>
               </div>
             </div>
           </div>
 
           <div className="reveal-from-right bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-[#E5E7EB] shadow-subtle space-y-4 saas-card-interactive w-full">
             <div className="flex items-center justify-between pb-3 border-b border-[#F3F4F6] gap-2">
-              <span className="text-xs font-bold text-[#18263B]">Authoritative Double-Entry Framework</span>
-              <span className="text-xs text-emerald-700 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full shrink-0">Audited & Verified</span>
+              <span className="text-xs font-bold text-[#18263B]">
+                {lang === "gu" ? "અધિકૃત ડબલ-એન્ટ્રી નામા પદ્ધતિ" : "Authoritative Double-Entry Framework"}
+              </span>
+              <span className="text-xs text-emerald-700 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-md shrink-0">
+                {lang === "gu" ? "ઓડિટેડ & પ્રમાણિત" : "Audited & Verified"}
+              </span>
             </div>
             <div className="space-y-3 text-xs">
-              <div className="p-3 bg-[#F8F9FB] rounded-xl border border-[#E5E7EB] saas-card-interactive group">
-                <span className="font-bold text-[#18263B] block group-hover:text-[#F47721] transition-colors">Chart of Accounts (COA)</span>
-                <p className="text-[11px] text-[#667085] mt-0.5">Organized under Indian accounting heads: Assets, Liabilities, Incomes, and Expenses.</p>
+              <div className="reveal-on-scroll reveal-delay-1 p-3 bg-[#F8F9FB] rounded-xl border border-[#E5E7EB] saas-card-interactive group">
+                <span className="font-bold text-[#18263B] block group-hover:text-[#F47721] transition-colors">
+                  {lang === "gu" ? "ચાર્ટ ઓફ એકાઉન્ટ્સ (COA)" : "Chart of Accounts (COA)"}
+                </span>
+                <p className="text-[11px] text-[#667085] mt-0.5">
+                  {lang === "gu"
+                    ? "ભારતીય નામા પદ્ધતિ મુજબ વર્ગીકરણ: મિલકતો, દેવાં, આવક અને ખર્ચ."
+                    : "Organized under Indian accounting heads: Assets, Liabilities, Incomes, and Expenses."}
+                </p>
               </div>
-              <div className="p-3 bg-[#F8F9FB] rounded-xl border border-[#E5E7EB] saas-card-interactive group">
-                <span className="font-bold text-[#18263B] block group-hover:text-[#F47721] transition-colors">Running Balance Party Ledgers</span>
-                <p className="text-[11px] text-[#667085] mt-0.5">Every customer and supplier has a dedicated ledger with chronological debits, credits, and running net balances.</p>
+              <div className="reveal-on-scroll reveal-delay-2 p-3 bg-[#F8F9FB] rounded-xl border border-[#E5E7EB] saas-card-interactive group">
+                <span className="font-bold text-[#18263B] block group-hover:text-[#F47721] transition-colors">
+                  {lang === "gu" ? "ચાલુ સિલક સાથે પાર્ટી ખાતાવહી" : "Running Balance Party Ledgers"}
+                </span>
+                <p className="text-[11px] text-[#667085] mt-0.5">
+                  {lang === "gu"
+                    ? "દરેક ગ્રાહક અને વેપારીનું અલગ ખાતું - ઉધાર, જમા અને ત્વરિત બાકી રકમ સાથે."
+                    : "Every customer and supplier has a dedicated ledger with chronological debits, credits, and running net balances."}
+                </p>
               </div>
-              <div className="p-3 bg-[#F8F9FB] rounded-xl border border-[#E5E7EB] saas-card-interactive group">
-                <span className="font-bold text-[#18263B] block group-hover:text-[#F47721] transition-colors">Cash Book & Daily Daybook (રોજમેળ)</span>
-                <p className="text-[11px] text-[#667085] mt-0.5">Review opening cash in hand, daily collections, daily expenses, and exact closing liquid balances.</p>
+              <div className="reveal-on-scroll reveal-delay-3 p-3 bg-[#F8F9FB] rounded-xl border border-[#E5E7EB] saas-card-interactive group">
+                <span className="font-bold text-[#18263B] block group-hover:text-[#F47721] transition-colors">
+                  {lang === "gu" ? "રોકડ મેળ અને દૈનિક રોજમેળ (Daybook)" : "Cash Book & Daily Daybook (રોજમેળ)"}
+                </span>
+                <p className="text-[11px] text-[#667085] mt-0.5">
+                  {lang === "gu"
+                    ? "રોજ સવારની શરૂઆતની સિલક, દિવસની આવક-જાવક અને ચોખ્ખી આખર સિલક તપાસો."
+                    : "Review opening cash in hand, daily collections, daily expenses, and exact closing liquid balances."}
+                </p>
               </div>
             </div>
           </div>
@@ -1475,9 +1517,13 @@ export function IntroductionPage() {
             <div className="w-10 h-10 rounded-xl bg-orange-50 text-[#F47721] flex items-center justify-center font-bold text-lg mb-2 group-hover:scale-110 transition-transform duration-200">
               📋
             </div>
-            <h3 className="text-sm font-bold text-[#18263B] group-hover:text-[#F47721] transition-colors">GSTR-1 Return Prep</h3>
+            <h3 className="text-sm font-bold text-[#18263B] group-hover:text-[#F47721] transition-colors">
+              {lang === "gu" ? "GSTR-1 રિટર્ન તૈયારી" : "GSTR-1 Return Prep"}
+            </h3>
             <p className="text-[11px] text-[#667085] leading-relaxed">
-              Covers Section 4A (B2B Tax Invoices), Section 5 (B2CL Large Invoices), Section 7 (B2CS Small Intra-State), and Section 12 (HSN Code Summary).
+              {lang === "gu"
+                ? "સેક્શન 4A (B2B ઇન્વોઇસ), સેક્શન 5 (B2CL મોટા બિલો), સેક્શન 7 (B2CS નાના બિલો) અને સેક્શન 12 (HSN કોડ સમરી) નો સંપૂર્ણ સમાવેશ."
+                : "Covers Section 4A (B2B Tax Invoices), Section 5 (B2CL Large Invoices), Section 7 (B2CS Small Intra-State), and Section 12 (HSN Code Summary)."}
             </p>
           </div>
 
@@ -1485,9 +1531,13 @@ export function IntroductionPage() {
             <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-lg mb-2 group-hover:scale-110 transition-transform duration-200">
               📊
             </div>
-            <h3 className="text-sm font-bold text-[#18263B] group-hover:text-emerald-700 transition-colors">GSTR-3B Computation</h3>
+            <h3 className="text-sm font-bold text-[#18263B] group-hover:text-emerald-700 transition-colors">
+              {lang === "gu" ? "GSTR-3B ટેક્સ ગણતરી" : "GSTR-3B Computation"}
+            </h3>
             <p className="text-[11px] text-[#667085] leading-relaxed">
-              Summarizes monthly outward taxable supplies and calculates net tax liability offset against eligible Input Tax Credit (ITC) from purchase books.
+              {lang === "gu"
+                ? "માસિક વેચાણ પર ટેક્સની જવાબદારી અને ખરીદી બિલમાંથી મળવાપાત્ર ઇનપુટ ટેક્સ ક્રેડિટ (ITC) નું ચોક્કસ સરવૈયું."
+                : "Summarizes monthly outward taxable supplies and calculates net tax liability offset against eligible Input Tax Credit (ITC) from purchase books."}
             </p>
           </div>
 
@@ -1495,9 +1545,13 @@ export function IntroductionPage() {
             <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-lg mb-2 group-hover:scale-110 transition-transform duration-200">
               🔍
             </div>
-            <h3 className="text-sm font-bold text-[#18263B] group-hover:text-blue-700 transition-colors">GSTR-2B Matching</h3>
+            <h3 className="text-sm font-bold text-[#18263B] group-hover:text-blue-700 transition-colors">
+              {lang === "gu" ? "GSTR-2B મેચિંગ & મેળવણી" : "GSTR-2B Matching"}
+            </h3>
             <p className="text-[11px] text-[#667085] leading-relaxed">
-              Compare inward vendor purchases recorded in your books with GSTR-2B data to detect missing vendor invoices and avoid lost tax credits.
+              {lang === "gu"
+                ? "તમારા ચોપડાની ખરીદીઓને પોર્ટલના GSTR-2B સાથે સરખાવી છૂટી ગયેલા બિલો શોધો અને ખોવાઈ જતી ટેક્સ ક્રેડિટ બચાવો."
+                : "Compare inward vendor purchases recorded in your books with GSTR-2B data to detect missing vendor invoices and avoid lost tax credits."}
             </p>
           </div>
 
@@ -1505,9 +1559,13 @@ export function IntroductionPage() {
             <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center font-bold text-lg mb-2 group-hover:scale-110 transition-transform duration-200">
               🚚
             </div>
-            <h3 className="text-sm font-bold text-[#18263B] group-hover:text-purple-700 transition-colors">e-Way Bill Generator</h3>
+            <h3 className="text-sm font-bold text-[#18263B] group-hover:text-purple-700 transition-colors">
+              {lang === "gu" ? "e-Way બિલ જનરેટર" : "e-Way Bill Generator"}
+            </h3>
             <p className="text-[11px] text-[#667085] leading-relaxed">
-              Generate direct JSON payloads compliant with the National e-Way Bill portal for fast consignment transit with transporter ID and vehicle info.
+              {lang === "gu"
+                ? "સરકારી e-Way બિલ પોર્ટલ માટે માન્ય ડાયરેક્ટ JSON ફાઇલ બનાવો - ટ્રાન્સપોર્ટર ID અને વાહન નંબર સાથે."
+                : "Generate direct JSON payloads compliant with the National e-Way Bill portal for fast consignment transit with transporter ID and vehicle info."}
             </p>
           </div>
         </div>
@@ -1517,7 +1575,7 @@ export function IntroductionPage() {
       <section id="reports-analytics" className="py-12 sm:py-20 px-3.5 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-[#E5E7EB] scroll-mt-20 sm:scroll-mt-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 items-center">
           <div className="reveal-from-left space-y-4">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold">
               <span>📊</span>
               <span>{lang === "gu" ? "અધિકૃત અહેવાલ કેન્દ્ર" : "Reports & Statutory Center"}</span>
             </div>
@@ -1535,42 +1593,74 @@ export function IntroductionPage() {
             </p>
 
             <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 text-xs">
-              <span className="p-2 sm:p-2.5 bg-white rounded-lg border border-[#E5E7EB] font-semibold text-[#18263B] hover:border-[#FED7AA] hover:text-[#F47721] transition-colors cursor-default">• Sales Register</span>
-              <span className="p-2 sm:p-2.5 bg-white rounded-lg border border-[#E5E7EB] font-semibold text-[#18263B] hover:border-[#FED7AA] hover:text-[#F47721] transition-colors cursor-default">• Purchase Register</span>
-              <span className="p-2 sm:p-2.5 bg-white rounded-lg border border-[#E5E7EB] font-semibold text-[#18263B] hover:border-[#FED7AA] hover:text-[#F47721] transition-colors cursor-default">• Profit & Loss (P&L)</span>
-              <span className="p-2 sm:p-2.5 bg-white rounded-lg border border-[#E5E7EB] font-semibold text-[#18263B] hover:border-[#FED7AA] hover:text-[#F47721] transition-colors cursor-default">• Balance Sheet</span>
-              <span className="p-2 sm:p-2.5 bg-white rounded-lg border border-[#E5E7EB] font-semibold text-[#18263B] hover:border-[#FED7AA] hover:text-[#F47721] transition-colors cursor-default">• Trial Balance</span>
-              <span className="p-2 sm:p-2.5 bg-white rounded-lg border border-[#E5E7EB] font-semibold text-[#18263B] hover:border-[#FED7AA] hover:text-[#F47721] transition-colors cursor-default">• Customer Receivables</span>
-              <span className="p-2 sm:p-2.5 bg-white rounded-lg border border-[#E5E7EB] font-semibold text-[#18263B] hover:border-[#FED7AA] hover:text-[#F47721] transition-colors cursor-default">• Vendor Payables</span>
-              <span className="p-2 sm:p-2.5 bg-white rounded-lg border border-[#E5E7EB] font-semibold text-[#18263B] hover:border-[#FED7AA] hover:text-[#F47721] transition-colors cursor-default">• Stock Valuation (FIFO)</span>
+              <span className="reveal-on-scroll reveal-delay-1 p-2 sm:p-2.5 bg-white rounded-lg border border-[#E5E7EB] font-semibold text-[#18263B] hover:border-[#FED7AA] hover:text-[#F47721] transition-colors cursor-default">
+                {lang === "gu" ? "• વેચાણ રજિસ્ટર (Sales Register)" : "• Sales Register"}
+              </span>
+              <span className="reveal-on-scroll reveal-delay-2 p-2 sm:p-2.5 bg-white rounded-lg border border-[#E5E7EB] font-semibold text-[#18263B] hover:border-[#FED7AA] hover:text-[#F47721] transition-colors cursor-default">
+                {lang === "gu" ? "• ખરીદી રજિસ્ટર (Purchase Register)" : "• Purchase Register"}
+              </span>
+              <span className="reveal-on-scroll reveal-delay-3 p-2 sm:p-2.5 bg-white rounded-lg border border-[#E5E7EB] font-semibold text-[#18263B] hover:border-[#FED7AA] hover:text-[#F47721] transition-colors cursor-default">
+                {lang === "gu" ? "• નફા-નુકસાન ખાતું (Profit & Loss)" : "• Profit & Loss (P&L)"}
+              </span>
+              <span className="reveal-on-scroll reveal-delay-4 p-2 sm:p-2.5 bg-white rounded-lg border border-[#E5E7EB] font-semibold text-[#18263B] hover:border-[#FED7AA] hover:text-[#F47721] transition-colors cursor-default">
+                {lang === "gu" ? "• પાકું સરવૈયું (Balance Sheet)" : "• Balance Sheet"}
+              </span>
+              <span className="reveal-on-scroll reveal-delay-5 p-2 sm:p-2.5 bg-white rounded-lg border border-[#E5E7EB] font-semibold text-[#18263B] hover:border-[#FED7AA] hover:text-[#F47721] transition-colors cursor-default">
+                {lang === "gu" ? "• કાચું સરવૈયું (Trial Balance)" : "• Trial Balance"}
+              </span>
+              <span className="reveal-on-scroll reveal-delay-6 p-2 sm:p-2.5 bg-white rounded-lg border border-[#E5E7EB] font-semibold text-[#18263B] hover:border-[#FED7AA] hover:text-[#F47721] transition-colors cursor-default">
+                {lang === "gu" ? "• ગ્રાહક લેણાં રજિસ્ટર (Receivables)" : "• Customer Receivables"}
+              </span>
+              <span className="reveal-on-scroll reveal-delay-7 p-2 sm:p-2.5 bg-white rounded-lg border border-[#E5E7EB] font-semibold text-[#18263B] hover:border-[#FED7AA] hover:text-[#F47721] transition-colors cursor-default">
+                {lang === "gu" ? "• વેપારી દેવાં રજિસ્ટર (Payables)" : "• Vendor Payables"}
+              </span>
+              <span className="reveal-on-scroll reveal-delay-8 p-2 sm:p-2.5 bg-white rounded-lg border border-[#E5E7EB] font-semibold text-[#18263B] hover:border-[#FED7AA] hover:text-[#F47721] transition-colors cursor-default">
+                {lang === "gu" ? "• સ્ટોક મૂલ્યાંકન (FIFO Stock)" : "• Stock Valuation (FIFO)"}
+              </span>
             </div>
           </div>
 
           <div id="specialized-modules" className="reveal-from-right bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-[#E5E7EB] shadow-subtle space-y-4 scroll-mt-20 sm:scroll-mt-24 saas-card-interactive w-full">
             <div className="flex items-center justify-between pb-3 border-b border-[#F3F4F6] gap-2">
-              <span className="text-xs font-bold text-[#18263B]">Additional Specialized Modules</span>
-              <span className="text-xs text-[#F47721] font-bold shrink-0">Integrated in Codebase</span>
+              <span className="text-xs font-bold text-[#18263B]">
+                {lang === "gu" ? "વધારાના વિશિષ્ટ મોડ્યુલ્સ" : "Additional Specialized Modules"}
+              </span>
+              <span className="text-xs text-[#F47721] font-bold shrink-0">
+                {lang === "gu" ? "સંપૂર્ણ સંકલિત" : "Integrated in Codebase"}
+              </span>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="p-3 bg-[#FFF8F3] rounded-xl border border-[#FED7AA] saas-card-interactive group">
-                <h4 className="font-bold text-[#C2410C] group-hover:text-[#F47721] transition-colors">Manufacturing & Production (BOM)</h4>
+              <div className="reveal-on-scroll reveal-delay-1 p-3 bg-[#FFF8F3] rounded-xl border border-[#FED7AA] saas-card-interactive group">
+                <h4 className="font-bold text-[#C2410C] group-hover:text-[#F47721] transition-colors">
+                  {lang === "gu" ? "ઉત્પાદન અને પ્રોડક્શન (BOM)" : "Manufacturing & Production (BOM)"}
+                </h4>
                 <p className="text-[11px] text-[#667085] mt-0.5 leading-relaxed">
-                  Define Bill of Materials recipes, issue raw materials, record production orders, and automatically update finished goods inventory.
+                  {lang === "gu"
+                    ? "બિલ ઓફ મટિરીયલ્સ (BOM) રેસિપી બનાવો, કાચો માલ ઇશ્યૂ કરો, પ્રોડક્શન ઓર્ડર નોંધો અને તૈયાર માલનો સ્ટોક આપમેળે વધારો."
+                    : "Define Bill of Materials recipes, issue raw materials, record production orders, and automatically update finished goods inventory."}
                 </p>
               </div>
 
-              <div className="p-3 bg-[#F8FAFC] rounded-xl border border-[#E5E7EB] saas-card-interactive group">
-                <h4 className="font-bold text-[#18263B] group-hover:text-[#F47721] transition-colors">Multi-Company & Multi-Branch Architecture</h4>
+              <div className="reveal-on-scroll reveal-delay-2 p-3 bg-[#F8FAFC] rounded-xl border border-[#E5E7EB] saas-card-interactive group">
+                <h4 className="font-bold text-[#18263B] group-hover:text-[#F47721] transition-colors">
+                  {lang === "gu" ? "મલ્ટી-કંપની અને મલ્ટી-બ્રાન્ચ સંચાલન" : "Multi-Company & Multi-Branch Architecture"}
+                </h4>
                 <p className="text-[11px] text-[#667085] mt-0.5 leading-relaxed">
-                  Operate multiple legal companies and branches under one account with instant context switching and role-based access control.
+                  {lang === "gu"
+                    ? "એક જ એકાઉન્ટ હેઠળ બહુવિધ કંપનીઓ અને શાખાઓ ચલાવો - ત્વરિત સ્વિચિંગ અને ભૂમિકા-આધારિત સુરક્ષા સાથે."
+                    : "Operate multiple legal companies and branches under one account with instant context switching and role-based access control."}
                 </p>
               </div>
 
-              <div className="p-3 bg-purple-50 rounded-xl border border-purple-200 text-purple-900 saas-card-interactive group">
-                <h4 className="font-bold text-purple-950 group-hover:text-purple-700 transition-colors">SuperAdmin Master Control Portal</h4>
+              <div className="reveal-on-scroll reveal-delay-3 p-3 bg-purple-50 rounded-xl border border-purple-200 text-purple-900 saas-card-interactive group">
+                <h4 className="font-bold text-purple-950 group-hover:text-purple-700 transition-colors">
+                  {lang === "gu" ? "સુપરએડમિન કંટ્રોલ પોર્ટલ" : "SuperAdmin Master Control Portal"}
+                </h4>
                 <p className="text-[11px] text-purple-700 mt-0.5 leading-relaxed">
-                  Platform administration with authorized tenant impersonation support session for instant client assistance.
+                  {lang === "gu"
+                    ? "પ્લેટફોર્મ એડમિનિસ્ટ્રેશન અને ક્લાયન્ટ સપોર્ટ માટે અધિકૃત ટેનન્ટ સપોર્ટ સેશન."
+                    : "Platform administration with authorized tenant impersonation support session for instant client assistance."}
                 </p>
               </div>
             </div>
@@ -1604,7 +1694,7 @@ export function IntroductionPage() {
             >
               <div className="flex items-center justify-between">
                 <span className="text-2xl sm:text-3xl group-hover:scale-110 transition-transform duration-200">{b.icon}</span>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FFF3E8] text-[#C2410C] border border-[#FED7AA]">
+                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-[#FFF3E8] text-[#C2410C] border border-[#FED7AA]">
                   {b.badge}
                 </span>
               </div>
@@ -1644,10 +1734,10 @@ export function IntroductionPage() {
               2
             </div>
             <h3 className="text-sm font-bold text-[#18263B] group-hover:text-[#F47721] transition-colors">
-              {lang === "gu" ? "બિલ બનાવો & સ્કેન કરો" : "Fast Invoicing & AI Scan"}
+              {lang === "gu" ? "બિલ બનાવો & નોંધો" : "Fast Invoicing & Purchase Entry"}
             </h3>
             <p className="text-xs text-[#667085] leading-relaxed">
-              {lang === "gu" ? "F2 થી વેચાણ બિલ આપો અને Gemini AI થી ખરીદી સ્કેન કરો." : "Issue sales invoices via F2 and upload purchase bills for AI extraction."}
+              {lang === "gu" ? "F2 થી વેચાણ બિલ આપો અને ખરીદી બિલ સરળતાથી નોંધો." : "Issue sales invoices via F2 and record purchase bills seamlessly."}
             </p>
           </div>
 
@@ -1696,7 +1786,7 @@ export function IntroductionPage() {
             return (
               <div
                 key={idx}
-                className="reveal-on-scroll bg-white rounded-2xl border border-[#E5E7EB] hover:border-[#FED7AA] overflow-hidden transition-all shadow-xs"
+                className={`reveal-on-scroll reveal-delay-${(idx % 4) + 1} bg-white rounded-2xl border border-[#E5E7EB] hover:border-[#FED7AA] overflow-hidden transition-all shadow-xs`}
               >
                 <button
                   type="button"
@@ -1744,21 +1834,21 @@ export function IntroductionPage() {
             </h2>
             <p className="text-xs sm:text-sm text-white/95 leading-relaxed font-medium break-words">
               {lang === "gu"
-                ? "સરળ જીએસટી બિલિંગ, Google Gemini AI બિલ સ્કેનર, ગોડાઉન સ્ટોક અને પાકી નામા પદ્ધતિ—તમામ સુવિધાઓ એક જ સુરક્ષિત સોફ્ટવેરમાં."
-                : "Fast billing, Gemini AI bill scanning, multi-godown stock, and double-entry accounting in one unified platform."}
+                ? "સરળ જીએસટી બિલિંગ, ડિજિટલ બિલ સ્કેનર, ગોડાઉન સ્ટોક અને પાકી નામા પદ્ધતિ—તમામ સુવિધાઓ એક જ સુરક્ષિત સોફ્ટવેરમાં."
+                : "Fast billing, smart purchase entry, multi-godown stock, and double-entry accounting in one unified platform."}
             </p>
 
-            <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <div className="pt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 max-w-md mx-auto w-full px-2 sm:px-0">
               <Link
                 href="/login?mode=signup"
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-white hover:bg-[#FFF8F3] text-[#F47721] font-extrabold text-sm sm:text-base rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 active:scale-95 cursor-pointer inline-flex items-center justify-center gap-2 min-h-[44px]"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3.5 bg-white hover:bg-[#FFF8F3] text-[#F47721] font-extrabold text-sm sm:text-base rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 active:scale-95 cursor-pointer inline-flex items-center justify-center gap-2 min-h-[46px] text-center"
               >
                 <span>{lang === "gu" ? "મફત નોંધણી કરો (Get Started)" : "Get Started Free (30-Day Trial)"}</span>
-                <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+                <span className="shrink-0 transition-transform duration-200 group-hover:translate-x-1">→</span>
               </Link>
               <Link
                 href="/login"
-                className="w-full sm:w-auto px-6 sm:px-7 py-3 sm:py-3.5 bg-black/20 hover:bg-black/30 text-white font-bold text-sm sm:text-base rounded-2xl border border-white/35 transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer min-h-[44px] inline-flex items-center justify-center"
+                className="w-full sm:w-auto px-6 sm:px-7 py-3.5 bg-black/20 hover:bg-black/30 text-white font-bold text-sm sm:text-base rounded-2xl border border-white/35 transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer min-h-[46px] inline-flex items-center justify-center text-center"
               >
                 {lang === "gu" ? "લોગિન પોર્ટલ (Sign In)" : "Sign In to Workspace"}
               </Link>
@@ -1768,10 +1858,10 @@ export function IntroductionPage() {
       </section>
 
       {/* ================= 14. COMPREHENSIVE FOOTER ================= */}
-      <footer className="border-t border-[#E5E7EB] bg-white py-10 sm:py-12 px-3.5 sm:px-6 lg:px-8 text-xs text-[#667085] reveal-on-scroll">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8 sm:mb-10">
+      <footer className="border-t border-[#E5E7EB] bg-white py-10 sm:py-12 px-3.5 sm:px-6 lg:px-8 text-xs text-[#667085]">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Col 1: Brand Info */}
-          <div className="space-y-3">
+          <div className="reveal-on-scroll reveal-delay-1 space-y-3">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-[#F47721] flex items-center justify-center text-white font-bold text-base shadow-saffron shrink-0">
                 ₹
@@ -1781,52 +1871,123 @@ export function IntroductionPage() {
               </span>
             </div>
             <p className="text-xs text-[#667085] leading-relaxed">
-              Next-generation Indian GST Billing, Gemini AI Purchase Scanner & Double-Entry Accounting ERP.
+              {lang === "gu"
+                ? "આધુનિક ભારતીય જીએસટી બિલિંગ, સ્માર્ટ ખરીદી સ્કેનર અને પાકી નામા પદ્ધતિ ERP."
+                : "Next-generation Indian GST Billing, Smart Purchase Scanner & Double-Entry Accounting ERP."}
             </p>
             <p className="text-[11px] font-semibold text-[#202124]">
-              Developed by Paneliya Technology, Gujarat, India.
+              {lang === "gu"
+                ? "પનેલિયા ટેકનોલોજી, ગુજરાત, ભારત દ્વારા નિર્મિત."
+                : "Developed by Paneliya Technology, Gujarat, India."}
             </p>
           </div>
 
           {/* Col 2: Core Modules */}
-          <div className="space-y-2">
-            <p className="font-bold text-[#202124] uppercase text-[11px] tracking-wider mb-2">Core Modules</p>
-            <p><Link href="/features" className="hover:text-[#F47721] font-bold text-[#F47721] transition-colors inline-block py-0.5">Explore All 28+ Features Showcase →</Link></p>
-            <p><a href="#sales-billing" className="hover:text-[#F47721] transition-colors inline-block py-0.5">GST Tax Invoicing & POS Counter</a></p>
-            <p><a href="#purchases-inventory" className="hover:text-[#F47721] transition-colors inline-block py-0.5">Gemini AI Bill Scanner (OCR)</a></p>
-            <p><a href="#purchases-inventory" className="hover:text-[#F47721] transition-colors inline-block py-0.5">Multi-Godown Stock Transfers</a></p>
-            <p><a href="#accounting-ledgers" className="hover:text-[#F47721] transition-colors inline-block py-0.5">Daybook & Cash Book (રોજમેળ)</a></p>
-            <p><a href="#gst-statutory" className="hover:text-[#F47721] transition-colors inline-block py-0.5">GSTR-1 & GSTR-3B Filing Preparation</a></p>
-            <p><a href="#reports-analytics" className="hover:text-[#F47721] transition-colors inline-block py-0.5">Manufacturing (BOM & Production)</a></p>
+          <div className="reveal-on-scroll reveal-delay-2 space-y-2">
+            <p className="font-bold text-[#202124] uppercase text-[11px] tracking-wider mb-2">
+              {lang === "gu" ? "મુખ્ય મોડ્યુલ્સ" : "Core Modules"}
+            </p>
+            <p>
+              <Link href="/features" className="hover:text-[#F47721] font-bold text-[#F47721] transition-colors inline-block py-0.5">
+                {lang === "gu" ? "તમામ ૨૮+ સુવિધાઓ વિગતવાર જુઓ →" : "Explore All 28+ Features Showcase →"}
+              </Link>
+            </p>
+            <p>
+              <a href="#sales-billing" className="hover:text-[#F47721] transition-colors inline-block py-0.5">
+                {lang === "gu" ? "જીએસટી ટેક્સ ઇન્વોઇસિંગ & POS કાઉન્ટર" : "GST Tax Invoicing & POS Counter"}
+              </a>
+            </p>
+            <p>
+              <a href="#purchases-inventory" className="hover:text-[#F47721] transition-colors inline-block py-0.5">
+                {lang === "gu" ? "સ્માર્ટ ખરીદી બિલ સ્કેનર (OCR)" : "Smart Bill Scanner (OCR)"}
+              </a>
+            </p>
+            <p>
+              <a href="#purchases-inventory" className="hover:text-[#F47721] transition-colors inline-block py-0.5">
+                {lang === "gu" ? "મલ્ટી-ગોડાઉન સ્ટોક ટ્રાન્સફર" : "Multi-Godown Stock Transfers"}
+              </a>
+            </p>
+            <p>
+              <a href="#accounting-ledgers" className="hover:text-[#F47721] transition-colors inline-block py-0.5">
+                {lang === "gu" ? "રોજમેળ & રોકડ ખાતાવહી (Cash Book)" : "Daybook & Cash Book (રોજમેળ)"}
+              </a>
+            </p>
+            <p>
+              <a href="#gst-statutory" className="hover:text-[#F47721] transition-colors inline-block py-0.5">
+                {lang === "gu" ? "GSTR-1 & GSTR-3B રિટર્ન તૈયારી" : "GSTR-1 & GSTR-3B Filing Preparation"}
+              </a>
+            </p>
+            <p>
+              <a href="#reports-analytics" className="hover:text-[#F47721] transition-colors inline-block py-0.5">
+                {lang === "gu" ? "ઉત્પાદન મેનેજમેન્ટ (BOM અને પ્રોડક્શન)" : "Manufacturing (BOM & Production)"}
+              </a>
+            </p>
           </div>
 
           {/* Col 3: Business Solutions */}
-          <div className="space-y-2">
-            <p className="font-bold text-[#202124] uppercase text-[11px] tracking-wider mb-2">Solutions</p>
-            <p><a href="#business-types" className="hover:text-[#F47721] transition-colors inline-block py-0.5">Retail Shops & POS Counters</a></p>
-            <p><a href="#business-types" className="hover:text-[#F47721] transition-colors inline-block py-0.5">Wholesale & B2B Trading</a></p>
-            <p><a href="#business-types" className="hover:text-[#F47721] transition-colors inline-block py-0.5">Distributors & Godown Networks</a></p>
-            <p><a href="#business-types" className="hover:text-[#F47721] transition-colors inline-block py-0.5">Small Scale Manufacturers</a></p>
-            <p><a href="#business-types" className="hover:text-[#F47721] transition-colors inline-block py-0.5">Professional Service Invoicing</a></p>
+          <div className="reveal-on-scroll reveal-delay-3 space-y-2">
+            <p className="font-bold text-[#202124] uppercase text-[11px] tracking-wider mb-2">
+              {lang === "gu" ? "વેપારી ઉકેલો" : "Solutions"}
+            </p>
+            <p>
+              <a href="#business-types" className="hover:text-[#F47721] transition-colors inline-block py-0.5">
+                {lang === "gu" ? "રિટેલ સ્ટોર્સ અને POS કાઉન્ટર" : "Retail Shops & POS Counters"}
+              </a>
+            </p>
+            <p>
+              <a href="#business-types" className="hover:text-[#F47721] transition-colors inline-block py-0.5">
+                {lang === "gu" ? "હોલસેલ અને B2B ટ્રેડિંગ" : "Wholesale & B2B Trading"}
+              </a>
+            </p>
+            <p>
+              <a href="#business-types" className="hover:text-[#F47721] transition-colors inline-block py-0.5">
+                {lang === "gu" ? "ડિસ્ટ્રિબ્યુટર્સ અને ગોડાઉન નેટવર્ક" : "Distributors & Godown Networks"}
+              </a>
+            </p>
+            <p>
+              <a href="#business-types" className="hover:text-[#F47721] transition-colors inline-block py-0.5">
+                {lang === "gu" ? "લઘુ ઉદ્યોગ અને ઉત્પાદકો" : "Small Scale Manufacturers"}
+              </a>
+            </p>
+            <p>
+              <a href="#business-types" className="hover:text-[#F47721] transition-colors inline-block py-0.5">
+                {lang === "gu" ? "પ્રોફેશનલ સર્વિસ ઇન્વોઇસિંગ" : "Professional Service Invoicing"}
+              </a>
+            </p>
           </div>
 
           {/* Col 4: Quick Access & Authentication */}
-          <div className="space-y-2">
-            <p className="font-bold text-[#202124] uppercase text-[11px] tracking-wider mb-2">Portal Access</p>
-            <p><Link href="/login" className="hover:text-[#F47721] font-semibold transition-colors inline-flex items-center gap-1 py-0.5">Sign In to Dashboard →</Link></p>
-            <p><Link href="/login?mode=signup" className="hover:text-[#F47721] font-semibold transition-colors inline-flex items-center gap-1 py-0.5">Create Free Account (Sign Up) →</Link></p>
-            <p><a href="#faq" className="hover:text-[#F47721] transition-colors inline-block py-0.5">Frequently Asked Questions</a></p>
+          <div className="reveal-on-scroll reveal-delay-4 space-y-2">
+            <p className="font-bold text-[#202124] uppercase text-[11px] tracking-wider mb-2">
+              {lang === "gu" ? "પોર્ટલ પ્રવેશ" : "Portal Access"}
+            </p>
+            <p>
+              <Link href="/login" className="hover:text-[#F47721] font-semibold transition-colors inline-flex items-center gap-1 py-0.5">
+                {lang === "gu" ? "ડેશબોર્ડમાં પ્રવેશ કરો (Sign In) →" : "Sign In to Dashboard →"}
+              </Link>
+            </p>
+            <p>
+              <Link href="/login?mode=signup" className="hover:text-[#F47721] font-semibold transition-colors inline-flex items-center gap-1 py-0.5">
+                {lang === "gu" ? "મફત એકાઉન્ટ બનાવો (Sign Up) →" : "Create Free Account (Sign Up) →"}
+              </Link>
+            </p>
+            <p>
+              <a href="#faq" className="hover:text-[#F47721] transition-colors inline-block py-0.5">
+                {lang === "gu" ? "સામાન્ય પ્રશ્નોત્તરી (FAQ)" : "Frequently Asked Questions"}
+              </a>
+            </p>
             <div className="pt-2">
-              <span className="text-[10px] bg-[#FFF3E8] text-[#C2410C] px-2.5 py-1 rounded-full font-bold border border-[#FED7AA] inline-block shadow-sm">
-                100% Indian GST & Nama Ready
+              <span className="text-[10px] bg-[#FFF3E8] text-[#C2410C] px-2.5 py-1 rounded-md font-bold border border-[#FED7AA] inline-block shadow-sm">
+                {lang === "gu" ? "૧૦૦% ભારતીય જીએસટી અને દેશી નામા પદ્ધતિ" : "100% Indian GST & Nama Ready"}
               </span>
             </div>
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto pt-6 border-t border-[#F3F4F6] flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-[#98A2B3] text-center sm:text-left">
-          <p>© {new Date().getFullYear()} MyBill History by Paneliya Technology. All rights reserved.</p>
-          <p>Designed with ❤️ for Indian MSMEs & Retailers in Gujarat, India.</p>
+        {/* Footer Bottom Row */}
+        <div className="max-w-7xl mx-auto mt-8 pt-6 border-t border-[#F3F4F6] flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-[#98A2B3] text-center sm:text-left reveal-on-scroll reveal-delay-2">
+          <p>© {new Date().getFullYear()} MyBill History by Paneliya Technology. {lang === "gu" ? "સર્વાધિકાર સુરક્ષિત." : "All rights reserved."}</p>
+          <p>{lang === "gu" ? "ગુજરાત, ભારતના વેપારીઓ અને MSME માટે પ્રેમથી નિર્મિત ❤️" : "Designed with ❤️ for Indian MSMEs & Retailers in Gujarat, India."}</p>
         </div>
       </footer>
     </div>

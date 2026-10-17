@@ -410,58 +410,58 @@ export default function FeaturesPage() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-7 text-xs font-semibold text-[#475467]">
-            <Link href="/" className="hover:text-[#F47721] transition-colors">
+          <nav className="hidden lg:flex items-center gap-4 xl:gap-6 2xl:gap-7 text-xs font-semibold text-[#475467] shrink-0">
+            <Link href="/" className="hover:text-[#F47721] transition-colors whitespace-nowrap py-1">
               {lang === "gu" ? "મુખ્ય પૃષ્ઠ" : "Home"}
             </Link>
-            <Link href="/features" className="text-[#F47721] font-bold border-b-2 border-[#F47721] pb-1">
+            <Link href="/features" className="text-[#F47721] font-bold border-b-2 border-[#F47721] pb-1 whitespace-nowrap">
               {lang === "gu" ? "તમામ સુવિધાઓ" : "Features"}
             </Link>
-            <Link href="/intro#sales-billing" className="hover:text-[#F47721] transition-colors">
+            <Link href="/intro#sales-billing" className="hover:text-[#F47721] transition-colors whitespace-nowrap py-1">
               {lang === "gu" ? "બિલિંગ મોડલ" : "Invoicing Engine"}
             </Link>
-            <Link href="/intro#how-it-works" className="hover:text-[#F47721] transition-colors">
+            <Link href="/intro#how-it-works" className="hover:text-[#F47721] transition-colors whitespace-nowrap py-1">
               {lang === "gu" ? "કેવી રીતે કામ કરે છે" : "How It Works"}
             </Link>
-            <Link href="/intro#faq" className="hover:text-[#F47721] transition-colors">
+            <Link href="/intro#faq" className="hover:text-[#F47721] transition-colors whitespace-nowrap py-1">
               {lang === "gu" ? "પ્રશ્નોત્તરી (FAQ)" : "FAQ"}
             </Link>
           </nav>
 
           {/* Right Action Cluster */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* Bilingual Toggle */}
             <button
               type="button"
               onClick={() => setLang(lang === "gu" ? "en" : "gu")}
-              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-[#E5E7EB] bg-white text-xs font-bold text-[#344054] hover:border-[#F47721] hover:text-[#F47721] transition-colors shrink-0 shadow-2xs min-h-[36px] cursor-pointer"
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-[#E5E7EB] bg-white text-xs font-bold text-[#344054] hover:border-[#F47721] hover:text-[#F47721] transition-colors shrink-0 shadow-2xs min-h-[36px] cursor-pointer whitespace-nowrap"
               aria-label={lang === "gu" ? "Switch to English" : "Switch to Gujarati"}
             >
               <span>🌐</span>
-              <span>{lang === "gu" ? "English" : "ગુજરાતી"}</span>
+              <span className="whitespace-nowrap">{lang === "gu" ? "English" : "ગુજરાતી"}</span>
             </button>
 
             {isAuthenticated ? (
               <Link
                 href="/dashboard"
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#F47721] hover:bg-[#D95F12] text-white text-xs font-bold shadow-saffron transition-all shrink-0 min-h-[38px]"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#F47721] hover:bg-[#D95F12] text-white text-xs font-bold shadow-saffron transition-all shrink-0 min-h-[38px] whitespace-nowrap"
               >
-                <span>{lang === "gu" ? "ડેશબોર્ડ ખોલો" : "Open Dashboard"}</span>
+                <span className="whitespace-nowrap">{lang === "gu" ? "ડેશબોર્ડ ખોલો" : "Open Dashboard"}</span>
                 <span>→</span>
               </Link>
             ) : (
               <>
                 <Link
                   href="/login"
-                  className="hidden sm:inline-flex items-center text-xs font-bold text-[#344054] hover:text-[#F47721] px-2.5 py-1.5 transition-colors"
+                  className="hidden sm:inline-flex items-center text-xs font-bold text-[#344054] hover:text-[#F47721] px-2.5 py-1.5 transition-colors whitespace-nowrap shrink-0"
                 >
-                  {lang === "gu" ? "સાઇન ઇન" : "Sign In"}
+                  <span className="whitespace-nowrap">{lang === "gu" ? "સાઇન ઇન" : "Sign In"}</span>
                 </Link>
                 <Link
                   href="/login?mode=signup"
-                  className="inline-flex items-center justify-center gap-1 px-3 sm:px-4 py-2 rounded-xl bg-[#F47721] hover:bg-[#D95F12] text-white text-xs font-bold shadow-saffron transition-all shrink-0 min-h-[38px] active:scale-95"
+                  className="inline-flex items-center justify-center gap-1 px-3 sm:px-4 py-2 rounded-xl bg-[#F47721] hover:bg-[#D95F12] text-white text-xs font-bold shadow-saffron transition-all shrink-0 min-h-[38px] active:scale-95 whitespace-nowrap"
                 >
-                  <span>{lang === "gu" ? "શરૂ કરો" : "Get Started"}</span>
+                  <span className="whitespace-nowrap">{lang === "gu" ? "શરૂ કરો" : "Get Started"}</span>
                   <span className="hidden xs:inline">→</span>
                 </Link>
               </>

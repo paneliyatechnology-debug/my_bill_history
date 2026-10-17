@@ -75,8 +75,7 @@ async function runTranslationAudit() {
 
   // Verify Tab Previews translated
   assert(introContent.includes('lang === "gu" ? "આઇટમ વિગત" : "Item Description"'), "Invoice preview table headers translated");
-  assert(introContent.includes('lang === "gu" ? "ગ્રાહકો પાસેથી કુલ લેણાં" : "Customer Receivables"'), "Dashboard preview cards translated");
-  assert(introContent.includes('lang === "gu" ? "Google Gemini AI OCR સ્કેનર પાઇપલાઇન" : "Google Gemini AI OCR Pipeline"'), "Gemini AI OCR preview translated");
+  assert(introContent.includes('lang === "gu" ? "ડિજિટલ OCR સ્કેનર પાઇપલાઇન" : "Digital OCR Bill Pipeline"'), "Digital OCR Bill Pipeline preview translated");
   assert(introContent.includes('lang === "gu" ? "ખાતાવહી: શ્રી રામ ટ્રેડર્સ (ગ્રાહક)" : "General Ledger: Shree Ram Traders (Customer)"'), "General ledger preview translated");
 
   // 4. Audit Features Showcase Page
