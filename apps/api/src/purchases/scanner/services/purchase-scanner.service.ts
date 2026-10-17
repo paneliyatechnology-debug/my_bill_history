@@ -228,21 +228,40 @@ export class PurchaseScannerService {
         `[DIAGNOSTIC] Stage: OCR_COMPLETED | ScanId: ${scanId} | DurationMs: ${ocrDurationMs} | Provider: ${ocrResult.provider} | HasRawText: ${!!ocrResult.rawText} | RawTextLength: ${ocrResult.rawText?.length || 0} | ExtractedItems: ${ocrResult.extractedData?.items?.length || 0}`,
       );
     } catch (err: any) {
-      const durationMs = Date.now() - startTime;
-      const classified = this.classifyOcrError(err, durationMs);
+      const allowLocalFallback = process.env.ALLOW_LOCAL_FALLBACK === "true";
+      if (allowLocalFallback && provider.name !== "local") {
+        this.logger.warn(`Primary OCR provider '${provider.name}' failed (${err?.message}). Attempting fallback to local OCR provider...`);
+        try {
+          const localProvider = this.ocrFactory.getProvider("local");
+          ocrResult = await localProvider.extractInvoice(fileBuffer, storedFile.mimeType, {
+            fileName: storedFile.fileName,
+            mimeType: storedFile.mimeType,
+            companyStateCode: company?.stateCode || "24",
+            companyGstin: company?.gstin || undefined,
+            companyName: company?.legalName || undefined,
+          });
+          this.logger.log(`[DIAGNOSTIC] Fallback to local OCR provider succeeded for scanId: ${scanId}`);
+        } catch (localFallbackErr: any) {
+          err = localFallbackErr;
+        }
+      }
 
-      this.logger.error(
-        `[DIAGNOSTIC] Stage: OCR_FAILED | ScanId: ${scanId} | DurationMs: ${durationMs} | Category: ${classified.category} | Error: ${classified.message}`,
-        err.stack,
-      );
+      if (!ocrResult) {
+        const durationMs = Date.now() - startTime;
+        const classified = this.classifyOcrError(err, durationMs);
 
-      await this.prisma.purchaseBillScan.update({
-        where: { id: scanId },
-        data: {
-          status: "FAILED",
-          errorMessage: classified.message,
-        },
-      });
+        this.logger.error(
+          `[DIAGNOSTIC] Stage: OCR_FAILED | ScanId: ${scanId} | DurationMs: ${durationMs} | Category: ${classified.category} | Error: ${classified.message}`,
+          err.stack,
+        );
+
+        await this.prisma.purchaseBillScan.update({
+          where: { id: scanId },
+          data: {
+            status: "FAILED",
+            errorMessage: classified.message,
+          },
+        });
 
       await this.audit.record({
         organizationId: tenant.organizationId,
@@ -267,6 +286,7 @@ export class PurchaseScannerService {
       }
       return;
     }
+  }
 
     // 3. Normalization
     const normalizedData = this.normalizer.normalizeBillData(

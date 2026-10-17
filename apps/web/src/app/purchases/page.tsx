@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
 import { Modal } from "../../components/ui/modal";
@@ -49,6 +51,7 @@ interface PurchaseLine {
 }
 
 export default function PurchasesPage() {
+  const router = useRouter();
   const { lang, tenantContext, user } = useAuth();
   const canPay = ["SUPER_ADMIN", "ORG_ADMIN", "COMPANY_ADMIN", "ACCOUNTANT", "BRANCH_MANAGER"].includes(user?.role || "");
   const [invoices, setInvoices] = useState<PurchaseInvoice[]>([]);
@@ -90,6 +93,13 @@ export default function PurchasesPage() {
   const [payAccounts, setPayAccounts] = useState<any[]>([]);
   const [paySubmitting, setPaySubmitting] = useState(false);
   const [payKey, setPayKey] = useState("");
+
+  // Multi-Selection and Delete States
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [purchaseToDelete, setPurchaseToDelete] = useState<PurchaseInvoice | null>(null);
+  const [isDeletingSingle, setIsDeletingSingle] = useState(false);
 
   const fetchPurchases = useCallback(async () => {
     setIsLoading(true);
@@ -322,6 +332,16 @@ export default function PurchasesPage() {
         accessorKey: "vendorInvoiceNumber",
         sortable: true,
         className: "font-mono font-bold text-slate-900",
+        cell: (inv) => (
+          <Link
+            href={`/purchases/${inv.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="font-mono font-bold text-slate-900 hover:text-[#F47721] hover:underline flex items-center gap-1 group"
+          >
+            <span>{inv.vendorInvoiceNumber}</span>
+            <span className="text-[11px] text-slate-400 group-hover:text-[#F47721]">↗</span>
+          </Link>
+        ),
       },
       {
         id: "invoiceDate",
@@ -422,9 +442,90 @@ export default function PurchasesPage() {
           </span>
         ),
       },
+      {
+        id: "actions",
+        header: lang === "gu" ? "ક્રિયા" : "Action",
+        className: "text-right",
+        cell: (inv) => (
+          <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
+            <Link
+              href={`/purchases/${inv.id}`}
+              className="px-2.5 py-1 bg-slate-100 hover:bg-[#FFF3E8] hover:text-[#F47721] text-slate-700 text-xs font-bold rounded-lg transition-colors flex items-center gap-1"
+              title={lang === "gu" ? "વિગતો જુઓ" : "View Invoice Details"}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              <span>{lang === "gu" ? "જુઓ" : "View"}</span>
+            </Link>
+            <button
+              type="button"
+              onClick={() => setPurchaseToDelete(inv)}
+              className="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+              title={lang === "gu" ? "બિલ કાઢી નાખો" : "Delete Bill"}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <span>{lang === "gu" ? "કાઢી નાખો" : "Delete"}</span>
+            </button>
+          </div>
+        ),
+      },
     ],
     [lang, canPay]
   );
+
+  const handleDeleteSinglePurchase = async () => {
+    if (!purchaseToDelete) return;
+    setIsDeletingSingle(true);
+    try {
+      await apiClient.delete(`/purchases/${purchaseToDelete.id}`);
+      setSuccessBanner(
+        lang === "gu"
+          ? `ખરીદી બિલ '${purchaseToDelete.vendorInvoiceNumber}' સફળતાપૂર્વક કાઢી નાખવામાં આવ્યું.`
+          : `Purchase bill '${purchaseToDelete.vendorInvoiceNumber}' deleted successfully.`
+      );
+      setPurchaseToDelete(null);
+      await fetchPurchases();
+    } catch (err: any) {
+      setError(
+        lang === "gu" && err.messageGujarati
+          ? err.messageGujarati
+          : err.message || "Failed to delete purchase invoice."
+      );
+    } finally {
+      setIsDeletingSingle(false);
+    }
+  };
+
+  const handleBulkDeletePurchases = async () => {
+    if (selectedIds.size === 0) return;
+    setIsBulkDeleting(true);
+    setError(null);
+    try {
+      await apiClient.post("/purchases/bulk-delete", {
+        ids: Array.from(selectedIds),
+      });
+      setSuccessBanner(
+        lang === "gu"
+          ? `પસંદ કરેલ ${selectedIds.size} ખરીદી બિલો સફળતાપૂર્વક કાઢી નાખવામાં આવ્યા.`
+          : `${selectedIds.size} purchase bills deleted successfully.`
+      );
+      setSelectedIds(new Set());
+      setIsBulkDeleteModalOpen(false);
+      await fetchPurchases();
+    } catch (err: any) {
+      setError(
+        lang === "gu" && err.messageGujarati
+          ? err.messageGujarati
+          : err.message || "Failed to delete selected purchase bills."
+      );
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -444,11 +545,8 @@ export default function PurchasesPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <button
-            onClick={() => {
-              fetchDependencies();
-              setIsScannerModalOpen(true);
-            }}
+          <Link
+            href="/purchases/new?scan=true"
             className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-saffron-light hover:bg-[#FFE6D0] text-primary border border-primary/25 text-xs sm:text-sm font-bold rounded-xl shadow-sm transition-all"
           >
             <svg
@@ -475,10 +573,10 @@ export default function PurchasesPage() {
                 ? "સ્માર્ટ બિલ સ્કેનર (Scan Bill)"
                 : "Scan Bill (Auto-Entry)"}
             </span>
-          </button>
+          </Link>
 
-          <button
-            onClick={handleOpenModal}
+          <Link
+            href="/purchases/new"
             className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
           >
             <svg
@@ -497,7 +595,7 @@ export default function PurchasesPage() {
             <span>
               {lang === "gu" ? "મેન્યુઅલ બિલ ઉમેરો" : "Record Purchase Bill"}
             </span>
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -588,9 +686,29 @@ export default function PurchasesPage() {
 
       {/* Purchases DataTable */}
       <DataTable<PurchaseInvoice>
+        selectable
+        selectedIds={selectedIds}
+        onSelectionChange={setSelectedIds}
+        renderBulkActions={(ids) => (
+          <button
+            type="button"
+            onClick={() => setIsBulkDeleteModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <span>
+              {lang === "gu"
+                ? `પસંદ કરેલ કાઢી નાખો (${ids.size})`
+                : `Delete Selected (${ids.size})`}
+            </span>
+          </button>
+        )}
         data={invoices}
         columns={purchaseColumns}
         keyExtractor={(inv) => inv.id}
+        onRowClick={(inv) => router.push(`/purchases/${inv.id}`)}
         searchPlaceholder={
           lang === "gu"
             ? "બિલ નંબર, વેપારી અથવા GSTIN શોધો..."
@@ -614,12 +732,18 @@ export default function PurchasesPage() {
         mobileCardRender={(inv) => (
           <div
             key={inv.id}
-            className="p-3.5 hover:bg-saffron-very-light/60 transition-colors space-y-2"
+            onClick={() => router.push(`/purchases/${inv.id}`)}
+            className="p-3.5 hover:bg-saffron-very-light/60 transition-colors space-y-2 cursor-pointer"
           >
             <div className="flex items-center justify-between gap-2">
-              <span className="font-mono font-bold text-sm text-slate-900">
-                {inv.vendorInvoiceNumber}
-              </span>
+              <Link
+                href={`/purchases/${inv.id}`}
+                className="font-mono font-bold text-sm text-slate-900 hover:text-[#F47721] flex items-center gap-1"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span>{inv.vendorInvoiceNumber}</span>
+                <span className="text-xs text-slate-400">↗</span>
+              </Link>
               <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
                 {inv.itcEligibility || "INPUT"}
               </span>
@@ -1001,6 +1125,84 @@ export default function PurchasesPage() {
         itemsList={itemsList}
         warehouses={warehouses}
       />
+
+      {/* Single Purchase Delete Modal */}
+      <Modal
+        isOpen={!!purchaseToDelete}
+        onClose={() => setPurchaseToDelete(null)}
+        title={lang === "gu" ? "ખરીદી બિલ કાઢી નાખવાની ખાતરી" : "Confirm Delete Purchase Bill"}
+        titleGujarati={purchaseToDelete ? `${purchaseToDelete.vendorInvoiceNumber} (${purchaseToDelete.party?.name})` : ""}
+        maxWidth="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-slate-600">
+            {lang === "gu"
+              ? `શું તમે ખરેખર ખરીદી બિલ "${purchaseToDelete?.vendorInvoiceNumber}" કાઢી નાખવા માંગો છો? આ બિલથી સ્ટોકમાં આવેલ ઇન્વેન્ટરી પણ પાછી ખેંચી લેવામાં આવશે.`
+              : `Are you sure you want to delete purchase bill "${purchaseToDelete?.vendorInvoiceNumber}"? The stock received will also be rolled back.`}
+          </p>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setPurchaseToDelete(null)}
+              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteSinglePurchase}
+              disabled={isDeletingSingle}
+              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm cursor-pointer"
+            >
+              {isDeletingSingle
+                ? "Deleting..."
+                : lang === "gu"
+                  ? "હા, કાઢી નાખો"
+                  : "Confirm Delete"}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Bulk Delete Purchases Modal */}
+      <Modal
+        isOpen={isBulkDeleteModalOpen}
+        onClose={() => setIsBulkDeleteModalOpen(false)}
+        title={lang === "gu" ? "પસંદ કરેલ ખરીદી બિલો કાઢી નાખો" : "Bulk Delete Purchase Bills"}
+        titleGujarati={lang === "gu" ? `${selectedIds.size} બિલો પસંદ કરેલ છે` : `${selectedIds.size} purchase bills selected`}
+        maxWidth="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-slate-600">
+            {lang === "gu"
+              ? `તમે ${selectedIds.size} ખરીદી બિલો કાઢી નાખવા માટે પસંદ કર્યા છે. આ બિલોની ઇન્વેન્ટરી અને ટેક્સ રિવર્સ થઈ જશે. શું તમે આગળ વધવા માંગો છો?`
+              : `You have selected ${selectedIds.size} purchase bills to delete. Associated stock and tax entries will be removed. Are you sure?`}
+          </p>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setIsBulkDeleteModalOpen(false)}
+              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleBulkDeletePurchases}
+              disabled={isBulkDeleting}
+              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm cursor-pointer"
+            >
+              {isBulkDeleting
+                ? "Deleting..."
+                : lang === "gu"
+                  ? `હા, પસંદ કરેલ ${selectedIds.size} કાઢી નાખો`
+                  : `Confirm Delete (${selectedIds.size})`}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

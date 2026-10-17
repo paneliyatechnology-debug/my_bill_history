@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
 import { CreateCompanyModal } from "../../components/tenants/create-company-modal";
 import { INDIAN_STATES } from "@billing/shared-types";
+import JsBarcode from "jsbarcode";
+import QRCode from "qrcode";
 
 export default function SettingsPage() {
   const {
@@ -44,9 +46,20 @@ export default function SettingsPage() {
     bankIfsc: "",
     bankBranch: "",
     upiVpa: "",
+    bankAccountBarcode: "",
+    signatoryName: "",
+    signatoryDesignation: "Authorised Signatory",
+    signatureUrl: "",
     enableGujaratiPrint: true,
     allowNegativeStock: false,
   });
+
+  const barcodeSvgRef = useRef<SVGSVGElement | null>(null);
+  const qrCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const drawCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const [signatureMode, setSignatureMode] = useState<"upload" | "draw" | "generate">("upload");
+  const [isDrawing, setIsDrawing] = useState(false);
 
   useEffect(() => {
     async function loadCompany() {
@@ -72,6 +85,10 @@ export default function SettingsPage() {
             bankIfsc: res.bankIfsc || "",
             bankBranch: res.bankBranch || "",
             upiVpa: res.upiVpa || "",
+            bankAccountBarcode: res.bankAccountBarcode || "",
+            signatoryName: res.signatoryName || "",
+            signatoryDesignation: res.signatoryDesignation || "Authorised Signatory",
+            signatureUrl: res.signatureUrl || "",
             enableGujaratiPrint: res.enableGujaratiPrint ?? true,
             allowNegativeStock: res.allowNegativeStock ?? false,
           });
@@ -91,6 +108,101 @@ export default function SettingsPage() {
     }
   }, [tenantContext.companyId]);
 
+  const handleSignatureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert(lang === "gu" ? "ફાઈલ સાઇઝ 2MB કરતા ઓછી હોવી જોઈએ." : "File size must be under 2MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setFormData((prev) => ({ ...prev, signatureUrl: reader.result as string }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const generateCursiveSignature = () => {
+    const nameToSign =
+      formData.signatoryName.trim() ||
+      formData.tradeName.trim() ||
+      formData.legalName.trim() ||
+      "Audit Admin";
+    const canvas = document.createElement("canvas");
+    canvas.width = 400;
+    canvas.height = 120;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.font = "italic 42px 'Brush Script MT', 'Dancing Script', 'Caveat', cursive, sans-serif";
+    ctx.fillStyle = "#1e3a8a"; // premium blue ink
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(nameToSign, canvas.width / 2, 50);
+
+    // Decorative underline flourish
+    ctx.beginPath();
+    ctx.moveTo(50, 80);
+    ctx.quadraticCurveTo(200, 105, 350, 75);
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = "#1e3a8a";
+    ctx.stroke();
+
+    const dataUrl = canvas.toDataURL("image/png");
+    setFormData((prev) => ({ ...prev, signatureUrl: dataUrl }));
+  };
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = drawCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = ("clientX" in e ? e.clientX : e.touches[0].clientX) - rect.left;
+    const y = ("clientY" in e ? e.clientY : e.touches[0].clientY) - rect.top;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    setIsDrawing(true);
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+    const canvas = drawCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = ("clientX" in e ? e.clientX : e.touches[0].clientX) - rect.left;
+    const y = ("clientY" in e ? e.clientY : e.touches[0].clientY) - rect.top;
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "#0f172a";
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+  };
+
+  const saveDrawnSignature = () => {
+    const canvas = drawCanvasRef.current;
+    if (!canvas) return;
+    const dataUrl = canvas.toDataURL("image/png");
+    setFormData((prev) => ({ ...prev, signatureUrl: dataUrl }));
+  };
+
+  const clearDrawCanvas = () => {
+    const canvas = drawCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
@@ -109,6 +221,7 @@ export default function SettingsPage() {
     setMessage(null);
     try {
       await apiClient.patch("/tenants/company", formData);
+      await refreshTenantMetadata();
       setMessage({
         type: "success",
         text:
@@ -358,12 +471,24 @@ export default function SettingsPage() {
         </div>
 
         {/* Bank & UPI Details */}
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-          <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-2">
-            {lang === "gu"
-              ? "બેંક અને યુપીઆઇ વિગતો (Bank & Payment Details)"
-              : "Bank & Payment Details"}
-          </h2>
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
+                {lang === "gu"
+                  ? "બેંક, યુપીઆઇ અને બારકોડ વિગતો (Bank, UPI & Barcode Details)"
+                  : "Bank, UPI & Barcode Details"}
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {lang === "gu"
+                  ? "આ વિગતો અને બારકોડ આપમેળે સેલ્સ ઇન્વોઇસ પર પ્રિન્ટ થશે."
+                  : "These details and barcode will automatically be displayed on Sales Invoices."}
+              </p>
+            </div>
+            <span className="text-xs font-semibold px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200/60 rounded-lg">
+              🏷️ {lang === "gu" ? "ઇન્વોઇસ બારકોડ સપોર્ટ" : "Invoice Barcode Support"}
+            </span>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -375,7 +500,7 @@ export default function SettingsPage() {
                 name="bankName"
                 value={formData.bankName}
                 onChange={handleChange}
-                placeholder="State Bank of India"
+                placeholder="Central Bank of India / SBI"
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               />
             </div>
@@ -389,6 +514,7 @@ export default function SettingsPage() {
                 name="bankAccountNo"
                 value={formData.bankAccountNo}
                 onChange={handleChange}
+                placeholder="e.g. 5697993361"
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               />
             </div>
@@ -402,25 +528,414 @@ export default function SettingsPage() {
                 name="bankIfsc"
                 value={formData.bankIfsc}
                 onChange={handleChange}
-                placeholder="SBIN0001234"
+                placeholder="CBIN0281024"
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono uppercase focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
+                {lang === "gu" ? "શાખાનું નામ (Branch)" : "Branch Name"}
+              </label>
+              <input
+                type="text"
+                name="bankBranch"
+                value={formData.bankBranch}
+                onChange={handleChange}
+                placeholder="Ahmedabad Main / DARAULI"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
                 {lang === "gu"
-                  ? "UPI VPA (ક્યૂઆર કોડ માટે)"
-                  : "UPI VPA (For Dynamic QR)"}
+                  ? "UPI VPA (QR કોડ માટે)"
+                  : "UPI ID / VPA (For Payment QR)"}
               </label>
               <input
                 type="text"
                 name="upiVpa"
                 value={formData.upiVpa}
                 onChange={handleChange}
-                placeholder="merchant@okaxis"
+                placeholder="merchant@okaxis / 8851844152@ptaxis"
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-slate-700">
+                  {lang === "gu"
+                    ? "બેંક એકાઉન્ટ બારકોડ (Bank Barcode)"
+                    : "Bank Account Barcode"}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const generated = formData.bankAccountNo
+                      ? `${formData.bankAccountNo}`
+                      : `63${Math.floor(100000000 + Math.random() * 900000000)}`;
+                    setFormData((prev) => ({ ...prev, bankAccountBarcode: generated }));
+                  }}
+                  className="text-[11px] font-bold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded border border-amber-200"
+                >
+                  ⚡ {lang === "gu" ? "ઓટો જનરેટ" : "Auto Generate"}
+                </button>
+              </div>
+              <input
+                type="text"
+                name="bankAccountBarcode"
+                value={formData.bankAccountBarcode}
+                onChange={handleChange}
+                placeholder="e.g. 5697993361 or 63852523994"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Barcode & QR Realtime Visual Card */}
+          <div className="mt-4 p-4 bg-[#FAFBFD] rounded-xl border border-slate-200 flex flex-col md:flex-row items-center justify-around gap-6">
+            {/* Live SVG Barcode Preview */}
+            <div className="flex flex-col items-center justify-center p-3 bg-white rounded-lg border border-slate-200 shadow-xs min-w-[240px]">
+              <span className="text-[11px] font-bold text-slate-500 mb-1 uppercase tracking-wide">
+                {lang === "gu" ? "ઇન્વોઇસ બેંક બારકોડ" : "Invoice Bank Barcode"}
+              </span>
+              {formData.bankAccountBarcode ? (
+                <>
+                  <svg
+                    ref={(el) => {
+                      if (el && formData.bankAccountBarcode) {
+                        try {
+                          JsBarcode(el, formData.bankAccountBarcode, {
+                            format: "CODE128",
+                            width: 1.5,
+                            height: 44,
+                            displayValue: true,
+                            fontSize: 12,
+                            margin: 4,
+                          });
+                        } catch {
+                          // ignore format error
+                        }
+                      }
+                    }}
+                    className="max-w-[220px]"
+                  />
+                  <span className="text-[10px] text-emerald-700 font-medium mt-1">
+                    ✓ {lang === "gu" ? "સ્કેનેબલ Code-128 બારકોડ" : "Scannable Code-128 Barcode"}
+                  </span>
+                </>
+              ) : (
+                <div className="py-6 text-center text-xs text-slate-400">
+                  {lang === "gu"
+                    ? "બારકોડ જોવા માટે ઉપર બારકોડ નંબર લખો અથવા 'ઓટો જનરેટ' ક્લિક કરો."
+                    : "Enter barcode or click 'Auto Generate' to view barcode preview"}
+                </div>
+              )}
+            </div>
+
+            {/* Live QR Code Preview */}
+            <div className="flex flex-col items-center justify-center p-3 bg-white rounded-lg border border-slate-200 shadow-xs min-w-[200px]">
+              <span className="text-[11px] font-bold text-slate-500 mb-1 uppercase tracking-wide">
+                {lang === "gu" ? "લાઇવ પેમેન્ટ QR કોડ" : "Live Payment QR Code"}
+              </span>
+              {formData.upiVpa ? (
+                <>
+                  <canvas
+                    ref={(canvas) => {
+                      if (canvas && formData.upiVpa) {
+                        const upiUrl = `upi://pay?pa=${encodeURIComponent(
+                          formData.upiVpa,
+                        )}&pn=${encodeURIComponent(
+                          formData.tradeName || formData.legalName || "Merchant",
+                        )}&cu=INR`;
+                        QRCode.toCanvas(canvas, upiUrl, {
+                          width: 100,
+                          margin: 1,
+                        }).catch(() => {});
+                      }
+                    }}
+                    className="rounded shadow-2xs"
+                  />
+                  <span className="text-[10px] font-mono text-slate-700 mt-1 font-semibold">
+                    {formData.upiVpa}
+                  </span>
+                </>
+              ) : (
+                <div className="py-6 text-center text-xs text-slate-400">
+                  {lang === "gu"
+                    ? "QR કોડ જોવા માટે UPI ID લખો"
+                    : "Enter UPI ID to view payment QR"}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Authorized Signatory & Digital Signature */}
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
+          <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                <span>✍️</span>
+                <span>
+                  {lang === "gu"
+                    ? "અધિકૃત સહી અને ડિજિટલ સિગ્નેચર (Signatory & Digital Signature)"
+                    : "Authorized Signatory & Digital Signature"}
+                </span>
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {lang === "gu"
+                  ? "બધા વેચાણ ઇન્વોઇસ અને બિલમાં આપોઆપ છપાતી સહી અને વિગતો"
+                  : "Configure signature stamp, signatory name, and designation printed on all invoices."}
+              </p>
+            </div>
+            {formData.signatureUrl && (
+              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 flex items-center gap-1 self-start sm:self-auto">
+                <span>✓</span>
+                <span>{lang === "gu" ? "સહી સેટ કરેલ છે" : "Signature Active"}</span>
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                {lang === "gu"
+                  ? "અધિકૃત સહી કરનારનું નામ (Signatory Name)"
+                  : "Signatory Name"}
+              </label>
+              <input
+                type="text"
+                name="signatoryName"
+                value={formData.signatoryName}
+                onChange={handleChange}
+                placeholder="e.g. Jaydeep Patel"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+              <span className="text-[11px] text-slate-500 mt-1 block">
+                {lang === "gu"
+                  ? "ઇન્વોઇસના અંતે સહી નીચે છપાશે"
+                  : "Will be printed under signature line on invoices"}
+              </span>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                {lang === "gu"
+                  ? "હોદ્દો / પદવી (Signatory Designation)"
+                  : "Signatory Designation"}
+              </label>
+              <input
+                type="text"
+                name="signatoryDesignation"
+                value={formData.signatoryDesignation}
+                onChange={handleChange}
+                placeholder="Authorised Signatory / Proprietor / Partner"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+              <span className="text-[11px] text-slate-500 mt-1 block">
+                {lang === "gu"
+                  ? "દા.ત. Authorised Signatory અથવા Proprietor"
+                  : "e.g. Authorised Signatory, Proprietor, Director"}
+              </span>
+            </div>
+          </div>
+
+          {/* Signature Mode Selector */}
+          <div className="space-y-4 pt-2 border-t border-slate-100">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                {lang === "gu" ? "સહી ઉમેરવાની પદ્ધતિ પસંદ કરો:" : "Select Signature Method:"}
+              </span>
+
+              <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs">
+                <button
+                  type="button"
+                  onClick={() => setSignatureMode("upload")}
+                  className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
+                    signatureMode === "upload"
+                      ? "bg-white text-slate-900 shadow-xs font-bold"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  📁 {lang === "gu" ? "ઇમેજ અપલોડ" : "Upload File"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSignatureMode("draw")}
+                  className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
+                    signatureMode === "draw"
+                      ? "bg-white text-slate-900 shadow-xs font-bold"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  ✍️ {lang === "gu" ? "અહીં સહી દોરો" : "Draw Signature"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSignatureMode("generate")}
+                  className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
+                    signatureMode === "generate"
+                      ? "bg-white text-slate-900 shadow-xs font-bold"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  ⚡ {lang === "gu" ? "ઓટો સ્ટાઇલિશ સહી" : "Auto Stylize"}
+                </button>
+              </div>
+            </div>
+
+            {/* Mode 1: File Upload */}
+            {signatureMode === "upload" && (
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                <label className="block text-xs font-semibold text-slate-700">
+                  {lang === "gu"
+                    ? "સહી અથવા સ્ટેમ્પ ઇમેજ પસંદ કરો (PNG / JPG / WebP)"
+                    : "Upload Signature or Stamp Image (PNG / JPG / WebP)"}
+                </label>
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg, image/webp"
+                  onChange={handleSignatureUpload}
+                  className="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover cursor-pointer"
+                />
+                <p className="text-[11px] text-slate-500">
+                  {lang === "gu"
+                    ? "પારદર્શક (Transparent) બેકગ્રાઉન્ડ વાળી PNG ઇમેજ ઉત્તમ પરિણામ આપશે (મહત્તમ ૨MB)."
+                    : "Transparent PNG with dark ink produces the cleanest look on invoice prints (Max 2MB)."}
+                </p>
+              </div>
+            )}
+
+            {/* Mode 2: Interactive Draw Pad */}
+            {signatureMode === "draw" && (
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-700">
+                    {lang === "gu"
+                      ? "માઉસ અથવા આંગળી વડે બોક્સમાં સહી કરો:"
+                      : "Sign inside the box using mouse, touchpad or stylus:"}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={clearDrawCanvas}
+                      className="px-2.5 py-1 text-xs font-semibold text-slate-600 hover:text-rose-600 bg-white border border-slate-200 rounded-lg hover:border-rose-300"
+                    >
+                      🧹 {lang === "gu" ? "સાફ કરો" : "Clear"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={saveDrawnSignature}
+                      className="px-3 py-1 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs"
+                    >
+                      💾 {lang === "gu" ? "આ સહી રાખો" : "Use This Signature"}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg border-2 border-dashed border-slate-300 overflow-hidden flex justify-center">
+                  <canvas
+                    ref={drawCanvasRef}
+                    width={420}
+                    height={120}
+                    onMouseDown={startDrawing}
+                    onMouseMove={draw}
+                    onMouseUp={stopDrawing}
+                    onMouseLeave={stopDrawing}
+                    onTouchStart={startDrawing}
+                    onTouchMove={draw}
+                    onTouchEnd={stopDrawing}
+                    className="cursor-crosshair touch-none w-full max-w-[420px] bg-white"
+                  />
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  {lang === "gu"
+                    ? "સહી દોર્યા પછી 'આ સહી રાખો' (Use This Signature) બટન પર ક્લિક કરો."
+                    : "After signing, click 'Use This Signature' to apply."}
+                </p>
+              </div>
+            )}
+
+            {/* Mode 3: Auto Cursive Signature Generation */}
+            {signatureMode === "generate" && (
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">
+                      {lang === "gu"
+                        ? "ઓટોમેટિક ડિજિટલ સહી બનાવો"
+                        : "Generate Digital Script Signature"}
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      {lang === "gu"
+                        ? `નામ '${formData.signatoryName || formData.tradeName || "User"}' પરથી સુંદર બ્લૂ ઇંક સહી બનાવો`
+                        : `Instantly creates a handwritten ink signature for '${formData.signatoryName || formData.tradeName || "Signatory"}'`}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={generateCursiveSignature}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs shrink-0"
+                  >
+                    ⚡ {lang === "gu" ? "સહી જનરેટ કરો" : "Generate Signature"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Live Invoice Signature Stamp Preview */}
+            <div className="p-4 bg-[#FAFBFD] rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div className="space-y-1">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                  {lang === "gu" ? "ઇન્વોઇસ પર કેવું દેખાશે (Live Preview):" : "Invoice Preview:"}
+                </span>
+                <p className="text-xs text-slate-600">
+                  {lang === "gu"
+                    ? "ઇન્વોઇસના જમણા છેડે આ રીતે અધિકૃત સહી અને વિગતો છપાશે."
+                    : "This exact stamp block is rendered on all invoices and PDF downloads."}
+                </p>
+                {formData.signatureUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, signatureUrl: "" }))}
+                    className="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline pt-1 flex items-center gap-1"
+                  >
+                    <span>🗑️</span>
+                    <span>{lang === "gu" ? "સહી દૂર કરો (Remove Signature)" : "Remove Signature"}</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Stamp box preview */}
+              <div className="bg-white p-4 rounded-xl border border-slate-300 shadow-xs min-w-[240px] text-right space-y-1">
+                <p className="font-bold text-slate-900 text-[11px] uppercase">
+                  For {formData.tradeName || formData.legalName || "MyBill History Enterprise"}
+                </p>
+                <div className="h-14 flex items-end justify-end py-1">
+                  {formData.signatureUrl ? (
+                    <img
+                      src={formData.signatureUrl}
+                      alt="Signature Preview"
+                      className="max-h-12 max-w-[160px] object-contain block"
+                    />
+                  ) : (
+                    <span className="text-[11px] text-slate-300 italic font-mono">
+                      [ Signature Line ]
+                    </span>
+                  )}
+                </div>
+                <div className="border-t border-slate-400 pt-1">
+                  <p className="font-semibold text-slate-800 text-[11px]">
+                    {formData.signatoryName || "Authorized Person"}
+                  </p>
+                  <p className="text-[10px] text-slate-500">
+                    {formData.signatoryDesignation || "Authorised Signatory"}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

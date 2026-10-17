@@ -497,15 +497,53 @@ function DashboardContent() {
 }
 
 export default function Page() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, lang } = useAuth();
+  const [showTimeoutFallback, setShowTimeoutFallback] = useState(false);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    if (isLoading) {
+      timer = setTimeout(() => {
+        setShowTimeoutFallback(true);
+      }, 3000);
+    } else {
+      setShowTimeoutFallback(false);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [isLoading]);
 
   // Initial authentication hydration
   if (isLoading) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-[#FAFBFD]">
-        <div className="flex flex-col items-center gap-3">
+      <div className="h-screen w-full flex items-center justify-center bg-[#FAFBFD] p-4 text-center">
+        <div className="flex flex-col items-center gap-3 max-w-sm">
           <div className="w-9 h-9 border-3 border-[#F47721] border-t-transparent rounded-full animate-spin" />
           <span className="text-xs font-bold text-[#667085] tracking-tight">Loading MyBill History...</span>
+          {showTimeoutFallback && (
+            <div className="mt-4 p-4 bg-white rounded-xl border border-border shadow-xs">
+              <p className="text-xs text-[#475467] mb-3">
+                {lang === "gu"
+                  ? "લોડિંગ સામાન્ય કરતાં વધુ સમય લઈ રહ્યું છે."
+                  : "Loading is taking longer than expected."}
+              </p>
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-3 py-1.5 text-xs font-semibold bg-[#F47721] text-white rounded-lg hover:bg-[#D95F12] transition-colors"
+                >
+                  {lang === "gu" ? "રીફ્રેશ કરો" : "Reload"}
+                </button>
+                <Link
+                  href="/login"
+                  className="px-3 py-1.5 text-xs font-semibold border border-border text-[#344054] rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  {lang === "gu" ? "લોગિન કરો" : "Go to Login"}
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );

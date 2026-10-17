@@ -7,6 +7,8 @@ import { Modal } from "../../../components/ui/modal";
 import { Badge, StatusBadge } from "../../../components/ui/badge";
 import { HsnSelector } from "../../../components/ui/hsn-selector";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
+import { ItemStepModal, ItemFormData } from "./components/item-step-modal";
+import { ItemBarcodeModal } from "./components/item-barcode-modal";
 
 interface Item {
   id: string;
@@ -20,6 +22,7 @@ interface Item {
   retailPrice: number;
   mrp?: number;
   purchaseRate?: number;
+  wholesalePrice?: number;
   minStockLevel?: number;
   currentStock?: number;
   trackBatches?: boolean;
@@ -27,6 +30,8 @@ interface Item {
   isActive: boolean;
   categoryId?: string | null;
   primaryUomId?: string;
+  secondaryUomId?: string | null;
+  conversionFactor?: number | null;
   primaryUom?: {
     id: string;
     name: string;
@@ -53,7 +58,7 @@ interface Warehouse {
 }
 
 export default function ItemsPage() {
-  const { lang, tenantContext } = useAuth();
+  const { lang, tenantContext, currentCompany } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -64,59 +69,39 @@ export default function ItemsPage() {
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
+  const [statusFilter, setStatusFilter] = useState<string>("ACTIVE"); // default to ACTIVE so inactive items do NOT clutter view
 
-  // Create Modal
+  // Create / Edit Step Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
-
-  // Edit Modal
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
-  const [editFormData, setEditFormData] = useState({
-    type: "PRODUCT" as "PRODUCT" | "SERVICE",
-    name: "",
-    nameGujarati: "",
-    sku: "",
-    barcode: "",
-    hsnCode: "1006",
-    primaryUomId: "",
-    categoryId: "",
-    taxRate: 5,
-    retailPrice: 100,
-    mrp: 100,
-    purchaseRate: 80,
-    minStockLevel: 10,
-    trackBatches: false,
-    isActive: true,
-  });
+  const [barcodeModalItem, setBarcodeModalItem] = useState<Item | null>(null);
 
-  // Delete Confirmation Modal
+  // Multi-Selection State
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [bulkForceDelete, setBulkForceDelete] = useState(false);
+
+  // Single Delete Confirmation Modal
   const [itemToDelete, setItemToDelete] = useState<Item | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [forceDelete, setForceDelete] = useState(false);
 
-  // Create Form State
-  const [formData, setFormData] = useState({
-    type: "PRODUCT" as "PRODUCT" | "SERVICE",
-    name: "",
-    nameGujarati: "",
-    sku: "",
-    barcode: "",
-    hsnCode: "1006",
-    primaryUomId: "",
-    categoryId: "",
-    taxRate: 5,
-    retailPrice: 100,
-    mrp: 100,
-    purchaseRate: 80,
-    minStockLevel: 10,
-    openingStock: 0,
-    warehouseId: "",
-    openingBatchNumber: "",
-    openingExpiryDate: "",
-    openingMfgDate: "",
-    trackBatches: false,
-  });
+  // Success Notification
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
+
+
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -150,183 +135,289 @@ export default function ItemsPage() {
   }, [tenantContext.companyId, fetchData]);
 
   const handleOpenCreateModal = () => {
-    const defaultWh =
-      warehouses.find((w) => w.isDefault)?.id || warehouses[0]?.id || "";
-    setFormData({
-      type: "PRODUCT",
-      name: "",
-      nameGujarati: "",
-      sku: "",
-      barcode: "",
-      hsnCode: "1006",
-      primaryUomId: units[0]?.id || "",
-      categoryId: categories[0]?.id || "",
-      taxRate: 5,
-      retailPrice: 100,
-      mrp: 100,
-      purchaseRate: 80,
-      minStockLevel: 10,
-      openingStock: 0,
-      warehouseId: defaultWh,
-      openingBatchNumber: "",
-      openingExpiryDate: "",
-      openingMfgDate: "",
-      trackBatches: false,
-    });
-    setFormError(null);
     setIsModalOpen(true);
   };
 
-  const handleCreateItem = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError(null);
-    setIsSubmitting(true);
-
-    try {
-      let uomId = formData.primaryUomId;
-      if (!uomId && units.length > 0) {
-        uomId = units[0].id;
-      }
-
-      await apiClient.post("/items", {
-        type: formData.type,
-        name: formData.name,
-        nameGujarati: formData.nameGujarati || undefined,
-        sku: formData.sku || undefined,
-        barcode: formData.barcode || undefined,
-        hsnCode: formData.hsnCode,
-        primaryUomId: uomId,
-        categoryId: formData.categoryId || undefined,
-        taxRate: Number(formData.taxRate) || 0,
-        retailPrice: Number(formData.retailPrice) || 0,
-        mrp: Number(formData.mrp) || Number(formData.retailPrice) || 0,
-        purchaseRate: Number(formData.purchaseRate) || 0,
-        minStockLevel: Number(formData.minStockLevel) || 0,
-        openingStock:
-          formData.type === "PRODUCT"
-            ? Number(formData.openingStock) || 0
-            : 0,
-        warehouseId: formData.warehouseId || undefined,
-        openingBatchNumber:
-          formData.trackBatches && formData.openingBatchNumber
-            ? formData.openingBatchNumber.trim()
-            : undefined,
-        openingExpiryDate:
-          formData.trackBatches && formData.openingExpiryDate
-            ? formData.openingExpiryDate
-            : undefined,
-        openingMfgDate:
-          formData.trackBatches && formData.openingMfgDate
-            ? formData.openingMfgDate
-            : undefined,
-        trackBatches:
-          formData.type === "PRODUCT" ? Boolean(formData.trackBatches) : false,
-      });
-
-      setIsModalOpen(false);
-      await fetchData();
-    } catch (err: any) {
-      setFormError(
-        lang === "gu" && err.messageGujarati
-          ? err.messageGujarati
-          : err.message || "Failed to create item.",
-      );
-    } finally {
-      setIsSubmitting(false);
+  const handleCreateItemStep = async (data: ItemFormData) => {
+    let uomId = data.primaryUomId;
+    if (!uomId && units.length > 0) {
+      uomId = units[0].id;
     }
+
+    await apiClient.post("/items", {
+      type: data.type,
+      name: data.name.trim(),
+      nameGujarati: data.nameGujarati?.trim() || undefined,
+      sku: data.sku?.trim() || undefined,
+      barcode: data.barcode?.trim() || undefined,
+      hsnCode: data.hsnCode.trim(),
+      primaryUomId: uomId,
+      secondaryUomId: data.secondaryUomId || undefined,
+      conversionFactor: data.conversionFactor ? Number(data.conversionFactor) : undefined,
+      categoryId: data.categoryId || undefined,
+      taxRate: Number(data.taxRate) || 0,
+      retailPrice: Number(data.retailPrice) || 0,
+      mrp: Number(data.mrp) || Number(data.retailPrice) || 0,
+      purchaseRate: Number(data.purchaseRate) || 0,
+      wholesalePrice: data.wholesalePrice ? Number(data.wholesalePrice) : undefined,
+      minStockLevel: Number(data.minStockLevel) || 0,
+      openingStock: data.type === "PRODUCT" ? Number(data.openingStock) || 0 : 0,
+      openingStockDate: data.asOfDate || undefined,
+      warehouseId: data.warehouseId || undefined,
+      openingBatchNumber:
+        data.trackBatches && data.openingBatchNumber
+          ? data.openingBatchNumber.trim()
+          : undefined,
+      openingExpiryDate:
+        data.trackBatches && data.openingExpiryDate
+          ? data.openingExpiryDate
+          : undefined,
+      openingMfgDate:
+        data.trackBatches && data.openingMfgDate
+          ? data.openingMfgDate
+          : undefined,
+      trackBatches: data.type === "PRODUCT" ? Boolean(data.trackBatches) : false,
+      trackSerialNo: Boolean(data.trackSerialNo),
+    });
+
+    setIsModalOpen(false);
+    setSuccessMessage(
+      lang === "gu"
+        ? "આઇટમ અને બારકોડ સફળતાપૂર્વક સાચવવામાં આવી છે!"
+        : "Item created successfully with barcode!"
+    );
+    await fetchData();
   };
 
   const handleOpenEditModal = (item: Item) => {
     setEditingItem(item);
-    setEditFormData({
-      type: item.type,
-      name: item.name,
-      nameGujarati: item.nameGujarati || "",
-      sku: item.sku || "",
-      barcode: item.barcode || "",
-      hsnCode: item.hsnCode || "1006",
-      primaryUomId:
-        item.primaryUomId || item.primaryUom?.id || units[0]?.id || "",
-      categoryId: item.categoryId || "",
-      taxRate: Number(item.taxRate) || 0,
-      retailPrice: Number(item.retailPrice) || 0,
-      mrp: Number(item.mrp ?? item.retailPrice ?? 0),
-      purchaseRate: Number(item.purchaseRate ?? 0),
-      minStockLevel: Number(item.minStockLevel ?? 0),
-      trackBatches: Boolean(item.trackBatches),
-      isActive: item.isActive !== false,
-    });
-    setFormError(null);
     setIsEditModalOpen(true);
   };
 
-  const handleUpdateItem = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const editInitialData = useMemo<Partial<ItemFormData> | undefined>(() => {
+    if (!editingItem) return undefined;
+    return {
+      type: editingItem.type,
+      name: editingItem.name,
+      nameGujarati: editingItem.nameGujarati || "",
+      sku: editingItem.sku || "",
+      barcode: editingItem.barcode || "",
+      hsnCode: editingItem.hsnCode || "1006",
+      primaryUomId:
+        editingItem.primaryUomId || editingItem.primaryUom?.id || units[0]?.id || "",
+      secondaryUomId: editingItem.secondaryUomId || "",
+      conversionFactor: Number(editingItem.conversionFactor) || 1,
+      categoryId: editingItem.categoryId || "",
+      taxRate: Number(editingItem.taxRate) || 0,
+      retailPrice: Number(editingItem.retailPrice) || "",
+      mrp: Number(editingItem.mrp ?? editingItem.retailPrice ?? ""),
+      purchaseRate: Number(editingItem.purchaseRate ?? ""),
+      wholesalePrice: Number(editingItem.wholesalePrice ?? "") || "",
+      minStockLevel: Number(editingItem.minStockLevel ?? 10),
+      trackBatches: Boolean(editingItem.trackBatches),
+      trackSerialNo: Boolean(editingItem.trackSerialNo),
+      isActive: editingItem.isActive !== false,
+    };
+  }, [editingItem, units]);
+
+  const handleUpdateItemStep = async (data: ItemFormData) => {
     if (!editingItem) return;
-    setFormError(null);
-    setIsSubmitting(true);
 
-    try {
-      await apiClient.put(`/items/${editingItem.id}`, {
-        type: editFormData.type,
-        name: editFormData.name,
-        nameGujarati: editFormData.nameGujarati || undefined,
-        sku: editFormData.sku || undefined,
-        barcode: editFormData.barcode || undefined,
-        hsnCode: editFormData.hsnCode,
-        primaryUomId: editFormData.primaryUomId || undefined,
-        categoryId: editFormData.categoryId || undefined,
-        taxRate: Number(editFormData.taxRate) || 0,
-        retailPrice: Number(editFormData.retailPrice) || 0,
-        mrp: Number(editFormData.mrp) || Number(editFormData.retailPrice) || 0,
-        purchaseRate: Number(editFormData.purchaseRate) || 0,
-        minStockLevel: Number(editFormData.minStockLevel) || 0,
-        trackBatches:
-          editFormData.type === "PRODUCT"
-            ? Boolean(editFormData.trackBatches)
-            : false,
-        isActive: Boolean(editFormData.isActive),
-      });
+    await apiClient.put(`/items/${editingItem.id}`, {
+      type: data.type,
+      name: data.name.trim(),
+      nameGujarati: data.nameGujarati?.trim() || undefined,
+      sku: data.sku?.trim() || undefined,
+      barcode: data.barcode?.trim() || undefined,
+      hsnCode: data.hsnCode.trim(),
+      primaryUomId: data.primaryUomId || undefined,
+      secondaryUomId: data.secondaryUomId || undefined,
+      conversionFactor: data.conversionFactor ? Number(data.conversionFactor) : undefined,
+      categoryId: data.categoryId || undefined,
+      taxRate: Number(data.taxRate) || 0,
+      retailPrice: Number(data.retailPrice) || 0,
+      mrp: Number(data.mrp) || Number(data.retailPrice) || 0,
+      purchaseRate: Number(data.purchaseRate) || 0,
+      wholesalePrice: data.wholesalePrice ? Number(data.wholesalePrice) : undefined,
+      minStockLevel: Number(data.minStockLevel) || 0,
+      trackBatches: data.type === "PRODUCT" ? Boolean(data.trackBatches) : false,
+      trackSerialNo: Boolean(data.trackSerialNo),
+      isActive: Boolean(data.isActive),
+    });
 
-      setIsEditModalOpen(false);
-      setEditingItem(null);
-      await fetchData();
-    } catch (err: any) {
-      setFormError(
-        lang === "gu" && err.messageGujarati
-          ? err.messageGujarati
-          : err.message || "Failed to update item.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
+    setIsEditModalOpen(false);
+    setEditingItem(null);
+    setSuccessMessage(
+      lang === "gu"
+        ? "આઇટમ સફળતાપૂર્વક સુધારવામાં આવી છે!"
+        : "Item updated successfully!"
+    );
+    await fetchData();
+  };
+
+  const handleAddNewCategory = async (catName: string) => {
+    const res: any = await apiClient.post("/categories", {
+      name: catName,
+    });
+    const newCat = res?.data || res;
+    const catItem: Category = {
+      id: newCat.id,
+      name: newCat.name,
+    };
+    setCategories((prev) => [...prev, catItem]);
+    return catItem;
   };
 
   const handleDeleteItem = async () => {
     if (!itemToDelete) return;
     setIsDeleting(true);
+    setDeleteError(null);
     try {
-      await apiClient.delete(`/items/${itemToDelete.id}`);
+      const shouldForce = forceDelete || itemToDelete.isActive === false;
+      const res: any = await apiClient.delete(
+        `/items/${itemToDelete.id}${shouldForce ? "?force=true" : ""}`
+      );
+      const deletedId = itemToDelete.id;
+
+      // Immediately remove from local state so UI updates instantly
+      setItems((prev) => prev.filter((it) => it.id !== deletedId));
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(deletedId);
+        return next;
+      });
+
+      const msg =
+        lang === "gu" && res?.messageGujarati
+          ? res.messageGujarati
+          : res?.message ||
+            (lang === "gu"
+              ? "વસ્તુ સફળતાપૂર્વક કાઢી નાખવામાં આવી છે."
+              : "Item deleted successfully.");
+
+      setSuccessMessage(msg);
       setItemToDelete(null);
+      setForceDelete(false);
+
+      // Refresh catalog in background
       await fetchData();
     } catch (err: any) {
-      setError(
+      setDeleteError(
         lang === "gu" && err.messageGujarati
           ? err.messageGujarati
-          : err.message || "Failed to delete item.",
+          : err.message || "Failed to delete item."
       );
     } finally {
       setIsDeleting(false);
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    setIsBulkDeleting(true);
+    setDeleteError(null);
+    try {
+      const idsArray = Array.from(selectedIds);
+      const res: any = await apiClient.post("/items/bulk-delete", {
+        ids: idsArray,
+        force: bulkForceDelete,
+      });
+
+      const deletedSet = new Set(idsArray);
+      setItems((prev) => prev.filter((it) => !deletedSet.has(it.id)));
+      setSelectedIds(new Set());
+      setIsBulkDeleteModalOpen(false);
+      setBulkForceDelete(false);
+
+      const msg =
+        lang === "gu" && res?.messageGujarati
+          ? res.messageGujarati
+          : res?.message ||
+            (lang === "gu"
+              ? `${idsArray.length} વસ્તુઓ સફળતાપૂર્વક કાઢી નાખવામાં આવી.`
+              : `${idsArray.length} items deleted successfully.`);
+
+      setSuccessMessage(msg);
+      await fetchData();
+    } catch (err: any) {
+      setDeleteError(
+        lang === "gu" && err.messageGujarati
+          ? err.messageGujarati
+          : err.message || "Failed to delete selected items."
+      );
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
   const displayItems = useMemo(() => {
-    if (typeFilter === "ALL") return items;
-    return items.filter((it) => it.type === typeFilter);
-  }, [items, typeFilter]);
+    return items.filter((it) => {
+      if (typeFilter !== "ALL" && it.type !== typeFilter) return false;
+      if (statusFilter === "ACTIVE" && !it.isActive) return false;
+      if (statusFilter === "INACTIVE" && it.isActive) return false;
+      return true;
+    });
+  }, [items, typeFilter, statusFilter]);
+
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(displayItems.map((it) => it.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const isAllSelected =
+    displayItems.length > 0 &&
+    displayItems.every((it) => selectedIds.has(it.id));
+  const isSomeSelected =
+    selectedIds.size > 0 && !isAllSelected;
 
   const itemColumns = useMemo<ColumnDef<Item>[]>(
     () => [
+      {
+        id: "select",
+        header: (
+          <div className="flex items-center justify-center">
+            <input
+              type="checkbox"
+              checked={isAllSelected}
+              ref={(el) => {
+                if (el) el.indeterminate = isSomeSelected;
+              }}
+              onChange={(e) => handleSelectAll(e.target.checked)}
+              className="w-4 h-4 rounded border-slate-300 text-[#F47721] focus:ring-[#F47721] cursor-pointer"
+              title={lang === "gu" ? "બધા પસંદ કરો" : "Select All"}
+            />
+          </div>
+        ),
+        className: "w-10 text-center",
+        cell: (it) => (
+          <div
+            className="flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <input
+              type="checkbox"
+              checked={selectedIds.has(it.id)}
+              onChange={() => handleToggleSelect(it.id)}
+              className="w-4 h-4 rounded border-slate-300 text-[#F47721] focus:ring-[#F47721] cursor-pointer"
+            />
+          </div>
+        ),
+      },
       {
         id: "name",
         header: lang === "gu" ? "વસ્તુનું નામ" : "Item Name",
@@ -356,10 +447,30 @@ export default function ItemsPage() {
       },
       {
         id: "sku",
-        header: lang === "gu" ? "એસકેયુ / બારકોડ" : "SKU / Code",
-        accessorFn: (it) => it.sku || it.barcode || "—",
+        header: lang === "gu" ? "એસકેયુ / બારકોડ" : "SKU / Barcode",
+        accessorFn: (it) => it.barcode || it.sku || "—",
         sortable: true,
         className: "font-mono text-slate-600",
+        cell: (it) => {
+          const code = it.barcode || it.sku;
+          if (!code) return <span className="text-slate-400">—</span>;
+          return (
+            <div className="inline-flex items-center gap-1.5">
+              <span className="font-mono text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                {code}
+              </span>
+              <button
+                type="button"
+                id={`barcode-btn-${it.id}`}
+                onClick={() => setBarcodeModalItem(it)}
+                className="p-1 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded transition-colors cursor-pointer text-xs"
+                title={lang === "gu" ? "બારકોડ સ્ટીકર જુઓ / પ્રિન્ટ કરો" : "View / Print Barcode Sticker"}
+              >
+                🏷️
+              </button>
+            </div>
+          );
+        },
       },
       {
         id: "hsnCode",
@@ -480,7 +591,7 @@ export default function ItemsPage() {
         ),
       },
     ],
-    [lang]
+    [lang, selectedIds, isAllSelected, isSomeSelected]
   );
 
   return (
@@ -521,9 +632,68 @@ export default function ItemsPage() {
         </button>
       </div>
 
+      {successMessage && (
+        <div className="flex items-center justify-between p-4 bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-medium rounded-xl shadow-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-emerald-600 font-bold text-base">✓</span>
+            <span>{successMessage}</span>
+          </div>
+          <button
+            onClick={() => setSuccessMessage(null)}
+            className="text-emerald-600 hover:text-emerald-800 text-sm font-bold ml-3 cursor-pointer"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {error && (
         <div className="p-4 bg-rose-50 border border-rose-100 text-xs text-rose-700 font-medium rounded-xl">
           {error}
+        </div>
+      )}
+
+      {/* Bulk Actions Floating Bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 sm:p-4 bg-amber-50/95 border border-amber-200 text-amber-950 rounded-2xl shadow-sm animate-fadeIn">
+          <div className="flex items-center gap-2.5">
+            <span className="w-6 h-6 rounded-full bg-amber-500 text-white font-bold text-xs flex items-center justify-center shadow-xs">
+              {selectedIds.size}
+            </span>
+            <span className="text-xs sm:text-sm font-semibold">
+              {lang === "gu"
+                ? `${selectedIds.size} વસ્તુઓ પસંદ કરેલ છે`
+                : `${selectedIds.size} item${selectedIds.size > 1 ? "s" : ""} selected`}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedIds(new Set())}
+              className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/70 rounded-xl transition-colors cursor-pointer"
+            >
+              {lang === "gu" ? "પસંદગી રદ કરો" : "Deselect All"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setDeleteError(null);
+                setBulkForceDelete(false);
+                setIsBulkDeleteModalOpen(true);
+              }}
+              className="px-4 py-1.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 rounded-xl shadow-sm inline-flex items-center gap-1.5 transition-all cursor-pointer"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <span>
+                {lang === "gu"
+                  ? `પસંદ કરેલ કાઢી નાખો (${selectedIds.size})`
+                  : `Delete Selected (${selectedIds.size})`}
+              </span>
+            </button>
+          </div>
         </div>
       )}
 
@@ -553,7 +723,7 @@ export default function ItemsPage() {
         exportable
         exportFileName="items_catalog"
         filtersSlot={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
@@ -569,12 +739,35 @@ export default function ItemsPage() {
                 {lang === "gu" ? "સેવા (Service)" : "Services"}
               </option>
             </select>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="text-xs bg-[#F8F9FB] border border-[#E5E7EB] text-[#202124] rounded-xl px-3 py-1.5 font-semibold focus:outline-none focus:bg-white cursor-pointer"
+            >
+              <option value="ALL">
+                {lang === "gu" ? "તમામ સ્થિતિ (All Statuses)" : "All Statuses"}
+              </option>
+              <option value="ACTIVE">
+                {lang === "gu" ? "સક્રિય (Active Only)" : "Active Only"}
+              </option>
+              <option value="INACTIVE">
+                {lang === "gu" ? "નિષ્ક્રિય / આર્કાઇવ (Archived)" : "Inactive / Archived"}
+              </option>
+            </select>
           </div>
         }
         mobileCardRender={(it) => (
           <div key={it.id} className="p-3.5 hover:bg-slate-50 transition-colors space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <span className="font-semibold text-slate-900 text-sm">{it.name}</span>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.has(it.id)}
+                  onChange={() => handleToggleSelect(it.id)}
+                  className="w-4 h-4 rounded border-slate-300 text-[#F47721] focus:ring-[#F47721] cursor-pointer shrink-0"
+                />
+                <span className="font-semibold text-slate-900 text-sm truncate">{it.name}</span>
+              </div>
               <Badge variant={it.type === "PRODUCT" ? "info" : "purple"}>{it.type}</Badge>
             </div>
             {it.nameGujarati && <p className="text-xs text-slate-500">{it.nameGujarati}</p>}
@@ -636,760 +829,136 @@ export default function ItemsPage() {
         )}
       />
 
-      {/* Create Item Modal */}
-      <Modal
+      {/* Create Item Step Form Modal matching Screencast Video */}
+      <ItemStepModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={lang === "gu" ? "નવી વસ્તુ ઉમેરો" : "Add New Item"}
-        titleGujarati="ઉત્પાદન અથવા સેવાની વિગતો"
-        maxWidth="lg"
-      >
-        <form onSubmit={handleCreateItem} className="space-y-4">
-          {formError && (
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded text-xs text-rose-700 font-medium">
-              {formError}
-            </div>
-          )}
+        onSubmit={handleCreateItemStep}
+        units={units}
+        categories={categories}
+        warehouses={warehouses}
+        companyName={currentCompany?.tradeName || currentCompany?.legalName || "MyBill History"}
+        lang={lang}
+        onAddCategory={handleAddNewCategory}
+      />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                {lang === "gu" ? "વસ્તુનો પ્રકાર *" : "Item Type *"}
-              </label>
-              <select
-                value={formData.type}
-                onChange={(e: any) =>
-                  setFormData({ ...formData, type: e.target.value })
-                }
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
-              >
-                <option value="PRODUCT">{lang === "gu" ? "ઉત્પાદન / માલસામાન (Product)" : "Product"}</option>
-                <option value="SERVICE">{lang === "gu" ? "સેવા (Service)" : "Service"}</option>
-              </select>
-            </div>
-
-            <div>
-              <HsnSelector
-                value={formData.hsnCode}
-                onChange={(code, hsnOpt) => {
-                  setFormData((prev) => ({
-                    ...prev,
-                    hsnCode: code,
-                    taxRate: hsnOpt ? Number(hsnOpt.gstRate) : prev.taxRate,
-                    type: hsnOpt?.type === "SAC" ? "SERVICE" : prev.type,
-                  }));
-                }}
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-              {lang === "gu" ? "વસ્તુનું નામ (અંગ્રેજી) *" : "Item Name *"}
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              placeholder="e.g. Basmati Rice 25kg Bag"
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-              {lang === "gu" ? "નામ ગુજરાતીમાં" : "Name in Gujarati (Optional)"}
-            </label>
-            <input
-              type="text"
-              value={formData.nameGujarati}
-              onChange={(e) =>
-                setFormData({ ...formData, nameGujarati: e.target.value })
-              }
-              placeholder={lang === "gu" ? "દા.ત. બાસમતી ચોખા ૨૫ કિલો" : "e.g. Basmati Rice 25kg"}
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                {lang === "gu" ? "એકમ (UOM)" : "Unit of Measure"}
-              </label>
-              <select
-                value={formData.primaryUomId}
-                onChange={(e) =>
-                  setFormData({ ...formData, primaryUomId: e.target.value })
-                }
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
-              >
-                {units.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name} ({u.code})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                {lang === "gu" ? "શ્રેણી (Category)" : "Category"}
-              </label>
-              <select
-                value={formData.categoryId}
-                onChange={(e) =>
-                  setFormData({ ...formData, categoryId: e.target.value })
-                }
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
-              >
-                <option value="">None / General</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                {lang === "gu" ? "એસકેયુ કોડ (SKU)" : "SKU Code"}
-              </label>
-              <input
-                type="text"
-                value={formData.sku}
-                onChange={(e) =>
-                  setFormData({ ...formData, sku: e.target.value })
-                }
-                placeholder="RICE-BAS-25"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                {lang === "gu" ? "જીએસટી સ્લેબ દર (%) *" : "GST Tax Rate (%) *"}
-              </label>
-              <select
-                value={formData.taxRate}
-                onChange={(e) =>
-                  setFormData({ ...formData, taxRate: Number(e.target.value) })
-                }
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono font-bold text-emerald-800"
-              >
-                <option value={0}>0% (Nil / Exempt)</option>
-                <option value={5}>5% (Standard Essential)</option>
-                <option value={12}>12% (Standard)</option>
-                <option value={18}>18% (Standard Commercial)</option>
-                <option value={28}>28% (Luxury / De-merit)</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                {lang === "gu" ? "વેચાણ ભાવ (₹) *" : "Retail Price (₹) *"}
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                required
-                value={formData.retailPrice}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    retailPrice: Number(e.target.value),
-                  })
-                }
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono font-semibold"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                {lang === "gu" ? "ખરીદ ભાવ (₹)" : "Purchase Rate (₹)"}
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.purchaseRate}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    purchaseRate: Number(e.target.value),
-                  })
-                }
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                {lang === "gu" ? "એમઆરપી (MRP ₹)" : "MRP (₹)"}
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.mrp}
-                onChange={(e) =>
-                  setFormData({ ...formData, mrp: Number(e.target.value) })
-                }
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono"
-              />
-            </div>
-          </div>
-
-          {/* Stock & Inventory Section (Only for Products) */}
-          {formData.type === "PRODUCT" && (
-            <div className="p-4 bg-amber-50/40 border border-amber-200/80 rounded-xl space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                  <svg className="w-4 h-4 text-[#F47721]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                  </svg>
-                  {lang === "gu" ? "સ્ટોક અને ઇન્વેન્ટરી વિગતો" : "Stock & Inventory Details"}
-                </span>
-                {Number(formData.openingStock) > 0 && (
-                  <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-100/80 px-2.5 py-0.5 rounded-full border border-emerald-300 font-mono">
-                    {lang === "gu" ? "મૂલ્યાંકન: " : "Valuation: "}
-                    ₹{(Number(formData.openingStock) * Number(formData.purchaseRate || formData.retailPrice || 0)).toFixed(2)}
-                  </span>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                    {lang === "gu" ? "શરૂઆતનો સ્ટોક (Opening Stock Qty)" : "Opening Stock Quantity"}
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      step="any"
-                      min="0"
-                      value={formData.openingStock}
-                      onFocus={(e) => e.target.select()}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          openingStock: e.target.value === "" ? 0 : Number(e.target.value),
-                        })
-                      }
-                      placeholder="0"
-                      className="w-full text-xs p-2 bg-white border border-slate-300 rounded font-mono font-bold text-slate-900 focus:bg-white focus:ring-1 focus:ring-emerald-500 pr-14"
-                    />
-                    <span className="absolute right-2.5 top-2 text-[11px] font-semibold text-slate-400">
-                      {units.find((u) => u.id === formData.primaryUomId)?.code || "Units"}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-slate-500 mt-1">
-                    {lang === "gu"
-                      ? "હાલમાં તમારી પાસે ઉપલબ્ધ શરૂઆતનો જથ્થો"
-                      : "Current available quantity on hand"}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                    {lang === "gu" ? "લઘુત્તમ સ્ટોક એલર્ટ (Min Stock Level)" : "Low Stock Alert (Min Qty)"}
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      step="any"
-                      min="0"
-                      value={formData.minStockLevel}
-                      onFocus={(e) => e.target.select()}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          minStockLevel: e.target.value === "" ? 0 : Number(e.target.value),
-                        })
-                      }
-                      placeholder="10"
-                      className="w-full text-xs p-2 bg-white border border-slate-300 rounded font-mono font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-emerald-500 pr-14"
-                    />
-                    <span className="absolute right-2.5 top-2 text-[11px] font-semibold text-slate-400">
-                      {units.find((u) => u.id === formData.primaryUomId)?.code || "Units"}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-slate-500 mt-1">
-                    {lang === "gu"
-                      ? "આ જથ્થાથી ઓછો સ્ટોક થાય ત્યારે ચેતવણી મળશે"
-                      : "Alert when stock falls below this level"}
-                  </p>
-                </div>
-              </div>
-
-              {warehouses.length > 1 && (
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                    {lang === "gu" ? "ગોડાઉન / વેરહાઉસ" : "Warehouse / Godown"}
-                  </label>
-                  <select
-                    value={formData.warehouseId}
-                    onChange={(e) =>
-                      setFormData({ ...formData, warehouseId: e.target.value })
-                    }
-                    className="w-full text-xs p-2 bg-white border border-slate-300 rounded"
-                  >
-                    {warehouses.map((wh) => (
-                      <option key={wh.id} value={wh.id}>
-                        {wh.name} {wh.isDefault ? "(Default)" : ""}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {formData.trackBatches && Number(formData.openingStock) > 0 && (
-                <div className="pt-2 border-t border-amber-200/60 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                      {lang === "gu" ? "શરૂઆતનો બેચ નંબર" : "Opening Batch Number"}
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.openingBatchNumber}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          openingBatchNumber: e.target.value,
-                        })
-                      }
-                      placeholder="e.g. BATCH-01"
-                      className="w-full text-xs p-2 bg-white border border-slate-300 rounded font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                      {lang === "gu" ? "એક્સપાયરી તારીખ" : "Expiry Date (Optional)"}
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.openingExpiryDate}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          openingExpiryDate: e.target.value,
-                        })
-                      }
-                      className="w-full text-xs p-2 bg-white border border-slate-300 rounded"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Batch Tracking Toggle (Only for Products) */}
-          {formData.type === "PRODUCT" && (
-            <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-lg">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.trackBatches}
-                  onChange={(e) =>
-                    setFormData({ ...formData, trackBatches: e.target.checked })
-                  }
-                  className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
-                />
-                <span className="text-xs font-semibold text-slate-800">
-                  {lang === "gu"
-                    ? "બેચ અને એક્સપાયરી ટ્રેકિંગ સક્ષમ કરો"
-                    : "Enable Batch & Expiry Tracking"}
-                </span>
-              </label>
-              <p className="text-[11px] text-slate-500 mt-1 pl-6">
-                {lang === "gu"
-                  ? "આ વસ્તુ માટે બેચ નંબર, ઉત્પાદન અને એક્સપાયરી તારીખનું સંચાલન કરવા માટે આ વિકલ્પ ચાલુ કરો."
-                  : "Enable this to track batch numbers, manufacturing dates, and expiry dates for this item in Item Batches."}
-              </p>
-            </div>
-          )}
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-[#F47721] hover:bg-[#D95F12] disabled:bg-[#F47721]/50 rounded-lg shadow-sm"
-            >
-              {isSubmitting
-                ? "Saving..."
-                : lang === "gu"
-                  ? "વસ્તુ સાચવો"
-                  : "Save Item"}
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Edit Item Modal */}
-      <Modal
+      {/* Edit Item Step Form Modal */}
+      <ItemStepModal
         isOpen={isEditModalOpen}
         onClose={() => {
           setIsEditModalOpen(false);
           setEditingItem(null);
         }}
-        title={lang === "gu" ? "વસ્તુમાં ફેરફાર કરો" : "Edit Item Details"}
-        titleGujarati={editingItem ? `${editingItem.name}` : ""}
-        maxWidth="lg"
-      >
-        <form onSubmit={handleUpdateItem} className="space-y-4">
-          {formError && (
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded text-xs text-rose-700 font-medium">
-              {formError}
-            </div>
-          )}
+        onSubmit={handleUpdateItemStep}
+        initialData={editInitialData}
+        isEditMode={true}
+        units={units}
+        categories={categories}
+        warehouses={warehouses}
+        companyName={currentCompany?.tradeName || currentCompany?.legalName || "MyBill History"}
+        lang={lang}
+        onAddCategory={handleAddNewCategory}
+      />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                {lang === "gu" ? "વસ્તુનો પ્રકાર *" : "Item Type *"}
-              </label>
-              <select
-                value={editFormData.type}
-                onChange={(e: any) =>
-                  setEditFormData({ ...editFormData, type: e.target.value })
-                }
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
-              >
-                <option value="PRODUCT">{lang === "gu" ? "ઉત્પાદન / માલસામાન (Product)" : "Product"}</option>
-                <option value="SERVICE">{lang === "gu" ? "સેવા (Service)" : "Service"}</option>
-              </select>
-            </div>
-
-            <div>
-              <HsnSelector
-                value={editFormData.hsnCode}
-                onChange={(code, hsnOpt) => {
-                  setEditFormData((prev) => ({
-                    ...prev,
-                    hsnCode: code,
-                    taxRate: hsnOpt ? Number(hsnOpt.gstRate) : prev.taxRate,
-                    type: hsnOpt?.type === "SAC" ? "SERVICE" : prev.type,
-                  }));
-                }}
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-              {lang === "gu" ? "વસ્તુનું નામ (અંગ્રેજી) *" : "Item Name *"}
-            </label>
-            <input
-              type="text"
-              required
-              value={editFormData.name}
-              onChange={(e) =>
-                setEditFormData({ ...editFormData, name: e.target.value })
-              }
-              placeholder="e.g. Basmati Rice 25kg Bag"
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-              {lang === "gu" ? "નામ ગુજરાતીમાં" : "Name in Gujarati (Optional)"}
-            </label>
-            <input
-              type="text"
-              value={editFormData.nameGujarati}
-              onChange={(e) =>
-                setEditFormData({ ...editFormData, nameGujarati: e.target.value })
-              }
-              placeholder={lang === "gu" ? "દા.ત. બાસમતી ચોખા ૨૫ કિલો" : "e.g. Basmati Rice 25kg"}
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                {lang === "gu" ? "એકમ (UOM)" : "Unit of Measure"}
-              </label>
-              <select
-                value={editFormData.primaryUomId}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, primaryUomId: e.target.value })
-                }
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
-              >
-                {units.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name} ({u.code})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                {lang === "gu" ? "શ્રેણી (Category)" : "Category"}
-              </label>
-              <select
-                value={editFormData.categoryId}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, categoryId: e.target.value })
-                }
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
-              >
-                <option value="">None / General</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                {lang === "gu" ? "એસકેયુ કોડ (SKU)" : "SKU Code"}
-              </label>
-              <input
-                type="text"
-                value={editFormData.sku}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, sku: e.target.value })
-                }
-                placeholder="RICE-BAS-25"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                {lang === "gu" ? "જીએસટી સ્લેબ દર (%) *" : "GST Tax Rate (%) *"}
-              </label>
-              <select
-                value={editFormData.taxRate}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, taxRate: Number(e.target.value) })
-                }
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono font-bold text-emerald-800"
-              >
-                <option value={0}>0% (Nil / Exempt)</option>
-                <option value={5}>5% (Standard Essential)</option>
-                <option value={12}>12% (Standard)</option>
-                <option value={18}>18% (Standard Commercial)</option>
-                <option value={28}>28% (Luxury / De-merit)</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                {lang === "gu" ? "વેચાણ ભાવ (₹) *" : "Retail Price (₹) *"}
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                required
-                value={editFormData.retailPrice}
-                onChange={(e) =>
-                  setEditFormData({
-                    ...editFormData,
-                    retailPrice: Number(e.target.value),
-                  })
-                }
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono font-semibold"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                {lang === "gu" ? "ખરીદ ભાવ (₹)" : "Purchase Rate (₹)"}
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={editFormData.purchaseRate}
-                onChange={(e) =>
-                  setEditFormData({
-                    ...editFormData,
-                    purchaseRate: Number(e.target.value),
-                  })
-                }
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                {lang === "gu" ? "એમઆરપી (MRP ₹)" : "MRP (₹)"}
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={editFormData.mrp}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, mrp: Number(e.target.value) })
-                }
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono"
-              />
-            </div>
-          </div>
-
-          {/* Stock & Low Stock Alert in Edit Modal */}
-          {editFormData.type === "PRODUCT" && (
-            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                  <svg className="w-4 h-4 text-[#F47721]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                  </svg>
-                  {lang === "gu" ? "સ્ટોક નિયંત્રણ (Stock & Inventory)" : "Stock & Inventory Alert"}
-                </span>
-                {editingItem && (
-                  <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
-                    {lang === "gu" ? "હાલનો સ્ટોક: " : "Current Stock: "}
-                    {Number(editingItem.currentStock || 0)} {editingItem.primaryUom?.code || editingItem.primaryUom?.symbol || ""}
-                  </span>
-                )}
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                  {lang === "gu" ? "લઘુત્તમ સ્ટોક એલર્ટ (Min Stock Level)" : "Low Stock Alert (Min Qty)"}
-                </label>
-                <input
-                  type="number"
-                  step="any"
-                  min="0"
-                  value={editFormData.minStockLevel}
-                  onChange={(e) =>
-                    setEditFormData({
-                      ...editFormData,
-                      minStockLevel: Number(e.target.value),
-                    })
-                  }
-                  className="w-full text-xs p-2 bg-white border border-slate-300 rounded font-mono font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-emerald-500"
-                />
-                <p className="text-[10px] text-slate-500 mt-1">
-                  {lang === "gu"
-                    ? "જ્યારે સ્ટોક આ સ્તરથી નીચે જશે ત્યારે સિસ્ટમ ચેતવણી આપશે."
-                    : "System alerts when on-hand stock falls below this quantity."}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Batch Tracking Toggle & Active Toggle */}
-          <div className="space-y-3 pt-2">
-            {editFormData.type === "PRODUCT" && (
-              <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-lg">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={editFormData.trackBatches}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        trackBatches: e.target.checked,
-                      })
-                    }
-                    className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
-                  />
-                  <span className="text-xs font-semibold text-slate-800">
-                    {lang === "gu"
-                      ? "બેચ અને એક્સપાયરી ટ્રેકિંગ સક્ષમ કરો (Batch Tracking Enabled)"
-                      : "Enable Batch & Expiry Tracking (trackBatches)"}
-                  </span>
-                </label>
-                <p className="text-[11px] text-slate-500 mt-1 pl-6">
-                  {lang === "gu"
-                    ? "જ્યારે આ વિકલ્પ ચાલુ હોય ત્યારે આ વસ્તુ માટે બેચ બનાવી શકાશે."
-                    : "When enabled, batches and expiry dates can be tracked for this product under Item Batches."}
-                </p>
-              </div>
-            )}
-
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={editFormData.isActive}
-                  onChange={(e) =>
-                    setEditFormData({
-                      ...editFormData,
-                      isActive: e.target.checked,
-                    })
-                  }
-                  className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
-                />
-                <span className="text-xs font-semibold text-slate-800">
-                  {lang === "gu" ? "સક્રિય સ્થિતિ (Active Item)" : "Active Item"}
-                </span>
-              </label>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={() => {
-                setIsEditModalOpen(false);
-                setEditingItem(null);
-              }}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-[#F47721] hover:bg-[#D95F12] disabled:bg-[#F47721]/50 rounded-lg shadow-sm"
-            >
-              {isSubmitting
-                ? "Updating..."
-                : lang === "gu"
-                  ? "ફેરફાર સાચવો"
-                  : "Save Changes"}
-            </button>
-          </div>
-        </form>
-      </Modal>
+      {/* Barcode Sticker Preview Modal (from Table Row or Barcode action) */}
+      <ItemBarcodeModal
+        isOpen={!!barcodeModalItem}
+        onClose={() => setBarcodeModalItem(null)}
+        barcode={barcodeModalItem?.barcode || barcodeModalItem?.sku || ""}
+        itemName={
+          (lang === "gu" && barcodeModalItem?.nameGujarati)
+            ? barcodeModalItem.nameGujarati
+            : barcodeModalItem?.name || ""
+        }
+        salesPrice={Number(barcodeModalItem?.retailPrice) || 0}
+        companyName={currentCompany?.tradeName || currentCompany?.legalName || "MyBill History"}
+        lang={lang}
+      />
 
       {/* Delete Item Confirmation Modal */}
       <Modal
         isOpen={!!itemToDelete}
-        onClose={() => setItemToDelete(null)}
+        onClose={() => {
+          if (!isDeleting) {
+            setItemToDelete(null);
+            setDeleteError(null);
+          }
+        }}
         title={lang === "gu" ? "વસ્તુ કાઢી નાખવાની ખાતરી" : "Confirm Delete Item"}
         titleGujarati={itemToDelete ? `${itemToDelete.name}` : ""}
         maxWidth="sm"
       >
         <div className="space-y-4">
-          <p className="text-xs text-slate-600">
+          {deleteError && (
+            <div className="p-3 bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium rounded-xl">
+              {deleteError}
+            </div>
+          )}
+
+          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-bold text-slate-900">{itemToDelete?.name}</span>
+              <span
+                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                  itemToDelete?.isActive
+                    ? "bg-emerald-100 text-emerald-800"
+                    : "bg-rose-100 text-rose-800"
+                }`}
+              >
+                {itemToDelete?.isActive ? "ACTIVE" : "INACTIVE"}
+              </span>
+            </div>
+            {itemToDelete?.nameGujarati && (
+              <p className="text-[11px] text-slate-500">{itemToDelete.nameGujarati}</p>
+            )}
+            <div className="text-[11px] text-slate-500 font-mono flex gap-3">
+              <span>{itemToDelete?.type}</span>
+              {itemToDelete?.sku && <span>SKU: {itemToDelete.sku}</span>}
+              {itemToDelete?.hsnCode && <span>HSN: {itemToDelete.hsnCode}</span>}
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-600 leading-relaxed">
             {lang === "gu"
-              ? `શું તમે ખરેખર "${itemToDelete?.name}" વસ્તુને કાઢી નાખવા અથવા આર્કાઇવ કરવા માંગો છો?`
-              : `Are you sure you want to delete / archive "${itemToDelete?.name}"?`}
+              ? itemToDelete?.isActive === false
+                ? `આ વસ્તુ હાલમાં નિષ્ક્રિય છે. "હા, કાઢી નાખો" દબાવવાથી તે ડેટાબેઝમાંથી કાયમ માટે કાઢી નાખવામાં આવશે.`
+                : `શું તમે ખરેખર "${itemToDelete?.name}" વસ્તુને કાઢી નાખવા માંગો છો? જો આ વસ્તુ કોઈ બિલમાં વપરાયેલ હશે, તો તે સલામત રીતે આર્કાઇવ થશે.`
+              : itemToDelete?.isActive === false
+                ? `This item is currently inactive. Confirming delete will permanently remove it from the catalog.`
+                : `Are you sure you want to delete "${itemToDelete?.name}"? If unused in bills, it will be permanently removed. If used in invoices, it will be safely archived.`}
           </p>
+
+          <label className="flex items-start gap-2 pt-1 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={forceDelete}
+              onChange={(e) => setForceDelete(e.target.checked)}
+              className="w-4 h-4 mt-0.5 text-rose-600 rounded border-slate-300 focus:ring-rose-500"
+            />
+            <div>
+              <span className="text-xs font-semibold text-rose-700 block">
+                {lang === "gu"
+                  ? "કાયમ માટે કાઢી નાખો (Force Permanent Delete)"
+                  : "Permanently delete & remove from database"}
+              </span>
+              <span className="text-[11px] text-slate-500 block">
+                {lang === "gu"
+                  ? "ટેસ્ટ વાઉચર્સ અને રેકોર્ડ્સ સાથેની લિંક સાફ કરી સંપૂર્ણપણે દૂર કરો."
+                  : "Purges linked test line items so that item is completely wiped from system."}
+              </span>
+            </div>
+          </label>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
             <button
               type="button"
-              onClick={() => setItemToDelete(null)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+              disabled={isDeleting}
+              onClick={() => {
+                setItemToDelete(null);
+                setDeleteError(null);
+                setForceDelete(false);
+              }}
+              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg disabled:opacity-50 cursor-pointer"
             >
               Cancel
             </button>
@@ -1397,13 +966,118 @@ export default function ItemsPage() {
               type="button"
               onClick={handleDeleteItem}
               disabled={isDeleting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm"
+              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm inline-flex items-center gap-1.5 cursor-pointer"
             >
-              {isDeleting
-                ? "Deleting..."
-                : lang === "gu"
-                  ? "હા, કાઢી નાખો"
-                  : "Confirm Delete"}
+              {isDeleting ? (
+                <>
+                  <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                  </svg>
+                  <span>{lang === "gu" ? "કાઢી રહ્યું છે..." : "Deleting..."}</span>
+                </>
+              ) : (
+                <span>{lang === "gu" ? "હા, કાઢી નાખો" : "Confirm Delete"}</span>
+              )}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Bulk Delete Confirmation Modal */}
+      <Modal
+        isOpen={isBulkDeleteModalOpen}
+        onClose={() => {
+          if (!isBulkDeleting) {
+            setIsBulkDeleteModalOpen(false);
+            setDeleteError(null);
+          }
+        }}
+        title={lang === "gu" ? "પસંદ કરેલ વસ્તુઓ કાઢી નાખવાની ખાતરી" : "Confirm Bulk Delete Items"}
+        maxWidth="sm"
+      >
+        <div className="space-y-4">
+          {deleteError && (
+            <div className="p-3 bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium rounded-xl">
+              {deleteError}
+            </div>
+          )}
+
+          <div className="p-4 bg-rose-50/70 border border-rose-200 rounded-xl space-y-2">
+            <div className="flex items-center gap-2 text-rose-800 font-bold text-sm">
+              <svg className="w-5 h-5 text-rose-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>
+                {lang === "gu"
+                  ? `તમે ${selectedIds.size} વસ્તુઓ કાઢી નાખવા માટે પસંદ કરી છે.`
+                  : `You have selected ${selectedIds.size} item${selectedIds.size > 1 ? "s" : ""} to delete.`}
+              </span>
+            </div>
+            <p className="text-xs text-rose-700/90 leading-relaxed pl-7">
+              {lang === "gu"
+                ? `પસંદ કરેલી આઇટમ્સ કેટલોગમાંથી દૂર થશે. જો કોઈ આઇટમ બિલમાં વપરાયેલ હશે તો તે સુરક્ષિત રીતે આર્કાઇવ થશે.`
+                : `Selected items will be removed from your catalog. Items used in billing records will be safely archived.`}
+            </p>
+          </div>
+
+          <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={bulkForceDelete}
+                onChange={(e) => setBulkForceDelete(e.target.checked)}
+                className="w-4 h-4 mt-0.5 text-rose-600 rounded border-slate-300 focus:ring-rose-500"
+              />
+              <div>
+                <span className="text-xs font-bold text-slate-800 block">
+                  {lang === "gu"
+                    ? "કાયમ માટે કાઢી નાખો (Force Permanent Delete)"
+                    : "Force Permanent Delete & Purge"}
+                </span>
+                <span className="text-[11px] text-slate-500 block">
+                  {lang === "gu"
+                    ? "ટેસ્ટ વાઉચર્સ સાથેની લિંક સાફ કરી ડેટાબેઝમાંથી સંપૂર્ણ સાફ કરો."
+                    : "Purges linked test line items so that test/junk items are 100% wiped from the database."}
+                </span>
+              </div>
+            </label>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              disabled={isBulkDeleting}
+              onClick={() => {
+                setIsBulkDeleteModalOpen(false);
+                setDeleteError(null);
+                setBulkForceDelete(false);
+              }}
+              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg disabled:opacity-50 cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleBulkDelete}
+              disabled={isBulkDeleting}
+              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm inline-flex items-center gap-1.5 cursor-pointer"
+            >
+              {isBulkDeleting ? (
+                <>
+                  <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                  </svg>
+                  <span>{lang === "gu" ? "કાઢી રહ્યું છે..." : "Deleting..."}</span>
+                </>
+              ) : (
+                <span>
+                  {lang === "gu"
+                    ? `હા, પસંદ કરેલ ${selectedIds.size} કાઢી નાખો`
+                    : `Confirm Delete (${selectedIds.size})`}
+                </span>
+              )}
             </button>
           </div>
         </div>

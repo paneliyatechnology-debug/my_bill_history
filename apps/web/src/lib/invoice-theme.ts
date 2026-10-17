@@ -164,7 +164,7 @@ export const DEFAULT_INVOICE_CUSTOMIZATION: InvoiceCustomization = {
   showTerms: true,
   showHsn: true,
   showDiscount: true,
-  watermarkText: "TAX INVOICE",
+  watermarkText: "",
   companyTagline: "Quality & Trust Guaranteed",
 };
 
@@ -178,10 +178,14 @@ export function loadInvoiceCustomization(): InvoiceCustomization {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_INVOICE_CUSTOMIZATION;
     const parsed = JSON.parse(raw);
-    return {
+    const loaded = {
       ...DEFAULT_INVOICE_CUSTOMIZATION,
       ...parsed,
     };
+    if (loaded.watermarkText === "TAX INVOICE") {
+      loaded.watermarkText = "";
+    }
+    return loaded;
   } catch (err) {
     console.error("Failed to load invoice theme settings:", err);
     return DEFAULT_INVOICE_CUSTOMIZATION;

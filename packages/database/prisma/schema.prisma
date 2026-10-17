@@ -117,7 +117,11 @@ model Company {
   bankIfsc                 String?                  @map("bank_ifsc") @db.VarChar(15)
   bankBranch               String?                  @map("bank_branch") @db.VarChar(100)
   upiVpa                   String?                  @map("upi_vpa") @db.VarChar(100)
+  bankAccountBarcode       String?                  @map("bank_account_barcode") @db.VarChar(255)
   enableGujaratiPrint      Boolean                  @default(true) @map("enable_gujarati_print")
+  signatoryName            String?                  @map("signatory_name") @db.VarChar(150)
+  signatoryDesignation     String?                  @default("Authorised Signatory") @map("signatory_designation") @db.VarChar(100)
+  signatureUrl             String?                  @map("signature_url") @db.Text
   
   // Configurable Business Policies
   allowNegativeStock       Boolean                  @default(false) @map("allow_negative_stock")

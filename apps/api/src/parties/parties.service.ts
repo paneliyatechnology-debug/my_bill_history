@@ -441,6 +441,144 @@ export class PartiesService {
     });
   }
 
+  async delete(ctx: TenantContext, id: string, force = false) {
+    return this.prisma.executeInTenantContext(ctx, async (tx) => {
+      const existing = await tx.party.findFirst({
+        where: { id, companyId: ctx.companyId },
+      });
+
+      if (!existing) {
+        throw new NotFoundException({
+          statusCode: 404,
+          message: `Party with ID '${id}' not found.`,
+          messageGujarati: `પાર્ટી મળેલ નથી.`,
+        });
+      }
+
+      // Check if party has invoices
+      const [salesCount, purchaseCount] = await Promise.all([
+        tx.salesInvoice.count({ where: { partyId: id } }),
+        tx.purchaseInvoice.count({ where: { partyId: id } }),
+      ]);
+
+      const hasTransactions = salesCount > 0 || purchaseCount > 0;
+
+      if (hasTransactions && !force) {
+        // Safe archive/deactivate
+        const archived = await tx.party.update({
+          where: { id },
+          data: { isActive: false },
+        });
+
+        if (ctx.userId) {
+          await this.audit.record({
+            organizationId: ctx.organizationId,
+            companyId: ctx.companyId,
+            userId: ctx.userId,
+            action: "PARTY_ARCHIVE",
+            entityName: "Party",
+            entityId: id,
+            previousState: existing,
+            newState: archived,
+          });
+        }
+
+        return {
+          success: true,
+          deleted: false,
+          archived: true,
+          message: `Party '${existing.name}' is referenced in financial transactions. It has been deactivated and archived.`,
+          messageGujarati: `પાર્ટી '${existing.name}' ટ્રાન્ઝેક્શન્સમાં વપરાયેલ હોવાથી તેને નિષ્ક્રિય (આર્કાઇવ) કરેલ છે.`,
+          party: archived,
+        };
+      }
+
+      if (force && hasTransactions) {
+        await tx.ledgerAccount.updateMany({
+          where: { partyId: id },
+          data: { partyId: null },
+        });
+        await tx.salesInvoiceItem.deleteMany({
+          where: { invoice: { partyId: id } },
+        });
+        await tx.salesInvoice.deleteMany({
+          where: { partyId: id },
+        });
+        await tx.purchaseInvoiceItem.deleteMany({
+          where: { invoice: { partyId: id } },
+        });
+        await tx.purchaseInvoice.deleteMany({
+          where: { partyId: id },
+        });
+      } else {
+        await tx.ledgerAccount.updateMany({
+          where: { partyId: id },
+          data: { partyId: null },
+        });
+      }
+
+      await tx.party.delete({
+        where: { id },
+      });
+
+      if (ctx.userId) {
+        await this.audit.record({
+          organizationId: ctx.organizationId,
+          companyId: ctx.companyId,
+          userId: ctx.userId,
+          action: "PARTY_DELETE",
+          entityName: "Party",
+          entityId: id,
+          previousState: existing,
+          newState: null,
+        });
+      }
+
+      return {
+        success: true,
+        deleted: true,
+        archived: false,
+        message: `Party '${existing.name}' deleted successfully.`,
+        messageGujarati: `પાર્ટી '${existing.name}' સફળતાપૂર્વક કાઢી નાખવામાં આવી છે.`,
+      };
+    });
+  }
+
+  async bulkDelete(ctx: TenantContext, ids: string[], force = false) {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: "No party IDs provided for bulk deletion.",
+        messageGujarati: "કાઢી નાખવા માટે કોઈ પાર્ટી પસંદ કરેલ નથી.",
+      });
+    }
+
+    let deletedCount = 0;
+    let archivedCount = 0;
+
+    for (const id of ids) {
+      try {
+        const res = await this.delete(ctx, id, force);
+        if (res.deleted) {
+          deletedCount++;
+        } else {
+          archivedCount++;
+        }
+      } catch {
+        // continue
+      }
+    }
+
+    return {
+      success: true,
+      count: ids.length,
+      deletedCount,
+      archivedCount,
+      message: `${deletedCount + archivedCount} parties processed (${deletedCount} deleted, ${archivedCount} archived).`,
+      messageGujarati: `${deletedCount + archivedCount} પાર્ટીઓ પ્રક્રિયા કરાઈ (${deletedCount} કાઢી નાખી, ${archivedCount} આર્કાઇવ કરી).`,
+    };
+  }
+
   async lookupGstin(ctx: TenantContext, rawGstin: string) {
     if (!rawGstin || typeof rawGstin !== "string") {
       throw new BadRequestException({

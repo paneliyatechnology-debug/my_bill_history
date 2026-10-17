@@ -94,6 +94,23 @@ export class BillStorageService {
       }
     }
 
+    // CSV, TSV or Plain text invoice data detection (e.g. exported reports or CSV bills uploaded as PDF/CSV)
+    const textSample = buffer.slice(0, Math.min(buffer.length, 1024)).toString("utf8");
+    const isTextContent = /^[\x09\x0A\x0D\x20-\x7E\u00A0-\uFFFF]+$/.test(textSample.slice(0, 80));
+    if (
+      isTextContent &&
+      (textSample.toLowerCase().includes("invoice") ||
+        textSample.toLowerCase().includes("date") ||
+        textSample.toLowerCase().includes("bill") ||
+        textSample.toLowerCase().includes("party") ||
+        textSample.toLowerCase().includes("customer") ||
+        textSample.toLowerCase().includes("taxable") ||
+        textSample.includes(",") ||
+        textSample.includes("\t"))
+    ) {
+      return { mimeType: "text/csv", extension: "csv" };
+    }
+
     throw new BadRequestException(
       "Invalid file type. Only standard PDF documents, JPG/JPEG, PNG, WebP, and HEIC image formats are supported.",
     );

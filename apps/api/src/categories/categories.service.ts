@@ -174,5 +174,21 @@ export class CategoriesService {
       return { success: true };
     });
   }
+
+  async bulkDelete(ctx: TenantContext, ids: string[]) {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new BadRequestException("No category IDs provided for deletion.");
+    }
+    let count = 0;
+    for (const id of ids) {
+      try {
+        await this.delete(ctx, id);
+        count++;
+      } catch {
+        // continue
+      }
+    }
+    return { success: true, count };
+  }
 }
 

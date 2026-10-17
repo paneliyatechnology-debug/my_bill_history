@@ -72,6 +72,19 @@ function Body() {
 
   return (
     <Panel loading={loading} error={error} onRetry={load} empty={!tenantContext.companyId ? "Sign in and select a company to see e-way documents." : rows.length === 0 ? "No documents in this period." : null}>
+      <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded-xl flex items-center justify-between text-xs text-indigo-900">
+        <div>
+          <span className="font-bold block">🚛 Looking for Full E-Way Bill Lifecycle & Form GST EWB-01 Slips?</span>
+          <span>Access live register, KPIs, Part-B vehicle updates, cancellations, and official printable slips.</span>
+        </div>
+        <Link
+          href="/sales/eway-bills"
+          className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-sm whitespace-nowrap transition-colors"
+        >
+          Open E-Way Bill Register →
+        </Link>
+      </div>
+
       <DataTable
         columns={["Document", "Date", "Total", "UTGST blocked", "E-way number", "Status"]}
         rows={rows.map((row) => [row.documentNumber, row.documentDate, row.grandTotal, row.utgstBlockedForEway ? "Blocked" : "Allowed to attempt", row.eWayBill?.ewbNumber || "Not generated", row.eWayBill?.status || "—"])}

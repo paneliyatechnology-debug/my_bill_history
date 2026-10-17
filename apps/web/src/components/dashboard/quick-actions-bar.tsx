@@ -35,7 +35,7 @@ export function QuickActionsBar() {
     {
       title: lang === "gu" ? "ખરીદી બિલ" : "Purchase Bill",
       subtext: lang === "gu" ? "ઇનવોઇસ સ્કેનર" : "Bill Scanner",
-      href: "/purchases",
+      href: "/purchases/new",
       iconBg: "bg-[#F0FDF4] text-[#16A34A]",
       hoverBorder: "hover:border-[#16A34A]",
       icon: (

@@ -8,6 +8,19 @@ export default function (phase) {
     reactStrictMode: true,
     transpilePackages: ['@billing/shared-types'],
     distDir: isDev ? '.next-dev' : '.next',
+    allowedDevOrigins: [
+      '192.168.*.*',
+      '10.*.*.*',
+      '172.16.*.*',
+      '172.17.*.*',
+      '172.18.*.*',
+      '172.19.*.*',
+      '172.2*.*.*',
+      '172.3*.*.*',
+      'localhost',
+      '127.0.0.1',
+      '*.local',
+    ],
     async rewrites() {
       return [
         {

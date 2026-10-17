@@ -18,6 +18,7 @@ export interface CreateSalesInvoiceItemDto {
 }
 
 export interface CreateSalesInvoiceDto {
+  invoiceNumber?: string;
   category?: InvoiceCategory;
   partyId?: string;
   customerPhone?: string;

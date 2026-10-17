@@ -1900,4 +1900,93 @@ export class PurchasesService {
       return { bill, payments };
     });
   }
+
+  async deletePurchaseInvoice(id: string, tenant: TenantContext) {
+    return this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const existing = await tx.purchaseInvoice.findFirst({
+        where: { id, companyId: tenant.companyId },
+      });
+
+      if (!existing) {
+        throw new NotFoundException({
+          statusCode: 404,
+          message: `Purchase bill with ID '${id}' not found.`,
+          messageGujarati: `ખરીદી બિલ મળેલ નથી.`,
+        });
+      }
+
+      // 1. Delete associated stock transactions
+      await tx.stockTransaction.deleteMany({
+        where: {
+          referenceDocType: "PURCHASE_INVOICE",
+          referenceDocId: id,
+        },
+      });
+
+      // 2. Delete payment allocations
+      await tx.paymentAllocation.deleteMany({
+        where: { purchaseInvoiceId: id },
+      });
+
+      // 3. Delete purchase return items and returns
+      await tx.purchaseReturnItem.deleteMany({
+        where: { returnDoc: { purchaseInvoiceId: id } },
+      });
+      await tx.purchaseReturn.deleteMany({
+        where: { purchaseInvoiceId: id },
+      });
+
+      // 4. Delete gstr2b reconciliation links and scans
+      await tx.gstr2bReconciliation.deleteMany({
+        where: { purchaseInvoiceId: id },
+      });
+      await tx.purchaseBillScan.deleteMany({
+        where: { purchaseInvoiceId: id },
+      });
+
+      // 5. Delete items
+      await tx.purchaseInvoiceItem.deleteMany({
+        where: { invoiceId: id },
+      });
+
+      // 6. Delete invoice
+      await tx.purchaseInvoice.delete({
+        where: { id },
+      });
+
+      return {
+        success: true,
+        message: `Purchase bill '${existing.vendorInvoiceNumber}' deleted successfully.`,
+        messageGujarati: `ખરીદી બિલ '${existing.vendorInvoiceNumber}' સફળતાપૂર્વક કાઢી નાખવામાં આવ્યું છે.`,
+      };
+    });
+  }
+
+  async bulkDeletePurchaseInvoices(ids: string[], tenant: TenantContext) {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: "No purchase invoice IDs provided for deletion.",
+        messageGujarati: "કાઢી નાખવા માટે કોઈ ખરીદી બિલ પસંદ કરેલ નથી.",
+      });
+    }
+
+    let deletedCount = 0;
+    for (const id of ids) {
+      try {
+        await this.deletePurchaseInvoice(id, tenant);
+        deletedCount++;
+      } catch {
+        // continue
+      }
+    }
+
+    return {
+      success: true,
+      count: ids.length,
+      deletedCount,
+      message: `${deletedCount} purchase bills deleted successfully.`,
+      messageGujarati: `${deletedCount} ખરીદી બિલો સફળતાપૂર્વક કાઢી નાખવામાં આવ્યા છે.`,
+    };
+  }
 }

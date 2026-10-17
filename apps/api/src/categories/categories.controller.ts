@@ -50,6 +50,16 @@ export class CategoriesController {
   }
 
   @Roles(UserRole.COMPANY_ADMIN)
+  @Post("bulk-delete")
+  @HttpCode(HttpStatus.OK)
+  async bulkDelete(
+    @CurrentTenant() ctx: TenantContext,
+    @Body() body: { ids: string[] },
+  ) {
+    return this.categoriesService.bulkDelete(ctx, body.ids);
+  }
+
+  @Roles(UserRole.COMPANY_ADMIN)
   @Delete(":id")
   async delete(@CurrentTenant() ctx: TenantContext, @Param("id") id: string) {
     return this.categoriesService.delete(ctx, id);

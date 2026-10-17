@@ -43,6 +43,10 @@ export interface DataTableProps<T> {
   exportFilename?: string;
   themeColor?: "saffron" | "purple";
   mobileCardRender?: (row: T, index: number) => React.ReactNode;
+  selectable?: boolean;
+  selectedIds?: Set<string>;
+  onSelectionChange?: (selectedIds: Set<string>) => void;
+  renderBulkActions?: (selectedIds: Set<string>, clearSelection: () => void) => React.ReactNode;
 }
 
 function getCellValue<T>(row: T, col: ColumnDef<T>): any {
@@ -85,7 +89,26 @@ export function DataTable<T>({
   exportFilename,
   themeColor = "saffron",
   mobileCardRender,
+  selectable = false,
+  selectedIds,
+  onSelectionChange,
+  renderBulkActions,
 }: DataTableProps<T>) {
+  const [internalSelectedIds, setInternalSelectedIds] = useState<Set<string>>(new Set());
+  const effectiveSelectedIds = selectedIds !== undefined ? selectedIds : internalSelectedIds;
+
+  const updateSelection = (newSet: Set<string>) => {
+    if (onSelectionChange) {
+      onSelectionChange(newSet);
+    } else {
+      setInternalSelectedIds(newSet);
+    }
+  };
+
+  const handleClearSelection = () => {
+    updateSelection(new Set());
+  };
+
   const [searchQuery, setSearchQuery] = useState("");
   const startingPageSize = pageSizeProp ?? defaultPageSize ?? initialPageSize ?? 10;
   const [pageSize, setPageSize] = useState(startingPageSize);
@@ -238,6 +261,92 @@ export function DataTable<T>({
       setSortOrder("asc");
     }
   };
+
+  // Keys of items on the current page for selection
+  const pageKeys = useMemo(() => {
+    return paginatedData.map((row, idx) =>
+      String(resolveKey(row, (safePage - 1) * pageSize + idx))
+    );
+  }, [paginatedData, safePage, pageSize]);
+
+  const isAllPageSelected =
+    pageKeys.length > 0 && pageKeys.every((k) => effectiveSelectedIds.has(k));
+  const isSomePageSelected =
+    pageKeys.some((k) => effectiveSelectedIds.has(k)) && !isAllPageSelected;
+
+  const handleToggleSelectAll = () => {
+    const next = new Set(effectiveSelectedIds);
+    if (isAllPageSelected) {
+      pageKeys.forEach((k) => next.delete(k));
+    } else {
+      pageKeys.forEach((k) => next.add(k));
+    }
+    updateSelection(next);
+  };
+
+  const handleToggleRow = (rowKey: string) => {
+    const next = new Set(effectiveSelectedIds);
+    if (next.has(rowKey)) {
+      next.delete(rowKey);
+    } else {
+      next.add(rowKey);
+    }
+    updateSelection(next);
+  };
+
+  const tableColumns = useMemo<ColumnDef<T>[]>(() => {
+    if (!selectable) return columns;
+
+    const selectionCol: ColumnDef<T> = {
+      id: "__selection__",
+      header: (
+        <div
+          className="flex items-center justify-center p-0.5"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <input
+            type="checkbox"
+            className="w-4 h-4 rounded border-slate-300 text-[#F47721] focus:ring-[#F47721] cursor-pointer accent-[#F47721]"
+            checked={isAllPageSelected}
+            ref={(el) => {
+              if (el) el.indeterminate = isSomePageSelected;
+            }}
+            onChange={handleToggleSelectAll}
+            aria-label="Select all rows on this page"
+          />
+        </div>
+      ),
+      className: "w-10 px-3 py-3 text-center",
+      headerClassName: "w-10 px-3 py-3 text-center",
+      cell: (row, index) => {
+        const rowKey = String(resolveKey(row, index));
+        const isChecked = effectiveSelectedIds.has(rowKey);
+        return (
+          <div
+            className="flex items-center justify-center p-0.5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <input
+              type="checkbox"
+              className="w-4 h-4 rounded border-slate-300 text-[#F47721] focus:ring-[#F47721] cursor-pointer accent-[#F47721]"
+              checked={isChecked}
+              onChange={() => handleToggleRow(rowKey)}
+              aria-label={`Select row ${rowKey}`}
+            />
+          </div>
+        );
+      },
+    };
+
+    return [selectionCol, ...columns];
+  }, [
+    selectable,
+    columns,
+    isAllPageSelected,
+    isSomePageSelected,
+    effectiveSelectedIds,
+    pageKeys,
+  ]);
 
   // CSV Export
   const handleExportCsv = () => {
@@ -435,7 +544,7 @@ export function DataTable<T>({
           <table className="w-full text-left text-xs">
             <thead className="bg-[#FAFBFD] border-b border-[#E2E8F0] text-[#64748B] uppercase font-bold text-[11px] tracking-wider select-none">
               <tr>
-                {columns.map((col, idx) => {
+                {tableColumns.map((col, idx) => {
                   const colKey = col.id || (col.accessorKey ? String(col.accessorKey) : null);
                   const isSorted = colKey && sortKey === colKey;
                   const alignFlex = col.align === "right" ? "justify-end" : col.align === "center" ? "justify-center" : "justify-start";
@@ -471,7 +580,7 @@ export function DataTable<T>({
             <tbody className="divide-y divide-[#F1F5F9] text-slate-900">
               {paginatedData.length === 0 ? (
                 <tr>
-                  <td colSpan={columns.length} className="py-12 text-center text-[#98A2B3]">
+                  <td colSpan={tableColumns.length} className="py-12 text-center text-[#98A2B3]">
                     {emptyState ? (
                       emptyState
                     ) : (
@@ -500,7 +609,7 @@ export function DataTable<T>({
                       onRowClick ? "cursor-pointer" : ""
                     }`}
                   >
-                    {columns.map((col, colIdx) => {
+                    {tableColumns.map((col, colIdx) => {
                       const cellAlign = col.align === "right" ? "text-right" : col.align === "center" ? "text-center" : "text-left";
                       const isSticky = Boolean(col.sticky);
                       const stickyTdClass = isSticky
@@ -622,6 +731,34 @@ export function DataTable<T>({
           )}
         </div>
       </div>
+
+      {/* Floating Bulk Actions Toolbar when selectable and items selected */}
+      {selectable && effectiveSelectedIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#1E293B]/95 backdrop-blur-md text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700/80 flex flex-wrap items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-5 duration-200 min-w-[320px] max-w-[95vw]">
+          <div className="flex items-center gap-3">
+            <span className="bg-[#F47721] text-white text-xs px-2.5 py-1 rounded-full font-bold shadow-sm">
+              {effectiveSelectedIds.size}
+            </span>
+            <span className="text-xs sm:text-sm font-semibold tracking-wide">
+              {lang === "gu"
+                ? `${effectiveSelectedIds.size} પસંદ કરેલ છે`
+                : `${effectiveSelectedIds.size} item${effectiveSelectedIds.size > 1 ? "s" : ""} selected`}
+            </span>
+            <button
+              type="button"
+              onClick={handleClearSelection}
+              className="text-xs text-slate-400 hover:text-white underline cursor-pointer ml-1"
+            >
+              {lang === "gu" ? "પસંદગી રદ કરો" : "Deselect All"}
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {renderBulkActions &&
+              renderBulkActions(effectiveSelectedIds, handleClearSelection)}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

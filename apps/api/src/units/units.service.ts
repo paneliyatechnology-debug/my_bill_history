@@ -95,10 +95,45 @@ export class UnitsService {
 
   async findAll(ctx: TenantContext) {
     return this.prisma.executeInTenantContext(ctx, async (tx) => {
-      return tx.unitOfMeasure.findMany({
+      let list = await tx.unitOfMeasure.findMany({
         where: { companyId: ctx.companyId },
         orderBy: { symbol: "asc" },
       });
+
+      if (list.length === 0) {
+        // Auto-seed standard Indian GST units of measure
+        const standardUoms = [
+          { name: "Pieces", symbol: "PCS", uqcCode: "PCS", decimalPlaces: 0 },
+          { name: "Kilograms", symbol: "KGS", uqcCode: "KGS", decimalPlaces: 2 },
+          { name: "Boxes", symbol: "BOX", uqcCode: "BOX", decimalPlaces: 0 },
+          { name: "Numbers", symbol: "NOS", uqcCode: "NOS", decimalPlaces: 0 },
+          { name: "Meters", symbol: "MTR", uqcCode: "MTR", decimalPlaces: 2 },
+        ];
+
+        for (const u of standardUoms) {
+          try {
+            await tx.unitOfMeasure.create({
+              data: {
+                organizationId: ctx.organizationId,
+                companyId: ctx.companyId,
+                name: u.name,
+                symbol: u.symbol,
+                uqcCode: u.uqcCode,
+                decimalPlaces: u.decimalPlaces,
+              },
+            });
+          } catch {
+            // Ignore race condition if concurrently inserted
+          }
+        }
+
+        list = await tx.unitOfMeasure.findMany({
+          where: { companyId: ctx.companyId },
+          orderBy: { symbol: "asc" },
+        });
+      }
+
+      return list;
     });
   }
 
@@ -197,6 +232,22 @@ export class UnitsService {
 
       return { success: true };
     });
+  }
+
+  async bulkDelete(ctx: TenantContext, ids: string[]) {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new BadRequestException("No unit IDs provided for deletion.");
+    }
+    let count = 0;
+    for (const id of ids) {
+      try {
+        await this.delete(ctx, id);
+        count++;
+      } catch {
+        // continue
+      }
+    }
+    return { success: true, count };
   }
 }
 

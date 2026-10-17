@@ -65,6 +65,13 @@ export default function PartiesPage() {
   // Delete Confirmation Modal
   const [partyToDelete, setPartyToDelete] = useState<Party | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [singleForceDelete, setSingleForceDelete] = useState(false);
+
+  // Multi-Selection State
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [bulkForceDelete, setBulkForceDelete] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -313,8 +320,9 @@ export default function PartiesPage() {
     if (!partyToDelete) return;
     setIsDeleting(true);
     try {
-      await apiClient.delete(`/parties/${partyToDelete.id}`);
+      await apiClient.delete(`/parties/${partyToDelete.id}${singleForceDelete ? "?force=true" : ""}`);
       setPartyToDelete(null);
+      setSingleForceDelete(false);
       await fetchParties();
     } catch (err: any) {
       setError(
@@ -324,6 +332,30 @@ export default function PartiesPage() {
       );
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleBulkDeleteParties = async () => {
+    if (selectedIds.size === 0) return;
+    setIsBulkDeleting(true);
+    setError(null);
+    try {
+      await apiClient.post("/parties/bulk-delete", {
+        ids: Array.from(selectedIds),
+        force: bulkForceDelete,
+      });
+      setSelectedIds(new Set());
+      setIsBulkDeleteModalOpen(false);
+      setBulkForceDelete(false);
+      await fetchParties();
+    } catch (err: any) {
+      setError(
+        lang === "gu" && err.messageGujarati
+          ? err.messageGujarati
+          : err.message || "Failed to delete selected parties."
+      );
+    } finally {
+      setIsBulkDeleting(false);
     }
   };
 
@@ -515,6 +547,25 @@ export default function PartiesPage() {
 
       {/* Parties DataTable */}
       <DataTable<Party>
+        selectable
+        selectedIds={selectedIds}
+        onSelectionChange={setSelectedIds}
+        renderBulkActions={(ids) => (
+          <button
+            type="button"
+            onClick={() => setIsBulkDeleteModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <span>
+              {lang === "gu"
+                ? `પસંદ કરેલ કાઢી નાખો (${ids.size})`
+                : `Delete Selected (${ids.size})`}
+            </span>
+          </button>
+        )}
         data={displayParties}
         columns={partyColumns}
         keyExtractor={(p) => p.id}
@@ -1185,7 +1236,10 @@ export default function PartiesPage() {
       {/* Delete Party Confirmation Modal */}
       <Modal
         isOpen={!!partyToDelete}
-        onClose={() => setPartyToDelete(null)}
+        onClose={() => {
+          setPartyToDelete(null);
+          setSingleForceDelete(false);
+        }}
         title={lang === "gu" ? "વેપારી ખાતું કાઢી નાખવાની ખાતરી" : "Confirm Delete Party"}
         titleGujarati={partyToDelete ? `${partyToDelete.name}` : ""}
         maxWidth="sm"
@@ -1197,11 +1251,28 @@ export default function PartiesPage() {
               : `Are you sure you want to delete / archive "${partyToDelete?.name}"?`}
           </p>
 
+          <label className="flex items-start gap-2.5 p-2.5 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer">
+            <input
+              type="checkbox"
+              checked={singleForceDelete}
+              onChange={(e) => setSingleForceDelete(e.target.checked)}
+              className="w-4 h-4 mt-0.5 rounded border-slate-300 text-rose-600 focus:ring-rose-500 cursor-pointer"
+            />
+            <span className="text-[11px] text-slate-600 font-medium">
+              {lang === "gu"
+                ? "કાયમી ધોરણે સંપૂર્ણ કાઢી નાખો (જો જોડાયેલ વ્યવહારો હોય તો પણ દૂર કરો)"
+                : "Force permanent delete (unlink and purge historical records)"}
+            </span>
+          </label>
+
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
             <button
               type="button"
-              onClick={() => setPartyToDelete(null)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+              onClick={() => {
+                setPartyToDelete(null);
+                setSingleForceDelete(false);
+              }}
+              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
             >
               Cancel
             </button>
@@ -1209,13 +1280,72 @@ export default function PartiesPage() {
               type="button"
               onClick={handleDeleteParty}
               disabled={isDeleting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm"
+              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm cursor-pointer"
             >
               {isDeleting
                 ? "Deleting..."
                 : lang === "gu"
                   ? "હા, કાઢી નાખો"
                   : "Confirm Delete"}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Bulk Delete Parties Modal */}
+      <Modal
+        isOpen={isBulkDeleteModalOpen}
+        onClose={() => {
+          setIsBulkDeleteModalOpen(false);
+          setBulkForceDelete(false);
+        }}
+        title={lang === "gu" ? "પસંદ કરેલ ખાતાઓ કાઢી નાખો" : "Bulk Delete Parties"}
+        titleGujarati={lang === "gu" ? `${selectedIds.size} ખાતાઓ પસંદ કરેલ છે` : `${selectedIds.size} parties selected`}
+        maxWidth="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-slate-600">
+            {lang === "gu"
+              ? `તમે ${selectedIds.size} વેપારી ખાતાઓ કાઢી નાખવા માટે પસંદ કર્યા છે. શું તમે આગળ વધવા માંગો છો?`
+              : `You have selected ${selectedIds.size} parties to delete. Are you sure you want to proceed?`}
+          </p>
+
+          <label className="flex items-start gap-2.5 p-2.5 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer">
+            <input
+              type="checkbox"
+              checked={bulkForceDelete}
+              onChange={(e) => setBulkForceDelete(e.target.checked)}
+              className="w-4 h-4 mt-0.5 rounded border-slate-300 text-rose-600 focus:ring-rose-500 cursor-pointer"
+            />
+            <span className="text-[11px] text-slate-600 font-medium">
+              {lang === "gu"
+                ? "કાયમી ધોરણે સંપૂર્ણ કાઢી નાખો (જો જોડાયેલ વ્યવહારો હોય તો પણ દૂર કરો)"
+                : "Force permanent delete (unlink and purge historical records)"}
+            </span>
+          </label>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => {
+                setIsBulkDeleteModalOpen(false);
+                setBulkForceDelete(false);
+              }}
+              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleBulkDeleteParties}
+              disabled={isBulkDeleting}
+              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm cursor-pointer"
+            >
+              {isBulkDeleting
+                ? "Deleting..."
+                : lang === "gu"
+                  ? `હા, પસંદ કરેલ ${selectedIds.size} કાઢી નાખો`
+                  : `Confirm Delete (${selectedIds.size})`}
             </button>
           </div>
         </div>

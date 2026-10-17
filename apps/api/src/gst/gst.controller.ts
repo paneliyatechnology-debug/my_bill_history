@@ -203,6 +203,44 @@ export class GstController {
     return this.portal.generateEwayBill(tenant, { challanId }, body, idempotencyKey);
   }
 
+  @Get("eway-bills")
+  @Roles(...readers)
+  listEwayBills(
+    @CurrentTenant() tenant: TenantContext,
+    @Query("status") status?: string,
+    @Query("search") search?: string,
+    @Query("fromDate") fromDate?: string,
+    @Query("toDate") toDate?: string,
+  ) {
+    return this.portal.listEwayBills(tenant, { status, search, fromDate, toDate });
+  }
+
+  @Post("eway-bills/link")
+  @Roles(...writers)
+  linkEwayBill(
+    @CurrentTenant() tenant: TenantContext,
+    @Body()
+    body: {
+      invoiceId?: string;
+      challanId?: string;
+      ewbNumber: string;
+      ewbDate?: string;
+      validUpto?: string;
+      distanceKm: number;
+      vehicleNumber?: string;
+      transporterId?: string;
+      transporterName?: string;
+    },
+  ) {
+    return this.portal.linkEwayBill(tenant, body);
+  }
+
+  @Get("eway-bills/:ewbNumber/details")
+  @Roles(...readers)
+  ewayDetails(@CurrentTenant() tenant: TenantContext, @Param("ewbNumber") ewbNumber: string) {
+    return this.portal.getEwayBillDetails(tenant, ewbNumber);
+  }
+
   @Get("eway-bills/:ewbNumber")
   @Roles(...readers)
   ewayStatus(@CurrentTenant() tenant: TenantContext, @Param("ewbNumber") ewbNumber: string) {
@@ -224,7 +262,7 @@ export class GstController {
   updateVehicle(
     @CurrentTenant() tenant: TenantContext,
     @Param("ewbNumber") ewbNumber: string,
-    @Body() body: { vehicleNumber: string; reasonCode: string },
+    @Body() body: { vehicleNumber: string; reasonCode: string; remarks?: string; fromPlace?: string },
   ) {
     return this.portal.updateEwayVehicle(tenant, ewbNumber, body);
   }

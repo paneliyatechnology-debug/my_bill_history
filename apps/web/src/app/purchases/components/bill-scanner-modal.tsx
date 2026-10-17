@@ -346,20 +346,49 @@ interface BillScannerModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (purchaseInvoice: any) => void;
+  onTransferToForm?: (data: {
+    vendorInvoiceNumber?: string;
+    invoiceDate?: string;
+    dueDate?: string;
+    partyId?: string;
+    matchedParty?: any;
+    supplierName?: string;
+    supplierGstin?: string;
+    supplierPhone?: string;
+    supplierAddress?: string;
+    placeOfSupply?: string;
+    warehouseId?: string;
+    scanRecordId?: string;
+    items: Array<{
+      itemId?: string;
+      itemName?: string;
+      hsnCode?: string;
+      unit?: string;
+      quantity?: number;
+      unitPrice?: number;
+      taxRate?: number;
+      discountAmount?: number;
+    }>;
+  }) => void;
   lang: string;
   parties: any[];
   itemsList: any[];
   warehouses: any[];
+  initialScanRecord?: any;
+  initialPreviewUrl?: string | null;
 }
 
 export function BillScannerModal({
   isOpen,
   onClose,
   onSuccess,
+  onTransferToForm,
   lang,
   parties,
   itemsList,
   warehouses,
+  initialScanRecord,
+  initialPreviewUrl,
 }: BillScannerModalProps) {
   // Step: "upload" | "processing" | "review"
   const [step, setStep] = useState<"upload" | "processing" | "review">("upload");
@@ -440,7 +469,7 @@ export function BillScannerModal({
 
   // Reset when modal opens/closes
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !initialScanRecord) {
       setStep("upload");
       setShowPermissionPrompt(false);
       setErrorMessage(null);
@@ -461,7 +490,7 @@ export function BillScannerModal({
         setSelectedWarehouseId(def.id);
       }
     }
-  }, [isOpen, warehouses]);
+  }, [isOpen, initialScanRecord, warehouses]);
 
   // Clean up blob URL + camera stream on unmount
   useEffect(() => {
@@ -654,7 +683,16 @@ export function BillScannerModal({
     } else {
       setSelectedPartyId("");
     }
-    setVendorInvoiceNumber(ext.invoice?.invoiceNumber || "");
+    let invoiceNo = ext.invoice?.invoiceNumber || "";
+    if (!invoiceNo || /^(?:screenshot|img_|file_)/i.test(invoiceNo.trim())) {
+      const raw = scan?.rawOcrText || "";
+      const payMatch = raw.match(/pay_[A-Za-z0-9]+/i) ||
+        raw.match(/(?:Payment\s*Id|Payment\s*ID|Order\s*Id|Order\s*ID|Txn\s*Id|Transaction\s*Id|Ref\s*No|Reference\s*No)[\s:]+([A-Za-z0-9_-]+)/i);
+      if (payMatch) {
+        invoiceNo = payMatch[1] || payMatch[0];
+      }
+    }
+    setVendorInvoiceNumber(invoiceNo);
     setInvoiceDate(ext.invoice?.invoiceDate || "");
     setDueDate(ext.invoice?.dueDate || "");
     setPlaceOfSupply(ext.invoice?.placeOfSupply || "24");
@@ -663,7 +701,30 @@ export function BillScannerModal({
     setIsRcm(!!ext.isRcm);
     setIsDiscrepancyAcknowledged(!ext.financials?.isTaxMismatch);
 
-    const items = ext.items || [];
+    let items = ext.items || [];
+    const grandTotalVal = Number(ext.financials?.grandTotal || ext.sourceGrandTotal || 0);
+    if ((!items || items.length === 0) && grandTotalVal > 0) {
+      items = [
+        {
+          description: ext.supplier?.name ? `${ext.supplier.name} - Purchase Bill` : "Purchase Bill / Expense",
+          hsnCode: "9983",
+          quantity: "1.0000" as any,
+          unit: "PCS",
+          unitPrice: grandTotalVal as any,
+          taxableAmount: grandTotalVal as any,
+          taxRate: 0 as any,
+          discountAmount: 0 as any,
+          cgstAmount: 0 as any,
+          sgstAmount: 0 as any,
+          igstAmount: 0 as any,
+          cessAmount: 0 as any,
+          totalAmount: grandTotalVal as any,
+          confidence: 90,
+          itemType: "PRODUCT",
+          isAmbiguous: false,
+        },
+      ];
+    }
     setLineItems(items);
 
     // Map proposed new products with Service vs Product classification
@@ -689,6 +750,16 @@ export function BillScannerModal({
 
     setStep("review");
   };
+
+  // Populate from initialScanRecord if provided on open
+  useEffect(() => {
+    if (isOpen && initialScanRecord) {
+      populateReviewForm(initialScanRecord);
+      if (initialPreviewUrl) {
+        setPreviewBlobUrl(initialPreviewUrl);
+      }
+    }
+  }, [isOpen, initialScanRecord, initialPreviewUrl]);
 
   // Re-run OCR on stored document without duplicate upload
   const handleRetryOcr = async () => {
@@ -1402,6 +1473,24 @@ export function BillScannerModal({
           <div className="flex items-center gap-2">
             {step === "review" && (
               <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    stopCameraStream();
+                    setStep("upload");
+                    setScanRecord(null);
+                    setErrorMessage(null);
+                    setDiagnosticStage("IDLE");
+                    setDiagnosticDetails("");
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-[#F47721] to-[#E06410] hover:from-[#E06410] hover:to-[#B94B0A] text-white rounded-lg text-xs font-bold shadow-xs transition-all active:scale-95"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span>{lang === "gu" ? "બીજું બિલ સ્કેન કરો" : "Scan New Bill"}</span>
+                </button>
                 {scanRecord?.extractedData?.documentMetadata?.engine && (
                   <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-slate-200 text-slate-700">
                     Engine: {scanRecord.extractedData.documentMetadata.engine}
@@ -1508,14 +1597,14 @@ export function BillScannerModal({
                       e.stopPropagation();
                       fileInputRef.current?.click();
                     }}
-                    className="px-4 py-2.5 bg-[#F47721] hover:bg-[#D95F12] text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2"
+                    className="px-4 py-2.5 bg-[#F47721] hover:bg-[#D95F12] text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2 active:scale-95"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
-                    <span>{lang === "gu" ? "ગેલેરી / ફાઇલમાંથી પસંદ કરો" : "Choose from Gallery / Files"}</span>
+                    <span>{lang === "gu" ? "ગેલેરી / ફાઇલ પસંદ કરો" : "Choose from Gallery / Files"}</span>
                     <span className="bg-emerald-500 text-white text-[10px] px-1.5 py-0.5 rounded-md font-normal">
-                      {lang === "gu" ? "લો-મેમરી સેફ" : "Safe"}
+                      {lang === "gu" ? "પીડીએફ / ફોટો" : "PDF / Photo"}
                     </span>
                   </button>
 
@@ -1523,15 +1612,31 @@ export function BillScannerModal({
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setShowPermissionPrompt(true);
+                      handleOpenCamera();
                     }}
-                    className="px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl shadow-sm transition-colors flex items-center gap-2"
+                    className="px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl shadow-sm transition-colors flex items-center gap-2 active:scale-95"
                   >
                     <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                     <span>{lang === "gu" ? "કેમેરાથી ફોટો લો" : "Scan with Camera"}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (mobileCameraInputRef.current) {
+                        mobileCameraInputRef.current.click();
+                      } else if (fileInputRef.current) {
+                        fileInputRef.current.click();
+                      }
+                    }}
+                    className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-semibold rounded-xl shadow-xs transition-colors flex items-center gap-2 active:scale-95 sm:hidden"
+                  >
+                    <span>📱</span>
+                    <span>{lang === "gu" ? "મોબાઈલ શટર" : "Instant Shutter"}</span>
                   </button>
                 </div>
 
@@ -2279,15 +2384,77 @@ export function BillScannerModal({
 
               {/* Bottom Action Footer */}
               <div className="px-6 py-4 bg-slate-100 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="w-full sm:w-auto px-4 py-2 border border-slate-300 text-slate-700 hover:bg-white text-xs font-semibold rounded-lg transition-colors"
-                >
-                  {lang === "gu" ? "રદ કરો" : "Cancel / Close"}
-                </button>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="flex-1 sm:flex-none px-4 py-2 border border-slate-300 text-slate-700 hover:bg-white text-xs font-semibold rounded-lg transition-colors"
+                  >
+                    {lang === "gu" ? "રદ કરો" : "Cancel / Close"}
+                  </button>
 
-                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      stopCameraStream();
+                      setStep("upload");
+                      setScanRecord(null);
+                      setErrorMessage(null);
+                      setDiagnosticStage("IDLE");
+                      setDiagnosticDetails("");
+                    }}
+                    className="flex-1 sm:flex-none px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5 active:scale-95 shadow-xs"
+                  >
+                    <span>📷</span>
+                    <span>{lang === "gu" ? "બીજું બિલ સ્કેન કરો" : "Scan Another Bill"}</span>
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                  {onTransferToForm && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const sup = scanRecord?.extractedData?.supplier;
+                        onTransferToForm({
+                          vendorInvoiceNumber: vendorInvoiceNumber.trim(),
+                          invoiceDate: invoiceDate || undefined,
+                          dueDate: dueDate || undefined,
+                          partyId: selectedPartyId && selectedPartyId !== "__NEW_SUPPLIER__" ? selectedPartyId : (scanRecord?.matchedPartyId || undefined),
+                          matchedParty: scanRecord?.matchedParty || undefined,
+                          supplierName: sup?.name || undefined,
+                          supplierGstin: sup?.gstin || undefined,
+                          supplierPhone: sup?.phone || undefined,
+                          supplierAddress: sup?.address || undefined,
+                          placeOfSupply: placeOfSupply || "24",
+                          warehouseId: selectedWarehouseId || undefined,
+                          scanRecordId: scanRecord?.id,
+                          items: lineItems.map((l, idx) => ({
+                            itemId: l.matchedItemId || (isNewProductFlags[idx] ? undefined : undefined),
+                            itemName: l.description,
+                            hsnCode: l.hsnCode || undefined,
+                            unit: l.unit || undefined,
+                            quantity: Number(l.quantity) || 1,
+                            unitPrice: Number(l.unitPrice) || 0,
+                            taxRate: Number(l.taxRate) || 0,
+                            discountAmount: Number(l.discountAmount) || 0,
+                          })),
+                        });
+                        onClose();
+                      }}
+                      className="flex-1 sm:flex-none px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      <span>
+                        {lang === "gu"
+                          ? "ફુલ-પેજ ફોર્મમાં ભરો"
+                          : "Populate Full-Page Form"}
+                      </span>
+                    </button>
+                  )}
+
                   <button
                     type="button"
                     onClick={handleSaveDraft}

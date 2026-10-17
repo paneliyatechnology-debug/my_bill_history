@@ -144,7 +144,7 @@ export class BillMatcherService {
         }
       }
 
-      // 2. Priority 2: Phone number match
+      // 2. Priority 2: Phone number match (Only if supplier name is compatible, avoiding customer phone false matches)
       if (extractedPhone && extractedPhone.length >= 10) {
         const phoneMatch = parties.find(
           (p) =>
@@ -152,13 +152,20 @@ export class BillMatcherService {
             p.phone.replace(/\D/g, "").endsWith(extractedPhone.slice(-10)),
         );
         if (phoneMatch) {
-          return {
-            matchedPartyId: phoneMatch.id,
-            matchedPartyName: phoneMatch.name,
-            matchedPartyGstin: phoneMatch.gstin,
-            matchedPartyScore: 90,
-            isNewSupplier: false,
-          };
+          const sim = extractedName ? this.calculateSimilarity(phoneMatch.name, extractedName) : 1.0;
+          const pLower = phoneMatch.name.toLowerCase();
+          const eLower = extractedName.toLowerCase();
+          const nameRelates = !extractedName || sim >= 0.35 || pLower.includes(eLower) || eLower.includes(pLower);
+
+          if (nameRelates) {
+            return {
+              matchedPartyId: phoneMatch.id,
+              matchedPartyName: phoneMatch.name,
+              matchedPartyGstin: phoneMatch.gstin,
+              matchedPartyScore: 90,
+              isNewSupplier: false,
+            };
+          }
         }
       }
 

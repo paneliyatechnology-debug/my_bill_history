@@ -163,15 +163,6 @@ export function InvoiceLivePreviewModal({
             id="printable-invoice"
             className={`bg-white w-full max-w-[800px] min-h-[900px] p-6 sm:p-10 rounded-xl shadow-lg border border-slate-200 relative ${fontClass} text-slate-800 text-xs printable-invoice print:max-w-none print:w-full print:min-h-0 print:p-0 print:m-0 print:border-none print:shadow-none print:rounded-none`}
           >
-            {/* Optional Watermark */}
-            {customization.watermarkText && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden select-none opacity-5">
-                <span className="text-6xl sm:text-7xl font-black uppercase -rotate-30 tracking-widest text-slate-900">
-                  {customization.watermarkText}
-                </span>
-              </div>
-            )}
-
             {/* HEADER LAYOUT: Banner */}
             {customization.headerLayout === "banner" && (
               <div
@@ -230,12 +221,12 @@ export function InvoiceLivePreviewModal({
                 </div>
 
                 <div className="text-right sm:text-right">
-                  <span
-                    className="inline-block px-3 py-1 text-white font-bold text-xs uppercase rounded-md shadow-xs"
-                    style={{ backgroundColor: primaryColor }}
-                  >
+                  <h2 className="text-xl font-black uppercase tracking-wider text-slate-900 leading-none">
                     {getDocTitle()}
-                  </span>
+                  </h2>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                    Original For Recipient
+                  </p>
                   <div className="mt-2 text-xs text-slate-600 space-y-0.5 font-mono">
                     <p>
                       Invoice #: <strong className="text-slate-900">{invoiceData.invoiceNumber || "INV-0001"}</strong>
@@ -269,12 +260,12 @@ export function InvoiceLivePreviewModal({
                   </p>
                 </div>
                 <div className="text-left sm:text-right border-t sm:border-t-0 sm:border-l sm:pl-4 border-slate-300">
-                  <span
-                    className="inline-block px-3 py-0.5 text-white font-bold text-[11px] uppercase rounded"
-                    style={{ backgroundColor: primaryColor }}
-                  >
+                  <h2 className="text-lg font-black uppercase tracking-wider text-slate-900 leading-none">
                     {getDocTitle()}
-                  </span>
+                  </h2>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                    Original For Recipient
+                  </p>
                   <p className="font-mono text-xs font-bold text-slate-900 mt-2">
                     #{invoiceData.invoiceNumber || "INV-0001"}
                   </p>

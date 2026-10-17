@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { StatusBadge } from "../../../components/ui/badge";
+import { Modal } from "../../../components/ui/modal";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
 
 interface SalesInvoice {
@@ -34,6 +35,11 @@ export default function SalesInvoicesPage() {
   // Status Filter
   const [statusFilter, setStatusFilter] = useState("ALL");
 
+  // Multi-Selection State
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+
   const fetchInvoices = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -57,6 +63,28 @@ export default function SalesInvoicesPage() {
     if (statusFilter === "ALL") return invoices;
     return invoices.filter((inv) => inv.status === statusFilter);
   }, [invoices, statusFilter]);
+
+  const handleBulkDeleteInvoices = async () => {
+    if (selectedIds.size === 0) return;
+    setIsBulkDeleting(true);
+    setError(null);
+    try {
+      await apiClient.post("/invoices/sales/bulk-delete", {
+        ids: Array.from(selectedIds),
+      });
+      setSelectedIds(new Set());
+      setIsBulkDeleteModalOpen(false);
+      await fetchInvoices();
+    } catch (err: any) {
+      setError(
+        lang === "gu" && err.messageGujarati
+          ? err.messageGujarati
+          : err.message || "Failed to delete selected invoices."
+      );
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
 
   // Calculate high-level summary metrics
   const totalSalesValue = invoices.reduce(
@@ -180,13 +208,25 @@ export default function SalesInvoicesPage() {
         header: lang === "gu" ? "કાર્ય" : "Action",
         className: "text-right",
         cell: (inv) => (
-          <Link
-            href={`/sales/invoices/${inv.id}`}
-            className="inline-flex items-center gap-1 text-xs font-bold text-[#F47721] hover:text-[#D95F12] px-2.5 py-1 rounded-lg hover:bg-[#FFF3E8] transition-all"
-          >
-            <span>{lang === "gu" ? "જુઓ / પ્રિન્ટ" : "View / Print"}</span>
-            <span>→</span>
-          </Link>
+          <div className="flex items-center justify-end gap-1.5">
+            {inv.status !== "CANCELLED" && (
+              <Link
+                href={`/sales/invoices/${inv.id}/edit`}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 hover:text-blue-900 px-2 py-1 rounded-md hover:bg-blue-50 transition-all border border-blue-200/50"
+                title="Edit Sales Invoice"
+              >
+                <span>✏️</span>
+                <span>{lang === "gu" ? "સુધારો" : "Edit"}</span>
+              </Link>
+            )}
+            <Link
+              href={`/sales/invoices/${inv.id}`}
+              className="inline-flex items-center gap-1 text-xs font-bold text-[#F47721] hover:text-[#D95F12] px-2.5 py-1 rounded-md hover:bg-[#FFF3E8] transition-all"
+            >
+              <span>{lang === "gu" ? "જુઓ" : "View"}</span>
+              <span>→</span>
+            </Link>
+          </div>
         ),
       },
     ],
@@ -430,6 +470,25 @@ export default function SalesInvoicesPage() {
 
       {/* 4. Sales Invoices DataTable */}
       <DataTable<SalesInvoice>
+        selectable
+        selectedIds={selectedIds}
+        onSelectionChange={setSelectedIds}
+        renderBulkActions={(ids) => (
+          <button
+            type="button"
+            onClick={() => setIsBulkDeleteModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <span>
+              {lang === "gu"
+                ? `પસંદ કરેલ કાઢી નાખો (${ids.size})`
+                : `Delete Selected (${ids.size})`}
+            </span>
+          </button>
+        )}
         data={displayInvoices}
         columns={invoiceColumns}
         keyExtractor={(inv) => inv.id}
@@ -549,6 +608,45 @@ export default function SalesInvoicesPage() {
           </div>
         )}
       />
+
+      {/* Bulk Delete Invoices Confirmation Modal */}
+      <Modal
+        isOpen={isBulkDeleteModalOpen}
+        onClose={() => setIsBulkDeleteModalOpen(false)}
+        title={lang === "gu" ? "પસંદ કરેલ વેચાણ બિલો કાઢી નાખો" : "Bulk Delete Sales Invoices"}
+        titleGujarati={lang === "gu" ? `${selectedIds.size} બિલો પસંદ કરેલ છે` : `${selectedIds.size} invoices selected`}
+        maxWidth="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-slate-600">
+            {lang === "gu"
+              ? `તમે ${selectedIds.size} વેચાણ બિલો કાઢી નાખવા માટે પસંદ કર્યા છે. આ બિલોથી થયેલ માલનું ડિસ્પેચ અને સ્ટોક રિવર્સ થઈ જશે. શું તમે આગળ વધવા માંગો છો?`
+              : `You have selected ${selectedIds.size} sales invoices to delete. Associated stock dispatch entries will be reversed. Are you sure you want to proceed?`}
+          </p>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setIsBulkDeleteModalOpen(false)}
+              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleBulkDeleteInvoices}
+              disabled={isBulkDeleting}
+              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm cursor-pointer"
+            >
+              {isBulkDeleting
+                ? "Deleting..."
+                : lang === "gu"
+                  ? `હા, પસંદ કરેલ ${selectedIds.size} કાઢી નાખો`
+                  : `Confirm Delete (${selectedIds.size})`}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

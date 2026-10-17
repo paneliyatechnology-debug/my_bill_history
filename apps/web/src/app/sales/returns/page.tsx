@@ -1598,11 +1598,31 @@ function SalesReturnsContent() {
                   This is a computer generated Credit Note.
                 </p>
               </div>
-              <div className="text-right">
-                <p className="font-semibold text-slate-800">
-                  For {currentCompany?.legalName}
+              <div className="text-right space-y-1 min-w-[180px]">
+                <p className="font-semibold text-slate-800 text-[11px] uppercase">
+                  For {currentCompany?.tradeName || currentCompany?.legalName}
                 </p>
-                <p className="mt-8">Authorized Signatory</p>
+                <div className="min-h-[40px] flex flex-col items-end justify-end py-1">
+                  {currentCompany?.signatureUrl ? (
+                    <img
+                      src={currentCompany.signatureUrl}
+                      alt="Signature"
+                      className="max-h-12 max-w-[150px] object-contain block"
+                    />
+                  ) : (
+                    <div className="h-6" />
+                  )}
+                </div>
+                <div className="border-t border-slate-400 pt-1">
+                  {currentCompany?.signatoryName && (
+                    <p className="font-semibold text-slate-800 text-[11px]">
+                      {currentCompany.signatoryName}
+                    </p>
+                  )}
+                  <p className="text-[10px] text-slate-500">
+                    {currentCompany?.signatoryDesignation || "Authorized Signatory"}
+                  </p>
+                </div>
               </div>
             </div>
           </div>

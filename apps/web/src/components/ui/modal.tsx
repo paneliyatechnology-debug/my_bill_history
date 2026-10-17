@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useContext } from "react";
+import React, { useEffect, useState, useContext } from "react";
+import { createPortal } from "react-dom";
 import { AuthContext } from "../../context/auth-context";
 
 interface ModalProps {
@@ -9,7 +10,7 @@ interface ModalProps {
   title: string;
   titleGujarati?: string;
   children: React.ReactNode;
-  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "4xl";
+  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "full";
   footer?: React.ReactNode;
 }
 
@@ -22,8 +23,13 @@ export function Modal({
   maxWidth = "lg",
   footer,
 }: ModalProps) {
+  const [mounted, setMounted] = useState(false);
   const auth = useContext(AuthContext);
   const isGu = auth?.lang === "gu";
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -39,39 +45,54 @@ export function Modal({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  const widthClasses = {
-    sm: "max-w-sm",
-    md: "max-w-md",
-    lg: "max-w-lg",
-    xl: "max-w-xl",
-    "2xl": "max-w-2xl",
-    "4xl": "max-w-4xl",
-  }[maxWidth];
+  const widthClasses =
+    {
+      sm: "max-w-sm",
+      md: "max-w-md",
+      lg: "max-w-lg",
+      xl: "max-w-xl",
+      "2xl": "max-w-2xl",
+      "3xl": "max-w-3xl",
+      "4xl": "max-w-4xl",
+      "5xl": "max-w-5xl",
+      full: "max-w-6xl",
+    }[maxWidth] || "max-w-lg";
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 animate-fadeIn print:p-0 print:m-0 print:static print:block print:overflow-visible">
-      {/* Clickable transparent backdrop overlay without gray tint */}
-      <div className="fixed inset-0 bg-transparent print:hidden" onClick={onClose} aria-hidden="true" />
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fadeIn print:p-0 print:m-0 print:static print:block print:overflow-visible"
+      role="dialog"
+      aria-modal="true"
+    >
+      {/* Semi-transparent dark backdrop overlay with subtle blur */}
       <div
-        className={`relative z-10 bg-white rounded-card shadow-2xl border border-[#D1D5DB] w-full ${widthClasses} max-w-[calc(100vw-1.5rem)] max-h-[92vh] flex flex-col overflow-hidden transition-all transform scale-100 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] print:shadow-none print:border-none print:p-0 print:m-0 print:max-h-none print:max-w-none print:w-full print:rounded-none print:overflow-visible`}
-        role="dialog"
-        aria-modal="true"
+        className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity print:hidden"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      {/* Modal Dialog Card */}
+      <div
+        className={`relative z-10 bg-white rounded-2xl shadow-2xl border border-slate-200/90 w-full ${widthClasses} max-h-[92vh] flex flex-col overflow-hidden my-auto transition-all animate-in fade-in zoom-in-95 duration-150 print:shadow-none print:border-none print:p-0 print:m-0 print:max-h-none print:max-w-none print:w-full print:rounded-none print:overflow-visible`}
       >
         {/* Header with Bhagwa accent bar */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-[#E5E7EB] bg-[#FFFAF5] border-t-4 border-t-[#F47721] print:hidden">
-          <div>
-            <h3 className="text-base font-bold text-[#202124]">{title}</h3>
+        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-[#E5E7EB] bg-gradient-to-r from-[#FFFAF5] via-white to-white border-t-4 border-t-[#F47721] shrink-0 print:hidden">
+          <div className="min-w-0 pr-4">
+            <h3 className="text-base sm:text-lg font-bold text-[#202124] tracking-tight truncate">
+              {title}
+            </h3>
             {isGu && titleGujarati && (
-              <p className="text-xs text-[#F47721] font-medium font-gujarati">
+              <p className="text-xs text-[#F47721] font-medium font-gujarati mt-0.5 truncate">
                 {titleGujarati}
               </p>
             )}
           </div>
           <button
             onClick={onClose}
-            className="text-[#98A2B3] hover:text-[#202124] rounded-lg p-1.5 hover:bg-[#FFF3E8] transition-colors"
+            type="button"
+            className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg p-1.5 transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-[#F47721]/30"
             aria-label="Close"
           >
             <svg
@@ -91,15 +112,18 @@ export function Modal({
         </div>
 
         {/* Content body */}
-        <div className="p-4 sm:p-6 overflow-y-auto flex-1 print:p-0 print:overflow-visible">{children}</div>
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 overscroll-contain print:p-0 print:overflow-visible">
+          {children}
+        </div>
 
         {/* Footer */}
         {footer && (
-          <div className="px-4 sm:px-6 py-3 sm:py-3.5 bg-[#F8F9FB] border-t border-[#E5E7EB] flex items-center justify-end gap-2.5 sm:gap-3 flex-wrap print:hidden">
+          <div className="px-5 sm:px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2 sm:gap-3 flex-wrap shrink-0 print:hidden">
             {footer}
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

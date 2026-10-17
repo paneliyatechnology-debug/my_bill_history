@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Body,
   Param,
   Query,
@@ -170,5 +171,24 @@ export class PurchasesController {
       purchaseId,
       tenant,
     );
+  }
+
+  @Delete(":id")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.COMPANY_ADMIN)
+  async deletePurchaseInvoice(
+    @Param("id") id: string,
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.purchasesService.deletePurchaseInvoice(id, tenant);
+  }
+
+  @Post("bulk-delete")
+  @HttpCode(HttpStatus.OK)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.COMPANY_ADMIN)
+  async bulkDeletePurchaseInvoices(
+    @Body() body: { ids: string[] },
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.purchasesService.bulkDeletePurchaseInvoices(body.ids, tenant);
   }
 }

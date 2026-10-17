@@ -2,8 +2,128 @@ import { Injectable } from "@nestjs/common";
 import { Decimal, toDecimal } from "@billing/accounting-core";
 import { ExtractedBillDataDto, ExtractedBillItemInput } from "../schemas/bill-extraction.schema";
 
+export const INDIAN_STATE_NAME_TO_CODE: Record<string, string> = {
+  "jammu and kashmir": "01",
+  "jammu & kashmir": "01",
+  "jk": "01",
+  "himachal pradesh": "02",
+  "hp": "02",
+  "punjab": "03",
+  "pb": "03",
+  "chandigarh": "04",
+  "ch": "04",
+  "uttarakhand": "05",
+  "uk": "05",
+  "haryana": "06",
+  "hr": "06",
+  "delhi": "07",
+  "dl": "07",
+  "rajasthan": "08",
+  "rj": "08",
+  "uttar pradesh": "09",
+  "up": "09",
+  "bihar": "10",
+  "br": "10",
+  "sikkim": "11",
+  "sk": "11",
+  "arunachal pradesh": "12",
+  "ar": "12",
+  "nagaland": "13",
+  "nl": "13",
+  "manipur": "14",
+  "mn": "14",
+  "mizoram": "15",
+  "mz": "15",
+  "tripura": "16",
+  "tr": "16",
+  "meghalaya": "17",
+  "ml": "17",
+  "assam": "18",
+  "as": "18",
+  "west bengal": "19",
+  "wb": "19",
+  "jharkhand": "20",
+  "jh": "20",
+  "odisha": "21",
+  "orissa": "21",
+  "or": "21",
+  "od": "21",
+  "chhattisgarh": "22",
+  "cg": "22",
+  "madhya pradesh": "23",
+  "mp": "23",
+  "gujarat": "24",
+  "gj": "24",
+  "in-gj": "24",
+  "daman and diu": "26",
+  "dadra and nagar haveli": "26",
+  "dadra and nagar haveli and daman and diu": "26",
+  "maharashtra": "27",
+  "mh": "27",
+  "andhra pradesh": "37",
+  "ap": "37",
+  "karnataka": "29",
+  "ka": "29",
+  "goa": "30",
+  "ga": "30",
+  "lakshadweep": "31",
+  "ld": "31",
+  "kerala": "32",
+  "kl": "32",
+  "tamil nadu": "33",
+  "tn": "33",
+  "puducherry": "34",
+  "py": "34",
+  "andaman and nicobar": "35",
+  "andaman and nicobar islands": "35",
+  "an": "35",
+  "telangana": "36",
+  "ts": "36",
+  "tg": "36",
+  "ladakh": "38",
+  "la": "38",
+};
+
 @Injectable()
 export class BillNormalizerService {
+  /**
+   * Resolves raw place of supply string, state name, or supplier GSTIN into a 2-digit Indian State Code
+   */
+  resolveStateCode(
+    rawState?: string | null,
+    supplierGstin?: string | null,
+    fallbackState: string = "24",
+  ): string {
+    if (rawState) {
+      const clean = rawState.trim();
+      if (/^\d{2}$/.test(clean)) {
+        return clean;
+      }
+      if (/^\d{1}$/.test(clean)) {
+        return clean.padStart(2, "0");
+      }
+      const lower = clean.toLowerCase().replace(/[^a-z0-9& -]/g, "").trim();
+      if (INDIAN_STATE_NAME_TO_CODE[lower]) {
+        return INDIAN_STATE_NAME_TO_CODE[lower];
+      }
+      for (const [name, code] of Object.entries(INDIAN_STATE_NAME_TO_CODE)) {
+        if (lower === name || lower.includes(name) || name.includes(lower)) {
+          return code;
+        }
+      }
+    }
+
+    if (supplierGstin) {
+      const cleanGstin = supplierGstin.trim().toUpperCase();
+      const match = cleanGstin.match(/^(\d{2})/);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+
+    return fallbackState || "24";
+  }
+
   /**
    * Parses Indian or international formatted currency / quantity strings into a clean Decimal string.
    * Examples: "1,25,000.50", "₹ 4,500/-", "123.456", "(500.00)"
@@ -74,8 +194,11 @@ export class BillNormalizerService {
     companyStateCode: string = "24",
   ): ExtractedBillDataDto {
     const warnings: string[] = [...(data.documentMetadata?.warnings || [])];
-    const placeOfSupply =
-      data.invoice?.placeOfSupply?.trim() || companyStateCode;
+    const placeOfSupply = this.resolveStateCode(
+      data.invoice?.placeOfSupply,
+      data.supplier?.gstin,
+      companyStateCode,
+    );
     const isIntraState = placeOfSupply === companyStateCode;
 
     let sumTaxable = new Decimal(0);
@@ -86,17 +209,38 @@ export class BillNormalizerService {
 
     const normalizedItems: ExtractedBillItemInput[] = (data.items || []).map(
       (item, index) => {
-        const qtyDec = this.parseIndianNumber(item.quantity) || new Decimal(1);
-        const rateDec = this.parseIndianNumber(item.unitPrice) || new Decimal(0);
-        const discountDec =
+        let qtyDec = this.parseIndianNumber(item.quantity) || new Decimal(1);
+        if (qtyDec.isZero() || qtyDec.isNegative()) qtyDec = new Decimal(1);
+
+        let rateDec = this.parseIndianNumber(item.unitPrice) || new Decimal(0);
+        let discountDec =
           this.parseIndianNumber(item.discountAmount) || new Decimal(0);
         const parsedTaxRate = this.parseIndianNumber(item.taxRate);
         const taxRateDec = parsedTaxRate !== null ? parsedTaxRate : new Decimal(0);
 
-        // Taxable = (Qty * Rate) - Discount
-        let taxable = qtyDec.times(rateDec).minus(discountDec);
-        if (taxable.isNegative()) taxable = new Decimal(0);
-        taxable = taxable.toDecimalPlaces(2);
+        const extractedTaxable = this.parseIndianNumber(item.taxableAmount);
+        const extractedTotal = this.parseIndianNumber(item.totalAmount);
+
+        // Taxable base determination:
+        let taxable: Decimal;
+        if (extractedTaxable && extractedTaxable.gt(0)) {
+          taxable = extractedTaxable.toDecimalPlaces(2);
+          // If rateDec is 0 or differs from (taxable + discount) / qty, align rateDec to true pre-tax unit price
+          const calcTaxable = qtyDec.times(rateDec).minus(discountDec);
+          if (rateDec.isZero() || !calcTaxable.equals(taxable)) {
+            rateDec = taxable.plus(discountDec).dividedBy(qtyDec).toDecimalPlaces(2);
+          }
+        } else if (extractedTotal && extractedTotal.gt(0) && taxRateDec.gt(0)) {
+          // If only total is provided, reverse-compute taxable = total / (1 + taxRate / 100)
+          const multiplier = new Decimal(1).plus(taxRateDec.dividedBy(100));
+          taxable = extractedTotal.dividedBy(multiplier).toDecimalPlaces(2);
+          rateDec = taxable.plus(discountDec).dividedBy(qtyDec).toDecimalPlaces(2);
+        } else {
+          // Standard forward computation: Taxable = (Qty * Rate) - Discount
+          taxable = qtyDec.times(rateDec).minus(discountDec);
+          if (taxable.isNegative()) taxable = new Decimal(0);
+          taxable = taxable.toDecimalPlaces(2);
+        }
 
         // Tax calculation
         const taxAmount = taxable
@@ -148,6 +292,35 @@ export class BillNormalizerService {
       this.parseIndianNumber(data.financials?.roundOff) || new Decimal(0);
     const otherChargesDec =
       this.parseIndianNumber(data.financials?.otherCharges) || new Decimal(0);
+
+    // If no items were extracted or all items had 0 total, but document has a positive grand total (e.g. payment slips, vouchers)
+    if (normalizedItems.length === 0 && extractedGrandTotalDec && extractedGrandTotalDec.gt(0)) {
+      const supName = data.supplier?.name?.trim() || "Purchase Order";
+      const totalStr = extractedGrandTotalDec.toFixed(2);
+      normalizedItems.push({
+        description: `${supName} - Purchase Bill / Expense`,
+        rawText: `Grand Total: ${totalStr}`,
+        hsnCode: "9983",
+        quantity: "1.0000",
+        unit: "PCS",
+        unitPrice: totalStr,
+        discountAmount: "0.00",
+        taxableAmount: totalStr,
+        taxRate: "0.00",
+        cgstAmount: "0.00",
+        sgstAmount: "0.00",
+        igstAmount: "0.00",
+        cessAmount: "0.00",
+        totalAmount: totalStr,
+        confidence: 90,
+        itemType: "PRODUCT",
+        isAmbiguous: false,
+        suggestedItems: [],
+      });
+
+      sumTaxable = extractedGrandTotalDec;
+      sumTotal = extractedGrandTotalDec;
+    }
 
     const calculatedGrandTotal = sumTotal
       .plus(otherChargesDec)

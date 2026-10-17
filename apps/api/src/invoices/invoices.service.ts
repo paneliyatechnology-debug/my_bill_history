@@ -275,7 +275,9 @@ export class InvoicesService {
         }
 
         const isDraft =
-          dto.isDraft === true || dto.status === InvoiceStatus.DRAFT;
+          dto.isDraft === true ||
+          dto.status === InvoiceStatus.DRAFT ||
+          dto.category === InvoiceCategory.PROFORMA_INVOICE;
 
         // 7. Resolve Warehouse for physical items
         const hasPhysicalItems = dto.items.some(
@@ -345,11 +347,61 @@ export class InvoicesService {
         let invoiceNumber: string;
 
         if (isDraft) {
-          invoiceNumber = `DFT-${Date.now().toString(36).toUpperCase()}-${Math.floor(
-            Math.random() * 1000,
-          )
-            .toString()
-            .padStart(3, "0")}`;
+          if (dto.invoiceNumber && dto.invoiceNumber.trim() !== "") {
+            invoiceNumber = dto.invoiceNumber.trim();
+          } else if (category === InvoiceCategory.PROFORMA_INVOICE) {
+            const fyStart = new Date(fy.startDate);
+            const fyEnd = new Date(fy.endDate);
+            const fyCode = `${fyStart.getFullYear().toString().slice(-2)}-${fyEnd.getFullYear().toString().slice(-2)}`;
+            const prefix = `QTN/${fyCode}/`;
+
+            const lockKey = `seq_${tenant.companyId}_${fy.id}_${category}`;
+            await tx.$executeRaw`
+              SELECT pg_advisory_xact_lock(hashtext(${lockKey})::bigint)
+            `;
+
+            let seq = await tx.invoiceSequence.findFirst({
+              where: {
+                companyId: tenant.companyId,
+                financialYearId: fy.id,
+                category: category as any,
+                prefix,
+              },
+            });
+
+            let nextNum = 1;
+            if (!seq) {
+              seq = await tx.invoiceSequence.create({
+                data: {
+                  companyId: tenant.companyId,
+                  financialYearId: fy.id,
+                  branchId,
+                  prefix,
+                  currentNumber: 1,
+                  padding: 4,
+                  category: category as any,
+                },
+              });
+              nextNum = 1;
+            } else {
+              nextNum = seq.currentNumber + 1;
+              await tx.invoiceSequence.update({
+                where: { id: seq.id },
+                data: { currentNumber: nextNum },
+              });
+            }
+
+            invoiceNumber = `${seq.prefix}${String(nextNum).padStart(
+              seq.padding || 4,
+              "0",
+            )}`;
+          } else {
+            invoiceNumber = `DFT-${Date.now().toString(36).toUpperCase()}-${Math.floor(
+              Math.random() * 1000,
+            )
+              .toString()
+              .padStart(3, "0")}`;
+          }
         } else {
           // 8. Concurrency-Safe Legal Invoice Numbering using Transaction Advisory Lock
           const fyStart = new Date(fy.startDate);
@@ -1052,6 +1104,8 @@ export class InvoicesService {
           party: true,
           branch: true,
           financialYear: true,
+          eWayBillRecord: true,
+          eInvoiceRecord: true,
           items: {
             include: {
               item: true,
@@ -3285,5 +3339,389 @@ export class InvoicesService {
     }
 
     return salesReturn;
+  }
+
+  async updateSalesInvoice(
+    id: string,
+    dto: CreateSalesInvoiceDto,
+    tenant: TenantContext,
+  ) {
+    if (!dto.items || dto.items.length === 0) {
+      throw new BadRequestException("Invoice must contain at least one line item.");
+    }
+
+    return this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const existing = await tx.salesInvoice.findFirst({
+        where: { id, companyId: tenant.companyId },
+        include: { items: true, party: true },
+      });
+
+      if (!existing) {
+        throw new NotFoundException({
+          statusCode: 404,
+          message: `Sales invoice with ID '${id}' not found.`,
+          messageGujarati: `વેચાણ બિલ મળેલ નથી.`,
+        });
+      }
+
+      if (existing.status === "CANCELLED") {
+        throw new BadRequestException("Cancelled invoices cannot be edited.");
+      }
+
+      const company = await tx.company.findUnique({
+        where: { id: tenant.companyId },
+      });
+      if (!company) {
+        throw new NotFoundException(`Company ${tenant.companyId} not found.`);
+      }
+
+      // 1. Resolve Financial Year & Invoice Date
+      const invoiceDate = dto.invoiceDate
+        ? new Date(dto.invoiceDate)
+        : existing.invoiceDate;
+
+      let fy = await tx.financialYear.findFirst({
+        where: {
+          companyId: tenant.companyId,
+          startDate: { lte: invoiceDate },
+          endDate: { gte: invoiceDate },
+        },
+      });
+      if (!fy) {
+        fy = await tx.financialYear.findFirst({
+          where: { companyId: tenant.companyId, isCurrent: true },
+        });
+      }
+      if (!fy) {
+        throw new NotFoundException(`No open financial year found for company.`);
+      }
+
+      // 2. Resolve Party
+      let party: any = existing.party;
+      if (dto.partyId && dto.partyId !== existing.partyId) {
+        party = await tx.party.findFirst({
+          where: { id: dto.partyId, companyId: tenant.companyId },
+          include: { ledgerAccount: true },
+        });
+        if (!party) {
+          throw new NotFoundException(
+            `Party ${dto.partyId} not found in this company.`,
+          );
+        }
+      }
+
+      // 3. Resolve Items
+      const itemIds = dto.items.map((i) => i.itemId);
+      const items = await tx.item.findMany({
+        where: {
+          id: { in: itemIds },
+          companyId: tenant.companyId,
+        },
+      });
+      if (items.length !== new Set(itemIds).size) {
+        throw new BadRequestException("One or more referenced items do not exist.");
+      }
+      const itemMap = new Map(items.map((i) => [i.id, i]));
+
+      for (const line of dto.items) {
+        const it = itemMap.get(line.itemId)!;
+        if (!it.isActive) {
+          throw new BadRequestException(`Item "${it.name}" is inactive.`);
+        }
+        if (Number(line.quantity) <= 0) {
+          throw new BadRequestException(
+            `Quantity for "${it.name}" must be greater than zero.`,
+          );
+        }
+      }
+
+      // 4. Exact Decimal Statutory Tax & Line Calculations
+      const placeOfSupply =
+        dto.placeOfSupply?.trim() ||
+        party?.stateCode?.trim() ||
+        company.stateCode;
+
+      const taxCalc = calculateSalesInvoiceTaxes(
+        company.stateCode,
+        placeOfSupply,
+        dto.items.map((i) => ({
+          itemId: i.itemId,
+          quantity: i.quantity,
+          unitPrice: i.unitPrice,
+          discountPercent: i.discountPercent,
+          discountAmount: i.discountAmount,
+          taxRate: i.taxRate,
+          isTaxInclusive: i.isTaxInclusive,
+          supplyCategory:
+            (itemMap.get(i.itemId) as any)?.supplyCategory || "TAXABLE",
+        })),
+      );
+
+      // 5. Clean up old stock transactions and old items
+      await tx.stockTransaction.deleteMany({
+        where: {
+          referenceDocType: "SALES_INVOICE",
+          referenceDocId: id,
+        },
+      });
+
+      await tx.salesInvoiceItem.deleteMany({
+        where: { invoiceId: id },
+      });
+
+      const grandTotalNum = taxCalc.grandTotal.toNumber();
+      const currentPaid = Number(existing.paidAmount || 0);
+      const balanceAmount = Math.max(0, grandTotalNum - currentPaid);
+      let updatedStatus = existing.status;
+      if (existing.status !== "DRAFT") {
+        if (balanceAmount === 0 && grandTotalNum > 0) {
+          updatedStatus = InvoiceStatus.PAID;
+        } else if (currentPaid > 0) {
+          updatedStatus = InvoiceStatus.PARTIALLY_PAID;
+        } else {
+          updatedStatus = InvoiceStatus.ISSUED;
+        }
+      }
+
+      // 6. Update SalesInvoice Header
+      const updatedInvoice = await tx.salesInvoice.update({
+        where: { id },
+        data: {
+          partyId: party.id,
+          category: (dto.category as any) || existing.category,
+          invoiceDate,
+          dueDate: dto.dueDate ? new Date(dto.dueDate) : existing.dueDate,
+          status: updatedStatus as any,
+          paymentMode: dto.paymentMode
+            ? (this.normalizePaymentMode(dto.paymentMode) as any)
+            : existing.paymentMode,
+          placeOfSupply,
+          subTotal: taxCalc.subTotal.toNumber(),
+          discountTotal: taxCalc.discountTotal.toNumber(),
+          taxableAmount: taxCalc.taxableAmount.toNumber(),
+          cgstAmount: taxCalc.cgstAmount.toNumber(),
+          sgstAmount: taxCalc.sgstAmount.toNumber(),
+          igstAmount: taxCalc.igstAmount.toNumber(),
+          utgstAmount: taxCalc.utgstAmount.toNumber(),
+          cessAmount: taxCalc.cessAmount.toNumber(),
+          roundOff: taxCalc.roundOff.toNumber(),
+          grandTotal: grandTotalNum,
+          balanceAmount,
+          notes: dto.notes !== undefined ? dto.notes : existing.notes,
+          termsAndConditions:
+            dto.termsAndConditions !== undefined
+              ? dto.termsAndConditions
+              : existing.termsAndConditions,
+        },
+      });
+
+      // 7. Create Updated Items & Re-record stock movements
+      const createdItems: any[] = [];
+      for (let i = 0; i < dto.items.length; i++) {
+        const lineDto = dto.items[i];
+        const computedLine = taxCalc.items[i];
+        const it = itemMap.get(lineDto.itemId)!;
+
+        const invItem = await tx.salesInvoiceItem.create({
+          data: {
+            invoiceId: id,
+            itemId: it.id,
+            batchId: lineDto.batchId || null,
+            description: lineDto.description || it.name,
+            hsnCode: lineDto.hsnCode || it.hsnCode || "9999",
+            quantity: computedLine.quantity.toNumber(),
+            unitPrice: computedLine.unitPrice.toNumber(),
+            discountPercent: computedLine.discountPercent.toNumber(),
+            discountAmount: computedLine.discountAmount.toNumber(),
+            taxRate: computedLine.taxRate.toNumber(),
+            taxableAmount: computedLine.taxableAmount.toNumber(),
+            cgstAmount: computedLine.cgstAmount.toNumber(),
+            sgstAmount: computedLine.sgstAmount.toNumber(),
+            igstAmount: computedLine.igstAmount.toNumber(),
+            utgstAmount: computedLine.utgstAmount.toNumber(),
+            supplyCategory: computedLine.supplyCategory,
+            totalAmount: computedLine.totalAmount.toNumber(),
+          },
+        });
+        createdItems.push(invItem);
+
+        if (it.type !== "SERVICE" && updatedStatus !== InvoiceStatus.DRAFT) {
+          const warehouse = await tx.warehouse.findFirst({
+            where: { companyId: tenant.companyId },
+          });
+          if (warehouse) {
+            await tx.stockTransaction.create({
+              data: {
+                organizationId: tenant.organizationId,
+                companyId: tenant.companyId,
+                warehouseId: warehouse.id,
+                itemId: it.id,
+                batchId: lineDto.batchId || null,
+                transactionType: StockTransactionType.SALES_DISPATCH as any,
+                transactionDate: invoiceDate,
+                quantity: -Math.abs(computedLine.quantity.toNumber()),
+                valuationRate: Number(it.purchaseRate || it.retailPrice || 0),
+                totalValuation:
+                  Math.abs(computedLine.quantity.toNumber()) *
+                  Number(it.purchaseRate || it.retailPrice || 0),
+                isProvisionalCost: false,
+                costVariance: 0,
+                referenceDocType: "SALES_INVOICE",
+                referenceDocId: id,
+              },
+            });
+          }
+        }
+      }
+
+      // 8. Re-balance double-entry accounting vouchers
+      if (updatedStatus !== InvoiceStatus.DRAFT) {
+        const existingVouchers = await tx.voucher.findMany({
+          where: {
+            companyId: tenant.companyId,
+            sourceDocument: "SALES_INVOICE",
+            sourceEntityId: id,
+          },
+        });
+        for (const v of existingVouchers) {
+          await tx.voucher.delete({ where: { id: v.id } });
+        }
+
+        try {
+          await this.postSalesInvoiceVoucher(
+            tx,
+            tenant,
+            id,
+            existing.invoiceNumber,
+            party,
+            fy.id,
+            taxCalc,
+            updatedInvoice.paymentMode as any,
+            invoiceDate,
+          );
+        } catch (e: any) {
+          console.warn("Voucher re-posting warning during update:", e.message);
+        }
+      }
+
+      // 9. Audit log
+      await this.audit.record(
+        {
+          organizationId: tenant.organizationId,
+          companyId: tenant.companyId,
+          userId: tenant.userId || "00000000-0000-0000-0000-000000000000",
+          action: "UPDATE_SALES_INVOICE",
+          entityName: "SalesInvoice",
+          entityId: id,
+          newState: {
+            invoiceNumber: existing.invoiceNumber,
+            grandTotal: grandTotalNum,
+            status: updatedStatus,
+          },
+        },
+        tx,
+      );
+
+      return {
+        ...updatedInvoice,
+        items: createdItems,
+        party,
+      };
+    });
+  }
+
+  async deleteSalesInvoice(id: string, tenant: TenantContext) {
+    return this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const existing = await tx.salesInvoice.findFirst({
+        where: { id, companyId: tenant.companyId },
+      });
+
+      if (!existing) {
+        throw new NotFoundException({
+          statusCode: 404,
+          message: `Sales invoice with ID '${id}' not found.`,
+          messageGujarati: `વેચાણ બિલ મળેલ નથી.`,
+        });
+      }
+
+      // 1. Remove outward debit notes / sales returns
+      await tx.salesReturnItem.deleteMany({
+        where: { returnDoc: { salesInvoiceId: id } },
+      });
+      await tx.salesReturn.deleteMany({
+        where: { salesInvoiceId: id },
+      });
+      await tx.outwardDebitNoteItem.deleteMany({
+        where: { note: { salesInvoiceId: id } },
+      });
+      await tx.outwardDebitNote.deleteMany({
+        where: { salesInvoiceId: id },
+      });
+
+      // 2. Remove payment allocations
+      await tx.paymentAllocation.deleteMany({
+        where: { invoiceId: id },
+      });
+
+      // 3. Remove e-invoice and e-way bill records
+      await tx.eInvoiceRecord.deleteMany({
+        where: { invoiceId: id },
+      });
+      await tx.eWayBillRecord.deleteMany({
+        where: { invoiceId: id },
+      });
+
+      // 4. Remove stock transactions
+      await tx.stockTransaction.deleteMany({
+        where: {
+          referenceDocType: "SALES_INVOICE",
+          referenceDocId: id,
+        },
+      });
+
+      // 5. Remove items
+      await tx.salesInvoiceItem.deleteMany({
+        where: { invoiceId: id },
+      });
+
+      // 6. Remove sales invoice
+      await tx.salesInvoice.delete({
+        where: { id },
+      });
+
+      return {
+        success: true,
+        message: `Sales invoice '${existing.invoiceNumber}' deleted successfully.`,
+        messageGujarati: `વેચાણ બિલ '${existing.invoiceNumber}' સફળતાપૂર્વક કાઢી નાખવામાં આવ્યું છે.`,
+      };
+    });
+  }
+
+  async bulkDeleteSalesInvoices(ids: string[], tenant: TenantContext) {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: "No sales invoice IDs provided for deletion.",
+        messageGujarati: "કાઢી નાખવા માટે કોઈ વેચાણ બિલ પસંદ કરેલ નથી.",
+      });
+    }
+
+    let deletedCount = 0;
+    for (const id of ids) {
+      try {
+        await this.deleteSalesInvoice(id, tenant);
+        deletedCount++;
+      } catch {
+        // continue
+      }
+    }
+
+    return {
+      success: true,
+      count: ids.length,
+      deletedCount,
+      message: `${deletedCount} sales invoices deleted successfully.`,
+      messageGujarati: `${deletedCount} વેચાણ બિલો સફળતાપૂર્વક કાઢી નાખવામાં આવ્યા છે.`,
+    };
   }
 }

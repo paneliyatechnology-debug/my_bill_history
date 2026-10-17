@@ -329,3 +329,48 @@ body {
     font-size: 10px !important;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   AI Document Scanner & Laser Scanning Animations
+   ───────────────────────────────────────────────────────────── */
+@keyframes laserSweep {
+  0% {
+    top: 0%;
+    opacity: 0.9;
+  }
+  50% {
+    top: 96%;
+    opacity: 1;
+  }
+  100% {
+    top: 0%;
+    opacity: 0.9;
+  }
+}
+
+.animate-laser-sweep {
+  animation: laserSweep 2.2s ease-in-out infinite;
+}
+
+@keyframes scanTagPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+.animate-scan-tag {
+  animation: scanTagPulse 1.8s ease-in-out infinite;
+}
+
+.scanner-grid-pattern {
+  background-image: 
+    linear-gradient(rgba(244, 119, 33, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(244, 119, 33, 0.12) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+

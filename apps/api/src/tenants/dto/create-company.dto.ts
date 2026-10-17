@@ -21,7 +21,11 @@ export interface CreateCompanyDto {
   bankIfsc?: string;
   bankBranch?: string;
   upiVpa?: string;
+  bankAccountBarcode?: string;
   enableGujaratiPrint?: boolean;
+  signatoryName?: string;
+  signatoryDesignation?: string;
+  signatureUrl?: string;
   allowNegativeStock?: boolean;
   branchName?: string;
   branchCode?: string;

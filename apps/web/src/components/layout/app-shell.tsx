@@ -330,9 +330,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       ),
       items: [
         { name: "Sales Invoices", nameGujarati: "વેચાણ બિલ", href: "/sales/invoices" },
+        { name: "Quotation / Estimate", nameGujarati: "કવોટેશન / એસ્ટીમેટ", href: "/sales/quotations" },
         { name: "Quick Billing / POS", nameGujarati: "ઝડપી કાઉન્ટર બિલિંગ (POS)", href: "/sales/pos" },
         { name: "Sales Returns (Credit Note)", nameGujarati: "વેચાણ પરત (ક્રેડિટ નોટ)", href: "/sales/returns" },
         { name: "Delivery Challans", nameGujarati: "ડિલિવરી ચલણ", href: "/sales/delivery-challans" },
+        { name: "E-Way Bills", nameGujarati: "ઈ-વે બિલ (E-Way Bills)", href: "/sales/eway-bills" },
       ],
     },
     {
@@ -346,6 +348,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       ),
       items: [
         { name: "Purchase Bills", nameGujarati: "ખરીદી બિલ & સ્કેનર", href: "/purchases" },
+        { name: "Record Purchase Bill", nameGujarati: "નવું ખરીદી બિલ", href: "/purchases/new" },
         { name: "Purchase Returns (Debit Note)", nameGujarati: "ખરીદી પરત (ડેબિટ નોટ)", href: "/purchases/returns" },
       ],
     },
@@ -423,6 +426,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       ),
       items: [
         { name: "GST Center (GSTR 1/2B/3B)", nameGujarati: "જીએસટી કેન્દ્ર & e-Invoice", href: "/gst" },
+        { name: "E-Way Bills Management", nameGujarati: "ઈ-વે બિલ મેનેજમેન્ટ", href: "/sales/eway-bills" },
         { name: "Detailed Ledgers", nameGujarati: "વિગતવાર ખાતાવહી (GL)", href: "/finance/ledgers" },
         { name: "Accounting Vouchers", nameGujarati: "જર્નલ / કોન્ટ્રા વાઉચર", href: "/finance/vouchers" },
       ],
@@ -866,10 +870,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           id="main-content"
           tabIndex={-1}
           className={`flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden relative z-10 ${
-            pathname === "/" ? "p-3 sm:p-5 lg:p-6" : "p-3 sm:p-6 lg:p-8"
+            pathname === "/" || pathname.startsWith("/purchases") || pathname.startsWith("/sales/pos")
+              ? "p-2 sm:p-4 lg:p-5"
+              : "p-3 sm:p-6 lg:p-8"
           } pb-24 lg:pb-8 overscroll-y-contain focus:outline-none print:p-0 print:m-0 print:overflow-visible print:h-auto print:w-full print:block`}
         >
-          <div className={`${pathname === "/" ? "w-full min-w-0" : "max-w-7xl w-full min-w-0 mx-auto"} print:max-w-none print:w-full print:p-0 print:m-0`}>
+          <div className={`${
+            pathname === "/" || pathname.startsWith("/purchases") || pathname.startsWith("/sales/pos")
+              ? "w-full min-w-0 max-w-none"
+              : "max-w-7xl w-full min-w-0 mx-auto"
+          } print:max-w-none print:w-full print:p-0 print:m-0`}>
             {children}
           </div>
         </main>

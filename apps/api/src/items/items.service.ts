@@ -709,4 +709,189 @@ export class ItemsService {
       };
     });
   }
+
+  async delete(ctx: TenantContext, id: string, force = false) {
+    return this.prisma.executeInTenantContext(ctx, async (tx) => {
+      const existing = await tx.item.findFirst({
+        where: { id, companyId: ctx.companyId },
+      });
+
+      if (!existing) {
+        throw new NotFoundException({
+          statusCode: 404,
+          message: `Item with ID '${id}' not found.`,
+          messageGujarati: `આઇટમ મળી નથી.`,
+        });
+      }
+
+      // If user requested force deletion, or if the item is ALREADY inactive (user wants to completely purge it)
+      if (force || existing.isActive === false) {
+        await tx.salesReturnItem.deleteMany({ where: { itemId: id } });
+        await tx.purchaseReturnItem.deleteMany({ where: { itemId: id } });
+        await tx.outwardDebitNoteItem.deleteMany({ where: { itemId: id } });
+        await tx.stockTransferItem.deleteMany({ where: { itemId: id } });
+        await tx.deliveryChallanItem.deleteMany({ where: { itemId: id } });
+        await tx.salesInvoiceItem.deleteMany({ where: { itemId: id } });
+        await tx.purchaseInvoiceItem.deleteMany({ where: { itemId: id } });
+        await tx.bomItem.deleteMany({ where: { rawItemId: id } });
+        await tx.billOfMaterial.deleteMany({ where: { finishedItemId: id } });
+        await tx.stockTransaction.deleteMany({ where: { itemId: id } });
+        await tx.itemBatch.deleteMany({ where: { itemId: id } });
+        await tx.item.delete({ where: { id } });
+
+        if (ctx.userId) {
+          await this.audit.record({
+            organizationId: ctx.organizationId,
+            companyId: ctx.companyId,
+            userId: ctx.userId,
+            action: "ITEM_PERMANENT_DELETE",
+            entityName: "Item",
+            entityId: id,
+            previousState: existing,
+            newState: null,
+          });
+        }
+
+        return {
+          success: true,
+          deleted: true,
+          archived: false,
+          message: `Item '${existing.name}' was permanently deleted and removed from the system.`,
+          messageGujarati: `વસ્તુ '${existing.name}' કાયમ માટે કાઢી નાખવામાં આવી છે.`,
+        };
+      }
+
+      // Check if item has any transactional relations
+      const [
+        salesCount,
+        purchaseCount,
+        salesReturnCount,
+        purchaseReturnCount,
+        debitNoteCount,
+        transferCount,
+        challanCount,
+        bomOutputCount,
+        bomInputCount,
+      ] = await Promise.all([
+        tx.salesInvoiceItem.count({ where: { itemId: id } }),
+        tx.purchaseInvoiceItem.count({ where: { itemId: id } }),
+        tx.salesReturnItem.count({ where: { itemId: id } }),
+        tx.purchaseReturnItem.count({ where: { itemId: id } }),
+        tx.outwardDebitNoteItem.count({ where: { itemId: id } }),
+        tx.stockTransferItem.count({ where: { itemId: id } }),
+        tx.deliveryChallanItem.count({ where: { itemId: id } }),
+        tx.billOfMaterial.count({ where: { finishedItemId: id } }),
+        tx.bomItem.count({ where: { rawItemId: id } }),
+      ]);
+
+      const hasTransactionalHistory =
+        salesCount > 0 ||
+        purchaseCount > 0 ||
+        salesReturnCount > 0 ||
+        purchaseReturnCount > 0 ||
+        debitNoteCount > 0 ||
+        transferCount > 0 ||
+        challanCount > 0 ||
+        bomOutputCount > 0 ||
+        bomInputCount > 0;
+
+      if (hasTransactionalHistory) {
+        const archived = await tx.item.update({
+          where: { id },
+          data: { isActive: false },
+        });
+
+        if (ctx.userId) {
+          await this.audit.record({
+            organizationId: ctx.organizationId,
+            companyId: ctx.companyId,
+            userId: ctx.userId,
+            action: "ITEM_ARCHIVE",
+            entityName: "Item",
+            entityId: id,
+            previousState: existing,
+            newState: archived,
+          });
+        }
+
+        return {
+          success: true,
+          deleted: false,
+          archived: true,
+          message: `Item '${existing.name}' is referenced in invoices/vouchers. It has been deactivated and removed from the active catalog.`,
+          messageGujarati: `આ વસ્તુ બિલ/ટ્રાન્ઝેક્શનમાં વપરાયેલ હોવાથી તેને નિષ્ક્રિય (આર્કાઇવ) કરી કેટલોગમાંથી દૂર કરેલ છે.`,
+          item: archived,
+        };
+      }
+
+      // No financial transactions exist. Safe to permanently delete.
+      await tx.stockTransaction.deleteMany({
+        where: { itemId: id },
+      });
+
+      await tx.itemBatch.deleteMany({
+        where: { itemId: id },
+      });
+
+      await tx.item.delete({
+        where: { id },
+      });
+
+      if (ctx.userId) {
+        await this.audit.record({
+          organizationId: ctx.organizationId,
+          companyId: ctx.companyId,
+          userId: ctx.userId,
+          action: "ITEM_DELETE",
+          entityName: "Item",
+          entityId: id,
+          previousState: existing,
+          newState: null,
+        });
+      }
+
+      return {
+        success: true,
+        deleted: true,
+        archived: false,
+        message: `Item '${existing.name}' has been deleted successfully.`,
+        messageGujarati: `વસ્તુ '${existing.name}' સફળતાપૂર્વક કાઢી નાખવામાં આવી છે.`,
+      };
+    });
+  }
+
+  async bulkDelete(ctx: TenantContext, ids: string[], force = false) {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: "No item IDs provided for bulk deletion.",
+        messageGujarati: "કાઢી નાખવા માટે કોઈ વસ્તુ પસંદ કરેલ નથી.",
+      });
+    }
+
+    let deletedCount = 0;
+    let archivedCount = 0;
+
+    for (const id of ids) {
+      try {
+        const res = await this.delete(ctx, id, force);
+        if (res.deleted) {
+          deletedCount++;
+        } else {
+          archivedCount++;
+        }
+      } catch {
+        // Continue with remaining items
+      }
+    }
+
+    return {
+      success: true,
+      totalRequested: ids.length,
+      deletedCount,
+      archivedCount,
+      message: `Successfully processed ${ids.length} items (${deletedCount} permanently deleted, ${archivedCount} archived).`,
+      messageGujarati: `${ids.length} વસ્તુઓ સફળતાપૂર્વક પ્રોસેસ કરવામાં આવી (${deletedCount} કાયમ માટે કાઢી નાખી, ${archivedCount} આર્કાઇવ થઈ).`,
+    };
+  }
 }

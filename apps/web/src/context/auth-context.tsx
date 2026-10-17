@@ -25,6 +25,15 @@ export interface CompanyInfo {
   gstin?: string;
   stateCode?: string;
   city?: string;
+  bankName?: string;
+  bankAccountNo?: string;
+  bankIfsc?: string;
+  bankBranch?: string;
+  upiVpa?: string;
+  bankAccountBarcode?: string;
+  signatoryName?: string;
+  signatoryDesignation?: string;
+  signatureUrl?: string;
 }
 
 export interface BranchInfo {

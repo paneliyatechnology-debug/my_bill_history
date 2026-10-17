@@ -2,6 +2,8 @@ import {
   Controller,
   Get,
   Post,
+  Put,
+  Delete,
   Body,
   Param,
   Query,
@@ -204,6 +206,24 @@ export class InvoicesController {
     return await this.invoicesService.getSalesInvoiceById(id, tenant);
   }
 
+  @Put("sales/:id")
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.ORG_ADMIN,
+    UserRole.COMPANY_ADMIN,
+    UserRole.ACCOUNTANT,
+    UserRole.BRANCH_MANAGER,
+    UserRole.CASHIER,
+    UserRole.SALESMAN,
+  )
+  async updateSalesInvoice(
+    @Param("id") id: string,
+    @Body() dto: CreateSalesInvoiceDto,
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.invoicesService.updateSalesInvoice(id, dto, tenant);
+  }
+
   @Post("sales/:id/returns")
   @HttpCode(HttpStatus.CREATED)
   @Roles(
@@ -235,5 +255,24 @@ export class InvoicesController {
     @CurrentTenant() tenant: TenantContext,
   ) {
     return await this.invoicesService.getSalesReturnsForInvoice(id, tenant);
+  }
+
+  @Delete("sales/:id")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.COMPANY_ADMIN)
+  async deleteSalesInvoice(
+    @Param("id") id: string,
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.invoicesService.deleteSalesInvoice(id, tenant);
+  }
+
+  @Post("sales/bulk-delete")
+  @HttpCode(HttpStatus.OK)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.COMPANY_ADMIN)
+  async bulkDeleteSalesInvoices(
+    @Body() body: { ids: string[] },
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.invoicesService.bulkDeleteSalesInvoices(body.ids, tenant);
   }
 }

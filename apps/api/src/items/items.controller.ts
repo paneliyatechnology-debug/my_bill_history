@@ -63,15 +63,28 @@ export class ItemsController {
     return this.itemsService.update(ctx, id, dto);
   }
 
-  @Roles(UserRole.COMPANY_ADMIN)
+  @Roles(UserRole.COMPANY_ADMIN, UserRole.ACCOUNTANT)
   @Patch(":id/archive")
   async archive(@CurrentTenant() ctx: TenantContext, @Param("id") id: string) {
     return this.itemsService.archive(ctx, id);
   }
 
-  @Roles(UserRole.COMPANY_ADMIN)
+  @Roles(UserRole.COMPANY_ADMIN, UserRole.ACCOUNTANT)
+  @Post("bulk-delete")
+  async bulkDelete(
+    @CurrentTenant() ctx: TenantContext,
+    @Body() body: { ids: string[]; force?: boolean },
+  ) {
+    return this.itemsService.bulkDelete(ctx, body.ids, Boolean(body.force));
+  }
+
+  @Roles(UserRole.COMPANY_ADMIN, UserRole.ACCOUNTANT)
   @Delete(":id")
-  async delete(@CurrentTenant() ctx: TenantContext, @Param("id") id: string) {
-    return this.itemsService.archive(ctx, id);
+  async delete(
+    @CurrentTenant() ctx: TenantContext,
+    @Param("id") id: string,
+    @Query("force") force?: string,
+  ) {
+    return this.itemsService.delete(ctx, id, force === "true" || force === "1");
   }
 }

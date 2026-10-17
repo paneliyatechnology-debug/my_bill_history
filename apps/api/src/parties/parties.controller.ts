@@ -70,8 +70,22 @@ export class PartiesController {
   }
 
   @Roles(UserRole.COMPANY_ADMIN)
+  @Post("bulk-delete")
+  @HttpCode(HttpStatus.OK)
+  async bulkDelete(
+    @CurrentTenant() ctx: TenantContext,
+    @Body() body: { ids: string[]; force?: boolean },
+  ) {
+    return this.partiesService.bulkDelete(ctx, body.ids, Boolean(body.force));
+  }
+
+  @Roles(UserRole.COMPANY_ADMIN)
   @Delete(":id")
-  async delete(@CurrentTenant() ctx: TenantContext, @Param("id") id: string) {
-    return this.partiesService.archive(ctx, id);
+  async delete(
+    @CurrentTenant() ctx: TenantContext,
+    @Param("id") id: string,
+    @Query("force") force?: string,
+  ) {
+    return this.partiesService.delete(ctx, id, force === "true");
   }
 }
