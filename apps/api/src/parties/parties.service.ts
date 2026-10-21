@@ -65,11 +65,7 @@ export class PartiesService {
 
     let billingAddress = dto.billingAddress;
     if (!isSupplier) {
-      if (
-        !billingAddress ||
-        !billingAddress.city ||
-        !billingAddress.pincode
-      ) {
+      if (!billingAddress || !billingAddress.city || !billingAddress.pincode) {
         throw new BadRequestException({
           statusCode: 400,
           message: "Billing address with city and pincode is required.",
@@ -134,8 +130,18 @@ export class PartiesService {
           companyId: ctx.companyId,
           isActive: true,
           OR: [
-            ...(phone ? [{ phone, name: { equals: name, mode: "insensitive" as const } }] : []),
-            { type: partyType, name: { equals: name, mode: "insensitive" as const } },
+            ...(phone
+              ? [
+                  {
+                    phone,
+                    name: { equals: name, mode: "insensitive" as const },
+                  },
+                ]
+              : []),
+            {
+              type: partyType,
+              name: { equals: name, mode: "insensitive" as const },
+            },
           ],
         },
       });
@@ -209,7 +215,13 @@ export class PartiesService {
       };
 
       if (query.type) {
-        where.type = query.type;
+        if (query.type === "CUSTOMER") {
+          where.type = { in: ["CUSTOMER", "BOTH"] };
+        } else if (query.type === "SUPPLIER") {
+          where.type = { in: ["SUPPLIER", "BOTH"] };
+        } else {
+          where.type = query.type;
+        }
       }
 
       if (query.stateCode) {
@@ -234,6 +246,15 @@ export class PartiesService {
       const [items, total] = await Promise.all([
         tx.party.findMany({
           where,
+          include: {
+            salesInvoices: {
+              where: { status: { not: "CANCELLED" } },
+              select: { grandTotal: true, paidAmount: true, status: true },
+            },
+            purchaseInvoices: {
+              select: { grandTotal: true, paidAmount: true },
+            },
+          },
           orderBy: { name: "asc" },
           skip,
           take: limit,
@@ -241,8 +262,43 @@ export class PartiesService {
         tx.party.count({ where }),
       ]);
 
+      const itemsWithBalance = items.map((p: any) => {
+        let balance = 0;
+        if (p.type === "CUSTOMER") {
+          balance = (p.salesInvoices || []).reduce(
+            (s: number, inv: any) =>
+              s + Math.max(0, Number(inv.grandTotal) - Number(inv.paidAmount)),
+            0,
+          );
+        } else if (p.type === "SUPPLIER") {
+          balance = (p.purchaseInvoices || []).reduce(
+            (s: number, inv: any) =>
+              s + Math.max(0, Number(inv.grandTotal) - Number(inv.paidAmount)),
+            0,
+          );
+        } else {
+          const rec = (p.salesInvoices || []).reduce(
+            (s: number, inv: any) =>
+              s + Math.max(0, Number(inv.grandTotal) - Number(inv.paidAmount)),
+            0,
+          );
+          const pay = (p.purchaseInvoices || []).reduce(
+            (s: number, inv: any) =>
+              s + Math.max(0, Number(inv.grandTotal) - Number(inv.paidAmount)),
+            0,
+          );
+          balance = rec >= pay ? rec - pay : pay - rec;
+        }
+
+        const { salesInvoices, purchaseInvoices, ...cleanParty } = p;
+        return {
+          ...cleanParty,
+          balance,
+        };
+      });
+
       return {
-        items,
+        items: itemsWithBalance,
         total,
         page,
         limit,
@@ -590,7 +646,10 @@ export class PartiesService {
 
     const clean = rawGstin.trim().toUpperCase();
 
-    const STATE_DEFAULT_CITIES: Record<string, { city: string; pincode: string }> = {
+    const STATE_DEFAULT_CITIES: Record<
+      string,
+      { city: string; pincode: string }
+    > = {
       "01": { city: "Srinagar", pincode: "190001" },
       "02": { city: "Shimla", pincode: "171001" },
       "03": { city: "Ludhiana", pincode: "141001" },
@@ -633,7 +692,13 @@ export class PartiesService {
 
     const KNOWN_GSTIN_REGISTRY: Record<
       string,
-      { legalName: string; tradeName: string; line1: string; city: string; pincode: string }
+      {
+        legalName: string;
+        tradeName: string;
+        line1: string;
+        city: string;
+        pincode: string;
+      }
     > = {
       "07ABCDE1234F1Z2": {
         legalName: "Sayaji Laminate Private Limited",
@@ -692,7 +757,9 @@ export class PartiesService {
     const isChecksumValid = calculatedChecksum === actualChecksum;
 
     if (!isChecksumValid) {
-      const suggestedGstin = calculatedChecksum ? clean.substring(0, 14) + calculatedChecksum : null;
+      const suggestedGstin = calculatedChecksum
+        ? clean.substring(0, 14) + calculatedChecksum
+        : null;
       return {
         isValid: false,
         gstin: clean,
@@ -740,8 +807,14 @@ export class PartiesService {
         status: liveGspData.status || "ACTIVE",
         address: {
           line1: liveGspData.line1 || "",
-          city: liveGspData.city || STATE_DEFAULT_CITIES[statePrefix]?.city || "Ahmedabad",
-          pincode: liveGspData.pincode || STATE_DEFAULT_CITIES[statePrefix]?.pincode || "380001",
+          city:
+            liveGspData.city ||
+            STATE_DEFAULT_CITIES[statePrefix]?.city ||
+            "Ahmedabad",
+          pincode:
+            liveGspData.pincode ||
+            STATE_DEFAULT_CITIES[statePrefix]?.pincode ||
+            "380001",
           state: liveGspData.state || stateInfo?.name || "",
         },
         alreadyExistsInCompany: false,
@@ -767,7 +840,8 @@ export class PartiesService {
       });
     });
 
-    const isAlreadyInCurrentCompany = existingParty?.companyId === ctx.companyId;
+    const isAlreadyInCurrentCompany =
+      existingParty?.companyId === ctx.companyId;
 
     if (existingParty && existingParty.name) {
       const bAddr: any = existingParty.billingAddress || {};
@@ -788,8 +862,14 @@ export class PartiesService {
         status: "ACTIVE",
         address: {
           line1: bAddr.line1 || "",
-          city: bAddr.city || STATE_DEFAULT_CITIES[statePrefix]?.city || "Ahmedabad",
-          pincode: bAddr.pincode || STATE_DEFAULT_CITIES[statePrefix]?.pincode || "380001",
+          city:
+            bAddr.city ||
+            STATE_DEFAULT_CITIES[statePrefix]?.city ||
+            "Ahmedabad",
+          pincode:
+            bAddr.pincode ||
+            STATE_DEFAULT_CITIES[statePrefix]?.pincode ||
+            "380001",
           state: stateInfo?.name || "",
         },
         alreadyExistsInCompany: isAlreadyInCurrentCompany,
@@ -816,7 +896,10 @@ export class PartiesService {
       });
     });
 
-    if (existingCompany && (existingCompany.legalName || existingCompany.tradeName)) {
+    if (
+      existingCompany &&
+      (existingCompany.legalName || existingCompany.tradeName)
+    ) {
       return {
         isValid: true,
         gstin: clean,
@@ -833,8 +916,14 @@ export class PartiesService {
         status: "ACTIVE",
         address: {
           line1: existingCompany.addressLine1 || "",
-          city: existingCompany.city || STATE_DEFAULT_CITIES[statePrefix]?.city || "Ahmedabad",
-          pincode: existingCompany.pincode || STATE_DEFAULT_CITIES[statePrefix]?.pincode || "380001",
+          city:
+            existingCompany.city ||
+            STATE_DEFAULT_CITIES[statePrefix]?.city ||
+            "Ahmedabad",
+          pincode:
+            existingCompany.pincode ||
+            STATE_DEFAULT_CITIES[statePrefix]?.pincode ||
+            "380001",
           state: stateInfo?.name || "",
         },
         alreadyExistsInCompany: false,

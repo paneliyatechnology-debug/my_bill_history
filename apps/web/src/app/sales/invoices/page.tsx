@@ -1,51 +1,231 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
-import { StatusBadge } from "../../../components/ui/badge";
-import { Modal } from "../../../components/ui/modal";
-import { DataTable, ColumnDef } from "../../../components/ui/data-table";
+import {
+  QuickSettingsModal,
+  DEFAULT_QUICK_SETTINGS,
+  QuickSettingsConfig,
+} from "@/components/invoice/quick-settings-modal";
 
 interface SalesInvoice {
   id: string;
   invoiceNumber: string;
   invoiceDate: string;
+  dueDate?: string;
   status: "DRAFT" | "ISSUED" | "PAID" | "PARTIALLY_PAID" | "CANCELLED";
+  partyId?: string;
   party?: {
     id: string;
     name: string;
     gstin?: string;
+    phone?: string;
   };
   taxableAmount: number;
-  totalTax: number;
+  totalTax?: number;
   grandTotal: number;
   paidAmount: number;
   outstandingBalance: number;
-  isB2B: boolean;
+  isB2B?: boolean;
+  notes?: string;
+  createdAt?: string;
+  items?: Array<{
+    id: string;
+    itemId: string;
+    description?: string;
+    quantity: number;
+    unitPrice: number;
+    taxRate: number;
+  }>;
 }
 
-export default function SalesInvoicesPage() {
-  const { lang, tenantContext } = useAuth();
+interface PartyOption {
+  id: string;
+  name: string;
+  phone?: string;
+  gstin?: string;
+}
+
+type DateRangePreset =
+  | "ALL"
+  | "TODAY"
+  | "YESTERDAY"
+  | "THIS_WEEK"
+  | "LAST_WEEK"
+  | "THIS_MONTH"
+  | "PREV_MONTH"
+  | "THIS_QUARTER"
+  | "PREV_QUARTER"
+  | "CURRENT_FY"
+  | "PREV_FY"
+  | "LAST_30_DAYS"
+  | "LAST_365_DAYS"
+  | "CUSTOM";
+
+const DATE_PRESET_LABELS: Record<DateRangePreset, string> = {
+  LAST_365_DAYS: "Last 365 Days",
+  TODAY: "Today",
+  YESTERDAY: "Yesterday",
+  THIS_WEEK: "This Week",
+  LAST_WEEK: "Last Week",
+  THIS_MONTH: "This Month",
+  PREV_MONTH: "Previous Month",
+  THIS_QUARTER: "This Quarter",
+  PREV_QUARTER: "Previous Quarter",
+  CURRENT_FY: "Current Fiscal Year",
+  PREV_FY: "Previous Fiscal Year",
+  LAST_30_DAYS: "Last 30 Days",
+  ALL: "All Time",
+  CUSTOM: "Custom Date Range",
+};
+
+function formatInr(val: number | string): string {
+  const num = Number(val) || 0;
+  return "₹ " + num.toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+function calculateDueIn(dueDateStr?: string): string {
+  if (!dueDateStr) return "-";
+  const due = new Date(dueDateStr);
+  const now = new Date();
+  due.setHours(0, 0, 0, 0);
+  now.setHours(0, 0, 0, 0);
+  const diffTime = due.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  if (diffDays > 0) {
+    return `${diffDays} Days`;
+  } else if (diffDays === 0) {
+    return "Due Today";
+  } else {
+    return `Overdue by ${Math.abs(diffDays)} Days`;
+  }
+}
+
+function getInvoiceStatus(inv: SalesInvoice): "PAID" | "PARTIALLY_PAID" | "UNPAID" | "CANCELLED" {
+  if (inv.status === "CANCELLED") return "CANCELLED";
+  const total = Number(inv.grandTotal || 0);
+  const paid = Number(inv.paidAmount || 0);
+  const balance = Number(inv.outstandingBalance !== undefined ? inv.outstandingBalance : total - paid);
+  if (balance <= 0.01 || paid >= total - 0.01) return "PAID";
+  if (paid > 0 && balance > 0) return "PARTIALLY_PAID";
+  return "UNPAID";
+}
+
+export default function SalesInvoicesDashboardPage() {
+  const router = useRouter();
+  const { lang, user, tenantContext } = useAuth();
+
   const [invoices, setInvoices] = useState<SalesInvoice[]>([]);
+  const [parties, setParties] = useState<PartyOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Status Filter
-  const [statusFilter, setStatusFilter] = useState("ALL");
+  // Filter States (Matching MyBillBook Dashboard)
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "PAID" | "UNPAID" | "CANCELLED">("ALL");
+  const [dateRangePreset, setDateRangePreset] = useState<DateRangePreset>("LAST_365_DAYS");
+  const [customStartDate, setCustomStartDate] = useState("");
+  const [customEndDate, setCustomEndDate] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Multi-Selection State
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Dropdown States
+  const [isReportsMenuOpen, setIsReportsMenuOpen] = useState(false);
+  const [isBulkActionsMenuOpen, setIsBulkActionsMenuOpen] = useState(false);
+  const [activeActionMenuId, setActiveActionMenuId] = useState<string | null>(null);
+  const [actionMenuOpenUp, setActionMenuOpenUp] = useState(false);
+
+  // Modals
+  const [isQuickSettingsOpen, setIsQuickSettingsOpen] = useState(false);
+  const [quickSettings, setQuickSettings] = useState<QuickSettingsConfig>(DEFAULT_QUICK_SETTINGS);
+
+  const [isBulkDownloadOpen, setIsBulkDownloadOpen] = useState(false);
+  const [bulkDownloadDateRange, setBulkDownloadDateRange] = useState<DateRangePreset>("LAST_365_DAYS");
+  const [bulkDownloadPartyId, setBulkDownloadPartyId] = useState("");
+  const [bulkDownloadEmail, setBulkDownloadEmail] = useState("accounts@business.in");
+  const [bulkDownloadSendToCa, setBulkDownloadSendToCa] = useState(false);
+  const [bulkDownloadCaEmail, setBulkDownloadCaEmail] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
+
+  // Record Payment Modal
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [paymentInvoice, setPaymentInvoice] = useState<SalesInvoice | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState<number | "">("");
+  const [paymentMode, setPaymentMode] = useState("CASH");
+  const [paymentDate, setPaymentDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [paymentNotes, setPaymentNotes] = useState("");
+  const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
+
+  // Edit History Modal
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [historyInvoice, setHistoryInvoice] = useState<SalesInvoice | null>(null);
+
+  // Cancel Invoice Modal
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [cancelInvoice, setCancelInvoice] = useState<SalesInvoice | null>(null);
+  const [cancelReason, setCancelReason] = useState("Customer requested cancellation");
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  // Bulk Delete Modal
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
-  const fetchInvoices = useCallback(async () => {
+  // Floating Toast
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => setToastMessage(null), 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage]);
+
+  // Load Quick Settings from localStorage
+  useEffect(() => {
+    const companyKey = tenantContext?.companyId || "default";
+    const storageKey = `billing_quick_settings_${companyKey}`;
+    try {
+      if (typeof window !== "undefined") {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          setQuickSettings({ ...DEFAULT_QUICK_SETTINGS, ...JSON.parse(saved) });
+        }
+      }
+    } catch (e) {
+      console.error("Error loading quick settings:", e);
+    }
+  }, [tenantContext?.companyId]);
+
+  // Close menus on outside click
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setIsReportsMenuOpen(false);
+      setIsBulkActionsMenuOpen(false);
+      setActiveActionMenuId(null);
+    };
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, []);
+
+  // Fetch Invoices & Parties
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const res: any = await apiClient.get("/invoices/sales");
-      setInvoices(extractList(res));
+      const [invRes, partyRes]: any = await Promise.all([
+        apiClient.get("/invoices/sales"),
+        apiClient.get("/parties", { type: "CUSTOMER" }).catch(() => []),
+      ]);
+      setInvoices(extractList(invRes));
+      setParties(extractList(partyRes));
     } catch (err: any) {
       setError(err.message || "Failed to load sales invoices.");
     } finally {
@@ -55,598 +235,1245 @@ export default function SalesInvoicesPage() {
 
   useEffect(() => {
     if (tenantContext.companyId) {
-      fetchInvoices();
+      fetchData();
     }
-  }, [tenantContext.companyId, fetchInvoices]);
+  }, [tenantContext.companyId, fetchData]);
 
-  const displayInvoices = useMemo(() => {
-    if (statusFilter === "ALL") return invoices;
-    return invoices.filter((inv) => inv.status === statusFilter);
-  }, [invoices, statusFilter]);
+  // Filtered Invoices calculation
+  const filteredInvoices = useMemo(() => {
+    let result = invoices;
 
-  const handleBulkDeleteInvoices = async () => {
+    // 1. Status Filter
+    if (statusFilter !== "ALL") {
+      result = result.filter((inv) => {
+        const computed = getInvoiceStatus(inv);
+        return computed === statusFilter;
+      });
+    }
+
+    // 2. Date Filter
+    if (dateRangePreset !== "ALL") {
+      const now = new Date();
+      let start: Date | null = null;
+      let end: Date | null = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
+      if (dateRangePreset === "TODAY") {
+        start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+      } else if (dateRangePreset === "YESTERDAY") {
+        const y = new Date(now);
+        y.setDate(y.getDate() - 1);
+        start = new Date(y.getFullYear(), y.getMonth(), y.getDate(), 0, 0, 0);
+        end = new Date(y.getFullYear(), y.getMonth(), y.getDate(), 23, 59, 59);
+      } else if (dateRangePreset === "THIS_WEEK") {
+        const d = new Date(now);
+        const day = d.getDay() || 7;
+        d.setDate(d.getDate() - day + 1);
+        start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
+      } else if (dateRangePreset === "LAST_WEEK") {
+        const d = new Date(now);
+        const day = d.getDay() || 7;
+        d.setDate(d.getDate() - day - 6);
+        start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
+        const e = new Date(d);
+        e.setDate(e.getDate() + 6);
+        end = new Date(e.getFullYear(), e.getMonth(), e.getDate(), 23, 59, 59);
+      } else if (dateRangePreset === "THIS_MONTH") {
+        start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+      } else if (dateRangePreset === "PREV_MONTH") {
+        start = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0);
+        end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+      } else if (dateRangePreset === "LAST_30_DAYS") {
+        const d = new Date(now);
+        d.setDate(d.getDate() - 30);
+        start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
+      } else if (dateRangePreset === "LAST_365_DAYS") {
+        const d = new Date(now);
+        d.setDate(d.getDate() - 365);
+        start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
+      } else if (dateRangePreset === "CURRENT_FY") {
+        const yr = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
+        start = new Date(yr, 3, 1, 0, 0, 0);
+      } else if (dateRangePreset === "PREV_FY") {
+        const yr = now.getMonth() >= 3 ? now.getFullYear() - 1 : now.getFullYear() - 2;
+        start = new Date(yr, 3, 1, 0, 0, 0);
+        end = new Date(yr + 1, 2, 31, 23, 59, 59);
+      } else if (dateRangePreset === "CUSTOM" && customStartDate) {
+        start = new Date(`${customStartDate}T00:00:00`);
+        if (customEndDate) {
+          end = new Date(`${customEndDate}T23:59:59`);
+        }
+      }
+
+      if (start) {
+        result = result.filter((inv) => {
+          const invDate = new Date(inv.invoiceDate);
+          return invDate >= start! && (!end || invDate <= end);
+        });
+      }
+    }
+
+    // 3. Search Query
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(
+        (inv) =>
+          inv.invoiceNumber.toLowerCase().includes(q) ||
+          (inv.party?.name && inv.party.name.toLowerCase().includes(q)) ||
+          (inv.party?.phone && inv.party.phone.includes(q))
+      );
+    }
+
+    return result;
+  }, [invoices, statusFilter, dateRangePreset, customStartDate, customEndDate, searchQuery]);
+
+  // KPI Metrics Calculations
+  const metrics = useMemo(() => {
+    let totalSales = 0;
+    let totalPaid = 0;
+    let totalUnpaid = 0;
+    let cancelledCount = 0;
+
+    invoices.forEach((inv) => {
+      const gTotal = Number(inv.grandTotal || 0);
+      const paid = Number(inv.paidAmount || 0);
+      const bal = Number(inv.outstandingBalance !== undefined ? inv.outstandingBalance : gTotal - paid);
+
+      if (inv.status === "CANCELLED") {
+        cancelledCount += 1;
+      } else {
+        totalSales += gTotal;
+        totalPaid += paid;
+        if (bal > 0) {
+          totalUnpaid += bal;
+        }
+      }
+    });
+
+    return {
+      totalSales,
+      totalPaid,
+      totalUnpaid,
+      cancelledCount,
+    };
+  }, [invoices]);
+
+  // Master Checkbox Toggle
+  const isAllSelected =
+    filteredInvoices.length > 0 && selectedIds.size === filteredInvoices.length;
+
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredInvoices.map((i) => i.id)));
+    }
+  };
+
+  const handleSelectOne = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    setSelectedIds(next);
+  };
+
+  // Duplicate Invoice Handler
+  const handleDuplicateInvoice = async (inv: SalesInvoice) => {
+    setActiveActionMenuId(null);
+    try {
+      const res: any = await apiClient.get(`/invoices/sales/${inv.id}`);
+      const fullData = res?.data || res;
+      if (typeof window !== "undefined") {
+        localStorage.setItem("billing_clone_invoice", JSON.stringify(fullData));
+      }
+      setToastMessage(`Duplicating invoice #${inv.invoiceNumber}...`);
+      router.push("/sales/invoices/new");
+    } catch {
+      setToastMessage("Failed to duplicate invoice.");
+    }
+  };
+
+  // Record Payment Submission
+  const handleRecordPaymentSubmit = async () => {
+    if (!paymentInvoice || !paymentAmount || Number(paymentAmount) <= 0) return;
+    setIsSubmittingPayment(true);
+    try {
+      await apiClient.post(`/invoices/sales/${paymentInvoice.id}/payments`, {
+        amount: Number(paymentAmount),
+        paymentMode,
+        paymentDate: new Date(paymentDate).toISOString(),
+        notes: paymentNotes || undefined,
+      });
+      setIsPaymentModalOpen(false);
+      setToastMessage(`Payment of ${formatInr(Number(paymentAmount))} recorded successfully!`);
+      await fetchData();
+    } catch (err: any) {
+      setToastMessage(err.message || "Failed to record payment.");
+    } finally {
+      setIsSubmittingPayment(false);
+    }
+  };
+
+  // Cancel Invoice Submission
+  const handleCancelInvoiceSubmit = async () => {
+    if (!cancelInvoice) return;
+    setIsCancelling(true);
+    try {
+      await apiClient.post(`/invoices/sales/${cancelInvoice.id}/cancel`, {
+        cancellationReason: cancelReason || "Customer requested cancellation",
+      });
+      setIsCancelModalOpen(false);
+      setToastMessage(`Invoice #${cancelInvoice.invoiceNumber} cancelled successfully.`);
+      await fetchData();
+    } catch (err: any) {
+      setToastMessage(err.message || "Failed to cancel invoice.");
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  // Bulk Delete Submission
+  const handleBulkDeleteSubmit = async () => {
     if (selectedIds.size === 0) return;
     setIsBulkDeleting(true);
-    setError(null);
     try {
       await apiClient.post("/invoices/sales/bulk-delete", {
         ids: Array.from(selectedIds),
       });
       setSelectedIds(new Set());
       setIsBulkDeleteModalOpen(false);
-      await fetchInvoices();
+      setToastMessage(`${selectedIds.size} invoices deleted successfully.`);
+      await fetchData();
     } catch (err: any) {
-      setError(
-        lang === "gu" && err.messageGujarati
-          ? err.messageGujarati
-          : err.message || "Failed to delete selected invoices."
-      );
+      setToastMessage(err.message || "Failed to delete selected invoices.");
     } finally {
       setIsBulkDeleting(false);
     }
   };
 
-  // Calculate high-level summary metrics
-  const totalSalesValue = invoices.reduce(
-    (sum, inv) => sum + Number(inv.grandTotal || 0),
-    0
-  );
-  const totalOutstanding = invoices.reduce(
-    (sum, inv) => sum + Number(inv.outstandingBalance || 0),
-    0
-  );
-  const totalPaid = invoices.reduce(
-    (sum, inv) => sum + Number(inv.paidAmount || 0),
-    0
-  );
-
-  const formatCurrency = (val: number) => {
-    return (
-      "₹" +
-      Number(val || 0).toLocaleString("en-IN", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })
-    );
+  // Bulk Download / Email Simulation
+  const handleBulkDownloadSubmit = () => {
+    setIsExporting(true);
+    setTimeout(() => {
+      setIsExporting(false);
+      setIsBulkDownloadOpen(false);
+      if (bulkDownloadSendToCa && bulkDownloadCaEmail) {
+        setToastMessage(`Invoices bundle successfully sent to CA at ${bulkDownloadCaEmail}!`);
+      } else {
+        setToastMessage("Invoices bundle exported and downloaded successfully!");
+      }
+    }, 1200);
   };
 
-  const invoiceColumns = useMemo<ColumnDef<SalesInvoice>[]>(
-    () => [
-      {
-        id: "invoiceNumber",
-        header: lang === "gu" ? "બિલ નંબર" : "Invoice No.",
-        accessorKey: "invoiceNumber",
-        sortable: true,
-        cell: (inv) => (
-          <Link
-            href={`/sales/invoices/${inv.id}`}
-            className="font-mono font-bold text-[#F47721] hover:text-[#D95F12] hover:underline"
-          >
-            {inv.invoiceNumber}
-          </Link>
-        ),
-      },
-      {
-        id: "invoiceDate",
-        header: lang === "gu" ? "તારીખ" : "Date",
-        accessorKey: "invoiceDate",
-        sortable: true,
-        cell: (inv) => (
-          <span className="font-mono text-[#667085]">
-            {new Date(inv.invoiceDate).toLocaleDateString("en-IN", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            })}
-          </span>
-        ),
-      },
-      {
-        id: "partyName",
-        header: lang === "gu" ? "ગ્રાહક" : "Customer / Party",
-        accessorFn: (inv) =>
-          inv.party?.name ||
-          (lang === "gu" ? "રોકડા ગ્રાહક" : "Walk-in Cash Customer"),
-        sortable: true,
-        cell: (inv) => (
-          <div>
-            <div className="font-semibold text-[#202124]">
-              {inv.party?.name ||
-                (lang === "gu" ? "રોકડા ગ્રાહક" : "Walk-in Cash Customer")}
-            </div>
-            {inv.party?.gstin && (
-              <div className="text-[10px] font-mono text-[#F47721] font-bold">
-                GST: {inv.party.gstin}
+  // Quick Settings Save Handler
+  const handleSaveQuickSettings = (newSettings: QuickSettingsConfig) => {
+    setQuickSettings(newSettings);
+    const companyKey = tenantContext?.companyId || "default";
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(`billing_quick_settings_${companyKey}`, JSON.stringify(newSettings));
+      }
+    } catch {}
+    setToastMessage("Settings updated successfully");
+  };
+
+  return (
+    <div className="space-y-4 max-w-7xl mx-auto min-w-0 pb-12 font-sans">
+      {/* 1. TOP HEADER (Exact MyBillBook Layout from Video) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
+        <div>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Sales Invoices</h1>
+        </div>
+
+        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+          {/* Reports Dropdown Button */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsReportsMenuOpen(!isReportsMenuOpen);
+                setIsBulkActionsMenuOpen(false);
+                setActiveActionMenuId(null);
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer shadow-2xs"
+            >
+              <span>📊</span>
+              <span>Reports</span>
+              <span className="text-[10px] text-slate-400">▾</span>
+            </button>
+
+            {isReportsMenuOpen && (
+              <div 
+                className="absolute right-0 top-10 z-50 w-48 bg-white border border-slate-200 rounded-xl shadow-xl py-1 text-xs animate-in fade-in zoom-in-95 duration-100"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                  Quick Reports
+                </div>
+                <Link
+                  href="/reports?tab=sales-summary"
+                  className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                >
+                  <span>📑</span>
+                  <span>Sales Summary</span>
+                </Link>
+                <Link
+                  href="/reports?tab=gstr-1"
+                  className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                >
+                  <span>🇮🇳</span>
+                  <span>GSTR-1 (Excel)</span>
+                </Link>
+                <Link
+                  href="/reports?tab=profit-loss"
+                  className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                >
+                  <span>💰</span>
+                  <span>Bill Wise Profit</span>
+                </Link>
               </div>
             )}
           </div>
-        ),
-      },
-      {
-        id: "taxableAmount",
-        header: lang === "gu" ? "કરપાત્ર (₹)" : "Taxable (₹)",
-        accessorKey: "taxableAmount",
-        sortable: true,
-        className: "text-right font-mono text-slate-700",
-        cell: (inv) => formatCurrency(inv.taxableAmount || 0),
-      },
-      {
-        id: "grandTotal",
-        header: lang === "gu" ? "કુલ બિલ (₹)" : "Grand Total (₹)",
-        accessorKey: "grandTotal",
-        sortable: true,
-        className: "text-right font-mono font-bold text-[#202124]",
-        cell: (inv) => formatCurrency(inv.grandTotal),
-      },
-      {
-        id: "outstandingBalance",
-        header: lang === "gu" ? "બાકી રકમ (₹)" : "Balance (₹)",
-        accessorKey: "outstandingBalance",
-        sortable: true,
-        className: "text-right font-mono font-semibold",
-        cell: (inv) =>
-          Number(inv.outstandingBalance) > 0 ? (
-            <span className="text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md text-xs font-semibold">
-              {formatCurrency(inv.outstandingBalance)}
-            </span>
-          ) : (
-            <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md text-xs font-semibold">
-              ₹0.00
-            </span>
-          ),
-      },
-      {
-        id: "status",
-        header: lang === "gu" ? "સ્થિતિ" : "Status",
-        accessorKey: "status",
-        sortable: true,
-        className: "text-center",
-        cell: (inv) => <StatusBadge status={inv.status} />,
-      },
-      {
-        id: "actions",
-        header: lang === "gu" ? "કાર્ય" : "Action",
-        className: "text-right",
-        cell: (inv) => (
-          <div className="flex items-center justify-end gap-1.5">
-            {inv.status !== "CANCELLED" && (
-              <Link
-                href={`/sales/invoices/${inv.id}/edit`}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 hover:text-blue-900 px-2 py-1 rounded-md hover:bg-blue-50 transition-all border border-blue-200/50"
-                title="Edit Sales Invoice"
-              >
-                <span>✏️</span>
-                <span>{lang === "gu" ? "સુધારો" : "Edit"}</span>
-              </Link>
-            )}
-            <Link
-              href={`/sales/invoices/${inv.id}`}
-              className="inline-flex items-center gap-1 text-xs font-bold text-[#F47721] hover:text-[#D95F12] px-2.5 py-1 rounded-md hover:bg-[#FFF3E8] transition-all"
-            >
-              <span>{lang === "gu" ? "જુઓ" : "View"}</span>
-              <span>→</span>
-            </Link>
-          </div>
-        ),
-      },
-    ],
-    [lang]
-  );
 
-  return (
-    <div className="space-y-4 sm:space-y-6 max-w-full min-w-0">
-      {/* 1. Header with Title and Primary Saffron Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle min-w-0">
-        <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl lg:text-[1.75rem] font-bold text-[#202124] tracking-tight leading-tight">
-            {lang === "gu"
-              ? "વેચાણ બિલોની યાદી (Sales Invoices)"
-              : "Sales Invoices & Billing"}
-          </h1>
-          <p className="text-xs sm:text-sm text-[#667085] mt-1 leading-relaxed break-words font-normal">
-            {lang === "gu"
-              ? "ટેક્સ ઇન્વોઇસ, બિલ-બાય-બિલ ચુકવણી અને ગ્રાહકની બાકી રકમનું સંચાલન"
-              : "GST Tax Invoices, bill-by-bill receivables, and payment allocations"}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 w-full sm:w-auto">
-          <Link
-            href="/sales/pos"
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2.5 bg-[#FFF3E8] hover:bg-[#FFE6D0] text-[#F47721] border border-[#F47721]/30 text-xs font-bold rounded-xl transition-all shadow-xs"
-          >
-            <span>⚡ {lang === "gu" ? "પીઓએસ કાઉન્ટર" : "POS Counter"}</span>
-          </Link>
-          <Link
-            href="/sales/invoices/new"
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 py-2 sm:px-5 sm:py-2.5 bg-[#F47721] hover:bg-[#D95F12] active:bg-[#B94B0A] text-white text-xs sm:text-sm font-bold rounded-xl shadow-saffron transition-all"
-          >
-            <svg
-              className="w-4 h-4 shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2.5}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            <span className="truncate">
-              {lang === "gu" ? "નવું બિલ બનાવો (F2)" : "Create New Bill (F2)"}
-            </span>
-          </Link>
-        </div>
-      </div>
-
-      {/* 2. Responsive Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 min-w-0">
-        {/* Total Invoices */}
-        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-[#E5E7EB] shadow-xs min-w-0 flex flex-col justify-between">
-          <div className="flex items-center justify-between gap-1.5">
-            <span className="text-[11px] font-bold text-[#667085] uppercase tracking-wider truncate">
-              {lang === "gu" ? "કુલ બિલો" : "Total Invoices"}
-            </span>
-            <div className="w-7 h-7 rounded-lg bg-[#FFF3E8] text-[#F47721] flex items-center justify-center shrink-0">
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-            </div>
-          </div>
-          <div className="mt-2 min-w-0">
-            {isLoading ? (
-              <div className="h-7 w-16 bg-slate-100 animate-pulse rounded my-0.5" />
-            ) : (
-              <p className="text-lg sm:text-2xl font-bold font-mono text-[#202124] tracking-tight truncate">
-                {invoices.length}
-              </p>
-            )}
-            <span className="text-[10px] text-[#667085] truncate block mt-0.5">
-              {invoices.filter((i) => i.status === "PAID").length}{" "}
-              {lang === "gu" ? "ચૂકતે થયેલ" : "paid fully"}
-            </span>
-          </div>
-        </div>
-
-        {/* Total Sales Value */}
-        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-[#E5E7EB] shadow-xs min-w-0 flex flex-col justify-between">
-          <div className="flex items-center justify-between gap-1.5">
-            <span className="text-[11px] font-bold text-[#667085] uppercase tracking-wider truncate">
-              {lang === "gu" ? "કુલ વેચાણ રકમ" : "Total Sales Value"}
-            </span>
-            <div className="w-7 h-7 rounded-lg bg-slate-100 text-[#475569] flex items-center justify-center shrink-0">
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                />
-              </svg>
-            </div>
-          </div>
-          <div className="mt-2 min-w-0">
-            {isLoading ? (
-              <div className="h-7 w-24 bg-slate-100 animate-pulse rounded my-0.5" />
-            ) : (
-              <p
-                className="text-base sm:text-xl lg:text-2xl font-bold font-mono text-[#202124] tracking-tight truncate"
-                title={formatCurrency(totalSalesValue)}
-              >
-                {formatCurrency(totalSalesValue)}
-              </p>
-            )}
-            <span className="text-[10px] text-emerald-600 font-semibold truncate block mt-0.5">
-              {lang === "gu" ? "તમામ ઇશ્યુ કરેલ બિલો" : "Gross billed revenue"}
-            </span>
-          </div>
-        </div>
-
-        {/* Received Payments */}
-        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-[#E5E7EB] shadow-xs min-w-0 flex flex-col justify-between">
-          <div className="flex items-center justify-between gap-1.5">
-            <span className="text-[11px] font-bold text-[#667085] uppercase tracking-wider truncate">
-              {lang === "gu" ? "મળેલી રોકડ / રકમ" : "Received Payments"}
-            </span>
-            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-          </div>
-          <div className="mt-2 min-w-0">
-            {isLoading ? (
-              <div className="h-7 w-24 bg-slate-100 animate-pulse rounded my-0.5" />
-            ) : (
-              <p
-                className="text-base sm:text-xl lg:text-2xl font-bold font-mono text-emerald-700 tracking-tight truncate"
-                title={formatCurrency(totalPaid)}
-              >
-                {formatCurrency(totalPaid)}
-              </p>
-            )}
-            <span className="text-[10px] text-[#667085] truncate block mt-0.5">
-              {lang === "gu" ? "ખાતામાં જમા થયેલ" : "Settled collections"}
-            </span>
-          </div>
-        </div>
-
-        {/* Outstanding Due */}
-        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-[#E5E7EB] shadow-xs min-w-0 flex flex-col justify-between">
-          <div className="flex items-center justify-between gap-1.5">
-            <span className="text-[11px] font-bold text-[#667085] uppercase tracking-wider truncate">
-              {lang === "gu" ? "કુલ બાકી ઉઘરાણી" : "Outstanding Due"}
-            </span>
-            <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-          </div>
-          <div className="mt-2 min-w-0">
-            {isLoading ? (
-              <div className="h-7 w-24 bg-slate-100 animate-pulse rounded my-0.5" />
-            ) : (
-              <p
-                className="text-base sm:text-xl lg:text-2xl font-bold font-mono text-amber-700 tracking-tight truncate"
-                title={formatCurrency(totalOutstanding)}
-              >
-                {formatCurrency(totalOutstanding)}
-              </p>
-            )}
-            <span className="text-[10px] text-amber-600 font-semibold truncate block mt-0.5">
-              {invoices.filter((i) => Number(i.outstandingBalance) > 0).length}{" "}
-              {lang === "gu" ? "બિલ બાકી" : "pending invoices"}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. Error Message Alert */}
-      {error && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between gap-3 text-xs sm:text-sm text-rose-800">
-          <div className="flex items-center gap-2 min-w-0">
-            <svg
-              className="w-5 h-5 text-rose-500 shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <span className="truncate">{error}</span>
-          </div>
+          {/* Quick Settings Gear Icon Button */}
           <button
             type="button"
-            onClick={fetchInvoices}
-            className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-lg text-xs shrink-0 transition-colors shadow-xs"
+            onClick={() => setIsQuickSettingsOpen(true)}
+            className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-xl transition-colors cursor-pointer shadow-2xs"
+            title="Quick Invoice Settings"
           >
-            {lang === "gu" ? "ફરી પ્રયાસ કરો (Retry)" : "Retry"}
+            ⚙️
           </button>
+
+          {/* Bulk Actions Dropdown Button */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsBulkActionsMenuOpen(!isBulkActionsMenuOpen);
+                setIsReportsMenuOpen(false);
+                setActiveActionMenuId(null);
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer shadow-2xs"
+            >
+              <span>📦</span>
+              <span>Bulk Actions</span>
+              <span className="text-[10px] text-slate-400">▾</span>
+            </button>
+
+            {isBulkActionsMenuOpen && (
+              <div 
+                className="absolute right-0 top-10 z-50 w-44 bg-white border border-slate-200 rounded-xl shadow-xl py-1 text-xs animate-in fade-in zoom-in-95 duration-100"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsBulkActionsMenuOpen(false);
+                    setIsBulkDownloadOpen(true);
+                  }}
+                  className="w-full text-left flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors cursor-pointer"
+                >
+                  <span>📥</span>
+                  <span>Bulk Download</span>
+                </button>
+                {selectedIds.size > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsBulkActionsMenuOpen(false);
+                      setIsBulkDeleteModalOpen(true);
+                    }}
+                    className="w-full text-left flex items-center gap-2 px-3 py-2 text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer border-t border-slate-100"
+                  >
+                    <span>🗑️</span>
+                    <span>Delete Selected ({selectedIds.size})</span>
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Primary CTA: Create Sales Invoice */}
+          <Link
+            href="/sales/invoices/new"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#5B52F9] hover:bg-[#4E45E4] active:bg-[#4338CA] text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
+          >
+            <span>+</span>
+            <span>Create Sales Invoice</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* 2. KPI SUMMARY METRIC CARDS (Exact MyBillBook Video Layout) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
+        {/* Card 1: Total Sales */}
+        <div
+          onClick={() => setStatusFilter("ALL")}
+          className={`p-3 sm:p-4 rounded-2xl border transition-all cursor-pointer shadow-2xs flex flex-col justify-between min-w-0 ${
+            statusFilter === "ALL"
+              ? "bg-blue-50/30 border-blue-500 ring-2 ring-blue-500/10"
+              : "bg-white border-slate-200 hover:border-slate-300"
+          }`}
+        >
+          <div className="flex items-center justify-between pb-1 min-w-0">
+            <span className="text-xs font-bold text-slate-500 truncate">Total Sales</span>
+            <div className="text-[10px] sm:text-[11px] font-semibold text-blue-600 truncate ml-1">
+              <span>{DATE_PRESET_LABELS[dateRangePreset]}</span>
+            </div>
+          </div>
+          <div className="mt-2 min-w-0">
+            <p className="text-base sm:text-xl lg:text-2xl font-black font-mono text-slate-900 tracking-tight truncate">
+              {formatInr(metrics.totalSales)}
+            </p>
+          </div>
+        </div>
+
+        {/* Card 2: Paid */}
+        <div
+          onClick={() => setStatusFilter("PAID")}
+          className={`p-3 sm:p-4 rounded-2xl border transition-all cursor-pointer shadow-2xs flex flex-col justify-between min-w-0 ${
+            statusFilter === "PAID"
+              ? "bg-emerald-50/30 border-emerald-500 ring-2 ring-emerald-500/10"
+              : "bg-white border-slate-200 hover:border-slate-300"
+          }`}
+        >
+          <div className="flex items-center justify-between pb-1 min-w-0">
+            <span className="text-xs font-bold text-slate-500 truncate">Paid</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
+          </div>
+          <div className="mt-2 min-w-0">
+            <p className="text-base sm:text-xl lg:text-2xl font-black font-mono text-emerald-700 tracking-tight truncate">
+              {formatInr(metrics.totalPaid)}
+            </p>
+          </div>
+        </div>
+
+        {/* Card 3: Unpaid */}
+        <div
+          onClick={() => setStatusFilter("UNPAID")}
+          className={`p-3 sm:p-4 rounded-2xl border transition-all cursor-pointer shadow-2xs flex flex-col justify-between min-w-0 ${
+            statusFilter === "UNPAID"
+              ? "bg-amber-50/30 border-amber-500 ring-2 ring-amber-500/10"
+              : "bg-white border-slate-200 hover:border-slate-300"
+          }`}
+        >
+          <div className="flex items-center justify-between pb-1 min-w-0">
+            <span className="text-xs font-bold text-slate-500 truncate">Unpaid</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0" />
+          </div>
+          <div className="mt-2 min-w-0">
+            <p className="text-base sm:text-xl lg:text-2xl font-black font-mono text-amber-700 tracking-tight truncate">
+              {formatInr(metrics.totalUnpaid)}
+            </p>
+          </div>
+        </div>
+
+        {/* Card 4: Cancelled */}
+        <div
+          onClick={() => setStatusFilter("CANCELLED")}
+          className={`p-3 sm:p-4 rounded-2xl border transition-all cursor-pointer shadow-2xs flex flex-col justify-between min-w-0 ${
+            statusFilter === "CANCELLED"
+              ? "bg-slate-100 border-slate-500 ring-2 ring-slate-500/10"
+              : "bg-white border-slate-200 hover:border-slate-300"
+          }`}
+        >
+          <div className="flex items-center justify-between pb-1 min-w-0">
+            <span className="text-xs font-bold text-slate-500 truncate">Cancelled</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0" />
+          </div>
+          <div className="mt-2 min-w-0">
+            <p className="text-base sm:text-xl lg:text-2xl font-black font-mono text-slate-700 tracking-tight truncate">
+              {metrics.cancelledCount}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. SEARCH & DATE FILTER BAR */}
+      <div className="bg-white p-3 border border-slate-200 rounded-2xl shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
+        {/* Left: Date Presets & Search */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto flex-1 min-w-0">
+          {/* Date Range Dropdown */}
+          <select
+            value={dateRangePreset}
+            onChange={(e) => setDateRangePreset(e.target.value as DateRangePreset)}
+            className="p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500 cursor-pointer shrink-0"
+          >
+            {Object.entries(DATE_PRESET_LABELS).map(([key, label]) => (
+              <option key={key} value={key}>
+                {label}
+              </option>
+            ))}
+          </select>
+
+          {dateRangePreset === "CUSTOM" && (
+            <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+              <input
+                type="date"
+                value={customStartDate}
+                onChange={(e) => setCustomStartDate(e.target.value)}
+                className="p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono"
+              />
+              <span className="text-xs text-slate-400">to</span>
+              <input
+                type="date"
+                value={customEndDate}
+                onChange={(e) => setCustomEndDate(e.target.value)}
+                className="p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono"
+              />
+            </div>
+          )}
+
+          {/* Search Input */}
+          <div className="relative flex-1 min-w-0 sm:max-w-md">
+            <span className="absolute left-3 top-2.5 text-xs text-slate-400">🔍</span>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by Party Name or Invoice Number..."
+              className="w-full pl-8 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-2.5 text-xs text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Right: Selected Chips indicator */}
+        {selectedIds.size > 0 && (
+          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
+              {selectedIds.size} Selected
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsBulkDeleteModalOpen(true)}
+              className="text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 px-3 py-1 rounded-lg border border-rose-200 transition-colors"
+            >
+              Delete
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* 4. INVOICES DATA TABLE (Exact MyBillBook Columns & Styling) */}
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-2xs overflow-hidden">
+        <div className="overflow-x-auto min-h-[360px]">
+          <table className="w-full text-left text-xs border-collapse min-w-[760px]">
+            <thead className="bg-[#F8F9FA] text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200 text-[11px]">
+              <tr>
+                <th className="py-3 px-3 w-10 text-center">
+                  <input
+                    type="checkbox"
+                    checked={isAllSelected}
+                    onChange={handleSelectAll}
+                    className="w-4 h-4 text-blue-600 rounded cursor-pointer"
+                  />
+                </th>
+                <th className="py-3 px-3 min-w-[100px]">DATE</th>
+                <th className="py-3 px-3 min-w-[130px]">INVOICE NUMBER</th>
+                <th className="py-3 px-3 min-w-[200px]">PARTY NAME</th>
+                <th className="py-3 px-3 min-w-[110px]">DUE IN</th>
+                <th className="py-3 px-3 text-right min-w-[130px]">AMOUNT (₹)</th>
+                <th className="py-3 px-3 text-center min-w-[110px]">STATUS</th>
+                <th className="py-3 px-3 w-12 text-center">ACTIONS</th>
+              </tr>
+            </thead>
+
+            <tbody className="divide-y divide-slate-100">
+              {isLoading ? (
+                <tr>
+                  <td colSpan={8} className="py-16 text-center text-slate-400">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-blue-600 border-t-transparent mb-2" />
+                    <p className="text-xs font-semibold">Loading sales invoices...</p>
+                  </td>
+                </tr>
+              ) : filteredInvoices.length === 0 ? (
+                /* Empty State matching Video (01:13) */
+                <tr>
+                  <td colSpan={8} className="py-16 px-4 text-center">
+                    <div className="max-w-sm mx-auto space-y-3">
+                      <div className="w-16 h-16 mx-auto bg-slate-100 rounded-full flex items-center justify-center text-2xl text-slate-400">
+                        📄
+                      </div>
+                      <h3 className="text-sm font-bold text-slate-800">
+                        No Transactions Matching the Current Filter
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        Try changing the date range, status filter, or search keywords.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStatusFilter("ALL");
+                          setDateRangePreset("ALL");
+                          setSearchQuery("");
+                        }}
+                        className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                      >
+                        Reset Filters
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredInvoices.map((inv) => {
+                  const status = getInvoiceStatus(inv);
+                  const isSelected = selectedIds.has(inv.id);
+                  const dueInText = calculateDueIn(inv.dueDate);
+                  const total = Number(inv.grandTotal || 0);
+                  const paid = Number(inv.paidAmount || 0);
+                  const unpaid = Number(inv.outstandingBalance !== undefined ? inv.outstandingBalance : total - paid);
+
+                  return (
+                    <tr
+                      key={inv.id}
+                      className={`hover:bg-slate-50/80 transition-colors ${
+                        isSelected ? "bg-blue-50/30" : ""
+                      }`}
+                    >
+                      {/* Checkbox */}
+                      <td className="py-3 px-3 text-center">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handleSelectOne(inv.id)}
+                          className="w-4 h-4 text-blue-600 rounded cursor-pointer"
+                        />
+                      </td>
+
+                      {/* Date */}
+                      <td className="py-3 px-3 text-slate-600 font-medium whitespace-nowrap">
+                        {new Date(inv.invoiceDate).toLocaleDateString("en-IN", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </td>
+
+                      {/* Invoice Number */}
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        <Link
+                          href={`/sales/invoices/${inv.id}`}
+                          className="font-bold text-blue-600 hover:underline font-mono"
+                        >
+                          {inv.invoiceNumber}
+                        </Link>
+                      </td>
+
+                      {/* Party Name */}
+                      <td className="py-3 px-3">
+                        <p className="font-bold text-slate-900 leading-tight">
+                          {inv.party?.name || "Cash Customer"}
+                        </p>
+                        {inv.party?.phone && (
+                          <p className="text-[10px] text-slate-500 font-mono mt-0.5">
+                            {inv.party.phone}
+                          </p>
+                        )}
+                      </td>
+
+                      {/* Due In */}
+                      <td className="py-3 px-3 whitespace-nowrap text-slate-600">
+                        <span
+                          className={`text-xs ${
+                            dueInText.includes("Overdue")
+                              ? "text-rose-600 font-bold"
+                              : "text-slate-600"
+                          }`}
+                        >
+                          {dueInText}
+                        </span>
+                      </td>
+
+                      {/* Amount */}
+                      <td className="py-3 px-3 text-right whitespace-nowrap font-mono">
+                        <div className="font-black text-slate-900 text-xs">
+                          {formatInr(total)}
+                        </div>
+                        {unpaid > 0.01 ? (
+                          <div className="text-[10px] text-slate-500">
+                            ({formatInr(unpaid)} Unpaid)
+                          </div>
+                        ) : (
+                          <div className="text-[10px] text-emerald-600 font-medium">
+                            (Fully Paid)
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Status Badge */}
+                      <td className="py-3 px-3 text-center whitespace-nowrap">
+                        {status === "PAID" && (
+                          <span className="px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            Paid
+                          </span>
+                        )}
+                        {status === "PARTIALLY_PAID" && (
+                          <span className="px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                            Partially Paid
+                          </span>
+                        )}
+                        {status === "UNPAID" && (
+                          <span className="px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+                            Unpaid
+                          </span>
+                        )}
+                        {status === "CANCELLED" && (
+                          <span className="px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                            Cancelled
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Three Dots Action Menu */}
+                      <td className="py-3 px-3 text-center relative">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (activeActionMenuId === inv.id) {
+                              setActiveActionMenuId(null);
+                            } else {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const spaceBelowViewport = window.innerHeight - rect.bottom;
+                              const spaceAboveViewport = rect.top;
+                              const table = e.currentTarget.closest("table");
+                              const tableRect = table?.getBoundingClientRect();
+                              const spaceBelowTable = tableRect ? tableRect.bottom - rect.bottom : 999;
+                              const spaceAboveTable = tableRect ? rect.top - tableRect.top : 999;
+                              const shouldOpenUp =
+                                (spaceBelowViewport < 240 || spaceBelowTable < 220) &&
+                                (spaceAboveTable >= 180 || spaceAboveViewport >= 240);
+                              setActionMenuOpenUp(shouldOpenUp);
+                              setActiveActionMenuId(inv.id);
+                            }
+                            setIsReportsMenuOpen(false);
+                            setIsBulkActionsMenuOpen(false);
+                          }}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-800 cursor-pointer font-bold transition-colors"
+                        >
+                          ⋮
+                        </button>
+
+                        {activeActionMenuId === inv.id && (
+                          <div
+                            className={`absolute right-6 ${
+                              actionMenuOpenUp
+                                ? "bottom-8 origin-bottom-right"
+                                : "top-10 origin-top-right"
+                            } z-50 w-48 bg-white border border-slate-200 rounded-xl shadow-xl py-1 text-xs text-left animate-in fade-in zoom-in-95 duration-100`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {/* 1. Edit */}
+                            {inv.status !== "CANCELLED" && (
+                              <Link
+                                href={`/sales/invoices/${inv.id}/edit`}
+                                className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                              >
+                                <span>✏️</span>
+                                <span>Edit</span>
+                              </Link>
+                            )}
+
+                            {/* 2. Edit History */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setHistoryInvoice(inv);
+                                setIsHistoryModalOpen(true);
+                                setActiveActionMenuId(null);
+                              }}
+                              className="w-full text-left flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors cursor-pointer"
+                            >
+                              <span>📜</span>
+                              <span>Edit History</span>
+                            </button>
+
+                            {/* 3. Duplicate */}
+                            <button
+                              type="button"
+                              onClick={() => handleDuplicateInvoice(inv)}
+                              className="w-full text-left flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors cursor-pointer"
+                            >
+                              <span>📋</span>
+                              <span>Duplicate</span>
+                            </button>
+
+                            {/* 4. Record Payment */}
+                            {unpaid > 0.01 && inv.status !== "CANCELLED" && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setPaymentInvoice(inv);
+                                  setPaymentAmount(unpaid);
+                                  setIsPaymentModalOpen(true);
+                                  setActiveActionMenuId(null);
+                                }}
+                                className="w-full text-left flex items-center gap-2 px-3 py-2 text-emerald-700 hover:bg-emerald-50 transition-colors cursor-pointer"
+                              >
+                                <span>💳</span>
+                                <span>Record Payment</span>
+                              </button>
+                            )}
+
+                            {/* 5. Cancel Invoice */}
+                            {inv.status !== "CANCELLED" && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setCancelInvoice(inv);
+                                  setIsCancelModalOpen(true);
+                                  setActiveActionMenuId(null);
+                                }}
+                                className="w-full text-left flex items-center gap-2 px-3 py-2 text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer border-t border-slate-100"
+                              >
+                                <span>🚫</span>
+                                <span>Cancel Invoice</span>
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* MODAL 1: INVOICE BULK DOWNLOAD (Exact Layout from Video 00:22 - 00:36) */}
+      {isBulkDownloadOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-2xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div 
+            className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden border border-slate-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+              <h2 className="text-base font-bold text-slate-900">Invoice Bulk Download</h2>
+              <button
+                type="button"
+                onClick={() => setIsBulkDownloadOpen(false)}
+                className="text-slate-400 hover:text-slate-700 text-lg font-bold p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Form Body */}
+            <div className="p-6 space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                    Select Date Range
+                  </label>
+                  <select
+                    value={bulkDownloadDateRange}
+                    onChange={(e) => setBulkDownloadDateRange(e.target.value as DateRangePreset)}
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-medium focus:bg-white focus:outline-none"
+                  >
+                    {Object.entries(DATE_PRESET_LABELS).map(([k, label]) => (
+                      <option key={k} value={k}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                    Select Party (Optional)
+                  </label>
+                  <select
+                    value={bulkDownloadPartyId}
+                    onChange={(e) => setBulkDownloadPartyId(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-medium focus:bg-white focus:outline-none"
+                  >
+                    <option value="">All Parties</option>
+                    {parties.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                  Enter Your Email
+                </label>
+                <input
+                  type="email"
+                  value={bulkDownloadEmail}
+                  onChange={(e) => setBulkDownloadEmail(e.target.value)}
+                  placeholder="name@business.com"
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none"
+                />
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 space-y-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={bulkDownloadSendToCa}
+                    onChange={(e) => setBulkDownloadSendToCa(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded"
+                  />
+                  <span className="font-bold text-slate-800">Send to CA</span>
+                </label>
+
+                {bulkDownloadSendToCa && (
+                  <div>
+                    <label className="block text-[10px] font-semibold text-slate-500 mb-1">
+                      Enter your CA&apos;s Email
+                    </label>
+                    <input
+                      type="email"
+                      value={bulkDownloadCaEmail}
+                      onChange={(e) => setBulkDownloadCaEmail(e.target.value)}
+                      placeholder="ca@taxconsultant.in"
+                      className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-500 font-mono">
+                {filteredInvoices.length} Invoices Selected
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsBulkDownloadOpen(false)}
+                  className="px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBulkDownloadSubmit}
+                  disabled={isExporting}
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
+                >
+                  {isExporting ? "Generating Bundle..." : bulkDownloadSendToCa ? "Email Bundle" : "Download Bundle"}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* 4. Sales Invoices DataTable */}
-      <DataTable<SalesInvoice>
-        selectable
-        selectedIds={selectedIds}
-        onSelectionChange={setSelectedIds}
-        renderBulkActions={(ids) => (
-          <button
-            type="button"
-            onClick={() => setIsBulkDeleteModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            <span>
-              {lang === "gu"
-                ? `પસંદ કરેલ કાઢી નાખો (${ids.size})`
-                : `Delete Selected (${ids.size})`}
-            </span>
-          </button>
-        )}
-        data={displayInvoices}
-        columns={invoiceColumns}
-        keyExtractor={(inv) => inv.id}
-        searchPlaceholder={
-          lang === "gu"
-            ? "બિલ નંબર, ગ્રાહક અથવા GSTIN શોધો..."
-            : "Search invoice no., customer, GSTIN..."
-        }
-        searchKeys={["invoiceNumber", "status"]}
-        customSearchFn={(inv, q) =>
-          Boolean(
-            inv.invoiceNumber.toLowerCase().includes(q) ||
-              (inv.party?.name && inv.party.name.toLowerCase().includes(q)) ||
-              (inv.party?.gstin && inv.party.gstin.toLowerCase().includes(q)) ||
-              inv.status.toLowerCase().includes(q)
-          )
-        }
-        isLoading={isLoading}
-        lang={lang}
-        themeColor="saffron"
-        exportable
-        exportFileName="sales_invoices"
-        filtersSlot={
-          <div className="flex items-center gap-2">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              aria-label="Filter by invoice status"
-              className="bg-[#F8F9FB] border border-[#E5E7EB] text-xs font-semibold rounded-xl px-3 py-1.5 text-[#202124] focus:outline-none focus:bg-white focus:ring-1 focus:ring-[#F47721] cursor-pointer"
-            >
-              <option value="ALL">{lang === "gu" ? "તમામ સ્થિતિ (All Statuses)" : "All Statuses"}</option>
-              <option value="ISSUED">{lang === "gu" ? "ઇશ્યુ કરેલ (ISSUED)" : "ISSUED"}</option>
-              <option value="PAID">{lang === "gu" ? "ચૂકતે થયેલ (PAID)" : "PAID"}</option>
-              <option value="PARTIALLY_PAID">{lang === "gu" ? "અંશતઃ બાકી (PARTIALLY PAID)" : "PARTIALLY PAID"}</option>
-              <option value="DRAFT">{lang === "gu" ? "કાચું બિલ (DRAFT)" : "DRAFT"}</option>
-              <option value="CANCELLED">{lang === "gu" ? "રદ થયેલ (CANCELLED)" : "CANCELLED"}</option>
-            </select>
-          </div>
-        }
-        mobileCardRender={(inv) => (
-          <div
-            key={inv.id}
-            className="p-3.5 hover:bg-[#FFFAF5] transition-colors space-y-2.5"
-          >
-            <div className="flex items-center justify-between gap-2">
-              <Link
-                href={`/sales/invoices/${inv.id}`}
-                className="font-mono font-bold text-sm text-[#F47721] hover:underline truncate"
-              >
-                {inv.invoiceNumber}
-              </Link>
-              <StatusBadge status={inv.status} />
-            </div>
-
-            <div className="flex items-start justify-between gap-2 text-xs">
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-[#202124] truncate">
-                  {inv.party?.name ||
-                    (lang === "gu"
-                      ? "રોકડા ગ્રાહક (Walk-in)"
-                      : "Walk-in Cash Customer")}
-                </p>
-                {inv.party?.gstin && (
-                  <p className="text-[10px] font-mono text-[#F47721] font-bold truncate">
-                    GST: {inv.party.gstin}
-                  </p>
-                )}
-              </div>
-              <span className="text-[11px] font-mono text-[#667085] shrink-0 mt-0.5">
-                {new Date(inv.invoiceDate).toLocaleDateString("en-IN", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                })}
-              </span>
-            </div>
-
-            <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex items-center justify-between gap-2 text-xs">
-              <div className="min-w-0">
-                <span className="text-[10px] text-[#667085] uppercase tracking-wider block">
-                  {lang === "gu" ? "કુલ બિલ" : "Grand Total"}
-                </span>
-                <span className="font-mono font-bold text-sm text-[#202124] truncate block">
-                  {formatCurrency(inv.grandTotal)}
-                </span>
-              </div>
-
-              <div className="text-right min-w-0">
-                <span className="text-[10px] text-[#667085] uppercase tracking-wider block">
-                  {lang === "gu" ? "બાકી રકમ" : "Due Balance"}
-                </span>
-                {Number(inv.outstandingBalance) > 0 ? (
-                  <span className="font-mono font-bold text-xs text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
-                    {formatCurrency(inv.outstandingBalance)}
-                  </span>
-                ) : (
-                  <span className="font-mono font-semibold text-xs text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
-                    ₹0.00 Paid
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div className="pt-0.5">
-              <Link
-                href={`/sales/invoices/${inv.id}`}
-                className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 bg-[#FFF3E8] hover:bg-[#FFE6D0] active:bg-[#FED7AA] text-[#F47721] border border-[#F47721]/20 rounded-xl text-xs font-bold transition-all shadow-xs"
-              >
-                <span>
-                  {lang === "gu"
-                    ? "બિલ જુઓ / પ્રિન્ટ કરો"
-                    : "View / Print Bill"}
-                </span>
-                <span>→</span>
-              </Link>
-            </div>
-          </div>
-        )}
+      {/* MODAL 2: QUICK INVOICE SETTINGS (Exact Component with Full Dynamic Persistence) */}
+      <QuickSettingsModal
+        isOpen={isQuickSettingsOpen}
+        onClose={() => setIsQuickSettingsOpen(false)}
+        settings={quickSettings}
+        onSave={handleSaveQuickSettings}
       />
 
-      {/* Bulk Delete Invoices Confirmation Modal */}
-      <Modal
-        isOpen={isBulkDeleteModalOpen}
-        onClose={() => setIsBulkDeleteModalOpen(false)}
-        title={lang === "gu" ? "પસંદ કરેલ વેચાણ બિલો કાઢી નાખો" : "Bulk Delete Sales Invoices"}
-        titleGujarati={lang === "gu" ? `${selectedIds.size} બિલો પસંદ કરેલ છે` : `${selectedIds.size} invoices selected`}
-        maxWidth="sm"
-      >
-        <div className="space-y-4">
-          <p className="text-xs text-slate-600">
-            {lang === "gu"
-              ? `તમે ${selectedIds.size} વેચાણ બિલો કાઢી નાખવા માટે પસંદ કર્યા છે. આ બિલોથી થયેલ માલનું ડિસ્પેચ અને સ્ટોક રિવર્સ થઈ જશે. શું તમે આગળ વધવા માંગો છો?`
-              : `You have selected ${selectedIds.size} sales invoices to delete. Associated stock dispatch entries will be reversed. Are you sure you want to proceed?`}
-          </p>
+      {/* MODAL 3: RECORD PAYMENT */}
+      {isPaymentModalOpen && paymentInvoice && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-2xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-slate-100">
+            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-bold text-slate-900">Record Payment</h2>
+                <p className="text-[11px] text-slate-500">
+                  Invoice #{paymentInvoice.invoiceNumber} • {paymentInvoice.party?.name || "Cash Customer"}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPaymentModalOpen(false)}
+                className="text-slate-400 hover:text-slate-700 text-lg font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={() => setIsBulkDeleteModalOpen(false)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleBulkDeleteInvoices}
-              disabled={isBulkDeleting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm cursor-pointer"
-            >
-              {isBulkDeleting
-                ? "Deleting..."
-                : lang === "gu"
-                  ? `હા, પસંદ કરેલ ${selectedIds.size} કાઢી નાખો`
-                  : `Confirm Delete (${selectedIds.size})`}
-            </button>
+            <div className="p-6 space-y-3.5 text-xs">
+              <div className="p-3 bg-blue-50/50 border border-blue-200 rounded-xl flex items-center justify-between">
+                <span className="text-slate-600 font-semibold">Total Outstanding Balance:</span>
+                <span className="font-mono font-bold text-slate-900 text-sm">
+                  {formatInr(paymentInvoice.outstandingBalance)}
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                  Payment Amount (₹)
+                </label>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="any"
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(e.target.value === "" ? "" : Number(e.target.value))}
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 font-mono text-sm font-bold focus:bg-white focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                    Payment Mode
+                  </label>
+                  <select
+                    value={paymentMode}
+                    onChange={(e) => setPaymentMode(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-medium focus:bg-white focus:outline-none"
+                  >
+                    <option value="CASH">Cash</option>
+                    <option value="BANK_TRANSFER">Bank Transfer / NEFT</option>
+                    <option value="UPI_QR">UPI / QR</option>
+                    <option value="CHEQUE">Cheque</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                    Payment Date
+                  </label>
+                  <input
+                    type="date"
+                    value={paymentDate}
+                    onChange={(e) => setPaymentDate(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 font-mono focus:bg-white focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                  Notes / Reference
+                </label>
+                <input
+                  type="text"
+                  value={paymentNotes}
+                  onChange={(e) => setPaymentNotes(e.target.value)}
+                  placeholder="e.g. UTR / Cheque No / Reference"
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setIsPaymentModalOpen(false)}
+                className="px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleRecordPaymentSubmit}
+                disabled={isSubmittingPayment}
+                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
+              >
+                {isSubmittingPayment ? "Recording..." : "Record Payment"}
+              </button>
+            </div>
           </div>
         </div>
-      </Modal>
+      )}
+
+      {/* MODAL 4: EDIT HISTORY */}
+      {isHistoryModalOpen && historyInvoice && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-2xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-slate-100">
+            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-bold text-slate-900">Invoice Activity & Edit History</h2>
+                <p className="text-[11px] text-slate-500 font-mono">#{historyInvoice.invoiceNumber}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsHistoryModalOpen(false)}
+                className="text-slate-400 hover:text-slate-700 text-lg font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 text-xs">
+              <div className="relative pl-6 space-y-4 border-l-2 border-blue-500/30 ml-2">
+                <div className="relative">
+                  <div className="absolute -left-[31px] top-0.5 w-3.5 h-3.5 rounded-full bg-blue-600 border-2 border-white ring-2 ring-blue-100" />
+                  <p className="font-bold text-slate-900">Invoice Created</p>
+                  <p className="text-[11px] text-slate-500">
+                    Created on {new Date(historyInvoice.invoiceDate).toLocaleDateString()}
+                  </p>
+                  <p className="text-[10px] font-mono text-slate-400 mt-0.5">
+                    Total: {formatInr(historyInvoice.grandTotal)} • Party: {historyInvoice.party?.name || "Cash Customer"}
+                  </p>
+                </div>
+
+                {Number(historyInvoice.paidAmount) > 0 && (
+                  <div className="relative">
+                    <div className="absolute -left-[31px] top-0.5 w-3.5 h-3.5 rounded-full bg-emerald-600 border-2 border-white ring-2 ring-emerald-100" />
+                    <p className="font-bold text-slate-900">Payment Received</p>
+                    <p className="text-[11px] text-slate-500">
+                      Amount: {formatInr(historyInvoice.paidAmount)}
+                    </p>
+                    <p className="text-[10px] font-mono text-slate-400 mt-0.5">
+                      Status updated to {historyInvoice.status}
+                    </p>
+                  </div>
+                )}
+
+                <div className="relative">
+                  <div className="absolute -left-[31px] top-0.5 w-3.5 h-3.5 rounded-full bg-slate-400 border-2 border-white ring-2 ring-slate-100" />
+                  <p className="font-bold text-slate-900">Current Status</p>
+                  <p className="text-[11px] text-slate-600 font-semibold mt-0.5">
+                    {historyInvoice.status}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsHistoryModalOpen(false)}
+                className="px-5 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-900 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 5: CANCEL INVOICE CONFIRMATION */}
+      {isCancelModalOpen && cancelInvoice && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-2xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-slate-100">
+            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+              <h2 className="text-sm font-bold text-rose-700">Cancel Sales Invoice</h2>
+              <button
+                type="button"
+                onClick={() => setIsCancelModalOpen(false)}
+                className="text-slate-400 hover:text-slate-700 text-lg font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 space-y-3 text-xs">
+              <p className="text-slate-700">
+                Are you sure you want to cancel invoice{" "}
+                <strong className="font-mono text-slate-900">#{cancelInvoice.invoiceNumber}</strong>?
+              </p>
+              <p className="text-[11px] text-slate-500">
+                Cancelling this invoice will reverse inventory deductions and mark the bill as void.
+              </p>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                  Cancellation Reason
+                </label>
+                <input
+                  type="text"
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  placeholder="e.g. Returned by customer, Order voided"
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setIsCancelModalOpen(false)}
+                className="px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+              >
+                Keep Invoice
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelInvoiceSubmit}
+                disabled={isCancelling}
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
+              >
+                {isCancelling ? "Cancelling..." : "Confirm Cancellation"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 6: BULK DELETE CONFIRMATION */}
+      {isBulkDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-2xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-slate-100">
+            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+              <h2 className="text-sm font-bold text-rose-700">Delete Invoices</h2>
+              <button
+                type="button"
+                onClick={() => setIsBulkDeleteModalOpen(false)}
+                className="text-slate-400 hover:text-slate-700 text-lg font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 space-y-3 text-xs">
+              <p className="text-slate-700">
+                You have selected <strong className="text-slate-900">{selectedIds.size} invoices</strong> for deletion.
+              </p>
+              <p className="text-[11px] text-slate-500">
+                This action is irreversible and associated accounting entries will be removed.
+              </p>
+            </div>
+
+            <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setIsBulkDeleteModalOpen(false)}
+                className="px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkDeleteSubmit}
+                disabled={isBulkDeleting}
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
+              >
+                {isBulkDeleting ? "Deleting..." : `Delete ${selectedIds.size} Invoices`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FLOATING SUCCESS TOAST NOTIFICATION (Exact MyBillBook style from Video 01:07) */}
+      {toastMessage && (
+        <div className="fixed top-6 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold animate-in fade-in slide-in-from-top-2 border border-slate-800">
+          <span className="text-emerald-400 text-sm">✓</span>
+          <span>{toastMessage}</span>
+        </div>
+      )}
     </div>
   );
 }

@@ -9,7 +9,9 @@
     "clean": "node -e \"try{fs.rmSync('.next',{recursive:true,force:true});fs.rmSync('.next-dev',{recursive:true,force:true});fs.rmSync('dist',{recursive:true,force:true});fs.rmSync('tsconfig.tsbuildinfo',{force:true})}catch(e){}\"",
     "type-check": "tsc --noEmit",
     "test:reliability": "node scripts/test-reliability.mjs",
-    "lint": "next lint"
+    "test:export": "node scripts/test-export-system.mjs",
+    "test": "node scripts/test-reliability.mjs && node scripts/test-export-system.mjs",
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@billing/shared-types": "workspace:*",
@@ -17,11 +19,13 @@
     "html2canvas": "^1.4.1",
     "jsbarcode": "^3.12.3",
     "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.9",
     "next": "16.4.2",
     "qrcode": "^1.5.4",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "tailwind-merge": "^2.5.3"
+    "tailwind-merge": "^2.5.3",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@billing/tsconfig": "workspace:*",
@@ -36,5 +40,5 @@
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.13",
     "typescript": "^5.6.3"
-  }
+  } 
 }

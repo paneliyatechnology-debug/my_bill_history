@@ -9,8 +9,9 @@ export interface CreateReceiptVoucherDto {
   voucherDate: string;
   depositToAccountId?: string;
   receivedAmount: number | string;
+  paymentMode?: string;
   paymentReference?: string;
   narration?: string;
   narrationGujarati?: string;
-  allocations: ReceiptAllocationDto[];
+  allocations?: ReceiptAllocationDto[];
 }

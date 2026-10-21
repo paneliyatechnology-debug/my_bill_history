@@ -75,6 +75,14 @@ export class VouchersController {
     return await this.vouchersService.listVouchers(tenant, query);
   }
 
+  @Get("receipts")
+  async listReceipts(
+    @Query() query: any,
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.vouchersService.listReceipts(tenant, query);
+  }
+
   @Get(":id")
   async getVoucher(
     @Param("id") id: string,

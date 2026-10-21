@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
-import { Badge, StatusBadge } from "../../../components/ui/badge";
-import { HsnSelector } from "../../../components/ui/hsn-selector";
+import { Badge } from "../../../components/ui/badge";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
-import { ItemStepModal, ItemFormData } from "./components/item-step-modal";
+import { ItemStepModal, ItemFormData, PartyOption } from "./components/item-step-modal";
 import { ItemBarcodeModal } from "./components/item-barcode-modal";
+import { AdjustStockModal } from "./components/adjust-stock-modal";
+import { getItemPartyPrices, setItemPartyPrices } from "../../../lib/party-item-pricing";
 
 interface Item {
   id: string;
@@ -57,25 +58,162 @@ interface Warehouse {
   isDefault?: boolean;
 }
 
+function ItemActionMenu({
+  item,
+  isOpen,
+  openUpward,
+  onToggle,
+  onClose,
+  lang,
+  onEdit,
+  onAdjustStock,
+  onBarcode,
+  onDelete,
+}: {
+  item: Item;
+  isOpen: boolean;
+  openUpward: boolean;
+  onToggle: (shouldOpenUp: boolean) => void;
+  onClose: () => void;
+  lang: "en" | "gu";
+  onEdit: () => void;
+  onAdjustStock: () => void;
+  onBarcode: () => void;
+  onDelete: () => void;
+}) {
+  const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (isOpen) {
+      onClose();
+    } else {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const spaceBelowViewport = window.innerHeight - rect.bottom;
+      const spaceAboveViewport = rect.top;
+
+      const table = e.currentTarget.closest("table");
+      const tableRect = table?.getBoundingClientRect();
+      const spaceBelowTable = tableRect ? tableRect.bottom - rect.bottom : 999;
+      const spaceAboveTable = tableRect ? rect.top - tableRect.top : 999;
+
+      // Menu is ~180px tall. If space below in viewport is tight (< 220px) OR space below in table is tight (< 190px),
+      // and we have sufficient space above (either in table >= 160 or in viewport >= 220), open UPWARD.
+      const shouldOpenUp =
+        (spaceBelowViewport < 220 || spaceBelowTable < 190) &&
+        (spaceAboveTable >= 160 || spaceAboveViewport >= 220);
+
+      onToggle(shouldOpenUp);
+    }
+  };
+
+  return (
+    <div
+      data-action-menu="true"
+      className={`relative inline-block text-left ${isOpen ? "z-30" : ""}`}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        onClick={handleToggle}
+        className={`w-8 h-8 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer text-base font-bold ${
+          isOpen ? "bg-slate-100 text-slate-800 shadow-2xs" : ""
+        }`}
+        title="Options"
+      >
+        ⋮
+      </button>
+
+      {isOpen && (
+        <div
+          className={`absolute right-0 ${
+            openUpward
+              ? "bottom-full mb-1 origin-bottom-right"
+              : "top-full mt-1 origin-top-right"
+          } w-44 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1 text-xs divide-y divide-slate-100 animate-in fade-in zoom-in-95 duration-100`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="py-1">
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onEdit();
+              }}
+              className="w-full text-left px-3 py-2 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer font-medium transition-colors"
+            >
+              <span className="text-slate-500">✏️</span>
+              <span>{lang === "gu" ? "સુધારો (Edit)" : "Edit Item"}</span>
+            </button>
+            {item.type === "PRODUCT" && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onAdjustStock();
+                }}
+                className="w-full text-left px-3 py-2 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 flex items-center gap-2 cursor-pointer font-medium transition-colors"
+              >
+                <span className="text-indigo-600">📦</span>
+                <span>{lang === "gu" ? "સ્ટોક એડજસ્ટ કરો" : "Adjust Stock"}</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onBarcode();
+              }}
+              className="w-full text-left px-3 py-2 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer font-medium transition-colors"
+            >
+              <span className="text-slate-500">🏷️</span>
+              <span>{lang === "gu" ? "બારકોડ સ્ટીકર" : "Barcode Sticker"}</span>
+            </button>
+          </div>
+          <div className="py-1">
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onDelete();
+              }}
+              className="w-full text-left px-3 py-2 hover:bg-rose-50 text-rose-600 flex items-center gap-2 cursor-pointer font-medium transition-colors"
+            >
+              <span>🗑️</span>
+              <span>{lang === "gu" ? "કાઢી નાખો" : "Delete"}</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 export default function ItemsPage() {
   const { lang, tenantContext, currentCompany } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [parties, setParties] = useState<PartyOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
-  const [statusFilter, setStatusFilter] = useState<string>("ACTIVE"); // default to ACTIVE so inactive items do NOT clutter view
+  const [statusFilter, setStatusFilter] = useState<string>("ACTIVE");
+  const [showPromoBanner, setShowPromoBanner] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
+  const [lowStockOnly, setLowStockOnly] = useState(false);
+  const [isBulkMenuOpen, setIsBulkMenuOpen] = useState(false);
 
-  // Create / Edit Step Modal State
+  // Modals & Action States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
+  const [adjustStockItem, setAdjustStockItem] = useState<Item | null>(null);
   const [barcodeModalItem, setBarcodeModalItem] = useState<Item | null>(null);
+  const [activeActionMenu, setActiveActionMenu] = useState<{ id: string; openUp: boolean } | null>(null);
 
   // Multi-Selection State
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -92,6 +230,20 @@ export default function ItemsPage() {
   // Success Notification
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // Close row action dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('[data-action-menu="true"]')) {
+        return;
+      }
+      setActiveActionMenu(null);
+      setIsBulkMenuOpen(false);
+    };
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, []);
+
   useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => {
@@ -101,13 +253,11 @@ export default function ItemsPage() {
     }
   }, [successMessage]);
 
-
-
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const [itemsRes, unitsRes, catsRes, whRes]: any = await Promise.all([
+      const [itemsRes, unitsRes, catsRes, whRes, partiesRes]: any = await Promise.all([
         apiClient.get("/items", {
           search: searchTerm || undefined,
           type: typeFilter !== "ALL" ? typeFilter : undefined,
@@ -115,12 +265,14 @@ export default function ItemsPage() {
         apiClient.get("/units"),
         apiClient.get("/categories"),
         apiClient.get("/warehouses").catch(() => []),
+        apiClient.get("/parties").catch(() => []),
       ]);
 
       setItems(extractList(itemsRes));
       setUnits(extractList(unitsRes));
       setCategories(extractList(catsRes));
       setWarehouses(extractList(whRes));
+      setParties(extractList(partiesRes));
     } catch (err: any) {
       setError(err.message || "Failed to load item catalog.");
     } finally {
@@ -144,7 +296,7 @@ export default function ItemsPage() {
       uomId = units[0].id;
     }
 
-    await apiClient.post("/items", {
+    const createdRes: any = await apiClient.post("/items", {
       type: data.type,
       name: data.name.trim(),
       nameGujarati: data.nameGujarati?.trim() || undefined,
@@ -160,7 +312,7 @@ export default function ItemsPage() {
       mrp: Number(data.mrp) || Number(data.retailPrice) || 0,
       purchaseRate: Number(data.purchaseRate) || 0,
       wholesalePrice: data.wholesalePrice ? Number(data.wholesalePrice) : undefined,
-      minStockLevel: Number(data.minStockLevel) || 0,
+      minStockLevel: data.enableLowStockWarning ? (Number(data.minStockLevel) || 0) : 0,
       openingStock: data.type === "PRODUCT" ? Number(data.openingStock) || 0 : 0,
       openingStockDate: data.asOfDate || undefined,
       warehouseId: data.warehouseId || undefined,
@@ -180,11 +332,16 @@ export default function ItemsPage() {
       trackSerialNo: Boolean(data.trackSerialNo),
     });
 
+    const createdItem = createdRes?.data || createdRes;
+    if (createdItem?.id && data.partyWisePrices && data.partyWisePrices.length > 0) {
+      setItemPartyPrices(createdItem.id, data.partyWisePrices, data.name);
+    }
+
     setIsModalOpen(false);
     setSuccessMessage(
       lang === "gu"
-        ? "આઇટમ અને બારકોડ સફળતાપૂર્વક સાચવવામાં આવી છે!"
-        : "Item created successfully with barcode!"
+        ? "આઇટમ સફળતાપૂર્વક સાચવવામાં આવી છે!"
+        : "Item created successfully!"
     );
     await fetchData();
   };
@@ -196,7 +353,10 @@ export default function ItemsPage() {
 
   const editInitialData = useMemo<Partial<ItemFormData> | undefined>(() => {
     if (!editingItem) return undefined;
+    const defaultWh =
+      warehouses.find((w) => w.isDefault)?.id || warehouses[0]?.id || "";
     return {
+      id: editingItem.id,
       type: editingItem.type,
       name: editingItem.name,
       nameGujarati: editingItem.nameGujarati || "",
@@ -213,12 +373,20 @@ export default function ItemsPage() {
       mrp: Number(editingItem.mrp ?? editingItem.retailPrice ?? ""),
       purchaseRate: Number(editingItem.purchaseRate ?? ""),
       wholesalePrice: Number(editingItem.wholesalePrice ?? "") || "",
+      openingStock:
+        editingItem.currentStock !== undefined
+          ? Number(editingItem.currentStock)
+          : 0,
+      asOfDate: new Date().toISOString().split("T")[0],
+      warehouseId: defaultWh,
       minStockLevel: Number(editingItem.minStockLevel ?? 10),
+      enableLowStockWarning: Number(editingItem.minStockLevel || 0) > 0,
       trackBatches: Boolean(editingItem.trackBatches),
       trackSerialNo: Boolean(editingItem.trackSerialNo),
       isActive: editingItem.isActive !== false,
+      partyWisePrices: getItemPartyPrices(editingItem.id),
     };
-  }, [editingItem, units]);
+  }, [editingItem, units, warehouses]);
 
   const handleUpdateItemStep = async (data: ItemFormData) => {
     if (!editingItem) return;
@@ -239,18 +407,28 @@ export default function ItemsPage() {
       mrp: Number(data.mrp) || Number(data.retailPrice) || 0,
       purchaseRate: Number(data.purchaseRate) || 0,
       wholesalePrice: data.wholesalePrice ? Number(data.wholesalePrice) : undefined,
-      minStockLevel: Number(data.minStockLevel) || 0,
+      openingStock:
+        data.openingStock !== undefined && data.openingStock !== ""
+          ? Number(data.openingStock)
+          : undefined,
+      openingStockDate: data.asOfDate || undefined,
+      warehouseId: data.warehouseId || undefined,
+      minStockLevel: data.enableLowStockWarning ? (Number(data.minStockLevel) || 0) : 0,
       trackBatches: data.type === "PRODUCT" ? Boolean(data.trackBatches) : false,
       trackSerialNo: Boolean(data.trackSerialNo),
       isActive: Boolean(data.isActive),
     });
 
+    if (data.partyWisePrices) {
+      setItemPartyPrices(editingItem.id, data.partyWisePrices, editingItem.name);
+    }
+
     setIsEditModalOpen(false);
     setEditingItem(null);
     setSuccessMessage(
       lang === "gu"
-        ? "આઇટમ સફળતાપૂર્વક સુધારવામાં આવી છે!"
-        : "Item updated successfully!"
+        ? "આઇટમ અને સ્ટોક સફળતાપૂર્વક સુધારવામાં આવી છે!"
+        : "Item and stock updated successfully!"
     );
     await fetchData();
   };
@@ -275,15 +453,13 @@ export default function ItemsPage() {
     try {
       const shouldForce = forceDelete || itemToDelete.isActive === false;
       const res: any = await apiClient.delete(
-        `/items/${itemToDelete.id}${shouldForce ? "?force=true" : ""}`
+        `/items/${itemToDelete.id}?force=${shouldForce ? "true" : "false"}`
       );
-      const deletedId = itemToDelete.id;
 
-      // Immediately remove from local state so UI updates instantly
-      setItems((prev) => prev.filter((it) => it.id !== deletedId));
+      setItems((prev) => prev.filter((it) => it.id !== itemToDelete.id));
       setSelectedIds((prev) => {
         const next = new Set(prev);
-        next.delete(deletedId);
+        next.delete(itemToDelete.id);
         return next;
       });
 
@@ -292,14 +468,12 @@ export default function ItemsPage() {
           ? res.messageGujarati
           : res?.message ||
             (lang === "gu"
-              ? "વસ્તુ સફળતાપૂર્વક કાઢી નાખવામાં આવી છે."
+              ? "આઇટમ સફળતાપૂર્વક કાઢી નાખવામાં આવી."
               : "Item deleted successfully.");
 
       setSuccessMessage(msg);
       setItemToDelete(null);
       setForceDelete(false);
-
-      // Refresh catalog in background
       await fetchData();
     } catch (err: any) {
       setDeleteError(
@@ -350,14 +524,41 @@ export default function ItemsPage() {
     }
   };
 
+  const totalStockValue = useMemo(() => {
+    return items.reduce((acc, it) => {
+      if (it.type !== "PRODUCT") return acc;
+      const qty = Number(it.currentStock || 0);
+      const rate = Number(it.purchaseRate || it.retailPrice || 0);
+      return acc + (qty * rate);
+    }, 0);
+  }, [items]);
+
+  const lowStockCount = useMemo(() => {
+    return items.filter(
+      (it) =>
+        it.type === "PRODUCT" &&
+        Number(it.minStockLevel || 0) > 0 &&
+        Number(it.currentStock || 0) <= Number(it.minStockLevel || 0)
+    ).length;
+  }, [items]);
+
   const displayItems = useMemo(() => {
     return items.filter((it) => {
       if (typeFilter !== "ALL" && it.type !== typeFilter) return false;
       if (statusFilter === "ACTIVE" && !it.isActive) return false;
       if (statusFilter === "INACTIVE" && it.isActive) return false;
+      if (categoryFilter !== "ALL" && it.categoryId !== categoryFilter) return false;
+      if (
+        lowStockOnly &&
+        (it.type !== "PRODUCT" ||
+          Number(it.minStockLevel || 0) === 0 ||
+          Number(it.currentStock || 0) > Number(it.minStockLevel || 0))
+      ) {
+        return false;
+      }
       return true;
     });
-  }, [items, typeFilter, statusFilter]);
+  }, [items, typeFilter, statusFilter, categoryFilter, lowStockOnly]);
 
   const handleToggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -382,8 +583,7 @@ export default function ItemsPage() {
   const isAllSelected =
     displayItems.length > 0 &&
     displayItems.every((it) => selectedIds.has(it.id));
-  const isSomeSelected =
-    selectedIds.size > 0 && !isAllSelected;
+  const isSomeSelected = selectedIds.size > 0 && !isAllSelected;
 
   const itemColumns = useMemo<ColumnDef<Item>[]>(
     () => [
@@ -398,7 +598,7 @@ export default function ItemsPage() {
                 if (el) el.indeterminate = isSomeSelected;
               }}
               onChange={(e) => handleSelectAll(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-300 text-[#F47721] focus:ring-[#F47721] cursor-pointer"
+              className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
               title={lang === "gu" ? "બધા પસંદ કરો" : "Select All"}
             />
           </div>
@@ -413,7 +613,7 @@ export default function ItemsPage() {
               type="checkbox"
               checked={selectedIds.has(it.id)}
               onChange={() => handleToggleSelect(it.id)}
-              className="w-4 h-4 rounded border-slate-300 text-[#F47721] focus:ring-[#F47721] cursor-pointer"
+              className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
             />
           </div>
         ),
@@ -424,8 +624,13 @@ export default function ItemsPage() {
         accessorKey: "name",
         sortable: true,
         cell: (it) => (
-          <div className="font-semibold text-slate-900">
-            <div>{it.name}</div>
+          <div
+            className="cursor-pointer group py-1"
+            onClick={() => handleOpenEditModal(it)}
+          >
+            <div className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">
+              {it.name}
+            </div>
             {it.nameGujarati && (
               <div className="text-[11px] font-normal text-slate-500">
                 {it.nameGujarati}
@@ -435,205 +640,176 @@ export default function ItemsPage() {
         ),
       },
       {
-        id: "type",
-        header: lang === "gu" ? "પ્રકાર" : "Type",
-        accessorKey: "type",
-        sortable: true,
-        cell: (it) => (
-          <Badge variant={it.type === "PRODUCT" ? "info" : "purple"}>
-            {it.type}
-          </Badge>
-        ),
-      },
-      {
         id: "sku",
-        header: lang === "gu" ? "એસકેયુ / બારકોડ" : "SKU / Barcode",
-        accessorFn: (it) => it.barcode || it.sku || "—",
+        header: lang === "gu" ? "આઇટમ કોડ" : "Item Code",
+        accessorFn: (it) => it.sku || it.barcode || "-",
         sortable: true,
         className: "font-mono text-slate-600",
         cell: (it) => {
-          const code = it.barcode || it.sku;
-          if (!code) return <span className="text-slate-400">—</span>;
+          const code = it.sku || it.barcode;
+          if (!code) return <span className="text-slate-400">-</span>;
+          return <span className="font-mono text-xs text-slate-700">{code}</span>;
+        },
+      },
+      {
+        id: "stock",
+        header: lang === "gu" ? "સ્ટોક જથ્થો" : "Stock QTY",
+        sortable: true,
+        accessorFn: (it) => (it.type === "PRODUCT" ? Number(it.currentStock || 0) : -1),
+        cell: (it) => {
+          if (it.type === "SERVICE") {
+            return <span className="text-slate-400 font-mono">-</span>;
+          }
+          const stock = Number(it.currentStock || 0);
+          const min = Number(it.minStockLevel || 0);
+          const uom = (
+            it.primaryUom?.code ||
+            it.primaryUom?.symbol ||
+            "PCS"
+          ).toUpperCase();
+          const isLow = min > 0 && stock <= min;
+
           return (
-            <div className="inline-flex items-center gap-1.5">
-              <span className="font-mono text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                {code}
-              </span>
-              <button
-                type="button"
-                id={`barcode-btn-${it.id}`}
-                onClick={() => setBarcodeModalItem(it)}
-                className="p-1 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded transition-colors cursor-pointer text-xs"
-                title={lang === "gu" ? "બારકોડ સ્ટીકર જુઓ / પ્રિન્ટ કરો" : "View / Print Barcode Sticker"}
+            <div className="inline-flex items-center gap-1.5 font-medium text-xs">
+              <span
+                className={`font-mono ${
+                  isLow ? "text-amber-600 font-bold" : "text-slate-800 font-semibold"
+                }`}
               >
-                🏷️
-              </button>
+                {stock} {uom}
+              </span>
+              {isLow && (
+                <span
+                  className="text-[10px] text-amber-500 font-bold"
+                  title={`Low stock alert (Min: ${min} ${uom})`}
+                >
+                  ⚠️
+                </span>
+              )}
             </div>
           );
         },
       },
       {
-        id: "hsnCode",
-        header: lang === "gu" ? "એચએસએન (HSN/SAC)" : "HSN/SAC",
-        accessorKey: "hsnCode",
+        id: "retailPrice",
+        header: lang === "gu" ? "વેચાણ ભાવ" : "Selling Price",
+        accessorKey: "retailPrice",
         sortable: true,
-        className: "font-mono font-medium text-slate-800",
-      },
-      {
-        id: "batches",
-        header: lang === "gu" ? "બેચ ટ્રેકિંગ" : "Batches",
-        cell: (it) =>
-          it.type === "PRODUCT" ? (
-            it.trackBatches ? (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                ✓ {lang === "gu" ? "સક્રિય" : "Enabled"}
-              </span>
-            ) : (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-500">
-                ✕ {lang === "gu" ? "નિષ્ક્રિય" : "Off"}
-              </span>
-            )
-          ) : (
-            <span className="text-[11px] text-slate-400 italic">N/A</span>
-          ),
-      },
-      {
-        id: "stock",
-        header: lang === "gu" ? "સ્ટોક જથ્થો" : "Stock Qty",
-        sortable: true,
-        accessorFn: (it) => (it.type === "PRODUCT" ? Number(it.currentStock || 0) : -1),
-        className: "text-center",
         cell: (it) => {
-          if (it.type === "SERVICE") {
-            return <span className="text-slate-400 text-xs font-mono">—</span>;
-          }
-          const stock = Number(it.currentStock || 0);
-          const min = Number(it.minStockLevel || 0);
-          const uom = it.primaryUom?.code || it.primaryUom?.symbol || "";
-          const isLow = stock <= min;
-
+          const price = Number(it.retailPrice);
+          if (!price) return <span className="text-slate-400">-</span>;
           return (
-            <span
-              className={`inline-flex items-center gap-1 font-mono text-xs px-2.5 py-0.5 rounded-full font-bold border ${
-                isLow
-                  ? "bg-amber-50 text-amber-700 border-amber-300"
-                  : "bg-emerald-50 text-emerald-800 border-emerald-200"
-              }`}
-              title={isLow ? `Low stock alert! (Min level: ${min})` : `In stock`}
-            >
-              {isLow && <span className="text-[10px]">⚠️</span>}
-              {stock} {uom}
+            <span className="font-mono text-xs font-semibold text-slate-800">
+              ₹ {price.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
             </span>
           );
         },
       },
       {
-        id: "taxRate",
-        header: lang === "gu" ? "જીએસટી દર" : "GST Rate",
-        accessorKey: "taxRate",
-        sortable: true,
-        cell: (it) => (
-          <span className="inline-block bg-slate-100 font-mono font-semibold px-2 py-0.5 rounded text-slate-700">
-            {it.taxRate}%
-          </span>
-        ),
-      },
-      {
-        id: "retailPrice",
-        header: lang === "gu" ? "વેચાણ ભાવ (₹)" : "Retail Price (₹)",
-        accessorKey: "retailPrice",
-        sortable: true,
-        className: "text-right font-mono font-bold text-slate-900",
-        cell: (it) => `₹${Number(it.retailPrice).toFixed(2)}`,
-      },
-      {
         id: "purchaseRate",
-        header: lang === "gu" ? "ખરીદ ભાવ (₹)" : "Purchase Rate (₹)",
+        header: lang === "gu" ? "ખરીદ ભાવ" : "Purchase Price",
         accessorKey: "purchaseRate",
         sortable: true,
-        className: "text-right font-mono text-slate-600",
-        cell: (it) => `₹${Number(it.purchaseRate || 0).toFixed(2)}`,
-      },
-      {
-        id: "status",
-        header: lang === "gu" ? "સ્થિતિ" : "Status",
-        accessorKey: "isActive",
-        sortable: true,
-        cell: (it) => <StatusBadge status={it.isActive ? "ACTIVE" : "INACTIVE"} />,
+        cell: (it) => {
+          const price = Number(it.purchaseRate);
+          if (!price) return <span className="text-slate-400">-</span>;
+          return (
+            <span className="font-mono text-xs font-semibold text-slate-800">
+              ₹ {price.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+            </span>
+          );
+        },
       },
       {
         id: "actions",
-        header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
-        className: "text-center",
-        cell: (it) => (
-          <div className="inline-flex items-center justify-center gap-1.5">
-            <button
-              onClick={() => handleOpenEditModal(it)}
-              className="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded transition-colors inline-flex items-center gap-1 cursor-pointer"
-              title="Edit Item"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-              </svg>
-              <span>{lang === "gu" ? "સુધારો" : "Edit"}</span>
-            </button>
-            <button
-              onClick={() => setItemToDelete(it)}
-              className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded transition-colors inline-flex items-center gap-1 cursor-pointer"
-              title="Delete Item"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              <span>{lang === "gu" ? "કાઢી નાખો" : "Delete"}</span>
-            </button>
-          </div>
-        ),
+        header: "",
+        className: "w-12 text-center",
+        cell: (it) => {
+          const isOpen = activeActionMenu?.id === it.id;
+          const openUpward = Boolean(isOpen && activeActionMenu?.openUp);
+          return (
+            <ItemActionMenu
+              item={it}
+              isOpen={isOpen}
+              openUpward={openUpward}
+              onToggle={(shouldOpenUp) =>
+                setActiveActionMenu(
+                  isOpen ? null : { id: it.id, openUp: shouldOpenUp }
+                )
+              }
+              onClose={() => setActiveActionMenu(null)}
+              lang={lang}
+              onEdit={() => handleOpenEditModal(it)}
+              onAdjustStock={() => setAdjustStockItem(it)}
+              onBarcode={() => setBarcodeModalItem(it)}
+              onDelete={() => setItemToDelete(it)}
+            />
+          );
+        },
       },
     ],
-    [lang, selectedIds, isAllSelected, isSomeSelected]
+    [
+      lang,
+      selectedIds,
+      isAllSelected,
+      isSomeSelected,
+      activeActionMenu,
+    ]
   );
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle">
-        <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl lg:text-[1.75rem] font-bold text-[#202124] tracking-tight leading-tight">
-            {lang === "gu"
-              ? "વસ્તુઓની યાદી (Item Catalog)"
-              : "Products & Item Catalog"}
-          </h1>
-          <p className="text-xs sm:text-sm text-[#667085] mt-1 leading-relaxed break-words font-normal">
-            {lang === "gu"
-              ? "તમામ ઉત્પાદનો, સેવાઓ, બેચ ટ્રેકિંગ, એચએસએન કોડ અને જીએસટી દરોનું સંચાલન"
-              : "Manage products, services, batch tracking, HSN/SAC codes, tax rates, and prices"}
-          </p>
-        </div>
+    <div className="space-y-4">
+      {/* ============================================================ */}
+      {/* 1. TOP HEADER BAR matching MyBillBook                         */}
+      {/* ============================================================ */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+          {lang === "gu" ? "વસ્તુઓ (Items)" : "Items"}
+        </h1>
 
-        <button
-          onClick={handleOpenCreateModal}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F47721] hover:bg-[#D95F12] active:bg-[#B94B0A] text-white text-xs sm:text-sm font-bold rounded-xl shadow-saffron transition-all w-full sm:w-auto shrink-0"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowPromoBanner(!showPromoBanner)}
+            className="px-3 py-1.5 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2.5}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          <span>{lang === "gu" ? "નવી વસ્તુ ઉમેરો" : "Add New Item"}</span>
-        </button>
+            <span>🚫</span>
+            <span>{lang === "gu" ? "ઑફર્સ મેનેજ કરો" : "Manage Offer"}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => alert("Items Reports: Stock Summary, Item Sales, Low Stock Report")}
+            className="px-3 py-1.5 border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <span>📊</span>
+            <span>{lang === "gu" ? "રિપોર્ટ્સ" : "Reports"}</span>
+            <span className="text-[10px]">▼</span>
+          </button>
+          <button
+            type="button"
+            className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200 cursor-pointer"
+            title="Settings"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200 cursor-pointer"
+            title="Full view"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+            </svg>
+          </button>
+        </div>
       </div>
 
+      {/* Success Banner */}
       {successMessage && (
-        <div className="flex items-center justify-between p-4 bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-medium rounded-xl shadow-sm">
+        <div className="flex items-center justify-between p-3.5 bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-medium rounded-xl shadow-xs">
           <div className="flex items-center gap-2">
             <span className="text-emerald-600 font-bold text-base">✓</span>
             <span>{successMessage}</span>
@@ -647,65 +823,98 @@ export default function ItemsPage() {
         </div>
       )}
 
+      {/* Error Banner */}
       {error && (
-        <div className="p-4 bg-rose-50 border border-rose-100 text-xs text-rose-700 font-medium rounded-xl">
+        <div className="p-3.5 bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium rounded-xl">
           {error}
         </div>
       )}
 
-      {/* Bulk Actions Floating Bar */}
-      {selectedIds.size > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 sm:p-4 bg-amber-50/95 border border-amber-200 text-amber-950 rounded-2xl shadow-sm animate-fadeIn">
-          <div className="flex items-center gap-2.5">
-            <span className="w-6 h-6 rounded-full bg-amber-500 text-white font-bold text-xs flex items-center justify-center shadow-xs">
-              {selectedIds.size}
-            </span>
-            <span className="text-xs sm:text-sm font-semibold">
-              {lang === "gu"
-                ? `${selectedIds.size} વસ્તુઓ પસંદ કરેલ છે`
-                : `${selectedIds.size} item${selectedIds.size > 1 ? "s" : ""} selected`}
-            </span>
+      {/* Promo Offer Banner */}
+      {showPromoBanner && (
+        <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border border-orange-200 rounded-xl p-4 flex items-center justify-between gap-4 shadow-xs">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🎁</span>
+            <div>
+              <p className="font-bold text-slate-900 text-xs sm:text-sm">
+                {lang === "gu" ? "તમારા માલ પર ઑફર્સ અને ડિસ્કાઉન્ટ સ્કીમ શરૂ કરો" : "Launch Offers on Your Items"}
+              </p>
+              <p className="text-[11px] sm:text-xs text-slate-600">
+                {lang === "gu" ? "ગ્રાહકોને આકર્ષવા માટે જથ્થાબંધ ડિસ્કાઉન્ટ અને સ્કીમ ભાવ સેટ કરો" : "Boost sales with volume discounts, seasonal prices and wholesale customer rates"}
+              </p>
+            </div>
           </div>
-
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
-              type="button"
-              onClick={() => setSelectedIds(new Set())}
-              className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/70 rounded-xl transition-colors cursor-pointer"
+              onClick={() => handleOpenCreateModal()}
+              className="px-3.5 py-1.5 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-lg border border-slate-200 shadow-2xs transition-all cursor-pointer"
             >
-              {lang === "gu" ? "પસંદગી રદ કરો" : "Deselect All"}
+              Create Offer Now
             </button>
             <button
-              type="button"
-              onClick={() => {
-                setDeleteError(null);
-                setBulkForceDelete(false);
-                setIsBulkDeleteModalOpen(true);
-              }}
-              className="px-4 py-1.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 rounded-xl shadow-sm inline-flex items-center gap-1.5 transition-all cursor-pointer"
+              onClick={() => setShowPromoBanner(false)}
+              className="text-slate-400 hover:text-slate-600 p-1 text-sm rounded-lg cursor-pointer"
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              <span>
-                {lang === "gu"
-                  ? `પસંદ કરેલ કાઢી નાખો (${selectedIds.size})`
-                  : `Delete Selected (${selectedIds.size})`}
-              </span>
+              ✕
             </button>
           </div>
         </div>
       )}
 
-      {/* Items Catalog DataTable */}
+      {/* ============================================================ */}
+      {/* 2. TOP STOCK KPI CARDS matching MyBillBook                   */}
+      {/* ============================================================ */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Stock Value Card */}
+        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-1.5 text-xs font-medium text-slate-600">
+              <svg className="w-4 h-4 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+              <span>{lang === "gu" ? "સ્ટોક કિંમત" : "Stock Value"}</span>
+              <span className="cursor-help text-slate-400" title="Total stock valuation based on purchase rates">ⓘ</span>
+            </div>
+            <p className="text-2xl font-mono font-bold text-slate-900 mt-2">
+              ₹ {totalStockValue.toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
+            </p>
+          </div>
+          <span className="p-1 text-slate-400 hover:text-slate-600 rounded cursor-pointer text-sm">↗</span>
+        </div>
+
+        {/* Low Stock Card */}
+        <div
+          onClick={() => setLowStockOnly(!lowStockOnly)}
+          className={`p-5 rounded-xl border shadow-xs flex items-center justify-between cursor-pointer transition-all ${
+            lowStockOnly
+              ? "bg-amber-50/60 border-amber-300 ring-2 ring-amber-400/40"
+              : "bg-white border-slate-200 hover:border-slate-300"
+          }`}
+        >
+          <div>
+            <div className="flex items-center gap-1.5 text-xs font-medium text-amber-700">
+              <span className="text-amber-500">📦</span>
+              <span>{lang === "gu" ? "ઓછો સ્ટોક (Low Stock)" : "Low Stock"}</span>
+            </div>
+            <p className={`text-2xl font-mono font-bold mt-2 ${lowStockCount > 0 ? "text-amber-600" : "text-slate-900"}`}>
+              {lowStockCount}
+            </p>
+          </div>
+          <span className="p-1 text-slate-400 hover:text-slate-600 rounded cursor-pointer text-sm">↗</span>
+        </div>
+      </div>
+
+      {/* ============================================================ */}
+      {/* 3. ITEMS CATALOG DATA TABLE matching MyBillBook UI           */}
+      {/* ============================================================ */}
       <DataTable<Item>
         data={displayItems}
         columns={itemColumns}
         keyExtractor={(it) => it.id}
         searchPlaceholder={
           lang === "gu"
-            ? "વસ્તુનું નામ, એસકેયુ અથવા એચએસએન કોડ દ્વારા શોધો..."
-            : "Search by item name, SKU, or HSN code..."
+            ? "સીરીયલ નંબર અથવા નામ દ્વારા શોધો..."
+            : "Search by Serial No."
         }
         searchKeys={["name", "sku", "barcode", "hsnCode"]}
         customSearchFn={(it, q) =>
@@ -719,72 +928,145 @@ export default function ItemsPage() {
         }
         isLoading={isLoading}
         lang={lang}
-        themeColor="saffron"
+        themeColor="purple"
         exportable
         exportFileName="items_catalog"
         filtersSlot={
           <div className="flex items-center gap-2 flex-wrap">
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="text-xs bg-[#F8F9FB] border border-[#E5E7EB] text-[#202124] rounded-xl px-3 py-1.5 font-semibold focus:outline-none focus:bg-white cursor-pointer"
+            {/* Category Dropdown */}
+            <div className="relative">
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="text-xs bg-white border border-slate-300 text-slate-700 rounded-lg px-3 py-1.5 font-medium focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer appearance-none pr-6 shadow-2xs"
+              >
+                <option value="ALL">Search Categories</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none text-slate-400 text-[10px]">
+                ▼
+              </div>
+            </div>
+
+            {/* Low Stock Toggle Pill */}
+            <button
+              type="button"
+              onClick={() => setLowStockOnly(!lowStockOnly)}
+              className={`text-xs px-3 py-1.5 rounded-lg border font-medium flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs ${
+                lowStockOnly
+                  ? "bg-amber-100 text-amber-900 border-amber-300 font-bold"
+                  : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50"
+              }`}
             >
-              <option value="ALL">
-                {lang === "gu" ? "તમામ પ્રકાર (All Types)" : "All Types"}
-              </option>
-              <option value="PRODUCT">
-                {lang === "gu" ? "ઉત્પાદન (Product)" : "Products"}
-              </option>
-              <option value="SERVICE">
-                {lang === "gu" ? "સેવા (Service)" : "Services"}
-              </option>
-            </select>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="text-xs bg-[#F8F9FB] border border-[#E5E7EB] text-[#202124] rounded-xl px-3 py-1.5 font-semibold focus:outline-none focus:bg-white cursor-pointer"
+              <span>📦</span>
+              <span>Low Stock</span>
+            </button>
+          </div>
+        }
+        actionsSlot={
+          <div className="flex items-center gap-2">
+            {/* Bulk Actions Dropdown */}
+            <div className="relative" onClick={(e) => e.stopPropagation()}>
+              <button
+                type="button"
+                onClick={() => setIsBulkMenuOpen(!isBulkMenuOpen)}
+                className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+              >
+                <span>🗂️</span>
+                <span>Bulk Actions</span>
+                <span className="text-[10px]">▼</span>
+              </button>
+              {isBulkMenuOpen && (
+                <div className="absolute right-0 mt-1 w-48 bg-white border border-slate-200 rounded-xl shadow-lg z-30 py-1 text-xs divide-y divide-slate-100">
+                  <div className="py-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsBulkMenuOpen(false);
+                        handleSelectAll(true);
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer font-medium"
+                    >
+                      <span>✓</span> Select All Items
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsBulkMenuOpen(false);
+                        handleSelectAll(false);
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer font-medium"
+                    >
+                      <span>✕</span> Deselect All
+                    </button>
+                  </div>
+                  <div className="py-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsBulkMenuOpen(false);
+                        if (selectedIds.size === 0) {
+                          alert(lang === "gu" ? "કૃપા કરીને પહેલાં વસ્તુઓ પસંદ કરો" : "Please select items first");
+                          return;
+                        }
+                        setIsBulkDeleteModalOpen(true);
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-rose-50 text-rose-600 flex items-center gap-2 cursor-pointer font-medium"
+                    >
+                      <span>🗑️</span> Delete Selected ({selectedIds.size})
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Create Item Button */}
+            <button
+              onClick={handleOpenCreateModal}
+              className="px-4 py-1.5 bg-[#5c56df] hover:bg-[#4d47d4] text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
             >
-              <option value="ALL">
-                {lang === "gu" ? "તમામ સ્થિતિ (All Statuses)" : "All Statuses"}
-              </option>
-              <option value="ACTIVE">
-                {lang === "gu" ? "સક્રિય (Active Only)" : "Active Only"}
-              </option>
-              <option value="INACTIVE">
-                {lang === "gu" ? "નિષ્ક્રિય / આર્કાઇવ (Archived)" : "Inactive / Archived"}
-              </option>
-            </select>
+              <span>Create Item</span>
+            </button>
           </div>
         }
         mobileCardRender={(it) => (
-          <div key={it.id} className="p-3.5 hover:bg-slate-50 transition-colors space-y-2">
+          <div key={it.id} className="p-3.5 hover:bg-slate-50 transition-colors space-y-2 border-b border-slate-100 last:border-b-0">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2.5 min-w-0">
                 <input
                   type="checkbox"
                   checked={selectedIds.has(it.id)}
                   onChange={() => handleToggleSelect(it.id)}
-                  className="w-4 h-4 rounded border-slate-300 text-[#F47721] focus:ring-[#F47721] cursor-pointer shrink-0"
+                  className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0 accent-indigo-600"
                 />
-                <span className="font-semibold text-slate-900 text-sm truncate">{it.name}</span>
+                <span
+                  onClick={() => handleOpenEditModal(it)}
+                  className="font-semibold text-slate-900 text-sm truncate cursor-pointer hover:text-indigo-600"
+                >
+                  {it.name}
+                </span>
               </div>
               <Badge variant={it.type === "PRODUCT" ? "info" : "purple"}>{it.type}</Badge>
             </div>
             {it.nameGujarati && <p className="text-xs text-slate-500">{it.nameGujarati}</p>}
             <div className="flex items-center justify-between text-xs text-slate-600 font-mono">
-              <span>SKU: {it.sku || it.barcode || "—"}</span>
+              <span>Code: {it.sku || it.barcode || "—"}</span>
               <span>HSN: {it.hsnCode}</span>
             </div>
-            <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 grid grid-cols-3 gap-2 text-xs">
+            <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 grid grid-cols-2 gap-2 text-xs">
               <div>
                 <span className="text-[10px] text-slate-500 uppercase block">
-                  {lang === "gu" ? "વેચાણ ભાવ" : "Retail Price"}
+                  {lang === "gu" ? "વેચાણ ભાવ" : "Selling Price"}
                 </span>
                 <span className="font-mono font-bold text-slate-900">
-                  ₹{Number(it.retailPrice).toFixed(2)}
+                  ₹{Number(it.retailPrice).toLocaleString("en-IN")}
                 </span>
               </div>
-              <div className="text-center">
+              <div className="text-right">
                 <span className="text-[10px] text-slate-500 uppercase block">
                   {lang === "gu" ? "સ્ટોક" : "Stock"}
                 </span>
@@ -799,28 +1081,32 @@ export default function ItemsPage() {
                 >
                   {it.type === "SERVICE"
                     ? "—"
-                    : `${Number(it.currentStock || 0)} ${it.primaryUom?.code || it.primaryUom?.symbol || ""}`}
+                    : `${Number(it.currentStock || 0)} ${it.primaryUom?.code || it.primaryUom?.symbol || "PCS"}`}
                 </span>
-              </div>
-              <div className="text-right">
-                <span className="text-[10px] text-slate-500 uppercase block">
-                  {lang === "gu" ? "જીએસટી" : "Tax"}
-                </span>
-                <span className="font-mono font-semibold text-slate-700">{it.taxRate}%</span>
               </div>
             </div>
             <div className="flex items-center justify-end gap-2 pt-1">
+              {it.type === "PRODUCT" && (
+                <button
+                  type="button"
+                  onClick={() => setAdjustStockItem(it)}
+                  className="px-2.5 py-1 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg cursor-pointer flex items-center gap-1"
+                >
+                  <span>📦</span>
+                  <span>Adjust</span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => handleOpenEditModal(it)}
-                className="px-3 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg cursor-pointer"
+                className="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg cursor-pointer"
               >
                 {lang === "gu" ? "સુધારો" : "Edit"}
               </button>
               <button
                 type="button"
                 onClick={() => setItemToDelete(it)}
-                className="px-3 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg cursor-pointer"
+                className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg cursor-pointer"
               >
                 {lang === "gu" ? "કાઢી નાખો" : "Delete"}
               </button>
@@ -829,7 +1115,47 @@ export default function ItemsPage() {
         )}
       />
 
-      {/* Create Item Step Form Modal matching Screencast Video */}
+      {/* ============================================================ */}
+      {/* 4. BOTTOM MIGRATION & BULK UPLOAD BANNER                     */}
+      {/* ============================================================ */}
+      <div className="bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-slate-50 border border-blue-200/80 rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xs">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-xl shrink-0 shadow-xs">
+            📦
+          </div>
+          <div>
+            <h4 className="font-bold text-slate-900 text-sm">
+              {lang === "gu" ? "એક સાથે ઘણી વસ્તુઓ ઉમેરો (Bulk Upload)" : "Add Multiple items at once"}
+            </h4>
+            <p className="text-xs text-slate-600 mt-0.5">
+              {lang === "gu"
+                ? "પ્રોડક્ટ લાયબ્રેરી અથવા વ્યાપાર, ટેલી, માર્ગ અને બીઝી સોફ્ટવેર માંથી સીધો ડેટા ઇમ્પોર્ટ કરો"
+                : "Bulk Upload items from Product Library or Other Software like Vyapar, Tally, Marg & Busy"}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => alert("Product Library: 50,000+ FMCG, Grocery, Hardware & Pharmacy items ready to import!")}
+            className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold rounded-xl shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer"
+          >
+            <span>📚</span>
+            <span>Product Library</span>
+          </button>
+          <button
+            onClick={() => alert("Upload Excel: Select your file with Item Name, HSN, Tax Rate, and Stock.")}
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+          >
+            <span>📊</span>
+            <span>Upload Excel</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ============================================================ */}
+      {/* 5. CREATE ITEM STEP MODAL                                    */}
+      {/* ============================================================ */}
       <ItemStepModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -837,12 +1163,15 @@ export default function ItemsPage() {
         units={units}
         categories={categories}
         warehouses={warehouses}
+        parties={parties}
         companyName={currentCompany?.tradeName || currentCompany?.legalName || "MyBill History"}
         lang={lang}
         onAddCategory={handleAddNewCategory}
       />
 
-      {/* Edit Item Step Form Modal */}
+      {/* ============================================================ */}
+      {/* 6. EDIT ITEM STEP MODAL (Live Stock Sync)                    */}
+      {/* ============================================================ */}
       <ItemStepModal
         isOpen={isEditModalOpen}
         onClose={() => {
@@ -855,12 +1184,34 @@ export default function ItemsPage() {
         units={units}
         categories={categories}
         warehouses={warehouses}
+        parties={parties}
         companyName={currentCompany?.tradeName || currentCompany?.legalName || "MyBill History"}
         lang={lang}
         onAddCategory={handleAddNewCategory}
       />
 
-      {/* Barcode Sticker Preview Modal (from Table Row or Barcode action) */}
+      {/* ============================================================ */}
+      {/* 7. ADJUST STOCK MODAL matching MyBillBook                    */}
+      {/* ============================================================ */}
+      <AdjustStockModal
+        isOpen={!!adjustStockItem}
+        onClose={() => setAdjustStockItem(null)}
+        item={adjustStockItem}
+        warehouses={warehouses}
+        onSuccess={async () => {
+          await fetchData();
+          setSuccessMessage(
+            lang === "gu"
+              ? "સ્ટોક જથ્થો સફળતાપૂર્વક સુધારવામાં આવ્યો છે!"
+              : "Stock quantity adjusted successfully!"
+          );
+        }}
+        lang={lang}
+      />
+
+      {/* ============================================================ */}
+      {/* 8. BARCODE STICKER PREVIEW MODAL                             */}
+      {/* ============================================================ */}
       <ItemBarcodeModal
         isOpen={!!barcodeModalItem}
         onClose={() => setBarcodeModalItem(null)}
@@ -875,7 +1226,9 @@ export default function ItemsPage() {
         lang={lang}
       />
 
-      {/* Delete Item Confirmation Modal */}
+      {/* ============================================================ */}
+      {/* 9. DELETE ITEM CONFIRMATION MODAL                            */}
+      {/* ============================================================ */}
       <Modal
         isOpen={!!itemToDelete}
         onClose={() => {
@@ -984,7 +1337,9 @@ export default function ItemsPage() {
         </div>
       </Modal>
 
-      {/* Bulk Delete Confirmation Modal */}
+      {/* ============================================================ */}
+      {/* 10. BULK DELETE CONFIRMATION MODAL                           */}
+      {/* ============================================================ */}
       <Modal
         isOpen={isBulkDeleteModalOpen}
         onClose={() => {

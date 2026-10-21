@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { HsnSelector } from "../../../../components/ui/hsn-selector";
 import { ItemBarcodeModal } from "./item-barcode-modal";
+import { apiClient, extractList } from "../../../../lib/api-client";
+import { PartyWisePriceRule, setItemPartyPrices } from "../../../../lib/party-item-pricing";
 
-export type ItemTab = "basic" | "stock" | "pricing" | "custom";
+export type ItemTab = "basic" | "stock" | "pricing" | "party_pricing" | "custom";
 
 export interface UnitOption {
   id: string;
@@ -24,7 +26,15 @@ export interface WarehouseOption {
   isDefault?: boolean;
 }
 
+export interface PartyOption {
+  id: string;
+  name: string;
+  phone?: string;
+  type?: string;
+}
+
 export interface ItemFormData {
+  id?: string;
   type: "PRODUCT" | "SERVICE";
   name: string;
   nameGujarati: string;
@@ -60,6 +70,7 @@ export interface ItemFormData {
   sizeColor?: string;
   description?: string;
   isActive: boolean;
+  partyWisePrices?: PartyWisePriceRule[];
 }
 
 interface ItemStepModalProps {
@@ -74,6 +85,7 @@ interface ItemStepModalProps {
   companyName?: string;
   lang?: "en" | "gu";
   onAddCategory?: (name: string) => Promise<CategoryOption | null>;
+  parties?: PartyOption[];
 }
 
 export function ItemStepModal({
@@ -88,6 +100,7 @@ export function ItemStepModal({
   companyName = "MyBill History",
   lang = "en",
   onAddCategory,
+  parties,
 }: ItemStepModalProps) {
   const [activeTab, setActiveTab] = useState<ItemTab>("basic");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -100,6 +113,27 @@ export function ItemStepModal({
   // New Category inline creation state
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [newCatName, setNewCatName] = useState("");
+
+  // Party Wise Pricing state
+  const [partiesList, setPartiesList] = useState<PartyOption[]>(parties || []);
+  const [selectedPartyId, setSelectedPartyId] = useState("");
+  const [partyPriceInput, setPartyPriceInput] = useState("");
+  const [isPartyPriceWithTax, setIsPartyPriceWithTax] = useState(true);
+
+  // Load parties if not supplied
+  useEffect(() => {
+    if (parties && parties.length > 0) {
+      setPartiesList(parties);
+    } else if (isOpen) {
+      apiClient
+        .get("/parties", { type: "CUSTOMER" })
+        .then((res: any) => {
+          const list = extractList(res);
+          setPartiesList(list);
+        })
+        .catch(() => {});
+    }
+  }, [parties, isOpen]);
 
   const defaultWh = warehouses.find((w) => w.isDefault)?.id || warehouses[0]?.id || "";
   const defaultUom = units[0]?.id || "";
@@ -144,6 +178,7 @@ export function ItemStepModal({
     sizeColor: "",
     description: "",
     isActive: true,
+    partyWisePrices: [],
   });
 
   useEffect(() => {
@@ -185,6 +220,7 @@ export function ItemStepModal({
           sizeColor: initialData.sizeColor || "",
           description: initialData.description || "",
           isActive: initialData.isActive ?? true,
+          partyWisePrices: initialData.partyWisePrices || [],
         });
         if (initialData.secondaryUomId) {
           setShowAlternativeUnit(true);
@@ -335,6 +371,16 @@ export function ItemStepModal({
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 8h6m-5 0a3 3 0 110 6H9l3 3m-3-6h6m6 1a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
+    {
+      id: "party_pricing",
+      label: "Party Wise Prices",
+      labelGu: "પાર્ટી મુજબ ભાવ",
+      icon: (
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
       ),
     },
@@ -1313,6 +1359,187 @@ export function ItemStepModal({
                           </div>
                         )}
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ============================================================ */}
+                {/* TAB: PARTY WISE PRICES (Matching myBillBook UI)              */}
+                {/* ============================================================ */}
+                {activeTab === "party_pricing" && (
+                  <div className="space-y-4 animate-in fade-in duration-150">
+                    <h3 className="text-sm font-bold text-slate-800">
+                      {lang === "gu" ? "પાર્ટી મુજબ ભાવ ઉમેરો" : "Add Party Wise Prices"}
+                    </h3>
+
+                    {/* Top Inputs Row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end p-3.5 bg-slate-50/80 border border-slate-200 rounded-xl">
+                      {/* Select Party */}
+                      <div className="sm:col-span-6">
+                        <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                          {lang === "gu" ? "પાર્ટી પસંદ કરો" : "Select Party"}
+                        </label>
+                        <select
+                          value={selectedPartyId}
+                          onChange={(e) => {
+                            setSelectedPartyId(e.target.value);
+                            if (!partyPriceInput && form.retailPrice) {
+                              setPartyPriceInput(String(form.retailPrice));
+                            }
+                          }}
+                          className="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500 font-medium text-slate-700 cursor-pointer shadow-2xs"
+                        >
+                          <option value="">{lang === "gu" ? "પાર્ટી શોધો..." : "Search Party"}</option>
+                          {partiesList.map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.name} {p.phone ? `(${p.phone})` : ""}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Sales Price with With Tax Toggle */}
+                      <div className="sm:col-span-4">
+                        <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                          {lang === "gu" ? "વેચાણ ભાવ" : "Sales Price"}
+                        </label>
+                        <div className="flex items-center rounded-lg border border-slate-300 bg-white overflow-hidden shadow-2xs focus-within:ring-1 focus-within:ring-purple-500">
+                          <span className="px-2.5 py-1.5 text-xs text-slate-500 font-semibold bg-slate-50 border-r border-slate-200 select-none">
+                            ₹
+                          </span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            placeholder="0.00"
+                            value={partyPriceInput}
+                            onChange={(e) => setPartyPriceInput(e.target.value)}
+                            className="w-full text-xs p-1.5 font-mono font-semibold text-slate-800 focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setIsPartyPriceWithTax(!isPartyPriceWithTax)}
+                            className={`px-2.5 py-1.5 text-[11px] font-semibold border-l border-slate-200 transition-colors whitespace-nowrap cursor-pointer ${
+                              isPartyPriceWithTax
+                                ? "bg-purple-50 text-purple-700 hover:bg-purple-100"
+                                : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+                            }`}
+                            title="Toggle Tax Inclusive / Exclusive"
+                          >
+                            {isPartyPriceWithTax ? "With Tax" : "Without Tax"}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Add Button */}
+                      <div className="sm:col-span-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!selectedPartyId || !partyPriceInput || Number(partyPriceInput) <= 0) return;
+                            const pt = partiesList.find((p) => p.id === selectedPartyId);
+                            if (!pt) return;
+
+                            const newRule: PartyWisePriceRule = {
+                              partyId: pt.id,
+                              partyName: pt.name + (pt.phone ? ` (${pt.phone})` : ""),
+                              price: Number(partyPriceInput),
+                              isTaxInclusive: isPartyPriceWithTax,
+                            };
+
+                            const currentList = form.partyWisePrices || [];
+                            const existingIndex = currentList.findIndex((r) => r.partyId === pt.id);
+                            let updated: PartyWisePriceRule[];
+                            if (existingIndex >= 0) {
+                              updated = [...currentList];
+                              updated[existingIndex] = newRule;
+                            } else {
+                              updated = [...currentList, newRule];
+                            }
+
+                            setForm({ ...form, partyWisePrices: updated });
+                            if (initialData?.id) {
+                              setItemPartyPrices(initialData.id, updated, form.name || initialData.name);
+                            }
+                            setSelectedPartyId("");
+                            setPartyPriceInput(form.retailPrice ? String(form.retailPrice) : "");
+                          }}
+                          disabled={!selectedPartyId || !partyPriceInput || Number(partyPriceInput) <= 0}
+                          className="w-full py-2 px-3 bg-purple-600 hover:bg-purple-700 disabled:bg-slate-200 text-white disabled:text-slate-400 font-bold text-xs rounded-lg transition-all shadow-2xs cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                        >
+                          <span>+</span>
+                          <span>{lang === "gu" ? "ઉમેરો" : "Add"}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Table matching myBillBook */}
+                    <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                      <table className="w-full text-xs text-left">
+                        <thead className="bg-[#FAFBFD] border-b border-slate-200 text-slate-600 font-bold">
+                          <tr>
+                            <th className="py-2.5 px-4 font-bold text-slate-700">
+                              {lang === "gu" ? "પાર્ટીનું નામ" : "Party Name"}
+                            </th>
+                            <th className="py-2.5 px-4 font-bold text-slate-700">
+                              {lang === "gu" ? "વેચાણ ભાવ" : "Sales Price"}
+                            </th>
+                            <th className="py-2.5 px-4 text-right w-16"></th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {/* Row 1: All Parties Price */}
+                          <tr className="bg-slate-50/40">
+                            <td className="py-3 px-4 font-semibold text-slate-800 flex items-center gap-2">
+                              <span>🌐</span>
+                              <span>{lang === "gu" ? "બધી પાર્ટીઓ માટે ભાવ" : "All Parties Price"}</span>
+                            </td>
+                            <td className="py-3 px-4 font-mono font-bold text-slate-900">
+                              ₹ {Number(form.retailPrice || 0).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                            </td>
+                            <td className="py-3 px-4 text-right text-[11px] text-slate-400 font-medium italic">
+                              {lang === "gu" ? "ડિફોલ્ટ" : "Default"}
+                            </td>
+                          </tr>
+
+                          {/* Dynamic rows: Specific Party Prices */}
+                          {(form.partyWisePrices || []).map((pp) => (
+                            <tr key={pp.partyId} className="hover:bg-purple-50/30 transition-colors">
+                              <td className="py-3 px-4 font-medium text-slate-800 flex items-center gap-2">
+                                <span className="text-purple-600">👤</span>
+                                <span>{pp.partyName}</span>
+                              </td>
+                              <td className="py-3 px-4 font-mono font-bold text-purple-900">
+                                ₹ {Number(pp.price).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                                <span className="ml-1.5 text-[10px] text-slate-500 font-sans font-normal">
+                                  {pp.isTaxInclusive ? "(With Tax)" : "(Without Tax)"}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const currentList = form.partyWisePrices || [];
+                                    const updated = currentList.filter((r) => r.partyId !== pp.partyId);
+                                    setForm({
+                                      ...form,
+                                      partyWisePrices: updated,
+                                    });
+                                    if (initialData?.id) {
+                                      setItemPartyPrices(initialData.id, updated, form.name || initialData.name);
+                                    }
+                                  }}
+                                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                  title="Delete party rate"
+                                >
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 )}

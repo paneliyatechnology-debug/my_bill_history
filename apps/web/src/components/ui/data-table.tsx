@@ -1,6 +1,10 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useContext } from "react";
+import { ExportDropdown } from "./export-dropdown";
+import { ExportColumn, ExportFormat, ExportMetadata } from "../../lib/export/export-types";
+import { executeExport } from "../../lib/export/export-engine";
+import { AuthContext } from "../../context/auth-context";
 
 export interface ColumnDef<T> {
   id?: string;
@@ -41,6 +45,8 @@ export interface DataTableProps<T> {
   exportable?: boolean;
   exportFileName?: string;
   exportFilename?: string;
+  exportTitle?: string;
+  onCustomExport?: (format: ExportFormat, rows: T[]) => Promise<void> | void;
   themeColor?: "saffron" | "purple";
   mobileCardRender?: (row: T, index: number) => React.ReactNode;
   selectable?: boolean;
@@ -84,9 +90,11 @@ export function DataTable<T>({
   defaultSortKey,
   defaultSortOrder = "asc",
   onRowClick,
-  exportable = false,
+  exportable = true,
   exportFileName = "table_export",
   exportFilename,
+  exportTitle,
+  onCustomExport,
   themeColor = "saffron",
   mobileCardRender,
   selectable = false,
@@ -348,34 +356,92 @@ export function DataTable<T>({
     pageKeys,
   ]);
 
-  // CSV Export
-  const handleExportCsv = () => {
-    if (sortedData.length === 0) return;
-    const exportHeaders = columns
-      .filter((c) => typeof c.header === "string")
-      .map((c) => `"${c.header}"`)
-      .join(",");
+  const authContext = useContext(AuthContext);
+  const activeCompany = authContext?.currentCompany || (authContext as any)?.selectedCompany;
 
-    const rows = sortedData.map((row) =>
-      columns
-        .filter((c) => typeof c.header === "string")
-        .map((c) => {
-          const val = getCellValue(row, c);
-          if (val === null || val === undefined) return '""';
-          const cleanStr = String(val).replace(/"/g, '""');
-          return `"${cleanStr}"`;
-        })
-        .join(",")
-    );
+  // Complete Production-grade Export System (Excel, CSV, PDF)
+  const handleDataTableExport = async (format: ExportFormat) => {
+    // 1. Identify target records (selected rows if any, else all sorted/filtered data)
+    const isSelectionActive = effectiveSelectedIds.size > 0;
+    const targetRows = isSelectionActive
+      ? data.filter((row, idx) => effectiveSelectedIds.has(String(resolveKey(row, idx))))
+      : sortedData;
 
-    const csvContent = "data:text/csv;charset=utf-8," + [exportHeaders, ...rows].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `${activeExportFileName}_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (targetRows.length === 0) return;
+
+    if (onCustomExport) {
+      await onCustomExport(format, targetRows);
+      return;
+    }
+
+    // 2. Build ExportColumn[] from visible, relevant columns
+    const exportColumns: ExportColumn[] = columns
+      .filter((col) => {
+        if (col.id === "__selection__") return false;
+        if (!col.header && !col.accessorKey && !col.id) return false;
+        return true;
+      })
+      .map((col) => {
+        let headerText = "";
+        if (typeof col.header === "string") {
+          headerText = col.header;
+        } else if (col.id) {
+          headerText = col.id.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase());
+        } else if (col.accessorKey) {
+          headerText = String(col.accessorKey)
+            .split(".")
+            .pop()!
+            .replace(/([A-Z])/g, " $1")
+            .replace(/^./, (s) => s.toUpperCase());
+        } else {
+          headerText = "Column";
+        }
+
+        // Infer column data type
+        let colType: ExportColumn["type"] = "string";
+        const sampleRow = targetRows.find(
+          (r) => getCellValue(r, col) !== undefined && getCellValue(r, col) !== null
+        );
+        const sampleVal = sampleRow ? getCellValue(sampleRow, col) : undefined;
+        if (typeof sampleVal === "number") {
+          colType = "number";
+        } else if (sampleVal instanceof Date) {
+          colType = "date";
+        } else if (typeof sampleVal === "boolean") {
+          colType = "boolean";
+        }
+
+        return {
+          header: headerText,
+          key: col.accessorKey ? String(col.accessorKey) : col.id,
+          type: colType,
+          align: col.align || (colType === "number" ? "right" : "left"),
+          format: (_val, row) => getCellValue(row, col),
+        };
+      });
+
+    const reportTitle =
+      exportTitle ||
+      activeExportFileName
+        .replace(/[_\-]/g, " ")
+        .replace(/^./, (s) => s.toUpperCase());
+
+    const metadata: ExportMetadata = {
+      title: reportTitle,
+      fileName: activeExportFileName,
+      companyName:
+        activeCompany?.legalName ||
+        activeCompany?.tradeName ||
+        (activeCompany as any)?.name,
+      companyGstin: activeCompany?.gstin,
+      companyAddress: activeCompany?.city,
+      filterDescription: searchQuery ? `Search: "${searchQuery}"` : undefined,
+      selectedCount: isSelectionActive ? targetRows.length : 0,
+      totalCount: targetRows.length,
+      generatedAt: new Date().toLocaleString("en-IN"),
+    };
+
+    await executeExport(format, exportColumns, targetRows, metadata);
   };
 
   // Generate pagination page numbers
@@ -466,17 +532,14 @@ export function DataTable<T>({
           {toolbarChildren}
 
           {exportable && (
-            <button
-              onClick={handleExportCsv}
+            <ExportDropdown
+              onExport={handleDataTableExport}
+              selectedCount={effectiveSelectedIds.size}
+              totalCount={sortedData.length}
               disabled={sortedData.length === 0}
-              className="py-2 px-3.5 bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-700 border border-[#E2E8F0] rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
-              title="Export as CSV"
-            >
-              <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              <span className="hidden sm:inline">{lang === "gu" ? "CSV એક્સપોર્ટ" : "CSV"}</span>
-            </button>
+              lang={lang}
+              themeColor={themeColor}
+            />
           )}
 
           {actionsSlot}

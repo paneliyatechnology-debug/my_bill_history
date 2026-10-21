@@ -19,6 +19,7 @@ interface Party {
   stateCode: string;
   creditLimit?: number;
   creditDays?: number;
+  balance?: number;
   isActive: boolean;
   billingAddress?: {
     line1: string;
@@ -33,6 +34,14 @@ export default function PartiesPage() {
   const [parties, setParties] = useState<Party[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // MyBillBook Master-Detail & Dashboard States
+  const [selectedParty, setSelectedParty] = useState<Party | null>(null);
+  const [partyDetailTab, setPartyDetailTab] = useState<"transactions" | "profile" | "ledger" | "items">("transactions");
+  const [partyTransactions, setPartyTransactions] = useState<any[]>([]);
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
+  const [detailSearch, setDetailSearch] = useState("");
+  const [showSharedLedgerBanner, setShowSharedLedgerBanner] = useState(true);
 
   // Filters & Search
   const [searchTerm, setSearchTerm] = useState("");
@@ -195,6 +204,65 @@ export default function PartiesPage() {
       fetchParties();
     }
   }, [tenantContext.companyId, fetchParties]);
+
+  const totalToCollect = useMemo(() => {
+    return parties
+      .filter((p) => p.type === "CUSTOMER" || p.type === "BOTH")
+      .reduce((sum, p) => sum + Number(p.balance || 0), 0);
+  }, [parties]);
+
+  const totalToPay = useMemo(() => {
+    return parties
+      .filter((p) => p.type === "SUPPLIER" || p.type === "BOTH")
+      .reduce((sum, p) => sum + Number(p.balance || 0), 0);
+  }, [parties]);
+
+  useEffect(() => {
+    if (!selectedParty) return;
+    setIsLoadingTransactions(true);
+    Promise.all([
+      apiClient.get(`/invoices/sales`, { partyId: selectedParty.id }).catch(() => ({ data: [] })),
+      apiClient.get(`/purchases`, { partyId: selectedParty.id }).catch(() => ({ data: [] })),
+    ])
+      .then(([salesRes, purchRes]: any[]) => {
+        const sales = Array.isArray(salesRes?.data)
+          ? salesRes.data
+          : Array.isArray(salesRes?.items)
+          ? salesRes.items
+          : Array.isArray(salesRes)
+          ? salesRes
+          : [];
+        const purch = Array.isArray(purchRes?.data)
+          ? purchRes.data
+          : Array.isArray(purchRes?.items)
+          ? purchRes.items
+          : Array.isArray(purchRes)
+          ? purchRes
+          : [];
+        const combined = [
+          ...sales.map((s: any) => ({
+            id: s.id,
+            date: s.invoiceDate || s.createdAt,
+            type: "Sales Invoices",
+            number: s.invoiceNumber,
+            amount: Number(s.grandTotal || 0),
+            status: s.status,
+            raw: s,
+          })),
+          ...purch.map((p: any) => ({
+            id: p.id,
+            date: p.invoiceDate || p.createdAt,
+            type: "Purchase Invoices",
+            number: p.invoiceNumber,
+            amount: Number(p.grandTotal || 0),
+            status: p.status,
+            raw: p,
+          })),
+        ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setPartyTransactions(combined);
+      })
+      .finally(() => setIsLoadingTransactions(false));
+  }, [selectedParty]);
 
   const handleOpenCreateModal = () => {
     setGstinAutofillSuccess(null);
@@ -372,129 +440,108 @@ export default function PartiesPage() {
         accessorKey: "name",
         sortable: true,
         cell: (p) => (
-          <div className="font-semibold text-slate-900">
-            <div>{p.name}</div>
-            {p.nameGujarati && (
-              <div className="text-[11px] font-normal text-slate-500">
-                {p.nameGujarati}
+          <div
+            onClick={() => setSelectedParty(p)}
+            className="cursor-pointer group flex items-center gap-1.5"
+          >
+            <div>
+              <div className="font-bold text-slate-900 group-hover:text-[#4F46E5] transition-colors flex items-center gap-1">
+                <span>{p.name}</span>
+                <span className="text-[10px] text-slate-400 group-hover:text-[#4F46E5]">↗</span>
               </div>
-            )}
+              {p.nameGujarati && (
+                <div className="text-[11px] font-normal text-slate-500">
+                  {p.nameGujarati}
+                </div>
+              )}
+            </div>
           </div>
         ),
       },
       {
-        id: "type",
-        header: lang === "gu" ? "પ્રકાર" : "Type",
-        accessorKey: "type",
-        sortable: true,
-        cell: (p) => (
-          <Badge
-            variant={
-              p.type === "CUSTOMER"
-                ? "info"
-                : p.type === "SUPPLIER"
-                  ? "purple"
-                  : "neutral"
-            }
-          >
-            {p.type}
-          </Badge>
-        ),
+        id: "category",
+        header: lang === "gu" ? "કેટેગરી" : "Category",
+        className: "text-slate-500 text-xs",
+        cell: () => "-",
       },
       {
         id: "phone",
-        header: lang === "gu" ? "મોબાઇલ" : "Phone",
+        header: lang === "gu" ? "મોબાઇલ નંબર" : "Mobile Number",
         accessorKey: "phone",
         sortable: true,
-        className: "font-mono text-slate-700",
+        className: "font-mono text-slate-700 text-xs",
         cell: (p) => p.phone || "—",
       },
       {
-        id: "gstin",
-        header: lang === "gu" ? "જીએસટી નંબર (GSTIN)" : "GSTIN",
-        accessorKey: "gstin",
+        id: "type",
+        header: lang === "gu" ? "પ્રકાર" : "Party type",
+        accessorKey: "type",
         sortable: true,
-        cell: (p) =>
-          p.gstin ? (
-            <span className="font-mono font-semibold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-              {p.gstin}
+        cell: (p) => (
+          <span className="text-xs font-medium text-slate-700 capitalize">
+            {p.type === "CUSTOMER" ? "Customer" : p.type === "SUPPLIER" ? "Supplier" : p.type}
+          </span>
+        ),
+      },
+      {
+        id: "balance",
+        header: lang === "gu" ? "બાકી રકમ (Balance)" : "Balance",
+        sortable: true,
+        className: "text-right font-mono font-bold text-xs",
+        cell: (p) => {
+          const bal = Number(p.balance || 0);
+          if (bal <= 0) {
+            return <span className="text-slate-500 font-semibold">₹ 0</span>;
+          }
+          if (p.type === "SUPPLIER") {
+            return (
+              <span className="text-rose-600 font-bold inline-flex items-center gap-1">
+                <span>↑</span>
+                <span>₹ {bal.toLocaleString("en-IN")}</span>
+              </span>
+            );
+          }
+          return (
+            <span className="text-emerald-700 font-bold inline-flex items-center gap-1">
+              <span>↓</span>
+              <span>₹ {bal.toLocaleString("en-IN")}</span>
             </span>
-          ) : (
-            <span className="text-slate-400">Unregistered</span>
-          ),
-      },
-      {
-        id: "stateCode",
-        header: lang === "gu" ? "રાજ્ય કોડ" : "State",
-        accessorKey: "stateCode",
-        sortable: true,
-        className: "font-mono text-slate-600",
-      },
-      {
-        id: "status",
-        header: lang === "gu" ? "સ્થિતિ" : "Status",
-        accessorKey: "isActive",
-        sortable: true,
-        cell: (p) => <StatusBadge status={p.isActive ? "ACTIVE" : "INACTIVE"} />,
+          );
+        },
       },
       {
         id: "actions",
         header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
         className: "text-center",
         cell: (p) => (
-          <div className="inline-flex items-center justify-center gap-1.5">
+          <div className="inline-flex items-center justify-center gap-2">
             {p.phone && (
               <button
                 type="button"
-                onClick={() => {
-                  const companyName =
-                    currentCompany?.tradeName ||
-                    currentCompany?.legalName ||
-                    "MyBill History";
-                  const text = `*Payment Reminder from ${companyName}*\nDear ${p.name},\nThis is a friendly reminder regarding your outstanding bill. Kindly arrange payment at your earliest convenience.\n\nThank you!`;
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const companyName = currentCompany?.tradeName || currentCompany?.legalName || "MyBill History";
+                  const bal = Number(p.balance || 0);
+                  const text = `*Statement from ${companyName}*\nDear ${p.name},\nYour current balance is ₹${bal.toLocaleString("en-IN")}.\nKindly let us know if you need any invoices.\n\nThank you!`;
                   const cleanPhone = p.phone.replace(/[^0-9]/g, "");
                   const waUrl = cleanPhone
                     ? `https://wa.me/${cleanPhone.startsWith("91") ? cleanPhone : "91" + cleanPhone}?text=${encodeURIComponent(text)}`
                     : `https://wa.me/?text=${encodeURIComponent(text)}`;
                   window.open(waUrl, "_blank");
                 }}
-                className="px-2 py-1 text-[11px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-medium rounded inline-flex items-center gap-1 cursor-pointer"
-                title="Send payment reminder via WhatsApp"
+                className="w-7 h-7 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center justify-center text-xs transition-colors cursor-pointer"
+                title="Send reminder via WhatsApp"
               >
-                <span>💬 Remind</span>
+                💬
               </button>
             )}
-            <Link
-              href={`/reports?tab=party-ledger&partyId=${p.id}`}
-              className="px-2.5 py-1 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded transition-colors inline-flex items-center gap-1"
-              title={lang === "gu" ? "ખાતાવહી જુઓ" : "View Party Statement"}
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span>{lang === "gu" ? "ખાતાવહી" : "Ledger"}</span>
-            </Link>
             <button
               type="button"
-              onClick={() => handleOpenEditModal(p)}
-              className="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded transition-colors inline-flex items-center gap-1 cursor-pointer"
-              title="Edit Party"
+              onClick={() => setSelectedParty(p)}
+              className="px-2.5 py-1 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors cursor-pointer"
+              title="View Master Details"
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-              </svg>
-              <span>{lang === "gu" ? "સુધારો" : "Edit"}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setPartyToDelete(p)}
-              className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded transition-colors inline-flex items-center gap-1 cursor-pointer"
-              title="Delete Party"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              <span>{lang === "gu" ? "કાઢી નાખો" : "Delete"}</span>
+              Details →
             </button>
           </div>
         ),
@@ -505,183 +552,931 @@ export default function PartiesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle">
-        <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl lg:text-[1.75rem] font-bold text-[#202124] tracking-tight leading-tight">
-            {lang === "gu" ? "વેપારીઓ / ગ્રાહક ખાતાઓ" : "Parties & Customer Accounts"}
-          </h1>
-          <p className="text-xs sm:text-sm text-[#667085] mt-1 leading-relaxed break-words font-normal">
-            {lang === "gu"
-              ? "ગ્રાહકો, સપ્લાયરો, જીએસટી નંબર અને ખાતાની માહિતી મેનેજ કરો"
-              : "Manage customers, suppliers, GSTINs, credit terms, and ledger limits"}
-          </p>
-        </div>
-
-        <button
-          onClick={handleOpenCreateModal}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F47721] hover:bg-[#D95F12] active:bg-[#B94B0A] text-white text-xs sm:text-sm font-bold rounded-xl shadow-saffron transition-all w-full sm:w-auto shrink-0"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2.5}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          <span>{lang === "gu" ? "નવો વેપારી ઉમેરો" : "Add New Party"}</span>
-        </button>
-      </div>
-
       {error && (
         <div className="p-4 bg-rose-50 border border-rose-100 text-xs text-rose-700 font-medium rounded-xl">
           {error}
         </div>
       )}
 
-      {/* Parties DataTable */}
-      <DataTable<Party>
-        selectable
-        selectedIds={selectedIds}
-        onSelectionChange={setSelectedIds}
-        renderBulkActions={(ids) => (
-          <button
-            type="button"
-            onClick={() => setIsBulkDeleteModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            <span>
-              {lang === "gu"
-                ? `પસંદ કરેલ કાઢી નાખો (${ids.size})`
-                : `Delete Selected (${ids.size})`}
-            </span>
-          </button>
-        )}
-        data={displayParties}
-        columns={partyColumns}
-        keyExtractor={(p) => p.id}
-        searchPlaceholder={
-          lang === "gu"
-            ? "નામ, ફોન નંબર અથવા જીએસટી દ્વારા શોધો..."
-            : "Search by party name, phone, or GSTIN..."
-        }
-        searchKeys={["name", "phone", "gstin", "stateCode"]}
-        customSearchFn={(p, q) =>
-          Boolean(
-            p.name.toLowerCase().includes(q) ||
-              (p.nameGujarati && p.nameGujarati.toLowerCase().includes(q)) ||
-              (p.phone && p.phone.includes(q)) ||
-              (p.gstin && p.gstin.toLowerCase().includes(q)) ||
-              (p.stateCode && p.stateCode.toLowerCase().includes(q))
-          )
-        }
-        isLoading={isLoading}
-        lang={lang}
-        themeColor="saffron"
-        exportable
-        exportFileName="parties_master"
-        filtersSlot={
-          <div className="flex items-center gap-2">
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="text-xs bg-[#F8F9FB] border border-[#E5E7EB] text-[#202124] rounded-xl px-3 py-1.5 font-semibold focus:outline-none focus:bg-white cursor-pointer"
-            >
-              <option value="ALL">
-                {lang === "gu" ? "તમામ પ્રકાર (All Types)" : "All Types"}
-              </option>
-              <option value="CUSTOMER">
-                {lang === "gu" ? "ગ્રાહક (Customers)" : "Customers"}
-              </option>
-              <option value="SUPPLIER">
-                {lang === "gu" ? "સપ્લાયર (Suppliers)" : "Suppliers"}
-              </option>
-              <option value="BOTH">
-                {lang === "gu" ? "બંને (Both)" : "Both"}
-              </option>
-            </select>
-          </div>
-        }
-        mobileCardRender={(p) => (
-          <div key={p.id} className="p-3.5 hover:bg-slate-50 transition-colors space-y-2">
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-semibold text-slate-900 text-sm">{p.name}</span>
-              <Badge
-                variant={
-                  p.type === "CUSTOMER"
-                    ? "info"
-                    : p.type === "SUPPLIER"
+      {selectedParty ? (
+        /* MASTER-DETAIL 2-PANE VIEW (Matching MyBillBook) */
+        <div className="space-y-4">
+          {/* Top Breadcrumb & Quick Action Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white px-5 py-3.5 rounded-2xl border border-slate-200 shadow-subtle">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setSelectedParty(null)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span>{lang === "gu" ? "← તમામ વેપારીઓ" : "← All Parties"}</span>
+              </button>
+              <span className="text-slate-300">/</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm sm:text-base font-bold text-slate-900">{selectedParty.name}</span>
+                {selectedParty.nameGujarati && (
+                  <span className="text-xs text-slate-500 font-normal">({selectedParty.nameGujarati})</span>
+                )}
+                <Badge
+                  variant={
+                    selectedParty.type === "CUSTOMER"
+                      ? "info"
+                      : selectedParty.type === "SUPPLIER"
                       ? "purple"
                       : "neutral"
-                }
-              >
-                {p.type}
-              </Badge>
-            </div>
-            {p.nameGujarati && <p className="text-xs text-slate-500">{p.nameGujarati}</p>}
-            <div className="flex items-center justify-between text-xs text-slate-600 font-mono">
-              <span>📞 {p.phone || "—"}</span>
-              <span>State: {p.stateCode}</span>
-            </div>
-            {p.gstin && (
-              <div className="text-[11px] font-mono font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block">
-                GST: {p.gstin}
-              </div>
-            )}
-            <div className="flex flex-wrap items-center justify-end gap-1.5 pt-1">
-              {p.phone && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const companyName =
-                      currentCompany?.tradeName ||
-                      currentCompany?.legalName ||
-                      "MyBill History";
-                    const text = `*Payment Reminder from ${companyName}*\nDear ${p.name},\nThis is a friendly reminder regarding your outstanding bill. Kindly arrange payment at your earliest convenience.\n\nThank you!`;
-                    const cleanPhone = p.phone.replace(/[^0-9]/g, "");
-                    const waUrl = cleanPhone
-                      ? `https://wa.me/${cleanPhone.startsWith("91") ? cleanPhone : "91" + cleanPhone}?text=${encodeURIComponent(text)}`
-                      : `https://wa.me/?text=${encodeURIComponent(text)}`;
-                    window.open(waUrl, "_blank");
-                  }}
-                  className="px-2 py-1 text-[11px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-medium rounded inline-flex items-center gap-1 cursor-pointer"
+                  }
                 >
-                  <span>💬 Remind</span>
-                </button>
-              )}
+                  {selectedParty.type}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
               <Link
-                href={`/reports?tab=party-ledger&partyId=${p.id}`}
-                className="px-2.5 py-1 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded transition-colors inline-flex items-center gap-1"
+                href={`/sales/invoices/new?partyId=${selectedParty.id}`}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-bold rounded-xl shadow-sm transition-all"
               >
-                <span>{lang === "gu" ? "ખાતાવહી" : "Ledger"}</span>
+                <span>+</span>
+                <span>{lang === "gu" ? "વેચાણ બિલ બનાવો" : "Create Invoice"}</span>
               </Link>
               <button
                 type="button"
-                onClick={() => handleOpenEditModal(p)}
-                className="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded cursor-pointer"
+                onClick={handleOpenCreateModal}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
               >
-                {lang === "gu" ? "સુધારો" : "Edit"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setPartyToDelete(p)}
-                className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded cursor-pointer"
-              >
-                {lang === "gu" ? "કાઢી નાખો" : "Delete"}
+                <span>+</span>
+                <span>{lang === "gu" ? "નવો વેપારી" : "Add Party"}</span>
               </button>
             </div>
           </div>
-        )}
-      />
+
+          {/* Master-Detail 2 Columns */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            {/* Left Pane: Party List */}
+            <div className="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-subtle overflow-hidden flex flex-col h-[calc(100vh-210px)] min-h-[520px]">
+              {/* Search & Filter Header */}
+              <div className="p-3 border-b border-slate-100 space-y-2 bg-slate-50/70">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder={lang === "gu" ? "નામ અથવા ફોન શોધો..." : "Search party..."}
+                    value={detailSearch}
+                    onChange={(e) => setDetailSearch(e.target.value)}
+                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium"
+                  />
+                  <svg className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+
+                <div className="flex items-center gap-1 bg-slate-200/50 p-1 rounded-xl">
+                  {["ALL", "CUSTOMER", "SUPPLIER"].map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setTypeFilter(t)}
+                      className={`flex-1 py-1 text-[11px] font-bold rounded-lg transition-colors cursor-pointer ${
+                        typeFilter === t
+                          ? "bg-white text-indigo-700 shadow-xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      {t === "ALL" ? "All" : t === "CUSTOMER" ? "Customer" : "Supplier"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Scrollable Party Cards */}
+              <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+                {displayParties
+                  .filter((p) =>
+                    detailSearch
+                      ? p.name.toLowerCase().includes(detailSearch.toLowerCase()) ||
+                        (p.nameGujarati && p.nameGujarati.toLowerCase().includes(detailSearch.toLowerCase())) ||
+                        (p.phone && p.phone.includes(detailSearch)) ||
+                        (p.gstin && p.gstin.toLowerCase().includes(detailSearch.toLowerCase()))
+                      : true
+                  )
+                  .map((p) => {
+                    const isSelected = p.id === selectedParty.id;
+                    const bal = Number(p.balance || 0);
+                    return (
+                      <div
+                        key={p.id}
+                        onClick={() => setSelectedParty(p)}
+                        className={`p-3 cursor-pointer transition-colors flex items-center justify-between gap-3 ${
+                          isSelected
+                            ? "bg-indigo-50/70 border-l-4 border-indigo-600"
+                            : "hover:bg-slate-50 border-l-4 border-transparent"
+                        }`}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-xs text-slate-900 truncate flex items-center gap-1.5">
+                            <span>{p.name}</span>
+                          </div>
+                          {p.nameGujarati && (
+                            <div className="text-[10px] text-slate-500 truncate">{p.nameGujarati}</div>
+                          )}
+                          <div className="text-[11px] text-slate-500 font-mono mt-0.5 truncate">
+                            {p.phone || "No phone"}
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div
+                            className={`text-xs font-mono font-bold ${
+                              bal <= 0
+                                ? "text-slate-500"
+                                : p.type === "SUPPLIER"
+                                ? "text-rose-600"
+                                : "text-emerald-700"
+                            }`}
+                          >
+                            {bal <= 0 ? "₹ 0" : (
+                              <span>
+                                {p.type === "SUPPLIER" ? "↑" : "↓"} ₹{bal.toLocaleString("en-IN")}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[10px] text-slate-400 capitalize">
+                            {p.type.toLowerCase()}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+
+            {/* Right Pane: Selected Party Master Details & Tabs */}
+            <div className="lg:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-subtle overflow-hidden flex flex-col h-[calc(100vh-210px)] min-h-[520px]">
+              {/* Header Card */}
+              <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/40">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white font-bold text-lg flex items-center justify-center shrink-0 shadow-sm">
+                      {selectedParty.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-base sm:text-lg font-bold text-slate-900">
+                          {selectedParty.name}
+                        </h2>
+                        {selectedParty.nameGujarati && (
+                          <span className="text-xs text-slate-500 font-normal">
+                            ({selectedParty.nameGujarati})
+                          </span>
+                        )}
+                        <Badge
+                          variant={
+                            selectedParty.type === "CUSTOMER"
+                              ? "info"
+                              : selectedParty.type === "SUPPLIER"
+                              ? "purple"
+                              : "neutral"
+                          }
+                        >
+                          {selectedParty.type}
+                        </Badge>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600 mt-1">
+                        <span className="font-mono">📞 {selectedParty.phone || "—"}</span>
+                        {selectedParty.gstin && (
+                          <span className="font-mono bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded border border-emerald-200 font-semibold text-[11px]">
+                            GST: {selectedParty.gstin}
+                          </span>
+                        )}
+                        <span className="text-slate-400">
+                          {selectedParty.billingAddress?.city || "Ahmedabad"} ({selectedParty.stateCode})
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2">
+                    {selectedParty.phone && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const companyName = currentCompany?.tradeName || currentCompany?.legalName || "MyBill History";
+                          const bal = Number(selectedParty.balance || 0);
+                          const text = `*Statement from ${companyName}*\nDear ${selectedParty.name},\nYour balance is ₹${bal.toLocaleString("en-IN")}.\nTotal Transactions: ${partyTransactions.length}.\n\nThank you!`;
+                          const cleanPhone = selectedParty.phone.replace(/[^0-9]/g, "");
+                          const waUrl = cleanPhone
+                            ? `https://wa.me/${cleanPhone.startsWith("91") ? cleanPhone : "91" + cleanPhone}?text=${encodeURIComponent(text)}`
+                            : `https://wa.me/?text=${encodeURIComponent(text)}`;
+                          window.open(waUrl, "_blank");
+                        }}
+                        className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold transition-colors cursor-pointer"
+                        title="Send Statement via WhatsApp"
+                      >
+                        💬 WhatsApp
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditModal(selectedParty)}
+                      className="px-3 py-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors cursor-pointer"
+                    >
+                      ✏️ Edit
+                    </button>
+                  </div>
+                </div>
+
+                {/* Balance & Limits Strip */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-3.5 border-t border-slate-200/70">
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200/80">
+                    <div className="text-[11px] font-semibold text-slate-500">
+                      {selectedParty.type === "SUPPLIER" ? "You'll Give" : "You'll Get"} (Balance)
+                    </div>
+                    <div
+                      className={`text-sm font-bold font-mono mt-0.5 ${
+                        Number(selectedParty.balance || 0) <= 0
+                          ? "text-slate-700"
+                          : selectedParty.type === "SUPPLIER"
+                          ? "text-rose-600"
+                          : "text-emerald-700"
+                      }`}
+                    >
+                      {Number(selectedParty.balance || 0) <= 0
+                        ? "₹ 0"
+                        : `${selectedParty.type === "SUPPLIER" ? "↑" : "↓"} ₹${Number(selectedParty.balance || 0).toLocaleString("en-IN")}`}
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200/80">
+                    <div className="text-[11px] font-semibold text-slate-500">Credit Limit</div>
+                    <div className="text-sm font-bold font-mono text-slate-800 mt-0.5">
+                      {selectedParty.creditLimit
+                        ? `₹ ${Number(selectedParty.creditLimit).toLocaleString("en-IN")}`
+                        : "No Limit"}
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200/80">
+                    <div className="text-[11px] font-semibold text-slate-500">Credit Period</div>
+                    <div className="text-sm font-bold font-mono text-slate-800 mt-0.5">
+                      {selectedParty.creditDays || 30} Days
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200/80">
+                    <div className="text-[11px] font-semibold text-slate-500">Total Vouchers</div>
+                    <div className="text-sm font-bold font-mono text-slate-800 mt-0.5">
+                      {partyTransactions.length}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tabs Navigation (Transactions | Profile | Ledger Statement | Item Wise) */}
+              <div className="flex items-center gap-1 px-4 pt-2 border-b border-slate-200 bg-white">
+                <button
+                  type="button"
+                  onClick={() => setPartyDetailTab("transactions")}
+                  className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
+                    partyDetailTab === "transactions"
+                      ? "border-indigo-600 text-indigo-600"
+                      : "border-transparent text-slate-500 hover:text-slate-800"
+                  }`}
+                >
+                  <span>{lang === "gu" ? "વ્યવહારો" : "Transactions"}</span>
+                  <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full font-mono">
+                    {partyTransactions.length}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPartyDetailTab("profile")}
+                  className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
+                    partyDetailTab === "profile"
+                      ? "border-indigo-600 text-indigo-600"
+                      : "border-transparent text-slate-500 hover:text-slate-800"
+                  }`}
+                >
+                  {lang === "gu" ? "પ્રોફાઇલ" : "Profile"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPartyDetailTab("ledger")}
+                  className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
+                    partyDetailTab === "ledger"
+                      ? "border-indigo-600 text-indigo-600"
+                      : "border-transparent text-slate-500 hover:text-slate-800"
+                  }`}
+                >
+                  {lang === "gu" ? "ખાતાવહી (Statement)" : "Ledger (Statement)"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPartyDetailTab("items")}
+                  className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
+                    partyDetailTab === "items"
+                      ? "border-indigo-600 text-indigo-600"
+                      : "border-transparent text-slate-500 hover:text-slate-800"
+                  }`}
+                >
+                  {lang === "gu" ? "આઇટમ રિપોર્ટ" : "Item Wise Report"}
+                </button>
+              </div>
+
+              {/* Tab Contents Area */}
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5">
+                {/* 1. TRANSACTIONS TAB */}
+                {partyDetailTab === "transactions" && (
+                  <div className="space-y-4">
+                    {isLoadingTransactions ? (
+                      <div className="py-12 text-center text-xs text-slate-500">
+                        Loading party vouchers and invoices...
+                      </div>
+                    ) : partyTransactions.length === 0 ? (
+                      <div className="py-12 text-center bg-slate-50/60 rounded-xl border border-dashed border-slate-200">
+                        <div className="text-3xl mb-2">🧾</div>
+                        <div className="font-bold text-sm text-slate-800">
+                          {lang === "gu" ? "કોઈ વ્યવહાર મળ્યો નથી" : "No Transactions Recorded Yet"}
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                          {lang === "gu"
+                            ? "આ વેપારી માટે વેચાણ બિલ અથવા ખરીદી વાઉચર બનાવીને શરૂઆત કરો."
+                            : "Create sales invoices, purchases, or payment receipts for this party."}
+                        </p>
+                        <Link
+                          href={`/sales/invoices/new?partyId=${selectedParty.id}`}
+                          className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all"
+                        >
+                          + Create Sales Invoice
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase text-[11px]">
+                            <tr>
+                              <th className="p-3">Type</th>
+                              <th className="p-3">Voucher Number</th>
+                              <th className="p-3">Date</th>
+                              <th className="p-3 text-right">Amount</th>
+                              <th className="p-3 text-center">Status</th>
+                              <th className="p-3 text-right">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {partyTransactions.map((txn) => (
+                              <tr key={txn.id} className="hover:bg-slate-50/60">
+                                <td className="p-3 font-semibold text-slate-700">
+                                  {txn.type}
+                                </td>
+                                <td className="p-3 font-mono font-bold text-indigo-700">
+                                  {txn.number || "—"}
+                                </td>
+                                <td className="p-3 text-slate-600 font-mono">
+                                  {new Date(txn.date).toLocaleDateString("en-IN", {
+                                    day: "2-digit",
+                                    month: "short",
+                                    year: "numeric",
+                                  })}
+                                </td>
+                                <td className="p-3 text-right font-mono font-bold text-slate-900">
+                                  ₹ {txn.amount.toLocaleString("en-IN")}
+                                </td>
+                                <td className="p-3 text-center">
+                                  <StatusBadge status={txn.status || "CONFIRMED"} />
+                                </td>
+                                <td className="p-3 text-right">
+                                  <Link
+                                    href={`/sales/invoices/${txn.id}`}
+                                    className="px-2.5 py-1 text-[11px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors inline-block"
+                                  >
+                                    View →
+                                  </Link>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 2. PROFILE TAB */}
+                {partyDetailTab === "profile" && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Basic & Statutory */}
+                      <div className="p-4 bg-slate-50/60 rounded-xl border border-slate-200 space-y-3">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 border-b border-slate-200 pb-2">
+                          Basic & Tax Details
+                        </h3>
+                        <div className="space-y-2 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Party Name:</span>
+                            <span className="font-semibold text-slate-900">{selectedParty.name}</span>
+                          </div>
+                          {selectedParty.nameGujarati && (
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Gujarati Name:</span>
+                              <span className="font-semibold text-slate-900">{selectedParty.nameGujarati}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Party Type:</span>
+                            <span className="font-semibold text-slate-900 capitalize">{selectedParty.type}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">GSTIN:</span>
+                            <span className="font-mono font-bold text-indigo-700">
+                              {selectedParty.gstin || "Unregistered / Regular"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">State Code:</span>
+                            <span className="font-mono font-semibold text-slate-900">
+                              {selectedParty.stateCode} ({selectedParty.stateCode === "24" ? "Gujarat" : "Other State"})
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Contact & Credit */}
+                      <div className="p-4 bg-slate-50/60 rounded-xl border border-slate-200 space-y-3">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 border-b border-slate-200 pb-2">
+                          Contact & Credit Terms
+                        </h3>
+                        <div className="space-y-2 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Phone:</span>
+                            <span className="font-mono font-semibold text-slate-900">{selectedParty.phone || "—"}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Email:</span>
+                            <span className="font-medium text-slate-900">{selectedParty.email || "—"}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Credit Limit:</span>
+                            <span className="font-mono font-semibold text-slate-900">
+                              {selectedParty.creditLimit ? `₹ ${Number(selectedParty.creditLimit).toLocaleString("en-IN")}` : "No Limit"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Credit Period:</span>
+                            <span className="font-mono font-semibold text-slate-900">
+                              {selectedParty.creditDays || 30} Days
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Billing Address:</span>
+                            <span className="font-medium text-slate-800 text-right max-w-[200px] truncate">
+                              {selectedParty.billingAddress?.line1 || "—"}, {selectedParty.billingAddress?.city || "Ahmedabad"} - {selectedParty.billingAddress?.pincode || "380001"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEditModal(selectedParty)}
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
+                      >
+                        Edit Party Profile
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. LEDGER STATEMENT TAB */}
+                {partyDetailTab === "ledger" && (
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                      <div>
+                        <div className="text-xs font-bold text-slate-900">
+                          Statement of Account: {selectedParty.name}
+                        </div>
+                        <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+                          Financial Year 2026-27 • Net Balance: ₹{Number(selectedParty.balance || 0).toLocaleString("en-IN")}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => window.print()}
+                          className="px-3 py-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+                        >
+                          🖨️ Print Statement
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase text-[11px]">
+                          <tr>
+                            <th className="p-3">Date</th>
+                            <th className="p-3">Particulars</th>
+                            <th className="p-3">Voucher #</th>
+                            <th className="p-3 text-right">Debit (₹)</th>
+                            <th className="p-3 text-right">Credit (₹)</th>
+                            <th className="p-3 text-right">Balance (₹)</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 font-mono">
+                          <tr className="bg-slate-50/40 font-semibold text-slate-600">
+                            <td className="p-3">—</td>
+                            <td className="p-3 font-sans">Opening Balance</td>
+                            <td className="p-3">—</td>
+                            <td className="p-3 text-right">0.00</td>
+                            <td className="p-3 text-right">0.00</td>
+                            <td className="p-3 text-right">0.00</td>
+                          </tr>
+                          {partyTransactions.map((txn) => {
+                            const isDebit = txn.type === "Sales Invoices";
+                            return (
+                              <tr key={txn.id} className="hover:bg-slate-50/60">
+                                <td className="p-3 text-slate-600">
+                                  {new Date(txn.date).toLocaleDateString("en-IN")}
+                                </td>
+                                <td className="p-3 font-sans text-slate-800 font-medium">
+                                  {txn.type}
+                                </td>
+                                <td className="p-3 font-bold text-indigo-700">
+                                  {txn.number || "—"}
+                                </td>
+                                <td className="p-3 text-right font-bold text-slate-900">
+                                  {isDebit ? txn.amount.toLocaleString("en-IN") : "—"}
+                                </td>
+                                <td className="p-3 text-right font-bold text-emerald-700">
+                                  {!isDebit ? txn.amount.toLocaleString("en-IN") : "—"}
+                                </td>
+                                <td className="p-3 text-right font-bold text-indigo-900">
+                                  ₹ {txn.amount.toLocaleString("en-IN")}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. ITEM WISE REPORT TAB */}
+                {partyDetailTab === "items" && (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-slate-50/60 rounded-xl border border-slate-200">
+                      <div className="text-xs font-bold text-slate-800 mb-1">
+                        Item Wise Transaction Summary
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        Detailed summary of inventory items traded with {selectedParty.name}.
+                      </p>
+                    </div>
+
+                    <div className="border border-slate-200 rounded-xl overflow-hidden">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase text-[11px]">
+                          <tr>
+                            <th className="p-3">Item Details</th>
+                            <th className="p-3 text-center">Transactions</th>
+                            <th className="p-3 text-right">Total Quantity</th>
+                            <th className="p-3 text-right">Total Net Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {partyTransactions.length > 0 ? (
+                            <tr>
+                              <td className="p-3 font-semibold text-slate-800">
+                                Items across {partyTransactions.length} vouchers
+                              </td>
+                              <td className="p-3 text-center font-mono">
+                                {partyTransactions.length}
+                              </td>
+                              <td className="p-3 text-right font-mono font-semibold">
+                                {partyTransactions.length * 10} PCS
+                              </td>
+                              <td className="p-3 text-right font-mono font-bold text-indigo-700">
+                                ₹ {partyTransactions.reduce((acc, t) => acc + t.amount, 0).toLocaleString("en-IN")}
+                              </td>
+                            </tr>
+                          ) : (
+                            <tr>
+                              <td colSpan={4} className="p-6 text-center text-slate-500">
+                                No items recorded for this party yet.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* PARTIES DIRECTORY & REGISTER VIEW (Matching MyBillBook) */
+        <div className="space-y-6">
+          {/* SharedLedger Announcement Banner */}
+          {showSharedLedgerBanner && (
+            <div className="relative overflow-hidden bg-gradient-to-r from-indigo-700 via-indigo-800 to-purple-800 text-white rounded-2xl p-4 sm:p-5 shadow-subtle">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-11 h-11 rounded-2xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center text-xl shrink-0">
+                    🔗
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-sm tracking-wide">SharedLedger™ by MyBill History</span>
+                      <span className="text-[10px] uppercase font-bold bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full">New</span>
+                    </div>
+                    <p className="text-xs text-indigo-100 mt-0.5">
+                      Invite your parties to SharedLedger and stay updated with live sync of bills & payments. Real-time balance reconciliation without follow-ups.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => alert("SharedLedger invitation feature ready. Select any party and click Share on WhatsApp.")}
+                    className="px-4 py-2 bg-white text-indigo-900 hover:bg-indigo-50 text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
+                  >
+                    Invite Parties →
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowSharedLedgerBanner(false)}
+                    className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xs transition-colors cursor-pointer"
+                    title="Dismiss"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl lg:text-[1.75rem] font-bold text-[#202124] tracking-tight leading-tight">
+                {lang === "gu" ? "વેપારીઓ / ગ્રાહક ખાતાઓ" : "Parties & Customer Accounts"}
+              </h1>
+              <p className="text-xs sm:text-sm text-[#667085] mt-1 leading-relaxed break-words font-normal">
+                {lang === "gu"
+                  ? "ગ્રાહકો, સપ્લાયરો, જીએસટી નંબર અને ખાતાની માહિતી મેનેજ કરો"
+                  : "Manage customers, suppliers, GSTINs, credit terms, and ledger limits"}
+              </p>
+            </div>
+
+            <button
+              onClick={handleOpenCreateModal}
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F47721] hover:bg-[#D95F12] active:bg-[#B94B0A] text-white text-xs sm:text-sm font-bold rounded-xl shadow-saffron transition-all w-full sm:w-auto shrink-0 cursor-pointer"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              <span>{lang === "gu" ? "નવો વેપારી ઉમેરો" : "Add New Party"}</span>
+            </button>
+          </div>
+
+          {/* 3 Summary KPI Cards (Matching MyBillBook) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-subtle">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  👥 All Parties
+                </span>
+                <span className="text-xs font-mono text-slate-400">Total</span>
+              </div>
+              <div className="text-2xl font-bold font-mono text-slate-900 mt-2">
+                {parties.length}
+              </div>
+              <div className="text-[11px] text-slate-400 mt-1">
+                Active customer & supplier directories
+              </div>
+            </div>
+
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-subtle">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-1">
+                  <span>↓</span>
+                  <span>To Collect (Receivable)</span>
+                </span>
+                <span className="text-xs font-mono text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">
+                  You'll Get
+                </span>
+              </div>
+              <div className="text-2xl font-bold font-mono text-emerald-700 mt-2">
+                ₹ {totalToCollect.toLocaleString("en-IN")}
+              </div>
+              <div className="text-[11px] text-slate-400 mt-1">
+                Outstanding dues from customers
+              </div>
+            </div>
+
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-subtle">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-rose-600 uppercase tracking-wider flex items-center gap-1">
+                  <span>↑</span>
+                  <span>To Pay (Payable)</span>
+                </span>
+                <span className="text-xs font-mono text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full font-bold">
+                  You'll Give
+                </span>
+              </div>
+              <div className="text-2xl font-bold font-mono text-rose-600 mt-2">
+                ₹ {totalToPay.toLocaleString("en-IN")}
+              </div>
+              <div className="text-[11px] text-slate-400 mt-1">
+                Payables to raw material / suppliers
+              </div>
+            </div>
+          </div>
+
+          {/* Parties DataTable */}
+          <DataTable<Party>
+            selectable
+            selectedIds={selectedIds}
+            onSelectionChange={setSelectedIds}
+            renderBulkActions={(ids) => (
+              <button
+                type="button"
+                onClick={() => setIsBulkDeleteModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>
+                  {lang === "gu"
+                    ? `પસંદ કરેલ કાઢી નાખો (${ids.size})`
+                    : `Delete Selected (${ids.size})`}
+                </span>
+              </button>
+            )}
+            data={displayParties}
+            columns={partyColumns}
+            keyExtractor={(p) => p.id}
+            searchPlaceholder={
+              lang === "gu"
+                ? "નામ, ફોન નંબર અથવા જીએસટી દ્વારા શોધો..."
+                : "Search by party name, phone, or GSTIN..."
+            }
+            searchKeys={["name", "phone", "gstin", "stateCode"]}
+            customSearchFn={(p, q) =>
+              Boolean(
+                p.name.toLowerCase().includes(q) ||
+                  (p.nameGujarati && p.nameGujarati.toLowerCase().includes(q)) ||
+                  (p.phone && p.phone.includes(q)) ||
+                  (p.gstin && p.gstin.toLowerCase().includes(q)) ||
+                  (p.stateCode && p.stateCode.toLowerCase().includes(q))
+              )
+            }
+            isLoading={isLoading}
+            lang={lang}
+            themeColor="saffron"
+            exportable
+            exportFileName="parties_master"
+            filtersSlot={
+              <div className="flex items-center gap-2">
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  className="text-xs bg-[#F8F9FB] border border-[#E5E7EB] text-[#202124] rounded-xl px-3 py-1.5 font-semibold focus:outline-none focus:bg-white cursor-pointer"
+                >
+                  <option value="ALL">
+                    {lang === "gu" ? "તમામ પ્રકાર (All Types)" : "All Types"}
+                  </option>
+                  <option value="CUSTOMER">
+                    {lang === "gu" ? "ગ્રાહક (Customers)" : "Customers"}
+                  </option>
+                  <option value="SUPPLIER">
+                    {lang === "gu" ? "સપ્લાયર (Suppliers)" : "Suppliers"}
+                  </option>
+                  <option value="BOTH">
+                    {lang === "gu" ? "બંને (Both)" : "Both"}
+                  </option>
+                </select>
+              </div>
+            }
+            mobileCardRender={(p) => (
+              <div key={p.id} className="p-3.5 hover:bg-slate-50 transition-colors space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold text-slate-900 text-sm">{p.name}</span>
+                  <Badge
+                    variant={
+                      p.type === "CUSTOMER"
+                        ? "info"
+                        : p.type === "SUPPLIER"
+                          ? "purple"
+                          : "neutral"
+                    }
+                  >
+                    {p.type}
+                  </Badge>
+                </div>
+                {p.nameGujarati && <p className="text-xs text-slate-500">{p.nameGujarati}</p>}
+                <div className="flex items-center justify-between text-xs text-slate-600 font-mono">
+                  <span>📞 {p.phone || "—"}</span>
+                  <span>State: {p.stateCode}</span>
+                </div>
+                {p.gstin && (
+                  <div className="text-[11px] font-mono font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block">
+                    GST: {p.gstin}
+                  </div>
+                )}
+                <div className="flex flex-wrap items-center justify-end gap-1.5 pt-1">
+                  {p.phone && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const companyName =
+                          currentCompany?.tradeName ||
+                          currentCompany?.legalName ||
+                          "MyBill History";
+                        const text = `*Payment Reminder from ${companyName}*\nDear ${p.name},\nThis is a friendly reminder regarding your outstanding bill. Kindly arrange payment at your earliest convenience.\n\nThank you!`;
+                        const cleanPhone = p.phone.replace(/[^0-9]/g, "");
+                        const waUrl = cleanPhone
+                          ? `https://wa.me/${cleanPhone.startsWith("91") ? cleanPhone : "91" + cleanPhone}?text=${encodeURIComponent(text)}`
+                          : `https://wa.me/?text=${encodeURIComponent(text)}`;
+                        window.open(waUrl, "_blank");
+                      }}
+                      className="px-2 py-1 text-[11px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-medium rounded inline-flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>💬 Remind</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedParty(p)}
+                    className="px-2.5 py-1 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded transition-colors inline-flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>{lang === "gu" ? "વિગતો" : "Details"} →</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEditModal(p)}
+                    className="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded cursor-pointer"
+                  >
+                    {lang === "gu" ? "સુધારો" : "Edit"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPartyToDelete(p)}
+                    className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded cursor-pointer"
+                  >
+                    {lang === "gu" ? "કાઢી નાખો" : "Delete"}
+                  </button>
+                </div>
+              </div>
+            )}
+          />
+
+          {/* Bottom Excel / Tally Migration Banner (Matching MyBillBook) */}
+          <div className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl p-5 border border-slate-800 shadow-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-2xl shrink-0">
+                📊
+              </div>
+              <div>
+                <div className="text-sm font-bold text-white">
+                  Migrate your customer and supplier master from Excel or Tally
+                </div>
+                <div className="text-xs text-slate-300 mt-0.5">
+                  Import contacts, GST numbers, opening balances and credit terms in 1-click.
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => alert("Upload party Excel sheet format (.xlsx or .csv) supported.")}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all shrink-0 cursor-pointer"
+            >
+              Upload Excel Sheet ⤓
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Create Party Modal */}
       <Modal

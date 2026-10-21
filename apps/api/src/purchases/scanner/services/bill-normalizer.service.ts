@@ -187,6 +187,43 @@ export class BillNormalizerService {
   }
 
   /**
+   * Normalizes dates from various formats (DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, etc.) to standard YYYY-MM-DD.
+   */
+  normalizeDate(rawDate?: string | null): string | null {
+    if (!rawDate) return null;
+    const clean = rawDate.trim();
+    if (!clean) return null;
+
+    // YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(clean)) return clean;
+
+    // DD/MM/YYYY or DD-MM-YYYY
+    const dmy = clean.match(/^(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{4})$/);
+    if (dmy) {
+      const day = dmy[1].padStart(2, "0");
+      const month = dmy[2].padStart(2, "0");
+      const year = dmy[3];
+      return `${year}-${month}-${day}`;
+    }
+
+    // YYYY/MM/DD
+    const ymd = clean.match(/^(\d{4})[\/\.-](\d{1,2})[\/\.-](\d{1,2})$/);
+    if (ymd) {
+      const year = ymd[1];
+      const month = ymd[2].padStart(2, "0");
+      const day = ymd[3].padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    const parsed = new Date(clean);
+    if (!isNaN(parsed.getTime())) {
+      return parsed.toISOString().split("T")[0];
+    }
+
+    return clean;
+  }
+
+  /**
    * Normalizes extracted bill data, recalculates line items, and verifies mathematical integrity.
    */
   normalizeBillData(
@@ -358,8 +395,22 @@ export class BillNormalizerService {
         gstin,
         confidence: data.supplier?.confidence ?? (gstin ? 90 : 40),
       },
+      buyer: data.buyer
+        ? {
+            ...data.buyer,
+            gstin: this.sanitizeGstin(data.buyer?.gstin),
+            stateCode: this.resolveStateCode(
+              data.buyer?.stateCode,
+              data.buyer?.gstin,
+              companyStateCode,
+            ),
+            confidence: data.buyer?.confidence ?? (data.buyer?.gstin ? 90 : 80),
+          }
+        : undefined,
       invoice: {
         ...data.invoice,
+        invoiceDate: this.normalizeDate(data.invoice?.invoiceDate),
+        dueDate: this.normalizeDate(data.invoice?.dueDate),
         placeOfSupply,
         confidence: data.invoice?.confidence ?? 85,
       },

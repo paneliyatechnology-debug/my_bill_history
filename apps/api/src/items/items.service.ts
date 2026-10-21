@@ -13,7 +13,7 @@ import {
   StockTransactionType,
 } from "@billing/shared-types";
 import { CreateItemDto } from "./dto/create-item.dto";
-import { UpdateItemDto, QueryItemsDto } from "./dto/update-item.dto";
+import { UpdateItemDto, QueryItemsDto, AdjustStockDto } from "./dto/update-item.dto";
 
 @Injectable()
 export class ItemsService {
@@ -21,6 +21,62 @@ export class ItemsService {
     private readonly prisma: DatabaseService,
     private readonly audit: AuditService,
   ) {}
+
+  private async resolveWarehouseId(ctx: TenantContext, tx: any, warehouseId?: string): Promise<string> {
+    if (warehouseId) {
+      const existing = await tx.warehouse.findFirst({
+        where: { id: warehouseId, companyId: ctx.companyId },
+      });
+      if (existing) return existing.id;
+    }
+
+    const defaultWh = await tx.warehouse.findFirst({
+      where: { companyId: ctx.companyId, isDefault: true },
+    });
+    if (defaultWh) return defaultWh.id;
+
+    const anyWh = await tx.warehouse.findFirst({
+      where: { companyId: ctx.companyId },
+    });
+    if (anyWh) return anyWh.id;
+
+    let resolvedBranchId = ctx.branchId;
+    if (!resolvedBranchId) {
+      const branch = await tx.branch.findFirst({
+        where: { companyId: ctx.companyId },
+      });
+      if (branch) {
+        resolvedBranchId = branch.id;
+      } else {
+        const newBranch = await tx.branch.create({
+          data: {
+            organizationId: ctx.organizationId,
+            companyId: ctx.companyId,
+            name: "Main Branch",
+            code: "MAIN",
+            isMainBranch: true,
+            addressLine1: "Main Office",
+            city: "Ahmedabad",
+            pincode: "380001",
+            stateCode: "24",
+            phone: "9999999999",
+          },
+        });
+        resolvedBranchId = newBranch.id;
+      }
+    }
+
+    const createdWh = await tx.warehouse.create({
+      data: {
+        organizationId: ctx.organizationId,
+        companyId: ctx.companyId,
+        branchId: resolvedBranchId,
+        name: "Main Warehouse",
+        isDefault: true,
+      },
+    });
+    return createdWh.id;
+  }
 
   async create(ctx: TenantContext, dto: CreateItemDto) {
     if (!dto.name || !dto.name.trim()) {
@@ -223,59 +279,7 @@ export class ItemsService {
         const valRate = Number(dto.purchaseRate || dto.retailPrice || 0);
         const totalVal = initialStock * valRate;
 
-        // Resolve Warehouse
-        let warehouseId = dto.warehouseId;
-        if (!warehouseId) {
-          const defaultWh = await tx.warehouse.findFirst({
-            where: { companyId: ctx.companyId, isDefault: true },
-          });
-          if (defaultWh) {
-            warehouseId = defaultWh.id;
-          } else {
-            const anyWh = await tx.warehouse.findFirst({
-              where: { companyId: ctx.companyId },
-            });
-            if (anyWh) {
-              warehouseId = anyWh.id;
-            } else {
-              let resolvedBranchId = ctx.branchId;
-              if (!resolvedBranchId) {
-                const branch = await tx.branch.findFirst({
-                  where: { companyId: ctx.companyId },
-                });
-                if (branch) {
-                  resolvedBranchId = branch.id;
-                } else {
-                  const newBranch = await tx.branch.create({
-                    data: {
-                      organizationId: ctx.organizationId,
-                      companyId: ctx.companyId,
-                      name: "Main Branch",
-                      code: "MAIN",
-                      isMainBranch: true,
-                      addressLine1: "Main Office",
-                      city: "Ahmedabad",
-                      pincode: "380001",
-                      stateCode: "24",
-                      phone: "9999999999",
-                    },
-                  });
-                  resolvedBranchId = newBranch.id;
-                }
-              }
-              const createdWh = await tx.warehouse.create({
-                data: {
-                  organizationId: ctx.organizationId,
-                  companyId: ctx.companyId,
-                  branchId: resolvedBranchId,
-                  name: "Main Warehouse",
-                  isDefault: true,
-                },
-              });
-              warehouseId = createdWh.id;
-            }
-          }
-        }
+        const warehouseId = await this.resolveWarehouseId(ctx, tx, dto.warehouseId);
 
         // Optional Batch for Opening Stock if trackBatches is enabled
         let batchId: string | null = null;
@@ -652,6 +656,68 @@ export class ItemsService {
         },
       });
 
+      // Synchronize opening stock if provided
+      if (dto.openingStock !== undefined) {
+        const openingQty = Math.max(0, Number(dto.openingStock) || 0);
+        const existingOpening = await tx.stockTransaction.findFirst({
+          where: {
+            companyId: ctx.companyId,
+            itemId: id,
+            transactionType: StockTransactionType.OPENING,
+          },
+        });
+
+        const valRate = Number(dto.purchaseRate ?? updated.purchaseRate ?? updated.retailPrice ?? 0);
+        const txDate = dto.openingStockDate ? new Date(dto.openingStockDate) : new Date();
+
+        if (openingQty > 0) {
+          if (existingOpening) {
+            await tx.stockTransaction.update({
+              where: { id: existingOpening.id },
+              data: {
+                quantity: openingQty,
+                valuationRate: valRate,
+                totalValuation: openingQty * valRate,
+                transactionDate: txDate,
+                warehouseId: dto.warehouseId || existingOpening.warehouseId,
+              },
+            });
+          } else {
+            const warehouseId = await this.resolveWarehouseId(ctx, tx, dto.warehouseId);
+
+            await tx.stockTransaction.create({
+              data: {
+                organizationId: ctx.organizationId,
+                companyId: ctx.companyId,
+                warehouseId,
+                itemId: id,
+                transactionType: StockTransactionType.OPENING,
+                transactionDate: txDate,
+                quantity: openingQty,
+                valuationRate: valRate,
+                totalValuation: openingQty * valRate,
+                referenceDocType: "OPENING_BALANCE",
+                referenceDocId: id,
+              },
+            });
+          }
+        } else if (existingOpening) {
+          await tx.stockTransaction.delete({
+            where: { id: existingOpening.id },
+          });
+        }
+      }
+
+      // Compute current stock dynamically from all stock transactions
+      const stockTransactions = await tx.stockTransaction.findMany({
+        where: { itemId: id, companyId: ctx.companyId },
+        select: { quantity: true },
+      });
+      const currentStock = stockTransactions.reduce(
+        (sum, t) => sum + Number(t.quantity),
+        0,
+      );
+
       if (ctx.userId) {
         await this.audit.record({
           organizationId: ctx.organizationId,
@@ -661,11 +727,14 @@ export class ItemsService {
           entityName: "Item",
           entityId: id,
           previousState: existing,
-          newState: updated,
+          newState: { ...updated, currentStock },
         });
       }
 
-      return updated;
+      return {
+        ...updated,
+        currentStock,
+      };
     });
   }
 
@@ -894,4 +963,89 @@ export class ItemsService {
       messageGujarati: `${ids.length} વસ્તુઓ સફળતાપૂર્વક પ્રોસેસ કરવામાં આવી (${deletedCount} કાયમ માટે કાઢી નાખી, ${archivedCount} આર્કાઇવ થઈ).`,
     };
   }
+
+  async adjustStock(ctx: TenantContext, id: string, dto: AdjustStockDto) {
+    return this.prisma.executeInTenantContext(ctx, async (tx) => {
+      const item = await tx.item.findFirst({
+        where: { id, companyId: ctx.companyId },
+      });
+
+      if (!item) {
+        throw new NotFoundException({
+          statusCode: 404,
+          message: `Item with ID '${id}' not found.`,
+          messageGujarati: `આઇટમ મળી નથી.`,
+        });
+      }
+
+      const qty = Math.abs(Number(dto.quantity) || 0);
+      if (qty <= 0) {
+        throw new BadRequestException({
+          statusCode: 400,
+          message: "Adjustment quantity must be greater than 0.",
+          messageGujarati: "સ્ટોક એડજસ્ટમેન્ટનો જથ્થો 0 થી વધુ હોવો જોઈએ.",
+        });
+      }
+
+      const isAdd = dto.type === "ADD";
+      const signedQty = isAdd ? qty : -qty;
+      const txType = isAdd
+        ? StockTransactionType.STOCK_ADJUSTMENT_PLUS
+        : StockTransactionType.STOCK_ADJUSTMENT_MINUS;
+
+      const warehouseId = await this.resolveWarehouseId(ctx, tx, dto.warehouseId);
+
+      const valRate = Number(item.purchaseRate || item.retailPrice || 0);
+      const txDate = dto.date ? new Date(dto.date) : new Date();
+
+      const stockTx = await tx.stockTransaction.create({
+        data: {
+          organizationId: ctx.organizationId,
+          companyId: ctx.companyId,
+          warehouseId,
+          itemId: id,
+          transactionType: txType,
+          transactionDate: txDate,
+          quantity: signedQty,
+          valuationRate: valRate,
+          totalValuation: qty * valRate,
+          referenceDocType: "MANUAL_ADJUSTMENT",
+          referenceDocId: id,
+        },
+      });
+
+      const allTx = await tx.stockTransaction.findMany({
+        where: { itemId: id, companyId: ctx.companyId },
+        select: { quantity: true },
+      });
+      const currentStock = allTx.reduce((sum, t) => sum + Number(t.quantity), 0);
+
+      if (ctx.userId) {
+        await this.audit.record({
+          organizationId: ctx.organizationId,
+          companyId: ctx.companyId,
+          userId: ctx.userId,
+          action: "ITEM_STOCK_ADJUSTMENT",
+          entityName: "Item",
+          entityId: id,
+          newState: {
+            itemId: id,
+            adjustmentType: dto.type,
+            quantity: qty,
+            currentStock,
+            remarks: dto.remarks,
+          },
+        });
+      }
+
+      return {
+        success: true,
+        message: `Stock successfully ${isAdd ? "increased" : "reduced"} by ${qty}.`,
+        messageGujarati: `સ્ટોક સફળતાપૂર્વક ${isAdd ? "ઉમેરવામાં આવ્યો" : "ઘટાડવામાં આવ્યો"} (${qty}).`,
+        currentStock,
+        transaction: stockTx,
+      };
+    });
+  }
 }
+

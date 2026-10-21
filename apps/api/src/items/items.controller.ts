@@ -13,7 +13,7 @@ import {
 } from "@nestjs/common";
 import { ItemsService } from "./items.service";
 import { CreateItemDto } from "./dto/create-item.dto";
-import { UpdateItemDto, QueryItemsDto } from "./dto/update-item.dto";
+import { UpdateItemDto, QueryItemsDto, AdjustStockDto } from "./dto/update-item.dto";
 import { CurrentTenant } from "../common/decorators/current-tenant.decorator";
 import { Roles } from "../common/decorators/roles.decorator";
 import { TenantContext, UserRole } from "@billing/shared-types";
@@ -61,6 +61,16 @@ export class ItemsController {
     @Body() dto: UpdateItemDto,
   ) {
     return this.itemsService.update(ctx, id, dto);
+  }
+
+  @Roles(UserRole.COMPANY_ADMIN, UserRole.ACCOUNTANT)
+  @Post(":id/adjust-stock")
+  async adjustStock(
+    @CurrentTenant() ctx: TenantContext,
+    @Param("id") id: string,
+    @Body() dto: AdjustStockDto,
+  ) {
+    return this.itemsService.adjustStock(ctx, id, dto);
   }
 
   @Roles(UserRole.COMPANY_ADMIN, UserRole.ACCOUNTANT)

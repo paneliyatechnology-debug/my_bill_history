@@ -6,6 +6,9 @@ import { apiClient } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { StatCard } from "../../../components/ui/stat-card";
 import { Badge } from "../../../components/ui/badge";
+import { ExportDropdown } from "../../../components/ui/export-dropdown";
+import { ExportColumn, ExportFormat, ExportMetadata } from "../../../lib/export/export-types";
+import { executeExport } from "../../../lib/export/export-engine";
 
 interface HsnMasterItem {
   id: string;
@@ -297,6 +300,39 @@ export default function HsnMasterPage() {
     }
   };
 
+  const handleExportHsn = async (format: ExportFormat) => {
+    if (data.length === 0) return;
+
+    const columns: ExportColumn[] = [
+      { header: "HSN / SAC Code", key: "code", type: "string" },
+      { header: "Type", key: "type", type: "string" },
+      { header: "Description", key: "description", type: "string" },
+      { header: "Gujarati Description", key: "descriptionGujarati", type: "string" },
+      { header: "GST Rate (%)", key: "gstRate", type: "number", align: "right" },
+      { header: "Cess Rate (%)", key: "cessRate", type: "number", align: "right" },
+      {
+        header: "Status",
+        type: "string",
+        format: (_v, r) => (r.isActive ? "Active" : "Inactive"),
+      },
+      {
+        header: "Catalogue Source",
+        type: "string",
+        format: (_v, r) => (r.isSystem ? "Official Government Schedule" : "Custom User Code"),
+      },
+    ];
+
+    const metadata: ExportMetadata = {
+      title: "HSN and SAC Master Directory",
+      fileName: `HSN_SAC_Master_${typeFilter}`,
+      filterDescription: `Type: ${typeFilter}, Status: ${statusFilter}${search ? `, Search: "${search}"` : ""}`,
+      totalCount: data.length,
+      generatedAt: new Date().toLocaleString("en-IN"),
+    };
+
+    await executeExport(format, columns, data, metadata);
+  };
+
   return (
     <div className="space-y-6 pb-12">
       {/* Top Header */}
@@ -314,30 +350,40 @@ export default function HsnMasterPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => {
-            setFormError(null);
-            setIsCreateOpen(true);
-          }}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <ExportDropdown
+            onExport={handleExportHsn}
+            totalCount={data.length}
+            disabled={data.length === 0 || isLoading}
+            lang={lang}
+            themeColor="saffron"
+          />
+
+          <button
+            onClick={() => {
+              setFormError(null);
+              setIsCreateOpen(true);
+            }}
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          <span>
-            {lang === "gu" ? "નવો એચએસએન ઉમેરો" : "Add Custom HSN/SAC"}
-          </span>
-        </button>
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            <span>
+              {lang === "gu" ? "નવો એચએસએન ઉમેરો" : "Add Custom HSN/SAC"}
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* Notification Banner */}

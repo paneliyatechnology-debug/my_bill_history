@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../../../context/auth-context";
 import { apiClient, extractList } from "../../../../../lib/api-client";
+import { getPartyItemPrice } from "../../../../../lib/party-item-pricing";
 
 interface PartyOption {
   id: string;
@@ -138,18 +139,39 @@ export default function EditInvoicePage() {
     if (selected?.stateCode) {
       setPlaceOfSupply(selected.stateCode);
     }
+
+    // Automatically recalculate item prices in existing rows according to the selected party's prices
+    setRows((prevRows) =>
+      prevRows.map((r) => {
+        if (!r.itemId) return r;
+        const it = items.find((i) => i.id === r.itemId);
+        const partyPrice = getPartyItemPrice(pId, r.itemId, selected?.name, it?.name);
+        if (partyPrice !== null) {
+          return { ...r, unitPrice: partyPrice };
+        } else if (it) {
+          return { ...r, unitPrice: it.retailPrice };
+        }
+        return r;
+      })
+    );
   };
 
   const handleItemSelect = (idx: number, itId: string) => {
     const item = items.find((i) => i.id === itId);
     if (!item) return;
 
+    const selected = parties.find((p) => p.id === partyId);
+    const partyPrice = partyId
+      ? getPartyItemPrice(partyId, item.id, selected?.name, item.name)
+      : null;
+    const effectiveUnitPrice = partyPrice !== null ? partyPrice : item.retailPrice;
+
     const updated = [...rows];
     updated[idx] = {
       ...updated[idx],
       itemId: item.id,
       hsnCode: item.hsnCode || "1001",
-      unitPrice: item.retailPrice,
+      unitPrice: effectiveUnitPrice,
       taxRate: item.taxRate,
     };
     setRows(updated);
@@ -167,13 +189,20 @@ export default function EditInvoicePage() {
 
   const handleAddRow = () => {
     const firstItem = items[0];
+    const selected = parties.find((p) => p.id === partyId);
+    const partyPrice =
+      partyId && firstItem?.id
+        ? getPartyItemPrice(partyId, firstItem.id, selected?.name, firstItem.name)
+        : null;
+    const effectiveUnitPrice = partyPrice !== null ? partyPrice : (firstItem?.retailPrice || 100);
+
     setRows([
       ...rows,
       {
         itemId: firstItem?.id || "",
         hsnCode: firstItem?.hsnCode || "1001",
         quantity: 1,
-        unitPrice: firstItem?.retailPrice || 100,
+        unitPrice: effectiveUnitPrice,
         discountPercent: 0,
         taxRate: firstItem?.taxRate ?? 5,
       },

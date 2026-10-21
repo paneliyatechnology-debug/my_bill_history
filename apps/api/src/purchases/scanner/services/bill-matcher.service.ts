@@ -203,6 +203,116 @@ export class BillMatcherService {
   }
 
   /**
+   * Matches customer/buyer from extracted bill against existing company Parties (tenant-scoped)
+   */
+  async matchCustomer(
+    extractedBuyer: ExtractedBillDataDto["buyer"],
+    tenant: TenantContext,
+  ): Promise<SupplierMatchResult> {
+    if (!extractedBuyer) {
+      return {
+        matchedPartyId: null,
+        matchedPartyName: null,
+        matchedPartyGstin: null,
+        matchedPartyScore: 0,
+        isNewSupplier: true,
+      };
+    }
+    return this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const parties = await tx.party.findMany({
+        where: {
+          companyId: tenant.companyId,
+          type: { in: ["CUSTOMER", "BOTH", "SUPPLIER"] },
+        },
+        select: {
+          id: true,
+          name: true,
+          gstin: true,
+          phone: true,
+        },
+      });
+
+      if (!parties || parties.length === 0) {
+        return {
+          matchedPartyId: null,
+          matchedPartyName: null,
+          matchedPartyGstin: null,
+          matchedPartyScore: 0,
+          isNewSupplier: true,
+        };
+      }
+
+      const extractedGstin = extractedBuyer?.gstin?.trim().toUpperCase();
+      const extractedPhone = extractedBuyer?.phone?.trim().replace(/\D/g, "");
+      const extractedName = extractedBuyer?.name?.trim() || "";
+
+      // 1. Priority 1: Exact GSTIN match
+      if (extractedGstin) {
+        const gstinMatch = parties.find(
+          (p) => p.gstin && p.gstin.trim().toUpperCase() === extractedGstin,
+        );
+        if (gstinMatch) {
+          return {
+            matchedPartyId: gstinMatch.id,
+            matchedPartyName: gstinMatch.name,
+            matchedPartyGstin: gstinMatch.gstin,
+            matchedPartyScore: 100,
+            isNewSupplier: false,
+          };
+        }
+      }
+
+      // 2. Priority 2: Phone number match
+      if (extractedPhone && extractedPhone.length >= 10) {
+        const phoneMatch = parties.find(
+          (p) =>
+            p.phone &&
+            p.phone.replace(/\D/g, "").endsWith(extractedPhone.slice(-10)),
+        );
+        if (phoneMatch) {
+          return {
+            matchedPartyId: phoneMatch.id,
+            matchedPartyName: phoneMatch.name,
+            matchedPartyGstin: phoneMatch.gstin,
+            matchedPartyScore: 90,
+            isNewSupplier: false,
+          };
+        }
+      }
+
+      // 3. Priority 3: Fuzzy Name Similarity
+      let bestMatch: any = null;
+      let highestScore = 0;
+
+      for (const p of parties) {
+        const sim = this.calculateSimilarity(p.name, extractedName);
+        if (sim > highestScore) {
+          highestScore = sim;
+          bestMatch = p;
+        }
+      }
+
+      if (bestMatch && highestScore >= 0.65) {
+        return {
+          matchedPartyId: bestMatch.id,
+          matchedPartyName: bestMatch.name,
+          matchedPartyGstin: bestMatch.gstin,
+          matchedPartyScore: Math.round(highestScore * 100),
+          isNewSupplier: false,
+        };
+      }
+
+      return {
+        matchedPartyId: null,
+        matchedPartyName: null,
+        matchedPartyGstin: null,
+        matchedPartyScore: Math.round(highestScore * 100),
+        isNewSupplier: true,
+      };
+    });
+  }
+
+  /**
    * Matches an individual purchase line item against existing company Items (tenant-scoped)
    */
   async matchLineItem(

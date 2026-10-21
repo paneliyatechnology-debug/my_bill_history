@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Body,
   Param,
   Query,
@@ -70,5 +71,20 @@ export class SalesReturnsController {
       throw new BadRequestException("salesInvoiceId is required.");
     }
     return await this.invoicesService.createSalesReturn(invoiceId, dto, tenant);
+  }
+
+  @Delete(":id")
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.ORG_ADMIN,
+    UserRole.COMPANY_ADMIN,
+    UserRole.ACCOUNTANT,
+    UserRole.BRANCH_MANAGER,
+  )
+  async deleteSalesReturn(
+    @Param("id") id: string,
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.invoicesService.deleteSalesReturn(id, tenant);
   }
 }

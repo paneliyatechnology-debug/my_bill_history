@@ -58,6 +58,7 @@ export class GeminiOcrProvider implements IOcrProvider {
     const configuredModel = process.env.GEMINI_MODEL?.trim();
     const candidateModels = [
       configuredModel,
+      "gemini-2.5-flash",
       "gemini-3.8-flash",
       "gemini-3.5-flash",
       "gemini-flash-latest",
@@ -76,20 +77,26 @@ CRITICAL EXTRACTION & ACCURACY RULES:
 2. ACCURACY & NO HALLUCINATION: Extract only what is actually printed. If a field is missing, ambiguous, or not readable, return null. Never guess or hallucinate numbers or names.
 3. SUPPLIER / VENDOR DETAILS (VERY IMPORTANT):
    - Extract the SELLER / VENDOR / SUPPLIER who issued the bill (usually under "Sold By", "Supplier", "From", header company logo or brand).
-   - "name": Clean, exact trade or legal business name (e.g. "Shreyash Retail Private Limited"). NEVER use an address fragment (like "Shop No 3, 4, 5") or an amount (like "₹70.00") as the supplier name!
+   - "name": Clean, exact trade or legal business name (e.g. "Shreyash Retail Private Limited"). NEVER use an address fragment (like "Shop No 3, 4, 5") or an amount as the supplier name!
    - "gstin": Exactly 15 alphanumeric characters of the supplier's Indian GSTIN (e.g. "24AAXCS0655F1Z4"). If not present or unregistered, return null.
    - "address": Complete address of the supplier if visible.
    - "phone": Supplier contact phone number if visible.
-   - Do NOT confuse the customer/buyer ("Billed To", "Shipped To") with the supplier!
+3b. BUYER / CUSTOMER / RECEIVER DETAILS (VERY IMPORTANT):
+   - Extract the CLIENT / BUYER / CUSTOMER to whom the invoice is issued (usually under "Billed To", "Bill To", "Details of Receiver", "Customer", "Buyer", "Consignee").
+   - "name": Clean, exact trade or legal business name (e.g. "Jay Ambe Supermarket & Departmental Store").
+   - "gstin": 15-character GSTIN of the buyer/customer if visible.
+   - "address": Complete address of the customer if visible.
+   - "phone": Contact phone number of the customer if visible.
+   - "stateCode": 2-digit Indian state code of the customer if visible (e.g. "24").
 4. INVOICE HEADER DETAILS:
-   - "invoiceNumber": The vendor's bill/invoice number (e.g. "LIAAFU4270009590"). If this is a payment receipt, UPI confirmation, or POS slip without an invoice number, extract the Order ID, Payment ID, Transaction ID, or Reference ID (e.g. "pay_TZRWAGqyJBSeoV", "ORD-12345").
-   - "invoiceDate": The invoice issue date in "YYYY-MM-DD" format (e.g. "2026-05-10").
+   - "invoiceNumber": The vendor's bill/invoice number (e.g. "LIAAFU4270009590" or "INV/26-27/0013"). If this is a payment receipt, UPI confirmation, or POS slip without an invoice number, extract the Order ID, Payment ID, Transaction ID, or Reference ID (e.g. "pay_TZRWAGqyJBSeoV", "ORD-12345").
+   - "invoiceDate": The invoice issue date in "YYYY-MM-DD" format (e.g. "2026-10-17").
    - "dueDate": Due date in "YYYY-MM-DD" format if visible, otherwise null.
    - "placeOfSupply": Return the 2-digit Indian State Code (e.g. "24" for Gujarat, "27" for Maharashtra, "07" for Delhi, "29" for Karnataka). If you only see the state name (e.g. "Gujarat"), convert it to its 2-digit code ("24") or use the first 2 digits of the supplier GSTIN.
 5. LINE ITEMS TABLE (VERY IMPORTANT):
    - Extract all itemized goods or services from the bill.
-   - "description": Complete, clean, legible product or service name (e.g. "BEARDO Strong Hold Wax Hair Wax").
-   - "hsnCode": 4 to 8 digit HSN or SAC code if printed (e.g. "33059030"). If not present, return null.
+   - "description": Complete, clean, legible product or service name (e.g. "Aashirvaad Shudh Chakki Atta 10kg").
+   - "hsnCode": 4 to 8 digit HSN or SAC code if printed (e.g. "11010000"). If not present, return null.
    - "quantity": Number of units purchased (e.g. 1). Default to 1.
    - "unit": Unit of measurement ("PCS", "BOX", "KG", "LTR", "NOS", etc.) or null.
    - "unitPrice": Rate per unit before taxes (tax-exclusive base price). If the bill only displays the tax-inclusive price or MRP, calculate base unitPrice = taxableAmount / quantity so that (quantity * unitPrice) + taxes equals the item's total.
@@ -124,6 +131,14 @@ Respond with ONLY a raw JSON object (no markdown code blocks, no backticks, no e
     "address": string or null,
     "phone": string or null,
     "email": string or null,
+    "confidence": number
+  },
+  "buyer": {
+    "name": string or null,
+    "gstin": string or null,
+    "address": string or null,
+    "phone": string or null,
+    "stateCode": string or null,
     "confidence": number
   },
   "invoice": {
@@ -308,6 +323,26 @@ Respond with ONLY a raw JSON object (no markdown code blocks, no backticks, no e
           if (typeof parsed.supplier.gstin === "string") {
             const cleanGstin = parsed.supplier.gstin.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
             parsed.supplier.gstin = cleanGstin.length >= 10 ? cleanGstin : null;
+          }
+        }
+
+        // 1b. Sanitize buyer details
+        if (parsed.buyer && typeof parsed.buyer === "object") {
+          let bName = parsed.buyer.name;
+          if (typeof bName === "string") {
+            bName = bName.replace(/^(?:billed\s*to|bill\s*to|details\s*of\s*receiver|customer|buyer|consignee)[\s:]+/i, "").trim();
+            if (/^(?:shop\s*no|flat\s*no|plot\s*no|room\s*no|ground\s*floor)/i.test(bName)) {
+              bName = null;
+            }
+            parsed.buyer.name = bName;
+          }
+          if (typeof parsed.buyer.gstin === "string") {
+            const cleanGstin = parsed.buyer.gstin.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+            parsed.buyer.gstin = cleanGstin.length >= 10 ? cleanGstin : null;
+          }
+          if (typeof parsed.buyer.stateCode === "string") {
+            const sc = parsed.buyer.stateCode.trim();
+            parsed.buyer.stateCode = /^\d{1,2}$/.test(sc) ? sc.padStart(2, "0") : null;
           }
         }
 

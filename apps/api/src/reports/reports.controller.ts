@@ -241,4 +241,131 @@ export class ReportsController {
   ) {
     return await this.reportsService.getGstr3bReport(query, tenant);
   }
+
+  // 15. Bill Wise Profit & Margin
+  @Get("bill-wise-profit")
+  async getBillWiseProfit(
+    @Query() query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.reportsService.getBillWiseProfit(query, tenant);
+  }
+
+  // 16. Item-Wise Sales Report
+  @Get("item-sales-report")
+  async getItemSalesReport(
+    @Query() query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.reportsService.getItemSalesReport(query, tenant);
+  }
+
+  // 17. Party-Wise Sales Report
+  @Get("party-sales-report")
+  async getPartySalesReport(
+    @Query() query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.reportsService.getPartySalesReport(query, tenant);
+  }
+
+  // 18. Sales Returns (Credit Notes)
+  @Get("sales-returns")
+  async getSalesReturns(
+    @Query() query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.reportsService.getSalesReturnsReport(query, tenant);
+  }
+
+  // 19. Item-Wise Purchase Report
+  @Get("item-purchase-report")
+  async getItemPurchaseReport(
+    @Query() query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.reportsService.getItemPurchaseReport(query, tenant);
+  }
+
+  // 20. Party-Wise Purchase Report
+  @Get("party-purchase-report")
+  async getPartyPurchaseReport(
+    @Query() query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.reportsService.getPartyPurchaseReport(query, tenant);
+  }
+
+  // 21. Purchase Returns (Debit Notes)
+  @Get("purchase-returns")
+  async getPurchaseReturns(
+    @Query() query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.reportsService.getPurchaseReturnsReport(query, tenant);
+  }
+
+  // 22. Quotations / Estimates Report
+  @Get("quotations-report")
+  async getQuotations(
+    @Query() query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.reportsService.getQuotationsReport(query, tenant);
+  }
+
+  // 23. Delivery Challans Report
+  @Get("delivery-challans-report")
+  async getDeliveryChallans(
+    @Query() query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.reportsService.getDeliveryChallansReport(query, tenant);
+  }
+
+  // 24. Item Batch & Expiry Report
+  @Get("batch-expiry-report")
+  async getItemBatchReport(
+    @Query() query: { fromDate?: string; toDate?: string },
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.reportsService.getItemBatchReport(query, tenant);
+  }
+
+  // 25. Low Stock Alert Report
+  @Get("low-stock-alert")
+  async getLowStockAlert(
+    @Query() query: { fromDate?: string; toDate?: string },
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.reportsService.getLowStockAlertReport(query, tenant);
+  }
+
+  // 26. Expense Category Report
+  @Get("expense-category-report")
+  async getExpenseCategoryReport(
+    @Query() query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.reportsService.getExpenseCategoryReport(query, tenant);
+  }
+
+  // 27. Audit Trail Report
+  @Get("audit-trail")
+  async getAuditTrail(
+    @Query() query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.reportsService.getAuditTrailReport(query, tenant);
+  }
+
+  // 28. HSN Wise Sales Summary
+  @Get("hsn-sales-summary")
+  async getHsnWiseSalesReport(
+    @Query() query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.reportsService.getHsnWiseSalesReport(query, tenant);
+  }
 }
+

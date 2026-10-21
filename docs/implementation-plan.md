@@ -332,6 +332,26 @@ graph TD
   - `Production Deployment & Disaster Recovery Plan`: Created in [`docs/deployment-and-recovery-plan.md`](file:///home/dell/Jaydeep/Billing/docs/deployment-and-recovery-plan.md) covering secret injection, rollback runbooks, health monitoring, and 14-day controlled staging pilot.
 - **Scope Boundary**: Strict compliance maintained. Zero Phase 8+ enterprise manufacturing features started.
 
+### Phase 6B: MyBillBook UX/UI Parity & Reference Alignment
+
+- **Reference Source**: Live audit of `https://mybillbook.in/app/` (Active tenant `MODI CHAI`, Phone `9510442798`).
+- **Deliverables Completed**:
+  - [x] Reference Feature Inventory & Gap Audit (`docs/reference-feature-audit.md`): Full inspection of Dashboard, Invoice Create, Parties, Items, Sales, Purchases, Cash & Bank, and Reports.
+  - [x] Create Sales Invoice (`/sales/invoices/new`):
+    - Segmented Mode Switcher (`Edit Mode` vs `Preview Mode`) in sticky top header.
+    - Left column: `Autofill this bill` Mira AI panel with drag & drop file upload, step-by-step guide, and quick tips.
+    - Right column:
+      - Bill To card with searchable party picker displaying live party balance and receivable/payable direction arrows (`↑`/`↓`).
+      - Full multi-tab `Create New Party` modal (Basic Details with Customer/Supplier radio pills, GSTIN auto-fill note, PAN, Email, Opening Balance, Address, Credit Settings, Contact Person, Bank Account).
+      - Invoice Details card with `Repeat this Invoice` checkbox and expandable `+ Add Due Date` (payment terms in days).
+      - Items Table with `NO`, `ITEMS`, `HSN`, `QTY`, `PRICE/ITEM`, `DISCOUNT`, `TAX`, `AMOUNT`, `⚙️`, and scan barcode simulation.
+      - Bottom Section: Notes, Terms & Conditions, Bank Details banner, UPI QR banner.
+      - Financial Calculations: Inline `+ Add Additional Charges` with GST rate selector, inline `+ Add Discount` (% and ₹ sync, Before/After tax), Auto Round Off, Total Amount Received, `+ Split Payment` breakdown modal, and Balance Amount with color indicator.
+      - Bottom right: `+ Add Signature` dashed card and floating `?` help button.
+  - [x] Dark Navy MyBillBook Sidebar (`components/layout/app-shell.tsx`):
+    - Color `#0E1726` with orange company badge (`MODI CHAI`), phone (`9510442798`), quick `+ Create Sales Invoice` button, and grouped sections (`GENERAL`, `ACCOUNTING SOLUTIONS`, `BUSINESS TOOLS`).
+  - [x] Multi-Device Responsiveness: Tested and verified on Mobile (390px), Tablet (768px), and Desktop (1440px).
+
 ### Phase 7: Wholesale, Distribution & Light Manufacturing
 
 - **Entry Criteria**: Phases 1–6 complete; Rate limiting active; Disaster recovery backup & restore verified; CA sign-off dossier prepared.

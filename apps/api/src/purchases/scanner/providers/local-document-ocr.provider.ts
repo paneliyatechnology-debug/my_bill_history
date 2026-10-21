@@ -24,21 +24,34 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
     options?: OcrOptions,
   ): Promise<OcrResult> {
     const fileName = (options?.fileName || "uploaded-bill.pdf").toLowerCase();
-    this.logger.log(`Local OCR processing: ${fileName} (${mimeType}, ${fileBuffer.length} bytes)`);
+    this.logger.log(
+      `Local OCR processing: ${fileName} (${mimeType}, ${fileBuffer.length} bytes)`,
+    );
 
     let rawText = "";
     let engine = "unknown";
     let pageCount = 1;
 
-    // Check if file is plaintext / CSV / TSV directly (including CSVs saved as .pdf or .txt)
-    const textSample = fileBuffer.slice(0, Math.min(fileBuffer.length, 1024)).toString("utf8");
-    const isTextStream = /^[\x09\x0A\x0D\x20-\x7E\u00A0-\uFFFF]+$/.test(textSample.slice(0, 80));
+    // Check if file is plaintext / CSV / TSV directly (exclude binary PDFs)
+    const isPdf =
+      fileBuffer.slice(0, 4).toString() === "%PDF" ||
+      mimeType === "application/pdf" ||
+      fileName.endsWith(".pdf");
+    const textSample = fileBuffer
+      .slice(0, Math.min(fileBuffer.length, 1024))
+      .toString("utf8");
+    const isTextStream =
+      !isPdf &&
+      /^[\x09\x0A\x0D\x20-\x7E\u00A0-\uFFFF]+$/.test(textSample.slice(0, 80));
     if (
-      mimeType.startsWith("text/") ||
-      mimeType === "text/csv" ||
-      fileName.endsWith(".csv") ||
-      fileName.endsWith(".txt") ||
-      (isTextStream && (textSample.toLowerCase().includes("invoice") || textSample.includes(",")))
+      !isPdf &&
+      (mimeType.startsWith("text/") ||
+        mimeType === "text/csv" ||
+        fileName.endsWith(".csv") ||
+        fileName.endsWith(".txt") ||
+        (isTextStream &&
+          (textSample.toLowerCase().includes("invoice") ||
+            textSample.includes(","))))
     ) {
       rawText = fileBuffer.toString("utf8");
       engine = "csv-text-parser";
@@ -46,7 +59,10 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
     }
 
     // 1. PDF Processing: Check digital text via pdftotext
-    if (!rawText && (mimeType === "application/pdf" || fileName.endsWith(".pdf"))) {
+    if (
+      !rawText &&
+      (mimeType === "application/pdf" || fileName.endsWith(".pdf"))
+    ) {
       const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "ocr_scan_"));
       const tempPdfPath = path.join(tempDir, "document.pdf");
 
@@ -54,12 +70,18 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
         await fs.writeFile(tempPdfPath, fileBuffer);
         let stdout = "";
         try {
-          const res = await execFileAsync("pdftotext", ["-layout", tempPdfPath, "-"]);
+          const res = await execFileAsync("pdftotext", [
+            "-layout",
+            tempPdfPath,
+            "-",
+          ]);
           stdout = res.stdout || "";
         } catch (pdfErr: any) {
           const stderr = (pdfErr?.stderr || "").toLowerCase();
           if (stderr.includes("password") || stderr.includes("encrypted")) {
-            throw new BadRequestException("The uploaded PDF is password-protected. Please upload an unlocked PDF.");
+            throw new BadRequestException(
+              "The uploaded PDF is password-protected. Please upload an unlocked PDF.",
+            );
           }
           this.logger.warn(`pdftotext extraction warning: ${pdfErr?.message}`);
         }
@@ -74,10 +96,22 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
           pageCount = pageMatches ? pageMatches.length + 1 : 1;
         } else {
           // Scanned/Image-only PDF: render page images using pdftoppm (bounded to first 5 pages max)
-          this.logger.log(`PDF has insufficient text (${trimmed.length} chars). Performing pixel-level OCR via pdftoppm + Tesseract...`);
+          this.logger.log(
+            `PDF has insufficient text (${trimmed.length} chars). Performing pixel-level OCR via pdftoppm + Tesseract...`,
+          );
           const tempPrefix = path.join(tempDir, "page");
           try {
-            await execFileAsync("pdftoppm", ["-png", "-r", "150", "-f", "1", "-l", "5", tempPdfPath, tempPrefix]);
+            await execFileAsync("pdftoppm", [
+              "-png",
+              "-r",
+              "150",
+              "-f",
+              "1",
+              "-l",
+              "5",
+              tempPdfPath,
+              tempPrefix,
+            ]);
 
             // Read generated PNGs inside isolated tempDir
             const files = await fs.readdir(tempDir);
@@ -110,7 +144,9 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
               }
             }
           } catch (ocrErr) {
-            this.logger.warn(`Pixel OCR on scanned PDF failed: ${(ocrErr as any)?.message}`);
+            this.logger.warn(
+              `Pixel OCR on scanned PDF failed: ${(ocrErr as any)?.message}`,
+            );
           }
         }
       } catch (err) {
@@ -122,9 +158,15 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
     }
 
     // 2. Image Processing: Direct Tesseract Pixel OCR for PNG, JPG, JPEG
-    if (!rawText && (mimeType.startsWith("image/") || /\.(png|jpe?g|webp|bmp)$/i.test(fileName))) {
+    if (
+      !rawText &&
+      (mimeType.startsWith("image/") ||
+        /\.(png|jpe?g|webp|bmp)$/i.test(fileName))
+    ) {
       try {
-        this.logger.log(`Running pixel-level OCR with Tesseract on image file (${fileName})...`);
+        this.logger.log(
+          `Running pixel-level OCR with Tesseract on image file (${fileName})...`,
+        );
         const tesseract = await import("tesseract.js");
         const worker = await tesseract.createWorker("eng");
         try {
@@ -136,14 +178,18 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
         engine = "tesseract-pixel-ocr";
         pageCount = 1;
       } catch (err) {
-        this.logger.warn(`Tesseract image OCR failed: ${(err as any)?.message}`);
+        this.logger.warn(
+          `Tesseract image OCR failed: ${(err as any)?.message}`,
+        );
       }
     }
 
     // 3. Unreadable / Blank Document Handling: Return explicit failure, never fabricate data
     const nonWsText = rawText.replace(/\s+/g, "");
     if (!rawText || nonWsText.length < 15) {
-      this.logger.warn(`Document '${fileName}' is unreadable or has no recognizable text. Returning unreadable state.`);
+      this.logger.warn(
+        `Document '${fileName}' is unreadable or has no recognizable text. Returning unreadable state.`,
+      );
       return {
         provider: this.name,
         rawText: rawText || "",
@@ -200,7 +246,13 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
     }
 
     // 4. Parse genuinely extracted text without vendor-specific hardcoding
-    const structured = this.parseInvoiceText(rawText, fileName, pageCount, engine, options);
+    const structured = this.parseInvoiceText(
+      rawText,
+      fileName,
+      pageCount,
+      engine,
+      options,
+    );
 
     return {
       provider: this.name,
@@ -221,15 +273,30 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
     options?: OcrOptions,
   ) {
     // 0. CSV Format Direct Parser (e.g. sales/purchase CSV registers or exported CSV tables)
-    if (rawText.toLowerCase().includes('"invoice no') || rawText.toLowerCase().includes('invoice no,') || rawText.toLowerCase().includes('invoice no.,')) {
-      const csvLines = rawText.split(/\r?\n/).filter((l) => l.trim().length > 0);
+    if (
+      rawText.toLowerCase().includes('"invoice no') ||
+      rawText.toLowerCase().includes("invoice no,") ||
+      rawText.toLowerCase().includes("invoice no.,")
+    ) {
+      const csvLines = rawText
+        .split(/\r?\n/)
+        .filter((l) => l.trim().length > 0);
       if (csvLines.length > 1) {
-        const headers = csvLines[0].split(",").map((h) => h.replace(/^"|"$/g, "").trim().toLowerCase());
+        const headers = csvLines[0]
+          .split(",")
+          .map((h) => h.replace(/^"|"$/g, "").trim().toLowerCase());
         const invIdx = headers.findIndex((h) => h.includes("invoice"));
         const dateIdx = headers.findIndex((h) => h.includes("date"));
-        const partyIdx = headers.findIndex((h) => h.includes("party") || h.includes("customer") || h.includes("supplier"));
+        const partyIdx = headers.findIndex(
+          (h) =>
+            h.includes("party") ||
+            h.includes("customer") ||
+            h.includes("supplier"),
+        );
         const taxableIdx = headers.findIndex((h) => h.includes("taxable"));
-        const totalIdx = headers.findIndex((h) => h.includes("total") || h.includes("amount"));
+        const totalIdx = headers.findIndex(
+          (h) => h.includes("total") || h.includes("amount"),
+        );
 
         const itemsList: any[] = [];
         let firstInvNo: string | null = null;
@@ -239,14 +306,23 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
         let totalGrand = 0;
 
         for (let i = 1; i < csvLines.length; i++) {
-          const cols = csvLines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map((c) => c.replace(/^"|"$/g, "").trim()) ||
+          const cols =
+            csvLines[i]
+              .match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)
+              ?.map((c) => c.replace(/^"|"$/g, "").trim()) ||
             csvLines[i].split(",").map((c) => c.replace(/^"|"$/g, "").trim());
           if (cols.length < 2) continue;
           const invNo = invIdx >= 0 ? cols[invIdx] : null;
           const dt = dateIdx >= 0 ? cols[dateIdx] : null;
           const pty = partyIdx >= 0 ? cols[partyIdx] : null;
-          const taxVal = taxableIdx >= 0 ? parseFloat(cols[taxableIdx].replace(/[^0-9.]/g, "")) || 0 : 0;
-          const totVal = totalIdx >= 0 ? parseFloat(cols[totalIdx].replace(/[^0-9.]/g, "")) || 0 : 0;
+          const taxVal =
+            taxableIdx >= 0
+              ? parseFloat(cols[taxableIdx].replace(/[^0-9.]/g, "")) || 0
+              : 0;
+          const totVal =
+            totalIdx >= 0
+              ? parseFloat(cols[totalIdx].replace(/[^0-9.]/g, "")) || 0
+              : 0;
 
           if (!firstInvNo && invNo) firstInvNo = invNo;
           if (!firstDate && dt) {
@@ -262,7 +338,9 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
           totalGrand += totVal;
 
           itemsList.push({
-            description: pty ? `${pty} - Item ${i}` : `Invoice Item ${invNo || i}`,
+            description: pty
+              ? `${pty} - Item ${i}`
+              : `Invoice Item ${invNo || i}`,
             rawText: csvLines[i],
             hsnCode: "1001",
             quantity: 1,
@@ -316,7 +394,10 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
               cessAmount: "0.00",
               otherCharges: "0.00",
               roundOff: "0.00",
-              grandTotal: totalGrand > 0 ? totalGrand.toFixed(2) : (totalTaxable * 1.18).toFixed(2),
+              grandTotal:
+                totalGrand > 0
+                  ? totalGrand.toFixed(2)
+                  : (totalTaxable * 1.18).toFixed(2),
               isTaxMismatch: false,
               confidence: 90,
             },
@@ -364,7 +445,8 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
     const invRegex =
       /(?:Tax\s+Invoice\s*(?:No|Number|#|Ref|Reference)|Invoice\s*(?:No|Number|#|Ref|Reference|Id)|Bill\s*(?:No|Number|#)|Document\s*(?:No|Number|#)|Doc\s*(?:No|#)|Ref\s*(?:No|#|Reference)|Invoice\s+reference|Payment\s*(?:Id|ID|Ref|#)|Order\s*(?:Id|ID|#)|Transaction\s*(?:Id|ID|#)|Txn\s*(?:Id|ID|#)|UPI\s*Ref(?:\s*No)?|UTR\s*No)(?:\s+(?:in\s+)?[A-Za-z]{3})?(?:[^\S\r\n]*(?:[:\.\-]+|\.{2,})[^\S\r\n]*|[^\S\r\n]+)([A-Za-z0-9\-_/]{2,})/gi;
 
-    const blacklist = /^(invoice|bill|tax|document|reference|ref|date|due|total|amount|summary|usd|inr|status|details|paid|unpaid|original|duplicate|triplicate|vendor|customer|buyer|seller|phone|email|gstin|subtotal|page)$/i;
+    const blacklist =
+      /^(invoice|bill|tax|document|reference|ref|date|due|total|amount|summary|usd|inr|status|details|paid|unpaid|original|duplicate|triplicate|vendor|customer|buyer|seller|phone|email|gstin|subtotal|page)$/i;
 
     let invMatch;
     while ((invMatch = invRegex.exec(rawText)) !== null) {
@@ -383,7 +465,9 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
       }
     }
     if (!invoiceNumber) {
-      warnings.push("Invoice number could not be determined with high confidence.");
+      warnings.push(
+        "Invoice number could not be determined with high confidence.",
+      );
     }
 
     // 3. Invoice & Due Date (Handles standard dates and receipt 'Paid On' timestamps)
@@ -407,7 +491,9 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
     }
 
     if (!invoiceDate) {
-      warnings.push("Invoice date was not clearly detected and requires manual review.");
+      warnings.push(
+        "Invoice date was not clearly detected and requires manual review.",
+      );
     }
 
     // 4. Financial Totals (Handles dotted leaders, currency prefix spaces, 'in INR')
@@ -430,8 +516,12 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
     if (!grandTotal) {
       // 1. Amount right next to or above Paid Successfully / Paid / Order Total
       const paidMatch =
-        rawText.match(/(?:Rs\.?|₹|¥|\$|€|£)\s*([0-9,]+\.\d{2})\s*(?:\r?\n|\s+)+(?:Paid\s+Successfully|Paid|Successful)/i) ||
-        rawText.match(/(?:Paid\s+Successfully|Paid|Amount\s+Paid|Payment\s+of|Amount)\s*[:\s]*(?:Rs\.?|₹|¥|\$|€|£)?\s*([0-9,]+\.\d{2})/i);
+        rawText.match(
+          /(?:Rs\.?|₹|¥|\$|€|£)\s*([0-9,]+\.\d{2})\s*(?:\r?\n|\s+)+(?:Paid\s+Successfully|Paid|Successful)/i,
+        ) ||
+        rawText.match(
+          /(?:Paid\s+Successfully|Paid|Amount\s+Paid|Payment\s+of|Amount)\s*[:\s]*(?:Rs\.?|₹|¥|\$|€|£)?\s*([0-9,]+\.\d{2})/i,
+        );
       if (paidMatch) {
         grandTotal = paidMatch[1].replace(/,/g, "");
         finConfidence = 92;
@@ -440,7 +530,9 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
 
     if (!grandTotal) {
       // 2. Standalone line with currency symbol and amount (e.g. "¥408.00" or "₹408.00")
-      const standaloneMatch = rawText.match(/(?:^|\n)\s*(?:Rs\.?|₹|¥|\$|€|£)\s*([0-9,]+\.\d{2})\s*(?:\n|$)/);
+      const standaloneMatch = rawText.match(
+        /(?:^|\n)\s*(?:Rs\.?|₹|¥|\$|€|£)\s*([0-9,]+\.\d{2})\s*(?:\n|$)/,
+      );
       if (standaloneMatch) {
         grandTotal = standaloneMatch[1].replace(/,/g, "");
         finConfidence = 88;
@@ -458,28 +550,36 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
 
     let detectedTaxRate: number | null = null;
 
-    const cgstMatch = rawText.match(/CGST(?:\s*@?\s*(\d+(?:\.\d+)?)\s*%|\s*\(\s*(\d+(?:\.\d+)?)\s*%\s*\)|Total)?[:\s]+(?:Rs\.?|₹|\$|€|£)?\s*([0-9,]+\.?\d*)/i);
+    const cgstMatch = rawText.match(
+      /CGST(?:\s*@?\s*(\d+(?:\.\d+)?)\s*%|\s*\(\s*(\d+(?:\.\d+)?)\s*%\s*\)|Total)?[:\s]+(?:Rs\.?|₹|\$|€|£)?\s*([0-9,]+\.?\d*)/i,
+    );
     if (cgstMatch) {
       const rate = cgstMatch[1] || cgstMatch[2];
       if (rate) detectedTaxRate = (detectedTaxRate || 0) + parseFloat(rate);
       cgstAmount = cgstMatch[3].replace(/,/g, "");
     }
 
-    const sgstMatch = rawText.match(/SGST(?:\s*@?\s*(\d+(?:\.\d+)?)\s*%|\s*\(\s*(\d+(?:\.\d+)?)\s*%\s*\)|Total)?[:\s]+(?:Rs\.?|₹|\$|€|£)?\s*([0-9,]+\.?\d*)/i);
+    const sgstMatch = rawText.match(
+      /SGST(?:\s*@?\s*(\d+(?:\.\d+)?)\s*%|\s*\(\s*(\d+(?:\.\d+)?)\s*%\s*\)|Total)?[:\s]+(?:Rs\.?|₹|\$|€|£)?\s*([0-9,]+\.?\d*)/i,
+    );
     if (sgstMatch) {
       const rate = sgstMatch[1] || sgstMatch[2];
       if (rate) detectedTaxRate = (detectedTaxRate || 0) + parseFloat(rate);
       sgstAmount = sgstMatch[3].replace(/,/g, "");
     }
 
-    const igstMatch = rawText.match(/IGST(?:\s*@?\s*(\d+(?:\.\d+)?)\s*%|\s*\(\s*(\d+(?:\.\d+)?)\s*%\s*\)|Total)?[:\s]+(?:Rs\.?|₹|\$|€|£)?\s*([0-9,]+\.?\d*)/i);
+    const igstMatch = rawText.match(
+      /IGST(?:\s*@?\s*(\d+(?:\.\d+)?)\s*%|\s*\(\s*(\d+(?:\.\d+)?)\s*%\s*\)|Total)?[:\s]+(?:Rs\.?|₹|\$|€|£)?\s*([0-9,]+\.?\d*)/i,
+    );
     if (igstMatch) {
       const rate = igstMatch[1] || igstMatch[2];
       if (rate) detectedTaxRate = parseFloat(rate);
       igstAmount = igstMatch[3].replace(/,/g, "");
     }
 
-    const roundMatch = rawText.match(/Round(?:\s*Off)?[:\s]+([+-]?[0-9,]+\.?\d*)/i);
+    const roundMatch = rawText.match(
+      /Round(?:\s*Off)?[:\s]+([+-]?[0-9,]+\.?\d*)/i,
+    );
     if (roundMatch) roundOff = roundMatch[1].replace(/,/g, "");
 
     // 5. Layout-Aware Supplier vs Buyer GSTIN and Name Separation
@@ -490,18 +590,31 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
     let supplierGstin: string | null = null;
     let supplierConfidence = 0;
 
+    let buyerName: string | null = null;
+    let buyerAddress: string | null = null;
+    let buyerPhone: string | null = null;
+    let buyerGstin: string | null = null;
+
     // Layout segmentation: Identify Buyer/Bill-To block vs Supplier block
     let billToIdx = -1;
     let buyerEndIdx = -1;
     for (let i = 0; i < lines.length; i++) {
-      if (/\b(?:bill\s*to|billed\s*to|buyer|consignee|customer|ship\s*to)\b/i.test(lines[i])) {
+      if (
+        /\b(?:bill\s*to|billed\s*to|buyer|consignee|customer|ship\s*to)\b/i.test(
+          lines[i],
+        )
+      ) {
         billToIdx = i;
         break;
       }
     }
     if (billToIdx >= 0) {
       for (let i = billToIdx + 1; i < lines.length; i++) {
-        if (/\b(?:details|summary|description|particulars|payment|subtotal|invoice\s*reference|table)\b/i.test(lines[i])) {
+        if (
+          /\b(?:details|summary|description|particulars|payment|subtotal|invoice\s*reference|table)\b/i.test(
+            lines[i],
+          )
+        ) {
           buyerEndIdx = i;
           break;
         }
@@ -511,7 +624,11 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
     const supplierLines: string[] = [];
     const buyerLines: string[] = [];
     for (let i = 0; i < lines.length; i++) {
-      if (billToIdx >= 0 && i >= billToIdx && (buyerEndIdx === -1 || i < buyerEndIdx)) {
+      if (
+        billToIdx >= 0 &&
+        i >= billToIdx &&
+        (buyerEndIdx === -1 || i < buyerEndIdx)
+      ) {
         buyerLines.push(lines[i]);
       } else if (billToIdx === -1 || i < billToIdx) {
         supplierLines.push(lines[i]);
@@ -520,7 +637,8 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
     const supplierText = supplierLines.join("\n");
 
     // Detect GSTINs and ensure buyer GSTIN is NEVER assigned as supplier GSTIN
-    const gstinRegex = /\b\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}[Z]{1}[A-Z\d]{1}\b/g;
+    const gstinRegex =
+      /\b\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}[Z]{1}[A-Z\d]{1}\b/g;
     let gMatch;
     while ((gMatch = gstinRegex.exec(rawText)) !== null) {
       const detectedGstin = gMatch[0];
@@ -534,7 +652,13 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
       const colIdx = idx - lineStart;
 
       // If under "bill to" or on right column, it is buyer GSTIN
-      if (/bill\s*to|buyer|consignee|customer/i.test(contextBefore) || colIdx > 35) {
+      if (
+        /bill\s*to|buyer|consignee|customer/i.test(contextBefore) ||
+        colIdx > 35
+      ) {
+        if (!buyerGstin) {
+          buyerGstin = detectedGstin;
+        }
         continue;
       } else {
         if (!supplierGstin) {
@@ -546,20 +670,42 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
     // Generic Supplier Name: Extract from the top header / seller block (No hardcoded names!)
     for (let i = 0; i < Math.min(supplierLines.length, 12); i++) {
       const line = supplierLines[i].trim();
-      if (/^invoice$|^tax\s*invoice$|^bill\s*of\s*supply$|^original$|^duplicate$/i.test(line)) continue;
-      if (/invoice\s*number|invoice\s*reference|date\s*of|date\s*due/i.test(line)) continue;
+      if (
+        /^invoice$|^tax\s*invoice$|^bill\s*of\s*supply$|^original$|^duplicate$/i.test(
+          line,
+        )
+      )
+        continue;
+      if (
+        /invoice\s*number|invoice\s*reference|date\s*of|date\s*due/i.test(line)
+      )
+        continue;
 
       if (/bill\s*to/i.test(line)) {
         const leftPart = line.split(/bill\s*to/i)[0].trim();
-        if (leftPart.length >= 2 && !leftPart.includes("@") && !/\$|\d{5}/.test(leftPart)) {
+        if (
+          leftPart.length >= 2 &&
+          !leftPart.includes("@") &&
+          !/\$|\d{5}/.test(leftPart)
+        ) {
           supplierName = leftPart;
           supplierConfidence = 85;
           break;
         }
       } else {
-        if (!supplierName && line.length >= 3 && !line.includes("@") && !/\$|\d{5}/.test(line)) {
+        if (
+          !supplierName &&
+          line.length >= 3 &&
+          !line.includes("@") &&
+          !/\$|\d{5}/.test(line)
+        ) {
           const col = line.split(/\s{3,}/)[0].trim();
-          if (col && !/^(description|particulars|item|qty|amount|sr\b|rate|thanks)/i.test(col)) {
+          if (
+            col &&
+            !/^(description|particulars|item|qty|amount|sr\b|rate|thanks)/i.test(
+              col,
+            )
+          ) {
             supplierName = col;
             supplierConfidence = 80;
             break;
@@ -569,31 +715,55 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
     }
 
     // Email and Phone: Extract strictly from supplier block, never from buyer block
-    const emailMatch = supplierText.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+    const emailMatch = supplierText.match(
+      /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/,
+    );
     if (emailMatch) supplierEmail = emailMatch[0];
 
-    const phoneMatch = supplierText.match(/(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/);
+    const phoneMatch = supplierText.match(
+      /(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/,
+    );
     if (phoneMatch) supplierPhone = phoneMatch[0];
 
     // Address extraction: look for street/road/nagar/city/zip inside supplier block
-    const addrMatch = supplierText.match(/(?:\d+\s+[A-Za-z0-9\s,.-]+\b(?:Street|St\.?|Road|Rd\.?|Marg|GIDC|Plot|Avenue|Lane|Block|Market)\b[^\n]*)/i);
+    const addrMatch = supplierText.match(
+      /(?:\d+\s+[A-Za-z0-9\s,.-]+\b(?:Street|St\.?|Road|Rd\.?|Marg|GIDC|Plot|Avenue|Lane|Block|Market)\b[^\n]*)/i,
+    );
     if (addrMatch) {
       supplierAddress = addrMatch[0].trim();
     }
+    // Buyer Details extraction
+    const buyerText = buyerLines.join("\n");
+    for (const bLine of buyerLines) {
+      const clean = bLine.replace(/^(?:billed\s*to|bill\s*to|details\s*of\s*receiver|customer|buyer|consignee)[\s:]*/i, "").trim();
+      if (clean && clean.length > 2 && !/^(gstin|state|code|phone|tel|email|invoice|date)/i.test(clean)) {
+        buyerName = clean.split(/\s{3,}/)[0].trim();
+        break;
+      }
+    }
+    const bPhoneMatch = buyerText.match(/(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/);
+    if (bPhoneMatch) buyerPhone = bPhoneMatch[0];
 
     if (!supplierName) {
-      warnings.push("Supplier name could not be extracted with high confidence.");
+      warnings.push(
+        "Supplier name could not be extracted with high confidence.",
+      );
     }
 
     // 6. Generic Line Items Extraction
     const items: any[] = [];
     const tableHeaderIdx = lines.findIndex((l) =>
-      /Description|Particulars|Item\s+Name|Line\s+Items|Product|Items\b|Goods\b|Material|વિગત|માલની\s*વિગત/i.test(l),
+      /Description|Particulars|Item\s+Name|Line\s+Items|Product|Items\b|Goods\b|Material|વિગત|માલની\s*વિગત/i.test(
+        l,
+      ),
     );
     const headerLine = tableHeaderIdx >= 0 ? lines[tableHeaderIdx] : "";
     const priceHeaderIdx = headerLine.search(/\b(price|rate)\b/i);
     const qtyHeaderIdx = headerLine.search(/\b(units?|qty|quantity)\b/i);
-    const priceFirst = priceHeaderIdx !== -1 && qtyHeaderIdx !== -1 && priceHeaderIdx < qtyHeaderIdx;
+    const priceFirst =
+      priceHeaderIdx !== -1 &&
+      qtyHeaderIdx !== -1 &&
+      priceHeaderIdx < qtyHeaderIdx;
 
     const startLine = tableHeaderIdx >= 0 ? tableHeaderIdx + 1 : 0;
 
@@ -604,7 +774,9 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
       // End of table check: only break if we have already extracted at least one item
       if (
         items.length > 0 &&
-        /^\s*(?:subtotal|sub-total|grand\s*total|net\s*payable|amount\s*due)\b/i.test(trimmed)
+        /^\s*(?:subtotal|sub-total|grand\s*total|net\s*payable|amount\s*due)\b/i.test(
+          trimmed,
+        )
       ) {
         break;
       }
@@ -626,16 +798,24 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
           const desc = parts[0].replace(/^\d+[\.\)]\s*/, "").trim();
           const hsnMatch = trimmed.match(/(?:HSN|SAC)[:\s]*(\d{4,8})/i);
           const qtyMatch = trimmed.match(/Qty[:\s]*(\d+(?:\.\d+)?)/i);
-          const unitMatch = trimmed.match(/Qty[:\s]*\d+(?:\.\d+)?\s*([A-Za-z]+)/i);
+          const unitMatch = trimmed.match(
+            /Qty[:\s]*\d+(?:\.\d+)?\s*([A-Za-z]+)/i,
+          );
           const rateMatch = trimmed.match(/Rate[:\s]*([0-9,]+\.?\d*)/i);
-          const taxMatch = trimmed.match(/(?:Taxable|Amount)[:\s]*([0-9,]+\.?\d*)/i);
+          const taxMatch = trimmed.match(
+            /(?:Taxable|Amount)[:\s]*([0-9,]+\.?\d*)/i,
+          );
           const taxRateMatch = trimmed.match(/(\d+(?:\.\d+)?)\s*%/);
 
           const hsn = hsnMatch ? hsnMatch[1] : null;
           const qty = qtyMatch ? parseFloat(qtyMatch[1]) : 1;
           const unit = unitMatch ? unitMatch[1].toUpperCase() : "PCS";
-          const rate = rateMatch ? parseFloat(rateMatch[1].replace(/,/g, "")) : 0;
-          const taxable = taxMatch ? parseFloat(taxMatch[1].replace(/,/g, "")) : qty * rate;
+          const rate = rateMatch
+            ? parseFloat(rateMatch[1].replace(/,/g, ""))
+            : 0;
+          const taxable = taxMatch
+            ? parseFloat(taxMatch[1].replace(/,/g, ""))
+            : qty * rate;
           const taxRate = taxRateMatch ? parseFloat(taxRateMatch[1]) : 0;
 
           const isService =
@@ -665,7 +845,10 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
         }
 
         // Standard column format: Sr | Description | HSN | Qty | Unit | Rate | Taxable | Total
-        if (parts.length >= 3 && !/description|particulars|item\s+name|sr\.?\s*no/i.test(parts[0])) {
+        if (
+          parts.length >= 3 &&
+          !/description|particulars|item\s+name|sr\.?\s*no/i.test(parts[0])
+        ) {
           // Identify which part contains the description vs Sr No
           let descRaw = "";
           let hsn: string | null = null;
@@ -684,9 +867,13 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
           descRaw = (activeParts[colIdx] || activeParts[0] || "").trim();
 
           // Check if descRaw contains merged HSN and Quantity (e.g. "MIxBOPP TAPE 3919909 135.00")
-          const mergedHsnQtyMatch = descRaw.match(/^(.*?)(?:\s+(\d{4,8}))(?:\s+(\d+(?:\.\d+)?))\s*$/);
+          const mergedHsnQtyMatch = descRaw.match(
+            /^(.*?)(?:\s+(\d{4,8}))(?:\s+(\d+(?:\.\d+)?))\s*$/,
+          );
           if (mergedHsnQtyMatch) {
-            descRaw = mergedHsnQtyMatch[1].replace(/^(?:MIx|Mrx|M\/s\.?)\s*/i, "").trim();
+            descRaw = mergedHsnQtyMatch[1]
+              .replace(/^(?:MIx|Mrx|M\/s\.?)\s*/i, "")
+              .trim();
             hsn = mergedHsnQtyMatch[2];
             qty = parseFloat(mergedHsnQtyMatch[3]) || 1;
           } else {
@@ -711,7 +898,11 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
           const taxRateMatch = trimmed.match(/(\d+(?:\.\d+)?)\s*%/);
           let taxRate = taxRateMatch ? parseFloat(taxRateMatch[1]) : 0;
           const pctMatches = trimmed.match(/(\d+(?:\.\d+)?)\s*%/g) || [];
-          if (pctMatches.length >= 2 && pctMatches[0] === pctMatches[1] && parseFloat(pctMatches[0]) === 9) {
+          if (
+            pctMatches.length >= 2 &&
+            pctMatches[0] === pctMatches[1] &&
+            parseFloat(pctMatches[0]) === 9
+          ) {
             taxRate = 18;
           }
 
@@ -721,7 +912,9 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
 
             if (qty > 1) {
               const matchedRate = allNumbers.find(
-                (n) => Math.abs(qty * n - largest) < 1 || Math.abs(n * qty - largest) / largest < 0.02,
+                (n) =>
+                  Math.abs(qty * n - largest) < 1 ||
+                  Math.abs(n * qty - largest) / largest < 0.02,
               );
               if (matchedRate) {
                 rate = matchedRate;
@@ -738,7 +931,11 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
                 for (const b of allNumbers) {
                   if (
                     a !== b &&
-                    allNumbers.some((c) => Math.abs(a * b - c) < 1 || Math.abs(a * b - c) / c < 0.02)
+                    allNumbers.some(
+                      (c) =>
+                        Math.abs(a * b - c) < 1 ||
+                        Math.abs(a * b - c) / c < 0.02,
+                    )
                   ) {
                     qty = Math.min(a, b);
                     rate = Math.max(a, b);
@@ -762,7 +959,9 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
             total = taxable;
           }
 
-          const unitMatch = remainingText.match(/\b(PCS|ROL|ROLLS?|NOS|BAGS?|BOX|KG|MTR|COIL|SET)\b/i);
+          const unitMatch = remainingText.match(
+            /\b(PCS|ROL|ROLLS?|NOS|BAGS?|BOX|KG|MTR|COIL|SET)\b/i,
+          );
           if (unitMatch) {
             unit = unitMatch[1].toUpperCase();
           }
@@ -773,7 +972,11 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
               descRaw,
             );
 
-          if (descRaw && descRaw.length >= 2 && !/total|subtotal|amount|summary|tax\b/i.test(descRaw)) {
+          if (
+            descRaw &&
+            descRaw.length >= 2 &&
+            !/total|subtotal|amount|summary|tax\b/i.test(descRaw)
+          ) {
             items.push({
               description: descRaw,
               rawText: line,
@@ -787,7 +990,8 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
               cgstAmount: taxRate > 0 ? (taxable * (taxRate / 2)) / 100 : 0,
               sgstAmount: taxRate > 0 ? (taxable * (taxRate / 2)) / 100 : 0,
               igstAmount: 0,
-              totalAmount: total > taxable ? total : taxable * (1 + taxRate / 100),
+              totalAmount:
+                total > taxable ? total : taxable * (1 + taxRate / 100),
               itemType: isService ? "SERVICE" : "PRODUCT",
               confidence: 88,
             });
@@ -806,7 +1010,9 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
         while (
           tIdx >= 0 &&
           (tokens[tIdx].match(/^[\$₹Rs\.]*[\d,]+(?:\.\d+)?%?$/) ||
-            tokens[tIdx].match(/^(PCS|COIL|SET|JOB|NOS|MTR|KG|BAG|BOX|TIN|CALLS|UNITS?)$/i))
+            tokens[tIdx].match(
+              /^(PCS|COIL|SET|JOB|NOS|MTR|KG|BAG|BOX|TIN|CALLS|UNITS?)$/i,
+            ))
         ) {
           trailing.unshift(tokens[tIdx]);
           tIdx--;
@@ -824,7 +1030,9 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
             const prev = lines[i - 1].trim();
             if (
               prev.length > 2 &&
-              !/invoice|bill\s+to|gstin|dated|subtotal|grand\s+total|cgst|sgst|igst|authorized|item\s+description|hsn/i.test(prev) &&
+              !/invoice|bill\s+to|gstin|dated|subtotal|grand\s+total|cgst|sgst|igst|authorized|item\s+description|hsn/i.test(
+                prev,
+              ) &&
               !/\d{4,}/.test(prev)
             ) {
               desc = prev.replace(/^\d+[\.\)]\s*/, "").trim();
@@ -864,7 +1072,8 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
             }
 
             if (rem.length >= 1) {
-              totalAmount = parseFloat(rem[rem.length - 1].replace("%", "")) || 0;
+              totalAmount =
+                parseFloat(rem[rem.length - 1].replace("%", "")) || 0;
             }
             if (rem.length === 2) {
               const n1 = parseFloat(rem[0]);
@@ -876,7 +1085,10 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
                 qty = 1;
               }
             } else if (rem.length === 3) {
-              if (priceFirst || (parseFloat(rem[0]) === totalAmount && parseFloat(rem[1]) === 1)) {
+              if (
+                priceFirst ||
+                (parseFloat(rem[0]) === totalAmount && parseFloat(rem[1]) === 1)
+              ) {
                 unitPrice = parseFloat(rem[0]) || 0;
                 qty = parseFloat(rem[1]) || 1;
               } else {
@@ -887,7 +1099,8 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
               qty = parseFloat(rem[0]) || 1;
               unitPrice = parseFloat(rem[1]) || 0;
               const taxToken = rem.find((t) => t.includes("%"));
-              if (taxToken) taxRate = parseFloat(taxToken.replace("%", "")) || 0;
+              if (taxToken)
+                taxRate = parseFloat(taxToken.replace("%", "")) || 0;
             }
 
             taxableAmount = qty * unitPrice || totalAmount;
@@ -922,7 +1135,10 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
               rawText: line,
               hsnCode: hsn,
               quantity: qty,
-              unit: isService && (unit === "PCS" || unit === "UNITS") ? "NOS" : unit,
+              unit:
+                isService && (unit === "PCS" || unit === "UNITS")
+                  ? "NOS"
+                  : unit,
               unitPrice,
               discountAmount: 0,
               taxableAmount,
@@ -944,7 +1160,8 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
       for (const it of items) {
         if (!it.taxRate || it.taxRate === 0) {
           it.taxRate = detectedTaxRate;
-          const taxable = Number(it.taxableAmount) || (it.quantity * it.unitPrice);
+          const taxable =
+            Number(it.taxableAmount) || it.quantity * it.unitPrice;
           const tax = (taxable * detectedTaxRate) / 100;
           it.totalAmount = taxable + tax;
         }
@@ -956,11 +1173,14 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
     let taxMismatchReason: string | null = null;
 
     if (items.length > 0 && grandTotal) {
-      const itemsSum = items.reduce((acc, it) => acc + (Number(it.totalAmount) || 0), 0);
+      const itemsSum = items.reduce(
+        (acc, it) => acc + (Number(it.totalAmount) || 0),
+        0,
+      );
       const printedTotal = parseFloat(grandTotal);
       const diff = Math.abs(itemsSum - printedTotal);
 
-      if (diff > 1.00) {
+      if (diff > 1.0) {
         isTaxMismatch = true;
         taxMismatchReason = `Sum of items (${itemsSum.toFixed(2)}) does not match printed bill total (${printedTotal.toFixed(2)}). Discrepancy: ${diff.toFixed(2)}`;
         warnings.push(taxMismatchReason);
@@ -968,7 +1188,9 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
     } else if (items.length === 0 && grandTotal && parseFloat(grandTotal) > 0) {
       const totNum = parseFloat(grandTotal);
       items.push({
-        description: supplierName ? `${supplierName} - Purchase Bill / Expense` : "Purchase Bill / Expense",
+        description: supplierName
+          ? `${supplierName} - Purchase Bill / Expense`
+          : "Purchase Bill / Expense",
         rawText: `Total Amount: ${totNum.toFixed(2)}`,
         hsnCode: "9983",
         quantity: 1,
@@ -989,14 +1211,20 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
       });
       subtotal = grandTotal;
     } else if (items.length === 0) {
-      warnings.push("No line items could be parsed from the table. Please add line items manually.");
+      warnings.push(
+        "No line items could be parsed from the table. Please add line items manually.",
+      );
     }
 
     // Reverse charge detection (e.g. import of foreign services or Section 9(3))
-    const isRcm = /reverse\s*charge/i.test(rawText) || (currency !== "INR");
+    const isRcm = /reverse\s*charge/i.test(rawText) || currency !== "INR";
 
     const overallConfidence = Math.round(
-      (invoiceNumberConfidence + dateConfidence + finConfidence + (supplierConfidence || 30)) / 4,
+      (invoiceNumberConfidence +
+        dateConfidence +
+        finConfidence +
+        (supplierConfidence || 30)) /
+        4,
     );
 
     return {
@@ -1012,6 +1240,14 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
         email: supplierEmail,
         confidence: supplierConfidence,
         isNewSupplier: true,
+      },
+      buyer: {
+        name: buyerName,
+        gstin: buyerGstin || null,
+        address: buyerAddress,
+        phone: buyerPhone,
+        stateCode: buyerGstin ? buyerGstin.substring(0, 2) : "24",
+        confidence: buyerName ? 85 : 50,
       },
       invoice: {
         invoiceNumber,
@@ -1054,12 +1290,27 @@ export class LocalDocumentOcrProvider implements IOcrProvider {
     const cleaned = str.trim().replace(/,/g, "");
 
     // 1. Prioritize explicit Indian DD-MM-YYYY or DD/MM/YYYY
-    const match = cleaned.match(/^(\d{1,2})[-\/\.]([A-Za-z0-9]+)[-\/\.](\d{2,4})$/);
+    const match = cleaned.match(
+      /^(\d{1,2})[-\/\.]([A-Za-z0-9]+)[-\/\.](\d{2,4})$/,
+    );
     if (match) {
       const day = match[1].padStart(2, "0");
       let m = match[2];
       const y = match[3].length === 2 ? `20${match[3]}` : match[3];
-      const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+      const months = [
+        "jan",
+        "feb",
+        "mar",
+        "apr",
+        "may",
+        "jun",
+        "jul",
+        "aug",
+        "sep",
+        "oct",
+        "nov",
+        "dec",
+      ];
       let month = String(m).padStart(2, "0");
       if (isNaN(parseInt(m))) {
         const idx = months.findIndex((x) => m.toLowerCase().startsWith(x));

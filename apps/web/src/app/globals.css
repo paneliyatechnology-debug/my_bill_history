@@ -401,6 +401,17 @@ body {
   }
 }
 
+/* Responsive A4 Invoice Preview - Authentic Paper Feel on All Devices */
+/* The invoice-viewport-wrapper is the container that adapts its height to match the scaled content */
+.invoice-viewport-wrapper {
+  position: relative;
+}
+
+/* The invoice A4 sheet renders at full desktop width and is scaled down on mobile via JS */
+.invoice-a4-sheet {
+  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.08), 0 1px 4px -1px rgba(0, 0, 0, 0.05);
+}
+
 /* Print Utilities for Clean A4 GST Invoices and Thermal Receipts */
 @media print {
   /* Set standard A4 page with appropriate print margins */
@@ -525,6 +536,15 @@ body {
     border-radius: 0 !important;
     box-shadow: none !important;
     page-break-inside: auto;
+    /* Reset mobile transform scaling for proper A4 print */
+    transform: none !important;
+    transform-origin: unset !important;
+  }
+
+  /* Reset the invoice viewport wrapper for print */
+  .invoice-viewport-wrapper {
+    height: auto !important;
+    overflow: visible !important;
   }
 
   /* Table repeating header across multi-page invoices */

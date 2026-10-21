@@ -372,6 +372,7 @@ model Voucher {
   voucherNumber   String          @map("voucher_number") @db.VarChar(100)
   voucherDate     DateTime        @map("voucher_date") @db.Date
   referenceNo     String?         @map("reference_no") @db.VarChar(100)
+  paymentMode     String?         @map("payment_mode") @db.VarChar(30)
   narration       String?         @db.Text
   narrationGujarati String?      @map("narration_gujarati") @db.Text
   totalAmount     Decimal         @map("total_amount") @db.Decimal(15, 2)

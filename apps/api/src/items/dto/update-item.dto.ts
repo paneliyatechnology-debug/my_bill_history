@@ -25,6 +25,17 @@ export interface UpdateItemDto {
   trackSerialNo?: boolean;
   valuationMethod?: ValuationMethod;
   isActive?: boolean;
+  openingStock?: number | string;
+  openingStockDate?: string;
+  warehouseId?: string;
+}
+
+export interface AdjustStockDto {
+  quantity: number | string;
+  type: "ADD" | "REDUCE";
+  warehouseId?: string;
+  date?: string;
+  remarks?: string;
 }
 
 export interface QueryItemsDto {

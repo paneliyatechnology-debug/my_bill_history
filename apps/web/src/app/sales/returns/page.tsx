@@ -1,1648 +1,833 @@
 "use client";
 
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  Suspense,
-} from "react";
-import { useSearchParams } from "next/navigation";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../../context/auth-context";
-import { apiClient } from "../../../lib/api-client";
-import { Modal } from "../../../components/ui/modal";
-import { StatCard } from "../../../components/ui/stat-card";
-import { DataTable, ColumnDef } from "../../../components/ui/data-table";
+import { apiClient, extractList } from "../../../lib/api-client";
 
-interface ReturnItem {
-  id: string;
-  salesItemId: string;
-  itemId: string;
-  quantity: number;
-  unitPrice: number;
-  taxableAmount: number;
-  taxRate: number;
-  cgstAmount: number;
-  sgstAmount: number;
-  igstAmount: number;
-  totalAmount: number;
-  item: {
-    id: string;
-    name: string;
-    nameGujarati?: string;
-    sku?: string;
-  };
-}
+type DateRangePreset =
+  | "ALL"
+  | "TODAY"
+  | "YESTERDAY"
+  | "THIS_WEEK"
+  | "LAST_WEEK"
+  | "THIS_MONTH"
+  | "PREV_MONTH"
+  | "THIS_QUARTER"
+  | "PREV_QUARTER"
+  | "CURRENT_FY"
+  | "PREV_FY"
+  | "LAST_30_DAYS"
+  | "LAST_365_DAYS"
+  | "CUSTOM";
 
-interface SalesReturn {
+const DATE_PRESET_LABELS: Record<DateRangePreset, string> = {
+  LAST_365_DAYS: "Last 365 Days",
+  TODAY: "Today",
+  YESTERDAY: "Yesterday",
+  THIS_WEEK: "This Week",
+  LAST_WEEK: "Last Week",
+  THIS_MONTH: "This Month",
+  PREV_MONTH: "Previous Month",
+  THIS_QUARTER: "This Quarter",
+  PREV_QUARTER: "Previous Quarter",
+  CURRENT_FY: "Current Fiscal Year",
+  PREV_FY: "Previous Fiscal Year",
+  LAST_30_DAYS: "Last 30 Days",
+  ALL: "All Time",
+  CUSTOM: "Custom Date Range",
+};
+
+interface SalesReturnRow {
   id: string;
   returnNumber: string;
   returnDate: string;
-  reason?: string;
-  reasonGujarati?: string;
   taxableAmount: number;
-  cgstAmount: number;
-  sgstAmount: number;
-  igstAmount: number;
+  cgstAmount?: number;
+  sgstAmount?: number;
+  igstAmount?: number;
   grandTotal: number;
   status: string;
-  party: {
+  reason?: string;
+  party?: {
     id: string;
     name: string;
-    nameGujarati?: string;
-    gstin?: string;
     phone?: string;
-  };
-  salesInvoice: {
+    gstin?: string;
+  } | null;
+  salesInvoice?: {
     id: string;
     invoiceNumber: string;
-    invoiceDate: string;
-    grandTotal: number;
-    status: string;
-  };
-  items: ReturnItem[];
-}
-
-interface SalesInvoiceDetails {
-  id: string;
-  invoiceNumber: string;
-  invoiceDate: string;
-  placeOfSupply: string;
-  grandTotal: number;
-  balanceAmount: number;
-  party: {
+    invoiceDate?: string;
+    grandTotal?: number;
+  } | null;
+  items?: Array<{
     id: string;
-    name: string;
-    nameGujarati?: string;
-    gstin?: string;
-    stateCode?: string;
-  };
-  items: Array<{
-    id: string;
-    itemId: string;
     quantity: number;
     unitPrice: number;
-    taxRate: number;
-    taxableAmount: number;
     totalAmount: number;
-    cgstAmount: number;
-    sgstAmount: number;
-    igstAmount: number;
     item?: {
       id: string;
       name: string;
-      nameGujarati?: string;
-      sku?: string;
     };
   }>;
-  returns?: Array<{
-    items: Array<{
-      salesItemId: string;
-      quantity: number;
-    }>;
-  }>;
 }
 
-interface ReturnLineForm {
-  salesItemId: string;
-  itemId: string;
-  itemName: string;
-  itemNameGujarati?: string;
-  originalQty: number;
-  previouslyReturnedQty: number;
-  returnableQty: number;
-  returnQty: number;
-  unitPrice: number;
-  taxRate: number;
-  taxable: number;
-  taxAmount: number;
-  total: number;
-  disposition: "RETURN_TO_STOCK" | "DAMAGED" | "SCRAPPED";
+function formatInr(val: number | string): string {
+  const num = Number(val) || 0;
+  return (
+    "₹ " +
+    num.toLocaleString("en-IN", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    })
+  );
 }
 
-function SalesReturnsContent() {
-  const { lang, currentCompany } = useAuth();
+function formatDisplayDate(val?: string): string {
+  if (!val) return "—";
+  const d = new Date(val);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function isoDate(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function rangeForPreset(
+  preset: DateRangePreset,
+  customStart: string,
+  customEnd: string,
+): { startDate?: string; endDate?: string } {
+  if (preset === "ALL") return {};
+  const now = new Date();
+  let start: Date | null = null;
+  let end: Date | null = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  if (preset === "TODAY") {
+    start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  } else if (preset === "YESTERDAY") {
+    const y = new Date(now);
+    y.setDate(y.getDate() - 1);
+    start = new Date(y.getFullYear(), y.getMonth(), y.getDate());
+    end = start;
+  } else if (preset === "THIS_WEEK") {
+    const d = new Date(now);
+    const day = d.getDay() || 7;
+    d.setDate(d.getDate() - day + 1);
+    start = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  } else if (preset === "LAST_WEEK") {
+    const d = new Date(now);
+    const day = d.getDay() || 7;
+    d.setDate(d.getDate() - day - 6);
+    start = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const e = new Date(start);
+    e.setDate(e.getDate() + 6);
+    end = e;
+  } else if (preset === "THIS_MONTH") {
+    start = new Date(now.getFullYear(), now.getMonth(), 1);
+  } else if (preset === "PREV_MONTH") {
+    start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    end = new Date(now.getFullYear(), now.getMonth(), 0);
+  } else if (preset === "THIS_QUARTER") {
+    const q = Math.floor(now.getMonth() / 3);
+    start = new Date(now.getFullYear(), q * 3, 1);
+  } else if (preset === "PREV_QUARTER") {
+    const q = Math.floor(now.getMonth() / 3);
+    const pq = q === 0 ? 3 : q - 1;
+    const py = q === 0 ? now.getFullYear() - 1 : now.getFullYear();
+    start = new Date(py, pq * 3, 1);
+    end = new Date(py, pq * 3 + 3, 0);
+  } else if (preset === "LAST_30_DAYS") {
+    const d = new Date(now);
+    d.setDate(d.getDate() - 30);
+    start = d;
+  } else if (preset === "LAST_365_DAYS") {
+    const d = new Date(now);
+    d.setDate(d.getDate() - 365);
+    start = d;
+  } else if (preset === "CURRENT_FY") {
+    const yr = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
+    start = new Date(yr, 3, 1);
+  } else if (preset === "PREV_FY") {
+    const yr = now.getMonth() >= 3 ? now.getFullYear() - 1 : now.getFullYear() - 2;
+    start = new Date(yr, 3, 1);
+    end = new Date(yr + 1, 2, 31);
+  } else if (preset === "CUSTOM") {
+    return {
+      startDate: customStart || undefined,
+      endDate: customEnd || undefined,
+    };
+  }
+
+  return {
+    startDate: start ? isoDate(start) : undefined,
+    endDate: end ? isoDate(end) : undefined,
+  };
+}
+
+export default function SalesReturnsPage() {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const queryInvoiceId = searchParams.get("invoiceId");
+  const isCreditNote =
+    pathname.includes("/credit-note") ||
+    searchParams?.get("type") === "credit-note";
+  const { lang, tenantContext } = useAuth();
 
-  const [returns, setReturns] = useState<SalesReturn[]>([]);
+  const [rows, setRows] = useState<SalesReturnRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Filters
-  const [searchTerm, setSearchTerm] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [selectedPartyFilter, setSelectedPartyFilter] = useState("");
+  // Date range filter defaults to "Last 365 Days"
+  const [dateRangePreset, setDateRangePreset] = useState<DateRangePreset>(() => {
+    const key = searchParams?.get("date_range_key");
+    if (key === "last-365-days") return "LAST_365_DAYS";
+    if (key === "last-30-days") return "LAST_30_DAYS";
+    if (key === "today") return "TODAY";
+    return "LAST_365_DAYS";
+  });
 
-  // Master lists
-  const [partiesList, setPartiesList] = useState<any[]>([]);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [customStartDate, setCustomStartDate] = useState(() => searchParams?.get("start_date") || "");
+  const [customEndDate, setCustomEndDate] = useState(() => searchParams?.get("end_date") || "");
 
-  // Create Return Modal State
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [customerInvoices, setCustomerInvoices] = useState<any[]>([]);
-  const [selectedPartyId, setSelectedPartyId] = useState("");
-  const [selectedInvoiceId, setSelectedInvoiceId] = useState("");
-  const [isLoadingInvoices, setIsLoadingInvoices] = useState(false);
-  const [selectedInvoice, setSelectedInvoice] =
-    useState<SalesInvoiceDetails | null>(null);
-  const [isLoadingInvoice, setIsLoadingInvoice] = useState(false);
+  const [activeActionMenuId, setActiveActionMenuId] = useState<string | null>(null);
+  const [selectedReturnForView, setSelectedReturnForView] = useState<SalesReturnRow | null>(null);
+  const [historyTarget, setHistoryTarget] = useState<SalesReturnRow | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<SalesReturnRow | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
-  // Form Fields
-  const [returnDate, setReturnDate] = useState(
-    new Date().toISOString().split("T")[0],
+  const datePickerRef = useRef<HTMLDivElement>(null);
+
+  const dateRange = useMemo(
+    () => rangeForPreset(dateRangePreset, customStartDate, customEndDate),
+    [dateRangePreset, customStartDate, customEndDate],
   );
-  const [returnReason, setReturnReason] = useState("");
-  const [returnReasonGujarati, setReturnReasonGujarati] = useState("");
-  const [restoreStock, setRestoreStock] = useState(true);
-  const [lines, setLines] = useState<ReturnLineForm[]>([]);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Details Modal State
-  const [selectedReturnDetails, setSelectedReturnDetails] =
-    useState<SalesReturn | null>(null);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-
-  // Print Modal State
-  const [printReturn, setPrintReturn] = useState<SalesReturn | null>(null);
-
-  // 1. Fetch Sales Returns List
   const fetchReturns = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const res: any = await apiClient.get("/sales-returns", {
-        search: searchTerm || undefined,
-        partyId: selectedPartyFilter || undefined,
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
+        search: searchQuery.trim() || undefined,
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        limit: 100,
       });
-      const list = Array.isArray(res?.data)
-        ? res.data
-        : Array.isArray(res?.items)
-          ? res.items
-          : Array.isArray(res)
-            ? res
-            : [];
-      setReturns(list);
+      const list = extractList<SalesReturnRow>(res);
+      setRows(list);
     } catch (err: any) {
       setError(err.message || "Failed to load sales returns.");
     } finally {
       setIsLoading(false);
     }
-  }, [searchTerm, selectedPartyFilter, startDate, endDate]);
+  }, [searchQuery, dateRange.startDate, dateRange.endDate]);
 
   useEffect(() => {
-    fetchReturns();
-  }, [fetchReturns]);
+    if (!tenantContext.companyId) return;
+    const timer = setTimeout(() => {
+      fetchReturns();
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [tenantContext.companyId, fetchReturns]);
 
-  // Load parties for filter & creation
+  // Click outside listener for date picker and action menus
   useEffect(() => {
-    apiClient
-      .get("/parties")
-      .then((res: any) => {
-        const list = Array.isArray(res?.items)
-          ? res.items
-          : Array.isArray(res)
-            ? res
-            : [];
-        setPartiesList(
-          list.filter((p: any) => p.type === "CUSTOMER" || !p.type),
-        );
-      })
-      .catch(() => {});
+    function handleClickOutside(event: MouseEvent) {
+      if (datePickerRef.current && !datePickerRef.current.contains(event.target as Node)) {
+        setIsDatePickerOpen(false);
+      }
+      setActiveActionMenuId(null);
+    }
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
   }, []);
 
-  // When customer is selected in Create modal, fetch their posted sales invoices
-  const handleCustomerChange = async (partyId: string) => {
-    setSelectedPartyId(partyId);
-    setSelectedInvoiceId("");
-    setSelectedInvoice(null);
-    setLines([]);
-    setFormError(null);
-    if (!partyId) {
-      setCustomerInvoices([]);
-      return;
-    }
-
-    setIsLoadingInvoices(true);
-    try {
-      const res: any = await apiClient.get("/invoices/sales", {
-        partyId,
-        status: "ISSUED",
-        limit: 100,
-      });
-      const invs = Array.isArray(res?.items)
-        ? res.items
-        : Array.isArray(res?.data)
-          ? res.data
-          : Array.isArray(res)
-            ? res
-            : [];
-      setCustomerInvoices(invs);
-    } catch (err: any) {
-      setFormError(err.message || "Failed to load customer invoices.");
-    } finally {
-      setIsLoadingInvoices(false);
-    }
-  };
-
-  // Load specific sales invoice details and previous returns
-  const loadInvoiceDetails = useCallback(async (invoiceId: string) => {
-    setIsLoadingInvoice(true);
-    setFormError(null);
-    try {
-      const [inv, returnsList]: [any, any] = await Promise.all([
-        apiClient.get(`/invoices/sales/${invoiceId}`),
-        apiClient
-          .get(`/sales-returns`, { salesInvoiceId: invoiceId })
-          .catch(() => ({ data: [] })),
-      ]);
-
-      const priorReturns = Array.isArray(returnsList?.data)
-        ? returnsList.data
-        : Array.isArray(returnsList)
-          ? returnsList
-          : [];
-
-      // Calculate previously returned per item
-      const returnedMap = new Map<string, number>();
-      for (const ret of priorReturns) {
-        if (Array.isArray(ret.items)) {
-          for (const item of ret.items) {
-            const prev = returnedMap.get(item.salesItemId) || 0;
-            returnedMap.set(item.salesItemId, prev + Number(item.quantity));
-          }
-        }
-      }
-
-      setSelectedInvoice({
-        ...inv,
-        returns: priorReturns,
-      });
-
-      const partyId = inv.partyId || inv.party?.id;
-      if (partyId) {
-        setSelectedPartyId(partyId);
-        if (inv.party) {
-          setPartiesList((prev) => {
-            if (prev.some((p) => p.id === partyId)) return prev;
-            return [...prev, inv.party];
-          });
-        }
-      }
-      setCustomerInvoices([inv]);
-
-      // Populate line forms
-      const formLines: ReturnLineForm[] = (inv.items || []).map((itm: any) => {
-        const origQty = Number(itm.quantity) || 0;
-        const prevReturned = returnedMap.get(itm.id) || 0;
-        const returnable = Math.max(0, origQty - prevReturned);
-        return {
-          salesItemId: itm.id,
-          itemId: itm.itemId,
-          itemName: itm.item?.name || itm.description || "Item",
-          itemNameGujarati: itm.item?.nameGujarati,
-          originalQty: origQty,
-          previouslyReturnedQty: prevReturned,
-          returnableQty: returnable,
-          returnQty: 0,
-          unitPrice: Number(itm.unitPrice) || 0,
-          taxRate: Number(itm.taxRate) || 0,
-          taxable: 0,
-          taxAmount: 0,
-          total: 0,
-          disposition: "RETURN_TO_STOCK",
-        };
-      });
-
-      setLines(formLines);
-    } catch (err: any) {
-      setFormError(err.message || "Failed to load invoice details.");
-    } finally {
-      setIsLoadingInvoice(false);
-    }
-  }, []);
-
-  // Handle invoice change in select
-  const handleInvoiceChange = (invoiceId: string) => {
-    setSelectedInvoiceId(invoiceId);
-    if (invoiceId) {
-      loadInvoiceDetails(invoiceId);
-    } else {
-      setSelectedInvoice(null);
-      setLines([]);
-    }
-  };
-
-  // If page opened with ?invoiceId=..., initialize modal directly
   useEffect(() => {
-    if (queryInvoiceId) {
-      setIsCreateModalOpen(true);
-      setSelectedInvoiceId(queryInvoiceId);
-      loadInvoiceDetails(queryInvoiceId);
-    }
-  }, [queryInvoiceId, loadInvoiceDetails]);
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 3200);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
-  // Recalculate line amounts on returnQty change
-  const handleQtyChange = (salesItemId: string, value: string) => {
-    const rawVal = parseFloat(value);
-    const qty = isNaN(rawVal) ? 0 : rawVal;
-
-    setLines((prev) =>
-      prev.map((ln) => {
-        if (ln.salesItemId !== salesItemId) return ln;
-
-        const clampedQty = Math.max(0, Math.min(qty, ln.returnableQty));
-        const taxable = Math.round(clampedQty * ln.unitPrice * 100) / 100;
-        const taxAmount =
-          Math.round(((taxable * ln.taxRate) / 100) * 100) / 100;
-        const total = taxable + taxAmount;
-
-        return {
-          ...ln,
-          returnQty: clampedQty,
-          taxable,
-          taxAmount,
-          total,
-        };
-      }),
+  // Client search filter
+  const displayedRows = useMemo(() => {
+    if (!searchQuery.trim()) return rows;
+    const q = searchQuery.toLowerCase().trim();
+    return rows.filter(
+      (r) =>
+        (r.returnNumber && r.returnNumber.toLowerCase().includes(q)) ||
+        (r.party?.name && r.party.name.toLowerCase().includes(q)) ||
+        (r.salesInvoice?.invoiceNumber && r.salesInvoice.invoiceNumber.toLowerCase().includes(q)),
     );
-  };
-
-  // Handle disposition change
-  const handleDispositionChange = (
-    salesItemId: string,
-    disposition: "RETURN_TO_STOCK" | "DAMAGED" | "SCRAPPED",
-  ) => {
-    setLines((prev) =>
-      prev.map((ln) =>
-        ln.salesItemId === salesItemId ? { ...ln, disposition } : ln,
-      ),
-    );
-  };
-
-  // Summary Totals for Create Modal
-  const summary = useMemo(() => {
-    let taxable = 0;
-    let taxAmount = 0;
-    let total = 0;
-    let selectedLinesCount = 0;
-
-    for (const ln of lines) {
-      if (ln.returnQty > 0) {
-        selectedLinesCount++;
-        taxable += ln.taxable;
-        taxAmount += ln.taxAmount;
-        total += ln.total;
-      }
-    }
-
-    const isIntra =
-      selectedInvoice && currentCompany
-        ? selectedInvoice.placeOfSupply === currentCompany.stateCode
-        : true;
-
-    const cgst = isIntra ? Math.round((taxAmount / 2) * 100) / 100 : 0;
-    const sgst = isIntra ? Math.round((taxAmount - cgst) * 100) / 100 : 0;
-    const igst = !isIntra ? taxAmount : 0;
-
-    return {
-      taxable: Math.round(taxable * 100) / 100,
-      cgst,
-      sgst,
-      igst,
-      totalTax: taxAmount,
-      grandTotal: Math.round(total * 100) / 100,
-      selectedLinesCount,
-    };
-  }, [lines, selectedInvoice, currentCompany]);
-
-  // Overall Statistics for Page Header
-  const overallStats = useMemo(() => {
-    const totalCount = returns.length;
-    let totalCredit = 0;
-    let totalTaxReversed = 0;
-
-    for (const r of returns) {
-      totalCredit += Number(r.grandTotal) || 0;
-      totalTaxReversed +=
-        (Number(r.cgstAmount) || 0) +
-        (Number(r.sgstAmount) || 0) +
-        (Number(r.igstAmount) || 0);
-    }
-
-    return {
-      totalCount,
-      totalCredit: Math.round(totalCredit * 100) / 100,
-      totalTaxReversed: Math.round(totalTaxReversed * 100) / 100,
-    };
-  }, [returns]);
-
-  // Submit Credit Note / Sales Return
-  const handleSubmitReturn = async () => {
-    setFormError(null);
-
-    if (!selectedInvoiceId) {
-      setFormError(
-        lang === "gu"
-          ? "કૃપા કરીને વેચાણ બિલ પસંદ કરો."
-          : "Please select an original sales invoice.",
-      );
-      return;
-    }
-
-    const returnItems = lines
-      .filter((ln) => ln.returnQty > 0)
-      .map((ln) => ({
-        salesItemId: ln.salesItemId,
-        quantity: ln.returnQty,
-        disposition: ln.disposition,
-      }));
-
-    if (returnItems.length === 0) {
-      setFormError(
-        lang === "gu"
-          ? "ઓછામાં ઓછી એક વસ્તુ માટે પરત જથ્થો દાખલ કરો."
-          : "Please enter return quantity greater than 0 for at least one item.",
-      );
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await apiClient.post("/sales-returns", {
-        salesInvoiceId: selectedInvoiceId,
-        returnDate,
-        reason: returnReason || "Sales return by customer",
-        reasonGujarati: returnReasonGujarati || "ગ્રાહક દ્વારા માલ પરત મળ્યો",
-        restoreStock,
-        items: returnItems,
-      });
-
-      setIsCreateModalOpen(false);
-      setSelectedPartyId("");
-      setSelectedInvoiceId("");
-      setSelectedInvoice(null);
-      setLines([]);
-      setReturnReason("");
-      setReturnReasonGujarati("");
-      await fetchReturns();
-    } catch (err: any) {
-      setFormError(
-        err.message ||
-          (lang === "gu"
-            ? "ક્રેડિટ નોટ બનાવવામાં નિષ્ફળતા મળી."
-            : "Failed to create sales return / credit note."),
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  }, [rows, searchQuery]);
 
   return (
-    <div className="space-y-6 pb-12">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle">
-        <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl lg:text-[1.75rem] font-bold text-[#202124] tracking-tight leading-tight">
-            {lang === "gu"
-              ? "ક્રેડિટ નોટ / વેચાણ પરત"
-              : "Sales Returns & Credit Notes"}
-          </h1>
-          <p className="text-xs sm:text-sm text-[#667085] mt-1 leading-relaxed break-words font-normal">
-            {lang === "gu"
-              ? "વેચાણ બિલ સામે માલ પરત સ્વીકારો, જીએસટી રિવર્સલ કરો અને ગ્રાહકને ક્રેડિટ નોટ આપો."
-              : "Issue credit notes against posted sales invoices, reverse output GST, and restore stock."}
-          </p>
-        </div>
-
-        <button
-          onClick={() => {
-            setFormError(null);
-            setIsCreateModalOpen(true);
-          }}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F47721] hover:bg-[#D95F12] active:bg-[#B94B0A] text-white text-xs sm:text-sm font-bold rounded-xl shadow-saffron transition-all w-full sm:w-auto shrink-0"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+    <div className="space-y-4 px-6 py-4 min-w-0 max-w-[1600px] mx-auto pb-16 font-sans">
+      {/* 1. TOP HEADER: Sales Return Title & Settings/Print Icons */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold tracking-tight text-slate-900">
+          {isCreditNote
+            ? lang === "gu"
+              ? "ક્રેડિટ નોટ (Credit Note)"
+              : "Credit Note"
+            : lang === "gu"
+              ? "વેચાણ પરત (Sales Return)"
+              : "Sales Return"}
+        </h1>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            title="Settings"
+            onClick={() => router.push("/settings")}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 shadow-2xs transition-colors"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2.5}
-              d="M12 4v16m8-8H4"
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            title="Print"
+            onClick={() => window.print()}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 shadow-2xs transition-colors"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* 2. FILTER & ACTION ROW: Search, Date Filter, and Create Sales Return button */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-1">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Search box with 🔍 inside */}
+          <div className="relative w-64">
+            <span className="absolute left-3 top-2.5 text-slate-400">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" />
+              </svg>
+            </span>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={lang === "gu" ? "શોધો" : "Search"}
+              className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none transition-colors"
             />
-          </svg>
-          <span>
-            {lang === "gu" ? "નવી ક્રેડિટ નોટ બનાવો" : "Create Credit Note"}
-          </span>
-        </button>
-      </div>
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-2.5 text-xs text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            )}
+          </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard
-          title="Total Credit Notes"
-          titleGujarati="કુલ ક્રેડિટ નોટ્સ"
-          value={overallStats.totalCount}
-          subtext="Issued sales returns"
-          variant="brand"
-        />
-        <StatCard
-          title="Total Credit Value"
-          titleGujarati="કુલ ક્રેડિટ રકમ"
-          value={`₹${overallStats.totalCredit.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`}
-          subtext="Customer credit allocated"
-          variant="success"
-        />
-        <StatCard
-          title="Output GST Reversed"
-          titleGujarati="રિવર્સ થયેલ જીએસટી"
-          value={`₹${overallStats.totalTaxReversed.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`}
-          subtext="CGST + SGST + IGST reversal"
-          variant="warning"
-        />
-      </div>
+          {/* Date Range Selector Dropdown */}
+          <div className="relative" ref={datePickerRef}>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDatePickerOpen(!isDatePickerOpen);
+              }}
+              className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+            >
+              <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              <span>{DATE_PRESET_LABELS[dateRangePreset]}</span>
+              <svg className="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+            </button>
 
-      {/* Main DataTable */}
-      <DataTable<SalesReturn>
-        data={returns}
-        columns={[
-          {
-            header: lang === "gu" ? "ક્રેડિટ નોટ નં" : "Credit Note #",
-            accessorKey: "returnNumber",
-            sortable: true,
-            cell: (ret) => (
-              <span className="font-semibold text-blue-600">
-                {ret.returnNumber}
-              </span>
-            ),
-          },
-          {
-            header: lang === "gu" ? "તારીખ" : "Date",
-            accessorKey: "returnDate",
-            sortable: true,
-            cell: (ret) => (
-              <span className="text-slate-600 text-xs">
-                {new Date(ret.returnDate).toLocaleDateString("en-IN")}
-              </span>
-            ),
-          },
-          {
-            header: lang === "gu" ? "ગ્રાહક" : "Customer",
-            accessorKey: "partyId",
-            cell: (ret) => (
-              <div>
-                <div className="font-medium text-slate-800">
-                  {ret.party?.name}
+            {isDatePickerOpen && (
+              <div
+                className="absolute left-0 z-30 mt-1 w-56 rounded-xl border border-slate-200 bg-white py-1.5 shadow-xl text-xs"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="max-h-64 overflow-y-auto py-1">
+                  {Object.entries(DATE_PRESET_LABELS).map(([key, label]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => {
+                        setDateRangePreset(key as DateRangePreset);
+                        if (key !== "CUSTOM") setIsDatePickerOpen(false);
+                      }}
+                      className={`flex w-full items-center justify-between px-3 py-2 text-left hover:bg-slate-50 ${
+                        dateRangePreset === key ? "font-semibold text-[#4F46E5] bg-indigo-50/50" : "text-slate-700"
+                      }`}
+                    >
+                      <span>{label}</span>
+                      {dateRangePreset === key && <span>✓</span>}
+                    </button>
+                  ))}
                 </div>
-                {ret.party?.gstin && (
-                  <div className="text-xs text-slate-400 font-mono">
-                    GSTIN: {ret.party.gstin}
+
+                {dateRangePreset === "CUSTOM" && (
+                  <div className="border-t border-slate-100 p-3 space-y-2 bg-slate-50/60 rounded-b-xl">
+                    <div>
+                      <label className="block text-[10px] font-semibold text-slate-500 mb-0.5">Start Date</label>
+                      <input
+                        type="date"
+                        value={customStartDate}
+                        onChange={(e) => setCustomStartDate(e.target.value)}
+                        className="w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-semibold text-slate-500 mb-0.5">End Date</label>
+                      <input
+                        type="date"
+                        value={customEndDate}
+                        onChange={(e) => setCustomEndDate(e.target.value)}
+                        className="w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsDatePickerOpen(false)}
+                      className="w-full mt-1 rounded bg-[#4F46E5] py-1 text-center font-semibold text-white"
+                    >
+                      Apply
+                    </button>
                   </div>
                 )}
               </div>
-            ),
-          },
-          {
-            header: lang === "gu" ? "મૂળ બિલ નં" : "Original Invoice",
-            accessorKey: "salesInvoiceId",
-            cell: (ret) => (
-              <span className="text-slate-700 font-mono text-xs">
-                {ret.salesInvoice?.invoiceNumber || "-"}
-              </span>
-            ),
-          },
-          {
-            header: lang === "gu" ? "કરપાત્ર રકમ" : "Taxable Amt",
-            accessorKey: "taxableAmount",
-            sortable: true,
-            className: "text-right font-medium text-slate-700",
-            cell: (ret) => (
-              <span>
-                ₹
-                {Number(ret.taxableAmount).toLocaleString("en-IN", {
-                  minimumFractionDigits: 2,
-                })}
-              </span>
-            ),
-          },
-          {
-            header: lang === "gu" ? "જીએસટી" : "GST Total",
-            accessorKey: "cgstAmount",
-            sortable: true,
-            className: "text-right font-medium text-slate-700",
-            cell: (ret) => {
-              const gstTotal =
-                (Number(ret.cgstAmount) || 0) +
-                (Number(ret.sgstAmount) || 0) +
-                (Number(ret.igstAmount) || 0);
-              return (
-                <span>
-                  ₹
-                  {gstTotal.toLocaleString("en-IN", {
-                    minimumFractionDigits: 2,
-                  })}
-                </span>
-              );
-            },
-          },
-          {
-            header: lang === "gu" ? "કુલ ક્રેડિટ" : "Total Credit",
-            accessorKey: "grandTotal",
-            sortable: true,
-            className: "text-right font-bold text-slate-900",
-            cell: (ret) => (
-              <span>
-                ₹
-                {Number(ret.grandTotal).toLocaleString("en-IN", {
-                  minimumFractionDigits: 2,
-                })}
-              </span>
-            ),
-          },
-          {
-            header: lang === "gu" ? "સ્થિતિ" : "Status",
-            accessorKey: "status",
-            sortable: true,
-            className: "text-center",
-            cell: (ret) => (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">
-                {ret.status || "ISSUED"}
-              </span>
-            ),
-          },
-          {
-            header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
-            className: "text-center",
-            cell: (ret) => (
-              <div className="flex items-center justify-center gap-2">
-                <button
-                  onClick={() => {
-                    setSelectedReturnDetails(ret);
-                    setIsDetailsModalOpen(true);
-                  }}
-                  className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                  title={lang === "gu" ? "વિગતો જુઓ" : "View Details"}
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                    />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => setPrintReturn(ret)}
-                  className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors"
-                  title={
-                    lang === "gu"
-                      ? "પ્રિન્ટ ક્રેડિટ નોટ"
-                      : "Print Credit Note"
-                  }
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                    />
-                  </svg>
-                </button>
-              </div>
-            ),
-          },
-        ]}
-        keyExtractor={(ret) => ret.id}
-        searchPlaceholder={
-          lang === "gu"
-            ? "ક્રેડિટ નોટ નં, બિલ નં અથવા ગ્રાહક શોધો..."
-            : "Search Credit Note #, Invoice # or customer..."
-        }
-        searchKeys={["returnNumber"]}
-        defaultPageSize={10}
-        isLoading={isLoading}
-        emptyMessage={
-          lang === "gu"
-            ? "કોઈ ક્રેડિટ નોટ્સ મળી નથી. નવી ક્રેડિટ નોટ બનાવવા માટે ઉપરના બટન પર ક્લિક કરો."
-            : "No Sales Returns Found. Create a credit note against an eligible sales invoice."
-        }
-        exportFilename="sales_returns_credit_notes"
-        themeColor="saffron"
-        toolbarChildren={
-          <div className="flex flex-wrap items-center gap-2">
-            <select
-              value={selectedPartyFilter}
-              onChange={(e) => setSelectedPartyFilter(e.target.value)}
-              className="px-3 py-1.5 text-xs border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white text-slate-700 font-semibold"
-            >
-              <option value="">
-                {lang === "gu" ? "તમામ ગ્રાહકો" : "All Customers"}
-              </option>
-              {partiesList.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} {p.gstin ? `(${p.gstin})` : ""}
-                </option>
-              ))}
-            </select>
-
-            <div className="flex items-center gap-1.5 text-xs">
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="px-2.5 py-1 text-xs border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 text-slate-700"
-                title="Start Date"
-              />
-              <span className="text-slate-400 text-xs">to</span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="px-2.5 py-1 text-xs border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-slate-50 text-slate-700"
-                title="End Date"
-              />
-            </div>
-
-            {(selectedPartyFilter || startDate || endDate) && (
-              <button
-                onClick={() => {
-                  setSelectedPartyFilter("");
-                  setStartDate("");
-                  setEndDate("");
-                }}
-                className="text-xs text-rose-600 hover:text-rose-800 font-semibold px-2 py-1"
-              >
-                {lang === "gu" ? "ફિલ્ટર દૂર કરો" : "Clear Filters"}
-              </button>
             )}
           </div>
-        }
-        mobileCardRender={(ret) => {
-          const gstTotal =
-            (Number(ret.cgstAmount) || 0) +
-            (Number(ret.sgstAmount) || 0) +
-            (Number(ret.igstAmount) || 0);
-
-          return (
-            <div key={ret.id} className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-blue-600">
-                  {ret.returnNumber}
-                </span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">
-                  {ret.status || "ISSUED"}
-                </span>
-              </div>
-              <div className="text-xs text-slate-500">
-                {new Date(ret.returnDate).toLocaleDateString("en-IN")}
-                {ret.salesInvoice?.invoiceNumber && (
-                  <span className="ml-2 font-mono">
-                    Inv: {ret.salesInvoice.invoiceNumber}
-                  </span>
-                )}
-              </div>
-              <div className="text-xs font-medium text-slate-800">
-                {ret.party?.name}
-              </div>
-              <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
-                <span className="text-slate-500">
-                  Tax: ₹{gstTotal.toFixed(2)}
-                </span>
-                <span className="font-mono font-bold text-slate-900">
-                  Total: ₹
-                  {Number(ret.grandTotal).toLocaleString("en-IN", {
-                    minimumFractionDigits: 2,
-                  })}
-                </span>
-              </div>
-              <div className="flex items-center justify-end gap-3 pt-1">
-                <button
-                  onClick={() => {
-                    setSelectedReturnDetails(ret);
-                    setIsDetailsModalOpen(true);
-                  }}
-                  className="text-xs text-blue-600 font-semibold"
-                >
-                  View Details
-                </button>
-                <button
-                  onClick={() => setPrintReturn(ret)}
-                  className="text-xs text-emerald-600 font-semibold"
-                >
-                  Print
-                </button>
-              </div>
-            </div>
-          );
-        }}
-      />
-
-      {/* CREATE CREDIT NOTE MODAL */}
-      <Modal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        title={
-          lang === "gu"
-            ? "નવી ક્રેડિટ નોટ / વેચાણ પરત બનાવો"
-            : "Create Sales Return / Credit Note"
-        }
-        titleGujarati="ગ્રાહક વેચાણ પરત"
-        maxWidth="4xl"
-        footer={
-          <div className="flex items-center justify-between w-full">
-            <div className="text-xs text-slate-500">
-              {summary.selectedLinesCount > 0 ? (
-                <span>
-                  {summary.selectedLinesCount} items selected | Total Credit:{" "}
-                  <strong className="text-slate-800">
-                    ₹{summary.grandTotal.toFixed(2)}
-                  </strong>
-                </span>
-              ) : (
-                <span>Select return quantities above</span>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setIsCreateModalOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50"
-              >
-                {lang === "gu" ? "રદ કરો" : "Cancel"}
-              </button>
-              <button
-                type="button"
-                disabled={isSubmitting || summary.selectedLinesCount === 0}
-                onClick={handleSubmitReturn}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm inline-flex items-center gap-1.5"
-              >
-                {isSubmitting && (
-                  <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                )}
-                <span>
-                  {lang === "gu"
-                    ? "ક્રેડિટ નોટ ઇશ્યુ કરો"
-                    : "Issue Credit Note"}
-                </span>
-              </button>
-            </div>
-          </div>
-        }
-      >
-        <div className="space-y-5 p-1">
-          {formError && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg text-sm flex items-center gap-2">
-              <svg
-                className="w-5 h-5 flex-shrink-0 text-rose-500"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span>{formError}</span>
-            </div>
-          )}
-
-          {/* Selection Header */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-lg border border-slate-200">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-semibold text-slate-700">
-                  {lang === "gu" ? "૧. ગ્રાહક (Customer)" : "1. Select Customer"}
-                </label>
-                {queryInvoiceId && (
-                  <span className="text-[10px] text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-300 font-semibold flex items-center gap-1">
-                    🔒 {lang === "gu" ? "પૂર્વ-પસંદિત (લોક)" : "Locked"}
-                  </span>
-                )}
-              </div>
-              <select
-                value={selectedPartyId}
-                onChange={(e) => handleCustomerChange(e.target.value)}
-                disabled={Boolean(queryInvoiceId)}
-                className="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100 disabled:text-slate-800 disabled:font-medium disabled:cursor-not-allowed"
-              >
-                <option value="">
-                  {lang === "gu"
-                    ? "-- ગ્રાહક પસંદ કરો --"
-                    : "-- Select Customer --"}
-                </option>
-                {partiesList.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} {p.gstin ? `(${p.gstin})` : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-semibold text-slate-700">
-                  {lang === "gu"
-                    ? "૨. વેચાણ બિલ (Sales Invoice)"
-                    : "2. Select Sales Invoice"}
-                </label>
-                {queryInvoiceId && (
-                  <span className="text-[10px] text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-300 font-semibold flex items-center gap-1">
-                    🔒 {lang === "gu" ? "પૂર્વ-પસંદિત (લોક)" : "Locked"}
-                  </span>
-                )}
-              </div>
-              <select
-                value={selectedInvoiceId}
-                onChange={(e) => handleInvoiceChange(e.target.value)}
-                disabled={
-                  Boolean(queryInvoiceId) ||
-                  isLoadingInvoices ||
-                  (!selectedPartyId && !queryInvoiceId)
-                }
-                className="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100 disabled:text-slate-800 disabled:font-medium disabled:cursor-not-allowed"
-              >
-                <option value="">
-                  {isLoadingInvoices
-                    ? "Loading invoices..."
-                    : lang === "gu"
-                      ? "-- બિલ પસંદ કરો --"
-                      : "-- Select Invoice --"}
-                </option>
-                {customerInvoices.map((inv) => (
-                  <option key={inv.id} value={inv.id}>
-                    {inv.invoiceNumber} (₹{Number(inv.grandTotal).toFixed(2)}) -{" "}
-                    {new Date(inv.invoiceDate).toLocaleDateString("en-IN")}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {lang === "gu" ? "પરત તારીખ" : "Return Date"}
-              </label>
-              <input
-                type="date"
-                value={returnDate}
-                onChange={(e) => setReturnDate(e.target.value)}
-                className="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          {/* Invoice Summary Banner */}
-          {selectedInvoice && (
-            <div className="bg-blue-50/60 p-3 rounded-lg border border-blue-200/80 text-xs flex flex-wrap items-center justify-between gap-3 text-slate-700">
-              <div>
-                <span className="font-semibold text-blue-900">
-                  Invoice #{selectedInvoice.invoiceNumber}
-                </span>{" "}
-                | Dated:{" "}
-                {new Date(selectedInvoice.invoiceDate).toLocaleDateString(
-                  "en-IN",
-                )}{" "}
-                | Customer: <strong>{selectedInvoice.party?.name}</strong>
-              </div>
-              <div className="flex gap-4">
-                <span>
-                  Invoice Total:{" "}
-                  <strong>
-                    ₹{Number(selectedInvoice.grandTotal).toFixed(2)}
-                  </strong>
-                </span>
-                <span>
-                  Unpaid Balance:{" "}
-                  <strong>
-                    ₹{Number(selectedInvoice.balanceAmount).toFixed(2)}
-                  </strong>
-                </span>
-                <span>
-                  State POS: <strong>{selectedInvoice.placeOfSupply}</strong>
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Line Items Table */}
-          {isLoadingInvoice ? (
-            <div className="p-8 text-center text-slate-500 text-sm">
-              <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mb-1"></div>
-              <p>Loading invoice lines & return history...</p>
-            </div>
-          ) : lines.length > 0 ? (
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  {lang === "gu"
-                    ? "પરત વસ્તુઓની વિગત"
-                    : "Eligible Invoice Line Items"}
-                </h4>
-                <span className="text-xs text-slate-500">
-                  Enter return quantities below (cannot exceed remaining
-                  returnable quantity).
-                </span>
-              </div>
-
-              <div className="border border-slate-200 rounded-lg overflow-hidden">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead className="bg-slate-100 text-slate-600 font-semibold border-b border-slate-200">
-                    <tr>
-                      <th className="py-2.5 px-3">Item Description</th>
-                      <th className="py-2.5 px-2 text-right">Invoiced Qty</th>
-                      <th className="py-2.5 px-2 text-right">Already Ret.</th>
-                      <th className="py-2.5 px-2 text-right">Returnable</th>
-                      <th className="py-2.5 px-3 text-right">Return Qty</th>
-                      <th className="py-2.5 px-2 text-right">Unit Rate</th>
-                      <th className="py-2.5 px-2 text-right">GST %</th>
-                      <th className="py-2.5 px-2 text-right">Credit (₹)</th>
-                      <th className="py-2.5 px-3">Disposition</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {lines.map((ln) => {
-                      const isFullyReturned = ln.returnableQty <= 0;
-
-                      return (
-                        <tr
-                          key={ln.salesItemId}
-                          className={`hover:bg-slate-50/50 ${
-                            isFullyReturned ? "bg-slate-50 opacity-60" : ""
-                          }`}
-                        >
-                          <td className="py-2.5 px-3 font-medium text-slate-800">
-                            {ln.itemName}
-                            {ln.itemNameGujarati && (
-                              <div className="text-[11px] text-slate-500">
-                                {ln.itemNameGujarati}
-                              </div>
-                            )}
-                          </td>
-                          <td className="py-2.5 px-2 text-right text-slate-600">
-                            {ln.originalQty.toFixed(2)}
-                          </td>
-                          <td className="py-2.5 px-2 text-right text-amber-700">
-                            {ln.previouslyReturnedQty.toFixed(2)}
-                          </td>
-                          <td className="py-2.5 px-2 text-right font-bold text-slate-800">
-                            {ln.returnableQty.toFixed(2)}
-                          </td>
-                          <td className="py-2.5 px-3 text-right">
-                            <input
-                              type="number"
-                              min="0"
-                              max={ln.returnableQty}
-                              step="any"
-                              disabled={isFullyReturned}
-                              value={ln.returnQty || ""}
-                              onChange={(e) =>
-                                handleQtyChange(ln.salesItemId, e.target.value)
-                              }
-                              placeholder="0"
-                              className="w-20 px-2 py-1 text-right text-xs font-semibold border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-slate-100"
-                            />
-                          </td>
-                          <td className="py-2.5 px-2 text-right text-slate-600">
-                            ₹{ln.unitPrice.toFixed(2)}
-                          </td>
-                          <td className="py-2.5 px-2 text-right text-slate-600">
-                            {ln.taxRate}%
-                          </td>
-                          <td className="py-2.5 px-2 text-right font-semibold text-slate-800">
-                            ₹{ln.total.toFixed(2)}
-                          </td>
-                          <td className="py-2.5 px-3">
-                            <select
-                              value={ln.disposition}
-                              disabled={isFullyReturned || ln.returnQty <= 0}
-                              onChange={(e: any) =>
-                                handleDispositionChange(
-                                  ln.salesItemId,
-                                  e.target.value,
-                                )
-                              }
-                              className="px-2 py-1 text-[11px] border border-slate-200 rounded bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
-                            >
-                              <option value="RETURN_TO_STOCK">
-                                Restock Goods
-                              </option>
-                              <option value="DAMAGED">Damaged Goods</option>
-                              <option value="SCRAPPED">Scrapped Goods</option>
-                            </select>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ) : selectedInvoiceId ? (
-            <div className="p-4 text-center text-slate-500 text-sm">
-              No line items found on this invoice.
-            </div>
-          ) : null}
-
-          {/* Reason & Options */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {lang === "gu"
-                  ? "પરત કરવાનું કારણ (અંગ્રેજી)"
-                  : "Return Reason (English)"}
-              </label>
-              <input
-                type="text"
-                value={returnReason}
-                onChange={(e) => setReturnReason(e.target.value)}
-                placeholder="e.g. Defective quality, excess supply"
-                className="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {lang === "gu"
-                  ? "પરત કરવાનું કારણ (ગુજરાતી)"
-                  : "Return Reason (Gujarati)"}
-              </label>
-              <input
-                type="text"
-                value={returnReasonGujarati}
-                onChange={(e) => setReturnReasonGujarati(e.target.value)}
-                placeholder={lang === "gu" ? "દા.ત. ગુણવત્તામાં ખામી, વધારાનો માલ" : "e.g. Defective quality, excess supply"}
-                className="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          {/* Restore stock option */}
-          <div className="flex items-center gap-2 pt-1">
-            <input
-              type="checkbox"
-              id="restoreStockCheck"
-              checked={restoreStock}
-              onChange={(e) => setRestoreStock(e.target.checked)}
-              className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
-            />
-            <label
-              htmlFor="restoreStockCheck"
-              className="text-xs text-slate-700 font-medium"
-            >
-              {lang === "gu"
-                ? "સ્વીકારેલ માલ ગોડાઉનમાં જમા કરો (Stock Ledger Restoration)"
-                : "Restore accepted goods into inventory warehouse (Stock Transaction Type: SALES_RETURN)"}
-            </label>
-          </div>
-
-          {/* Live Summary Calculation Box */}
-          {summary.selectedLinesCount > 0 && (
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs space-y-1.5">
-              <div className="font-semibold text-slate-700 border-b border-slate-200 pb-1 mb-1">
-                {lang === "gu"
-                  ? "હિસાબી અસર અને રકમ વિગત"
-                  : "Credit Note Financial Breakup"}
-              </div>
-              <div className="flex justify-between text-slate-600">
-                <span>Taxable Amount (Reversing Sales):</span>
-                <span>₹{summary.taxable.toFixed(2)}</span>
-              </div>
-              {summary.cgst > 0 && (
-                <div className="flex justify-between text-slate-600">
-                  <span>Output CGST Reversal:</span>
-                  <span>₹{summary.cgst.toFixed(2)}</span>
-                </div>
-              )}
-              {summary.sgst > 0 && (
-                <div className="flex justify-between text-slate-600">
-                  <span>Output SGST Reversal:</span>
-                  <span>₹{summary.sgst.toFixed(2)}</span>
-                </div>
-              )}
-              {summary.igst > 0 && (
-                <div className="flex justify-between text-slate-600">
-                  <span>Output IGST Reversal:</span>
-                  <span>₹{summary.igst.toFixed(2)}</span>
-                </div>
-              )}
-              <div className="flex justify-between font-bold text-sm text-slate-900 border-t border-slate-200 pt-1.5">
-                <span>
-                  Total Credit Note Grand Total (Credited to Customer):
-                </span>
-                <span className="text-blue-700">
-                  ₹{summary.grandTotal.toFixed(2)}
-                </span>
-              </div>
-            </div>
-          )}
         </div>
-      </Modal>
 
-      {/* DETAILS MODAL */}
-      <Modal
-        isOpen={isDetailsModalOpen}
-        onClose={() => setIsDetailsModalOpen(false)}
-        title={lang === "gu" ? "ક્રેડિટ નોટ વિગતો" : "Credit Note Details"}
-        titleGujarati={selectedReturnDetails?.returnNumber}
-        maxWidth="2xl"
-        footer={
-          <div className="flex justify-end gap-2 w-full">
-            <button
-              onClick={() => {
-                setPrintReturn(selectedReturnDetails);
-                setIsDetailsModalOpen(false);
-              }}
-              className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 shadow-sm inline-flex items-center gap-1.5"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                />
-              </svg>
-              <span>{lang === "gu" ? "પ્રિન્ટ કરો" : "Print Credit Note"}</span>
-            </button>
-            <button
-              onClick={() => setIsDetailsModalOpen(false)}
-              className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50"
-            >
-              {lang === "gu" ? "બંધ કરો" : "Close"}
-            </button>
-          </div>
-        }
-      >
-        {selectedReturnDetails && (
-          <div className="space-y-4 text-xs">
-            <div className="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded-lg border border-slate-200">
-              <div>
-                <p className="text-slate-400">Credit Note #</p>
-                <p className="font-bold text-sm text-slate-800">
-                  {selectedReturnDetails.returnNumber}
-                </p>
-                <p className="text-slate-400 mt-2">Return Date</p>
-                <p className="font-medium text-slate-700">
-                  {new Date(
-                    selectedReturnDetails.returnDate,
-                  ).toLocaleDateString("en-IN")}
-                </p>
-              </div>
-              <div>
-                <p className="text-slate-400">Customer</p>
-                <p className="font-bold text-sm text-slate-800">
-                  {selectedReturnDetails.party?.name}
-                </p>
-                <p className="text-slate-400 mt-2">Against Sales Invoice</p>
-                <p className="font-medium text-slate-700">
-                  {selectedReturnDetails.salesInvoice?.invoiceNumber || "-"}
-                </p>
-              </div>
-            </div>
+        {/* Create Sales Return / Credit Note Purple Button */}
+        <Link
+          href="/sales/credit-note/create"
+          className="inline-flex items-center justify-center rounded-lg bg-[#4F46E5] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#4338CA] transition-colors"
+        >
+          {isCreditNote
+            ? lang === "gu"
+              ? "ક્રેડિટ નોટ બનાવો"
+              : "Create Credit Note"
+            : lang === "gu"
+              ? "વેચાણ પરત બનાવો"
+              : "Create Sales Return"}
+        </Link>
+      </div>
 
-            {selectedReturnDetails.reason && (
-              <div className="p-2.5 bg-blue-50/50 rounded-lg border border-blue-100">
-                <span className="font-semibold text-slate-700">Reason: </span>
-                <span className="text-slate-600">
-                  {selectedReturnDetails.reason}
-                </span>
-              </div>
-            )}
+      {error && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700 flex items-center justify-between">
+          <span>{error}</span>
+          <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700">✕</button>
+        </div>
+      )}
 
-            <div>
-              <h4 className="font-bold text-slate-700 mb-2">Returned Items</h4>
-              <div className="border border-slate-200 rounded-lg overflow-hidden">
-                <table className="w-full text-left border-collapse">
-                  <thead className="bg-slate-100 text-slate-600">
-                    <tr>
-                      <th className="p-2">Item</th>
-                      <th className="p-2 text-right">Qty</th>
-                      <th className="p-2 text-right">Rate</th>
-                      <th className="p-2 text-right">Taxable</th>
-                      <th className="p-2 text-right">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {(selectedReturnDetails.items || []).map((itm) => (
-                      <tr key={itm.id}>
-                        <td className="p-2 font-medium text-slate-800">
-                          {itm.item?.name || "Item"}
-                        </td>
-                        <td className="p-2 text-right">
-                          {Number(itm.quantity).toFixed(2)}
-                        </td>
-                        <td className="p-2 text-right">
-                          ₹{Number(itm.unitPrice).toFixed(2)}
-                        </td>
-                        <td className="p-2 text-right">
-                          ₹{Number(itm.taxableAmount).toFixed(2)}
-                        </td>
-                        <td className="p-2 text-right font-bold">
-                          ₹{Number(itm.totalAmount).toFixed(2)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+      {/* 3. TABLE: Matching myBillBook exact columns */}
+      <div className="overflow-visible rounded-xl border border-slate-200 bg-white shadow-2xs">
+        <div className="overflow-x-auto overflow-y-visible">
+          <table className="min-w-full text-left text-xs border-collapse">
+            <thead className="bg-[#F8FAFC] border-b border-slate-200 text-slate-600 font-semibold">
+              <tr>
+                <th className="px-4 py-3 whitespace-nowrap">
+                  <div className="flex items-center gap-1">
+                    <span>{lang === "gu" ? "તારીખ" : "Date"}</span>
+                    <span className="text-slate-400 text-[10px]">⇅</span>
+                  </div>
+                </th>
+                <th className="px-4 py-3 whitespace-nowrap">
+                  {isCreditNote
+                    ? lang === "gu"
+                      ? "ક્રેડિટ નોટ નંબર"
+                      : "Credit Note Number"
+                    : lang === "gu"
+                      ? "વેચાણ પરત નંબર"
+                      : "Sales Return Number"}
+                </th>
+                <th className="px-4 py-3 whitespace-nowrap">{lang === "gu" ? "પાર્ટીનું નામ" : "Party Name"}</th>
+                <th className="px-4 py-3 whitespace-nowrap">{lang === "gu" ? "ઇન્વોઇસ નં." : "Invoice No"}</th>
+                <th className="px-4 py-3 whitespace-nowrap">
+                  <div className="flex items-center gap-1">
+                    <span>{lang === "gu" ? "રકમ" : "Amount"}</span>
+                    <span className="text-slate-400 text-[10px]">⇅</span>
+                  </div>
+                </th>
+                <th className="px-4 py-3 whitespace-nowrap">{lang === "gu" ? "સ્થિતિ" : "Status"}</th>
+                <th className="px-4 py-3 w-10 text-center whitespace-nowrap" />
+              </tr>
+            </thead>
 
-            <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1">
-              <div className="flex justify-between">
-                <span>Taxable Amount:</span>
-                <span>
-                  ₹{Number(selectedReturnDetails.taxableAmount).toFixed(2)}
-                </span>
-              </div>
-              {Number(selectedReturnDetails.cgstAmount) > 0 && (
-                <div className="flex justify-between">
-                  <span>CGST Reversed:</span>
-                  <span>
-                    ₹{Number(selectedReturnDetails.cgstAmount).toFixed(2)}
-                  </span>
-                </div>
-              )}
-              {Number(selectedReturnDetails.sgstAmount) > 0 && (
-                <div className="flex justify-between">
-                  <span>SGST Reversed:</span>
-                  <span>
-                    ₹{Number(selectedReturnDetails.sgstAmount).toFixed(2)}
-                  </span>
-                </div>
-              )}
-              {Number(selectedReturnDetails.igstAmount) > 0 && (
-                <div className="flex justify-between">
-                  <span>IGST Reversed:</span>
-                  <span>
-                    ₹{Number(selectedReturnDetails.igstAmount).toFixed(2)}
-                  </span>
-                </div>
-              )}
-              <div className="flex justify-between font-bold text-sm border-t border-slate-200 pt-1 text-slate-900">
-                <span>Grand Total:</span>
-                <span className="text-blue-700">
-                  ₹{Number(selectedReturnDetails.grandTotal).toFixed(2)}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      {/* PRINT CREDIT NOTE MODAL */}
-      <Modal
-        isOpen={Boolean(printReturn)}
-        onClose={() => setPrintReturn(null)}
-        title="Print Credit Note"
-        maxWidth="4xl"
-        footer={
-          <div className="flex justify-end gap-2 w-full">
-            <button
-              onClick={() => setPrintReturn(null)}
-              className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50"
-            >
-              Close
-            </button>
-            <button
-              onClick={() => window.print()}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm inline-flex items-center gap-1.5"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                />
-              </svg>
-              <span>Print / Save as PDF</span>
-            </button>
-          </div>
-        }
-      >
-        {printReturn && (
-          <div
-            id="printable-invoice"
-            className="p-6 bg-white text-slate-800 text-xs font-sans printable-invoice print:p-0 print:m-0 print:w-full print:max-w-none print:shadow-none print:border-none"
-          >
-            {/* Header */}
-            <div className="text-center border-b pb-4 mb-4">
-              <span className="text-xs uppercase tracking-widest text-slate-500 font-semibold">
-                GST Credit Note / Sales Return
-              </span>
-              <h2 className="text-xl font-bold text-slate-900 mt-1">
-                {currentCompany?.legalName || "Company Name"}
-              </h2>
-              <p className="text-slate-500 text-[11px]">
-                GSTIN: {currentCompany?.gstin || "-"} | State:{" "}
-                {currentCompany?.stateCode || "-"}
-              </p>
-            </div>
-
-            {/* Document Info */}
-            <div className="grid grid-cols-2 gap-4 border p-3 rounded mb-4">
-              <div>
-                <p className="font-semibold text-slate-700">
-                  Credit Note Details:
-                </p>
-                <p>
-                  Credit Note No:{" "}
-                  <strong className="font-mono">
-                    {printReturn.returnNumber}
-                  </strong>
-                </p>
-                <p>
-                  Date:{" "}
-                  <strong>
-                    {new Date(printReturn.returnDate).toLocaleDateString(
-                      "en-IN",
-                    )}
-                  </strong>
-                </p>
-                <p>
-                  Against Invoice:{" "}
-                  <strong>
-                    {printReturn.salesInvoice?.invoiceNumber || "-"}
-                  </strong>
-                </p>
-              </div>
-              <div>
-                <p className="font-semibold text-slate-700">
-                  Billed / Issued To:
-                </p>
-                <p>
-                  Customer: <strong>{printReturn.party?.name}</strong>
-                </p>
-                <p>
-                  GSTIN:{" "}
-                  <strong className="font-mono">
-                    {printReturn.party?.gstin || "Unregistered"}
-                  </strong>
-                </p>
-                {printReturn.party?.phone && (
-                  <p>Phone: {printReturn.party.phone}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Items Table */}
-            <table className="w-full border-collapse border text-xs mb-4">
-              <thead>
-                <tr className="bg-slate-100 border-b">
-                  <th className="border p-2 text-left">#</th>
-                  <th className="border p-2 text-left">Description</th>
-                  <th className="border p-2 text-right">Return Qty</th>
-                  <th className="border p-2 text-right">Rate</th>
-                  <th className="border p-2 text-right">Taxable</th>
-                  <th className="border p-2 text-right">Tax %</th>
-                  <th className="border p-2 text-right">Total Credit</th>
+            <tbody className="divide-y divide-slate-100">
+              {isLoading && (
+                <tr>
+                  <td colSpan={7} className="px-4 py-16 text-center text-xs text-slate-500">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+                      <span>{lang === "gu" ? "લોડ થઈ રહ્યું છે..." : "Loading sales returns..."}</span>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {(printReturn.items || []).map((itm, idx) => (
-                  <tr key={itm.id} className="border-b">
-                    <td className="border p-2">{idx + 1}</td>
-                    <td className="border p-2 font-medium">
-                      {itm.item?.name || "Item"}
+              )}
+
+              {!isLoading && displayedRows.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-4 py-20 text-center text-slate-500">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400 mb-3">
+                        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
+                        </svg>
+                      </div>
+                      <p className="text-sm font-semibold text-slate-700">
+                        {isCreditNote
+                          ? lang === "gu"
+                            ? "કોઈ ક્રેડિટ નોટ મળી નથી."
+                            : "No Credit Notes found"
+                          : lang === "gu"
+                            ? "કોઈ વેચાણ પરત મળી નથી."
+                            : "No sales returns found"}
+                      </p>
+                      <p className="text-xs text-slate-400 mt-1 max-w-sm">
+                        {isCreditNote
+                          ? lang === "gu"
+                            ? "વેચાણ બિલ સામે અથવા ગ્રાહક ખાતામાં ક્રેડિટ નોટ બનાવો."
+                            : "Issue credit notes against posted sales invoices or adjust customer ledger balances."
+                          : lang === "gu"
+                            ? "વેચાણ બિલ સામે માલ પરત સ્વીકારો અને ક્રેડિટ નોટ બનાવો."
+                            : "Issue credit notes against posted sales invoices to reverse taxes and credit customers."}
+                      </p>
+                      <Link
+                        href="/sales/credit-note/create"
+                        className="mt-4 rounded-lg bg-[#4F46E5] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#4338CA]"
+                      >
+                        {isCreditNote
+                          ? lang === "gu"
+                            ? "ક્રેડિટ નોટ બનાવો"
+                            : "Create Credit Note"
+                          : lang === "gu"
+                            ? "વેચાણ પરત બનાવો"
+                            : "Create Sales Return"}
+                      </Link>
+                    </div>
+                  </td>
+                </tr>
+              )}
+
+              {!isLoading &&
+                displayedRows.map((row) => (
+                  <tr
+                    key={row.id}
+                    className="hover:bg-slate-50/80 transition-colors"
+                  >
+                    <td className="px-4 py-3 text-slate-700 whitespace-nowrap font-normal">
+                      {formatDisplayDate(row.returnDate)}
                     </td>
-                    <td className="border p-2 text-right">
-                      {Number(itm.quantity).toFixed(2)}
+                    <td className="px-4 py-3 font-medium text-slate-900 whitespace-nowrap">
+                      <Link
+                        href={`/sales/credit-note/view/${row.id}`}
+                        className="hover:text-[#4F46E5] hover:underline transition-colors font-semibold"
+                      >
+                        {row.returnNumber}
+                      </Link>
                     </td>
-                    <td className="border p-2 text-right">
-                      ₹{Number(itm.unitPrice).toFixed(2)}
+                    <td className="px-4 py-3 font-medium text-slate-800 whitespace-nowrap">
+                      {row.party?.name || "Cash Sale"}
                     </td>
-                    <td className="border p-2 text-right">
-                      ₹{Number(itm.taxableAmount).toFixed(2)}
+                    <td className="px-4 py-3 text-slate-600 whitespace-nowrap">
+                      {row.salesInvoice?.invoiceNumber ? (
+                        <span className="font-mono text-slate-700">#{row.salesInvoice.invoiceNumber}</span>
+                      ) : (
+                        "—"
+                      )}
                     </td>
-                    <td className="border p-2 text-right">
-                      {Number(itm.taxRate)}%
+                    <td className="px-4 py-3 font-semibold text-slate-900 whitespace-nowrap">
+                      {formatInr(row.grandTotal)}
                     </td>
-                    <td className="border p-2 text-right font-bold">
-                      ₹{Number(itm.totalAmount).toFixed(2)}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className="inline-flex items-center rounded-md bg-sky-50 px-2 py-0.5 text-[10px] font-medium text-sky-600 border border-sky-200">
+                        Refunded
+                      </span>
+                    </td>
+
+                    {/* 3-dots action menu with fixed popover to eliminate scroll issue */}
+                    <td className="relative px-4 py-3 text-center whitespace-nowrap overflow-visible">
+                      <button
+                        type="button"
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveActionMenuId(activeActionMenuId === row.id ? null : row.id);
+                        }}
+                      >
+                        <span className="text-base font-bold leading-none">⋮</span>
+                      </button>
+
+                      {activeActionMenuId === row.id && (
+                        <div
+                          className="absolute right-3 top-8 z-50 w-36 rounded-xl border border-slate-200 bg-white py-1 text-left text-xs shadow-xl animate-in fade-in zoom-in-95 duration-100"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            type="button"
+                            className="flex w-full items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50 transition-colors"
+                            onClick={() => {
+                              setActiveActionMenuId(null);
+                              router.push(`/sales/credit-note/create?edit=${row.id}`);
+                            }}
+                          >
+                            <svg className="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                            </svg>
+                            <span>Edit</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            className="flex w-full items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50 transition-colors"
+                            onClick={() => {
+                              setActiveActionMenuId(null);
+                              setHistoryTarget(row);
+                            }}
+                          >
+                            <svg className="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Edit History</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            className="flex w-full items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50 transition-colors"
+                            onClick={() => {
+                              setActiveActionMenuId(null);
+                              router.push(`/sales/credit-note/create?duplicate=${row.id}`);
+                            }}
+                          >
+                            <svg className="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            <span>Duplicate</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            className="flex w-full items-center gap-2 px-3 py-2 text-rose-600 hover:bg-rose-50 transition-colors border-t border-slate-100"
+                            onClick={() => {
+                              setActiveActionMenuId(null);
+                              setDeleteTarget(row);
+                            }}
+                          >
+                            <svg className="w-3.5 h-3.5 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-            {/* Totals */}
-            <div className="flex justify-end mb-8">
-              <div className="w-64 border p-3 rounded space-y-1 bg-slate-50">
-                <div className="flex justify-between">
-                  <span>Taxable Value:</span>
-                  <span>₹{Number(printReturn.taxableAmount).toFixed(2)}</span>
-                </div>
-                {Number(printReturn.cgstAmount) > 0 && (
-                  <div className="flex justify-between">
-                    <span>CGST:</span>
-                    <span>₹{Number(printReturn.cgstAmount).toFixed(2)}</span>
-                  </div>
+      {/* View / Print Modal */}
+      {selectedReturnForView && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
+          <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  Sales Return #{selectedReturnForView.returnNumber}
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Date: {formatDisplayDate(selectedReturnForView.returnDate)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedReturnForView(null)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <div>
+                <p className="text-slate-500 font-semibold">Customer:</p>
+                <p className="font-bold text-slate-900">{selectedReturnForView.party?.name || "Cash Sale"}</p>
+                {selectedReturnForView.party?.phone && (
+                  <p className="text-slate-600">Ph: {selectedReturnForView.party.phone}</p>
                 )}
-                {Number(printReturn.sgstAmount) > 0 && (
-                  <div className="flex justify-between">
-                    <span>SGST:</span>
-                    <span>₹{Number(printReturn.sgstAmount).toFixed(2)}</span>
-                  </div>
-                )}
-                {Number(printReturn.igstAmount) > 0 && (
-                  <div className="flex justify-between">
-                    <span>IGST:</span>
-                    <span>₹{Number(printReturn.igstAmount).toFixed(2)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between font-bold text-sm border-t pt-1 text-slate-900">
-                  <span>Total Credit:</span>
-                  <span>₹{Number(printReturn.grandTotal).toFixed(2)}</span>
-                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-slate-500 font-semibold">Original Invoice:</p>
+                <p className="font-bold text-slate-900">
+                  {selectedReturnForView.salesInvoice?.invoiceNumber
+                    ? `#${selectedReturnForView.salesInvoice.invoiceNumber}`
+                    : "Direct Return"}
+                </p>
+                <p className="text-slate-600 font-semibold mt-1">
+                  Total: {formatInr(selectedReturnForView.grandTotal)}
+                </p>
               </div>
             </div>
 
-            {/* Signature */}
-            <div className="flex justify-between items-end border-t pt-8 mt-12 text-slate-500">
-              <div>
-                <p className="text-[11px]">
-                  This is a computer generated Credit Note.
-                </p>
-              </div>
-              <div className="text-right space-y-1 min-w-[180px]">
-                <p className="font-semibold text-slate-800 text-[11px] uppercase">
-                  For {currentCompany?.tradeName || currentCompany?.legalName}
-                </p>
-                <div className="min-h-[40px] flex flex-col items-end justify-end py-1">
-                  {currentCompany?.signatureUrl ? (
-                    <img
-                      src={currentCompany.signatureUrl}
-                      alt="Signature"
-                      className="max-h-12 max-w-[150px] object-contain block"
-                    />
-                  ) : (
-                    <div className="h-6" />
-                  )}
-                </div>
-                <div className="border-t border-slate-400 pt-1">
-                  {currentCompany?.signatoryName && (
-                    <p className="font-semibold text-slate-800 text-[11px]">
-                      {currentCompany.signatoryName}
-                    </p>
-                  )}
-                  <p className="text-[10px] text-slate-500">
-                    {currentCompany?.signatoryDesignation || "Authorized Signatory"}
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Print
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedReturnForView(null)}
+                className="rounded-lg bg-[#4F46E5] px-4 py-2 text-xs font-semibold text-white hover:bg-[#4338CA]"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete / Cancel Return Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+            <h2 className="text-base font-bold text-slate-900">
+              Delete Sales Return #{deleteTarget.returnNumber}?
+            </h2>
+            <p className="mt-1 text-xs text-slate-500">
+              This will remove this sales return and restore any inventory/accounting balances.
+            </p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                onClick={() => setDeleteTarget(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                className="rounded-lg bg-rose-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-rose-700 disabled:opacity-50 shadow-xs"
+                onClick={async () => {
+                  setIsDeleting(true);
+                  try {
+                    await apiClient.delete(`/sales-returns/${deleteTarget.id}`);
+                    setRows((curr) => curr.filter((r) => r.id !== deleteTarget.id));
+                    setDeleteTarget(null);
+                    setToast("Sales return deleted successfully.");
+                  } catch (err: any) {
+                    alert(err.message || "Could not delete sales return.");
+                  } finally {
+                    setIsDeleting(false);
+                  }
+                }}
+              >
+                {isDeleting ? "Deleting..." : "Confirm Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit History Modal */}
+      {historyTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <svg className="w-4 h-4 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Edit History — #{historyTarget.returnNumber}</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setHistoryTarget(null)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="py-4 space-y-4 text-xs">
+              <div className="flex items-start gap-3">
+                <div className="h-2 w-2 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                <div>
+                  <p className="font-bold text-slate-800">Sales Return Created</p>
+                  <p className="text-slate-500 text-[11px]">
+                    Date: {formatDisplayDate(historyTarget.returnDate)}
+                  </p>
+                  <p className="text-slate-600 mt-1">
+                    Party: <span className="font-semibold">{historyTarget.party?.name || "Cash Sale"}</span>
+                  </p>
+                  <p className="text-slate-600">
+                    Grand Total: <span className="font-semibold">{formatInr(historyTarget.grandTotal)}</span>
                   </p>
                 </div>
               </div>
+
+              <div className="flex items-start gap-3">
+                <div className="h-2 w-2 rounded-full bg-sky-500 mt-1.5 shrink-0" />
+                <div>
+                  <p className="font-bold text-slate-800">Voucher Issued & Balance Adjusted</p>
+                  <p className="text-slate-500 text-[11px]">Status: Refunded</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setHistoryTarget(null)}
+                className="rounded-lg bg-slate-100 px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+              >
+                Close
+              </button>
             </div>
           </div>
-        )}
-      </Modal>
-    </div>
-  );
-}
-
-export default function SalesReturnsPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="p-12 text-center text-slate-500">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
-          <p className="text-sm">Loading Sales Returns...</p>
         </div>
-      }
-    >
-      <SalesReturnsContent />
-    </Suspense>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-medium text-white shadow-xl animate-in slide-in-from-bottom-2 duration-150">
+          <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+          <span>{toast}</span>
+        </div>
+      )}
+    </div>
   );
 }

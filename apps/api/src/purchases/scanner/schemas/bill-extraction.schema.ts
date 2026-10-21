@@ -115,6 +115,17 @@ export const ExtractedBillDataSchema = z.object({
     matchedPartyScore: z.number().nullable().optional(),
     isNewSupplier: flexibleBoolean(false),
   }),
+  buyer: z.object({
+    name: z.string().nullable().optional(),
+    gstin: z.string().nullable().optional(),
+    address: z.string().nullable().optional(),
+    phone: z.string().nullable().optional(),
+    stateCode: z.string().nullable().optional(),
+    confidence: flexibleConfidence(80),
+    matchedPartyId: z.string().nullable().optional(),
+    matchedPartyName: z.string().nullable().optional(),
+    matchedPartyScore: z.number().nullable().optional(),
+  }).optional(),
   invoice: z.object({
     invoiceNumber: z.string().nullable().optional(),
     invoiceDate: z.string().nullable().optional(),

@@ -349,52 +349,6 @@ export class InvoicesService {
         if (isDraft) {
           if (dto.invoiceNumber && dto.invoiceNumber.trim() !== "") {
             invoiceNumber = dto.invoiceNumber.trim();
-          } else if (category === InvoiceCategory.PROFORMA_INVOICE) {
-            const fyStart = new Date(fy.startDate);
-            const fyEnd = new Date(fy.endDate);
-            const fyCode = `${fyStart.getFullYear().toString().slice(-2)}-${fyEnd.getFullYear().toString().slice(-2)}`;
-            const prefix = `QTN/${fyCode}/`;
-
-            const lockKey = `seq_${tenant.companyId}_${fy.id}_${category}`;
-            await tx.$executeRaw`
-              SELECT pg_advisory_xact_lock(hashtext(${lockKey})::bigint)
-            `;
-
-            let seq = await tx.invoiceSequence.findFirst({
-              where: {
-                companyId: tenant.companyId,
-                financialYearId: fy.id,
-                category: category as any,
-                prefix,
-              },
-            });
-
-            let nextNum = 1;
-            if (!seq) {
-              seq = await tx.invoiceSequence.create({
-                data: {
-                  companyId: tenant.companyId,
-                  financialYearId: fy.id,
-                  branchId,
-                  prefix,
-                  currentNumber: 1,
-                  padding: 4,
-                  category: category as any,
-                },
-              });
-              nextNum = 1;
-            } else {
-              nextNum = seq.currentNumber + 1;
-              await tx.invoiceSequence.update({
-                where: { id: seq.id },
-                data: { currentNumber: nextNum },
-              });
-            }
-
-            invoiceNumber = `${seq.prefix}${String(nextNum).padStart(
-              seq.padding || 4,
-              "0",
-            )}`;
           } else {
             invoiceNumber = `DFT-${Date.now().toString(36).toUpperCase()}-${Math.floor(
               Math.random() * 1000,
@@ -407,7 +361,12 @@ export class InvoicesService {
           const fyStart = new Date(fy.startDate);
           const fyEnd = new Date(fy.endDate);
           const fyCode = `${fyStart.getFullYear().toString().slice(-2)}-${fyEnd.getFullYear().toString().slice(-2)}`;
-          const prefix = `INV/${fyCode}/`;
+          const prefix =
+            category === InvoiceCategory.PROFORMA_INVOICE
+              ? `QTN/${fyCode}/`
+              : category === InvoiceCategory.DELIVERY_CHALLAN
+                ? `DC/${fyCode}/`
+                : `INV/${fyCode}/`;
 
           // Acquire exclusive transaction advisory lock for this company and FY
           const lockKey = `seq_${tenant.companyId}_${fy.id}_${category}`;
@@ -469,7 +428,8 @@ export class InvoicesService {
             discountAmount: i.discountAmount,
             taxRate: i.taxRate,
             isTaxInclusive: i.isTaxInclusive,
-            supplyCategory: (itemMap.get(i.itemId) as any)?.supplyCategory || "TAXABLE",
+            supplyCategory:
+              (itemMap.get(i.itemId) as any)?.supplyCategory || "TAXABLE",
           })),
         );
 
@@ -751,7 +711,9 @@ export class InvoicesService {
 
     const notes =
       dto.notes ||
-      (dto.offlineBillNumber ? `Offline Bill: ${dto.offlineBillNumber}` : undefined);
+      (dto.offlineBillNumber
+        ? `Offline Bill: ${dto.offlineBillNumber}`
+        : undefined);
 
     const invoiceDto: CreateSalesInvoiceDto = {
       category: InvoiceCategory.TAX_INVOICE,
@@ -1060,7 +1022,8 @@ export class InvoicesService {
       if (query.category) where.category = query.category;
       if (query.startDate || query.endDate) {
         where.invoiceDate = {};
-        if (query.startDate) where.invoiceDate.gte = parseStartOfDay(query.startDate);
+        if (query.startDate)
+          where.invoiceDate.gte = parseStartOfDay(query.startDate);
         if (query.endDate) where.invoiceDate.lte = parseEndOfDay(query.endDate);
       }
       if (query.search) {
@@ -1312,7 +1275,11 @@ export class InvoicesService {
             tx,
             tenant,
             warehouse.id,
-            line.item || { id: line.itemId, name: "Item", purchaseRate: line.unitPrice },
+            line.item || {
+              id: line.itemId,
+              name: "Item",
+              purchaseRate: line.unitPrice,
+            },
             toDecimal(line.quantity),
           );
           await tx.stockTransaction.create({
@@ -1530,7 +1497,10 @@ export class InvoicesService {
           include: { group: true },
         });
       } else {
-        const mode = this.normalizePaymentMode(dto.paymentMode, PaymentMode.CASH);
+        const mode = this.normalizePaymentMode(
+          dto.paymentMode,
+          PaymentMode.CASH,
+        );
         const isBank = [
           PaymentMode.BANK_TRANSFER,
           PaymentMode.UPI_QR,
@@ -1630,6 +1600,7 @@ export class InvoicesService {
             `Receipt against #${invoice.invoiceNumber} from ${invoice.party.name}`,
           narrationGujarati: `રસીદ બિલ નં. ${invoice.invoiceNumber} - ${invoice.party.nameGujarati || invoice.party.name}`,
           totalAmount: totalSettled.toNumber(),
+          paymentMode: dto.paymentMode ? String(dto.paymentMode) : null,
           isAutoGenerated: true,
           isCancelled: false,
           sourceDocument: "SALES_INVOICE",
@@ -1772,7 +1743,8 @@ export class InvoicesService {
         where.transactionDate = {};
         if (query.startDate)
           where.transactionDate.gte = parseStartOfDay(query.startDate);
-        if (query.endDate) where.transactionDate.lte = parseEndOfDay(query.endDate);
+        if (query.endDate)
+          where.transactionDate.lte = parseEndOfDay(query.endDate);
       }
 
       const [items, total] = await Promise.all([
@@ -1970,11 +1942,7 @@ export class InvoicesService {
         });
       }
     } else if (paymentMode === PaymentMode.UPI_QR) {
-      const upiAcc = await this.resolvePaymentLedgerAccount(
-        tx,
-        tenant,
-        "UPI",
-      );
+      const upiAcc = await this.resolvePaymentLedgerAccount(tx, tenant, "UPI");
       voucherLines.push({
         accountId: upiAcc.id,
         debitAmount: taxCalc.grandTotal.toNumber(),
@@ -2234,10 +2202,7 @@ export class InvoicesService {
         where: {
           companyId: tenant.companyId,
           isActive: true,
-          OR: [
-            { name: "UPI Account" },
-            { name: "UPI Clearing Account" },
-          ],
+          OR: [{ name: "UPI Account" }, { name: "UPI Clearing Account" }],
         },
       });
       if (upiAcc) return upiAcc;
@@ -2462,13 +2427,18 @@ export class InvoicesService {
     }
   }
 
-  private normalizePaymentMode(mode?: any, defaultMode: PaymentMode = PaymentMode.UNPAID_CREDIT): PaymentMode {
+  private normalizePaymentMode(
+    mode?: any,
+    defaultMode: PaymentMode = PaymentMode.UNPAID_CREDIT,
+  ): PaymentMode {
     if (!mode) return defaultMode;
     const str = String(mode).toUpperCase().trim();
-    if (str === "CREDIT" || str === "UNPAID_CREDIT") return PaymentMode.UNPAID_CREDIT;
+    if (str === "CREDIT" || str === "UNPAID_CREDIT")
+      return PaymentMode.UNPAID_CREDIT;
     if (str === "UPI" || str === "UPI_QR") return PaymentMode.UPI_QR;
     if (str === "CASH") return PaymentMode.CASH;
-    if (str === "BANK_TRANSFER" || str === "CARD" || str === "NETBANKING") return PaymentMode.BANK_TRANSFER;
+    if (str === "BANK_TRANSFER" || str === "CARD" || str === "NETBANKING")
+      return PaymentMode.BANK_TRANSFER;
     if (str === "CHEQUE") return PaymentMode.CHEQUE;
     if (str === "CREDIT_NOTE") return PaymentMode.CREDIT_NOTE;
     if (str === "SPLIT") return PaymentMode.SPLIT;
@@ -3341,13 +3311,96 @@ export class InvoicesService {
     return salesReturn;
   }
 
+  async deleteSalesReturn(id: string, tenant: TenantContext) {
+    return this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const salesReturn = await tx.salesReturn.findFirst({
+        where: { id, companyId: tenant.companyId },
+        include: {
+          items: true,
+          salesInvoice: true,
+        },
+      });
+
+      if (!salesReturn) {
+        throw new NotFoundException(`Sales return with ID ${id} not found.`);
+      }
+
+      // 1. Revert invoice balance if linked
+      if (salesReturn.salesInvoiceId && salesReturn.grandTotal) {
+        const inv = await tx.salesInvoice.findUnique({
+          where: { id: salesReturn.salesInvoiceId },
+        });
+        if (inv) {
+          const currentBal = toDecimal(inv.balanceAmount);
+          const restoredBal = currentBal.add(toDecimal(salesReturn.grandTotal));
+          await tx.salesInvoice.update({
+            where: { id: inv.id },
+            data: { balanceAmount: restoredBal.toFixed(2) },
+          });
+        }
+      }
+
+      // 2. Remove accounting voucher and entries if posted
+      if (salesReturn.voucherId) {
+        await tx.journalEntry.deleteMany({
+          where: { voucherId: salesReturn.voucherId },
+        });
+        await tx.voucher.deleteMany({
+          where: { id: salesReturn.voucherId },
+        });
+      }
+
+      // 3. Remove stock transactions created for this return
+      await tx.stockTransaction.deleteMany({
+        where: {
+          companyId: tenant.companyId,
+          referenceDocType: "SALES_RETURN",
+          referenceDocId: salesReturn.id,
+        },
+      });
+
+      // 4. Delete return items
+      await tx.salesReturnItem.deleteMany({
+        where: { returnId: salesReturn.id },
+      });
+
+      // 5. Delete sales return
+      await tx.salesReturn.delete({
+        where: { id: salesReturn.id },
+      });
+
+      // 6. Audit log
+      await this.audit.record(
+        {
+          organizationId: tenant.organizationId,
+          companyId: tenant.companyId,
+          userId: tenant.userId || "00000000-0000-0000-0000-000000000000",
+          action: "DELETE_SALES_RETURN",
+          entityName: "SalesReturn",
+          entityId: salesReturn.id,
+          newState: {
+            deleted: true,
+            returnNumber: salesReturn.returnNumber,
+            salesInvoiceId: salesReturn.salesInvoiceId,
+            grandTotal: salesReturn.grandTotal ? String(salesReturn.grandTotal) : "0",
+          },
+        },
+        tx,
+      );
+
+      return { success: true, message: "Sales return deleted successfully." };
+    });
+  }
+
   async updateSalesInvoice(
     id: string,
     dto: CreateSalesInvoiceDto,
     tenant: TenantContext,
   ) {
     if (!dto.items || dto.items.length === 0) {
-      throw new BadRequestException("Invoice must contain at least one line item.");
+      throw new BadRequestException(
+        "Invoice must contain at least one line item.",
+      );
     }
 
     return this.prisma.executeInTenantContext(tenant, async (tx) => {
@@ -3393,7 +3446,9 @@ export class InvoicesService {
         });
       }
       if (!fy) {
-        throw new NotFoundException(`No open financial year found for company.`);
+        throw new NotFoundException(
+          `No open financial year found for company.`,
+        );
       }
 
       // 2. Resolve Party
@@ -3419,7 +3474,9 @@ export class InvoicesService {
         },
       });
       if (items.length !== new Set(itemIds).size) {
-        throw new BadRequestException("One or more referenced items do not exist.");
+        throw new BadRequestException(
+          "One or more referenced items do not exist.",
+        );
       }
       const itemMap = new Map(items.map((i) => [i.id, i]));
 

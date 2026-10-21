@@ -327,7 +327,44 @@ function NewPurchaseInvoiceContent() {
           }
         }
       }
-      // Keep items table clean and empty by default (no auto-prefilling)
+      // Check for cloned purchase from localStorage
+      if (typeof window !== "undefined") {
+        const clonedStr = localStorage.getItem("billing_clone_purchase");
+        if (clonedStr) {
+          try {
+            const clone = JSON.parse(clonedStr);
+            localStorage.removeItem("billing_clone_purchase");
+            if (clone.partyId) {
+              setPartyId(clone.partyId);
+              const matched = supplierList.find((s) => s.id === clone.partyId);
+              if (matched?.stateCode) {
+                setPlaceOfSupply(matched.stateCode);
+              }
+            }
+            if (clone.placeOfSupply) setPlaceOfSupply(clone.placeOfSupply);
+            if (clone.notes) setNotes(clone.notes);
+            if (Array.isArray(clone.items) && clone.items.length > 0) {
+              const mappedRows = clone.items.map((i: any) => ({
+                id: `row-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                itemId: i.itemId || i.item?.id || "",
+                itemName: i.item?.name || "",
+                description: i.description || "",
+                hsnCode: i.hsnCode || "1001",
+                mrp: "",
+                unit: "PCS",
+                quantity: Number(i.quantity) || 1,
+                unitPrice: Number(i.unitPrice) || 0,
+                discountPercent: 0,
+                taxRate: Number(i.taxRate) || 18,
+                cessRate: 0,
+              }));
+              setRows(mappedRows);
+            }
+          } catch (e) {
+            console.error("Failed to parse billing_clone_purchase:", e);
+          }
+        }
+      }
     } catch (err: any) {
       setError(err.message || "Failed to load purchase invoice master data.");
     } finally {
@@ -1480,28 +1517,23 @@ function NewPurchaseInvoiceContent() {
               </button>
             </div>
 
-            {/* Smart Bill Scanner */}
-            <button
-              type="button"
-              onClick={handleOpenSmartScanner}
-              className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-[#F47721] to-[#E06410] text-white rounded-xl text-[11px] font-bold shadow-xs shrink-0"
-            >
-              <span>✨</span>
-              <span>{lang === "gu" ? "સ્કેનર" : "Scanner"}</span>
-            </button>
-
-            {/* AI Drawer toggle */}
+            {/* Single Unified AI Drawer / Scanner toggle (matching Laptop layout) */}
             <button
               type="button"
               onClick={() => setIsAutofillDrawerOpen((p) => !p)}
-              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold border transition-all shrink-0 ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all shrink-0 active:scale-95 ${
                 isAutofillDrawerOpen
-                  ? "bg-[#FFF8F3] text-[#F47721] border-[#FED7AA]"
-                  : "bg-white text-[#4B5563] border-[#D1D5DB]"
+                  ? "bg-[#FFF8F3] text-[#F47721] border-[#FED7AA] shadow-2xs"
+                  : "bg-white text-[#374151] border-[#D1D5DB] hover:bg-[#F9FAFB] shadow-2xs"
               }`}
+              title="Toggle AI Autofill Drawer"
             >
               <span>⚡</span>
-              <span>{isAutofillDrawerOpen ? "Hide AI" : "AI Drawer"}</span>
+              <span>
+                {isAutofillDrawerOpen
+                  ? (lang === "gu" ? "ઓટોફિલ છુપાવો" : "Hide AI")
+                  : (lang === "gu" ? "AI ડ્રોઅર" : "AI Drawer")}
+              </span>
             </button>
 
             {/* Upload phone */}
@@ -1765,12 +1797,29 @@ function NewPurchaseInvoiceContent() {
                   <p className="text-[10px] text-[#9CA3AF] max-w-[200px]">
                     (PDF, JPG, JPEG & PNG supported, max 5MB)
                   </p>
-                  <button
-                    type="button"
-                    className="mt-4 px-4 py-1.5 bg-[#F47721] hover:bg-[#E06410] text-white rounded-lg text-xs font-bold shadow-xs transition-all"
-                  >
-                    {lang === "gu" ? "બિલ પસંદ કરો" : "Proceed"}
-                  </button>
+                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fileInputRef.current?.click();
+                      }}
+                      className="px-4 py-1.5 bg-[#F47721] hover:bg-[#E06410] text-white rounded-lg text-xs font-bold shadow-xs transition-all active:scale-95"
+                    >
+                      {lang === "gu" ? "બિલ પસંદ કરો" : "Upload File"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenSmartScanner();
+                      }}
+                      className="px-3 py-1.5 bg-slate-900 hover:bg-black text-white rounded-lg text-xs font-bold shadow-xs transition-all flex items-center gap-1 active:scale-95"
+                    >
+                      <span>📷</span>
+                      <span>{lang === "gu" ? "કેમેરા સ્કેન" : "Camera Scan"}</span>
+                    </button>
+                  </div>
                 </div>
               ) : (
                 /* Document Preview Card with Futuristic Laser Scanner */

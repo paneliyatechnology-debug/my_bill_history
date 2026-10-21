@@ -26,6 +26,7 @@ interface InvoiceLivePreviewModalProps {
     companyGstin: string;
     companyState: string;
     notes?: string;
+    termsAndConditions?: string;
     items: Array<{
       name: string;
       hsnCode: string;
@@ -166,28 +167,31 @@ export function InvoiceLivePreviewModal({
             {/* HEADER LAYOUT: Banner */}
             {customization.headerLayout === "banner" && (
               <div
-                className="rounded-xl p-5 sm:p-6 mb-6 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm"
+                className="rounded-xl p-3.5 sm:p-6 mb-5 text-white flex justify-between items-start gap-2.5 sm:gap-4 shadow-sm"
                 style={{ backgroundColor: primaryColor }}
               >
-                <div>
-                  <h1 className="text-xl sm:text-2xl font-black tracking-tight uppercase">
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <h1 className="text-base sm:text-2xl font-black tracking-tight uppercase leading-tight">
                     {invoiceData.companyName || "Paneliya Technology"}
                   </h1>
-                  <p className="text-xs text-white/90 mt-1 font-mono">
+                  <p className="text-[10px] sm:text-xs text-white/90 font-mono">
                     GSTIN: {invoiceData.companyGstin || "24AAAAA0000A1Z5"} • State: {invoiceData.companyState || "Gujarat (24)"}
                   </p>
                   {customization.companyTagline && (
-                    <p className="text-[11px] text-white/80 italic mt-0.5">
+                    <p className="text-[10px] sm:text-[11px] text-white/80 italic">
                       {customization.companyTagline}
                     </p>
                   )}
                 </div>
 
-                <div className="bg-white/15 backdrop-blur-xs px-4 py-2 rounded-lg text-right sm:text-right border border-white/20">
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-white/90">
+                <div className="bg-white p-2 sm:px-4 sm:py-2.5 rounded-xl text-right shrink-0 shadow-md border border-slate-200 min-w-[125px] sm:min-w-[160px]">
+                  <span
+                    className="block text-xs sm:text-sm font-black uppercase tracking-wider leading-tight"
+                    style={{ color: primaryColor }}
+                  >
                     {getDocTitle()}
                   </span>
-                  <span className="font-mono font-bold text-sm text-white block mt-0.5">
+                  <span className="font-mono font-bold text-xs sm:text-sm text-slate-900 block mt-0.5">
                     #{invoiceData.invoiceNumber || "INV-0001"}
                   </span>
                 </div>
@@ -197,37 +201,37 @@ export function InvoiceLivePreviewModal({
             {/* HEADER LAYOUT: Split */}
             {customization.headerLayout === "split" && (
               <div
-                className="pb-5 mb-6 flex flex-col sm:flex-row justify-between items-start gap-4 border-b-2"
+                className="pb-4 mb-5 flex justify-between items-start gap-2.5 sm:gap-4 border-b-2"
                 style={{ borderColor: primaryColor }}
               >
-                <div>
+                <div className="min-w-0 flex-1 space-y-0.5">
                   <h1
-                    className="text-xl sm:text-2xl font-extrabold tracking-tight uppercase"
+                    className="text-base sm:text-2xl font-extrabold tracking-tight uppercase leading-tight"
                     style={{ color: primaryColor }}
                   >
                     {invoiceData.companyName || "Paneliya Technology"}
                   </h1>
-                  <p className="text-xs text-slate-600 mt-1 font-mono">
+                  <p className="text-[10px] sm:text-xs text-slate-600 font-mono">
                     GSTIN: <span className="font-bold text-slate-800">{invoiceData.companyGstin || "24AAAAA0000A1Z5"}</span>
                   </p>
-                  <p className="text-xs text-slate-600 font-mono">
+                  <p className="text-[10px] sm:text-xs text-slate-600 font-mono">
                     Place of Supply: {invoiceData.placeOfSupply || "24 (Gujarat)"}
                   </p>
                   {customization.companyTagline && (
-                    <p className="text-[11px] text-slate-500 italic mt-0.5">
+                    <p className="text-[10px] sm:text-[11px] text-slate-500 italic">
                       {customization.companyTagline}
                     </p>
                   )}
                 </div>
 
-                <div className="text-right sm:text-right">
-                  <h2 className="text-xl font-black uppercase tracking-wider text-slate-900 leading-none">
+                <div className="bg-white p-2 sm:px-4 sm:py-2.5 rounded-xl text-right shrink-0 shadow-xs border border-slate-200 min-w-[125px] sm:min-w-[160px]">
+                  <h2 className="text-xs sm:text-base font-black uppercase tracking-wider text-slate-900 leading-tight">
                     {getDocTitle()}
                   </h2>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                  <p className="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
                     Original For Recipient
                   </p>
-                  <div className="mt-2 text-xs text-slate-600 space-y-0.5 font-mono">
+                  <div className="mt-1 text-[10px] sm:text-xs text-slate-600 space-y-0.5 font-mono">
                     <p>
                       Invoice #: <strong className="text-slate-900">{invoiceData.invoiceNumber || "INV-0001"}</strong>
                     </p>
@@ -242,34 +246,34 @@ export function InvoiceLivePreviewModal({
             {/* HEADER LAYOUT: Boxed */}
             {customization.headerLayout === "boxed" && (
               <div
-                className="rounded-xl border-2 p-5 mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4"
+                className="rounded-xl border-2 p-3.5 sm:p-5 mb-5 flex justify-between items-start gap-2.5 sm:gap-4"
                 style={{ borderColor: primaryColor, backgroundColor: preset.accentBg }}
               >
-                <div>
+                <div className="min-w-0 flex-1 space-y-0.5">
                   <h1
-                    className="text-lg sm:text-xl font-black uppercase tracking-tight"
+                    className="text-base sm:text-xl font-black uppercase tracking-tight leading-tight"
                     style={{ color: primaryColor }}
                   >
                     {invoiceData.companyName || "Paneliya Technology"}
                   </h1>
-                  <p className="text-xs text-slate-700 mt-1 font-mono">
+                  <p className="text-[10px] sm:text-xs text-slate-700 font-mono">
                     GSTIN: <strong>{invoiceData.companyGstin || "24AAAAA0000A1Z5"}</strong>
                   </p>
-                  <p className="text-xs text-slate-600">
+                  <p className="text-[10px] sm:text-xs text-slate-600">
                     State: {invoiceData.companyState || "Gujarat (24)"}
                   </p>
                 </div>
-                <div className="text-left sm:text-right border-t sm:border-t-0 sm:border-l sm:pl-4 border-slate-300">
-                  <h2 className="text-lg font-black uppercase tracking-wider text-slate-900 leading-none">
+                <div className="bg-white p-2 sm:px-3 sm:py-2 rounded-lg text-right shrink-0 shadow-xs border border-slate-200 min-w-[125px] sm:min-w-[160px]">
+                  <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900 leading-tight">
                     {getDocTitle()}
                   </h2>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                  <p className="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
                     Original For Recipient
                   </p>
-                  <p className="font-mono text-xs font-bold text-slate-900 mt-2">
+                  <p className="font-mono text-[10px] sm:text-xs font-bold text-slate-900 mt-1">
                     #{invoiceData.invoiceNumber || "INV-0001"}
                   </p>
-                  <p className="text-[11px] text-slate-600 font-mono">
+                  <p className="text-[9px] sm:text-[11px] text-slate-600 font-mono">
                     Date: {invoiceData.invoiceDate}
                   </p>
                 </div>
@@ -278,30 +282,30 @@ export function InvoiceLivePreviewModal({
 
             {/* HEADER LAYOUT: Minimal */}
             {customization.headerLayout === "minimal" && (
-              <div className="pb-4 mb-6 border-b border-slate-300 flex justify-between items-end">
-                <div>
+              <div className="pb-4 mb-5 border-b border-slate-300 flex justify-between items-start gap-2.5 sm:gap-4">
+                <div className="min-w-0 flex-1">
                   <span className="text-[10px] font-mono tracking-widest text-slate-400 uppercase">Tax Document</span>
-                  <h1 className="text-xl font-bold tracking-tight text-slate-900 uppercase">
+                  <h1 className="text-base sm:text-xl font-bold tracking-tight text-slate-900 uppercase leading-tight">
                     {invoiceData.companyName || "Paneliya Technology"}
                   </h1>
-                  <p className="text-xs text-slate-500 font-mono">
+                  <p className="text-[10px] sm:text-xs text-slate-500 font-mono">
                     GSTIN: {invoiceData.companyGstin || "24AAAAA0000A1Z5"}
                   </p>
                 </div>
-                <div className="text-right font-mono">
+                <div className="bg-slate-50 p-2 sm:px-3 sm:py-2 rounded-lg text-right shrink-0 font-mono border border-slate-200 min-w-[125px] sm:min-w-[160px]">
                   <span
-                    className="text-sm font-black"
+                    className="text-xs sm:text-sm font-black block"
                     style={{ color: primaryColor }}
                   >
                     #{invoiceData.invoiceNumber || "INV-0001"}
                   </span>
-                  <p className="text-[11px] text-slate-500">{invoiceData.invoiceDate}</p>
+                  <p className="text-[10px] sm:text-[11px] text-slate-500">{invoiceData.invoiceDate}</p>
                 </div>
               </div>
             )}
 
             {/* BILL TO / CUSTOMER INFO SECTION */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-xl bg-slate-50 border border-slate-200 mb-5">
               <div>
                 <span
                   className="text-[10px] uppercase font-bold tracking-wider block mb-1"
@@ -324,7 +328,7 @@ export function InvoiceLivePreviewModal({
                 )}
               </div>
 
-              <div className="text-left sm:text-right">
+              <div className="text-left sm:text-right border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-200/60">
                 <span
                   className="text-[10px] uppercase font-bold tracking-wider block mb-1"
                   style={{ color: primaryColor }}
@@ -347,8 +351,8 @@ export function InvoiceLivePreviewModal({
             </div>
 
             {/* ITEMS TABLE */}
-            <div className="rounded-xl overflow-hidden border border-slate-200 mb-6">
-              <table className="w-full text-left text-xs">
+            <div className="rounded-xl overflow-hidden border border-slate-200 mb-5">
+              <table className="w-full text-left text-xs border-collapse table-auto">
                 <thead>
                   <tr
                     className="border-b text-xs uppercase tracking-wider font-bold"
@@ -358,18 +362,18 @@ export function InvoiceLivePreviewModal({
                       borderColor: preset.borderColor,
                     }}
                   >
-                    <th className="py-2.5 px-3 w-8">#</th>
-                    <th className="py-2.5 px-3">{lang === "gu" ? "વસ્તુનું નામ" : "Item Description"}</th>
+                    <th className="py-2 sm:py-2.5 px-1.5 sm:px-2 w-6 sm:w-8 text-center">#</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3">{lang === "gu" ? "વસ્તુનું નામ" : "Item Description"}</th>
                     {customization.showHsn && (
-                      <th className="py-2.5 px-2 font-mono">{lang === "gu" ? "HSN" : "HSN"}</th>
+                      <th className="py-2.5 px-2 font-mono text-center hidden sm:table-cell print:table-cell">{lang === "gu" ? "HSN" : "HSN"}</th>
                     )}
-                    <th className="py-2.5 px-2 text-right font-mono">{lang === "gu" ? "જથ્થો" : "Qty"}</th>
-                    <th className="py-2.5 px-3 text-right font-mono">{lang === "gu" ? "દર (₹)" : "Rate (₹)"}</th>
+                    <th className="py-2 sm:py-2.5 px-1.5 sm:px-2 text-right font-mono w-10 sm:w-12">{lang === "gu" ? "જથ્થો" : "Qty"}</th>
+                    <th className="py-2 sm:py-2.5 px-1.5 sm:px-3 text-right font-mono w-14 sm:w-16">{lang === "gu" ? "દર (₹)" : "Rate (₹)"}</th>
                     {customization.showDiscount && (
-                      <th className="py-2.5 px-2 text-right font-mono">{lang === "gu" ? "વટાવ %" : "Disc %"}</th>
+                      <th className="py-2.5 px-2 text-right font-mono hidden sm:table-cell print:table-cell">{lang === "gu" ? "વટાવ %" : "Disc %"}</th>
                     )}
-                    <th className="py-2.5 px-2 text-right font-mono">{lang === "gu" ? "જીએસટી" : "GST"}</th>
-                    <th className="py-2.5 px-3 text-right font-mono">{lang === "gu" ? "કુલ રકમ (₹)" : "Amount (₹)"}</th>
+                    <th className="py-2.5 px-2 text-right font-mono hidden sm:table-cell print:table-cell">{lang === "gu" ? "જીએસટી" : "GST"}</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3 text-right font-mono w-16 sm:w-24">{lang === "gu" ? "કુલ રકમ (₹)" : "Amount (₹)"}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -385,20 +389,26 @@ export function InvoiceLivePreviewModal({
 
                     return (
                       <tr key={idx} className="hover:bg-slate-50/50">
-                        <td className="py-2 px-3 text-slate-400 font-mono text-[11px]">{idx + 1}</td>
-                        <td className="py-2 px-3 font-semibold text-slate-900">{it.name}</td>
+                        <td className="py-2 px-1.5 sm:px-3 text-slate-400 font-mono text-center text-[11px]">{idx + 1}</td>
+                        <td className="py-2 px-2 sm:px-3 font-semibold text-slate-900">
+                          <div className="leading-snug">{it.name}</div>
+                          <div className="sm:hidden text-[10px] text-slate-500 font-normal font-mono mt-0.5 print:hidden">
+                            {it.hsnCode ? `HSN: ${it.hsnCode} • ` : ""}{it.taxRate}% GST
+                            {disc > 0 ? ` • Disc: ${disc}%` : ""}
+                          </div>
+                        </td>
                         {customization.showHsn && (
-                          <td className="py-2 px-2 font-mono text-slate-500">{it.hsnCode || "-"}</td>
+                          <td className="py-2 px-2 font-mono text-slate-500 text-center hidden sm:table-cell print:table-cell">{it.hsnCode || "-"}</td>
                         )}
-                        <td className="py-2 px-2 text-right font-mono font-bold text-slate-800">{qty}</td>
-                        <td className="py-2 px-3 text-right font-mono text-slate-700">{formatInr(rate)}</td>
+                        <td className="py-2 px-1.5 sm:px-2 text-right font-mono font-bold text-slate-800">{qty}</td>
+                        <td className="py-2 px-1.5 sm:px-3 text-right font-mono text-slate-700">{formatInr(rate)}</td>
                         {customization.showDiscount && (
-                          <td className="py-2 px-2 text-right font-mono text-slate-500">
+                          <td className="py-2 px-2 text-right font-mono text-slate-500 hidden sm:table-cell print:table-cell">
                             {disc > 0 ? `${disc}%` : "-"}
                           </td>
                         )}
-                        <td className="py-2 px-2 text-right font-mono text-slate-600 font-semibold">{it.taxRate}%</td>
-                        <td className="py-2 px-3 text-right font-mono font-bold text-slate-900">
+                        <td className="py-2 px-2 text-right font-mono text-slate-600 font-semibold hidden sm:table-cell print:table-cell">{it.taxRate}%</td>
+                        <td className="py-2 px-2 sm:px-3 text-right font-mono font-bold text-slate-900">
                           {formatInr(lineTotal)}
                         </td>
                       </tr>
@@ -435,6 +445,15 @@ export function InvoiceLivePreviewModal({
                       {lang === "gu" ? "નોંધ / શરતો" : "Notes & Remarks"}:
                     </span>
                     <p>{invoiceData.notes}</p>
+                  </div>
+                )}
+
+                {invoiceData.termsAndConditions && (
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[10px] text-slate-600">
+                    <span className="font-bold text-slate-800 block mb-0.5">
+                      {lang === "gu" ? "નિયમો અને શરતો" : "Terms & Conditions"}:
+                    </span>
+                    <p className="whitespace-pre-line text-slate-500">{invoiceData.termsAndConditions}</p>
                   </div>
                 )}
               </div>

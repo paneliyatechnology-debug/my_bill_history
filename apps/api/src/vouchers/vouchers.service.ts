@@ -236,6 +236,7 @@ export class VouchersService {
             include: { account: { include: { group: true } } },
             orderBy: { sequenceOrder: "asc" },
           },
+          allocations: { include: { salesInvoice: true } },
         },
       });
 
@@ -358,6 +359,31 @@ export class VouchersService {
         });
       }
 
+      // Put settled sales invoices back when a receipt is reversed.
+      for (const alloc of original.allocations || []) {
+        const inv = alloc.salesInvoice;
+        if (!inv || inv.status === "CANCELLED") continue;
+        const applied = toMoney(alloc.allocatedAmount).plus(
+          toMoney(alloc.cashDiscount),
+        );
+        let newPaid = toMoney(inv.paidAmount).minus(applied);
+        if (newPaid.lessThan(0)) newPaid = new Decimal(0);
+        const newBalance = toMoney(inv.balanceAmount).plus(applied);
+        const newStatus = newBalance.lessThanOrEqualTo(0)
+          ? "PAID"
+          : newPaid.greaterThan(0)
+            ? "PARTIALLY_PAID"
+            : "ISSUED";
+        await tx.salesInvoice.update({
+          where: { id: inv.id },
+          data: {
+            paidAmount: newPaid.toNumber(),
+            balanceAmount: newBalance.toNumber(),
+            status: newStatus as any,
+          },
+        });
+      }
+
       // Audit Logging (atomic with voucher reversal)
       await this.audit.record(
         {
@@ -474,10 +500,28 @@ export class VouchersService {
           journalEntries: {
             include: {
               account: {
-                include: { group: true },
+                include: {
+                  group: true,
+                  party: { select: { id: true, name: true } },
+                },
               },
             },
             orderBy: { sequenceOrder: "asc" },
+          },
+          allocations: {
+            include: {
+              salesInvoice: {
+                select: {
+                  id: true,
+                  invoiceNumber: true,
+                  invoiceDate: true,
+                  grandTotal: true,
+                  balanceAmount: true,
+                  paidAmount: true,
+                  partyId: true,
+                },
+              },
+            },
           },
         },
       });
@@ -486,7 +530,134 @@ export class VouchersService {
         throw new NotFoundException(`Voucher '${id}' not found.`);
       }
 
-      return voucher;
+      return {
+        ...voucher,
+        ...shapeReceipt(voucher),
+      };
+    });
+  }
+
+  /**
+   * Payment In list: receipt vouchers with party, settled amount, and mode.
+   */
+  async listReceipts(
+    tenant: TenantContext,
+    query?: {
+      startDate?: string;
+      endDate?: string;
+      search?: string;
+      page?: number;
+      limit?: number;
+    },
+  ): Promise<any> {
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const page = Math.max(1, Number(query?.page) || 1);
+      const limit = Math.min(100, Math.max(1, Number(query?.limit) || 50));
+      const skip = (page - 1) * limit;
+
+      const where: any = {
+        companyId: tenant.companyId,
+        voucherType: "RECEIPT",
+      };
+
+      if (query?.startDate || query?.endDate) {
+        where.voucherDate = {};
+        if (query.startDate) where.voucherDate.gte = new Date(query.startDate);
+        if (query.endDate) {
+          const end = new Date(query.endDate);
+          if (/^\d{4}-\d{2}-\d{2}$/.test(query.endDate)) {
+            end.setUTCHours(23, 59, 59, 999);
+          }
+          where.voucherDate.lte = end;
+        }
+      }
+
+      if (query?.search && query.search.trim() !== "") {
+        const s = query.search.trim();
+        where.OR = [
+          { voucherNumber: { contains: s, mode: "insensitive" } },
+          { narration: { contains: s, mode: "insensitive" } },
+          { referenceNo: { contains: s, mode: "insensitive" } },
+          {
+            journalEntries: {
+              some: {
+                account: {
+                  OR: [
+                    { name: { contains: s, mode: "insensitive" } },
+                    {
+                      party: {
+                        name: { contains: s, mode: "insensitive" },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        ];
+      }
+
+      const receiptInclude = {
+        journalEntries: {
+          include: {
+            account: {
+              select: {
+                id: true,
+                name: true,
+                partyId: true,
+                isPartyLedger: true,
+                isCashLedger: true,
+                isBankLedger: true,
+                party: { select: { id: true, name: true } },
+              },
+            },
+          },
+          orderBy: { sequenceOrder: "asc" as const },
+        },
+        allocations: true,
+      };
+
+      const [rows, total] = await Promise.all([
+        tx.voucher.findMany({
+          where,
+          include: receiptInclude,
+          orderBy: [{ voucherDate: "desc" }, { createdAt: "desc" }],
+          skip,
+          take: limit,
+        }),
+        tx.voucher.count({ where }),
+      ]);
+
+      const fyId =
+        tenant.financialYearId ||
+        (
+          await tx.financialYear.findFirst({
+            where: { companyId: tenant.companyId, isCurrent: true },
+            select: { id: true },
+          })
+        )?.id;
+
+      let nextNumber = "1";
+      if (fyId) {
+        const numbered = await tx.voucher.findMany({
+          where: {
+            companyId: tenant.companyId,
+            financialYearId: fyId,
+            voucherType: "RECEIPT",
+          },
+          select: { voucherNumber: true },
+        });
+        nextNumber = String(maxNumericReceiptNumber(numbered) + 1);
+      }
+
+      return {
+        data: rows.map((row) => shapeReceipt(row)),
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        nextNumber,
+      };
     });
   }
 
@@ -497,11 +668,7 @@ export class VouchersService {
     dto: CreateReceiptVoucherDto,
     tenant: TenantContext,
   ): Promise<any> {
-    if (!dto.allocations || dto.allocations.length === 0) {
-      throw new BadRequestException(
-        "Receipt voucher must have at least one bill allocation.",
-      );
-    }
+    const paymentMode = normalizePaymentMode(dto.paymentMode);
 
     const receivedAmount = toMoney(dto.receivedAmount);
     if (receivedAmount.lessThanOrEqualTo(0)) {
@@ -598,7 +765,7 @@ export class VouchersService {
         });
       }
 
-      // 5. Validate Allocations
+      // 5. Validate Allocations (optional: unallocated balance stays as party advance)
       let totalSettled = new Decimal(0);
       let totalCashDiscount = new Decimal(0);
       const invoiceUpdates: Array<{
@@ -607,7 +774,14 @@ export class VouchersService {
         discount: Decimal;
       }> = [];
 
-      for (const alloc of dto.allocations) {
+      const seenInvoices = new Set<string>();
+      for (const alloc of dto.allocations || []) {
+        if (seenInvoices.has(alloc.invoiceId)) {
+          throw new BadRequestException(
+            "The same invoice cannot be settled twice on one receipt.",
+          );
+        }
+        seenInvoices.add(alloc.invoiceId);
         const inv = await tx.salesInvoice.findFirst({
           where: { id: alloc.invoiceId, companyId: tenant.companyId },
         });
@@ -616,7 +790,16 @@ export class VouchersService {
             `Sales invoice '${alloc.invoiceId}' not found.`,
           );
         }
-        if (inv.status !== "ISSUED" && inv.status !== "PARTIALLY_PAID") {
+        if (inv.partyId !== party.id) {
+          throw new BadRequestException(
+            `Invoice '${inv.invoiceNumber}' belongs to a different party.`,
+          );
+        }
+        if (
+          inv.status !== "ISSUED" &&
+          inv.status !== "PARTIALLY_PAID" &&
+          inv.status !== "OVERDUE"
+        ) {
           throw new BadRequestException(
             `Invoice '${inv.invoiceNumber}' is already ${inv.status} and cannot receive payments.`,
           );
@@ -624,6 +807,7 @@ export class VouchersService {
         const settled = toMoney(alloc.settledAmount);
         const discount = toMoney(alloc.cashDiscountGiven || 0);
         const allocTotal = settled.plus(discount);
+        if (allocTotal.lessThanOrEqualTo(0)) continue;
         const invBalance = toMoney(inv.balanceAmount);
 
         if (allocTotal.greaterThan(invBalance)) {
@@ -637,9 +821,9 @@ export class VouchersService {
         invoiceUpdates.push({ invoice: inv, settled, discount });
       }
 
-      if (!totalSettled.equals(receivedAmount)) {
+      if (totalSettled.greaterThan(receivedAmount)) {
         throw new BadRequestException(
-          `Sum of allocated settled amounts (₹${totalSettled.toString()}) does not match received amount (₹${receivedAmount.toString()}).`,
+          `Sum of allocated settled amounts (₹${totalSettled.toString()}) cannot exceed received amount (₹${receivedAmount.toString()}). Record the extra as a smaller receipt or leave it unallocated as an advance.`,
         );
       }
 
@@ -690,7 +874,18 @@ export class VouchersService {
       }
 
       // 7. Create Voucher
-      const voucherNumber = `RC-${Date.now().toString(36).toUpperCase()}`;
+      await tx.$executeRaw`
+        SELECT pg_advisory_xact_lock(hashtext(${`receipt:${tenant.companyId}:${fy.id}`})::bigint)
+      `;
+      const numbered = await tx.voucher.findMany({
+        where: {
+          companyId: tenant.companyId,
+          financialYearId: fy.id,
+          voucherType: "RECEIPT",
+        },
+        select: { voucherNumber: true },
+      });
+      const voucherNumber = String(maxNumericReceiptNumber(numbered) + 1);
       const voucher = await tx.voucher.create({
         data: {
           organizationId: tenant.organizationId,
@@ -700,6 +895,7 @@ export class VouchersService {
           voucherNumber,
           voucherDate: vDate,
           referenceNo: dto.paymentReference || null,
+          paymentMode,
           narration: dto.narration || `Receipt from ${party.name}`,
           narrationGujarati: dto.narrationGujarati || null,
           totalAmount: totalCustomerCredit.toNumber(),
@@ -999,4 +1195,115 @@ export class VouchersService {
       return voucher;
     });
   }
+}
+
+const RECEIPT_PAYMENT_MODES = ["CASH", "UPI", "BANK_TRANSFER", "CHEQUE"] as const;
+
+function normalizePaymentMode(mode?: string): string {
+  const value = (mode || "CASH").trim().toUpperCase().replace(/\s+/g, "_");
+  const aliases: Record<string, string> = {
+    UPI_QR: "UPI",
+    ONLINE: "UPI",
+    BANK: "BANK_TRANSFER",
+    NETBANKING: "BANK_TRANSFER",
+  };
+  const normalized = aliases[value] || value;
+  if (!RECEIPT_PAYMENT_MODES.includes(normalized as (typeof RECEIPT_PAYMENT_MODES)[number])) {
+    throw new BadRequestException(
+      "Payment mode must be Cash, UPI, Bank Transfer, or Cheque.",
+    );
+  }
+  return normalized;
+}
+
+function paymentModeLabel(mode?: string | null): string {
+  switch (mode) {
+    case "CASH":
+      return "Cash";
+    case "UPI":
+    case "UPI_QR":
+      return "UPI";
+    case "BANK_TRANSFER":
+      return "Bank Transfer";
+    case "CHEQUE":
+      return "Cheque";
+    case "CREDIT_NOTE":
+      return "Credit Note";
+    case "SPLIT":
+      return "Split";
+    default:
+      return mode ? mode.replace(/_/g, " ") : "Cash";
+  }
+}
+
+function maxNumericReceiptNumber(rows: Array<{ voucherNumber: string }>): number {
+  let max = 0;
+  for (const row of rows) {
+    if (/^\d+$/.test(row.voucherNumber)) {
+      max = Math.max(max, Number(row.voucherNumber));
+    }
+  }
+  return max;
+}
+
+function moneyNumber(value: any): number {
+  const n = Number(value?.toString?.() ?? value ?? 0);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function shapeReceipt(voucher: any) {
+  const entries = voucher.journalEntries || [];
+  const partyEntry = entries.find(
+    (entry: any) =>
+      moneyNumber(entry.creditAmount) > 0 &&
+      (entry.account?.partyId || entry.account?.isPartyLedger || entry.account?.party),
+  );
+  const cashDebits = entries.filter(
+    (entry: any) =>
+      moneyNumber(entry.debitAmount) > 0 &&
+      (entry.account?.isCashLedger || entry.account?.isBankLedger),
+  );
+  const otherDebits = entries.filter(
+    (entry: any) =>
+      moneyNumber(entry.debitAmount) > 0 &&
+      entry.account?.name !== "Discount Allowed" &&
+      entry.account?.name !== "Cash Discount Allowed",
+  );
+  const receivedLines = cashDebits.length > 0 ? cashDebits : otherDebits;
+  const amountReceived = receivedLines.reduce(
+    (sum: number, entry: any) => sum + moneyNumber(entry.debitAmount),
+    0,
+  );
+  const allocations = voucher.allocations || [];
+  const totalSettled = allocations.reduce(
+    (sum: number, alloc: any) =>
+      sum + moneyNumber(alloc.allocatedAmount) + moneyNumber(alloc.cashDiscount),
+    0,
+  );
+  let paymentMode = voucher.paymentMode || null;
+  if (!paymentMode) {
+    if (cashDebits.some((entry: any) => entry.account?.isCashLedger)) {
+      paymentMode = "CASH";
+    } else if (cashDebits.some((entry: any) => entry.account?.isBankLedger)) {
+      paymentMode = "BANK_TRANSFER";
+    } else {
+      paymentMode = "CASH";
+    }
+  }
+
+  return {
+    id: voucher.id,
+    paymentNumber: voucher.voucherNumber,
+    paymentDate: voucher.voucherDate,
+    partyId: partyEntry?.account?.partyId || partyEntry?.account?.party?.id || null,
+    partyName: partyEntry?.account?.party?.name || partyEntry?.account?.name || "—",
+    totalSettled,
+    amountReceived,
+    paymentMode,
+    paymentModeLabel: paymentModeLabel(paymentMode),
+    narration: voucher.narration,
+    referenceNo: voucher.referenceNo,
+    isCancelled: voucher.isCancelled,
+    createdAt: voucher.createdAt,
+  };
 }

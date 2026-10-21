@@ -83,6 +83,82 @@ export function parseEndOfDay(dateStr?: string): Date | undefined {
   return new Date(`${dateStr}T23:59:59.999Z`);
 }
 
+export const GST_STATE_CODE_TO_NAME: Record<string, string> = {
+  "01": "Jammu and Kashmir",
+  "02": "Himachal Pradesh",
+  "03": "Punjab",
+  "04": "Chandigarh",
+  "05": "Uttarakhand",
+  "06": "Haryana",
+  "07": "Delhi",
+  "08": "Rajasthan",
+  "09": "Uttar Pradesh",
+  "10": "Bihar",
+  "11": "Sikkim",
+  "12": "Arunachal Pradesh",
+  "13": "Nagaland",
+  "14": "Manipur",
+  "15": "Mizoram",
+  "16": "Tripura",
+  "17": "Meghalaya",
+  "18": "Assam",
+  "19": "West Bengal",
+  "20": "Jharkhand",
+  "21": "Odisha",
+  "22": "Chhattisgarh",
+  "23": "Madhya Pradesh",
+  "24": "Gujarat",
+  "26": "Dadra & Nagar Haveli and Daman & Diu",
+  "27": "Maharashtra",
+  "29": "Karnataka",
+  "30": "Goa",
+  "31": "Lakshadweep",
+  "32": "Kerala",
+  "33": "Tamil Nadu",
+  "34": "Puducherry",
+  "35": "Andaman and Nicobar Islands",
+  "36": "Telangana",
+  "37": "Andhra Pradesh",
+  "38": "Ladakh",
+  "97": "Other Territory",
+};
+
+export function resolveGstState(
+  pos?: string | null,
+  gstin?: string | null,
+  companyStateCode?: string | null,
+): { stateCode: string; stateName: string } {
+  let code = "";
+  if (pos && typeof pos === "string") {
+    const trimmed = pos.trim();
+    const match = trimmed.match(/^(\d{2})/);
+    if (match) {
+      code = match[1];
+    } else if (trimmed.length === 2 && /^\d+$/.test(trimmed)) {
+      code = trimmed;
+    }
+  }
+  if (!code && gstin && typeof gstin === "string") {
+    const trimmed = gstin.trim();
+    const match = trimmed.match(/^(\d{2})/);
+    if (match) {
+      code = match[1];
+    }
+  }
+  if (!code && companyStateCode && typeof companyStateCode === "string") {
+    const trimmed = companyStateCode.trim();
+    const match = trimmed.match(/^(\d{2})/);
+    if (match) {
+      code = match[1];
+    }
+  }
+  const stateName = GST_STATE_CODE_TO_NAME[code] || (code ? `State ${code}` : "—");
+  return {
+    stateCode: code || "—",
+    stateName: code ? stateName : "—",
+  };
+}
+
 @Injectable()
 export class ReportsService {
   private readonly logger = new Logger(ReportsService.name);
@@ -114,13 +190,15 @@ export class ReportsService {
         where.status = query.status;
       }
 
-      if (query.fromDate || query.toDate) {
+      const fromDate = query.fromDate || (query as any).startDate;
+      const toDate = query.toDate || (query as any).endDate;
+      if (fromDate || toDate) {
         where.invoiceDate = {};
-        if (query.fromDate) {
-          where.invoiceDate.gte = parseStartOfDay(query.fromDate);
+        if (fromDate) {
+          where.invoiceDate.gte = parseStartOfDay(fromDate);
         }
-        if (query.toDate) {
-          where.invoiceDate.lte = parseEndOfDay(query.toDate);
+        if (toDate) {
+          where.invoiceDate.lte = parseEndOfDay(toDate);
         }
       }
 
@@ -2246,6 +2324,177 @@ export class ReportsService {
         period: query,
       });
 
+      // Build individual invoice rows itemized by tax rate (matching statutory GST & billing software format)
+      const salesInvoicesList: any[] = [];
+      for (const inv of invoices) {
+        const stateInfo = resolveGstState(inv.placeOfSupply, inv.party?.gstin, company.stateCode);
+        const partyGstin = inv.party?.gstin || "";
+        const customerName = inv.party?.name || "Cash Customer";
+        const invDateStr = inv.invoiceDate ? new Date(inv.invoiceDate).toISOString().slice(0, 10) : "";
+        const invValue = Number(inv.grandTotal);
+
+        if (!inv.items || inv.items.length === 0) {
+          salesInvoicesList.push({
+            id: inv.id,
+            invoiceId: inv.id,
+            gstin: partyGstin,
+            customerName,
+            stateCode: stateInfo.stateCode,
+            stateName: stateInfo.stateName,
+            invoiceNumber: inv.invoiceNumber,
+            invoiceDate: invDateStr,
+            invoiceValue: invValue,
+            taxRate: 0,
+            taxableValue: Number(inv.taxableAmount),
+            cgst: Number(inv.cgstAmount),
+            sgst: Number(inv.sgstAmount ?? inv.utgstAmount ?? 0),
+            igst: Number(inv.igstAmount),
+            cess: Number(inv.cessAmount ?? 0),
+            invoiceType: partyGstin
+              ? "B2B"
+              : invValue > 250000 && stateInfo.stateCode !== company.stateCode
+                ? "B2CL"
+                : "B2CS",
+          });
+        } else {
+          // Group items by taxRate
+          const rateMap = new Map<number, { taxable: number; cgst: number; sgst: number; igst: number; cess: number }>();
+          for (const it of inv.items) {
+            const r = Number(it.taxRate ?? 0);
+            const curr = rateMap.get(r) || { taxable: 0, cgst: 0, sgst: 0, igst: 0, cess: 0 };
+            curr.taxable += Number(it.taxableAmount ?? 0);
+            curr.cgst += Number(it.cgstAmount ?? 0);
+            curr.sgst += Number(it.sgstAmount ?? it.utgstAmount ?? 0);
+            curr.igst += Number(it.igstAmount ?? 0);
+            curr.cess += Number(it.cessAmount ?? 0);
+            rateMap.set(r, curr);
+          }
+
+          for (const [rate, vals] of rateMap.entries()) {
+            salesInvoicesList.push({
+              id: `${inv.id}-${rate}`,
+              invoiceId: inv.id,
+              gstin: partyGstin,
+              customerName,
+              stateCode: stateInfo.stateCode,
+              stateName: stateInfo.stateName,
+              invoiceNumber: inv.invoiceNumber,
+              invoiceDate: invDateStr,
+              invoiceValue: invValue,
+              taxRate: rate,
+              taxableValue: Number(vals.taxable.toFixed(2)),
+              cgst: Number(vals.cgst.toFixed(2)),
+              sgst: Number(vals.sgst.toFixed(2)),
+              igst: Number(vals.igst.toFixed(2)),
+              cess: Number(vals.cess.toFixed(2)),
+              invoiceType: partyGstin
+                ? "B2B"
+                : invValue > 250000 && stateInfo.stateCode !== company.stateCode
+                  ? "B2CL"
+                  : "B2CS",
+            });
+          }
+        }
+      }
+
+      // Build Credit Notes (Sales Returns)
+      const creditNotesList: any[] = [];
+      for (const note of salesReturns) {
+        const stateInfo = resolveGstState(note.salesInvoice?.placeOfSupply, note.party?.gstin, company.stateCode);
+        const partyGstin = note.party?.gstin || "";
+        const customerName = note.party?.name || "Cash Customer";
+        const noteDateStr = note.returnDate ? new Date(note.returnDate).toISOString().slice(0, 10) : "";
+        const noteVal = Number(note.grandTotal);
+        const taxableVal = Number(note.taxableAmount);
+        const cgstVal = Number(note.cgstAmount);
+        const sgstVal = Number(note.sgstAmount ?? note.utgstAmount ?? 0);
+        const igstVal = Number(note.igstAmount);
+        const taxRate = taxableVal > 0 ? Math.round(((cgstVal + sgstVal + igstVal) / taxableVal) * 100) : 0;
+
+        creditNotesList.push({
+          id: note.id,
+          gstin: partyGstin,
+          customerName,
+          stateCode: stateInfo.stateCode,
+          stateName: stateInfo.stateName,
+          noteNumber: note.returnNumber,
+          noteDate: noteDateStr,
+          originalInvoiceNumber: note.salesInvoice?.invoiceNumber || "—",
+          noteValue: noteVal,
+          taxRate,
+          taxableValue: taxableVal,
+          cgst: cgstVal,
+          sgst: sgstVal,
+          igst: igstVal,
+          cess: 0,
+          noteType: "Credit Note",
+        });
+      }
+
+      // Build Debit Notes (Outward Debit Notes / Purchase Returns)
+      const debitNotesList: any[] = [];
+      for (const note of debitNotes) {
+        const stateInfo = resolveGstState(note.placeOfSupply, note.party?.gstin, company.stateCode);
+        const partyGstin = note.party?.gstin || "";
+        const customerName = note.party?.name || "Supplier / Party";
+        const noteDateStr = note.noteDate ? new Date(note.noteDate).toISOString().slice(0, 10) : "";
+        const noteVal = Number(note.grandTotal);
+        const taxableVal = Number(note.taxableAmount);
+        const cgstVal = Number(note.cgstAmount);
+        const sgstVal = Number(note.sgstAmount ?? note.utgstAmount ?? 0);
+        const igstVal = Number(note.igstAmount);
+        const taxRate = taxableVal > 0 ? Math.round(((cgstVal + sgstVal + igstVal) / taxableVal) * 100) : 0;
+
+        debitNotesList.push({
+          id: note.id,
+          gstin: partyGstin,
+          customerName,
+          supplierName: customerName,
+          stateCode: stateInfo.stateCode,
+          stateName: stateInfo.stateName,
+          noteNumber: note.noteNumber,
+          noteDate: noteDateStr,
+          originalInvoiceNumber: note.salesInvoice?.invoiceNumber || "—",
+          noteValue: noteVal,
+          taxRate,
+          taxableValue: taxableVal,
+          cgst: cgstVal,
+          sgst: sgstVal,
+          igst: igstVal,
+          cess: 0,
+          noteType: "Debit Note",
+        });
+      }
+
+      // Statutory Government Portal JSON Payload (per GST Offline Tool schema)
+      const jsonPayload = {
+        gstin: company.gstin || "",
+        fp: query.financialYearId || (query.fromDate ? query.fromDate.slice(5, 7) + query.fromDate.slice(0, 4) : ""),
+        gt: Number(prepared.grossTurnover || 0),
+        cur_gt: Number(prepared.grossTurnover || 0),
+        b2b: prepared.b2b || [],
+        b2cl: prepared.b2cl || [],
+        b2cs: prepared.b2cs || [],
+        cdnr: prepared.cdnr || [],
+        cdnur: prepared.cdnur || [],
+        exp: [],
+        nil: prepared.nil || { inv: [] },
+        hsn: prepared.hsn || { data: [] },
+        doc_issue: {
+          doc_det: [
+            {
+              doc_num: 1,
+              doc_typ: "Invoices for outward supply",
+              from: invoices[0]?.invoiceNumber || "1",
+              to: invoices[invoices.length - 1]?.invoiceNumber || "1",
+              totnum: invoices.length,
+              canc: cancelledCount,
+              net_issue: invoices.length,
+            },
+          ],
+        },
+      };
+
       return {
         disclaimer:
           "Statutory Notice: This summary compiles return preparation data per Section 37 of CGST Act. Direct JSON filing requires GSP integration. filingStatus NOT_FILED means this system has not received a filing acknowledgement.",
@@ -2277,6 +2526,27 @@ export class ReportsService {
           netValidCount: invoices.length,
           totalCreditNotes: salesReturns.length,
         },
+        summary: {
+          totalInvoices: invoices.length,
+          totalSalesRows: salesInvoicesList.length,
+          grossTurnover: prepared.grossTurnover,
+          totalTaxable: prepared.totalTaxable,
+          totalCgst: prepared.totalCgst,
+          totalSgst: prepared.totalSgst,
+          totalIgst: prepared.totalIgst,
+          totalTax: (
+            Number(prepared.totalCgst || 0) +
+            Number(prepared.totalSgst || 0) +
+            Number(prepared.totalIgst || 0) +
+            Number(prepared.totalCess || 0)
+          ).toFixed(2),
+          totalCreditNotes: creditNotesList.length,
+          totalDebitNotes: debitNotesList.length,
+        },
+        salesInvoices: salesInvoicesList,
+        creditNotes: creditNotesList,
+        debitNotes: debitNotesList,
+        jsonPayload,
       };
     });
   }
@@ -2744,4 +3014,1038 @@ export class ReportsService {
       components,
     };
   }
+
+  // --------------------------------------------------------------------------
+  // 15. BILL WISE PROFIT & MARGIN REPORT
+  // --------------------------------------------------------------------------
+  async getBillWiseProfit(
+    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    tenant: TenantContext,
+  ): Promise<any> {
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const fromDate = query.fromDate || query.startDate;
+      const toDate = query.toDate || query.endDate;
+      const where: any = { companyId: tenant.companyId, status: { not: InvoiceStatus.CANCELLED } };
+      if (fromDate || toDate) {
+        where.invoiceDate = {};
+        if (fromDate) where.invoiceDate.gte = parseStartOfDay(fromDate);
+        if (toDate) where.invoiceDate.lte = parseEndOfDay(toDate);
+      }
+
+      const invoices = await tx.salesInvoice.findMany({
+        where,
+        include: {
+          party: { select: { name: true, nameGujarati: true, phone: true } },
+          items: {
+            include: {
+              item: { select: { purchaseRate: true, retailPrice: true, name: true } },
+            },
+          },
+        },
+        orderBy: [{ invoiceDate: "desc" }, { createdAt: "desc" }],
+      });
+
+      let totalRevenue = new Decimal(0);
+      let totalCogs = new Decimal(0);
+      let totalGrossProfit = new Decimal(0);
+
+      const items = invoices.map((inv) => {
+        const invTotal = toMoney(inv.grandTotal);
+        let cogs = new Decimal(0);
+        for (const it of inv.items) {
+          const qty = toMoney(it.quantity);
+          const cost = toMoney(it.item?.purchaseRate || 0);
+          cogs = cogs.plus(qty.times(cost));
+        }
+        const grossProfit = invTotal.minus(cogs);
+        const marginPct = invTotal.gt(0)
+          ? grossProfit.dividedBy(invTotal).times(100).toFixed(2)
+          : "0.00";
+
+        totalRevenue = totalRevenue.plus(invTotal);
+        totalCogs = totalCogs.plus(cogs);
+        totalGrossProfit = totalGrossProfit.plus(grossProfit);
+
+        return {
+          id: inv.id,
+          invoiceNumber: inv.invoiceNumber,
+          invoiceDate: inv.invoiceDate.toISOString().slice(0, 10),
+          partyName: inv.party?.name || "Cash Customer",
+          partyNameGujarati: inv.party?.nameGujarati,
+          partyPhone: inv.party?.phone,
+          status: inv.status,
+          taxableAmount: toMoney(inv.taxableAmount).toFixed(2),
+          invoiceTotal: invTotal.toFixed(2),
+          costOfGoodsSold: cogs.toFixed(2),
+          grossProfit: grossProfit.toFixed(2),
+          marginPercentage: marginPct,
+          itemsCount: inv.items.length,
+        };
+      });
+
+      const avgMarginPct = totalRevenue.gt(0)
+        ? totalGrossProfit.dividedBy(totalRevenue).times(100).toFixed(2)
+        : "0.00";
+
+      return {
+        summary: {
+          totalInvoices: invoices.length,
+          totalRevenue: totalRevenue.toFixed(2),
+          totalCogs: totalCogs.toFixed(2),
+          totalGrossProfit: totalGrossProfit.toFixed(2),
+          avgMarginPercentage: avgMarginPct,
+        },
+        invoices: items,
+      };
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 16. ITEM-WISE SALES REPORT
+  // --------------------------------------------------------------------------
+  async getItemSalesReport(
+    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    tenant: TenantContext,
+  ): Promise<any> {
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const fromDate = query.fromDate || query.startDate;
+      const toDate = query.toDate || query.endDate;
+      const invWhere: any = { companyId: tenant.companyId, status: { not: InvoiceStatus.CANCELLED } };
+      if (fromDate || toDate) {
+        invWhere.invoiceDate = {};
+        if (fromDate) invWhere.invoiceDate.gte = parseStartOfDay(fromDate);
+        if (toDate) invWhere.invoiceDate.lte = parseEndOfDay(toDate);
+      }
+
+      const invoiceItems = await tx.salesInvoiceItem.findMany({
+        where: { invoice: invWhere },
+        include: {
+          item: {
+            include: {
+              category: true,
+              primaryUom: true,
+            },
+          },
+          invoice: {
+            select: { invoiceDate: true, invoiceNumber: true },
+          },
+        },
+      });
+
+      const map = new Map<string, any>();
+      let totalQty = new Decimal(0);
+      let totalTaxable = new Decimal(0);
+      let totalTax = new Decimal(0);
+      let totalSales = new Decimal(0);
+
+      for (const row of invoiceItems) {
+        const itemId = row.itemId || row.id;
+        const itemName = row.item?.name || (row as any).description || "Item";
+        const itemCode = row.item?.sku || row.item?.barcode || "-";
+        const hsnCode = row.item?.hsnCode || "-";
+        const uom = row.item?.primaryUom?.symbol || "PCS";
+        const category = row.item?.category?.name || "General";
+
+        const qty = toMoney(row.quantity);
+        const taxable = toMoney(row.taxableAmount);
+        const tax = toMoney(row.cgstAmount).plus(toMoney(row.sgstAmount)).plus(toMoney(row.igstAmount));
+        const total = toMoney((row as any).totalAmount || taxable.plus(tax));
+
+        totalQty = totalQty.plus(qty);
+        totalTaxable = totalTaxable.plus(taxable);
+        totalTax = totalTax.plus(tax);
+        totalSales = totalSales.plus(total);
+
+        if (!map.has(itemId)) {
+          map.set(itemId, {
+            itemId,
+            itemName,
+            itemNameGujarati: row.item?.nameGujarati,
+            itemCode,
+            hsnCode,
+            category,
+            uom,
+            totalQuantity: new Decimal(0),
+            totalTaxable: new Decimal(0),
+            totalTax: new Decimal(0),
+            totalSales: new Decimal(0),
+            invoiceCount: 0,
+          });
+        }
+
+        const entry = map.get(itemId);
+        entry.totalQuantity = entry.totalQuantity.plus(qty);
+        entry.totalTaxable = entry.totalTaxable.plus(taxable);
+        entry.totalTax = entry.totalTax.plus(tax);
+        entry.totalSales = entry.totalSales.plus(total);
+        entry.invoiceCount += 1;
+      }
+
+      const items = Array.from(map.values())
+        .map((entry) => ({
+          ...entry,
+          avgRate: entry.totalQuantity.gt(0)
+            ? entry.totalSales.dividedBy(entry.totalQuantity).toFixed(2)
+            : "0.00",
+          totalQuantity: entry.totalQuantity.toFixed(2),
+          totalTaxable: entry.totalTaxable.toFixed(2),
+          totalTax: entry.totalTax.toFixed(2),
+          totalSales: entry.totalSales.toFixed(2),
+        }))
+        .sort((a, b) => Number(b.totalSales) - Number(a.totalSales));
+
+      return {
+        summary: {
+          totalUniqueItems: items.length,
+          totalQuantity: totalQty.toFixed(2),
+          totalTaxable: totalTaxable.toFixed(2),
+          totalTax: totalTax.toFixed(2),
+          totalSales: totalSales.toFixed(2),
+        },
+        items,
+      };
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 17. PARTY-WISE SALES REPORT
+  // --------------------------------------------------------------------------
+  async getPartySalesReport(
+    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    tenant: TenantContext,
+  ): Promise<any> {
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const fromDate = query.fromDate || query.startDate;
+      const toDate = query.toDate || query.endDate;
+      const where: any = { companyId: tenant.companyId, status: { not: InvoiceStatus.CANCELLED } };
+      if (fromDate || toDate) {
+        where.invoiceDate = {};
+        if (fromDate) where.invoiceDate.gte = parseStartOfDay(fromDate);
+        if (toDate) where.invoiceDate.lte = parseEndOfDay(toDate);
+      }
+
+      const invoices = await tx.salesInvoice.findMany({
+        where,
+        include: {
+          party: true,
+        },
+      });
+
+      const map = new Map<string, any>();
+      let totalSales = new Decimal(0);
+      let totalPaid = new Decimal(0);
+      let totalBalance = new Decimal(0);
+
+      for (const inv of invoices) {
+        const partyId = inv.partyId || "cash";
+        const partyName = inv.party?.name || "Cash / Direct Customer";
+        const partyNameGujarati = inv.party?.nameGujarati;
+        const phone = inv.party?.phone || "-";
+        const gstin = inv.party?.gstin || "-";
+
+        const grand = toMoney(inv.grandTotal);
+        const paid = toMoney(inv.paidAmount);
+        const balance = toMoney(inv.balanceAmount);
+
+        totalSales = totalSales.plus(grand);
+        totalPaid = totalPaid.plus(paid);
+        totalBalance = totalBalance.plus(balance);
+
+        if (!map.has(partyId)) {
+          map.set(partyId, {
+            partyId,
+            partyName,
+            partyNameGujarati,
+            phone,
+            gstin,
+            invoiceCount: 0,
+            totalSales: new Decimal(0),
+            totalPaid: new Decimal(0),
+            balanceDue: new Decimal(0),
+          });
+        }
+
+        const entry = map.get(partyId);
+        entry.invoiceCount += 1;
+        entry.totalSales = entry.totalSales.plus(grand);
+        entry.totalPaid = entry.totalPaid.plus(paid);
+        entry.balanceDue = entry.balanceDue.plus(balance);
+      }
+
+      const parties = Array.from(map.values())
+        .map((e) => ({
+          ...e,
+          totalSales: e.totalSales.toFixed(2),
+          totalPaid: e.totalPaid.toFixed(2),
+          balanceDue: e.balanceDue.toFixed(2),
+        }))
+        .sort((a, b) => Number(b.totalSales) - Number(a.totalSales));
+
+      return {
+        summary: {
+          totalParties: parties.length,
+          totalInvoices: invoices.length,
+          totalSales: totalSales.toFixed(2),
+          totalPaid: totalPaid.toFixed(2),
+          totalBalance: totalBalance.toFixed(2),
+        },
+        parties,
+      };
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 18. SALES RETURNS (CREDIT NOTES) REPORT
+  // --------------------------------------------------------------------------
+  async getSalesReturnsReport(
+    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    tenant: TenantContext,
+  ): Promise<any> {
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const fromDate = query.fromDate || query.startDate;
+      const toDate = query.toDate || query.endDate;
+      const where: any = { companyId: tenant.companyId };
+      if (fromDate || toDate) {
+        where.returnDate = {};
+        if (fromDate) where.returnDate.gte = parseStartOfDay(fromDate);
+        if (toDate) where.returnDate.lte = parseEndOfDay(toDate);
+      }
+
+      const returns = await tx.salesReturn.findMany({
+        where,
+        include: {
+          party: { select: { name: true, nameGujarati: true, phone: true, gstin: true } },
+          items: true,
+        },
+        orderBy: { returnDate: "desc" },
+      });
+
+      let totalTaxable = new Decimal(0);
+      let totalTax = new Decimal(0);
+      let grandTotal = new Decimal(0);
+
+      const items = returns.map((r) => {
+        const taxable = toMoney(r.taxableAmount);
+        const tax = toMoney(r.cgstAmount).plus(toMoney(r.sgstAmount)).plus(toMoney(r.igstAmount));
+        const grand = toMoney(r.grandTotal);
+
+        totalTaxable = totalTaxable.plus(taxable);
+        totalTax = totalTax.plus(tax);
+        grandTotal = grandTotal.plus(grand);
+
+        return {
+          id: r.id,
+          creditNoteNumber: r.returnNumber,
+          returnDate: r.returnDate.toISOString().slice(0, 10),
+          partyName: r.party?.name || "Direct Customer",
+          partyNameGujarati: r.party?.nameGujarati,
+          phone: r.party?.phone,
+          gstin: r.party?.gstin,
+          reason: r.reason || "Sales Return",
+          taxableAmount: taxable.toFixed(2),
+          totalTax: tax.toFixed(2),
+          grandTotal: grand.toFixed(2),
+          itemsCount: r.items.length,
+        };
+      });
+
+      return {
+        summary: {
+          totalReturns: returns.length,
+          totalTaxable: totalTaxable.toFixed(2),
+          totalTax: totalTax.toFixed(2),
+          grandTotal: grandTotal.toFixed(2),
+        },
+        returns: items,
+      };
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 19. ITEM-WISE PURCHASE REPORT
+  // --------------------------------------------------------------------------
+  async getItemPurchaseReport(
+    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    tenant: TenantContext,
+  ): Promise<any> {
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const fromDate = query.fromDate || query.startDate;
+      const toDate = query.toDate || query.endDate;
+      const invWhere: any = { companyId: tenant.companyId };
+      if (fromDate || toDate) {
+        invWhere.invoiceDate = {};
+        if (fromDate) invWhere.invoiceDate.gte = parseStartOfDay(fromDate);
+        if (toDate) invWhere.invoiceDate.lte = parseEndOfDay(toDate);
+      }
+
+      const items = await tx.purchaseInvoiceItem.findMany({
+        where: { invoice: invWhere },
+        include: {
+          item: {
+            include: {
+              category: true,
+              primaryUom: true,
+            },
+          },
+          invoice: {
+            select: { invoiceDate: true, vendorInvoiceNumber: true },
+          },
+        },
+      });
+
+      const map = new Map<string, any>();
+      let totalQty = new Decimal(0);
+      let totalPurchases = new Decimal(0);
+
+      for (const row of items) {
+        const itemId = row.itemId || row.id;
+        const itemName = row.item?.name || (row as any).description || "Item";
+        const itemCode = row.item?.sku || row.item?.barcode || "-";
+        const uom = row.item?.primaryUom?.symbol || "PCS";
+        const category = row.item?.category?.name || "General";
+
+        const qty = toMoney(row.quantity);
+        const taxable = toMoney(row.taxableAmount);
+        const tax = toMoney(row.cgstAmount).plus(toMoney(row.sgstAmount)).plus(toMoney(row.igstAmount));
+        const total = toMoney((row as any).totalAmount || taxable.plus(tax));
+
+        totalQty = totalQty.plus(qty);
+        totalPurchases = totalPurchases.plus(total);
+
+        if (!map.has(itemId)) {
+          map.set(itemId, {
+            itemId,
+            itemName,
+            itemNameGujarati: row.item?.nameGujarati,
+            itemCode,
+            uom,
+            category,
+            totalQuantity: new Decimal(0),
+            totalTaxable: new Decimal(0),
+            totalPurchases: new Decimal(0),
+            billCount: 0,
+          });
+        }
+
+        const entry = map.get(itemId);
+        entry.totalQuantity = entry.totalQuantity.plus(qty);
+        entry.totalTaxable = entry.totalTaxable.plus(taxable);
+        entry.totalPurchases = entry.totalPurchases.plus(total);
+        entry.billCount += 1;
+      }
+
+      const list = Array.from(map.values())
+        .map((entry) => ({
+          ...entry,
+          avgRate: entry.totalQuantity.gt(0)
+            ? entry.totalPurchases.dividedBy(entry.totalQuantity).toFixed(2)
+            : "0.00",
+          totalQuantity: entry.totalQuantity.toFixed(2),
+          totalTaxable: entry.totalTaxable.toFixed(2),
+          totalPurchases: entry.totalPurchases.toFixed(2),
+        }))
+        .sort((a, b) => Number(b.totalPurchases) - Number(a.totalPurchases));
+
+      return {
+        summary: {
+          totalUniqueItems: list.length,
+          totalQuantity: totalQty.toFixed(2),
+          totalPurchases: totalPurchases.toFixed(2),
+        },
+        items: list,
+      };
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 20. PARTY-WISE PURCHASE REPORT
+  // --------------------------------------------------------------------------
+  async getPartyPurchaseReport(
+    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    tenant: TenantContext,
+  ): Promise<any> {
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const fromDate = query.fromDate || query.startDate;
+      const toDate = query.toDate || query.endDate;
+      const where: any = { companyId: tenant.companyId };
+      if (fromDate || toDate) {
+        where.invoiceDate = {};
+        if (fromDate) where.invoiceDate.gte = parseStartOfDay(fromDate);
+        if (toDate) where.invoiceDate.lte = parseEndOfDay(toDate);
+      }
+
+      const invoices = await tx.purchaseInvoice.findMany({
+        where,
+        include: {
+          party: true,
+        },
+      });
+
+      const map = new Map<string, any>();
+      let totalPurchases = new Decimal(0);
+      let totalPaid = new Decimal(0);
+      let totalPayable = new Decimal(0);
+
+      for (const inv of invoices) {
+        const partyId = inv.partyId;
+        const partyName = inv.party?.name || "Direct Vendor";
+        const phone = inv.party?.phone || "-";
+        const gstin = inv.party?.gstin || "-";
+
+        const grand = toMoney(inv.grandTotal);
+        const paid = toMoney(inv.paidAmount);
+        const balance = toMoney(inv.balanceAmount);
+
+        totalPurchases = totalPurchases.plus(grand);
+        totalPaid = totalPaid.plus(paid);
+        totalPayable = totalPayable.plus(balance);
+
+        if (!map.has(partyId)) {
+          map.set(partyId, {
+            partyId,
+            partyName,
+            phone,
+            gstin,
+            billCount: 0,
+            totalPurchases: new Decimal(0),
+            totalPaid: new Decimal(0),
+            balancePayable: new Decimal(0),
+          });
+        }
+
+        const entry = map.get(partyId);
+        entry.billCount += 1;
+        entry.totalPurchases = entry.totalPurchases.plus(grand);
+        entry.totalPaid = entry.totalPaid.plus(paid);
+        entry.balancePayable = entry.balancePayable.plus(balance);
+      }
+
+      const parties = Array.from(map.values())
+        .map((e) => ({
+          ...e,
+          totalPurchases: e.totalPurchases.toFixed(2),
+          totalPaid: e.totalPaid.toFixed(2),
+          balancePayable: e.balancePayable.toFixed(2),
+        }))
+        .sort((a, b) => Number(b.totalPurchases) - Number(a.totalPurchases));
+
+      return {
+        summary: {
+          totalSuppliers: parties.length,
+          totalBills: invoices.length,
+          totalPurchases: totalPurchases.toFixed(2),
+          totalPaid: totalPaid.toFixed(2),
+          totalPayable: totalPayable.toFixed(2),
+        },
+        parties,
+      };
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 21. PURCHASE RETURNS (DEBIT NOTES) REPORT
+  // --------------------------------------------------------------------------
+  async getPurchaseReturnsReport(
+    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    tenant: TenantContext,
+  ): Promise<any> {
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const fromDate = query.fromDate || query.startDate;
+      const toDate = query.toDate || query.endDate;
+      const where: any = { companyId: tenant.companyId };
+      if (fromDate || toDate) {
+        where.returnDate = {};
+        if (fromDate) where.returnDate.gte = parseStartOfDay(fromDate);
+        if (toDate) where.returnDate.lte = parseEndOfDay(toDate);
+      }
+
+      const returns = await tx.purchaseReturn.findMany({
+        where,
+        include: {
+          party: true,
+          items: true,
+        },
+        orderBy: { returnDate: "desc" },
+      });
+
+      let totalTaxable = new Decimal(0);
+      let grandTotal = new Decimal(0);
+
+      const items = returns.map((r) => {
+        const taxable = toMoney(r.taxableAmount);
+        const grand = toMoney(r.grandTotal);
+        totalTaxable = totalTaxable.plus(taxable);
+        grandTotal = grandTotal.plus(grand);
+
+        return {
+          id: r.id,
+          debitNoteNumber: r.returnNumber,
+          returnDate: r.returnDate.toISOString().slice(0, 10),
+          partyName: r.party?.name || "Direct Vendor",
+          gstin: r.party?.gstin,
+          reason: r.reason || "Purchase Return",
+          taxableAmount: taxable.toFixed(2),
+          grandTotal: grand.toFixed(2),
+          itemsCount: r.items.length,
+        };
+      });
+
+      return {
+        summary: {
+          totalReturns: returns.length,
+          totalTaxable: totalTaxable.toFixed(2),
+          grandTotal: grandTotal.toFixed(2),
+        },
+        returns: items,
+      };
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 22. QUOTATIONS / ESTIMATES REPORT
+  // --------------------------------------------------------------------------
+  async getQuotationsReport(
+    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    tenant: TenantContext,
+  ): Promise<any> {
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const fromDate = query.fromDate || query.startDate;
+      const toDate = query.toDate || query.endDate;
+      const where: any = { companyId: tenant.companyId, category: InvoiceCategory.PROFORMA_INVOICE };
+      if (fromDate || toDate) {
+        where.invoiceDate = {};
+        if (fromDate) where.invoiceDate.gte = parseStartOfDay(fromDate);
+        if (toDate) where.invoiceDate.lte = parseEndOfDay(toDate);
+      }
+
+      const quotes = await tx.salesInvoice.findMany({
+        where,
+        include: {
+          party: true,
+        },
+        orderBy: { invoiceDate: "desc" },
+      });
+
+      let totalValue = new Decimal(0);
+      const items = quotes.map((q) => {
+        const val = toMoney(q.grandTotal);
+        totalValue = totalValue.plus(val);
+        return {
+          id: q.id,
+          quoteNumber: q.invoiceNumber,
+          date: q.invoiceDate.toISOString().slice(0, 10),
+          partyName: q.party?.name || "Customer",
+          phone: q.party?.phone,
+          status: q.status,
+          totalAmount: val.toFixed(2),
+        };
+      });
+
+      return {
+        summary: {
+          totalQuotations: quotes.length,
+          totalValue: totalValue.toFixed(2),
+        },
+        quotations: items,
+      };
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 23. DELIVERY CHALLANS REPORT
+  // --------------------------------------------------------------------------
+  async getDeliveryChallansReport(
+    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    tenant: TenantContext,
+  ): Promise<any> {
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const fromDate = query.fromDate || query.startDate;
+      const toDate = query.toDate || query.endDate;
+      const where: any = { companyId: tenant.companyId };
+      if (fromDate || toDate) {
+        where.challanDate = {};
+        if (fromDate) where.challanDate.gte = parseStartOfDay(fromDate);
+        if (toDate) where.challanDate.lte = parseEndOfDay(toDate);
+      }
+
+      const challans = await tx.deliveryChallan.findMany({
+        where,
+        include: {
+          party: true,
+          items: true,
+        },
+        orderBy: { challanDate: "desc" },
+      });
+
+      const items = challans.map((c) => ({
+        id: c.id,
+        challanNumber: c.challanNumber,
+        date: c.challanDate.toISOString().slice(0, 10),
+        partyName: c.party?.name || "Customer",
+        phone: c.party?.phone,
+        status: c.status,
+        itemsCount: c.items.length,
+      }));
+
+      return {
+        summary: {
+          totalChallans: challans.length,
+        },
+        challans: items,
+      };
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 24. ITEM BATCH & EXPIRY REPORT
+  // --------------------------------------------------------------------------
+  async getItemBatchReport(
+    query: { fromDate?: string; toDate?: string },
+    tenant: TenantContext,
+  ): Promise<any> {
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const batches = await tx.itemBatch.findMany({
+        where: {
+          item: { companyId: tenant.companyId },
+        },
+        include: {
+          item: {
+            include: { primaryUom: true, category: true },
+          },
+          stockTransactions: {
+            select: { quantity: true },
+          },
+        },
+      });
+
+      const now = new Date();
+      let totalBatches = batches.length;
+      let expiredCount = 0;
+      let expiringSoonCount = 0;
+
+      const items = batches.map((b) => {
+        let currentStock = new Decimal(0);
+        for (const st of b.stockTransactions) {
+          currentStock = currentStock.plus(toMoney(st.quantity));
+        }
+
+        let status = "ACTIVE";
+        let daysToExpiry = null;
+        if (b.expiryDate) {
+          const diffMs = new Date(b.expiryDate).getTime() - now.getTime();
+          daysToExpiry = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+          if (daysToExpiry < 0) {
+            status = "EXPIRED";
+            expiredCount++;
+          } else if (daysToExpiry <= 30) {
+            status = "EXPIRING_SOON";
+            expiringSoonCount++;
+          }
+        }
+
+        return {
+          id: b.id,
+          batchNumber: b.batchNumber,
+          itemName: b.item.name,
+          itemNameGujarati: b.item.nameGujarati,
+          itemCode: b.item.sku || b.item.barcode || "-",
+          uom: b.item.primaryUom?.symbol || "PCS",
+          mfgDate: b.mfgDate ? b.mfgDate.toISOString().slice(0, 10) : "-",
+          expiryDate: b.expiryDate ? b.expiryDate.toISOString().slice(0, 10) : "-",
+          daysToExpiry,
+          purchaseRate: toMoney(b.purchaseRate).toFixed(2),
+          salePrice: toMoney(b.salePrice).toFixed(2),
+          currentStock: currentStock.toFixed(2),
+          valuation: currentStock.times(toMoney(b.purchaseRate)).toFixed(2),
+          status,
+        };
+      });
+
+      return {
+        summary: {
+          totalBatches,
+          expiredCount,
+          expiringSoonCount,
+        },
+        batches: items,
+      };
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 25. LOW STOCK ALERT REPORT
+  // --------------------------------------------------------------------------
+  async getLowStockAlertReport(
+    query: { fromDate?: string; toDate?: string },
+    tenant: TenantContext,
+  ): Promise<any> {
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const items = await tx.item.findMany({
+        where: {
+          companyId: tenant.companyId,
+          isActive: true,
+        },
+        include: {
+          category: true,
+          primaryUom: true,
+          stockTransactions: {
+            select: { quantity: true },
+          },
+        },
+      });
+
+      const lowStockItems: any[] = [];
+      for (const item of items) {
+        let currentStock = new Decimal(0);
+        for (const st of item.stockTransactions) {
+          currentStock = currentStock.plus(toMoney(st.quantity));
+        }
+
+        const minLevel = toMoney(item.minStockLevel);
+        if (minLevel.gt(0) && currentStock.lte(minLevel)) {
+          const deficit = minLevel.minus(currentStock);
+          lowStockItems.push({
+            id: item.id,
+            name: item.name,
+            nameGujarati: item.nameGujarati,
+            sku: item.sku || "-",
+            category: item.category?.name || "General",
+            uom: item.primaryUom?.symbol || "PCS",
+            currentStock: currentStock.toFixed(2),
+            minStockLevel: minLevel.toFixed(2),
+            deficit: deficit.toFixed(2),
+            reorderQuantity: toMoney(item.reorderQuantity || deficit).toFixed(2),
+            purchaseRate: toMoney(item.purchaseRate).toFixed(2),
+          });
+        }
+      }
+
+      return {
+        summary: {
+          totalLowStockCount: lowStockItems.length,
+        },
+        items: lowStockItems,
+      };
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 26. EXPENSE CATEGORY REPORT
+  // --------------------------------------------------------------------------
+  async getExpenseCategoryReport(
+    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    tenant: TenantContext,
+  ): Promise<any> {
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const fromDate = query.fromDate || query.startDate;
+      const toDate = query.toDate || query.endDate;
+
+      const accounts = await tx.ledgerAccount.findMany({
+        where: {
+          companyId: tenant.companyId,
+          isActive: true,
+          group: { nature: AccountNature.EXPENSE },
+        },
+        include: {
+          group: true,
+          journalEntries: {
+            where: {
+              voucher: {
+                ...(fromDate || toDate
+                  ? {
+                      voucherDate: {
+                        ...(fromDate ? { gte: parseStartOfDay(fromDate) } : {}),
+                        ...(toDate ? { lte: parseEndOfDay(toDate) } : {}),
+                      },
+                    }
+                  : {}),
+              },
+            },
+            include: {
+              voucher: true,
+            },
+          },
+        },
+      });
+
+      let grandTotalExpense = new Decimal(0);
+      const categories: any[] = [];
+
+      for (const acc of accounts) {
+        let totalDebit = new Decimal(0);
+        let totalCredit = new Decimal(0);
+
+        for (const je of acc.journalEntries) {
+          totalDebit = totalDebit.plus(toMoney(je.debitAmount));
+          totalCredit = totalCredit.plus(toMoney(je.creditAmount));
+        }
+
+        const netExpense = totalDebit.minus(totalCredit);
+        if (netExpense.gt(0) || acc.journalEntries.length > 0) {
+          grandTotalExpense = grandTotalExpense.plus(netExpense);
+          categories.push({
+            id: acc.id,
+            categoryName: acc.name,
+            categoryNameGujarati: acc.nameGujarati,
+            groupName: acc.group.name,
+            voucherCount: acc.journalEntries.length,
+            totalAmount: netExpense.toFixed(2),
+          });
+        }
+      }
+
+      categories.sort((a, b) => Number(b.totalAmount) - Number(a.totalAmount));
+
+      return {
+        summary: {
+          totalCategories: categories.length,
+          totalExpenseAmount: grandTotalExpense.toFixed(2),
+        },
+        categories,
+      };
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 27. AUDIT TRAIL REPORT
+  // --------------------------------------------------------------------------
+  async getAuditTrailReport(
+    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    tenant: TenantContext,
+  ): Promise<any> {
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const fromDate = query.fromDate || query.startDate;
+      const toDate = query.toDate || query.endDate;
+      const where: any = { companyId: tenant.companyId };
+      if (fromDate || toDate) {
+        where.createdAt = {};
+        if (fromDate) where.createdAt.gte = parseStartOfDay(fromDate);
+        if (toDate) where.createdAt.lte = parseEndOfDay(toDate);
+      }
+
+      const logs = await tx.auditLog.findMany({
+        where,
+        include: {
+          user: { select: { fullName: true, phone: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 100,
+      });
+
+      const items = logs.map((l) => ({
+        id: l.id,
+        timestamp: l.createdAt.toISOString(),
+        userName: l.user?.fullName || "System Admin",
+        phone: l.user?.phone,
+        action: l.action,
+        entityName: l.entityName,
+        entityId: l.entityId,
+        ipAddress: l.ipAddress || "-",
+      }));
+
+      return {
+        summary: {
+          totalLogs: logs.length,
+        },
+        logs: items,
+      };
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 28. HSN WISE SALES SUMMARY (TABLE 12)
+  // --------------------------------------------------------------------------
+  async getHsnWiseSalesReport(
+    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    tenant: TenantContext,
+  ): Promise<any> {
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const fromDate = query.fromDate || query.startDate;
+      const toDate = query.toDate || query.endDate;
+      const invWhere: any = { companyId: tenant.companyId, status: { not: InvoiceStatus.CANCELLED } };
+      if (fromDate || toDate) {
+        invWhere.invoiceDate = {};
+        if (fromDate) invWhere.invoiceDate.gte = parseStartOfDay(fromDate);
+        if (toDate) invWhere.invoiceDate.lte = parseEndOfDay(toDate);
+      }
+
+      const items = await tx.salesInvoiceItem.findMany({
+        where: { invoice: invWhere },
+        include: {
+          item: { include: { primaryUom: true } },
+        },
+      });
+
+      const map = new Map<string, any>();
+      let totalQty = new Decimal(0);
+      let totalTaxable = new Decimal(0);
+      let totalTax = new Decimal(0);
+      let totalValue = new Decimal(0);
+
+      for (const row of items) {
+        const hsn = row.item?.hsnCode || (row as any).hsnCode || "Other";
+        const desc = row.item?.name || "Goods/Services";
+        const uom = row.item?.primaryUom?.symbol || "PCS";
+        const qty = toMoney(row.quantity);
+        const taxable = toMoney(row.taxableAmount);
+        const cgst = toMoney(row.cgstAmount);
+        const sgst = toMoney(row.sgstAmount);
+        const igst = toMoney(row.igstAmount);
+        const tax = cgst.plus(sgst).plus(igst);
+        const val = toMoney((row as any).totalAmount || taxable.plus(tax));
+
+        totalQty = totalQty.plus(qty);
+        totalTaxable = totalTaxable.plus(taxable);
+        totalTax = totalTax.plus(tax);
+        totalValue = totalValue.plus(val);
+
+        if (!map.has(hsn)) {
+          map.set(hsn, {
+            hsnCode: hsn,
+            description: desc,
+            uom,
+            totalQuantity: new Decimal(0),
+            totalTaxable: new Decimal(0),
+            cgstAmount: new Decimal(0),
+            sgstAmount: new Decimal(0),
+            igstAmount: new Decimal(0),
+            totalTax: new Decimal(0),
+            totalValue: new Decimal(0),
+          });
+        }
+
+        const e = map.get(hsn);
+        e.totalQuantity = e.totalQuantity.plus(qty);
+        e.totalTaxable = e.totalTaxable.plus(taxable);
+        e.cgstAmount = e.cgstAmount.plus(cgst);
+        e.sgstAmount = e.sgstAmount.plus(sgst);
+        e.igstAmount = e.igstAmount.plus(igst);
+        e.totalTax = e.totalTax.plus(tax);
+        e.totalValue = e.totalValue.plus(val);
+      }
+
+      const list = Array.from(map.values()).map((e) => ({
+        ...e,
+        totalQuantity: e.totalQuantity.toFixed(2),
+        totalTaxable: e.totalTaxable.toFixed(2),
+        cgstAmount: e.cgstAmount.toFixed(2),
+        sgstAmount: e.sgstAmount.toFixed(2),
+        igstAmount: e.igstAmount.toFixed(2),
+        totalTax: e.totalTax.toFixed(2),
+        totalValue: e.totalValue.toFixed(2),
+      }));
+
+      return {
+        summary: {
+          totalHsns: list.length,
+          totalQuantity: totalQty.toFixed(2),
+          totalTaxable: totalTaxable.toFixed(2),
+          totalTax: totalTax.toFixed(2),
+          totalValue: totalValue.toFixed(2),
+        },
+        records: list,
+      };
+    });
+  }
 }
+

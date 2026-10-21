@@ -228,7 +228,7 @@ export class PurchaseScannerService {
         `[DIAGNOSTIC] Stage: OCR_COMPLETED | ScanId: ${scanId} | DurationMs: ${ocrDurationMs} | Provider: ${ocrResult.provider} | HasRawText: ${!!ocrResult.rawText} | RawTextLength: ${ocrResult.rawText?.length || 0} | ExtractedItems: ${ocrResult.extractedData?.items?.length || 0}`,
       );
     } catch (err: any) {
-      const allowLocalFallback = process.env.ALLOW_LOCAL_FALLBACK === "true";
+      const allowLocalFallback = process.env.ALLOW_LOCAL_FALLBACK !== "false";
       if (allowLocalFallback && provider.name !== "local") {
         this.logger.warn(`Primary OCR provider '${provider.name}' failed (${err?.message}). Attempting fallback to local OCR provider...`);
         try {
@@ -308,6 +308,19 @@ export class PurchaseScannerService {
       matchedPartyScore: supplierMatch.matchedPartyScore,
       isNewSupplier: supplierMatch.isNewSupplier,
     };
+
+    if (normalizedData.buyer) {
+      const buyerMatch = await this.matcher.matchCustomer(
+        normalizedData.buyer,
+        tenant,
+      );
+      normalizedData.buyer = {
+        ...normalizedData.buyer,
+        matchedPartyId: buyerMatch.matchedPartyId,
+        matchedPartyName: buyerMatch.matchedPartyName,
+        matchedPartyScore: buyerMatch.matchedPartyScore,
+      };
+    }
 
     normalizedData.items = await this.matcher.matchAllItems(
       normalizedData.items,

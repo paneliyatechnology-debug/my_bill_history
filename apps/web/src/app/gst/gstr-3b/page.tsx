@@ -4,6 +4,9 @@ import React, { useCallback, useEffect, useState } from "react";
 import { apiClient } from "../../../lib/api-client";
 import { useAuth } from "../../../context/auth-context";
 import { GstFrame, Panel, downloadJson, useGstPeriod } from "../../../components/gst/gst-kit";
+import { ExportDropdown } from "../../../components/ui/export-dropdown";
+import { ExportColumn, ExportFormat, ExportMetadata } from "../../../lib/export/export-types";
+import { executeExport } from "../../../lib/export/export-engine";
 
 export default function Gstr3bPage() {
   return (
@@ -14,7 +17,7 @@ export default function Gstr3bPage() {
 }
 
 function Body() {
-  const { tenantContext } = useAuth();
+  const { tenantContext, currentCompany } = useAuth();
   const period = useGstPeriod();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -41,11 +44,47 @@ function Body() {
   const itc = data?.table4_eligibleItc;
   const pay = data?.table6_1_paymentOfTax;
   const use = data?.table6_itcUtilization;
+  const handleExportGstr3b = async (format: ExportFormat) => {
+    if (!data) return;
+    const rows = [
+      { section: "3.1 (a) Outward Taxable Supplies", ...data.table3_1_outwardSupplies },
+      { section: "3.1 (b) Zero-rated Outward Supplies", ...data.table3_1_zeroRated },
+      { section: "3.1 (c) Other Outward Supplies (Nil/Exempt)", ...data.table3_1_nilRated },
+      { section: "3.1 (d) Inward Supplies (Reverse Charge)", ...data.table3_1_inwardReverseCharge },
+      { section: "3.1 (e) Non-GST Outward Supplies", ...data.table3_1_nonGst },
+      { section: "4 (A) Eligible ITC - All Other ITC", ...data.table4_eligibleItc?.allOtherItc },
+      { section: "4 (C) Net ITC Available", ...data.table4_eligibleItc?.netItcAvailable },
+    ];
+    const columns: ExportColumn[] = [
+      { header: "Schedule / Nature of Supply", key: "section", type: "string" },
+      { header: "Taxable Value (₹)", key: "taxableAmount", type: "currency", align: "right" },
+      { header: "IGST (₹)", key: "igst", type: "currency", align: "right" },
+      { header: "CGST (₹)", key: "cgst", type: "currency", align: "right" },
+      { header: "SGST (₹)", key: "sgst", type: "currency", align: "right" },
+      { header: "Cess (₹)", key: "cess", type: "currency", align: "right" },
+    ];
+    const metadata: ExportMetadata = {
+      title: "GSTR-3B Monthly Statutory Self-Assessment",
+      fileName: `GSTR_3B_${period.returnPeriod}`,
+      filterDescription: `Return Period: ${period.returnPeriod} (${period.fromDate} to ${period.toDate})`,
+      companyName: currentCompany?.legalName || currentCompany?.tradeName || "My Business",
+      companyGstin: currentCompany?.gstin,
+    };
+    await executeExport(format, columns, rows, metadata);
+  };
+
   return (
     <Panel loading={loading} error={error} onRetry={load} empty={!tenantContext.companyId ? "Sign in and select a company before preparing GSTR-3B." : null}>
-      <button type="button" className="text-xs underline" onClick={() => downloadJson(`gstr-3b-${period.returnPeriod}-draft.json`, data)}>
-        Download draft JSON
-      </button>
+      <div className="flex items-center justify-between gap-3 pb-2 border-b border-slate-100">
+        <button type="button" className="text-xs font-semibold underline text-slate-600 hover:text-slate-900" onClick={() => downloadJson(`gstr-3b-${period.returnPeriod}-draft.json`, data)}>
+          Download draft JSON
+        </button>
+        <ExportDropdown
+          onExport={handleExportGstr3b}
+          disabled={!data || loading}
+          themeColor="saffron"
+        />
+      </div>
       <Section title="Outward supplies" rows={bucketRows(data?.table3_1_outwardSupplies)} />
       <Section title="Nil-rated" rows={bucketRows(data?.table3_1_nilRated)} />
       <Section title="Exempt" rows={bucketRows(data?.table3_1_exempt)} />
