@@ -65,20 +65,77 @@ async function bootstrap() {
   app.enableShutdownHooks();
 
   app.setGlobalPrefix("api/v1");
-  const allowedOrigins = process.env.CORS_ORIGIN || process.env.FRONTEND_URL;
-  if (isProd && !allowedOrigins) {
-    logger.warn(
-      "CORS_ORIGIN / FRONTEND_URL not set in production. Restricting cross-origin access.",
-    );
-  }
+
+  const rawEnvOrigins = process.env.CORS_ORIGIN || process.env.FRONTEND_URL;
+  const configuredOrigins = rawEnvOrigins
+    ? rawEnvOrigins.split(",").map((s) => s.trim().toLowerCase().replace(/\/$/, ""))
+    : [];
+
+  const isOriginAllowed = (origin: string): boolean => {
+    const cleanOrigin = origin.toLowerCase().trim().replace(/\/$/, "");
+
+    // 1. Explicitly configured origins or wildcard in environment
+    if (configuredOrigins.includes("*") || configuredOrigins.includes(cleanOrigin)) {
+      return true;
+    }
+
+    // 2. Production domain and all subdomains (e.g. https://myownbillbook.com, https://www.myownbillbook.com)
+    if (/^https?:\/\/([a-zA-Z0-9-]+\.)*myownbillbook\.com$/.test(cleanOrigin)) {
+      return true;
+    }
+
+    // 3. Vercel deployments (production and preview branches)
+    if (/^https?:\/\/([a-zA-Z0-9-]+\.)*vercel\.app$/.test(cleanOrigin)) {
+      return true;
+    }
+
+    // 4. Render deployment domains
+    if (/^https?:\/\/([a-zA-Z0-9-]+\.)*onrender\.com$/.test(cleanOrigin)) {
+      return true;
+    }
+
+    // 5. Localhost and loopback development/testing origins
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cleanOrigin)) {
+      return true;
+    }
+
+    // 6. In non-production environments, allow all origins
+    if (!isProd) {
+      return true;
+    }
+
+    return false;
+  };
 
   app.enableCors({
-    origin: allowedOrigins
-      ? allowedOrigins.split(",").map((s) => s.trim())
-      : isProd
-        ? false
-        : true,
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
+      // Allow requests with no Origin header (e.g. mobile apps, curl, server-to-server)
+      if (!origin || isOriginAllowed(origin)) {
+        return callback(null, true);
+      }
+
+      logger.warn(`Blocked CORS request from disallowed origin: ${origin}`);
+      return callback(null, false);
+    },
     credentials: true,
+    methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "Accept",
+      "Origin",
+      "X-Requested-With",
+      "x-organization-id",
+      "x-company-id",
+      "x-branch-id",
+      "x-financial-year-id",
+      "idempotency-key",
+      "x-idempotency-key",
+    ],
+    exposedHeaders: ["x-correlation-id", "Content-Disposition"],
   });
 
   const port = process.env.PORT || 4000;

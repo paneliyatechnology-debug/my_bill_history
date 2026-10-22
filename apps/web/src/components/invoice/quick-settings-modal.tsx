@@ -63,12 +63,23 @@ export const DEFAULT_QUICK_SETTINGS: QuickSettingsConfig = {
   customItemFields: [],
 };
 
-interface QuickSettingsModalProps {
+export const DEFAULT_PURCHASE_QUICK_SETTINGS: QuickSettingsConfig = {
+  ...DEFAULT_QUICK_SETTINGS,
+  invoicePrefix: "PUR-26-",
+  invoiceSequence: "0014",
+};
+
+export interface QuickSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   settings: QuickSettingsConfig;
   initialTab?: "invoice" | "party" | "items";
   onSave: (newSettings: QuickSettingsConfig) => void;
+  voucherType?: "sales" | "purchase" | "estimate" | "challan";
+  voucherTitle?: string;
+  prefixLabel?: string;
+  prefixPlaceholder?: string;
+  storageKey?: string;
 }
 
 export function QuickSettingsModal({
@@ -77,9 +88,15 @@ export function QuickSettingsModal({
   settings,
   initialTab = "invoice",
   onSave,
+  voucherType = "sales",
+  voucherTitle,
+  prefixLabel,
+  prefixPlaceholder,
+  storageKey,
 }: QuickSettingsModalProps) {
   const [activeTab, setActiveTab] = useState<"invoice" | "party" | "items">(initialTab);
-  const [formData, setFormData] = useState<QuickSettingsConfig>(settings || DEFAULT_QUICK_SETTINGS);
+  const baseDefaults = voucherType === "purchase" ? DEFAULT_PURCHASE_QUICK_SETTINGS : DEFAULT_QUICK_SETTINGS;
+  const [formData, setFormData] = useState<QuickSettingsConfig>(settings || baseDefaults);
   
   // Custom field input states
   const [newInvoiceFieldName, setNewInvoiceFieldName] = useState("");
@@ -94,9 +111,16 @@ export function QuickSettingsModal({
   // Sync state whenever modal is opened or settings change
   useEffect(() => {
     if (isOpen) {
+      const defaults = voucherType === "purchase" ? DEFAULT_PURCHASE_QUICK_SETTINGS : DEFAULT_QUICK_SETTINGS;
       setFormData({
-        ...DEFAULT_QUICK_SETTINGS,
+        ...defaults,
         ...(settings || {}),
+        invoicePrefix:
+          settings?.invoicePrefix && settings.invoicePrefix !== "INV-26-27-"
+            ? settings.invoicePrefix
+            : voucherType === "purchase"
+            ? (settings?.invoicePrefix === "INV-26-27-" ? "PUR-26-" : settings?.invoicePrefix || "PUR-26-")
+            : settings?.invoicePrefix || "INV-26-27-",
       });
       if (initialTab) {
         setActiveTab(initialTab);
@@ -105,7 +129,7 @@ export function QuickSettingsModal({
       setIsAddingPartyField(false);
       setIsAddingItemField(false);
     }
-  }, [isOpen, settings, initialTab]);
+  }, [isOpen, settings, initialTab, voucherType]);
 
   if (!isOpen) return null;
 
@@ -173,9 +197,26 @@ export function QuickSettingsModal({
   };
 
   const handleSave = () => {
+    if (storageKey && typeof window !== "undefined") {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(formData));
+      } catch (e) {
+        console.error("Failed to save quick settings to storage:", e);
+      }
+    }
     onSave(formData);
     onClose();
   };
+
+  const isPurchase = voucherType === "purchase";
+  const docDetailsLabel = voucherTitle || (isPurchase ? "Purchase Invoice Details" : "Invoice Details");
+  const prefixHeading = isPurchase ? "Purchase Prefix & Sequence Number" : "Invoice Prefix & Sequence Number";
+  const prefixDesc = isPurchase
+    ? "Add your custom prefix & sequence for Purchase Invoice Number"
+    : "Add your custom prefix & sequence for Invoice Number";
+  const inputPrefixLabel = prefixLabel || (isPurchase ? "Purchase Prefix" : "Invoice Prefix");
+  const inputPrefixPlaceholder = prefixPlaceholder || (isPurchase ? "e.g. PUR-26-" : "e.g. INV-26-27-");
+  const customFieldsHeading = isPurchase ? "Show or Hide Purchase Custom Fields" : "Show or Hide Invoice Custom Fields";
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-2xs flex items-center justify-center p-4 animate-in fade-in duration-150">
@@ -210,7 +251,7 @@ export function QuickSettingsModal({
               }`}
             >
               <span className="text-sm">📄</span>
-              <span>Invoice Details</span>
+              <span className="truncate">{docDetailsLabel}</span>
             </button>
 
             <button
@@ -250,10 +291,10 @@ export function QuickSettingsModal({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-bold text-slate-900 text-xs">
-                        Invoice Prefix & Sequence Number
+                        {prefixHeading}
                       </p>
                       <p className="text-[11px] text-slate-500">
-                        Add your custom prefix & sequence for Invoice Number
+                        {prefixDesc}
                       </p>
                     </div>
                     {/* iOS Toggle Switch */}
@@ -277,7 +318,7 @@ export function QuickSettingsModal({
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
-                            Invoice Prefix
+                            {inputPrefixLabel}
                           </label>
                           <input
                             type="text"
@@ -285,7 +326,7 @@ export function QuickSettingsModal({
                             onChange={(e) =>
                               setFormData({ ...formData, invoicePrefix: e.target.value })
                             }
-                            placeholder="e.g. INV-26-27-"
+                            placeholder={inputPrefixPlaceholder}
                             className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-slate-900 text-xs focus:bg-white focus:outline-none focus:border-blue-500"
                           />
                         </div>
@@ -314,7 +355,7 @@ export function QuickSettingsModal({
                 {/* Show or Hide Invoice Custom Fields */}
                 <div className="space-y-2.5">
                   <h3 className="font-bold text-slate-900 text-xs">
-                    Show or Hide Invoice Custom Fields
+                    {customFieldsHeading}
                   </h3>
                   
                   <div className="space-y-2">

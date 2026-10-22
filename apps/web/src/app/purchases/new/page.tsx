@@ -8,7 +8,12 @@ import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { BillScannerModal } from "../components/bill-scanner-modal";
 import { InvoiceQrCode, InvoiceBarcode } from "../components/invoice-barcode-qr";
-import { QuickSettingsModal, DEFAULT_QUICK_SETTINGS, QuickSettingsConfig } from "@/components/invoice/quick-settings-modal";
+import {
+  QuickSettingsModal,
+  DEFAULT_QUICK_SETTINGS,
+  DEFAULT_PURCHASE_QUICK_SETTINGS,
+  QuickSettingsConfig,
+} from "@/components/invoice/quick-settings-modal";
 import { ShortcutsModal } from "@/components/invoice/shortcuts-modal";
 import { AddItemsModal, CatalogItem } from "@/components/invoice/add-items-modal";
 import { INDIAN_STATES } from "@billing/shared-types";
@@ -177,7 +182,98 @@ function NewPurchaseInvoiceContent() {
   const [paymentTermsDays, setPaymentTermsDays] = useState<number | null>(null);
   const [isQuickSettingsOpen, setIsQuickSettingsOpen] = useState(false);
   const [quickSettingsTab, setQuickSettingsTab] = useState<"invoice" | "party" | "items">("invoice");
-  const [quickSettings, setQuickSettings] = useState<QuickSettingsConfig>(DEFAULT_QUICK_SETTINGS);
+  const companyKey = tenantContext?.companyId || currentCompany?.id || "default";
+  const purchaseStorageKey = `billing_purchase_quick_settings_${companyKey}`;
+  const [quickSettings, setQuickSettings] = useState<QuickSettingsConfig>(DEFAULT_PURCHASE_QUICK_SETTINGS);
+
+  // Quick settings dynamic custom fields
+  const [poNumber, setPoNumber] = useState("");
+  const [poDate, setPoDate] = useState("");
+  const [vehicleNumber, setVehicleNumber] = useState("");
+  const [ewayBillNumber, setEwayBillNumber] = useState("");
+  const [contactPersonName, setContactPersonName] = useState("");
+  const [contactPersonPhone, setContactPersonPhone] = useState("");
+  const [shippingAddress, setShippingAddress] = useState("");
+  const [customInvoiceFieldValues, setCustomInvoiceFieldValues] = useState<Record<string, string>>({});
+  const [customPartyFieldValues, setCustomPartyFieldValues] = useState<Record<string, string>>({});
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  function incrementSequenceNumber(seq: string): string {
+    if (!seq) return "0001";
+    const num = parseInt(seq, 10);
+    if (isNaN(num)) return seq;
+    const next = num + 1;
+    const len = seq.length;
+    return String(next).padStart(len, "0");
+  }
+
+  // Load Quick Settings from localStorage dynamically on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(purchaseStorageKey);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          const merged: QuickSettingsConfig = { ...DEFAULT_PURCHASE_QUICK_SETTINGS, ...parsed };
+          setQuickSettings(merged);
+
+          // Apply prefix and sequence dynamically
+          if (merged.enablePrefix && merged.invoicePrefix) {
+            setPurchaseInvoiceNumber(`${merged.invoicePrefix}${merged.invoiceSequence || "0014"}`);
+          } else if (merged.invoiceSequence) {
+            setPurchaseInvoiceNumber(merged.invoiceSequence);
+          }
+
+          if (typeof merged.enableDueDate === "boolean") {
+            setShowDueDateField(merged.enableDueDate);
+          }
+        } else {
+          if (DEFAULT_PURCHASE_QUICK_SETTINGS.enablePrefix && DEFAULT_PURCHASE_QUICK_SETTINGS.invoicePrefix) {
+            setPurchaseInvoiceNumber(
+              `${DEFAULT_PURCHASE_QUICK_SETTINGS.invoicePrefix}${DEFAULT_PURCHASE_QUICK_SETTINGS.invoiceSequence}`
+            );
+          }
+        }
+      } catch (e) {
+        console.error("Error loading purchase quick settings:", e);
+      }
+    }
+  }, [purchaseStorageKey]);
+
+  // Toast auto-dismiss effect
+  useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => setToastMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage]);
+
+  const handleSaveQuickSettings = (newSettings: QuickSettingsConfig) => {
+    setQuickSettings(newSettings);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(purchaseStorageKey, JSON.stringify(newSettings));
+      } catch (e) {
+        console.error("Error saving quick settings to localStorage:", e);
+      }
+    }
+
+    // Apply prefix and sequence dynamically
+    if (newSettings.enablePrefix && newSettings.invoicePrefix) {
+      setPurchaseInvoiceNumber(`${newSettings.invoicePrefix}${newSettings.invoiceSequence || "0014"}`);
+    } else if (newSettings.invoiceSequence) {
+      setPurchaseInvoiceNumber(newSettings.invoiceSequence);
+    }
+
+    // Apply Due Date toggle
+    setShowDueDateField(newSettings.enableDueDate);
+
+    setToastMessage(
+      lang === "gu"
+        ? "ક્વિક સેટિંગ્સ સફળતાપૂર્વક લાગુ થયા!"
+        : "Quick settings saved and applied successfully!"
+    );
+  };
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [showPhoneUploadModal, setShowPhoneUploadModal] = useState(false);
   const [showBarcodeScannerModal, setShowBarcodeScannerModal] = useState(false);
@@ -306,7 +402,26 @@ function NewPurchaseInvoiceContent() {
       const totalPurchases = purchasesRes?.items?.length ?? (Array.isArray(purchasesRes) ? purchasesRes.length : 0);
       setTotalBillsRecorded(totalPurchases);
       const currentYear = new Date().getFullYear().toString().slice(-2);
-      setPurchaseInvoiceNumber(`PUR-${currentYear}-${(totalPurchases + 1).toString().padStart(4, "0")}`);
+      const defaultSeq = (totalPurchases + 1).toString().padStart(4, "0");
+
+      let resolvedInvoiceNo = "";
+      if (typeof window !== "undefined") {
+        try {
+          const saved = localStorage.getItem(purchaseStorageKey);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed.enablePrefix && parsed.invoicePrefix) {
+              resolvedInvoiceNo = `${parsed.invoicePrefix}${parsed.invoiceSequence || defaultSeq}`;
+            } else if (parsed.invoiceSequence) {
+              resolvedInvoiceNo = parsed.invoiceSequence;
+            }
+          }
+        } catch {}
+      }
+      if (!resolvedInvoiceNo) {
+        resolvedInvoiceNo = `PUR-${currentYear}-${defaultSeq}`;
+      }
+      setPurchaseInvoiceNumber(resolvedInvoiceNo);
 
       // Dynamic Terms with company name
       const compName = compRes?.tradeName || compRes?.legalName || currentCompany?.tradeName || "Godown";
@@ -523,15 +638,25 @@ function NewPurchaseInvoiceContent() {
       const gross = qty * rate;
 
       let discountVal = 0;
-      if (r.discountType === "₹") {
-        discountVal = discVal;
-      } else {
-        discountVal = (gross * discVal) / 100;
+      if (quickSettings.showDiscountColumn) {
+        if (r.discountType === "₹") {
+          discountVal = discVal;
+        } else {
+          discountVal = (gross * discVal) / 100;
+        }
       }
 
-      const taxable = Math.max(0, gross - discountVal);
-      const taxRate = Number(r.taxRate) || 0;
-      const taxAmount = (taxable * taxRate) / 100;
+      let taxable = Math.max(0, gross - discountVal);
+      const taxRate = quickSettings.showTaxColumn ? (Number(r.taxRate) || 0) : 0;
+      let taxAmount = 0;
+
+      if (quickSettings.isTaxInclusive && taxRate > 0) {
+        const baseAmount = taxable / (1 + taxRate / 100);
+        taxAmount = taxable - baseAmount;
+        taxable = baseAmount;
+      } else {
+        taxAmount = (taxable * taxRate) / 100;
+      }
 
       grossSubtotal += gross;
       totalDiscount += discountVal;
@@ -599,6 +724,7 @@ function NewPurchaseInvoiceContent() {
     overallDiscountAmount,
     overallDiscountType,
     autoRoundOff,
+    quickSettings,
   ]);
 
   // Adjust paid amount when payment status is PAID_FULL
@@ -1403,10 +1529,27 @@ function NewPurchaseInvoiceContent() {
         setNotes("");
         setPaymentStatus("UNPAID_CREDIT");
         setPaidAmount("");
-        const newCount = totalBillsRecorded + 1;
-        setTotalBillsRecorded(newCount);
-        const currentYear = new Date().getFullYear().toString().slice(-2);
-        setPurchaseInvoiceNumber(`PUR-${currentYear}-${(newCount + 1).toString().padStart(4, "0")}`);
+        const nextSeq = incrementSequenceNumber(quickSettings.invoiceSequence);
+        const updatedSettings: QuickSettingsConfig = {
+          ...quickSettings,
+          invoiceSequence: nextSeq,
+        };
+        setQuickSettings(updatedSettings);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem(purchaseStorageKey, JSON.stringify(updatedSettings));
+          } catch {}
+        }
+        if (updatedSettings.enablePrefix && updatedSettings.invoicePrefix) {
+          setPurchaseInvoiceNumber(`${updatedSettings.invoicePrefix}${nextSeq}`);
+        } else if (updatedSettings.invoiceSequence) {
+          setPurchaseInvoiceNumber(nextSeq);
+        } else {
+          const newCount = totalBillsRecorded + 1;
+          setTotalBillsRecorded(newCount);
+          const currentYear = new Date().getFullYear().toString().slice(-2);
+          setPurchaseInvoiceNumber(`PUR-${currentYear}-${(newCount + 1).toString().padStart(4, "0")}`);
+        }
         const firstItem = items[0];
         setRows([
           {
@@ -2495,12 +2638,85 @@ function NewPurchaseInvoiceContent() {
                           )}
                         </div>
 
-                        <div className="pt-2 border-t border-[#F3F4F6] flex items-center justify-between text-[11px]">
-                          <span className="text-slate-500">Current Balance:</span>
-                          <span className="font-mono font-bold text-slate-800">
-                            ₹{(selectedSupplier.currentBalance ?? 0).toFixed(2)}
-                          </span>
-                        </div>
+                        {quickSettings.showPartyBalance && (
+                          <div className="pt-2 border-t border-[#F3F4F6] flex items-center justify-between text-[11px]">
+                            <span className="text-slate-500">Current Balance:</span>
+                            <span className="font-mono font-bold text-slate-800">
+                              ₹{(selectedSupplier.currentBalance ?? 0).toFixed(2)}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Separate Shipping Address */}
+                        {quickSettings.showShippingAddress && (
+                          <div className="pt-2 border-t border-[#F3F4F6] space-y-1">
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase">
+                              Shipping Address (Ship-To)
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={shippingAddress}
+                              onChange={(e) => setShippingAddress(e.target.value)}
+                              placeholder="Enter ship-to address if different from billing..."
+                              className="w-full text-xs p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                            />
+                          </div>
+                        )}
+
+                        {/* Contact Person Details */}
+                        {quickSettings.showContactPerson && (
+                          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#F3F4F6]">
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">
+                                Contact Person
+                              </label>
+                              <input
+                                type="text"
+                                value={contactPersonName}
+                                onChange={(e) => setContactPersonName(e.target.value)}
+                                placeholder="Contact Name"
+                                className="w-full text-xs p-1.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">
+                                Contact Phone
+                              </label>
+                              <input
+                                type="text"
+                                value={contactPersonPhone}
+                                onChange={(e) => setContactPersonPhone(e.target.value)}
+                                placeholder="Contact Phone"
+                                className="w-full text-xs p-1.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Custom Party Fields */}
+                        {quickSettings.customPartyFields && quickSettings.customPartyFields.length > 0 && (
+                          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#F3F4F6]">
+                            {quickSettings.customPartyFields.map((field) => (
+                              <div key={field.id}>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">
+                                  {field.label}
+                                </label>
+                                <input
+                                  type="text"
+                                  value={customPartyFieldValues[field.id] || ""}
+                                  onChange={(e) =>
+                                    setCustomPartyFieldValues((prev) => ({
+                                      ...prev,
+                                      [field.id]: e.target.value,
+                                    }))
+                                  }
+                                  placeholder={`Enter ${field.label}`}
+                                  className="w-full text-xs p-1.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ) : (
                       /* Empty state: Large dashed box matching myBillBook */
@@ -2697,6 +2913,97 @@ function NewPurchaseInvoiceContent() {
                         >
                           <span>+ Add Due Date</span>
                         </button>
+                      )}
+
+                      {/* PO Details when enabled */}
+                      {quickSettings.enablePoDetails && (
+                        <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-[#F3F4F6]">
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">
+                              PO Number
+                            </label>
+                            <input
+                              type="text"
+                              value={poNumber}
+                              onChange={(e) => setPoNumber(e.target.value)}
+                              placeholder="e.g. PO-2026-001"
+                              className="w-full text-xs p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg font-mono text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">
+                              PO Date
+                            </label>
+                            <input
+                              type="date"
+                              value={poDate}
+                              onChange={(e) => setPoDate(e.target.value)}
+                              className="w-full text-xs p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg font-mono text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Vehicle & E-Way Bill when enabled */}
+                      {(quickSettings.enableVehicleDetails || quickSettings.enableEwayBill) && (
+                        <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-[#F3F4F6]">
+                          {quickSettings.enableVehicleDetails && (
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">
+                                Vehicle Number
+                              </label>
+                              <input
+                                type="text"
+                                value={vehicleNumber}
+                                onChange={(e) => setVehicleNumber(e.target.value)}
+                                placeholder="e.g. GJ-01-AB-1234"
+                                className="w-full text-xs p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg font-mono uppercase text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                              />
+                            </div>
+                          )}
+                          {quickSettings.enableEwayBill && (
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">
+                                E-Way Bill Number
+                              </label>
+                              <input
+                                type="text"
+                                value={ewayBillNumber}
+                                onChange={(e) => setEwayBillNumber(e.target.value)}
+                                placeholder="12-digit number"
+                                maxLength={12}
+                                className="w-full text-xs p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg font-mono text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Custom Invoice Fields */}
+                      {quickSettings.customInvoiceFields && quickSettings.customInvoiceFields.length > 0 && (
+                        <div className="space-y-2 pt-2 border-t border-[#F3F4F6]">
+                          <div className="grid grid-cols-2 gap-2.5">
+                            {quickSettings.customInvoiceFields.map((field) => (
+                              <div key={field.id}>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">
+                                  {field.label}
+                                </label>
+                                <input
+                                  type="text"
+                                  value={customInvoiceFieldValues[field.id] || ""}
+                                  onChange={(e) =>
+                                    setCustomInvoiceFieldValues((prev) => ({
+                                      ...prev,
+                                      [field.id]: e.target.value,
+                                    }))
+                                  }
+                                  placeholder={`Enter ${field.label}`}
+                                  className="w-full text-xs p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg font-mono text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       )}
 
                       {/* Warehouse & POS compact bar */}
@@ -2977,12 +3284,18 @@ function NewPurchaseInvoiceContent() {
                       <tr className="bg-[#F8F9FA] border-b border-[#E5E7EB] text-[#4B5563] font-bold uppercase text-[11px]">
                         <th className="py-3 px-3 w-12 text-center">NO</th>
                         <th className="py-3 px-3 min-w-[260px]">ITEMS</th>
-                        <th className="py-3 px-3 w-28 text-center">HSN</th>
+                        {quickSettings.showHsnColumn && (
+                          <th className="py-3 px-3 w-28 text-center">HSN</th>
+                        )}
                         <th className="py-3 px-3 w-24 text-right">MRP</th>
                         <th className="py-3 px-3 w-36 text-center">QTY</th>
                         <th className="py-3 px-3 w-32 text-right">PRICE/ITEM (₹)</th>
-                        <th className="py-3 px-3 w-32 text-right">DISCOUNT</th>
-                        <th className="py-3 px-3 w-28 text-center">TAX</th>
+                        {quickSettings.showDiscountColumn && (
+                          <th className="py-3 px-3 w-32 text-right">DISCOUNT</th>
+                        )}
+                        {quickSettings.showTaxColumn && (
+                          <th className="py-3 px-3 w-28 text-center">TAX</th>
+                        )}
                         <th className="py-3 px-3 w-32 text-right">AMOUNT (₹)</th>
                         <th className="py-3 px-2 w-10 text-center">
                           <button
@@ -3004,12 +3317,16 @@ function NewPurchaseInvoiceContent() {
                         const qty = Number(row.quantity) || 0;
                         const rate = Number(row.unitPrice) || 0;
                         const gross = qty * rate;
-                        const disc = Number(row.discountValue) || 0;
+                        const disc = quickSettings.showDiscountColumn ? (Number(row.discountValue) || 0) : 0;
                         const discVal = row.discountType === "₹" ? disc : (gross * disc) / 100;
                         const taxable = Math.max(0, gross - discVal);
-                        const taxRate = Number(row.taxRate) || 0;
-                        const taxAmount = (taxable * taxRate) / 100;
-                        const lineTotal = taxable + taxAmount;
+                        const taxRate = quickSettings.showTaxColumn ? (Number(row.taxRate) || 0) : 0;
+                        const taxAmount = quickSettings.isTaxInclusive && taxRate > 0
+                          ? taxable - (taxable / (1 + taxRate / 100))
+                          : (taxable * taxRate) / 100;
+                        const lineTotal = quickSettings.isTaxInclusive
+                          ? taxable
+                          : taxable + taxAmount;
 
                         return (
                           <tr key={idx} className="hover:bg-[#FDFDFE] transition-colors group align-top">
@@ -3047,18 +3364,20 @@ function NewPurchaseInvoiceContent() {
                             </td>
 
                             {/* HSN */}
-                            <td className="py-2.5 px-3">
-                              <div className="relative">
-                                <input
-                                  type="text"
-                                  value={row.hsnCode}
-                                  onChange={(e) => handleRowChange(idx, "hsnCode", e.target.value)}
-                                  placeholder="HSN"
-                                  className="w-full p-2 pr-7 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-xs font-mono text-slate-700 text-center focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
-                                />
-                                <span className="absolute right-2 top-2.5 text-xs text-slate-400 pointer-events-none">🔍</span>
-                              </div>
-                            </td>
+                            {quickSettings.showHsnColumn && (
+                              <td className="py-2.5 px-3">
+                                <div className="relative">
+                                  <input
+                                    type="text"
+                                    value={row.hsnCode}
+                                    onChange={(e) => handleRowChange(idx, "hsnCode", e.target.value)}
+                                    placeholder="HSN"
+                                    className="w-full p-2 pr-7 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-xs font-mono text-slate-700 text-center focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
+                                  />
+                                  <span className="absolute right-2 top-2.5 text-xs text-slate-400 pointer-events-none">🔍</span>
+                                </div>
+                              </td>
+                            )}
 
                             {/* MRP */}
                             <td className="py-2.5 px-3">
@@ -3140,49 +3459,53 @@ function NewPurchaseInvoiceContent() {
                             </td>
 
                             {/* DISCOUNT */}
-                            <td className="py-2.5 px-3">
-                              <div className="flex items-center gap-1">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  step="any"
-                                  value={row.discountValue}
-                                  onChange={(e) =>
-                                    handleRowChange(idx, "discountValue", e.target.value === "" ? "" : Number(e.target.value))
-                                  }
-                                  placeholder="0"
-                                  className="w-20 p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-xs font-mono text-slate-700 text-right focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleRowChange(idx, "discountType", row.discountType === "%" ? "₹" : "%")
-                                  }
-                                  className="p-1.5 bg-[#F1F3F5] hover:bg-[#E5E7EB] text-slate-700 rounded-lg text-[10px] font-bold font-mono"
-                                  title="Toggle % or Flat ₹"
-                                >
-                                  {row.discountType}
-                                </button>
-                              </div>
-                            </td>
+                            {quickSettings.showDiscountColumn && (
+                              <td className="py-2.5 px-3">
+                                <div className="flex items-center gap-1">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="any"
+                                    value={row.discountValue}
+                                    onChange={(e) =>
+                                      handleRowChange(idx, "discountValue", e.target.value === "" ? "" : Number(e.target.value))
+                                    }
+                                    placeholder="0"
+                                    className="w-20 p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-xs font-mono text-slate-700 text-right focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleRowChange(idx, "discountType", row.discountType === "%" ? "₹" : "%")
+                                    }
+                                    className="p-1.5 bg-[#F1F3F5] hover:bg-[#E5E7EB] text-slate-700 rounded-lg text-[10px] font-bold font-mono"
+                                    title="Toggle % or Flat ₹"
+                                  >
+                                    {row.discountType}
+                                  </button>
+                                </div>
+                              </td>
+                            )}
 
                             {/* TAX */}
-                            <td className="py-2.5 px-3 text-center">
-                              <select
-                                value={row.taxRate}
-                                onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value))}
-                                className="w-full p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-xs font-bold text-slate-800 text-center focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
-                              >
-                                <option value="0">None (0%)</option>
-                                <option value="5">5%</option>
-                                <option value="12">12%</option>
-                                <option value="18">18%</option>
-                                <option value="28">28%</option>
-                              </select>
-                              <span className="block text-[10px] font-mono text-slate-500 mt-0.5">
-                                (₹{taxAmount.toFixed(2)})
-                              </span>
-                            </td>
+                            {quickSettings.showTaxColumn && (
+                              <td className="py-2.5 px-3 text-center">
+                                <select
+                                  value={row.taxRate}
+                                  onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value))}
+                                  className="w-full p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-xs font-bold text-slate-800 text-center focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
+                                >
+                                  <option value="0">None (0%)</option>
+                                  <option value="5">5%</option>
+                                  <option value="12">12%</option>
+                                  <option value="18">18%</option>
+                                  <option value="28">28%</option>
+                                </select>
+                                <span className="block text-[10px] font-mono text-slate-500 mt-0.5">
+                                  (₹{taxAmount.toFixed(2)})
+                                </span>
+                              </td>
+                            )}
 
                             {/* AMOUNT (₹) */}
                             <td className="py-2.5 px-3 text-right font-mono font-bold text-[#F47721] text-sm">
@@ -3906,11 +4229,21 @@ function NewPurchaseInvoiceContent() {
           onClose={() => setIsQuickSettingsOpen(false)}
           settings={quickSettings}
           initialTab={quickSettingsTab}
-          onSave={(newSettings) => {
-            setQuickSettings(newSettings);
-            setIsQuickSettingsOpen(false);
-          }}
+          voucherType="purchase"
+          voucherTitle={lang === "gu" ? "ખરીદી બિલ વિગતો (Purchase Details)" : "Purchase Invoice Details"}
+          prefixLabel={lang === "gu" ? "ખરીદી પ્રીફિક્સ" : "Purchase Prefix"}
+          prefixPlaceholder="e.g. PUR-26-"
+          storageKey={purchaseStorageKey}
+          onSave={handleSaveQuickSettings}
         />
+      )}
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-fade-in text-xs font-semibold">
+          <span className="text-base">✓</span>
+          <span>{toastMessage}</span>
+        </div>
       )}
 
       {/* Keyboard Shortcuts Modal */}
