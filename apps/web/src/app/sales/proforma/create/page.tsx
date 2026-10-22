@@ -11,6 +11,11 @@ import { QuickSettingsModal, DEFAULT_QUICK_SETTINGS, QuickSettingsConfig } from 
 import { ShortcutsModal } from "@/components/invoice/shortcuts-modal";
 import { SignatureModal } from "@/components/invoice/signature-modal";
 import { InvoiceLivePreviewModal } from "@/components/invoice/invoice-live-preview-modal";
+import {
+  InvoiceCustomization,
+  DEFAULT_INVOICE_CUSTOMIZATION,
+  loadInvoiceCustomization,
+} from "@/lib/invoice-theme";
 import { INDIAN_STATES } from "@billing/shared-types";
 
 interface PartyOption {
@@ -68,6 +73,13 @@ export default function CreateProformaInvoicePage() {
 
   // View Mode: Edit Mode vs Preview Mode
   const [viewMode, setViewMode] = useState<"edit" | "preview">("edit");
+  const [customization, setCustomization] = useState<InvoiceCustomization>(DEFAULT_INVOICE_CUSTOMIZATION);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setCustomization(loadInvoiceCustomization());
+    }
+  }, []);
 
   // Form Fields
   const [invoiceNumber, setInvoiceNumber] = useState("1");
@@ -921,7 +933,7 @@ export default function CreateProformaInvoicePage() {
                         {currentCompany?.bankName || "State Bank of India"}
                       </strong>
                       <div className="text-[11px] font-mono">
-                        A/C: {currentCompany?.bankAccountNumber || "382901298471"} | IFSC:{" "}
+                        A/C: {currentCompany?.bankAccountNo || "382901298471"} | IFSC:{" "}
                         {currentCompany?.bankIfsc || "SBIN0001234"}
                       </div>
                     </div>
@@ -951,7 +963,7 @@ export default function CreateProformaInvoicePage() {
                       <div>
                         <strong className="text-slate-800">Dynamic UPI QR</strong>
                         <div className="text-[11px] text-slate-500">
-                          UPI ID: {currentCompany?.upiId || "business@upi"}
+                          UPI ID: {currentCompany?.upiVpa || "business@upi"}
                         </div>
                       </div>
                     </div>
@@ -1330,33 +1342,43 @@ export default function CreateProformaInvoicePage() {
       <InvoiceLivePreviewModal
         isOpen={viewMode === "preview"}
         onClose={() => setViewMode("edit")}
-        data={{
+        customization={customization}
+        lang={lang}
+        invoiceData={{
+          category: "PROFORMA_INVOICE",
           invoiceNumber,
           invoiceDate,
-          dueDate: showDueDate ? dueDate : undefined,
-          party: selectedParty,
+          paymentMode: "PROFORMA / ESTIMATE",
+          placeOfSupply: placeOfSupply ? `State Code (${placeOfSupply})` : "Gujarat (24)",
+          partyName: selectedParty?.name || "Cash / Direct Customer",
+          partyGstin: selectedParty?.gstin,
+          partyPhone: selectedParty?.phone,
+          partyAddress:
+            selectedParty?.address ||
+            (selectedParty?.billingAddress
+              ? `${selectedParty.billingAddress.line1 || ""}, ${selectedParty.billingAddress.city || ""}`
+              : undefined),
+          companyName: currentCompany?.tradeName || currentCompany?.legalName || "MyBill History",
+          companyGstin: currentCompany?.gstin || "24AAAAA0000A1Z5",
+          companyState: currentCompany?.stateCode ? `State Code (${currentCompany.stateCode})` : "Gujarat (24)",
+          notes,
+          termsAndConditions: terms,
           items: rows.map((r) => ({
-            id: r.id,
-            description: r.itemName,
+            name: r.itemName || "Product / Item",
             hsnCode: r.hsnCode,
             quantity: Number(r.quantity) || 1,
             unitPrice: Number(r.unitPrice) || 0,
             discountPercent: Number(r.discountPercent) || 0,
             taxRate: r.taxRate,
-            totalAmount: (Number(r.quantity) || 1) * (Number(r.unitPrice) || 0),
           })),
-          subtotal: totalTaxable,
-          totalDiscount,
-          taxBreakup: { cgst: totalCgst, sgst: totalSgst, igst: totalIgst },
-          totalTax,
-          additionalCharges: addCharges,
-          overallDiscount: overallDisc,
-          grandTotal,
-          balanceAmount,
-          notes,
-          termsAndConditions: terms,
-          signatureUrl: signatureData || undefined,
-          category: "PROFORMA_INVOICE",
+          totalTaxable,
+          totalCgst,
+          totalSgst,
+          totalIgst,
+          roundOff: autoRoundOff ? grandTotal - rawSubtotal : 0,
+          roundedGrandTotal: grandTotal,
+          isTaxInclusive: false,
+          isInterState,
         }}
       />
     </div>

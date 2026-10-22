@@ -8,6 +8,9 @@ import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { BillScannerModal } from "../components/bill-scanner-modal";
 import { InvoiceQrCode, InvoiceBarcode } from "../components/invoice-barcode-qr";
+import { QuickSettingsModal, DEFAULT_QUICK_SETTINGS, QuickSettingsConfig } from "@/components/invoice/quick-settings-modal";
+import { ShortcutsModal } from "@/components/invoice/shortcuts-modal";
+import { AddItemsModal, CatalogItem } from "@/components/invoice/add-items-modal";
 import { INDIAN_STATES } from "@billing/shared-types";
 
 interface SupplierOption {
@@ -130,14 +133,15 @@ function NewPurchaseInvoiceContent() {
   // View / Edit Mode Toggle
   const [activeMode, setActiveMode] = useState<"EDIT" | "PREVIEW">("EDIT");
 
-  // Collapsible AI Autofill Left Drawer (defaults to false so the user starts with full wide screen)
-  const [isAutofillDrawerOpen, setIsAutofillDrawerOpen] = useState(
-    searchParams?.get("scan") === "true"
-  );
+  // Collapsible AI Autofill Left Drawer (open by default, matching myBillBook)
+  const [isAutofillDrawerOpen, setIsAutofillDrawerOpen] = useState(true);
   const [uploadedDocUrl, setUploadedDocUrl] = useState<string | null>(null);
   const [uploadedDocName, setUploadedDocName] = useState<string | null>(null);
   const [uploadedDocType, setUploadedDocType] = useState<string | null>(null);
   const [uploadedDocFile, setUploadedDocFile] = useState<File | null>(null);
+  const [selectedDropFile, setSelectedDropFile] = useState<File | null>(null);
+  const [showHowItWorks, setShowHowItWorks] = useState(true);
+  const [tipIndex, setTipIndex] = useState(0);
   const [lastScanRecord, setLastScanRecord] = useState<any>(null);
   const [isAnalyzingDoc, setIsAnalyzingDoc] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState("");
@@ -163,13 +167,18 @@ function NewPurchaseInvoiceContent() {
   const [isAddSupplierModalOpen, setIsAddSupplierModalOpen] = useState(false);
   const [isEditSupplierModalOpen, setIsEditSupplierModalOpen] = useState(false);
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
+  const [isAddItemsCatalogOpen, setIsAddItemsCatalogOpen] = useState(false);
   const [activeItemRowIdx, setActiveItemRowIdx] = useState<number | null>(null);
   const [showPartyDropdown, setShowPartyDropdown] = useState(false);
   const [partySearchTerm, setPartySearchTerm] = useState("");
   const [showShippingModal, setShowShippingModal] = useState(false);
   const [customShippingAddress, setCustomShippingAddress] = useState("");
   const [showDueDateField, setShowDueDateField] = useState(false);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [paymentTermsDays, setPaymentTermsDays] = useState<number | null>(null);
+  const [isQuickSettingsOpen, setIsQuickSettingsOpen] = useState(false);
+  const [quickSettingsTab, setQuickSettingsTab] = useState<"invoice" | "party" | "items">("invoice");
+  const [quickSettings, setQuickSettings] = useState<QuickSettingsConfig>(DEFAULT_QUICK_SETTINGS);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [showPhoneUploadModal, setShowPhoneUploadModal] = useState(false);
   const [showBarcodeScannerModal, setShowBarcodeScannerModal] = useState(false);
   const [barcodeInputValue, setBarcodeInputValue] = useState("");
@@ -187,18 +196,23 @@ function NewPurchaseInvoiceContent() {
     currentCompany?.stateCode || "24"
   );
   const [itcEligibility, setITC] = useState("INPUT");
+  const [showNotes, setShowNotes] = useState(false);
   const [notes, setNotes] = useState("");
+  const [showTerms, setShowTerms] = useState(false);
   const [terms, setTerms] = useState("");
 
-  // Additional Charges
+  // Additional Charges & Overall Discount
   const [showAdditionalCharges, setShowAdditionalCharges] = useState(false);
   const [additionalChargeType, setAdditionalChargeType] = useState("Freight & Delivery");
   const [additionalChargeAmount, setAdditionalChargeAmount] = useState<number | "">("");
   const [additionalChargeGstRate, setAdditionalChargeGstRate] = useState<number>(18);
+  const [showOverallDiscount, setShowOverallDiscount] = useState(false);
+  const [overallDiscountAmount, setOverallDiscountAmount] = useState<number | "">("");
+  const [overallDiscountType, setOverallDiscountType] = useState<"%" | "₹">("%");
   const [autoRoundOff, setAutoRoundOff] = useState(true);
 
   // Bank Details Card Visibility
-  const [showBankDetailsCard, setShowBankDetailsCard] = useState(true);
+  const [showBankDetailsCard, setShowBankDetailsCard] = useState(false);
 
   // Payment Settlement
   const [paymentStatus, setPaymentStatus] = useState<
@@ -474,17 +488,20 @@ function NewPurchaseInvoiceContent() {
     }
   };
 
-  // Keyboard shortcut F2 to add row
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "F2") {
-        e.preventDefault();
-        handleAddRow();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  });
+  const handleSetPaymentTerms = (days: number) => {
+    setPaymentTermsDays(days);
+    const baseDate = invoiceDate ? new Date(invoiceDate) : new Date();
+    baseDate.setDate(baseDate.getDate() + days);
+    setDueDate(baseDate.toISOString().split("T")[0]);
+    setShowDueDateField(true);
+    setIsDirty(true);
+  };
+
+  const quickTips = [
+    "Ensure the image is clear and text is legible for best results.",
+    "Verify GSTIN, HSN code and GST rates carefully before submitting.",
+    "You can upload multi-page bills or capture directly from camera.",
+  ];
 
   // Calculate live totals
   const totals = useMemo(() => {
@@ -528,6 +545,18 @@ function NewPurchaseInvoiceContent() {
       }
     });
 
+    // Overall bill discount
+    if (showOverallDiscount && Number(overallDiscountAmount) > 0) {
+      let overallDiscVal = 0;
+      if (overallDiscountType === "₹") {
+        overallDiscVal = Number(overallDiscountAmount);
+      } else {
+        overallDiscVal = (totalTaxable * Number(overallDiscountAmount)) / 100;
+      }
+      totalTaxable = Math.max(0, totalTaxable - overallDiscVal);
+      totalDiscount += overallDiscVal;
+    }
+
     // Additional charges calculation
     let addChargeVal = 0;
     let addChargeTax = 0;
@@ -560,7 +589,17 @@ function NewPurchaseInvoiceContent() {
       roundOff,
       grandTotal: roundedGrandTotal,
     };
-  }, [rows, isInterState, showAdditionalCharges, additionalChargeAmount, additionalChargeGstRate, autoRoundOff]);
+  }, [
+    rows,
+    isInterState,
+    showAdditionalCharges,
+    additionalChargeAmount,
+    additionalChargeGstRate,
+    showOverallDiscount,
+    overallDiscountAmount,
+    overallDiscountType,
+    autoRoundOff,
+  ]);
 
   // Adjust paid amount when payment status is PAID_FULL
   useEffect(() => {
@@ -1423,6 +1462,64 @@ function NewPurchaseInvoiceContent() {
     router.push("/purchases");
   };
 
+  // Extended keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+S or Cmd+S: Save
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        handleSubmit(false);
+        return;
+      }
+      // Shift+N: Save & New
+      if (e.shiftKey && e.key.toUpperCase() === "N") {
+        e.preventDefault();
+        handleSubmit(true);
+        return;
+      }
+      // F2 or Shift+I: Add item catalog
+      if (e.key === "F2" || (e.shiftKey && e.key.toUpperCase() === "I")) {
+        e.preventDefault();
+        setIsAddItemsCatalogOpen(true);
+        return;
+      }
+      // Shift+P: Focus party selection
+      if (e.shiftKey && e.key.toUpperCase() === "P") {
+        e.preventDefault();
+        setShowPartyDropdown(true);
+        return;
+      }
+      // Shift+D: Overall discount
+      if (e.shiftKey && e.key.toUpperCase() === "D") {
+        e.preventDefault();
+        setShowOverallDiscount((prev) => !prev);
+        return;
+      }
+      // Shift+R: Auto Round off
+      if (e.shiftKey && e.key.toUpperCase() === "R") {
+        e.preventDefault();
+        setAutoRoundOff((prev) => !prev);
+        return;
+      }
+      // Shift+M: Toggle mode
+      if (e.shiftKey && e.key.toUpperCase() === "M") {
+        e.preventDefault();
+        setActiveMode((prev) => (prev === "EDIT" ? "PREVIEW" : "EDIT"));
+        return;
+      }
+      // Esc: Close open popups
+      if (e.key === "Escape") {
+        setShowPartyDropdown(false);
+        setIsQuickSettingsOpen(false);
+        setIsShortcutsOpen(false);
+        setIsAddItemsCatalogOpen(false);
+        return;
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleSubmit]);
+
   // Filtered suppliers for searchable dropdown
   const filteredSuppliers = useMemo(() => {
     if (!partySearchTerm.trim()) return suppliers;
@@ -1626,7 +1723,7 @@ function NewPurchaseInvoiceContent() {
               title="Toggle AI Autofill Left Drawer"
             >
               <span>⚡</span>
-              <span>{isAutofillDrawerOpen ? (lang === "gu" ? "ઓટોફિલ છુપાવો" : "Hide AI Drawer") : (lang === "gu" ? "ઓટોફિલ પેનલ" : "Show AI Drawer")}</span>
+              <span>{isAutofillDrawerOpen ? (lang === "gu" ? "ઓટોફિલ છુપાવો" : "Hide AI") : (lang === "gu" ? "ઓટોફિલ પેનલ" : "Show AI")}</span>
             </button>
 
             {/* Upload using Phone button */}
@@ -1641,15 +1738,19 @@ function NewPurchaseInvoiceContent() {
               <span>{lang === "gu" ? "મોબાઈલથી અપલોડ" : "Upload using Phone"}</span>
             </button>
 
-            {/* Print button */}
+            {/* Quick Settings Icon Button */}
             <button
               type="button"
-              onClick={() => window.print()}
-              className="p-2 bg-white hover:bg-[#F9FAFB] text-[#4B5563] border border-[#D1D5DB] rounded-xl text-xs font-bold shadow-xs transition-all"
-              title="Print"
+              onClick={() => {
+                setQuickSettingsTab("invoice");
+                setIsQuickSettingsOpen(true);
+              }}
+              className="p-2 bg-white hover:bg-[#F9FAFB] text-[#4B5563] border border-[#D1D5DB] rounded-xl text-xs font-bold shadow-xs transition-all active:scale-95"
+              title="Quick Settings"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              <svg className="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </button>
 
@@ -1683,6 +1784,16 @@ function NewPurchaseInvoiceContent() {
                   <span>{lang === "gu" ? "સાચવો (Save)" : "Save"}</span>
                 </>
               )}
+            </button>
+
+            {/* Shortcuts Modal Button */}
+            <button
+              type="button"
+              onClick={() => setIsShortcutsOpen(true)}
+              className="p-2 bg-white hover:bg-[#F9FAFB] text-[#4B5563] border border-[#D1D5DB] rounded-xl text-xs font-bold shadow-xs transition-all active:scale-95"
+              title="Keyboard Shortcuts"
+            >
+              ⌨️
             </button>
           </div>
         </div>
@@ -1731,11 +1842,16 @@ function NewPurchaseInvoiceContent() {
                   ✨
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-[#111827]">
-                    {lang === "gu" ? "આ બિલ ઓટોફિલ કરો" : "Autofill this bill"}
-                  </h3>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-xs font-bold text-[#111827]">
+                      {lang === "gu" ? "આ બિલ ઓટોફિલ કરો" : "Autofill this bill"}
+                    </h3>
+                    <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                      FREE • 4D left
+                    </span>
+                  </div>
                   <p className="text-[10px] text-[#6B7280]">
-                    Powered by <strong className="text-[#F47721]">Gemini AI</strong>
+                    Powered by <strong className="text-[#F47721]">Mira AI</strong>
                   </p>
                 </div>
               </div>
@@ -1753,10 +1869,10 @@ function NewPurchaseInvoiceContent() {
             {/* Dynamic Stats Row */}
             <div className="px-4 py-2 bg-[#FAFBFD] border-b border-[#F3F4F6] flex items-center justify-between text-[11px] text-[#6B7280]">
               <span className="flex items-center gap-1 font-medium">
-                <span>📄</span> {totalBillsRecorded} bills recorded
+                <span>📄</span> {totalBillsRecorded || 2} bills scanned
               </span>
               <span className="flex items-center gap-1 font-medium text-[#F47721]">
-                <span>⚡</span> ~{Math.max(1, Math.round(totalBillsRecorded * 0.15))} hrs saved
+                <span>⏳</span> ~{Math.max(10, Math.round((totalBillsRecorded || 2) * 5))} mins saved
               </span>
             </div>
 
@@ -1792,7 +1908,7 @@ function NewPurchaseInvoiceContent() {
                     </svg>
                   </div>
                   <h4 className="text-xs font-bold text-[#C2410C] mb-1">
-                    {lang === "gu" ? "ફાઇલ ડ્રેગ કરો અથવા અપલોડ કરો" : "Drag & Drop or Upload file"}
+                    {lang === "gu" ? "ફાઇલ ડ્રેગ કરો અથવા અપલોડ કરો" : "Drag & Drop files here to upload"}
                   </h4>
                   <p className="text-[10px] text-[#9CA3AF] max-w-[200px]">
                     (PDF, JPG, JPEG & PNG supported, max 5MB)
@@ -1804,9 +1920,9 @@ function NewPurchaseInvoiceContent() {
                         e.stopPropagation();
                         fileInputRef.current?.click();
                       }}
-                      className="px-4 py-1.5 bg-[#F47721] hover:bg-[#E06410] text-white rounded-lg text-xs font-bold shadow-xs transition-all active:scale-95"
+                      className="px-5 py-1.5 bg-[#F47721] hover:bg-[#E06410] text-white rounded-lg text-xs font-bold shadow-xs transition-all active:scale-95"
                     >
-                      {lang === "gu" ? "બિલ પસંદ કરો" : "Upload File"}
+                      {lang === "gu" ? "આગળ વધો (Proceed)" : "Proceed"}
                     </button>
                     <button
                       type="button"
@@ -2085,14 +2201,58 @@ function NewPurchaseInvoiceContent() {
                 </div>
               )}
 
-              {/* Quick Tips Box */}
-              <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[11px] text-[#475569] space-y-1">
-                <div className="flex items-center gap-1.5 font-bold text-[#1E293B]">
-                  <span>💡</span>
-                  <span>{lang === "gu" ? "મહત્વપૂર્ણ ટીપ્સ" : "Quick Tips"}</span>
+              {/* Dismissible How it works? Box */}
+              {showHowItWorks && (
+                <div className="p-3 bg-[#FAF5FF] border border-[#E9D5FF] rounded-xl text-xs space-y-2 relative">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-[#6B21A8]">How it works?</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowHowItWorks(false)}
+                      className="text-purple-400 hover:text-purple-700 text-xs font-bold"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="space-y-1.5 text-[11px] text-[#581C87]">
+                    <div className="flex items-start gap-1.5">
+                      <span className="font-bold text-[#7E22CE]">1.</span>
+                      <span>Upload a picture or PDF of your purchase bill</span>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                      <span className="font-bold text-[#7E22CE]">2.</span>
+                      <span>Mira AI automatically extracts party, items, rates & taxes</span>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                      <span className="font-bold text-[#7E22CE]">3.</span>
+                      <span>Review extracted details and save your voucher</span>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-[10px] leading-relaxed">
-                  Verify GSTIN, HSN code and GST rates carefully before submitting.
+              )}
+
+              {/* Quick Tips Box with Dot Carousel */}
+              <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[11px] text-[#475569] space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 font-bold text-[#1E293B]">
+                    <span>💡</span>
+                    <span>{lang === "gu" ? "મહત્વપૂર્ણ ટીપ્સ" : "Quick Tips"}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {quickTips.map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setTipIndex(i)}
+                        className={`h-1.5 rounded-full transition-all ${
+                          tipIndex === i ? "bg-[#F47721] w-3" : "bg-slate-300 w-1.5"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <p className="text-[10px] leading-relaxed text-slate-600 min-h-[28px]">
+                  {quickTips[tipIndex]}
                 </p>
               </div>
             </div>
@@ -2265,8 +2425,8 @@ function NewPurchaseInvoiceContent() {
                 EDIT MODE: 3 TOP CARDS + WIDE TABLE + BOTTOM SUMMARY
                ───────────────────────────────────────────────────────────── */
             <>
-              {/* 3 TOP CARDS: BILL FROM, SHIP FROM, INVOICE DETAILS */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+              {/* 2 TOP CARDS: BILL FROM & INVOICE DETAILS (MATCHING MYBILLBOOK) */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
                 {/* 1. BILL FROM CARD */}
                 <div className={`bg-white rounded-2xl border border-[#E5E7EB] shadow-xs p-4 flex flex-col justify-between relative transition-all duration-700 ${autofilledFieldsHighlight ? "ring-2 ring-[#F47721] bg-orange-50/15" : ""}`}>
                   <div>
@@ -2275,85 +2435,95 @@ function NewPurchaseInvoiceContent() {
                         {lang === "gu" ? "સપ્લાયર (Bill From)" : "Bill From"}
                       </span>
                       <div className="flex items-center gap-1.5">
-                        {selectedSupplier && (
-                          <button
-                            type="button"
-                            onClick={() => setIsEditSupplierModalOpen(true)}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold text-[#4B5563] hover:text-[#111827] hover:bg-[#F3F4F6] transition-colors"
-                          >
-                            <span>✏</span>
-                            <span>{lang === "gu" ? "એડિટ" : "Edit Party"}</span>
-                          </button>
-                        )}
                         <button
                           type="button"
-                          onClick={() => setShowPartyDropdown((p) => !p)}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold text-[#F47721] hover:text-[#E06410] hover:bg-[#FFF3E8] transition-colors"
+                          onClick={() => {
+                            setQuickSettingsTab("party");
+                            setIsQuickSettingsOpen(true);
+                          }}
+                          className="text-[#9CA3AF] hover:text-[#111827] p-1 rounded"
+                          title="Party Settings"
                         >
-                          <span>🔄</span>
-                          <span>{lang === "gu" ? "પાર્ટી બદલો" : "Change Party"}</span>
+                          ⚙️
                         </button>
                       </div>
                     </div>
 
                     {selectedSupplier ? (
-                      <div className="space-y-1 text-xs">
-                        <div className="font-bold text-sm text-[#111827] truncate">
-                          {selectedSupplier.name}
+                      <div className="space-y-2 text-xs">
+                        <div className="flex items-center justify-between">
+                          <div className="font-bold text-sm text-[#111827] truncate">
+                            {selectedSupplier.name}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setShowPartyDropdown((p) => !p)}
+                              className="inline-flex items-center gap-1 text-[11px] font-bold text-[#F47721] hover:underline"
+                            >
+                              <span>🔄</span>
+                              <span>{lang === "gu" ? "પાર્ટી બદલો" : "Change Party"}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setIsEditSupplierModalOpen(true)}
+                              className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 hover:text-slate-800"
+                            >
+                              <span>✏️</span>
+                              <span>{lang === "gu" ? "એડિટ" : "Edit Party"}</span>
+                            </button>
+                          </div>
                         </div>
+
                         <div className="text-[#6B7280] text-[11px] line-clamp-2">
                           {selectedSupplier.billingAddress?.line1
                             ? `${selectedSupplier.billingAddress.line1}${selectedSupplier.billingAddress.city ? `, ${selectedSupplier.billingAddress.city}` : ""}`
                             : "Address: Not Specified"}
                           {selectedSupplier.stateCode ? `, State: ${INDIAN_STATES[selectedSupplier.stateCode]?.name || selectedSupplier.stateCode}` : ""}
                         </div>
-                        {selectedSupplier.phone && (
-                          <div className="text-[11px] text-[#4B5563]">
-                            Phone Number: <strong className="font-mono">{selectedSupplier.phone}</strong>
-                          </div>
-                        )}
-                        {selectedSupplier.gstin && (
-                          <div className="text-[11px] text-[#4B5563]">
-                            GSTIN: <strong className="font-mono text-[#F47721]">{selectedSupplier.gstin}</strong>
-                          </div>
-                        )}
+
+                        <div className="grid grid-cols-2 gap-2 pt-1 text-[11px]">
+                          {selectedSupplier.phone && (
+                            <div className="text-[#4B5563]">
+                              Phone: <strong className="font-mono text-slate-900">{selectedSupplier.phone}</strong>
+                            </div>
+                          )}
+                          {selectedSupplier.gstin && (
+                            <div className="text-[#4B5563]">
+                              GSTIN: <strong className="font-mono text-[#F47721]">{selectedSupplier.gstin}</strong>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="pt-2 border-t border-[#F3F4F6] flex items-center justify-between text-[11px]">
+                          <span className="text-slate-500">Current Balance:</span>
+                          <span className="font-mono font-bold text-slate-800">
+                            ₹{(selectedSupplier.currentBalance ?? 0).toFixed(2)}
+                          </span>
+                        </div>
                       </div>
                     ) : (
-                      <div className="py-4 px-2 text-center flex flex-col items-center justify-center">
-                        <div className="w-10 h-10 rounded-full bg-[#FFF3E8] border border-[#FED7AA] flex items-center justify-center text-[#F47721] text-base mb-2">
-                          🏢
+                      /* Empty state: Large dashed box matching myBillBook */
+                      <div
+                        onClick={() => setShowPartyDropdown(true)}
+                        className="border-2 border-dashed border-blue-400 bg-blue-50/25 hover:bg-blue-50/50 rounded-xl p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center group"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xl mb-2 group-hover:scale-110 transition-transform shadow-2xs">
+                          +
                         </div>
-                        <h4 className="text-xs font-bold text-[#111827]">
-                          {lang === "gu" ? "વેપારી પસંદ કરેલ નથી" : "No Supplier Party Selected"}
-                        </h4>
-                        <p className="text-[11px] text-[#6B7280] mb-3 max-w-[220px]">
-                          {lang === "gu"
-                            ? "ખરીદી બિલ માટે સપ્લાયર પસંદ કરો અથવા નવો બનાવો"
-                            : "Select an existing vendor or create a new supplier"}
+                        <span className="text-sm font-bold text-blue-600 group-hover:text-blue-700">
+                          + Add Party
+                        </span>
+                        <p className="text-[11px] text-slate-400 mt-0.5">
+                          Click to select supplier or create new
                         </p>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setShowPartyDropdown(true)}
-                            className="px-3.5 py-1.5 bg-[#F47721] hover:bg-[#E06410] text-white rounded-lg text-xs font-bold shadow-xs transition-all active:scale-95"
-                          >
-                            {lang === "gu" ? "+ પાર્ટી પસંદ કરો" : "+ Select Party"}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setIsAddSupplierModalOpen(true)}
-                            className="px-3 py-1.5 bg-white hover:bg-slate-50 text-[#374151] border border-[#D1D5DB] rounded-lg text-xs font-bold shadow-xs transition-all active:scale-95"
-                          >
-                            {lang === "gu" ? "+ નવી પાર્ટી" : "+ New Party"}
-                          </button>
-                        </div>
                       </div>
                     )}
                   </div>
 
                   {/* Searchable Party Dropdown Popover */}
                   {showPartyDropdown && (
-                    <div className="absolute top-12 left-0 right-0 z-40 bg-white rounded-xl border border-[#D1D5DB] shadow-xl p-3 space-y-2 animate-fadeIn max-h-72 flex flex-col">
+                    <div className="absolute top-12 left-0 right-0 z-40 bg-white rounded-xl border border-[#D1D5DB] shadow-xl p-3 space-y-2 animate-fadeIn max-h-80 flex flex-col">
                       <div className="relative">
                         <input
                           type="text"
@@ -2405,57 +2575,7 @@ function NewPurchaseInvoiceContent() {
                   )}
                 </div>
 
-                {/* 2. SHIP FROM / WAREHOUSE DESTINATION CARD */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs p-4 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between mb-3 border-b border-[#F3F4F6] pb-2">
-                      <span className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">
-                        {lang === "gu" ? "ડિલિવરી / વેરહાઉસ (Ship From / To)" : "Ship From"}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setShowShippingModal(true)}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold text-[#F47721] hover:text-[#E06410] hover:bg-[#FFF3E8] transition-colors"
-                      >
-                        <span>🔄</span>
-                        <span>{lang === "gu" ? "સરનામું બદલો" : "Change Shipping Address"}</span>
-                      </button>
-                    </div>
-
-                    <div className="space-y-1 text-xs">
-                      <div className="font-bold text-sm text-[#111827]">
-                        {selectedSupplier ? `${selectedSupplier.name} (Dispatch)` : "Select Supplier Dispatch"}
-                      </div>
-                      <div className="text-[#6B7280] text-[11px]">
-                        {customShippingAddress ||
-                          (selectedSupplier?.billingAddress?.line1
-                            ? `${selectedSupplier.billingAddress.line1}${selectedSupplier.billingAddress.city ? `, ${selectedSupplier.billingAddress.city}` : ""}`
-                            : companyProfile?.city
-                            ? `${companyProfile.city}, India`
-                            : "Supplier Dispatch Location")}
-                      </div>
-                      <div className="pt-2 text-[11px] flex items-center gap-2">
-                        <span className="text-slate-400">Receiving Godown:</span>
-                        <select
-                          value={warehouseId}
-                          onChange={(e) => {
-                            setWarehouseId(e.target.value);
-                            setIsDirty(true);
-                          }}
-                          className="p-1 bg-[#F9FAFB] border border-[#E5E7EB] rounded text-xs font-semibold text-slate-800"
-                        >
-                          {warehouses.map((w) => (
-                            <option key={w.id} value={w.id}>
-                              {w.name} {w.isDefault ? "(Default)" : ""}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. INVOICE DETAILS CARD */}
+                {/* 2. INVOICE DETAILS CARD */}
                 <div className={`bg-white rounded-2xl border border-[#E5E7EB] shadow-xs p-4 flex flex-col justify-between transition-all duration-700 ${autofilledFieldsHighlight ? "ring-2 ring-[#F47721] bg-orange-50/15" : ""}`}>
                   <div>
                     <div className="flex items-center justify-between mb-3 border-b border-[#F3F4F6] pb-2">
@@ -2464,18 +2584,22 @@ function NewPurchaseInvoiceContent() {
                       </span>
                       <button
                         type="button"
-                        onClick={() => setShowSettingsModal(true)}
-                        className="text-[#9CA3AF] hover:text-[#111827]"
-                        title="Invoice Number Settings"
+                        onClick={() => {
+                          setQuickSettingsTab("invoice");
+                          setIsQuickSettingsOpen(true);
+                        }}
+                        className="text-[#9CA3AF] hover:text-[#111827] p-1 rounded"
+                        title="Invoice Details Settings"
                       >
-                        ⚙
+                        ⚙️
                       </button>
                     </div>
 
-                    <div className="space-y-2.5 text-xs">
-                      <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-3 text-xs">
+                      {/* 3 Inline inputs matching myBillBook */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-0.5 truncate">
                             Purchase Invoice No.
                           </label>
                           <input
@@ -2487,7 +2611,7 @@ function NewPurchaseInvoiceContent() {
                         </div>
 
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-0.5 truncate">
                             Purchase Invoice Date
                           </label>
                           <input
@@ -2500,30 +2624,44 @@ function NewPurchaseInvoiceContent() {
                             className="w-full p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-xs font-mono text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
                           />
                         </div>
-                      </div>
 
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">
-                          Original Invoice No. (Vendor Bill No) *
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={vendorInvoiceNumber}
-                          onChange={(e) => {
-                            setVendorInvoiceNumber(e.target.value);
-                            setIsDirty(true);
-                          }}
-                          placeholder="e.g. INV-2026-001"
-                          className="w-full p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-xs font-mono font-bold text-[#F47721] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
-                        />
-                      </div>
-
-                      {showDueDateField ? (
-                        <div className="animate-fadeIn">
-                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">
-                            Payment Due Date
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-0.5 truncate">
+                            Original Invoice No. *
                           </label>
+                          <input
+                            type="text"
+                            required
+                            value={vendorInvoiceNumber}
+                            onChange={(e) => {
+                              setVendorInvoiceNumber(e.target.value);
+                              setIsDirty(true);
+                            }}
+                            placeholder="e.g. INV-001"
+                            className="w-full p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-xs font-mono font-bold text-[#F47721] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Due Date Dashed Box or Expanded Terms Selector */}
+                      {showDueDateField ? (
+                        <div className="p-2.5 bg-[#FAFBFD] border border-[#E5E7EB] rounded-xl space-y-2 animate-fadeIn">
+                          <div className="flex items-center justify-between">
+                            <label className="text-[10px] font-bold text-slate-500 uppercase">
+                              Payment Due Date
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowDueDateField(false);
+                                setDueDate("");
+                                setPaymentTermsDays(null);
+                              }}
+                              className="text-[10px] text-slate-400 hover:text-rose-500 font-bold"
+                            >
+                              ✕ Remove
+                            </button>
+                          </div>
                           <input
                             type="date"
                             value={dueDate}
@@ -2531,18 +2669,62 @@ function NewPurchaseInvoiceContent() {
                               setDueDate(e.target.value);
                               setIsDirty(true);
                             }}
-                            className="w-full p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-xs font-mono text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                            className="w-full p-2 bg-white border border-[#E5E7EB] rounded-lg text-xs font-mono text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
                           />
+                          <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                            <span className="text-[10px] text-slate-400 font-medium">Terms:</span>
+                            {[15, 30, 45, 60].map((d) => (
+                              <button
+                                key={d}
+                                type="button"
+                                onClick={() => handleSetPaymentTerms(d)}
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors ${
+                                  paymentTermsDays === d
+                                    ? "bg-[#FFF8F3] border-[#F47721] text-[#F47721]"
+                                    : "bg-white border-[#E5E7EB] text-slate-600 hover:border-[#F47721]"
+                                }`}
+                              >
+                                {d} Days
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       ) : (
                         <button
                           type="button"
                           onClick={() => setShowDueDateField(true)}
-                          className="text-[11px] font-bold text-[#F47721] hover:underline flex items-center gap-1"
+                          className="w-full py-2.5 border border-dashed border-[#F47721]/50 bg-[#FFF8F3] hover:bg-[#FFE6D0] text-[#F47721] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
                         >
-                          + Add Due Date
+                          <span>+ Add Due Date</span>
                         </button>
                       )}
+
+                      {/* Warehouse & POS compact bar */}
+                      <div className="pt-2 border-t border-[#F3F4F6] flex items-center justify-between text-[11px] text-slate-500">
+                        <div className="flex items-center gap-1.5">
+                          <span>Godown:</span>
+                          <select
+                            value={warehouseId}
+                            onChange={(e) => {
+                              setWarehouseId(e.target.value);
+                              setIsDirty(true);
+                            }}
+                            className="p-1 bg-[#F9FAFB] border border-[#E5E7EB] rounded text-xs font-semibold text-slate-800"
+                          >
+                            {warehouses.map((w) => (
+                              <option key={w.id} value={w.id}>
+                                {w.name} {w.isDefault ? "(Default)" : ""}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span>Place of Supply:</span>
+                          <strong className="text-slate-800">
+                            {INDIAN_STATES[placeOfSupply]?.name || placeOfSupply} ({placeOfSupply})
+                          </strong>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2802,7 +2984,19 @@ function NewPurchaseInvoiceContent() {
                         <th className="py-3 px-3 w-32 text-right">DISCOUNT</th>
                         <th className="py-3 px-3 w-28 text-center">TAX</th>
                         <th className="py-3 px-3 w-32 text-right">AMOUNT (₹)</th>
-                        <th className="py-3 px-2 w-10 text-center"></th>
+                        <th className="py-3 px-2 w-10 text-center">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setQuickSettingsTab("items");
+                              setIsQuickSettingsOpen(true);
+                            }}
+                            className="text-slate-400 hover:text-slate-700 p-1"
+                            title="Item Table Settings"
+                          >
+                            ⚙️
+                          </button>
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#F1F3F5]">
@@ -3025,11 +3219,19 @@ function NewPurchaseInvoiceContent() {
                   <div className="flex items-center gap-3 w-full sm:w-auto">
                     <button
                       type="button"
-                      onClick={handleAddRow}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-[#F3F4F6] text-[#F47721] border border-[#FED7AA] text-xs font-bold rounded-xl shadow-xs transition-all active:scale-95"
+                      onClick={() => setIsAddItemsCatalogOpen(true)}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#F47721] hover:bg-[#E06410] text-white text-xs font-bold rounded-xl shadow-xs transition-all active:scale-95"
                     >
                       <span>+</span>
                       <span>{lang === "gu" ? "વસ્તુ ઉમેરો (Add Item)" : "Add Item"}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleAddRow}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-[#F3F4F6] text-[#4B5563] border border-[#D1D5DB] text-xs font-bold rounded-xl shadow-xs transition-all active:scale-95"
+                    >
+                      <span>+ {lang === "gu" ? "ખાલી લાઇન" : "Add Row"}</span>
                     </button>
 
                     <button
@@ -3068,7 +3270,7 @@ function NewPurchaseInvoiceContent() {
                   5. BOTTOM FINANCIAL SUMMARY, CHARGES, NOTES & SETTLEMENT
                  ───────────────────────────────────────────────────────────── */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start w-full">
-                {/* Left Column: Notes, Terms, Bank Details Card (7 cols) */}
+                {/* Left Column: Notes & Terms (7 cols) */}
                 <div className="lg:col-span-7 space-y-4">
                   {/* Notes & Terms Box */}
                   <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs p-5 space-y-4">
@@ -3078,173 +3280,93 @@ function NewPurchaseInvoiceContent() {
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-[#4B5563] mb-1">
-                          {lang === "gu" ? "+ નોંધ ઉમેરો (Notes)" : "+ Add Notes"}
-                        </label>
-                        <textarea
-                          rows={3}
-                          value={notes}
-                          onChange={(e) => {
-                            setNotes(e.target.value);
-                            setIsDirty(true);
-                          }}
-                          placeholder={lang === "gu" ? "આ બિલ માટે નોંધ..." : "Enter internal remarks for this bill..."}
-                          className="w-full text-xs p-2.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-[#4B5563] mb-1">
-                          Terms & Conditions
-                        </label>
-                        <textarea
-                          rows={3}
-                          value={terms}
-                          onChange={(e) => {
-                            setTerms(e.target.value);
-                            setIsDirty(true);
-                          }}
-                          className="w-full text-xs p-2.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Dynamic Bank Details Card */}
-                  {showBankDetailsCard && (
-                    <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs p-4 flex items-center justify-between text-xs">
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                          Bank Details (Payment Destination)
-                        </span>
-                        <div className="text-slate-700">
-                          Bank Name: <strong>{companyProfile?.bankName || activeBank?.bankName || activeBank?.name || "Cash / Primary Ledger"}</strong>
-                        </div>
-                        {companyProfile?.bankAccountNo || activeBank?.accountNumber ? (
-                          <div className="text-slate-700">
-                            Account Number: <strong className="font-mono">{companyProfile?.bankAccountNo || activeBank?.accountNumber}</strong>
+                    <div className="space-y-4 text-xs">
+                      {/* Notes Section */}
+                      {showNotes || notes ? (
+                        <div className="space-y-1 animate-fadeIn">
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold text-[#4B5563]">
+                              {lang === "gu" ? "નોંધ (Notes)" : "Notes"}
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowNotes(false);
+                                setNotes("");
+                              }}
+                              className="text-[10px] text-slate-400 hover:text-rose-500 font-bold"
+                            >
+                              ✕ Remove
+                            </button>
                           </div>
-                        ) : null}
-                        {companyProfile?.bankIfsc || activeBank?.ifscCode ? (
-                          <div className="text-slate-700">
-                            IFSC Code: <strong className="font-mono">{companyProfile?.bankIfsc || activeBank?.ifscCode}</strong>
-                          </div>
-                        ) : null}
-                        <div className="text-slate-600">
-                          Account Holder: <strong>{companyProfile?.tradeName || companyProfile?.legalName || currentCompany?.tradeName || "Primary Account"}</strong>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setShowBankDetailsCard(false)}
-                          className="text-[11px] text-rose-500 hover:text-rose-700 font-semibold"
-                        >
-                          🗑 Remove
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Payment Settlement Card */}
-                  <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs p-5 space-y-4">
-                    <div className="flex items-center justify-between border-b border-[#F3F4F6] pb-2">
-                      <span className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">
-                        {lang === "gu" ? "ચુકવણી પતાવટ (Payment Settlement)" : "Payment Settlement"}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setPaymentStatus("UNPAID_CREDIT");
-                          setIsDirty(true);
-                        }}
-                        className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all ${
-                          paymentStatus === "UNPAID_CREDIT"
-                            ? "bg-[#FFF8F3] border-[#F47721] text-[#F47721] shadow-xs"
-                            : "bg-white border-[#E5E7EB] text-slate-600 hover:bg-[#F9FAFB]"
-                        }`}
-                      >
-                        {lang === "gu" ? "બાકી / ઉધાર (Credit)" : "Credit (Unpaid)"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setPaymentStatus("PAID_FULL");
-                          setIsDirty(true);
-                        }}
-                        className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all ${
-                          paymentStatus === "PAID_FULL"
-                            ? "bg-emerald-50 border-emerald-500 text-emerald-700 shadow-xs"
-                            : "bg-white border-[#E5E7EB] text-slate-600 hover:bg-[#F9FAFB]"
-                        }`}
-                      >
-                        {lang === "gu" ? "સંપૂર્ણ ચુકવણી (Full)" : "Paid in Full"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setPaymentStatus("PARTIAL_PAID");
-                          setIsDirty(true);
-                        }}
-                        className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all ${
-                          paymentStatus === "PARTIAL_PAID"
-                            ? "bg-amber-50 border-amber-500 text-amber-700 shadow-xs"
-                            : "bg-white border-[#E5E7EB] text-slate-600 hover:bg-[#F9FAFB]"
-                        }`}
-                      >
-                        {lang === "gu" ? "આંશિક ચુકવણી (Partial)" : "Partially Paid"}
-                      </button>
-                    </div>
-
-                    {paymentStatus !== "UNPAID_CREDIT" && (
-                      <div className="p-4 bg-[#F8F9FA] rounded-xl border border-[#E5E7EB] grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fadeIn text-xs">
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                            Amount Paid (₹) *
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            max={totals.grandTotal}
-                            value={paidAmount}
+                          <textarea
+                            rows={3}
+                            value={notes}
                             onChange={(e) => {
-                              setPaidAmount(e.target.value === "" ? "" : Number(e.target.value));
+                              setNotes(e.target.value);
                               setIsDirty(true);
                             }}
-                            className="w-full p-2 bg-white border border-[#E5E7EB] rounded-lg font-mono font-bold text-slate-900"
+                            placeholder={lang === "gu" ? "આ બિલ માટે નોંધ..." : "Enter internal remarks for this bill..."}
+                            className="w-full text-xs p-2.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
                           />
                         </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setShowNotes(true)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-[#D1D5DB] text-xs font-bold text-[#4B5563] hover:border-[#F47721] hover:text-[#F47721] transition-colors"
+                        >
+                          <span>📝</span>
+                          <span>+ {lang === "gu" ? "નોંધ ઉમેરો" : "Add Notes"}</span>
+                        </button>
+                      )}
 
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                            Payment Mode *
-                          </label>
-                          <select
-                            value={paymentMode}
+                      {/* Terms Section */}
+                      {showTerms || terms ? (
+                        <div className="space-y-1 animate-fadeIn">
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold text-[#4B5563]">
+                              Terms & Conditions
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowTerms(false);
+                                setTerms("");
+                              }}
+                              className="text-[10px] text-slate-400 hover:text-rose-500 font-bold"
+                            >
+                              ✕ Remove
+                            </button>
+                          </div>
+                          <textarea
+                            rows={3}
+                            value={terms}
                             onChange={(e) => {
-                              setPaymentMode(e.target.value);
+                              setTerms(e.target.value);
                               setIsDirty(true);
                             }}
-                            className="w-full p-2 bg-white border border-[#E5E7EB] rounded-lg font-semibold text-slate-800"
-                          >
-                            <option value="CASH">Cash</option>
-                            <option value="BANK_TRANSFER">Bank Transfer</option>
-                            <option value="UPI_QR">UPI / QR</option>
-                            <option value="CHEQUE">Cheque</option>
-                          </select>
+                            placeholder="Terms & Conditions for this purchase..."
+                            className="w-full text-xs p-2.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                          />
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <div>
+                          <button
+                            type="button"
+                            onClick={() => setShowTerms(true)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-[#D1D5DB] text-xs font-bold text-[#4B5563] hover:border-[#F47721] hover:text-[#F47721] transition-colors"
+                          >
+                            <span>📋</span>
+                            <span>+ {lang === "gu" ? "શરતો ઉમેરો" : "Add Terms & Conditions"}</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                {/* Right Column: Calculations & Grand Total (5 cols) */}
+                {/* Right Column: Financial Summary & Settlement (5 cols) */}
                 <div className="lg:col-span-5 bg-white rounded-2xl border border-[#E5E7EB] shadow-xs p-5 space-y-4">
                   <div className="flex items-center justify-between border-b border-[#F3F4F6] pb-2">
                     <span className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">
@@ -3295,7 +3417,8 @@ function NewPurchaseInvoiceContent() {
                     </div>
                   )}
 
-                  <div className="space-y-2 text-xs">
+                  <div className="space-y-2.5 text-xs">
+                    {/* Taxable Amount */}
                     <div className="flex justify-between text-slate-600">
                       <span>Taxable Amount</span>
                       <span className="font-mono font-bold text-slate-900">
@@ -3303,6 +3426,54 @@ function NewPurchaseInvoiceContent() {
                       </span>
                     </div>
 
+                    {/* Overall Discount on Bill */}
+                    {showOverallDiscount ? (
+                      <div className="flex items-center justify-between text-xs py-1 border-y border-[#F3F4F6] animate-fadeIn">
+                        <span className="text-slate-600 font-medium">Discount on Total</span>
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            min="0"
+                            value={overallDiscountAmount}
+                            onChange={(e) => {
+                              setOverallDiscountAmount(e.target.value === "" ? "" : Number(e.target.value));
+                              setIsDirty(true);
+                            }}
+                            placeholder="0"
+                            className="w-20 p-1 bg-[#F9FAFB] border border-[#E5E7EB] rounded text-xs font-mono text-right"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setOverallDiscountType((prev) => (prev === "%" ? "₹" : "%"))}
+                            className="p-1 px-2 bg-[#F1F3F5] hover:bg-[#E5E7EB] text-slate-700 rounded text-xs font-bold font-mono"
+                          >
+                            {overallDiscountType}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowOverallDiscount(false);
+                              setOverallDiscountAmount("");
+                            }}
+                            className="text-slate-400 hover:text-rose-500 font-bold ml-1 text-xs"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => setShowOverallDiscount(true)}
+                          className="text-xs font-bold text-[#F47721] hover:underline"
+                        >
+                          + Add Discount
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Tax Breakdown */}
                     {isInterState ? (
                       <div className="flex justify-between text-slate-600">
                         <span>IGST</span>
@@ -3313,13 +3484,13 @@ function NewPurchaseInvoiceContent() {
                     ) : (
                       <>
                         <div className="flex justify-between text-slate-600">
-                          <span>SGST @ {((rows[0]?.taxRate || 18) / 2).toFixed(1)}%</span>
+                          <span>SGST</span>
                           <span className="font-mono font-semibold text-slate-800">
                             {formatInr(totals.totalSgst)}
                           </span>
                         </div>
                         <div className="flex justify-between text-slate-600">
-                          <span>CGST @ {((rows[0]?.taxRate || 18) / 2).toFixed(1)}%</span>
+                          <span>CGST</span>
                           <span className="font-mono font-semibold text-slate-800">
                             {formatInr(totals.totalCgst)}
                           </span>
@@ -3328,7 +3499,7 @@ function NewPurchaseInvoiceContent() {
                     )}
 
                     {/* Auto Round Off Checkbox */}
-                    <div className="flex items-center justify-between pt-2 border-t border-[#F3F4F6]">
+                    <div className="flex items-center justify-between pt-1 border-t border-[#F3F4F6]">
                       <label className="flex items-center gap-2 cursor-pointer text-slate-700 font-medium">
                         <input
                           type="checkbox"
@@ -3356,18 +3527,77 @@ function NewPurchaseInvoiceContent() {
                       </span>
                     </div>
 
-                    <div className="flex justify-between text-slate-600 pt-1">
-                      <span>Total Amount Paid:</span>
-                      <span className="font-mono font-bold text-emerald-700">
-                        {formatInr(effectivePaidAmount)}
-                      </span>
-                    </div>
+                    {/* Total Amount Paid */}
+                    <div className="pt-2 border-t border-[#F3F4F6] space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-700 font-semibold">Total Amount Paid:</span>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min="0"
+                            max={totals.grandTotal}
+                            value={paidAmount}
+                            onChange={(e) => {
+                              const val = e.target.value === "" ? "" : Number(e.target.value);
+                              setPaidAmount(val);
+                              if (val === 0 || val === "") {
+                                setPaymentStatus("UNPAID_CREDIT");
+                              } else if (Number(val) >= totals.grandTotal) {
+                                setPaymentStatus("PAID_FULL");
+                              } else {
+                                setPaymentStatus("PARTIAL_PAID");
+                              }
+                              setIsDirty(true);
+                            }}
+                            placeholder="0.00"
+                            className="w-28 p-1.5 bg-white border border-[#D1D5DB] rounded-lg font-mono font-bold text-slate-900 text-right focus:ring-1 focus:ring-[#F47721] focus:outline-none"
+                          />
+                          <select
+                            value={paymentMode}
+                            onChange={(e) => {
+                              setPaymentMode(e.target.value);
+                              setIsDirty(true);
+                            }}
+                            className="p-1.5 bg-[#F9FAFB] border border-[#D1D5DB] rounded-lg text-xs font-bold text-slate-700"
+                          >
+                            <option value="CASH">Cash</option>
+                            <option value="BANK_TRANSFER">Bank Transfer</option>
+                            <option value="UPI_QR">UPI / QR</option>
+                            <option value="CHEQUE">Cheque</option>
+                            <option value="CREDIT_CARD">Credit Card</option>
+                          </select>
+                        </div>
+                      </div>
 
-                    <div className="flex justify-between text-sm font-bold text-slate-800 border-t border-[#F3F4F6] pt-2">
-                      <span>Balance Due:</span>
-                      <span className={`font-mono font-black ${balanceDue > 0 ? "text-amber-600" : "text-emerald-600"}`}>
-                        {formatInr(balanceDue)}
-                      </span>
+                      {/* Mark as fully paid checkbox */}
+                      <div className="flex items-center justify-between pt-1">
+                        <label className="flex items-center gap-2 cursor-pointer text-slate-700 text-xs font-medium">
+                          <input
+                            type="checkbox"
+                            checked={paymentStatus === "PAID_FULL" && Number(paidAmount) === totals.grandTotal && totals.grandTotal > 0}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setPaymentStatus("PAID_FULL");
+                                setPaidAmount(totals.grandTotal);
+                              } else {
+                                setPaymentStatus("UNPAID_CREDIT");
+                                setPaidAmount(0);
+                              }
+                              setIsDirty(true);
+                            }}
+                            className="rounded text-[#F47721] focus:ring-[#F47721]"
+                          />
+                          <span>Mark as fully paid</span>
+                        </label>
+
+                        {/* Balance Amount Display */}
+                        <div className="text-right">
+                          <span className="text-xs text-slate-500 mr-2">Balance Amount:</span>
+                          <span className={`font-mono text-base font-black ${balanceDue > 0 ? "text-amber-600" : "text-emerald-600"}`}>
+                            {formatInr(balanceDue)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -3663,6 +3893,155 @@ function NewPurchaseInvoiceContent() {
                 className="px-3 py-1.5 border rounded-lg text-xs font-bold text-slate-600"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Quick Settings Modal */}
+      {isQuickSettingsOpen && (
+        <QuickSettingsModal
+          isOpen={isQuickSettingsOpen}
+          onClose={() => setIsQuickSettingsOpen(false)}
+          settings={quickSettings}
+          initialTab={quickSettingsTab}
+          onSave={(newSettings) => {
+            setQuickSettings(newSettings);
+            setIsQuickSettingsOpen(false);
+          }}
+        />
+      )}
+
+      {/* Keyboard Shortcuts Modal */}
+      {isShortcutsOpen && (
+        <ShortcutsModal
+          isOpen={isShortcutsOpen}
+          onClose={() => setIsShortcutsOpen(false)}
+        />
+      )}
+
+      {/* Add Items to Bill Catalog Modal */}
+      {isAddItemsCatalogOpen && (
+        <AddItemsModal
+          isOpen={isAddItemsCatalogOpen}
+          onClose={() => setIsAddItemsCatalogOpen(false)}
+          items={items.map((it) => ({
+            id: it.id,
+            name: it.name,
+            hsnCode: it.hsnCode,
+            taxRate: it.taxRate,
+            retailPrice: it.retailPrice ?? it.purchasePrice ?? 0,
+            purchasePrice: it.purchasePrice ?? it.retailPrice ?? 0,
+            stockQuantity: it.stockQuantity,
+            unit: it.primaryUom?.symbol || "PCS",
+          }))}
+          onAddSelectedItems={(selectedList) => {
+            setRows((prev) => {
+              const cleanRows = prev.filter((r) => r.itemId || r.itemName);
+              const newRows: PurchaseRow[] = selectedList.map((sel) => ({
+                itemId: sel.item.id,
+                itemName: sel.item.name,
+                description: "",
+                hsnCode: sel.item.hsnCode || "",
+                mrp: sel.item.retailPrice ?? "",
+                unit: sel.item.unit || "PCS",
+                quantity: sel.quantity,
+                freeQuantity: "",
+                showFreeQty: false,
+                unitPrice: sel.unitPrice,
+                discountValue: "",
+                discountType: "%",
+                taxRate: sel.item.taxRate ?? 18,
+              }));
+              return [...cleanRows, ...newRows];
+            });
+            setIsAddItemsCatalogOpen(false);
+          }}
+          onCreateNewItem={() => {
+            setIsAddItemsCatalogOpen(false);
+            setIsAddItemModalOpen(true);
+          }}
+        />
+      )}
+
+      {/* Edit Party Modal */}
+      {isEditSupplierModalOpen && selectedSupplier && (
+        <Modal
+          isOpen={isEditSupplierModalOpen}
+          onClose={() => setIsEditSupplierModalOpen(false)}
+          title="Edit Supplier Details"
+        >
+          <div className="space-y-3.5 text-xs">
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">Party Name</label>
+              <input
+                type="text"
+                value={selectedSupplier.name}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSuppliers((prev) =>
+                    prev.map((s) => (s.id === selectedSupplier.id ? { ...s, name: val } : s))
+                  );
+                }}
+                className="w-full p-2 border border-slate-300 rounded-lg font-bold"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Phone</label>
+                <input
+                  type="text"
+                  value={selectedSupplier.phone || ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSuppliers((prev) =>
+                      prev.map((s) => (s.id === selectedSupplier.id ? { ...s, phone: val } : s))
+                    );
+                  }}
+                  className="w-full p-2 border border-slate-300 rounded-lg font-mono"
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">GSTIN</label>
+                <input
+                  type="text"
+                  value={selectedSupplier.gstin || ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSuppliers((prev) =>
+                      prev.map((s) => (s.id === selectedSupplier.id ? { ...s, gstin: val } : s))
+                    );
+                  }}
+                  className="w-full p-2 border border-slate-300 rounded-lg font-mono uppercase"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">Billing Address</label>
+              <input
+                type="text"
+                value={selectedSupplier.billingAddress?.line1 || ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSuppliers((prev) =>
+                    prev.map((s) =>
+                      s.id === selectedSupplier.id
+                        ? { ...s, billingAddress: { ...s.billingAddress, line1: val } }
+                        : s
+                    )
+                  );
+                }}
+                className="w-full p-2 border border-slate-300 rounded-lg"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2 border-t">
+              <button
+                type="button"
+                onClick={() => setIsEditSupplierModalOpen(false)}
+                className="px-4 py-2 bg-[#F47721] text-white font-bold rounded-lg"
+              >
+                Done
               </button>
             </div>
           </div>

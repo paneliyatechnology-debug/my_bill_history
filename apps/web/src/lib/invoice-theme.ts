@@ -201,14 +201,17 @@ export function saveInvoiceCustomization(customization: InvoiceCustomization): v
   }
 }
 
-export function getActiveThemePreset(customization: InvoiceCustomization): InvoiceThemePreset {
-  const base = INVOICE_THEMES[customization.themeId] || INVOICE_THEMES["modern-saffron"];
-  if (customization.customPrimaryColor) {
+export function getActiveThemePreset(customization?: InvoiceCustomization | null): InvoiceThemePreset {
+  const theme = customization || DEFAULT_INVOICE_CUSTOMIZATION;
+  const themeId = theme?.themeId || "modern-saffron";
+  const base = INVOICE_THEMES[themeId] || INVOICE_THEMES["modern-saffron"];
+
+  if (theme?.customPrimaryColor) {
     return {
       ...base,
-      primaryColor: customization.customPrimaryColor,
-      badgeBg: customization.customPrimaryColor,
-      previewBorderColor: customization.customPrimaryColor,
+      primaryColor: theme.customPrimaryColor,
+      badgeBg: theme.customPrimaryColor,
+      previewBorderColor: theme.customPrimaryColor,
     };
   }
   return base;

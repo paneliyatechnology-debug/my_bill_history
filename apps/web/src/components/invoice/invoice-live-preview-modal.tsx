@@ -4,60 +4,111 @@ import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   InvoiceCustomization,
+  DEFAULT_INVOICE_CUSTOMIZATION,
+  loadInvoiceCustomization,
   getActiveThemePreset,
 } from "@/lib/invoice-theme";
 
-interface InvoiceLivePreviewModalProps {
+export interface LiveInvoiceItem {
+  name: string;
+  hsnCode?: string;
+  quantity: number;
+  unitPrice: number;
+  discountPercent?: number;
+  taxRate?: number;
+  description?: string;
+}
+
+export interface NormalizedInvoiceItem {
+  name: string;
+  hsnCode: string;
+  quantity: number;
+  unitPrice: number;
+  discountPercent: number;
+  taxRate: number;
+}
+
+export interface LiveInvoiceParty {
+  name?: string;
+  gstin?: string;
+  phone?: string;
+  address?: string;
+  billingAddress?: {
+    line1?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
+  };
+}
+
+export interface LiveInvoiceData {
+  category?: string;
+  invoiceNumber?: string;
+  invoiceDate?: string;
+  paymentMode?: string;
+  placeOfSupply?: string;
+  partyName?: string;
+  partyGstin?: string;
+  partyPhone?: string;
+  partyAddress?: string;
+  party?: LiveInvoiceParty;
+  companyName?: string;
+  companyGstin?: string;
+  companyState?: string;
+  notes?: string;
+  termsAndConditions?: string;
+  items?: Array<LiveInvoiceItem>;
+  totalTaxable?: number;
+  subtotal?: number;
+  totalCgst?: number;
+  totalSgst?: number;
+  totalIgst?: number;
+  taxBreakup?: {
+    cgst?: number;
+    sgst?: number;
+    igst?: number;
+  };
+  roundOff?: number;
+  roundedGrandTotal?: number;
+  grandTotal?: number;
+  isTaxInclusive?: boolean;
+  isInterState?: boolean;
+}
+
+export interface InvoiceLivePreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  customization: InvoiceCustomization;
-  lang: string;
-  invoiceData: {
-    category: string;
-    invoiceNumber: string;
-    invoiceDate: string;
-    paymentMode: string;
-    placeOfSupply: string;
-    partyName: string;
-    partyGstin?: string;
-    partyPhone?: string;
-    partyAddress?: string;
-    companyName: string;
-    companyGstin: string;
-    companyState: string;
-    notes?: string;
-    termsAndConditions?: string;
-    items: Array<{
-      name: string;
-      hsnCode: string;
-      quantity: number;
-      unitPrice: number;
-      discountPercent: number;
-      taxRate: number;
-    }>;
-    totalTaxable: number;
-    totalCgst: number;
-    totalSgst: number;
-    totalIgst: number;
-    roundOff: number;
-    roundedGrandTotal: number;
-    isTaxInclusive: boolean;
-    isInterState: boolean;
-  };
+  customization?: InvoiceCustomization;
+  lang?: string;
+  invoiceData?: LiveInvoiceData;
+  data?: LiveInvoiceData;
 }
 
 export function InvoiceLivePreviewModal({
   isOpen,
   onClose,
-  customization,
-  lang,
-  invoiceData,
+  customization: propCustomization,
+  lang = "en",
+  invoiceData: propInvoiceData,
+  data,
 }: InvoiceLivePreviewModalProps) {
   const [mounted, setMounted] = useState(false);
+  const [activeCustomization, setActiveCustomization] = useState<InvoiceCustomization>(
+    propCustomization || DEFAULT_INVOICE_CUSTOMIZATION
+  );
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (!propCustomization && typeof window !== "undefined") {
+      setActiveCustomization(loadInvoiceCustomization());
+    }
+  }, [propCustomization]);
+
+  useEffect(() => {
+    if (propCustomization) {
+      setActiveCustomization(propCustomization);
+    }
+  }, [propCustomization]);
 
   // Lock body scroll and listen for Escape key
   useEffect(() => {
@@ -75,8 +126,45 @@ export function InvoiceLivePreviewModal({
 
   if (!isOpen || !mounted) return null;
 
+  const customization = propCustomization || activeCustomization || DEFAULT_INVOICE_CUSTOMIZATION;
   const preset = getActiveThemePreset(customization);
-  const primaryColor = customization.customPrimaryColor || preset.primaryColor;
+  const primaryColor = customization?.customPrimaryColor || preset.primaryColor;
+
+  const rawData: LiveInvoiceData = propInvoiceData || data || {};
+  const invoiceData = {
+    category: rawData.category || "TAX_INVOICE",
+    invoiceNumber: rawData.invoiceNumber || "INV-0001",
+    invoiceDate: rawData.invoiceDate || new Date().toISOString().split("T")[0],
+    paymentMode: rawData.paymentMode || "Cash",
+    placeOfSupply: rawData.placeOfSupply || "24 (Gujarat)",
+    partyName: rawData.partyName || rawData.party?.name || "Cash Customer / Walk-in",
+    partyGstin: rawData.partyGstin || rawData.party?.gstin,
+    partyPhone: rawData.partyPhone || rawData.party?.phone,
+    partyAddress: rawData.partyAddress || rawData.party?.address,
+    companyName: rawData.companyName || "Paneliya Technology",
+    companyGstin: rawData.companyGstin || "24AAAAA0000A1Z5",
+    companyState: rawData.companyState || "Gujarat (24)",
+    notes: rawData.notes,
+    termsAndConditions: rawData.termsAndConditions,
+    items: (Array.isArray(rawData.items)
+      ? rawData.items.map((it: LiveInvoiceItem) => ({
+          name: String(it.name || it.description || "Product / Item"),
+          hsnCode: String(it.hsnCode || ""),
+          quantity: Number(it.quantity) || 0,
+          unitPrice: Number(it.unitPrice) || 0,
+          discountPercent: Number(it.discountPercent) || 0,
+          taxRate: Number(it.taxRate) || 0,
+        }))
+      : []) as NormalizedInvoiceItem[],
+    totalTaxable: Number(rawData.totalTaxable ?? rawData.subtotal ?? 0),
+    totalCgst: Number(rawData.totalCgst ?? rawData.taxBreakup?.cgst ?? 0),
+    totalSgst: Number(rawData.totalSgst ?? rawData.taxBreakup?.sgst ?? 0),
+    totalIgst: Number(rawData.totalIgst ?? rawData.taxBreakup?.igst ?? 0),
+    roundOff: Number(rawData.roundOff ?? 0),
+    roundedGrandTotal: Number(rawData.roundedGrandTotal ?? rawData.grandTotal ?? 0),
+    isTaxInclusive: Boolean(rawData.isTaxInclusive),
+    isInterState: Boolean(rawData.isInterState),
+  };
 
   const formatInr = (val: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -88,6 +176,9 @@ export function InvoiceLivePreviewModal({
 
   const getDocTitle = () => {
     switch (invoiceData.category) {
+      case "PURCHASE_INVOICE":
+      case "PURCHASE":
+        return lang === "gu" ? "ખરીદી બિલ (PURCHASE INVOICE)" : "PURCHASE INVOICE";
       case "PROFORMA_INVOICE":
         return lang === "gu" ? "કાચું બિલ / અંદાજપત્ર (ESTIMATE)" : "PROFORMA INVOICE / ESTIMATE";
       case "DELIVERY_CHALLAN":
