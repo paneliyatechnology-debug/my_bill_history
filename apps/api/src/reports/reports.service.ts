@@ -25,7 +25,11 @@ import {
   calculatePartyAging,
   formatCurrencyIndian,
 } from "@billing/accounting-core";
-import { buildGstr1, buildGstr3b, resolveReportPeriod } from "@billing/gst-provider";
+import {
+  buildGstr1,
+  buildGstr3b,
+  resolveReportPeriod,
+} from "@billing/gst-provider";
 import { DatabaseService } from "../database/database.service";
 import { QuerySalesRegisterDto } from "./dto/query-sales-register.dto";
 import {
@@ -73,14 +77,18 @@ export function generateCsv(
 
 export function parseStartOfDay(dateStr?: string): Date | undefined {
   if (!dateStr) return undefined;
-  if (dateStr.includes("T")) return new Date(dateStr);
-  return new Date(`${dateStr}T00:00:00.000Z`);
+  const d = dateStr.includes("T")
+    ? new Date(dateStr)
+    : new Date(`${dateStr}T00:00:00.000Z`);
+  return isNaN(d.getTime()) ? undefined : d;
 }
 
 export function parseEndOfDay(dateStr?: string): Date | undefined {
   if (!dateStr) return undefined;
-  if (dateStr.includes("T")) return new Date(dateStr);
-  return new Date(`${dateStr}T23:59:59.999Z`);
+  const d = dateStr.includes("T")
+    ? new Date(dateStr)
+    : new Date(`${dateStr}T23:59:59.999Z`);
+  return isNaN(d.getTime()) ? undefined : d;
 }
 
 export const GST_STATE_CODE_TO_NAME: Record<string, string> = {
@@ -152,7 +160,8 @@ export function resolveGstState(
       code = match[1];
     }
   }
-  const stateName = GST_STATE_CODE_TO_NAME[code] || (code ? `State ${code}` : "—");
+  const stateName =
+    GST_STATE_CODE_TO_NAME[code] || (code ? `State ${code}` : "—");
   return {
     stateCode: code || "—",
     stateName: code ? stateName : "—",
@@ -163,7 +172,7 @@ export function resolveGstState(
 export class ReportsService {
   private readonly logger = new Logger(ReportsService.name);
 
-  constructor(private readonly prisma: DatabaseService) { }
+  constructor(private readonly prisma: DatabaseService) {}
 
   // --------------------------------------------------------------------------
   // 1. SALES REGISTER & INVOICE SUMMARIES
@@ -411,8 +420,10 @@ export class ReportsService {
   ): Promise<any> {
     return await this.prisma.executeInTenantContext(tenant, async (tx) => {
       const invoiceDate: { gte?: Date; lte?: Date } = {};
-      if (query.fromDate) invoiceDate.gte = new Date(`${query.fromDate}T00:00:00.000Z`);
-      if (query.toDate) invoiceDate.lte = new Date(`${query.toDate}T00:00:00.000Z`);
+      if (query.fromDate)
+        invoiceDate.gte = new Date(`${query.fromDate}T00:00:00.000Z`);
+      if (query.toDate)
+        invoiceDate.lte = new Date(`${query.toDate}T00:00:00.000Z`);
       const invoices = await tx.purchaseInvoice.findMany({
         where: {
           companyId: tenant.companyId,
@@ -424,7 +435,9 @@ export class ReportsService {
       const returns = await tx.purchaseReturn.findMany({
         where: {
           companyId: tenant.companyId,
-          ...(query.fromDate || query.toDate ? { returnDate: invoiceDate } : {}),
+          ...(query.fromDate || query.toDate
+            ? { returnDate: invoiceDate }
+            : {}),
         },
         include: { party: true },
       });
@@ -473,7 +486,9 @@ export class ReportsService {
           invoiceDate: purchaseReturn.returnDate.toISOString().slice(0, 10),
           supplierName: purchaseReturn.party.name,
           supplierGstin: purchaseReturn.party.gstin,
-          taxableAmount: toMoney(purchaseReturn.taxableAmount).negated().toFixed(2),
+          taxableAmount: toMoney(purchaseReturn.taxableAmount)
+            .negated()
+            .toFixed(2),
           cgstAmount: toMoney(purchaseReturn.cgstAmount).negated().toFixed(2),
           sgstAmount: toMoney(purchaseReturn.sgstAmount).negated().toFixed(2),
           utgstAmount: toMoney(purchaseReturn.utgstAmount).negated().toFixed(2),
@@ -649,9 +664,36 @@ export class ReportsService {
     tenant: TenantContext,
     query?: QueryFinancialSummaryDto,
   ): Promise<FinancialSummaryDto> {
-    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
-      const asOfDateObj = query?.asOfDate ? parseEndOfDay(query.asOfDate) : null;
+    if (
+      !tenant?.companyId ||
+      typeof tenant.companyId !== "string" ||
+      tenant.companyId.trim() === ""
+    ) {
+      throw new BadRequestException(
+        "Company context is required for dashboard summary.",
+      );
+    }
 
+    const UUID_REGEX =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!UUID_REGEX.test(tenant.companyId)) {
+      throw new BadRequestException(
+        "Invalid company context identifier. Must be a valid UUID.",
+      );
+    }
+
+    let asOfDateObj: Date | null = null;
+    if (query?.asOfDate) {
+      const parsed = parseEndOfDay(query.asOfDate);
+      if (!parsed || isNaN(parsed.getTime())) {
+        throw new BadRequestException(
+          `Invalid asOfDate format: '${query.asOfDate}'. Expected valid ISO-8601 or YYYY-MM-DD date.`,
+        );
+      }
+      asOfDateObj = parsed;
+    }
+
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
       // 1. To Collect (Customer Receivables)
       const customerParties = await tx.party.findMany({
         where: {
@@ -812,7 +854,8 @@ export class ReportsService {
 
         for (const acc of cashBankAccounts) {
           const openBal = toMoney(acc.openingBalance);
-          let accBalance = acc.openingType === "CR" ? openBal.negated() : openBal;
+          let accBalance =
+            acc.openingType === "CR" ? openBal.negated() : openBal;
 
           const jTotals = journalMap.get(acc.id);
           if (jTotals) {
@@ -836,7 +879,7 @@ export class ReportsService {
         bankBalance: totalBank.toFixed(2),
         totalCashBankBalance: totalCashBank.toFixed(2),
         currency: "INR",
-        asOf: (query?.asOfDate ? new Date(query.asOfDate) : new Date()).toISOString(),
+        asOf: (asOfDateObj ?? new Date()).toISOString(),
       };
     });
   }
@@ -948,25 +991,45 @@ export class ReportsService {
         if (p.type === PartyType.CUSTOMER) {
           if (invoiceBalance.gt(0)) {
             totalReceivables = totalReceivables.plus(invoiceBalance);
-          } else if (p.ledgerAccount && toMoney(p.ledgerAccount.currentBalance).gt(0)) {
-            totalReceivables = totalReceivables.plus(toMoney(p.ledgerAccount.currentBalance));
+          } else if (
+            p.ledgerAccount &&
+            toMoney(p.ledgerAccount.currentBalance).gt(0)
+          ) {
+            totalReceivables = totalReceivables.plus(
+              toMoney(p.ledgerAccount.currentBalance),
+            );
           }
         } else if (p.type === PartyType.SUPPLIER) {
           if (purchaseBalance.gt(0)) {
             totalPayables = totalPayables.plus(purchaseBalance);
-          } else if (p.ledgerAccount && toMoney(p.ledgerAccount.currentBalance).gt(0)) {
-            totalPayables = totalPayables.plus(toMoney(p.ledgerAccount.currentBalance));
+          } else if (
+            p.ledgerAccount &&
+            toMoney(p.ledgerAccount.currentBalance).gt(0)
+          ) {
+            totalPayables = totalPayables.plus(
+              toMoney(p.ledgerAccount.currentBalance),
+            );
           }
         } else if (p.type === PartyType.BOTH) {
           if (invoiceBalance.gt(0)) {
             totalReceivables = totalReceivables.plus(invoiceBalance);
-          } else if (p.ledgerAccount && toMoney(p.ledgerAccount.currentBalance).gt(0)) {
-            totalReceivables = totalReceivables.plus(toMoney(p.ledgerAccount.currentBalance));
+          } else if (
+            p.ledgerAccount &&
+            toMoney(p.ledgerAccount.currentBalance).gt(0)
+          ) {
+            totalReceivables = totalReceivables.plus(
+              toMoney(p.ledgerAccount.currentBalance),
+            );
           }
           if (purchaseBalance.gt(0)) {
             totalPayables = totalPayables.plus(purchaseBalance);
-          } else if (p.ledgerAccount && toMoney(p.ledgerAccount.currentBalance).gt(0)) {
-            totalPayables = totalPayables.plus(toMoney(p.ledgerAccount.currentBalance));
+          } else if (
+            p.ledgerAccount &&
+            toMoney(p.ledgerAccount.currentBalance).gt(0)
+          ) {
+            totalPayables = totalPayables.plus(
+              toMoney(p.ledgerAccount.currentBalance),
+            );
           }
         }
 
@@ -998,10 +1061,12 @@ export class ReportsService {
       });
 
       const customerCount = items.filter(
-        (p) => p.partyType === PartyType.CUSTOMER || p.partyType === PartyType.BOTH,
+        (p) =>
+          p.partyType === PartyType.CUSTOMER || p.partyType === PartyType.BOTH,
       ).length;
       const supplierCount = items.filter(
-        (p) => p.partyType === PartyType.SUPPLIER || p.partyType === PartyType.BOTH,
+        (p) =>
+          p.partyType === PartyType.SUPPLIER || p.partyType === PartyType.BOTH,
       ).length;
 
       const summary = {
@@ -1465,15 +1530,15 @@ export class ReportsService {
               voucher: {
                 ...(query.fromDate || query.toDate
                   ? {
-                    voucherDate: {
-                      ...(query.fromDate
-                        ? { gte: new Date(query.fromDate) }
-                        : {}),
-                      ...(query.toDate
-                        ? { lte: new Date(query.toDate) }
-                        : {}),
-                    },
-                  }
+                      voucherDate: {
+                        ...(query.fromDate
+                          ? { gte: new Date(query.fromDate) }
+                          : {}),
+                        ...(query.toDate
+                          ? { lte: new Date(query.toDate) }
+                          : {}),
+                      },
+                    }
                   : {}),
               },
             },
@@ -1565,15 +1630,15 @@ export class ReportsService {
               voucher: {
                 ...(query.fromDate || query.toDate
                   ? {
-                    voucherDate: {
-                      ...(query.fromDate
-                        ? { gte: new Date(query.fromDate) }
-                        : {}),
-                      ...(query.toDate
-                        ? { lte: new Date(query.toDate) }
-                        : {}),
-                    },
-                  }
+                      voucherDate: {
+                        ...(query.fromDate
+                          ? { gte: new Date(query.fromDate) }
+                          : {}),
+                        ...(query.toDate
+                          ? { lte: new Date(query.toDate) }
+                          : {}),
+                      },
+                    }
                   : {}),
               },
             },
@@ -2003,7 +2068,8 @@ export class ReportsService {
           currentStockQuantity: onHandQty.toFixed(4),
           totalValuation: valuation.toFixed(2),
           minStockLevel: minStock.toFixed(4),
-          isLowStock: (minStock.gt(0) && onHandQty.lte(minStock)) || onHandQty.lte(0),
+          isLowStock:
+            (minStock.gt(0) && onHandQty.lte(minStock)) || onHandQty.lte(0),
           costingMethod: "MOVING_AVERAGE",
         };
       });
@@ -2224,7 +2290,11 @@ export class ReportsService {
           status: "ISSUED",
           ...(where.invoiceDate ? { returnDate: where.invoiceDate } : {}),
         },
-        include: { party: true, items: { include: { item: true } }, salesInvoice: true },
+        include: {
+          party: true,
+          items: { include: { item: true } },
+          salesInvoice: true,
+        },
       });
       const debitNotes = await tx.outwardDebitNote.findMany({
         where: {
@@ -2276,12 +2346,14 @@ export class ReportsService {
         creditNotes: salesReturns.map((note) => ({
           ...toDoc({
             ...note,
-            invoiceNumber: note.salesInvoice?.invoiceNumber || note.returnNumber,
+            invoiceNumber:
+              note.salesInvoice?.invoiceNumber || note.returnNumber,
             invoiceDate: note.returnDate,
             grandTotal: note.grandTotal,
             cessAmount: 0,
             roundOff: 0,
-            placeOfSupply: note.salesInvoice?.placeOfSupply || company.stateCode,
+            placeOfSupply:
+              note.salesInvoice?.placeOfSupply || company.stateCode,
             isReverseCharge: note.salesInvoice?.isReverseCharge ?? false,
           }),
           noteNumber: note.returnNumber,
@@ -2327,10 +2399,16 @@ export class ReportsService {
       // Build individual invoice rows itemized by tax rate (matching statutory GST & billing software format)
       const salesInvoicesList: any[] = [];
       for (const inv of invoices) {
-        const stateInfo = resolveGstState(inv.placeOfSupply, inv.party?.gstin, company.stateCode);
+        const stateInfo = resolveGstState(
+          inv.placeOfSupply,
+          inv.party?.gstin,
+          company.stateCode,
+        );
         const partyGstin = inv.party?.gstin || "";
         const customerName = inv.party?.name || "Cash Customer";
-        const invDateStr = inv.invoiceDate ? new Date(inv.invoiceDate).toISOString().slice(0, 10) : "";
+        const invDateStr = inv.invoiceDate
+          ? new Date(inv.invoiceDate).toISOString().slice(0, 10)
+          : "";
         const invValue = Number(inv.grandTotal);
 
         if (!inv.items || inv.items.length === 0) {
@@ -2358,10 +2436,25 @@ export class ReportsService {
           });
         } else {
           // Group items by taxRate
-          const rateMap = new Map<number, { taxable: number; cgst: number; sgst: number; igst: number; cess: number }>();
+          const rateMap = new Map<
+            number,
+            {
+              taxable: number;
+              cgst: number;
+              sgst: number;
+              igst: number;
+              cess: number;
+            }
+          >();
           for (const it of inv.items) {
             const r = Number(it.taxRate ?? 0);
-            const curr = rateMap.get(r) || { taxable: 0, cgst: 0, sgst: 0, igst: 0, cess: 0 };
+            const curr = rateMap.get(r) || {
+              taxable: 0,
+              cgst: 0,
+              sgst: 0,
+              igst: 0,
+              cess: 0,
+            };
             curr.taxable += Number(it.taxableAmount ?? 0);
             curr.cgst += Number(it.cgstAmount ?? 0);
             curr.sgst += Number(it.sgstAmount ?? it.utgstAmount ?? 0);
@@ -2400,16 +2493,25 @@ export class ReportsService {
       // Build Credit Notes (Sales Returns)
       const creditNotesList: any[] = [];
       for (const note of salesReturns) {
-        const stateInfo = resolveGstState(note.salesInvoice?.placeOfSupply, note.party?.gstin, company.stateCode);
+        const stateInfo = resolveGstState(
+          note.salesInvoice?.placeOfSupply,
+          note.party?.gstin,
+          company.stateCode,
+        );
         const partyGstin = note.party?.gstin || "";
         const customerName = note.party?.name || "Cash Customer";
-        const noteDateStr = note.returnDate ? new Date(note.returnDate).toISOString().slice(0, 10) : "";
+        const noteDateStr = note.returnDate
+          ? new Date(note.returnDate).toISOString().slice(0, 10)
+          : "";
         const noteVal = Number(note.grandTotal);
         const taxableVal = Number(note.taxableAmount);
         const cgstVal = Number(note.cgstAmount);
         const sgstVal = Number(note.sgstAmount ?? note.utgstAmount ?? 0);
         const igstVal = Number(note.igstAmount);
-        const taxRate = taxableVal > 0 ? Math.round(((cgstVal + sgstVal + igstVal) / taxableVal) * 100) : 0;
+        const taxRate =
+          taxableVal > 0
+            ? Math.round(((cgstVal + sgstVal + igstVal) / taxableVal) * 100)
+            : 0;
 
         creditNotesList.push({
           id: note.id,
@@ -2434,16 +2536,25 @@ export class ReportsService {
       // Build Debit Notes (Outward Debit Notes / Purchase Returns)
       const debitNotesList: any[] = [];
       for (const note of debitNotes) {
-        const stateInfo = resolveGstState(note.placeOfSupply, note.party?.gstin, company.stateCode);
+        const stateInfo = resolveGstState(
+          note.placeOfSupply,
+          note.party?.gstin,
+          company.stateCode,
+        );
         const partyGstin = note.party?.gstin || "";
         const customerName = note.party?.name || "Supplier / Party";
-        const noteDateStr = note.noteDate ? new Date(note.noteDate).toISOString().slice(0, 10) : "";
+        const noteDateStr = note.noteDate
+          ? new Date(note.noteDate).toISOString().slice(0, 10)
+          : "";
         const noteVal = Number(note.grandTotal);
         const taxableVal = Number(note.taxableAmount);
         const cgstVal = Number(note.cgstAmount);
         const sgstVal = Number(note.sgstAmount ?? note.utgstAmount ?? 0);
         const igstVal = Number(note.igstAmount);
-        const taxRate = taxableVal > 0 ? Math.round(((cgstVal + sgstVal + igstVal) / taxableVal) * 100) : 0;
+        const taxRate =
+          taxableVal > 0
+            ? Math.round(((cgstVal + sgstVal + igstVal) / taxableVal) * 100)
+            : 0;
 
         debitNotesList.push({
           id: note.id,
@@ -2469,7 +2580,11 @@ export class ReportsService {
       // Statutory Government Portal JSON Payload (per GST Offline Tool schema)
       const jsonPayload = {
         gstin: company.gstin || "",
-        fp: query.financialYearId || (query.fromDate ? query.fromDate.slice(5, 7) + query.fromDate.slice(0, 4) : ""),
+        fp:
+          query.financialYearId ||
+          (query.fromDate
+            ? query.fromDate.slice(5, 7) + query.fromDate.slice(0, 4)
+            : ""),
         gt: Number(prepared.grossTurnover || 0),
         cur_gt: Number(prepared.grossTurnover || 0),
         b2b: prepared.b2b || [],
@@ -2816,7 +2931,8 @@ export class ReportsService {
 
       const period = resolveReportPeriod(query);
       const dateFilter: { gte?: Date; lte?: Date } = {};
-      if (period.from) dateFilter.gte = new Date(`${period.from}T00:00:00.000Z`);
+      if (period.from)
+        dateFilter.gte = new Date(`${period.from}T00:00:00.000Z`);
       if (period.to) dateFilter.lte = new Date(`${period.to}T23:59:59.999Z`);
       const hasDate = Boolean(period.from || period.to);
 
@@ -2835,7 +2951,11 @@ export class ReportsService {
           status: "ISSUED",
           ...(hasDate ? { returnDate: dateFilter } : {}),
         },
-        include: { party: true, items: { include: { item: true } }, salesInvoice: true },
+        include: {
+          party: true,
+          items: { include: { item: true } },
+          salesInvoice: true,
+        },
       });
       const purchaseInvoices = await tx.purchaseInvoice.findMany({
         where: {
@@ -2854,13 +2974,19 @@ export class ReportsService {
         where: {
           companyId: tenant.companyId,
           itcDecision: "ACCEPTED",
-          ...(period.from && period.to ? { returnPeriod: `${period.from.slice(5, 7)}${period.from.slice(0, 4)}` } : {}),
+          ...(period.from && period.to
+            ? {
+                returnPeriod: `${period.from.slice(5, 7)}${period.from.slice(0, 4)}`,
+              }
+            : {}),
         },
       });
 
       const toSales = (inv: any) => ({
         invoiceNumber: inv.invoiceNumber || inv.returnNumber,
-        invoiceDate: (inv.invoiceDate || inv.returnDate).toISOString().slice(0, 10),
+        invoiceDate: (inv.invoiceDate || inv.returnDate)
+          .toISOString()
+          .slice(0, 10),
         grandTotal: inv.grandTotal.toString(),
         taxableAmount: inv.taxableAmount.toString(),
         cgstAmount: inv.cgstAmount.toString(),
@@ -2869,8 +2995,12 @@ export class ReportsService {
         igstAmount: inv.igstAmount.toString(),
         cessAmount: (inv.cessAmount ?? 0).toString(),
         roundOff: (inv.roundOff ?? 0).toString(),
-        placeOfSupply: inv.placeOfSupply || inv.salesInvoice?.placeOfSupply || company.stateCode,
-        isReverseCharge: inv.isReverseCharge ?? inv.salesInvoice?.isReverseCharge ?? false,
+        placeOfSupply:
+          inv.placeOfSupply ||
+          inv.salesInvoice?.placeOfSupply ||
+          company.stateCode,
+        isReverseCharge:
+          inv.isReverseCharge ?? inv.salesInvoice?.isReverseCharge ?? false,
         partyGstin: inv.party?.gstin ?? null,
         items: (inv.items || []).map((item: any) => ({
           hsnCode: item.hsnCode || item.item?.hsnCode || "999999",
@@ -2938,12 +3068,21 @@ export class ReportsService {
           igstAmount: invoice.igstAmount.toString(),
           itcEligibility: invoice.purchaseInvoice?.itcEligibility || "INPUT",
         })),
-        acceptedPurchaseIds: accepted.map((row) => row.purchaseInvoiceId).filter(Boolean) as string[],
-        acceptedReturnIds: accepted.map((row) => row.purchaseReturnId).filter(Boolean) as string[],
+        acceptedPurchaseIds: accepted
+          .map((row) => row.purchaseInvoiceId)
+          .filter(Boolean) as string[],
+        acceptedReturnIds: accepted
+          .map((row) => row.purchaseReturnId)
+          .filter(Boolean) as string[],
         period: query,
       });
 
-      const ledgerTieOut = await this.compareOutputTaxLedgers(tx, tenant.companyId, dateFilter, prepared.sourceDocumentNet);
+      const ledgerTieOut = await this.compareOutputTaxLedgers(
+        tx,
+        tenant.companyId,
+        dateFilter,
+        prepared.sourceDocumentNet,
+      );
 
       return {
         companyName: company.tradeName,
@@ -2979,7 +3118,10 @@ export class ReportsService {
       ["Output SGST", "sgst"],
       ["Output IGST", "igst"],
     ] as const;
-    const components: Record<string, { ledgerNet: string; documentNet: string; variance: string }> = {};
+    const components: Record<
+      string,
+      { ledgerNet: string; documentNet: string; variance: string }
+    > = {};
     for (const [name, key] of names) {
       const accounts = await tx.ledgerAccount.findMany({
         where: { companyId, name: { startsWith: name } },
@@ -2988,11 +3130,15 @@ export class ReportsService {
       const entries = accounts.length
         ? await tx.journalEntry.findMany({
             where: {
-              accountId: { in: accounts.map((account: { id: string }) => account.id) },
+              accountId: {
+                in: accounts.map((account: { id: string }) => account.id),
+              },
               voucher: {
                 companyId,
                 isCancelled: false,
-                ...(dateFilter.gte || dateFilter.lte ? { voucherDate: dateFilter } : {}),
+                ...(dateFilter.gte || dateFilter.lte
+                  ? { voucherDate: dateFilter }
+                  : {}),
               },
             },
             select: { debitAmount: true, creditAmount: true },
@@ -3000,7 +3146,9 @@ export class ReportsService {
         : [];
       let net = new Decimal(0);
       for (const entry of entries) {
-        net = net.plus(toMoney(entry.creditAmount)).minus(toMoney(entry.debitAmount));
+        net = net
+          .plus(toMoney(entry.creditAmount))
+          .minus(toMoney(entry.debitAmount));
       }
       const documentNet = new Decimal((sourceNet as any)[key]);
       components[key] = {
@@ -3010,7 +3158,8 @@ export class ReportsService {
       };
     }
     return {
-      basis: "Output tax ledgers are credit-normal. Document net is non-cancelled tax invoices minus issued credit notes, including nil and reverse-charge rows.",
+      basis:
+        "Output tax ledgers are credit-normal. Document net is non-cancelled tax invoices minus issued credit notes, including nil and reverse-charge rows.",
       components,
     };
   }
@@ -3019,13 +3168,21 @@ export class ReportsService {
   // 15. BILL WISE PROFIT & MARGIN REPORT
   // --------------------------------------------------------------------------
   async getBillWiseProfit(
-    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    query: {
+      fromDate?: string;
+      toDate?: string;
+      startDate?: string;
+      endDate?: string;
+    },
     tenant: TenantContext,
   ): Promise<any> {
     return await this.prisma.executeInTenantContext(tenant, async (tx) => {
       const fromDate = query.fromDate || query.startDate;
       const toDate = query.toDate || query.endDate;
-      const where: any = { companyId: tenant.companyId, status: { not: InvoiceStatus.CANCELLED } };
+      const where: any = {
+        companyId: tenant.companyId,
+        status: { not: InvoiceStatus.CANCELLED },
+      };
       if (fromDate || toDate) {
         where.invoiceDate = {};
         if (fromDate) where.invoiceDate.gte = parseStartOfDay(fromDate);
@@ -3038,7 +3195,9 @@ export class ReportsService {
           party: { select: { name: true, nameGujarati: true, phone: true } },
           items: {
             include: {
-              item: { select: { purchaseRate: true, retailPrice: true, name: true } },
+              item: {
+                select: { purchaseRate: true, retailPrice: true, name: true },
+              },
             },
           },
         },
@@ -3104,13 +3263,21 @@ export class ReportsService {
   // 16. ITEM-WISE SALES REPORT
   // --------------------------------------------------------------------------
   async getItemSalesReport(
-    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    query: {
+      fromDate?: string;
+      toDate?: string;
+      startDate?: string;
+      endDate?: string;
+    },
     tenant: TenantContext,
   ): Promise<any> {
     return await this.prisma.executeInTenantContext(tenant, async (tx) => {
       const fromDate = query.fromDate || query.startDate;
       const toDate = query.toDate || query.endDate;
-      const invWhere: any = { companyId: tenant.companyId, status: { not: InvoiceStatus.CANCELLED } };
+      const invWhere: any = {
+        companyId: tenant.companyId,
+        status: { not: InvoiceStatus.CANCELLED },
+      };
       if (fromDate || toDate) {
         invWhere.invoiceDate = {};
         if (fromDate) invWhere.invoiceDate.gte = parseStartOfDay(fromDate);
@@ -3148,7 +3315,9 @@ export class ReportsService {
 
         const qty = toMoney(row.quantity);
         const taxable = toMoney(row.taxableAmount);
-        const tax = toMoney(row.cgstAmount).plus(toMoney(row.sgstAmount)).plus(toMoney(row.igstAmount));
+        const tax = toMoney(row.cgstAmount)
+          .plus(toMoney(row.sgstAmount))
+          .plus(toMoney(row.igstAmount));
         const total = toMoney((row as any).totalAmount || taxable.plus(tax));
 
         totalQty = totalQty.plus(qty);
@@ -3211,13 +3380,21 @@ export class ReportsService {
   // 17. PARTY-WISE SALES REPORT
   // --------------------------------------------------------------------------
   async getPartySalesReport(
-    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    query: {
+      fromDate?: string;
+      toDate?: string;
+      startDate?: string;
+      endDate?: string;
+    },
     tenant: TenantContext,
   ): Promise<any> {
     return await this.prisma.executeInTenantContext(tenant, async (tx) => {
       const fromDate = query.fromDate || query.startDate;
       const toDate = query.toDate || query.endDate;
-      const where: any = { companyId: tenant.companyId, status: { not: InvoiceStatus.CANCELLED } };
+      const where: any = {
+        companyId: tenant.companyId,
+        status: { not: InvoiceStatus.CANCELLED },
+      };
       if (fromDate || toDate) {
         where.invoiceDate = {};
         if (fromDate) where.invoiceDate.gte = parseStartOfDay(fromDate);
@@ -3298,7 +3475,12 @@ export class ReportsService {
   // 18. SALES RETURNS (CREDIT NOTES) REPORT
   // --------------------------------------------------------------------------
   async getSalesReturnsReport(
-    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    query: {
+      fromDate?: string;
+      toDate?: string;
+      startDate?: string;
+      endDate?: string;
+    },
     tenant: TenantContext,
   ): Promise<any> {
     return await this.prisma.executeInTenantContext(tenant, async (tx) => {
@@ -3314,7 +3496,14 @@ export class ReportsService {
       const returns = await tx.salesReturn.findMany({
         where,
         include: {
-          party: { select: { name: true, nameGujarati: true, phone: true, gstin: true } },
+          party: {
+            select: {
+              name: true,
+              nameGujarati: true,
+              phone: true,
+              gstin: true,
+            },
+          },
           items: true,
         },
         orderBy: { returnDate: "desc" },
@@ -3326,7 +3515,9 @@ export class ReportsService {
 
       const items = returns.map((r) => {
         const taxable = toMoney(r.taxableAmount);
-        const tax = toMoney(r.cgstAmount).plus(toMoney(r.sgstAmount)).plus(toMoney(r.igstAmount));
+        const tax = toMoney(r.cgstAmount)
+          .plus(toMoney(r.sgstAmount))
+          .plus(toMoney(r.igstAmount));
         const grand = toMoney(r.grandTotal);
 
         totalTaxable = totalTaxable.plus(taxable);
@@ -3365,7 +3556,12 @@ export class ReportsService {
   // 19. ITEM-WISE PURCHASE REPORT
   // --------------------------------------------------------------------------
   async getItemPurchaseReport(
-    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    query: {
+      fromDate?: string;
+      toDate?: string;
+      startDate?: string;
+      endDate?: string;
+    },
     tenant: TenantContext,
   ): Promise<any> {
     return await this.prisma.executeInTenantContext(tenant, async (tx) => {
@@ -3406,7 +3602,9 @@ export class ReportsService {
 
         const qty = toMoney(row.quantity);
         const taxable = toMoney(row.taxableAmount);
-        const tax = toMoney(row.cgstAmount).plus(toMoney(row.sgstAmount)).plus(toMoney(row.igstAmount));
+        const tax = toMoney(row.cgstAmount)
+          .plus(toMoney(row.sgstAmount))
+          .plus(toMoney(row.igstAmount));
         const total = toMoney((row as any).totalAmount || taxable.plus(tax));
 
         totalQty = totalQty.plus(qty);
@@ -3461,7 +3659,12 @@ export class ReportsService {
   // 20. PARTY-WISE PURCHASE REPORT
   // --------------------------------------------------------------------------
   async getPartyPurchaseReport(
-    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    query: {
+      fromDate?: string;
+      toDate?: string;
+      startDate?: string;
+      endDate?: string;
+    },
     tenant: TenantContext,
   ): Promise<any> {
     return await this.prisma.executeInTenantContext(tenant, async (tx) => {
@@ -3546,7 +3749,12 @@ export class ReportsService {
   // 21. PURCHASE RETURNS (DEBIT NOTES) REPORT
   // --------------------------------------------------------------------------
   async getPurchaseReturnsReport(
-    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    query: {
+      fromDate?: string;
+      toDate?: string;
+      startDate?: string;
+      endDate?: string;
+    },
     tenant: TenantContext,
   ): Promise<any> {
     return await this.prisma.executeInTenantContext(tenant, async (tx) => {
@@ -3605,13 +3813,21 @@ export class ReportsService {
   // 22. QUOTATIONS / ESTIMATES REPORT
   // --------------------------------------------------------------------------
   async getQuotationsReport(
-    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    query: {
+      fromDate?: string;
+      toDate?: string;
+      startDate?: string;
+      endDate?: string;
+    },
     tenant: TenantContext,
   ): Promise<any> {
     return await this.prisma.executeInTenantContext(tenant, async (tx) => {
       const fromDate = query.fromDate || query.startDate;
       const toDate = query.toDate || query.endDate;
-      const where: any = { companyId: tenant.companyId, category: InvoiceCategory.PROFORMA_INVOICE };
+      const where: any = {
+        companyId: tenant.companyId,
+        category: InvoiceCategory.PROFORMA_INVOICE,
+      };
       if (fromDate || toDate) {
         where.invoiceDate = {};
         if (fromDate) where.invoiceDate.gte = parseStartOfDay(fromDate);
@@ -3655,7 +3871,12 @@ export class ReportsService {
   // 23. DELIVERY CHALLANS REPORT
   // --------------------------------------------------------------------------
   async getDeliveryChallansReport(
-    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    query: {
+      fromDate?: string;
+      toDate?: string;
+      startDate?: string;
+      endDate?: string;
+    },
     tenant: TenantContext,
   ): Promise<any> {
     return await this.prisma.executeInTenantContext(tenant, async (tx) => {
@@ -3751,7 +3972,9 @@ export class ReportsService {
           itemCode: b.item.sku || b.item.barcode || "-",
           uom: b.item.primaryUom?.symbol || "PCS",
           mfgDate: b.mfgDate ? b.mfgDate.toISOString().slice(0, 10) : "-",
-          expiryDate: b.expiryDate ? b.expiryDate.toISOString().slice(0, 10) : "-",
+          expiryDate: b.expiryDate
+            ? b.expiryDate.toISOString().slice(0, 10)
+            : "-",
           daysToExpiry,
           purchaseRate: toMoney(b.purchaseRate).toFixed(2),
           salePrice: toMoney(b.salePrice).toFixed(2),
@@ -3814,7 +4037,9 @@ export class ReportsService {
             currentStock: currentStock.toFixed(2),
             minStockLevel: minLevel.toFixed(2),
             deficit: deficit.toFixed(2),
-            reorderQuantity: toMoney(item.reorderQuantity || deficit).toFixed(2),
+            reorderQuantity: toMoney(item.reorderQuantity || deficit).toFixed(
+              2,
+            ),
             purchaseRate: toMoney(item.purchaseRate).toFixed(2),
           });
         }
@@ -3833,7 +4058,12 @@ export class ReportsService {
   // 26. EXPENSE CATEGORY REPORT
   // --------------------------------------------------------------------------
   async getExpenseCategoryReport(
-    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    query: {
+      fromDate?: string;
+      toDate?: string;
+      startDate?: string;
+      endDate?: string;
+    },
     tenant: TenantContext,
   ): Promise<any> {
     return await this.prisma.executeInTenantContext(tenant, async (tx) => {
@@ -3910,7 +4140,12 @@ export class ReportsService {
   // 27. AUDIT TRAIL REPORT
   // --------------------------------------------------------------------------
   async getAuditTrailReport(
-    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    query: {
+      fromDate?: string;
+      toDate?: string;
+      startDate?: string;
+      endDate?: string;
+    },
     tenant: TenantContext,
   ): Promise<any> {
     return await this.prisma.executeInTenantContext(tenant, async (tx) => {
@@ -3956,13 +4191,21 @@ export class ReportsService {
   // 28. HSN WISE SALES SUMMARY (TABLE 12)
   // --------------------------------------------------------------------------
   async getHsnWiseSalesReport(
-    query: { fromDate?: string; toDate?: string; startDate?: string; endDate?: string },
+    query: {
+      fromDate?: string;
+      toDate?: string;
+      startDate?: string;
+      endDate?: string;
+    },
     tenant: TenantContext,
   ): Promise<any> {
     return await this.prisma.executeInTenantContext(tenant, async (tx) => {
       const fromDate = query.fromDate || query.startDate;
       const toDate = query.toDate || query.endDate;
-      const invWhere: any = { companyId: tenant.companyId, status: { not: InvoiceStatus.CANCELLED } };
+      const invWhere: any = {
+        companyId: tenant.companyId,
+        status: { not: InvoiceStatus.CANCELLED },
+      };
       if (fromDate || toDate) {
         invWhere.invoiceDate = {};
         if (fromDate) invWhere.invoiceDate.gte = parseStartOfDay(fromDate);
@@ -4048,4 +4291,3 @@ export class ReportsService {
     });
   }
 }
-

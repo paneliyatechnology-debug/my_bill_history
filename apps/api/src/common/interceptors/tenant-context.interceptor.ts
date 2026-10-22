@@ -5,6 +5,7 @@ import {
   CallHandler,
   ForbiddenException,
   UnauthorizedException,
+  BadRequestException,
   Optional,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
@@ -25,7 +26,8 @@ export class TenantContextInterceptor implements NestInterceptor {
     private readonly prisma: DatabaseService,
     @Optional() sessionRegistry?: SupportSessionRegistry,
   ) {
-    this.sessionRegistry = sessionRegistry || new SupportSessionRegistry(prisma);
+    this.sessionRegistry =
+      sessionRegistry || new SupportSessionRegistry(prisma);
   }
 
   async intercept(
@@ -74,7 +76,8 @@ export class TenantContextInterceptor implements NestInterceptor {
         throw new ForbiddenException({
           statusCode: 403,
           error: "ACCOUNT_DEACTIVATED",
-          message: "Access denied: Account is suspended, deactivated, or revoked.",
+          message:
+            "Access denied: Account is suspended, deactivated, or revoked.",
           messageGujarati: "એકાઉન્ટ સ્થગિત અથવા નિષ્ક્રિય કરવામાં આવ્યું છે.",
         });
       }
@@ -87,8 +90,10 @@ export class TenantContextInterceptor implements NestInterceptor {
           throw new UnauthorizedException({
             statusCode: 401,
             error: "SESSION_REVOKED",
-            message: "Session invalidated due to password reset or security change. Please sign in again.",
-            messageGujarati: "પાસવર્ડ બદલાયો હોવાથી સેશન અમાન્ય કરવામાં આવ્યું છે. કૃપા કરીને ફરી લોગિન કરો.",
+            message:
+              "Session invalidated due to password reset or security change. Please sign in again.",
+            messageGujarati:
+              "પાસવર્ડ બદલાયો હોવાથી સેશન અમાન્ય કરવામાં આવ્યું છે. કૃપા કરીને ફરી લોગિન કરો.",
           });
         }
       }
@@ -108,13 +113,17 @@ export class TenantContextInterceptor implements NestInterceptor {
 
     // 1. Support Session Handling & Boundary Isolation
     if (user.isSupportSession) {
-      const validSession = await this.sessionRegistry.getValidSession(user.sessionId);
+      const validSession = await this.sessionRegistry.getValidSession(
+        user.sessionId,
+      );
       if (!validSession) {
         throw new UnauthorizedException({
           statusCode: 401,
           error: "SUPPORT_SESSION_EXPIRED",
-          message: "Support session has been terminated, revoked, or expired. Please re-authenticate as SuperAdmin.",
-          messageGujarati: "સપોર્ટ સેશન પૂર્ણ થઈ ગયું છે અથવા એક્સપાયર થઈ ગયું છે.",
+          message:
+            "Support session has been terminated, revoked, or expired. Please re-authenticate as SuperAdmin.",
+          messageGujarati:
+            "સપોર્ટ સેશન પૂર્ણ થઈ ગયું છે અથવા એક્સપાયર થઈ ગયું છે.",
         });
       }
 
@@ -123,7 +132,8 @@ export class TenantContextInterceptor implements NestInterceptor {
         throw new ForbiddenException({
           statusCode: 403,
           error: "FORBIDDEN_SUPPORT_ACTOR_MISMATCH",
-          message: "Security violation: Authenticated user does not match the active support session actor.",
+          message:
+            "Security violation: Authenticated user does not match the active support session actor.",
           messageGujarati: "સપોર્ટ સેશન એક્ટર મેળ ખાતો નથી.",
         });
       }
@@ -136,43 +146,57 @@ export class TenantContextInterceptor implements NestInterceptor {
         throw new ForbiddenException({
           statusCode: 403,
           error: "FORBIDDEN_SUPPORT_CLAIM_MISMATCH",
-          message: "Support session claims do not match authoritative records in the session registry.",
+          message:
+            "Support session claims do not match authoritative records in the session registry.",
           messageGujarati: "સપોર્ટ સેશન ડેટાબેઝ સાથે મેળ ખાતો નથી.",
         });
       }
 
       // Strict boundary: support token cannot be redirected to another tenant organization via headers
-      if (rawOrgHeader && rawOrgHeader !== validSession.target_organization_id) {
+      if (
+        rawOrgHeader &&
+        rawOrgHeader !== validSession.target_organization_id
+      ) {
         throw new ForbiddenException({
           statusCode: 403,
           error: "FORBIDDEN_SUPPORT_TENANT_ACCESS",
           message: `Cross-tenant access forbidden. Support session is strictly restricted to organization '${validSession.target_organization_id}'.`,
-          messageGujarati: "સપોર્ટ સેશન દરમિયાન અન્ય સંસ્થાનો ઍક્સેસ પ્રતિબંધિત છે.",
+          messageGujarati:
+            "સપોર્ટ સેશન દરમિયાન અન્ય સંસ્થાનો ઍક્સેસ પ્રતિબંધિત છે.",
         });
       }
 
       // Strict boundary: support token cannot access another company via headers
-      if (rawCompanyHeader && rawCompanyHeader !== validSession.target_company_id) {
+      if (
+        rawCompanyHeader &&
+        rawCompanyHeader !== validSession.target_company_id
+      ) {
         throw new ForbiddenException({
           statusCode: 403,
           error: "FORBIDDEN_SUPPORT_COMPANY_ACCESS",
           message: `Cross-company access forbidden. Support session is strictly restricted to company '${validSession.target_company_id}'.`,
-          messageGujarati: "સપોર્ટ સેશન દરમિયાન અન્ય કંપનીનો ઍક્સેસ પ્રતિબંધિત છે.",
+          messageGujarati:
+            "સપોર્ટ સેશન દરમિયાન અન્ય કંપનીનો ઍક્સેસ પ્રતિબંધિત છે.",
         });
       }
 
       // Validate branch header against authoritative DB if provided
       if (rawBranchHeader) {
         const branch = await this.prisma.branch.findFirst({
-          where: { id: rawBranchHeader, companyId: validSession.target_company_id },
+          where: {
+            id: rawBranchHeader,
+            companyId: validSession.target_company_id,
+          },
           select: { id: true },
         });
         if (!branch) {
           throw new ForbiddenException({
             statusCode: 403,
             error: "INVALID_BRANCH",
-            message: "Requested branch does not exist within the active support company.",
-            messageGujarati: "વિનંતી કરેલ શાખા સક્રિય કંપનીમાં અસ્તિત્વમાં નથી.",
+            message:
+              "Requested branch does not exist within the active support company.",
+            messageGujarati:
+              "વિનંતી કરેલ શાખા સક્રિય કંપનીમાં અસ્તિત્વમાં નથી.",
           });
         }
       }
@@ -225,9 +249,20 @@ export class TenantContextInterceptor implements NestInterceptor {
 
     // 2. Zero Trust: Company Check (Derived from authenticated user membership)
     let verifiedCompanyId: string;
-    if (rawCompanyHeader) {
+    const UUID_REGEX =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (rawCompanyHeader !== undefined) {
+      const trimmedCompanyId = rawCompanyHeader.trim();
+      if (!trimmedCompanyId) {
+        throw new BadRequestException("Company context is required.");
+      }
+      if (!UUID_REGEX.test(trimmedCompanyId)) {
+        throw new BadRequestException(
+          "Invalid company context identifier. Must be a valid UUID.",
+        );
+      }
       const company = await this.prisma.company.findFirst({
-        where: { id: rawCompanyHeader, organizationId: verifiedOrgId },
+        where: { id: trimmedCompanyId, organizationId: verifiedOrgId },
         select: { id: true },
       });
 
