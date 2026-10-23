@@ -37,6 +37,20 @@ export function SignatureModal({
 
   if (!isOpen) return null;
 
+  const getCanvasCoords = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+    const scaleX = canvas.width / (rect.width || 1);
+    const scaleY = canvas.height / (rect.height || 1);
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
+    };
+  };
+
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -45,10 +59,7 @@ export function SignatureModal({
 
     setIsDrawing(true);
     setHasDrawn(true);
-    const rect = canvas.getBoundingClientRect();
-    const x = "touches" in e ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
-    const y = "touches" in e ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
-
+    const { x, y } = getCanvasCoords(e);
     ctx.beginPath();
     ctx.moveTo(x, y);
   };
@@ -60,10 +71,7 @@ export function SignatureModal({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = "touches" in e ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
-    const y = "touches" in e ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
-
+    const { x, y } = getCanvasCoords(e);
     ctx.lineTo(x, y);
     ctx.stroke();
   };
@@ -79,6 +87,27 @@ export function SignatureModal({
     if (!ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     setHasDrawn(false);
+  };
+
+  const handleQuickSign = () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 300;
+    canvas.height = 100;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, 300, 100);
+      ctx.font = "italic bold 26px 'Brush Script MT', 'Dancing Script', cursive, sans-serif";
+      ctx.fillStyle = "#1E3A8A";
+      ctx.textAlign = "center";
+      ctx.fillText("Authorized Sign", 150, 50);
+      ctx.font = "11px sans-serif";
+      ctx.fillStyle = "#64748B";
+      ctx.fillText("Authorized Signatory", 150, 75);
+      const data = canvas.toDataURL("image/png");
+      onSaveSignature(data);
+      onClose();
+    }
   };
 
   const handleUploadImage = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,7 +131,6 @@ export function SignatureModal({
       const dataUrl = canvas.toDataURL("image/png");
       onSaveSignature(dataUrl);
     } else if (tab === "text") {
-      // Generate signature from text on a canvas
       const canvas = document.createElement("canvas");
       canvas.width = 300;
       canvas.height = 100;
@@ -111,12 +139,12 @@ export function SignatureModal({
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, 300, 100);
         ctx.font = "italic bold 22px 'Brush Script MT', 'Dancing Script', cursive, sans-serif";
-        ctx.fillStyle = "#1E3A8A"; // Blue
+        ctx.fillStyle = "#1E3A8A";
         ctx.textAlign = "center";
-        ctx.fillText(textName || "Signatory", 150, 48);
+        ctx.fillText(textName.trim() || "Authorized Sign", 150, 48);
         ctx.font = "11px sans-serif";
         ctx.fillStyle = "#64748B";
-        ctx.fillText(textDesignation || "Authorized Signatory", 150, 75);
+        ctx.fillText(textDesignation.trim() || "Authorized Signatory", 150, 75);
         onSaveSignature(canvas.toDataURL("image/png"));
       }
     }
@@ -210,13 +238,23 @@ export function SignatureModal({
                 )}
               </div>
               <div className="flex justify-between items-center text-xs">
-                <button
-                  type="button"
-                  onClick={handleClear}
-                  className="text-slate-500 hover:text-rose-600 font-bold"
-                >
-                  Clear Canvas
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleClear}
+                    className="text-slate-500 hover:text-rose-600 font-bold"
+                  >
+                    Clear Canvas
+                  </button>
+                  <span className="text-slate-300">|</span>
+                  <button
+                    type="button"
+                    onClick={handleQuickSign}
+                    className="text-blue-600 hover:text-blue-700 font-bold hover:underline"
+                  >
+                    ✨ Use Sample Sign
+                  </button>
+                </div>
                 <span className="text-[11px] text-slate-400">
                   Signature line auto-aligns
                 </span>

@@ -27,6 +27,7 @@ export interface ExportDropdownProps {
   disabled?: boolean;
   themeColor?: "saffron" | "purple";
   buttonVariant?: "default" | "outline" | "compact";
+  align?: "left" | "right" | "auto";
 }
 
 export function ExportDropdown({
@@ -41,6 +42,7 @@ export function ExportDropdown({
   disabled = false,
   themeColor = "saffron",
   buttonVariant = "default",
+  align = "auto",
 }: ExportDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -214,7 +216,15 @@ export function ExportDropdown({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-1.5 w-56 bg-white rounded-xl shadow-xl border border-slate-200/90 py-1.5 z-40 animate-fadeIn divide-y divide-slate-100">
+        <div
+          className={`absolute ${
+            align === "left"
+              ? "left-0"
+              : align === "right"
+              ? "right-0"
+              : "left-0 sm:left-auto sm:right-0"
+          } mt-1.5 w-56 bg-white rounded-xl shadow-xl border border-slate-200/90 py-1.5 z-40 animate-fadeIn divide-y divide-slate-100`}
+        >
           {/* Header Info */}
           <div className="px-3.5 py-2 text-[11px] text-slate-500 font-medium">
             {selectedCount > 0 ? (

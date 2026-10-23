@@ -1,5 +1,7 @@
-import { redirect } from "next/navigation";
+"use client";
 
-export default function CashBankRedirectPage() {
-  redirect("/finance/cash-bank");
+import CashAndBankPage from "../finance/cash-bank/page";
+
+export default function CashBankPage() {
+  return <CashAndBankPage />;
 }

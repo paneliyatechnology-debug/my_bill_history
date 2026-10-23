@@ -22,6 +22,7 @@ import { CreateVoucherDto } from "./dto/create-voucher.dto";
 import { ReverseVoucherDto } from "./dto/reverse-voucher.dto";
 import { CreateReceiptVoucherDto } from "./dto/create-receipt-voucher.dto";
 import { CreateExpenseVoucherDto } from "./dto/create-expense-voucher.dto";
+import { CreatePaymentOutVoucherDto } from "./dto/create-payment-out-voucher.dto";
 
 @Injectable()
 export class VouchersService {
@@ -236,7 +237,9 @@ export class VouchersService {
             include: { account: { include: { group: true } } },
             orderBy: { sequenceOrder: "asc" },
           },
-          allocations: { include: { salesInvoice: true } },
+          allocations: {
+            include: { salesInvoice: true, purchaseInvoice: true },
+          },
         },
       });
 
@@ -359,29 +362,47 @@ export class VouchersService {
         });
       }
 
-      // Put settled sales invoices back when a receipt is reversed.
+      // Put settled sales invoices or purchase invoices back when a voucher is reversed.
       for (const alloc of original.allocations || []) {
-        const inv = alloc.salesInvoice;
-        if (!inv || inv.status === "CANCELLED") continue;
-        const applied = toMoney(alloc.allocatedAmount).plus(
-          toMoney(alloc.cashDiscount),
-        );
-        let newPaid = toMoney(inv.paidAmount).minus(applied);
-        if (newPaid.lessThan(0)) newPaid = new Decimal(0);
-        const newBalance = toMoney(inv.balanceAmount).plus(applied);
-        const newStatus = newBalance.lessThanOrEqualTo(0)
-          ? "PAID"
-          : newPaid.greaterThan(0)
-            ? "PARTIALLY_PAID"
-            : "ISSUED";
-        await tx.salesInvoice.update({
-          where: { id: inv.id },
-          data: {
-            paidAmount: newPaid.toNumber(),
-            balanceAmount: newBalance.toNumber(),
-            status: newStatus as any,
-          },
-        });
+        if (alloc.salesInvoice) {
+          const inv = alloc.salesInvoice;
+          if (inv.status !== "CANCELLED") {
+            const applied = toMoney(alloc.allocatedAmount).plus(
+              toMoney(alloc.cashDiscount),
+            );
+            let newPaid = toMoney(inv.paidAmount).minus(applied);
+            if (newPaid.lessThan(0)) newPaid = new Decimal(0);
+            const newBalance = toMoney(inv.balanceAmount).plus(applied);
+            const newStatus = newBalance.lessThanOrEqualTo(0)
+              ? "PAID"
+              : newPaid.greaterThan(0)
+                ? "PARTIALLY_PAID"
+                : "ISSUED";
+            await tx.salesInvoice.update({
+              where: { id: inv.id },
+              data: {
+                paidAmount: newPaid.toNumber(),
+                balanceAmount: newBalance.toNumber(),
+                status: newStatus as any,
+              },
+            });
+          }
+        } else if (alloc.purchaseInvoice) {
+          const pinv = alloc.purchaseInvoice;
+          const applied = toMoney(alloc.allocatedAmount).plus(
+            toMoney(alloc.cashDiscount),
+          );
+          let newPaid = toMoney(pinv.paidAmount).minus(applied);
+          if (newPaid.lessThan(0)) newPaid = new Decimal(0);
+          const newBalance = toMoney(pinv.balanceAmount).plus(applied);
+          await tx.purchaseInvoice.update({
+            where: { id: pinv.id },
+            data: {
+              paidAmount: newPaid.toNumber(),
+              balanceAmount: newBalance.toNumber(),
+            },
+          });
+        }
       }
 
       // Audit Logging (atomic with voucher reversal)
@@ -521,6 +542,17 @@ export class VouchersService {
                   partyId: true,
                 },
               },
+              purchaseInvoice: {
+                select: {
+                  id: true,
+                  vendorInvoiceNumber: true,
+                  invoiceDate: true,
+                  grandTotal: true,
+                  balanceAmount: true,
+                  paidAmount: true,
+                  partyId: true,
+                },
+              },
             },
           },
         },
@@ -528,6 +560,13 @@ export class VouchersService {
 
       if (!voucher) {
         throw new NotFoundException(`Voucher '${id}' not found.`);
+      }
+
+      if (voucher.voucherType === "PAYMENT") {
+        return {
+          ...voucher,
+          ...shapePaymentOut(voucher),
+        };
       }
 
       return {
@@ -657,6 +696,988 @@ export class VouchersService {
         limit,
         totalPages: Math.ceil(total / limit),
         nextNumber,
+      };
+    });
+  }
+
+  /**
+   * Payment Out list: payment vouchers with party, settled amount, and mode.
+   */
+  async listPaymentsOut(
+    tenant: TenantContext,
+    query?: {
+      startDate?: string;
+      endDate?: string;
+      search?: string;
+      page?: number;
+      limit?: number;
+    },
+  ): Promise<any> {
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const page = Math.max(1, Number(query?.page) || 1);
+      const limit = Math.min(100, Math.max(1, Number(query?.limit) || 50));
+      const skip = (page - 1) * limit;
+
+      const where: any = {
+        companyId: tenant.companyId,
+        voucherType: "PAYMENT",
+      };
+
+      if (query?.startDate || query?.endDate) {
+        where.voucherDate = {};
+        if (query.startDate) where.voucherDate.gte = new Date(query.startDate);
+        if (query.endDate) {
+          const end = new Date(query.endDate);
+          if (/^\d{4}-\d{2}-\d{2}$/.test(query.endDate)) {
+            end.setUTCHours(23, 59, 59, 999);
+          }
+          where.voucherDate.lte = end;
+        }
+      }
+
+      if (query?.search && query.search.trim() !== "") {
+        const s = query.search.trim();
+        where.OR = [
+          { voucherNumber: { contains: s, mode: "insensitive" } },
+          { narration: { contains: s, mode: "insensitive" } },
+          { referenceNo: { contains: s, mode: "insensitive" } },
+          {
+            journalEntries: {
+              some: {
+                account: {
+                  OR: [
+                    { name: { contains: s, mode: "insensitive" } },
+                    {
+                      party: {
+                        name: { contains: s, mode: "insensitive" },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        ];
+      }
+
+      const paymentInclude = {
+        journalEntries: {
+          include: {
+            account: {
+              select: {
+                id: true,
+                name: true,
+                partyId: true,
+                isPartyLedger: true,
+                isCashLedger: true,
+                isBankLedger: true,
+                party: { select: { id: true, name: true } },
+              },
+            },
+          },
+          orderBy: { sequenceOrder: "asc" as const },
+        },
+        allocations: {
+          include: {
+            purchaseInvoice: {
+              select: {
+                id: true,
+                vendorInvoiceNumber: true,
+                invoiceDate: true,
+                grandTotal: true,
+                balanceAmount: true,
+                paidAmount: true,
+                partyId: true,
+              },
+            },
+          },
+        },
+      };
+
+      const [rows, total] = await Promise.all([
+        tx.voucher.findMany({
+          where,
+          include: paymentInclude,
+          orderBy: [{ voucherDate: "desc" }, { createdAt: "desc" }],
+          skip,
+          take: limit,
+        }),
+        tx.voucher.count({ where }),
+      ]);
+
+      const fyId =
+        tenant.financialYearId ||
+        (
+          await tx.financialYear.findFirst({
+            where: { companyId: tenant.companyId, isCurrent: true },
+            select: { id: true },
+          })
+        )?.id;
+
+      let nextNumber = "1";
+      if (fyId) {
+        const numbered = await tx.voucher.findMany({
+          where: {
+            companyId: tenant.companyId,
+            financialYearId: fyId,
+            voucherType: "PAYMENT",
+          },
+          select: { voucherNumber: true },
+        });
+        nextNumber = String(maxNumericPaymentNumber(numbered) + 1);
+      }
+
+      return {
+        data: rows.map((row) => shapePaymentOut(row)),
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        nextNumber,
+      };
+    });
+  }
+
+  /**
+   * Post Payment Out Voucher with Bill Matching (Payment Allocation against Purchase Invoices)
+   */
+  async createPaymentOutVoucher(
+    dto: CreatePaymentOutVoucherDto,
+    tenant: TenantContext,
+  ): Promise<any> {
+    const paymentMode = normalizePaymentMode(dto.paymentMode);
+
+    const amountPaid = toMoney(dto.amount || 0);
+    if (amountPaid.lessThan(0)) {
+      throw new BadRequestException("Amount paid cannot be negative.");
+    }
+    const headerDiscount = toMoney(dto.discount || 0);
+    if (headerDiscount.lessThan(0)) {
+      throw new BadRequestException("Discount cannot be negative.");
+    }
+    if (amountPaid.equals(0) && headerDiscount.equals(0)) {
+      throw new BadRequestException("Amount paid or discount must be greater than zero.");
+    }
+
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      // 1. Validate Party (Supplier)
+      const party = await tx.party.findFirst({
+        where: { id: dto.partyId, companyId: tenant.companyId },
+        include: { ledgerAccount: true },
+      });
+      if (!party) {
+        throw new NotFoundException(`Party '${dto.partyId}' not found.`);
+      }
+
+      if (party.type === "CUSTOMER") {
+        await tx.party.update({
+          where: { id: party.id },
+          data: { type: "BOTH" },
+        });
+      }
+
+      // 2. Validate Financial Year & Period
+      const vDate = dto.voucherDate ? new Date(dto.voucherDate) : new Date();
+      let fy = await tx.financialYear.findFirst({
+        where: {
+          companyId: tenant.companyId,
+          startDate: { lte: vDate },
+          endDate: { gte: vDate },
+        },
+      });
+      if (!fy) {
+        fy = await tx.financialYear.findFirst({
+          where: { companyId: tenant.companyId, isCurrent: true },
+        });
+      }
+      if (!fy) {
+        throw new NotFoundException(
+          `No open financial year found for company on ${dto.voucherDate}.`,
+        );
+      }
+      const periodCheck = validatePeriodAccess(vDate, tenant.companyId, fy);
+      if (!periodCheck.isAllowed) {
+        throw new BadRequestException(periodCheck.reason);
+      }
+
+      // 3. Paid From Account (Cash or Bank)
+      let paidFromAccount: any;
+      if (dto.paidFromAccountId) {
+        paidFromAccount = await tx.ledgerAccount.findFirst({
+          where: { id: dto.paidFromAccountId, companyId: tenant.companyId },
+          include: { group: true },
+        });
+      } else {
+        paidFromAccount = await tx.ledgerAccount.findFirst({
+          where: { companyId: tenant.companyId, name: "Cash Account" },
+          include: { group: true },
+        });
+        if (!paidFromAccount) {
+          paidFromAccount = await tx.ledgerAccount.findFirst({
+            where: { companyId: tenant.companyId, isCashLedger: true },
+            include: { group: true },
+          });
+        }
+      }
+      if (!paidFromAccount) {
+        throw new NotFoundException(
+          "Paid-from (Cash/Bank) account not found in this company.",
+        );
+      }
+
+      // 4. Supplier Account
+      let supplierAccount = party.ledgerAccount;
+      if (!supplierAccount) {
+        supplierAccount = await tx.ledgerAccount.findFirst({
+          where: { companyId: tenant.companyId, partyId: party.id },
+          include: { group: true },
+        });
+      }
+      if (!supplierAccount) {
+        const sundryCreditors = await tx.ledgerGroup.findFirst({
+          where: { companyId: tenant.companyId, name: "Sundry Creditors" },
+        });
+        supplierAccount = await tx.ledgerAccount.create({
+          data: {
+            organizationId: tenant.organizationId,
+            companyId: tenant.companyId,
+            groupId:
+              sundryCreditors?.id ||
+              (await tx.ledgerGroup.findFirst({
+                where: { companyId: tenant.companyId, nature: "LIABILITY" },
+              }))!.id,
+            name: party.name,
+            isPartyLedger: true,
+            partyId: party.id,
+            openingType: "CR",
+            currentBalance: 0,
+          },
+          include: { group: true },
+        });
+      }
+
+      // 5. Allocations (Settling purchase invoices)
+      let totalSettled = new Decimal(0);
+      let totalRowDiscount = new Decimal(0);
+      const invoiceUpdates: Array<{
+        invoice: any;
+        settled: Decimal;
+        discount: Decimal;
+      }> = [];
+
+      const seenInvoices = new Set<string>();
+      for (const alloc of dto.allocations || []) {
+        if (!alloc.purchaseInvoiceId) continue;
+        if (seenInvoices.has(alloc.purchaseInvoiceId)) {
+          throw new BadRequestException(
+            "The same purchase invoice cannot be settled twice on one payment.",
+          );
+        }
+        seenInvoices.add(alloc.purchaseInvoiceId);
+        const inv = await tx.purchaseInvoice.findFirst({
+          where: { id: alloc.purchaseInvoiceId, companyId: tenant.companyId },
+        });
+        if (!inv) {
+          throw new NotFoundException(
+            `Purchase invoice '${alloc.purchaseInvoiceId}' not found.`,
+          );
+        }
+        if (inv.partyId !== party.id) {
+          throw new BadRequestException(
+            `Invoice '${inv.vendorInvoiceNumber}' belongs to a different party.`,
+          );
+        }
+        const rowCash = toMoney(alloc.amount || 0);
+        const rowDisc = toMoney(alloc.cashDiscount || 0);
+        const allocTotal = rowCash.plus(rowDisc);
+        if (allocTotal.lessThanOrEqualTo(0)) continue;
+        const invBalance = toMoney(inv.balanceAmount);
+
+        if (allocTotal.greaterThan(invBalance)) {
+          throw new BadRequestException(
+            `Settlement amount of ₹${allocTotal.toString()} exceeds pending balance of ₹${invBalance.toString()} on invoice #${inv.vendorInvoiceNumber}.`,
+          );
+        }
+
+        totalSettled = totalSettled.plus(rowCash);
+        totalRowDiscount = totalRowDiscount.plus(rowDisc);
+        invoiceUpdates.push({ invoice: inv, settled: rowCash, discount: rowDisc });
+      }
+
+      if (invoiceUpdates.length > 0 && totalSettled.greaterThan(amountPaid)) {
+        throw new BadRequestException(
+          `Sum of allocated invoice amounts (₹${totalSettled.toString()}) cannot exceed amount paid (₹${amountPaid.toString()}).`,
+        );
+      }
+
+      const totalDiscount = headerDiscount.greaterThan(totalRowDiscount)
+        ? headerDiscount
+        : totalRowDiscount;
+
+      // 6. Build Double-Entry Journal Lines
+      const voucherLines: Array<{
+        accountId: string;
+        debitAmount: number;
+        creditAmount: number;
+        lineNarration: string;
+      }> = [];
+
+      // DR Supplier Ledger for Total Debit (amountPaid + discount)
+      const totalSupplierDebit = amountPaid.plus(totalDiscount);
+      voucherLines.push({
+        accountId: supplierAccount.id,
+        debitAmount: totalSupplierDebit.toNumber(),
+        creditAmount: 0,
+        lineNarration: `Payment to ${party.name}`,
+      });
+
+      // CR Paid-From (Cash/Bank) for Amount Paid
+      if (amountPaid.greaterThan(0)) {
+        voucherLines.push({
+          accountId: paidFromAccount.id,
+          debitAmount: 0,
+          creditAmount: amountPaid.toNumber(),
+          lineNarration: `Payment out to ${party.name}`,
+        });
+      }
+
+      // CR Discount Received for Cash Discount if any
+      if (totalDiscount.greaterThan(0)) {
+        let discountAcc = await tx.ledgerAccount.findFirst({
+          where: { companyId: tenant.companyId, name: "Discount Received" },
+        });
+        if (!discountAcc) {
+          discountAcc = await tx.ledgerAccount.findFirst({
+            where: {
+              companyId: tenant.companyId,
+              name: { contains: "Discount", mode: "insensitive" },
+            },
+          });
+        }
+        if (!discountAcc) {
+          const incomeGroup = await tx.ledgerGroup.findFirst({
+            where: { companyId: tenant.companyId, nature: "INCOME" },
+          });
+          if (incomeGroup) {
+            discountAcc = await tx.ledgerAccount.create({
+              data: {
+                organizationId: tenant.organizationId,
+                companyId: tenant.companyId,
+                groupId: incomeGroup.id,
+                name: "Discount Received",
+                openingType: "CR",
+                currentBalance: 0,
+              },
+            });
+          }
+        }
+        if (discountAcc) {
+          voucherLines.push({
+            accountId: discountAcc.id,
+            debitAmount: 0,
+            creditAmount: totalDiscount.toNumber(),
+            lineNarration: "Discount received on payment to supplier",
+          });
+        }
+      }
+
+      // Validate lines
+      const validation = validateJournalLines(voucherLines);
+      if (!validation.isValid) {
+        throw new BadRequestException(validation.errors.join("; "));
+      }
+
+      // 7. Voucher Number
+      let voucherNumber = dto.paymentNumber ? String(dto.paymentNumber).trim() : "";
+      if (!voucherNumber) {
+        await tx.$executeRaw`
+          SELECT pg_advisory_xact_lock(hashtext(${`payment_out:${tenant.companyId}:${fy.id}`})::bigint)
+        `;
+        const numbered = await tx.voucher.findMany({
+          where: {
+            companyId: tenant.companyId,
+            financialYearId: fy.id,
+            voucherType: "PAYMENT",
+          },
+          select: { voucherNumber: true },
+        });
+        voucherNumber = String(maxNumericPaymentNumber(numbered) + 1);
+      }
+
+      const duplicate = await tx.voucher.findUnique({
+        where: {
+          companyId_financialYearId_voucherType_voucherNumber: {
+            companyId: tenant.companyId,
+            financialYearId: fy.id,
+            voucherType: "PAYMENT",
+            voucherNumber,
+          },
+        },
+      });
+      if (duplicate) {
+        throw new ConflictException(
+          `Payment Out voucher number '${voucherNumber}' already exists for this financial year.`,
+        );
+      }
+
+      // 8. Create Voucher
+      const voucher = await tx.voucher.create({
+        data: {
+          organizationId: tenant.organizationId,
+          companyId: tenant.companyId,
+          financialYearId: fy.id,
+          voucherType: "PAYMENT",
+          voucherNumber,
+          voucherDate: vDate,
+          referenceNo: dto.referenceNo || null,
+          paymentMode,
+          narration: dto.narration || `Payment to ${party.name}`,
+          narrationGujarati: dto.narrationGujarati || null,
+          totalAmount: totalSupplierDebit.toNumber(),
+          isAutoGenerated: false,
+          isCancelled: false,
+          sourceDocument: "PAYMENT_OUT",
+          sourceEntityId: party.id,
+        },
+      });
+
+      // Insert Journal Entries & Update Account Balances
+      for (let i = 0; i < voucherLines.length; i++) {
+        const vl = voucherLines[i];
+        await tx.journalEntry.create({
+          data: {
+            voucherId: voucher.id,
+            accountId: vl.accountId,
+            debitAmount: vl.debitAmount,
+            creditAmount: vl.creditAmount,
+            lineNarration: vl.lineNarration,
+            sequenceOrder: i + 1,
+          },
+        });
+
+        const acc = await tx.ledgerAccount.findUnique({
+          where: { id: vl.accountId },
+          include: { group: true },
+        });
+        if (acc) {
+          const newBal = applyTransactionToBalance(
+            acc.group.nature as any,
+            acc.currentBalance.toString(),
+            toMoney(vl.debitAmount),
+            toMoney(vl.creditAmount),
+          );
+          await tx.ledgerAccount.update({
+            where: { id: acc.id },
+            data: { currentBalance: newBal.toNumber() },
+          });
+        }
+      }
+
+      // 9. Create PaymentAllocation records and update purchase invoice balances
+      const createdAllocations: any[] = [];
+      for (const item of invoiceUpdates) {
+        const allocRecord = await tx.paymentAllocation.create({
+          data: {
+            voucherId: voucher.id,
+            purchaseInvoiceId: item.invoice.id,
+            allocatedAmount: item.settled.toNumber(),
+            cashDiscount: item.discount.toNumber(),
+            allocationDate: vDate,
+          },
+        });
+        createdAllocations.push(allocRecord);
+
+        const totalApplied = item.settled.plus(item.discount);
+        const newPaid = toMoney(item.invoice.paidAmount).plus(totalApplied);
+        const newBalance = toMoney(item.invoice.balanceAmount).minus(totalApplied);
+
+        await tx.purchaseInvoice.update({
+          where: { id: item.invoice.id },
+          data: {
+            paidAmount: newPaid.toNumber(),
+            balanceAmount: newBalance.toNumber(),
+          },
+        });
+      }
+
+      // 10. Audit Log
+      await this.audit.record(
+        {
+          organizationId: tenant.organizationId,
+          companyId: tenant.companyId,
+          userId: tenant.userId || "00000000-0000-0000-0000-000000000000",
+          action: "POST_PAYMENT_OUT_VOUCHER",
+          entityName: "Voucher",
+          entityId: voucher.id,
+          newState: {
+            voucherNumber,
+            amountPaid: amountPaid.toNumber(),
+            partyId: party.id,
+          },
+        },
+        tx,
+      );
+
+      return {
+        ...voucher,
+        allocations: createdAllocations,
+      };
+    });
+  }
+
+  /**
+   * Cancel/reverse a Payment Out voucher and revert allocations and balances
+   */
+  async cancelPaymentOut(id: string, tenant: TenantContext): Promise<any> {
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const voucher = await tx.voucher.findFirst({
+        where: { id, companyId: tenant.companyId, voucherType: "PAYMENT" },
+        include: {
+          financialYear: true,
+          journalEntries: {
+            include: { account: { include: { group: true } } },
+            orderBy: { sequenceOrder: "asc" },
+          },
+          allocations: {
+            include: { purchaseInvoice: true },
+          },
+        },
+      });
+
+      if (!voucher) {
+        throw new NotFoundException(`Payment Out voucher '${id}' not found.`);
+      }
+
+      if (voucher.isCancelled) {
+        throw new BadRequestException(
+          `Voucher '${voucher.voucherNumber}' is already cancelled.`,
+        );
+      }
+
+      if (voucher.financialYear.isLocked) {
+        throw new BadRequestException(
+          `Financial year ${voucher.financialYear.name} is locked. Cannot cancel vouchers in locked periods.`,
+        );
+      }
+
+      // 1. Mark voucher as cancelled
+      await tx.voucher.update({
+        where: { id: voucher.id },
+        data: { isCancelled: true },
+      });
+
+      // 2. Revert purchase invoice balances
+      for (const alloc of voucher.allocations || []) {
+        if (alloc.purchaseInvoice) {
+          const inv = alloc.purchaseInvoice;
+          const applied = toMoney(alloc.allocatedAmount).plus(
+            toMoney(alloc.cashDiscount),
+          );
+          let newPaid = toMoney(inv.paidAmount).minus(applied);
+          if (newPaid.lessThan(0)) newPaid = new Decimal(0);
+          const newBalance = toMoney(inv.balanceAmount).plus(applied);
+
+          await tx.purchaseInvoice.update({
+            where: { id: inv.id },
+            data: {
+              paidAmount: newPaid.toNumber(),
+              balanceAmount: newBalance.toNumber(),
+            },
+          });
+        }
+      }
+
+      // 3. Revert account balances (contra effect: debit becomes credit, credit becomes debit)
+      for (const entry of voucher.journalEntries) {
+        const acc = entry.account;
+        if (!acc) continue;
+        const newBalance = applyTransactionToBalance(
+          acc.group.nature as any,
+          acc.currentBalance.toString(),
+          toMoney(entry.creditAmount),
+          toMoney(entry.debitAmount),
+        );
+
+        await tx.ledgerAccount.update({
+          where: { id: acc.id },
+          data: { currentBalance: newBalance.toNumber() },
+        });
+      }
+
+      // 4. Audit Log
+      await this.audit.record(
+        {
+          organizationId: tenant.organizationId,
+          companyId: tenant.companyId,
+          userId: tenant.userId || "00000000-0000-0000-0000-000000000000",
+          action: "CANCEL_PAYMENT_OUT_VOUCHER",
+          entityName: "Voucher",
+          entityId: voucher.id,
+          newState: { isCancelled: true },
+        },
+        tx,
+      );
+
+      return {
+        success: true,
+        message: `Payment Out voucher #${voucher.voucherNumber} has been cancelled and invoice balances restored.`,
+      };
+    });
+  }
+
+  /**
+   * Update an existing Payment Out voucher, atomically reverting old allocations and applying new ones
+   */
+  async updatePaymentOutVoucher(
+    id: string,
+    dto: CreatePaymentOutVoucherDto,
+    tenant: TenantContext,
+  ): Promise<any> {
+    const paymentMode = normalizePaymentMode(dto.paymentMode);
+
+    const amountPaid = toMoney(dto.amount || 0);
+    if (amountPaid.lessThan(0)) {
+      throw new BadRequestException("Amount paid cannot be negative.");
+    }
+    const headerDiscount = toMoney(dto.discount || 0);
+    if (headerDiscount.lessThan(0)) {
+      throw new BadRequestException("Discount cannot be negative.");
+    }
+    if (amountPaid.equals(0) && headerDiscount.equals(0)) {
+      throw new BadRequestException("Amount paid or discount must be greater than zero.");
+    }
+
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const existing = await tx.voucher.findFirst({
+        where: { id, companyId: tenant.companyId, voucherType: "PAYMENT" },
+        include: {
+          financialYear: true,
+          journalEntries: {
+            include: { account: { include: { group: true } } },
+            orderBy: { sequenceOrder: "asc" },
+          },
+          allocations: {
+            include: { purchaseInvoice: true },
+          },
+        },
+      });
+
+      if (!existing) {
+        throw new NotFoundException(`Payment Out voucher '${id}' not found.`);
+      }
+
+      if (existing.financialYear.isLocked) {
+        throw new BadRequestException(
+          `Financial year ${existing.financialYear.name} is locked. Cannot edit vouchers in locked periods.`,
+        );
+      }
+
+      // 1. Revert previous purchase invoice allocations
+      for (const alloc of existing.allocations || []) {
+        if (alloc.purchaseInvoice) {
+          const inv = alloc.purchaseInvoice;
+          const applied = toMoney(alloc.allocatedAmount).plus(
+            toMoney(alloc.cashDiscount),
+          );
+          let newPaid = toMoney(inv.paidAmount).minus(applied);
+          if (newPaid.lessThan(0)) newPaid = new Decimal(0);
+          const newBalance = toMoney(inv.balanceAmount).plus(applied);
+
+          await tx.purchaseInvoice.update({
+            where: { id: inv.id },
+            data: {
+              paidAmount: newPaid.toNumber(),
+              balanceAmount: newBalance.toNumber(),
+            },
+          });
+        }
+      }
+
+      // 2. Revert previous account balances
+      for (const entry of existing.journalEntries) {
+        const acc = entry.account;
+        if (!acc) continue;
+        const newBalance = applyTransactionToBalance(
+          acc.group.nature as any,
+          acc.currentBalance.toString(),
+          toMoney(entry.creditAmount),
+          toMoney(entry.debitAmount),
+        );
+
+        await tx.ledgerAccount.update({
+          where: { id: acc.id },
+          data: { currentBalance: newBalance.toNumber() },
+        });
+      }
+
+      // 3. Clear existing allocations and journal entries
+      await tx.paymentAllocation.deleteMany({ where: { voucherId: id } });
+      await tx.journalEntry.deleteMany({ where: { voucherId: id } });
+
+      // 4. Validate Party (Supplier)
+      const party = await tx.party.findFirst({
+        where: { id: dto.partyId, companyId: tenant.companyId },
+        include: { ledgerAccount: true },
+      });
+      if (!party) {
+        throw new NotFoundException(`Party '${dto.partyId}' not found.`);
+      }
+
+      const vDate = dto.voucherDate ? new Date(dto.voucherDate) : new Date();
+
+      // Paid From Account
+      let paidFromAccount: any;
+      if (dto.paidFromAccountId) {
+        paidFromAccount = await tx.ledgerAccount.findFirst({
+          where: { id: dto.paidFromAccountId, companyId: tenant.companyId },
+          include: { group: true },
+        });
+      } else {
+        paidFromAccount = await tx.ledgerAccount.findFirst({
+          where: { companyId: tenant.companyId, name: "Cash Account" },
+          include: { group: true },
+        });
+        if (!paidFromAccount) {
+          paidFromAccount = await tx.ledgerAccount.findFirst({
+            where: { companyId: tenant.companyId, isCashLedger: true },
+            include: { group: true },
+          });
+        }
+      }
+      if (!paidFromAccount) {
+        throw new NotFoundException("Paid-from (Cash/Bank) account not found in this company.");
+      }
+
+      // Supplier Account
+      let supplierAccount = party.ledgerAccount;
+      if (!supplierAccount) {
+        supplierAccount = await tx.ledgerAccount.findFirst({
+          where: { companyId: tenant.companyId, partyId: party.id },
+          include: { group: true },
+        });
+      }
+      if (!supplierAccount) {
+        const sundryCreditors = await tx.ledgerGroup.findFirst({
+          where: { companyId: tenant.companyId, name: "Sundry Creditors" },
+        });
+        supplierAccount = await tx.ledgerAccount.create({
+          data: {
+            organizationId: tenant.organizationId,
+            companyId: tenant.companyId,
+            groupId:
+              sundryCreditors?.id ||
+              (await tx.ledgerGroup.findFirst({
+                where: { companyId: tenant.companyId, nature: "LIABILITY" },
+              }))!.id,
+            name: party.name,
+            isPartyLedger: true,
+            partyId: party.id,
+            openingType: "CR",
+            currentBalance: 0,
+          },
+          include: { group: true },
+        });
+      }
+
+      // 5. New Allocations
+      let totalSettled = new Decimal(0);
+      let totalRowDiscount = new Decimal(0);
+      const invoiceUpdates: Array<{
+        invoice: any;
+        settled: Decimal;
+        discount: Decimal;
+      }> = [];
+
+      const seenInvoices = new Set<string>();
+      for (const alloc of dto.allocations || []) {
+        if (!alloc.purchaseInvoiceId) continue;
+        if (seenInvoices.has(alloc.purchaseInvoiceId)) {
+          throw new BadRequestException(
+            "The same purchase invoice cannot be settled twice on one payment.",
+          );
+        }
+        seenInvoices.add(alloc.purchaseInvoiceId);
+        const inv = await tx.purchaseInvoice.findFirst({
+          where: { id: alloc.purchaseInvoiceId, companyId: tenant.companyId },
+        });
+        if (!inv) {
+          throw new NotFoundException(`Purchase invoice '${alloc.purchaseInvoiceId}' not found.`);
+        }
+        if (inv.partyId !== party.id) {
+          throw new BadRequestException(`Invoice '${inv.vendorInvoiceNumber}' belongs to a different party.`);
+        }
+        const rowCash = toMoney(alloc.amount || 0);
+        const rowDisc = toMoney(alloc.cashDiscount || 0);
+        const allocTotal = rowCash.plus(rowDisc);
+        if (allocTotal.lessThanOrEqualTo(0)) continue;
+        const invBalance = toMoney(inv.balanceAmount);
+
+        if (allocTotal.greaterThan(invBalance)) {
+          throw new BadRequestException(
+            `Settlement amount of ₹${allocTotal.toString()} exceeds pending balance of ₹${invBalance.toString()} on invoice #${inv.vendorInvoiceNumber}.`,
+          );
+        }
+
+        totalSettled = totalSettled.plus(rowCash);
+        totalRowDiscount = totalRowDiscount.plus(rowDisc);
+        invoiceUpdates.push({ invoice: inv, settled: rowCash, discount: rowDisc });
+      }
+
+      if (invoiceUpdates.length > 0 && totalSettled.greaterThan(amountPaid)) {
+        throw new BadRequestException(
+          `Sum of allocated invoice amounts (₹${totalSettled.toString()}) cannot exceed amount paid (₹${amountPaid.toString()}).`,
+        );
+      }
+
+      const totalDiscount = headerDiscount.greaterThan(totalRowDiscount)
+        ? headerDiscount
+        : totalRowDiscount;
+
+      // 6. Double-Entry Journal Lines
+      const voucherLines: Array<{
+        accountId: string;
+        debitAmount: number;
+        creditAmount: number;
+        lineNarration: string;
+      }> = [];
+
+      const totalSupplierDebit = amountPaid.plus(totalDiscount);
+      voucherLines.push({
+        accountId: supplierAccount.id,
+        debitAmount: totalSupplierDebit.toNumber(),
+        creditAmount: 0,
+        lineNarration: `Payment to ${party.name}`,
+      });
+
+      if (amountPaid.greaterThan(0)) {
+        voucherLines.push({
+          accountId: paidFromAccount.id,
+          debitAmount: 0,
+          creditAmount: amountPaid.toNumber(),
+          lineNarration: `Payment out to ${party.name}`,
+        });
+      }
+
+      if (totalDiscount.greaterThan(0)) {
+        let discountAcc = await tx.ledgerAccount.findFirst({
+          where: { companyId: tenant.companyId, name: "Discount Received" },
+        });
+        if (!discountAcc) {
+          discountAcc = await tx.ledgerAccount.findFirst({
+            where: { companyId: tenant.companyId, name: { contains: "Discount", mode: "insensitive" } },
+          });
+        }
+        if (discountAcc) {
+          voucherLines.push({
+            accountId: discountAcc.id,
+            debitAmount: 0,
+            creditAmount: totalDiscount.toNumber(),
+            lineNarration: "Discount received on payment to supplier",
+          });
+        }
+      }
+
+      const validation = validateJournalLines(voucherLines);
+      if (!validation.isValid) {
+        throw new BadRequestException(validation.errors.join("; "));
+      }
+
+      // 7. Update Voucher
+      const voucherNumber = dto.paymentNumber ? String(dto.paymentNumber).trim() : existing.voucherNumber;
+      const voucher = await tx.voucher.update({
+        where: { id: existing.id },
+        data: {
+          voucherNumber,
+          voucherDate: vDate,
+          referenceNo: dto.referenceNo || null,
+          paymentMode,
+          narration: dto.narration || `Payment to ${party.name}`,
+          narrationGujarati: dto.narrationGujarati || null,
+          totalAmount: totalSupplierDebit.toNumber(),
+          isCancelled: false,
+          sourceEntityId: party.id,
+        },
+      });
+
+      // Insert Journal Entries & Update Account Balances
+      for (let i = 0; i < voucherLines.length; i++) {
+        const vl = voucherLines[i];
+        await tx.journalEntry.create({
+          data: {
+            voucherId: voucher.id,
+            accountId: vl.accountId,
+            debitAmount: vl.debitAmount,
+            creditAmount: vl.creditAmount,
+            lineNarration: vl.lineNarration,
+            sequenceOrder: i + 1,
+          },
+        });
+
+        const acc = await tx.ledgerAccount.findUnique({
+          where: { id: vl.accountId },
+          include: { group: true },
+        });
+        if (acc) {
+          const newBal = applyTransactionToBalance(
+            acc.group.nature as any,
+            acc.currentBalance.toString(),
+            toMoney(vl.debitAmount),
+            toMoney(vl.creditAmount),
+          );
+          await tx.ledgerAccount.update({
+            where: { id: acc.id },
+            data: { currentBalance: newBal.toNumber() },
+          });
+        }
+      }
+
+      // Create PaymentAllocation records and update purchase invoices
+      const createdAllocations: any[] = [];
+      for (const item of invoiceUpdates) {
+        const allocRecord = await tx.paymentAllocation.create({
+          data: {
+            voucherId: voucher.id,
+            purchaseInvoiceId: item.invoice.id,
+            allocatedAmount: item.settled.toNumber(),
+            cashDiscount: item.discount.toNumber(),
+            allocationDate: vDate,
+          },
+        });
+        createdAllocations.push(allocRecord);
+
+        const totalApplied = item.settled.plus(item.discount);
+        const newPaid = toMoney(item.invoice.paidAmount).plus(totalApplied);
+        const newBalance = toMoney(item.invoice.balanceAmount).minus(totalApplied);
+
+        await tx.purchaseInvoice.update({
+          where: { id: item.invoice.id },
+          data: {
+            paidAmount: newPaid.toNumber(),
+            balanceAmount: newBalance.toNumber(),
+          },
+        });
+      }
+
+      await this.audit.record(
+        {
+          organizationId: tenant.organizationId,
+          companyId: tenant.companyId,
+          userId: tenant.userId || "00000000-0000-0000-0000-000000000000",
+          action: "UPDATE_PAYMENT_OUT_VOUCHER",
+          entityName: "Voucher",
+          entityId: voucher.id,
+          newState: {
+            voucherNumber,
+            amountPaid: amountPaid.toNumber(),
+            partyId: party.id,
+          },
+        },
+        tx,
+      );
+
+      return {
+        ...voucher,
+        allocations: createdAllocations,
       };
     });
   }
@@ -1195,6 +2216,232 @@ export class VouchersService {
       return voucher;
     });
   }
+
+  /**
+   * Updates an existing expense payment voucher in place.
+   * Reverts previous debit/credit balances, deletes old journal entries,
+   * updates the voucher record with the same or updated voucherNumber,
+   * and applies new journal entries and account balances.
+   */
+  async updateExpenseVoucher(
+    id: string,
+    dto: CreateExpenseVoucherDto,
+    tenant: TenantContext,
+  ): Promise<any> {
+    if (!dto.expenseAccountId) {
+      throw new BadRequestException("expenseAccountId is required.");
+    }
+
+    const expenseAmount = toMoney(dto.amount);
+    if (expenseAmount.lessThanOrEqualTo(0)) {
+      throw new BadRequestException("Expense amount must be greater than zero.");
+    }
+
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      // 1. Find existing voucher
+      const existing = await tx.voucher.findFirst({
+        where: { id, companyId: tenant.companyId },
+        include: {
+          financialYear: true,
+          journalEntries: {
+            include: { account: { include: { group: true } } },
+          },
+        },
+      });
+
+      if (!existing) {
+        throw new NotFoundException(`Expense voucher '${id}' not found.`);
+      }
+
+      if (existing.financialYear.isLocked) {
+        throw new BadRequestException(
+          `Financial year ${existing.financialYear.name} is locked. Cannot edit vouchers in locked periods.`,
+        );
+      }
+
+      const fy = existing.financialYear;
+      const voucherDate = dto.voucherDate ? new Date(dto.voucherDate) : existing.voucherDate;
+
+      // 2. Validate expense account
+      const expenseAccount = await tx.ledgerAccount.findFirst({
+        where: { id: dto.expenseAccountId, companyId: tenant.companyId },
+        include: { group: true },
+      });
+      if (!expenseAccount) {
+        throw new NotFoundException("Expense account not found in this company.");
+      }
+      if (!expenseAccount.isActive) {
+        throw new BadRequestException(
+          `Cannot post expense to inactive account: ${expenseAccount.name}`,
+        );
+      }
+
+      // 3. Validate payment account
+      let paymentAccount: any = null;
+      if (dto.paidFromAccountId) {
+        paymentAccount = await tx.ledgerAccount.findFirst({
+          where: { id: dto.paidFromAccountId, companyId: tenant.companyId },
+          include: { group: true },
+        });
+      } else {
+        paymentAccount = await tx.ledgerAccount.findFirst({
+          where: { companyId: tenant.companyId, isCashLedger: true },
+          include: { group: true },
+        });
+        if (!paymentAccount) {
+          paymentAccount = await tx.ledgerAccount.findFirst({
+            where: {
+              companyId: tenant.companyId,
+              name: { contains: "Cash", mode: "insensitive" },
+            },
+            include: { group: true },
+          });
+        }
+      }
+      if (!paymentAccount) {
+        throw new NotFoundException(
+          "Payment account (Cash/Bank) not found in this company.",
+        );
+      }
+      if (!paymentAccount.isActive) {
+        throw new BadRequestException(
+          `Cannot post payment from inactive account: ${paymentAccount.name}`,
+        );
+      }
+
+      // 4. Voucher Number: preserve existing voucherNumber if not changed
+      let voucherNumber = dto.voucherNumber?.trim() || existing.voucherNumber;
+      if (voucherNumber !== existing.voucherNumber) {
+        const conflict = await tx.voucher.findFirst({
+          where: {
+            companyId: tenant.companyId,
+            financialYearId: fy.id,
+            voucherType: existing.voucherType,
+            voucherNumber,
+            id: { not: existing.id },
+          },
+        });
+        if (conflict) {
+          throw new ConflictException(
+            `Voucher number ${voucherNumber} already exists in this financial year.`,
+          );
+        }
+      }
+
+      // 5. Revert previous journal entries and account balances
+      for (const entry of existing.journalEntries || []) {
+        if (entry.account) {
+          const acc = entry.account;
+          const revertedBal = applyTransactionToBalance(
+            acc.group.nature as any,
+            acc.currentBalance.toString(),
+            toMoney(entry.debitAmount).negated(),
+            toMoney(entry.creditAmount).negated(),
+          );
+          await tx.ledgerAccount.update({
+            where: { id: acc.id },
+            data: { currentBalance: revertedBal.toNumber() },
+          });
+        }
+      }
+
+      // Delete old journal entries
+      await tx.journalEntry.deleteMany({
+        where: { voucherId: existing.id },
+      });
+
+      // 6. Update Voucher record
+      const updatedVoucher = await tx.voucher.update({
+        where: { id: existing.id },
+        data: {
+          voucherNumber,
+          voucherDate,
+          totalAmount: expenseAmount.toNumber(),
+          referenceNo: dto.referenceNo || null,
+          narration: dto.narration || `Expense paid: ${expenseAccount.name}`,
+          isCancelled: false,
+          journalEntries: {
+            create: [
+              {
+                accountId: expenseAccount.id,
+                debitAmount: expenseAmount.toNumber(),
+                creditAmount: 0,
+                lineNarration: `Expense: ${expenseAccount.name}`,
+                sequenceOrder: 1,
+              },
+              {
+                accountId: paymentAccount.id,
+                debitAmount: 0,
+                creditAmount: expenseAmount.toNumber(),
+                lineNarration: `Paid from ${paymentAccount.name}`,
+                sequenceOrder: 2,
+              },
+            ],
+          },
+        },
+        include: {
+          journalEntries: {
+            include: { account: true },
+          },
+        },
+      });
+
+      // 7. Update new account balances (fetch fresh balances since they may have been modified during revert)
+      const freshExpenseAcc = await tx.ledgerAccount.findUnique({
+        where: { id: expenseAccount.id },
+        include: { group: true },
+      });
+      if (freshExpenseAcc) {
+        const newExpenseBal = applyTransactionToBalance(
+          freshExpenseAcc.group.nature as any,
+          freshExpenseAcc.currentBalance.toString(),
+          expenseAmount,
+          new Decimal(0),
+        );
+        await tx.ledgerAccount.update({
+          where: { id: freshExpenseAcc.id },
+          data: { currentBalance: newExpenseBal.toNumber() },
+        });
+      }
+
+      const freshPaymentAcc = await tx.ledgerAccount.findUnique({
+        where: { id: paymentAccount.id },
+        include: { group: true },
+      });
+      if (freshPaymentAcc) {
+        const newPaymentBal = applyTransactionToBalance(
+          freshPaymentAcc.group.nature as any,
+          freshPaymentAcc.currentBalance.toString(),
+          new Decimal(0),
+          expenseAmount,
+        );
+        await tx.ledgerAccount.update({
+          where: { id: freshPaymentAcc.id },
+          data: { currentBalance: newPaymentBal.toNumber() },
+        });
+      }
+
+      // 8. Audit Log
+      await this.audit.record(
+        {
+          organizationId: tenant.organizationId,
+          companyId: tenant.companyId,
+          userId: tenant.userId || "00000000-0000-0000-0000-000000000000",
+          action: "UPDATE_EXPENSE_VOUCHER",
+          entityName: "Voucher",
+          entityId: updatedVoucher.id,
+          newState: {
+            voucherNumber,
+            expenseAccountId: expenseAccount.id,
+            amount: expenseAmount.toNumber(),
+          },
+        },
+        tx,
+      );
+
+      return updatedVoucher;
+    });
+  }
 }
 
 const RECEIPT_PAYMENT_MODES = ["CASH", "UPI", "BANK_TRANSFER", "CHEQUE"] as const;
@@ -1305,5 +2552,88 @@ function shapeReceipt(voucher: any) {
     referenceNo: voucher.referenceNo,
     isCancelled: voucher.isCancelled,
     createdAt: voucher.createdAt,
+  };
+}
+
+function maxNumericPaymentNumber(rows: Array<{ voucherNumber: string }>): number {
+  let max = 0;
+  for (const row of rows) {
+    if (/^\d+$/.test(row.voucherNumber)) {
+      max = Math.max(max, Number(row.voucherNumber));
+    }
+  }
+  return max;
+}
+
+function shapePaymentOut(voucher: any) {
+  const entries = voucher.journalEntries || [];
+  const partyEntry = entries.find(
+    (entry: any) =>
+      moneyNumber(entry.debitAmount) > 0 &&
+      (entry.account?.partyId || entry.account?.isPartyLedger || entry.account?.party),
+  );
+  const cashCredits = entries.filter(
+    (entry: any) =>
+      moneyNumber(entry.creditAmount) > 0 &&
+      (entry.account?.isCashLedger || entry.account?.isBankLedger),
+  );
+  const otherCredits = entries.filter(
+    (entry: any) =>
+      moneyNumber(entry.creditAmount) > 0 &&
+      entry.account?.name !== "Discount Received" &&
+      entry.account?.name !== "Cash Discount Received",
+  );
+  const paidLines = cashCredits.length > 0 ? cashCredits : otherCredits;
+  const amountPaid = paidLines.reduce(
+    (sum: number, entry: any) => sum + moneyNumber(entry.creditAmount),
+    0,
+  );
+  const discountEntry = entries.find(
+    (entry: any) =>
+      moneyNumber(entry.creditAmount) > 0 &&
+      (entry.account?.name === "Discount Received" ||
+        entry.account?.name?.toLowerCase().includes("discount")),
+  );
+  const discount = discountEntry ? moneyNumber(discountEntry.creditAmount) : 0;
+
+  const allocations = voucher.allocations || [];
+  let totalSettled = allocations.reduce(
+    (sum: number, alloc: any) =>
+      sum + moneyNumber(alloc.allocatedAmount) + moneyNumber(alloc.cashDiscount),
+    0,
+  );
+  if (totalSettled === 0 && partyEntry) {
+    totalSettled = moneyNumber(partyEntry.debitAmount);
+  }
+
+  let paymentMode = voucher.paymentMode || null;
+  if (!paymentMode) {
+    if (cashCredits.some((entry: any) => entry.account?.isCashLedger)) {
+      paymentMode = "CASH";
+    } else if (cashCredits.some((entry: any) => entry.account?.isBankLedger)) {
+      paymentMode = "BANK_TRANSFER";
+    } else {
+      paymentMode = "CASH";
+    }
+  }
+
+  return {
+    id: voucher.id,
+    paymentNumber: voucher.voucherNumber,
+    paymentDate: voucher.voucherDate,
+    partyId: partyEntry?.account?.partyId || partyEntry?.account?.party?.id || null,
+    partyName: partyEntry?.account?.party?.name || partyEntry?.account?.name || "—",
+    party: partyEntry?.account?.party || null,
+    totalSettled,
+    amountPaid,
+    discount,
+    paymentMode,
+    paymentModeLabel: paymentModeLabel(paymentMode),
+    narration: voucher.narration,
+    referenceNo: voucher.referenceNo,
+    isCancelled: voucher.isCancelled,
+    createdAt: voucher.createdAt,
+    allocations: voucher.allocations || [],
+    journalEntries: voucher.journalEntries || [],
   };
 }

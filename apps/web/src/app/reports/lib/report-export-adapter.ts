@@ -454,6 +454,61 @@ export async function exportReportData(params: ReportExportParams): Promise<void
     return await executeExport(format, columns, bills, metadata);
   }
 
+  // 8A. GST PURCHASE (WITH HSN)
+  if (tab === "gst-purchase-hsn") {
+    const items: any[] = reportData.items || (Array.isArray(reportData) ? reportData : []);
+    const columns: ExportColumn[] = [
+      { header: "Date", format: (_, r) => r.date || "", type: "string" },
+      { header: "Invoice No", format: (_, r) => r.invoiceNumber || "", type: "string" },
+      { header: "Original Inv No", format: (_, r) => r.originalInvoiceNumber || "-", type: "string" },
+      { header: "Party GSTIN", format: (_, r) => r.partyGstin || "-", type: "string" },
+      { header: "Party Name", format: (_, r) => r.partyName || "-", type: "string" },
+      { header: "Item Name", format: (_, r) => r.itemName || "-", type: "string" },
+      { header: "HSN Code", format: (_, r) => r.hsnCode || "-", type: "string" },
+      { header: "Qty", format: (_, r) => `${r.quantity} ${r.unit || ""}`.trim(), type: "string" },
+      { header: "Price/Unit", format: (_, r) => `₹ ${inr(r.pricePerUnit)}`, type: "string", align: "right" },
+      { header: "SGST", format: (_, r) => r.sgstAmount !== "-" ? `₹ ${inr(r.sgstAmount)} (${r.sgstRate}%)` : "-", type: "string", align: "right" },
+      { header: "CGST", format: (_, r) => r.cgstAmount !== "-" ? `₹ ${inr(r.cgstAmount)} (${r.cgstRate}%)` : "-", type: "string", align: "right" },
+      { header: "IGST", format: (_, r) => r.igstAmount !== "-" ? `₹ ${inr(r.igstAmount)} (${r.igstRate}%)` : "-", type: "string", align: "right" },
+      { header: "Amount", format: (_, r) => `₹ ${inr(r.amount)}`, type: "string", align: "right" },
+    ];
+
+    const metadata: ExportMetadata = {
+      ...baseMetadata,
+      title: "GST Purchase (With HSN)",
+      fileName: `GST_Purchase_With_HSN_${startDate}_to_${endDate}`,
+    };
+
+    return await executeExport(format, columns, items, metadata);
+  }
+
+  // 8B. GST SALES (WITH HSN)
+  if (tab === "gst-sales-hsn") {
+    const items: any[] = reportData.items || (Array.isArray(reportData) ? reportData : []);
+    const columns: ExportColumn[] = [
+      { header: "Date", format: (_, r) => r.date || "", type: "string" },
+      { header: "Invoice No", format: (_, r) => r.invoiceNumber || "", type: "string" },
+      { header: "Customer GSTIN", format: (_, r) => r.customerGstin || "-", type: "string" },
+      { header: "Customer Name", format: (_, r) => r.customerName || "-", type: "string" },
+      { header: "Item Name", format: (_, r) => r.itemName || "-", type: "string" },
+      { header: "HSN Code", format: (_, r) => r.hsnCode || "-", type: "string" },
+      { header: "Qty", format: (_, r) => `${r.quantity} ${r.unit || ""}`.trim(), type: "string" },
+      { header: "Price/Unit", format: (_, r) => `₹ ${inr(r.pricePerUnit)}`, type: "string", align: "right" },
+      { header: "SGST", format: (_, r) => r.sgstAmount !== "-" ? `₹ ${inr(r.sgstAmount)} (${r.sgstRate}%)` : "-", type: "string", align: "right" },
+      { header: "CGST", format: (_, r) => r.cgstAmount !== "-" ? `₹ ${inr(r.cgstAmount)} (${r.cgstRate}%)` : "-", type: "string", align: "right" },
+      { header: "IGST", format: (_, r) => r.igstAmount !== "-" ? `₹ ${inr(r.igstAmount)} (${r.igstRate}%)` : "-", type: "string", align: "right" },
+      { header: "Amount", format: (_, r) => `₹ ${inr(r.amount)}`, type: "string", align: "right" },
+    ];
+
+    const metadata: ExportMetadata = {
+      ...baseMetadata,
+      title: "GST Sales (With HSN)",
+      fileName: `GST_Sales_With_HSN_${startDate}_to_${endDate}`,
+    };
+
+    return await executeExport(format, columns, items, metadata);
+  }
+
   // 9. ITEM WISE PURCHASE REPORT
   if (tab === "item-purchase-report") {
     const items: any[] = reportData.items || (Array.isArray(reportData) ? reportData : []);

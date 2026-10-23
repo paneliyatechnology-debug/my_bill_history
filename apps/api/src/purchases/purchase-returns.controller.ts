@@ -2,6 +2,8 @@ import {
   Controller,
   Get,
   Post,
+  Put,
+  Delete,
   Body,
   Param,
   Query,
@@ -74,5 +76,36 @@ export class PurchaseReturnsController {
       dto,
       tenant,
     );
+  }
+
+  @Put(":id")
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.ORG_ADMIN,
+    UserRole.COMPANY_ADMIN,
+    UserRole.ACCOUNTANT,
+    UserRole.BRANCH_MANAGER,
+  )
+  async updatePurchaseReturn(
+    @Param("id") id: string,
+    @Body() dto: CreatePurchaseReturnDto & { purchaseInvoiceId?: string; returnNumber?: string },
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.purchasesService.updatePurchaseReturn(id, dto, tenant);
+  }
+
+  @Delete(":id")
+  @Roles(
+    UserRole.SUPER_ADMIN,
+    UserRole.ORG_ADMIN,
+    UserRole.COMPANY_ADMIN,
+    UserRole.ACCOUNTANT,
+    UserRole.BRANCH_MANAGER,
+  )
+  async deletePurchaseReturn(
+    @Param("id") id: string,
+    @CurrentTenant() tenant: TenantContext,
+  ) {
+    return await this.purchasesService.deletePurchaseReturn(id, tenant);
   }
 }

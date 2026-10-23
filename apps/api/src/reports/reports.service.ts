@@ -519,6 +519,244 @@ export class ReportsService {
   }
 
   // --------------------------------------------------------------------------
+  // 2A. GST PURCHASE (WITH HSN)
+  // --------------------------------------------------------------------------
+  async getGstPurchaseHsn(
+    tenant: TenantContext,
+    query: { fromDate?: string; toDate?: string } = {},
+  ): Promise<any> {
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const invoiceDate: { gte?: Date; lte?: Date } = {};
+      if (query.fromDate)
+        invoiceDate.gte = new Date(`${query.fromDate}T00:00:00.000Z`);
+      if (query.toDate)
+        invoiceDate.lte = new Date(`${query.toDate}T00:00:00.000Z`);
+      const invoices = await tx.purchaseInvoice.findMany({
+        where: {
+          companyId: tenant.companyId,
+          ...(query.fromDate || query.toDate ? { invoiceDate } : {}),
+        },
+        include: {
+          party: true,
+          items: {
+            include: {
+              item: {
+                include: {
+                  primaryUom: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: [{ invoiceDate: "desc" }, { createdAt: "desc" }],
+      });
+
+      const items: any[] = [];
+      let totalAmount = new Decimal(0);
+      let totalSgst = new Decimal(0);
+      let totalCgst = new Decimal(0);
+      let totalIgst = new Decimal(0);
+
+      invoices.forEach((inv, invIdx) => {
+        const invNum = (invIdx + 1).toString();
+        const origInvNum = inv.vendorInvoiceNumber || "-";
+        const dateStr = inv.invoiceDate.toISOString().slice(0, 10);
+        const partyGstin = inv.party?.gstin || "-";
+        const partyName = inv.party?.name || "-";
+
+        if (!inv.items || inv.items.length === 0) {
+          const amt = toMoney(inv.grandTotal);
+          totalAmount = totalAmount.plus(amt);
+          totalSgst = totalSgst.plus(toMoney(inv.sgstAmount));
+          totalCgst = totalCgst.plus(toMoney(inv.cgstAmount));
+          totalIgst = totalIgst.plus(toMoney(inv.igstAmount));
+          items.push({
+            id: inv.id,
+            date: dateStr,
+            invoiceNumber: invNum,
+            originalInvoiceNumber: origInvNum,
+            partyGstin,
+            partyName,
+            itemName: "-",
+            hsnCode: "-",
+            quantity: 0,
+            unit: "",
+            pricePerUnit: "0.00",
+            sgstAmount: toMoney(inv.sgstAmount).toNumber() > 0 ? toMoney(inv.sgstAmount).toFixed(2) : "-",
+            sgstRate: 0,
+            cgstAmount: toMoney(inv.cgstAmount).toNumber() > 0 ? toMoney(inv.cgstAmount).toFixed(2) : "-",
+            cgstRate: 0,
+            igstAmount: toMoney(inv.igstAmount).toNumber() > 0 ? toMoney(inv.igstAmount).toFixed(2) : "-",
+            igstRate: 0,
+            amount: amt.toFixed(2),
+          });
+        } else {
+          inv.items.forEach((item) => {
+            const lineAmt = toMoney(item.totalAmount);
+            totalAmount = totalAmount.plus(lineAmt);
+            totalSgst = totalSgst.plus(toMoney(item.sgstAmount));
+            totalCgst = totalCgst.plus(toMoney(item.cgstAmount));
+            totalIgst = totalIgst.plus(toMoney(item.igstAmount));
+            const taxRate = Number(item.taxRate || 0);
+            const halfRate = taxRate / 2;
+            const unitName = (item.item as any)?.primaryUom?.symbol || (item.item as any)?.primaryUom?.name || "BOX";
+
+            items.push({
+              id: item.id,
+              date: dateStr,
+              invoiceNumber: invNum,
+              originalInvoiceNumber: origInvNum,
+              partyGstin,
+              partyName,
+              itemName: item.item?.name || "-",
+              hsnCode: item.hsnCode || item.item?.hsnCode || "-",
+              quantity: Number(item.quantity || 0),
+              unit: unitName,
+              pricePerUnit: toMoney(item.unitPrice).toFixed(2),
+              sgstAmount: toMoney(item.sgstAmount).toNumber() > 0 ? toMoney(item.sgstAmount).toFixed(2) : "-",
+              sgstRate: halfRate,
+              cgstAmount: toMoney(item.cgstAmount).toNumber() > 0 ? toMoney(item.cgstAmount).toFixed(2) : "-",
+              cgstRate: halfRate,
+              igstAmount: toMoney(item.igstAmount).toNumber() > 0 ? toMoney(item.igstAmount).toFixed(2) : "-",
+              igstRate: taxRate,
+              amount: lineAmt.toFixed(2),
+            });
+          });
+        }
+      });
+
+      return {
+        totalCount: items.length,
+        items,
+        totals: {
+          totalAmount: totalAmount.toFixed(2),
+          totalSgst: totalSgst.toFixed(2),
+          totalCgst: totalCgst.toFixed(2),
+          totalIgst: totalIgst.toFixed(2),
+        },
+      };
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 2B. GST SALES (WITH HSN)
+  // --------------------------------------------------------------------------
+  async getGstSalesHsn(
+    tenant: TenantContext,
+    query: { fromDate?: string; toDate?: string } = {},
+  ): Promise<any> {
+    return await this.prisma.executeInTenantContext(tenant, async (tx) => {
+      const invoiceDate: { gte?: Date; lte?: Date } = {};
+      if (query.fromDate)
+        invoiceDate.gte = new Date(`${query.fromDate}T00:00:00.000Z`);
+      if (query.toDate)
+        invoiceDate.lte = new Date(`${query.toDate}T00:00:00.000Z`);
+      const invoices = await tx.salesInvoice.findMany({
+        where: {
+          companyId: tenant.companyId,
+          status: { not: "CANCELLED" },
+          ...(query.fromDate || query.toDate ? { invoiceDate } : {}),
+        },
+        include: {
+          party: true,
+          items: {
+            include: {
+              item: {
+                include: {
+                  primaryUom: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: [{ invoiceDate: "desc" }, { createdAt: "desc" }],
+      });
+
+      const items: any[] = [];
+      let totalAmount = new Decimal(0);
+      let totalSgst = new Decimal(0);
+      let totalCgst = new Decimal(0);
+      let totalIgst = new Decimal(0);
+
+      invoices.forEach((inv) => {
+        const dateStr = inv.invoiceDate.toISOString().slice(0, 10);
+        const partyGstin = inv.party?.gstin || "-";
+        const partyName = inv.party?.name || "-";
+        const invNum = inv.invoiceNumber;
+
+        if (!inv.items || inv.items.length === 0) {
+          const amt = toMoney(inv.grandTotal);
+          totalAmount = totalAmount.plus(amt);
+          totalSgst = totalSgst.plus(toMoney(inv.sgstAmount));
+          totalCgst = totalCgst.plus(toMoney(inv.cgstAmount));
+          totalIgst = totalIgst.plus(toMoney(inv.igstAmount));
+          items.push({
+            id: inv.id,
+            date: dateStr,
+            invoiceNumber: invNum,
+            customerGstin: partyGstin,
+            customerName: partyName,
+            itemName: "-",
+            hsnCode: "-",
+            quantity: 0,
+            unit: "",
+            pricePerUnit: "0.00",
+            sgstAmount: toMoney(inv.sgstAmount).toNumber() > 0 ? toMoney(inv.sgstAmount).toFixed(2) : "-",
+            sgstRate: 0,
+            cgstAmount: toMoney(inv.cgstAmount).toNumber() > 0 ? toMoney(inv.cgstAmount).toFixed(2) : "-",
+            cgstRate: 0,
+            igstAmount: toMoney(inv.igstAmount).toNumber() > 0 ? toMoney(inv.igstAmount).toFixed(2) : "-",
+            igstRate: 0,
+            amount: amt.toFixed(2),
+          });
+        } else {
+          inv.items.forEach((item) => {
+            const lineAmt = toMoney(item.totalAmount);
+            totalAmount = totalAmount.plus(lineAmt);
+            totalSgst = totalSgst.plus(toMoney(item.sgstAmount));
+            totalCgst = totalCgst.plus(toMoney(item.cgstAmount));
+            totalIgst = totalIgst.plus(toMoney(item.igstAmount));
+            const taxRate = Number(item.taxRate || 0);
+            const halfRate = taxRate / 2;
+            const unitName = (item.item as any)?.primaryUom?.symbol || (item.item as any)?.primaryUom?.name || "PCS";
+
+            items.push({
+              id: item.id,
+              date: dateStr,
+              invoiceNumber: invNum,
+              customerGstin: partyGstin,
+              customerName: partyName,
+              itemName: item.item?.name || item.description || "-",
+              hsnCode: item.hsnCode || item.item?.hsnCode || "-",
+              quantity: Number(item.quantity || 0),
+              unit: unitName,
+              pricePerUnit: toMoney(item.unitPrice).toFixed(2),
+              sgstAmount: toMoney(item.sgstAmount).toNumber() > 0 ? toMoney(item.sgstAmount).toFixed(2) : "-",
+              sgstRate: halfRate,
+              cgstAmount: toMoney(item.cgstAmount).toNumber() > 0 ? toMoney(item.cgstAmount).toFixed(2) : "-",
+              cgstRate: halfRate,
+              igstAmount: toMoney(item.igstAmount).toNumber() > 0 ? toMoney(item.igstAmount).toFixed(2) : "-",
+              igstRate: taxRate,
+              amount: lineAmt.toFixed(2),
+            });
+          });
+        }
+      });
+
+      return {
+        totalCount: items.length,
+        items,
+        totals: {
+          totalAmount: totalAmount.toFixed(2),
+          totalSgst: totalSgst.toFixed(2),
+          totalCgst: totalCgst.toFixed(2),
+          totalIgst: totalIgst.toFixed(2),
+        },
+      };
+    });
+  }
+
+  // --------------------------------------------------------------------------
   // 3. RECEIPT & PAYMENT REGISTER
   // --------------------------------------------------------------------------
   async getReceiptPaymentRegister(
@@ -2056,6 +2294,7 @@ export class ReportsService {
         const minStock = toDecimal(item.minStockLevel || 0);
 
         return {
+          id: item.id,
           itemId: item.id,
           name: item.name,
           nameGujarati: item.nameGujarati,
@@ -2066,7 +2305,9 @@ export class ReportsService {
           purchaseRate: toMoney(item.purchaseRate).toFixed(2),
           retailPrice: toMoney(item.retailPrice).toFixed(2),
           currentStockQuantity: onHandQty.toFixed(4),
+          currentStock: onHandQty.toFixed(1),
           totalValuation: valuation.toFixed(2),
+          valuation: valuation.toFixed(2),
           minStockLevel: minStock.toFixed(4),
           isLowStock:
             (minStock.gt(0) && onHandQty.lte(minStock)) || onHandQty.lte(0),
@@ -2080,6 +2321,11 @@ export class ReportsService {
           grandStockQuantity: grandStockQuantity.toFixed(4),
           grandStockValuation: grandStockValuation.toFixed(2),
           costingMethod: "MOVING_AVERAGE",
+        },
+        summary: {
+          totalItems: items.length,
+          totalQuantity: grandStockQuantity.toNumber(),
+          totalValuation: grandStockValuation.toNumber(),
         },
         items: summaryItems,
       };

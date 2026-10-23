@@ -278,7 +278,11 @@ export default function SalesReturnsPage() {
       {/* 1. TOP HEADER: Sales Return Title & Settings/Print Icons */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold tracking-tight text-slate-900">
-          {isCreditNote
+          {pathname.includes("/debit-note")
+            ? lang === "gu"
+              ? "ડેબિટ નોટ (Debit Note)"
+              : "Debit Note"
+            : isCreditNote
             ? lang === "gu"
               ? "ક્રેડિટ નોટ (Credit Note)"
               : "Credit Note"
@@ -425,10 +429,14 @@ export default function SalesReturnsPage() {
 
         {/* Create Sales Return / Credit Note Purple Button */}
         <Link
-          href="/sales/credit-note/create"
+          href={pathname.includes("/debit-note") ? "/sales/debit-note/create" : "/sales/credit-note/create"}
           className="inline-flex items-center justify-center rounded-lg bg-[#4F46E5] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#4338CA] transition-colors"
         >
-          {isCreditNote
+          {pathname.includes("/debit-note")
+            ? lang === "gu"
+              ? "ડેબિટ નોટ બનાવો"
+              : "Create Debit Note"
+            : isCreditNote
             ? lang === "gu"
               ? "ક્રેડિટ નોટ બનાવો"
               : "Create Credit Note"
@@ -458,7 +466,11 @@ export default function SalesReturnsPage() {
                   </div>
                 </th>
                 <th className="px-4 py-3 whitespace-nowrap">
-                  {isCreditNote
+                  {pathname.includes("/debit-note")
+                    ? lang === "gu"
+                      ? "ડેબિટ નોટ નંબર"
+                      : "Debit Note Number"
+                    : isCreditNote
                     ? lang === "gu"
                       ? "ક્રેડિટ નોટ નંબર"
                       : "Credit Note Number"

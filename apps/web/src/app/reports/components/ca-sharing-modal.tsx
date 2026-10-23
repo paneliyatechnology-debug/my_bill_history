@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal } from "../../../components/ui/modal";
 
 interface CaSharingModalProps {
@@ -8,8 +8,6 @@ interface CaSharingModalProps {
   onClose: () => void;
   lang?: string;
   companyName?: string;
-  startDate?: string;
-  endDate?: string;
 }
 
 export function CaSharingModal({
@@ -17,311 +15,295 @@ export function CaSharingModal({
   onClose,
   lang = "en",
   companyName = "My Business",
-  startDate = "2026-04-01",
-  endDate = new Date().toISOString().split("T")[0],
 }: CaSharingModalProps) {
-  const [selectedPeriod, setSelectedPeriod] = useState<string>("FY26-27");
+  const [caName, setCaName] = useState("");
+  const [caWhatsapp, setCaWhatsapp] = useState("");
   const [caEmail, setCaEmail] = useState("");
-  const [caPhone, setCaPhone] = useState("");
-  const [isCopied, setIsCopied] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [showLearnMore, setShowLearnMore] = useState(false);
 
-  const [reportsToInclude, setReportsToInclude] = useState({
-    gstr1: true,
-    gstr3b: true,
-    salesRegister: true,
-    purchaseRegister: true,
-    profitLoss: true,
-    balanceSheet: true,
-    trialBalance: true,
-    daybook: false,
-    partyAging: true,
-  });
-
-  const toggleReport = (key: keyof typeof reportsToInclude) => {
-    setReportsToInclude((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const selectAll = (val: boolean) => {
-    setReportsToInclude({
-      gstr1: val,
-      gstr3b: val,
-      salesRegister: val,
-      purchaseRegister: val,
-      profitLoss: val,
-      balanceSheet: val,
-      trialBalance: val,
-      daybook: val,
-      partyAging: val,
-    });
-  };
-
-  const handleCopySummary = () => {
-    const activeReports = Object.entries(reportsToInclude)
-      .filter(([_, checked]) => checked)
-      .map(([k]) => {
-        switch (k) {
-          case "gstr1": return "• GSTR-1 Outward Supplies Register";
-          case "gstr3b": return "• GSTR-3B Monthly Return Summary";
-          case "salesRegister": return "• Sales Register (Full B2B/B2C)";
-          case "purchaseRegister": return "• Purchase Register (ITC Verified)";
-          case "profitLoss": return "• Profit & Loss Account";
-          case "balanceSheet": return "• Balance Sheet Statement";
-          case "trialBalance": return "• Trial Balance (Kachu Sarvaiyu)";
-          case "daybook": return "• Daybook Transactions (Rojmel)";
-          case "partyAging": return "• Debtors / Creditors Aging Analysis";
-          default: return "";
+  // Load saved CA details from localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("mybill_ca_details");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.name) setCaName(parsed.name);
+          if (parsed.whatsapp) setCaWhatsapp(parsed.whatsapp);
+          if (parsed.email) setCaEmail(parsed.email);
         }
-      })
-      .filter(Boolean)
-      .join("\n");
+      } catch {
+        // ignore
+      }
+    }
+  }, [isOpen]);
 
-    const summaryText = `*CA Audit & Compliance Package: ${companyName}*\nPeriod: ${startDate} to ${endDate} (${selectedPeriod})\nGenerated from MyBill History\n\nIncluded Books & Statements:\n${activeReports}\n\nAll accounts and GST registers are reconciled up to ${new Date().toLocaleDateString("en-IN")}.`;
+  const handleSaveDetails = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!caName.trim()) {
+      alert("Please enter CA Name.");
+      return;
+    }
+    if (!caWhatsapp.trim()) {
+      alert("Please enter CA WhatsApp Number.");
+      return;
+    }
 
-    navigator.clipboard.writeText(summaryText);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2500);
-  };
+    const caData = {
+      name: caName.trim(),
+      whatsapp: caWhatsapp.trim(),
+      email: caEmail.trim(),
+      savedAt: new Date().toISOString(),
+    };
 
-  const handleDownloadPackage = async () => {
-    setIsDownloading(true);
     try {
-      // Simulate/trigger package compilation
-      await new Promise((r) => setTimeout(r, 800));
-      const blob = new Blob(
-        [
-          JSON.stringify(
-            {
-              company: companyName,
-              period: { startDate, endDate, selectedPeriod },
-              packages: reportsToInclude,
-              generatedAt: new Date().toISOString(),
-              system: "MyBill History — Modern Indian Billing & Accounting",
-            },
-            null,
-            2
-          ),
-        ],
-        { type: "application/json" }
-      );
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `CA-Compliance-Pack-${companyName.replace(/\s+/g, "-")}-${selectedPeriod}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } finally {
-      setIsDownloading(false);
+      localStorage.setItem("mybill_ca_details", JSON.stringify(caData));
+      setIsSaved(true);
+      setTimeout(() => {
+        setIsSaved(false);
+        onClose();
+      }, 1400);
+    } catch {
+      // ignore
     }
   };
 
-  const handleShareWhatsapp = () => {
-    const text = encodeURIComponent(
-      `Hello Sir, please find the accounting statements and GST audit package for ${companyName} for period ${startDate} to ${endDate}. All books are verified and reconciled on MyBill History.`
+  const handleSendViaWhatsapp = () => {
+    if (!caWhatsapp) {
+      alert("Please enter CA WhatsApp number first.");
+      return;
+    }
+    const cleanNumber = caWhatsapp.replace(/\D/g, "");
+    const msg = encodeURIComponent(
+      `Hello ${caName || "Sir"}, here are the monthly GST and Financial Reports for ${companyName} generated via MyBillBook. All accounts and ledgers are reconciled.`
     );
-    const phoneClean = caPhone.replace(/\D/g, "");
-    const url = phoneClean
-      ? `https://wa.me/${phoneClean}?text=${text}`
-      : `https://wa.me/?text=${text}`;
-    window.open(url, "_blank");
+    window.open(`https://wa.me/${cleanNumber ? (cleanNumber.length === 10 ? `91${cleanNumber}` : cleanNumber) : ""}?text=${msg}`, "_blank");
   };
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={lang === "gu" ? "CA રિપોર્ટ શેરિંગ (ચાર્ટર્ડ એકાઉન્ટન્ટ પેક)" : "CA Reports Sharing"}
-      titleGujarati="તમારા CA અથવા ઓડિટર માટે સંપૂર્ણ નામા અને જીએસટી પત્રકો તૈયાર કરો"
-      maxWidth="2xl"
-      footer={
-        <div className="flex items-center justify-between w-full">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
-          >
-            {lang === "gu" ? "બંધ કરો" : "Close"}
-          </button>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleCopySummary}
-              className="px-3.5 py-2 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-colors flex items-center gap-1.5"
-            >
-              {isCopied ? "✓ Summary Copied!" : "Copy CA Summary"}
-            </button>
-            <button
-              type="button"
-              onClick={handleDownloadPackage}
-              disabled={isDownloading}
-              className="px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl shadow-md transition-all flex items-center gap-2"
-            >
-              {isDownloading ? (
-                <>
-                  <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Preparing Pack...
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  Download CA Pack
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      }
+      title=""
+      maxWidth="lg"
     >
-      <div className="space-y-4 text-xs">
-        {/* Banner */}
-        <div className="p-3.5 bg-gradient-to-r from-indigo-50 via-purple-50 to-white border border-indigo-200/80 rounded-xl flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm font-bold text-lg">
-            CA
-          </div>
-          <div className="min-w-0 flex-1">
-            <h4 className="font-bold text-slate-900 text-sm">
-              {lang === "gu" ? "ચાર્ટર્ડ એકાઉન્ટન્ટ ઓડિટ અને જીએસટી પત્રકો" : "Statutory CA & Auditor Bundle"}
-            </h4>
-            <p className="text-slate-600 text-[11.5px] mt-0.5 leading-relaxed">
-              Compile GSTR-1, GSTR-3B, Sales, Purchases, P&L, and Balance Sheet into a clean bundle for timely GST filing and income tax audit.
-            </p>
-          </div>
-        </div>
+      <div className="relative bg-white rounded-2xl overflow-hidden -m-4 sm:-m-6">
+        {/* Close Button Top Right */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-4 top-4 z-10 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center text-sm font-bold transition-colors"
+        >
+          ✕
+        </button>
 
-        {/* Period selection */}
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
-          <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-            Select Accounting Period
-          </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {[
-              { id: "FY26-27", label: "Full FY 2026-27" },
-              { id: "Q2-2026", label: "Q2 (Jul - Sep)" },
-              { id: "Q3-2026", label: "Q3 (Oct - Dec)" },
-              { id: "THIS-MONTH", label: "Current Month" },
-            ].map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => setSelectedPeriod(p.id)}
-                className={`py-1.5 px-2.5 text-xs font-semibold rounded-lg border transition-all text-center ${
-                  selectedPeriod === p.id
-                    ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
-                    : "bg-white text-slate-700 border-slate-200 hover:border-slate-300"
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-          <div className="text-[11px] text-slate-500 pt-1 flex items-center justify-between">
-            <span>Date Range: <strong>{startDate}</strong> to <strong>{endDate}</strong></span>
-            <span className="font-medium text-indigo-700 font-mono">Company: {companyName}</span>
-          </div>
-        </div>
+        {/* Modal Header Illustration (Matching MyBillBook CA Sharing Modal) */}
+        <div className="bg-gradient-to-b from-indigo-50/70 via-purple-50/40 to-white pt-6 pb-2 px-6 flex flex-col items-center border-b border-slate-100 text-center">
+          <div className="relative w-full max-w-[340px] h-32 flex items-center justify-center mb-1">
+            {/* SVG Illustration of CA with laptop & GSTR files */}
+            <svg viewBox="0 0 400 160" className="w-full h-full">
+              {/* Background desk & chair */}
+              <rect x="180" y="110" width="180" height="8" rx="4" fill="#CBD5E1" />
+              <rect x="230" y="118" width="80" height="4" rx="2" fill="#94A3B8" />
 
-        {/* Report Checklist */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-              Statements & Registers to Include
-            </span>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => selectAll(true)}
-                className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800"
-              >
-                Select All
-              </button>
-              <span className="text-slate-300">|</span>
-              <button
-                type="button"
-                onClick={() => selectAll(false)}
-                className="text-[11px] font-semibold text-slate-500 hover:text-slate-700"
-              >
-                Clear All
-              </button>
-            </div>
-          </div>
+              {/* Computer monitor */}
+              <rect x="245" y="55" width="60" height="42" rx="4" fill="#475569" />
+              <rect x="250" y="60" width="50" height="32" rx="2" fill="#64748B" />
+              <rect x="272" y="97" width="6" height="14" fill="#475569" />
+              <ellipse cx="275" cy="111" rx="14" ry="3" fill="#334155" />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50/70 p-3 rounded-xl border border-slate-200/80">
-            {[
-              { key: "gstr1", label: "GSTR-1 Outward Supplies Return", tag: "GST" },
-              { key: "gstr3b", label: "GSTR-3B Monthly Return Summary", tag: "GST" },
-              { key: "salesRegister", label: "Sales Register (All Invoices)", tag: "Books" },
-              { key: "purchaseRegister", label: "Purchase Register & ITC", tag: "Books" },
-              { key: "profitLoss", label: "Profit & Loss Statement (P&L)", tag: "Final" },
-              { key: "balanceSheet", label: "Balance Sheet (Paku Sarvaiyu)", tag: "Final" },
-              { key: "trialBalance", label: "Trial Balance (Kachu Sarvaiyu)", tag: "Audit" },
-              { key: "partyAging", label: "Debtors / Creditors Aging", tag: "Ledgers" },
-              { key: "daybook", label: "Daybook Transactions (Rojmel)", tag: "Audit" },
-            ].map((item) => {
-              const isChecked = reportsToInclude[item.key as keyof typeof reportsToInclude];
-              return (
-                <label
-                  key={item.key}
-                  className={`flex items-center gap-2.5 p-2 rounded-lg border transition-colors cursor-pointer ${
-                    isChecked
-                      ? "bg-white border-indigo-200 text-slate-900 shadow-xs"
-                      : "bg-transparent border-transparent text-slate-500 hover:bg-white/60"
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={() => toggleReport(item.key as keyof typeof reportsToInclude)}
-                    className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
-                  />
-                  <span className="flex-1 font-medium text-xs truncate">{item.label}</span>
-                  <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
-                    {item.tag}
-                  </span>
-                </label>
-              );
-            })}
-          </div>
-        </div>
+              {/* Files stack next to monitor */}
+              <rect x="200" y="80" width="30" height="8" rx="2" fill="#3B82F6" />
+              <rect x="200" y="90" width="30" height="8" rx="2" fill="#6366F1" />
+              <rect x="200" y="100" width="30" height="8" rx="2" fill="#2563EB" />
+              <circle cx="204" cy="84" r="1.5" fill="#FFFFFF" />
+              <circle cx="204" cy="94" r="1.5" fill="#FFFFFF" />
+              <circle cx="204" cy="104" r="1.5" fill="#FFFFFF" />
 
-        {/* Quick Contact & WhatsApp Share */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-          <div>
-            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-              CA Email (Optional)
-            </label>
-            <input
-              type="email"
-              value={caEmail}
-              onChange={(e) => setCaEmail(e.target.value)}
-              placeholder="ca.auditor@firm.com"
-              className="w-full px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs"
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-              CA WhatsApp Number (Optional)
-            </label>
-            <div className="flex items-center gap-1.5">
-              <input
-                type="tel"
-                value={caPhone}
-                onChange={(e) => setCaPhone(e.target.value)}
-                placeholder="+91 98765 43210"
-                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs"
+              {/* CA Character sitting */}
+              <circle cx="330" cy="58" r="12" fill="#FBBF24" />
+              {/* Glasses */}
+              <circle cx="327" cy="58" r="3" fill="none" stroke="#1E293B" strokeWidth="1" />
+              <circle cx="334" cy="58" r="3" fill="none" stroke="#1E293B" strokeWidth="1" />
+              <line x1="330" y1="58" x2="331" y2="58" stroke="#1E293B" strokeWidth="1" />
+              {/* Hair */}
+              <path d="M 320 54 Q 328 45 338 50 Q 330 48 322 55" fill="#1E293B" />
+              {/* Torso & Tie */}
+              <path d="M 320 72 L 340 72 L 343 110 L 317 110 Z" fill="#F8FAFC" stroke="#E2E8F0" />
+              <polygon points="328,72 332,72 333,96 330,102 327,96" fill="#EA580C" />
+
+              {/* Dotted sending line from folder to CA */}
+              <path
+                d="M 120 70 Q 170 30 240 75"
+                fill="none"
+                stroke="#818CF8"
+                strokeWidth="2"
+                strokeDasharray="4 4"
               />
-              <button
-                type="button"
-                onClick={handleShareWhatsapp}
-                className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shrink-0 transition-colors"
-                title="Send via WhatsApp"
-              >
-                WhatsApp
-              </button>
-            </div>
+
+              {/* Left myBillBook Folder */}
+              <g transform="translate(45, 60)">
+                <rect x="0" y="0" width="60" height="42" rx="5" fill="#4F46E5" />
+                <path d="M 0 5 Q 0 0 5 0 L 22 0 L 28 6 L 55 6 Q 60 6 60 11 L 60 42 L 0 42 Z" fill="#6366F1" />
+                <rect x="6" y="10" width="48" height="26" rx="3" fill="#FFFFFF" opacity="0.95" />
+                <text x="30" y="24" textAnchor="middle" fontSize="7" fontWeight="bold" fill="#4338CA">
+                  myBillBook
+                </text>
+                <polygon points="12,20 18,20 15,25" fill="#F47721" />
+              </g>
+
+              {/* Flying Report badges: GSTR 1 & GSTR 2 */}
+              <g transform="translate(100, 42)">
+                <rect x="0" y="0" width="38" height="20" rx="3" fill="#FFFFFF" stroke="#E2E8F0" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.1))" />
+                <text x="19" y="13" textAnchor="middle" fontSize="7" fontWeight="bold" fill="#334155">GSTR 1</text>
+              </g>
+              <g transform="translate(130, 68)">
+                <rect x="0" y="0" width="38" height="20" rx="3" fill="#FFFFFF" stroke="#E2E8F0" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.1))" />
+                <text x="19" y="13" textAnchor="middle" fontSize="7" fontWeight="bold" fill="#334155">GSTR 2</text>
+              </g>
+            </svg>
           </div>
+
+          <h2 className="text-lg font-bold text-slate-900 tracking-tight">
+            CA Reports Sharing
+          </h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Automatically share statutory reports to your CA every month
+          </p>
+        </div>
+
+        {/* Content Body */}
+        <div className="p-6 space-y-4">
+          {isSaved ? (
+            <div className="py-6 text-center space-y-3">
+              <div className="w-12 h-12 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl font-bold">
+                ✓
+              </div>
+              <h3 className="text-sm font-bold text-slate-800">
+                CA Details Saved Successfully!
+              </h3>
+              <p className="text-xs text-slate-500">
+                Reports will be synchronized with <strong>{caName}</strong> ({caWhatsapp}).
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleSaveDetails} className="space-y-3.5">
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                CA Details
+              </h3>
+
+              {/* CA Name */}
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  CA Name <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={caName}
+                  onChange={(e) => setCaName(e.target.value)}
+                  placeholder="Ex: Ankit Mishra"
+                  className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#4C4CDD]/20 focus:border-[#4C4CDD] placeholder:text-slate-400"
+                />
+              </div>
+
+              {/* CA WhatsApp Number */}
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  CA WhatsApp Number <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={caWhatsapp}
+                  onChange={(e) => setCaWhatsapp(e.target.value)}
+                  placeholder="Ex : 9876543210"
+                  className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#4C4CDD]/20 focus:border-[#4C4CDD] placeholder:text-slate-400"
+                />
+              </div>
+
+              {/* CA Email ID (optional) */}
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  CA Email ID (optional)
+                </label>
+                <input
+                  type="email"
+                  value={caEmail}
+                  onChange={(e) => setCaEmail(e.target.value)}
+                  placeholder="Ex: abc@gmail.com"
+                  className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#4C4CDD]/20 focus:border-[#4C4CDD] placeholder:text-slate-400"
+                />
+              </div>
+
+              {/* Note banner */}
+              <div className="p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl text-amber-900 text-[11px] leading-relaxed">
+                <strong>Note:</strong> GSTR Reports will be automatically sent to CA on 1st of every month
+              </div>
+
+              {/* Add Your CA Banner Card */}
+              <div className="p-3 bg-orange-50/50 border border-orange-100 rounded-xl flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-lg bg-[#0F3260] text-white flex items-center justify-center font-bold text-xs shrink-0 tracking-wider">
+                    CA
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">
+                      Add Your CA and forget about the hassle of report sharing
+                    </p>
+                    <p className="text-[10px] text-slate-500">
+                      Authorized ICAI compliant portal sharing
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSendViaWhatsapp}
+                  className="px-3 py-1.5 text-xs font-bold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 rounded-lg shadow-2xs shrink-0 transition-colors"
+                >
+                  Share on WhatsApp
+                </button>
+              </div>
+
+              {showLearnMore && (
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 space-y-1">
+                  <p className="font-semibold text-slate-800">How CA Reports Sharing Works:</p>
+                  <p>1. Enter your Chartered Accountant or tax auditor details.</p>
+                  <p>2. On the 1st of every month, GSTR-1, GSTR-3B, Sales and Purchase registers are compiled.</p>
+                  <p>3. Your CA receives an encrypted, verified download link via WhatsApp and email.</p>
+                </div>
+              )}
+
+              {/* Footer Actions */}
+              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowLearnMore(!showLearnMore)}
+                  className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1"
+                >
+                  <span>ⓘ</span>
+                  <span>{showLearnMore ? "Hide Info" : "Learn More"}</span>
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 text-xs font-bold text-white bg-[#4C4CDD] hover:bg-[#3D3DCB] rounded-xl shadow-xs transition-colors"
+                  >
+                    Save Details
+                  </button>
+                </div>
+              </div>
+            </form>
+          )}
         </div>
       </div>
     </Modal>

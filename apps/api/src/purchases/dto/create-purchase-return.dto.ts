@@ -4,6 +4,7 @@ export interface CreatePurchaseReturnItemDto {
 }
 
 export interface CreatePurchaseReturnDto {
+  returnNumber?: string;
   returnDate?: string;
   reason?: string;
   reasonGujarati?: string;

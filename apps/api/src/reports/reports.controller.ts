@@ -110,6 +110,26 @@ export class ReportsController {
     return await this.reportsService.getPurchaseRegister(tenant, { fromDate, toDate });
   }
 
+  // 2A. GST Purchase (With HSN)
+  @Get("gst-purchase-hsn")
+  async getGstPurchaseHsn(
+    @CurrentTenant() tenant: TenantContext,
+    @Query("fromDate") fromDate?: string,
+    @Query("toDate") toDate?: string,
+  ) {
+    return await this.reportsService.getGstPurchaseHsn(tenant, { fromDate, toDate });
+  }
+
+  // 2B. GST Sales (With HSN)
+  @Get("gst-sales-hsn")
+  async getGstSalesHsn(
+    @CurrentTenant() tenant: TenantContext,
+    @Query("fromDate") fromDate?: string,
+    @Query("toDate") toDate?: string,
+  ) {
+    return await this.reportsService.getGstSalesHsn(tenant, { fromDate, toDate });
+  }
+
   // 3. Receipt / Payment Register
   @Get("receipt-payment-register")
   async getReceiptPaymentRegister(

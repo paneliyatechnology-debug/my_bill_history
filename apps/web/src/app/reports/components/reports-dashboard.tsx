@@ -4,32 +4,26 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 
 export type ReportCategoryKey =
   | "FAVOURITE"
-  | "SALES"
-  | "PURCHASE"
   | "GST"
   | "TRANSACTION"
   | "ITEM"
-  | "PARTY"
-  | "FINANCIAL";
+  | "PARTY";
 
 export type FilterChipTag =
   | "ALL"
-  | "Sales"
-  | "Purchase"
   | "Party"
   | "Category"
   | "Payment Collection"
   | "Item"
   | "Invoice Details"
-  | "Summary"
-  | "GST";
+  | "Summary";
 
 export interface ReportItem {
   id: string;
   tabId: string;
   name: string;
   nameGu: string;
-  category: ReportCategoryKey;
+  category: "GST" | "TRANSACTION" | "ITEM" | "PARTY";
   tags: FilterChipTag[];
   badge?: string;
   description?: string;
@@ -41,149 +35,16 @@ interface ReportsDashboardProps {
   onOpenCaSharing: () => void;
 }
 
-const ALL_REPORTS: ReportItem[] = [
-  // 1. Sales Reports
-  {
-    id: "sales-register",
-    tabId: "sales-register",
-    name: "Sales Register (Invoices)",
-    nameGu: "વેચાણ રજિસ્ટર (બીલ-વાઇઝ)",
-    category: "SALES",
-    tags: ["Sales", "Invoice Details", "Summary"],
-    badge: "GST",
-    description: "Itemized tax invoices with GST slabs, customer details & balance",
-  },
-  {
-    id: "sales-summary",
-    tabId: "sales-summary",
-    name: "Sales Summary - Staff Wise",
-    nameGu: "વેચાણ સારાંશ (કર્મચારી/બ્રાન્ચ વાઇઝ)",
-    category: "SALES",
-    tags: ["Sales", "Summary"],
-    description: "Aggregate monthly/daily sales volumes & collections",
-  },
-  {
-    id: "bill-wise-profit",
-    tabId: "bill-wise-profit",
-    name: "Bill Wise Profit & Margin",
-    nameGu: "બીલ દીઠ નફો અને માર્જિન",
-    category: "SALES",
-    tags: ["Sales", "Invoice Details", "Summary", "Category"],
-    badge: "PROFIT",
-    description: "Invoice-by-invoice gross profit calculation against item cost (COGS)",
-  },
-  {
-    id: "item-sales-report",
-    tabId: "item-sales-report",
-    name: "Item-Wise Sales Report",
-    nameGu: "આઇટમ મુજબ વેચાણ પત્રક",
-    category: "SALES",
-    tags: ["Sales", "Item"],
-    description: "Quantities sold, average rate, taxable value & revenue by product",
-  },
-  {
-    id: "party-sales-report",
-    tabId: "party-sales-report",
-    name: "Customer-Wise Sales Report",
-    nameGu: "ગ્રાહક મુજબ વેચાણ પત્રક",
-    category: "SALES",
-    tags: ["Sales", "Party"],
-    description: "Total orders, sales volume, paid amount & balance by customer",
-  },
-  {
-    id: "sales-returns",
-    tabId: "sales-returns",
-    name: "Sales Return (Credit Notes)",
-    nameGu: "વેચાણ પરત (ક્રેડિટ નોટ્સ)",
-    category: "SALES",
-    tags: ["Sales", "Invoice Details"],
-    description: "Customer returned goods, credit note vouchers & GST adjustments",
-  },
-  {
-    id: "quotations",
-    tabId: "quotations",
-    name: "Quotations & Estimates",
-    nameGu: "અંદાજ / કોટેશન પત્રક",
-    category: "SALES",
-    tags: ["Sales", "Invoice Details"],
-    description: "Non-financial price estimates, status & invoice conversion tracking",
-  },
-  {
-    id: "delivery-challans",
-    tabId: "delivery-challans",
-    name: "Delivery Challans Report",
-    nameGu: "ડિલિવરી ચલણ રજિસ્ટર",
-    category: "SALES",
-    tags: ["Sales", "Invoice Details"],
-    description: "Dispatch challans, transporter records & item delivery status",
-  },
-
-  // 2. Purchase Reports
-  {
-    id: "purchase-register",
-    tabId: "purchase-register",
-    name: "Purchase Register (Bills)",
-    nameGu: "ખરીદ રજિસ્ટર (બીલ-વાઇઝ)",
-    category: "PURCHASE",
-    tags: ["Purchase", "Invoice Details", "Summary"],
-    badge: "ITC",
-    description: "Inward supply bills with vendor GSTIN, taxable amount & Input Tax Credit",
-  },
-  {
-    id: "purchase-summary",
-    tabId: "purchase-summary",
-    name: "Purchase Summary",
-    nameGu: "ખરીદી સારાંશ પત્રક",
-    category: "PURCHASE",
-    tags: ["Purchase", "Summary"],
-    description: "Monthly and supplier-wise aggregate purchase volumes & ITC",
-  },
-  {
-    id: "item-purchase-report",
-    tabId: "item-purchase-report",
-    name: "Item-Wise Purchase Report",
-    nameGu: "આઇટમ મુજબ ખરીદી પત્રક",
-    category: "PURCHASE",
-    tags: ["Purchase", "Item"],
-    description: "Inward quantity, average buy rate & total cost by product",
-  },
-  {
-    id: "party-purchase-report",
-    tabId: "party-purchase-report",
-    name: "Supplier-Wise Purchase Report",
-    nameGu: "વેપારી મુજબ ખરીદી પત્રક",
-    category: "PURCHASE",
-    tags: ["Purchase", "Party"],
-    description: "Total bills, total purchases, payments made & balance payable",
-  },
-  {
-    id: "purchase-returns",
-    tabId: "purchase-returns",
-    name: "Purchase Return (Debit Notes)",
-    nameGu: "ખરીદ પરત (ડેબિટ નોટ્સ)",
-    category: "PURCHASE",
-    tags: ["Purchase", "Invoice Details"],
-    description: "Goods returned to suppliers, debit notes issued & tax reversals",
-  },
-
-  // 3. GST Section
-  {
-    id: "gstr-1",
-    tabId: "gstr-1",
-    name: "GSTR-1 (Sales)",
-    nameGu: "જીએસટીઆર-૧ વેચાણ રિટર્ન",
-    category: "GST",
-    tags: ["GST", "Sales", "Invoice Details", "Summary"],
-    badge: "GOV",
-    description: "B2B, B2C, HSN summary & tax outward register",
-  },
+// Complete catalog matching MyBillBook Reports Dashboard
+export const ALL_REPORTS: ReportItem[] = [
+  // GST Category
   {
     id: "gstr-2",
     tabId: "purchase-register",
     name: "GSTR-2 (Purchase)",
     nameGu: "જીએસટીઆર-૨ ખરીદ રિટર્ન",
     category: "GST",
-    tags: ["GST", "Purchase", "Invoice Details"],
+    tags: ["Invoice Details"],
     description: "Inward supplies & eligible Input Tax Credit (ITC)",
   },
   {
@@ -192,26 +53,25 @@ const ALL_REPORTS: ReportItem[] = [
     name: "GSTR-3b",
     nameGu: "જીએસટીઆર-૩બી માસિક સારાંશ",
     category: "GST",
-    tags: ["GST", "Summary"],
-    badge: "TAX",
+    tags: ["Summary"],
     description: "Monthly self-assessed tax return and payment",
   },
   {
     id: "gst-purchase-hsn",
-    tabId: "purchase-register",
+    tabId: "gst-purchase-hsn",
     name: "GST Purchase (With HSN)",
     nameGu: "જીએસટી ખરીદી (HSN સાથે)",
     category: "GST",
-    tags: ["GST", "Purchase", "Item", "Invoice Details"],
+    tags: ["Item", "Invoice Details"],
     description: "Purchase bills categorized by HSN/SAC codes",
   },
   {
     id: "gst-sales-hsn",
-    tabId: "sales-register",
+    tabId: "gst-sales-hsn",
     name: "GST Sales (With HSN)",
     nameGu: "જીએસટી વેચાણ (HSN સાથે)",
     category: "GST",
-    tags: ["GST", "Sales", "Item", "Invoice Details"],
+    tags: ["Item", "Invoice Details"],
     description: "Outward invoices with item-level tax slabs & HSN",
   },
   {
@@ -220,7 +80,7 @@ const ALL_REPORTS: ReportItem[] = [
     name: "HSN Wise Sales Summary",
     nameGu: "HSN વાઈઝ વેચાણ સારાંશ",
     category: "GST",
-    tags: ["GST", "Sales", "Item", "Summary"],
+    tags: ["Item", "Summary"],
     description: "Official Table 12 HSN outward quantities and taxes",
   },
   {
@@ -229,7 +89,7 @@ const ALL_REPORTS: ReportItem[] = [
     name: "TDS Payable",
     nameGu: "TDS ચૂકવવાપાત્ર પત્રક",
     category: "GST",
-    tags: ["GST", "Summary"],
+    tags: ["Summary"],
     description: "Tax Deducted at Source liability balance",
   },
   {
@@ -238,7 +98,7 @@ const ALL_REPORTS: ReportItem[] = [
     name: "TDS Receivable",
     nameGu: "TDS મળવાપાત્ર પત્રક",
     category: "GST",
-    tags: ["GST", "Summary"],
+    tags: ["Summary"],
     description: "Tax deducted by customers against invoices",
   },
   {
@@ -247,7 +107,7 @@ const ALL_REPORTS: ReportItem[] = [
     name: "TCS Payable",
     nameGu: "TCS ચૂકવવાપાત્ર",
     category: "GST",
-    tags: ["GST", "Summary"],
+    tags: ["Summary"],
     description: "Tax Collected at Source on specified supplies",
   },
   {
@@ -256,19 +116,28 @@ const ALL_REPORTS: ReportItem[] = [
     name: "TCS Receivable",
     nameGu: "TCS મળવાપાત્ર",
     category: "GST",
-    tags: ["GST", "Summary"],
+    tags: ["Summary"],
     description: "TCS credited by suppliers on heavy purchases",
   },
 
-  // 4. Transaction Section
+  // Transaction Category
   {
     id: "audit-trail",
     tabId: "audit-trail",
     name: "Audit Trail",
     nameGu: "ઓડિટ ટ્રેઇલ & ક્રિયા લોગ",
     category: "TRANSACTION",
-    tags: ["Payment Collection", "Invoice Details"],
+    tags: ["Invoice Details"],
     description: "Statutory edit, cancel, and creation timestamp log",
+  },
+  {
+    id: "bill-wise-profit",
+    tabId: "bill-wise-profit",
+    name: "Bill Wise Profit",
+    nameGu: "બીલ દીઠ નફો અને માર્જિન",
+    category: "TRANSACTION",
+    tags: ["Category", "Invoice Details", "Summary"],
+    description: "Invoice-by-invoice gross profit calculation",
   },
   {
     id: "cash-bank-report",
@@ -276,13 +145,13 @@ const ALL_REPORTS: ReportItem[] = [
     name: "Cash and Bank Report (All Payments)",
     nameGu: "રોકડ અને બેંક ખાતાવહી (તમામ વ્યવહાર)",
     category: "TRANSACTION",
-    tags: ["Payment Collection", "Category"],
+    tags: ["Payment Collection"],
     description: "Complete inward & outward bank/cash register",
   },
   {
-    id: "daybook-staff",
+    id: "daybook",
     tabId: "daybook",
-    name: "Daybook - Staff Wise",
+    name: "Daybook",
     nameGu: "રોજમેળ (Rojmel / Daybook)",
     category: "TRANSACTION",
     tags: ["Payment Collection", "Summary"],
@@ -307,43 +176,16 @@ const ALL_REPORTS: ReportItem[] = [
     description: "Detailed voucher entries for business expenses",
   },
   {
-    id: "receipt-payment",
-    tabId: "receipt-payment",
-    name: "Receipt / Payment Register",
-    nameGu: "આવક / જાવક રજિસ્ટર",
+    id: "purchase-summary",
+    tabId: "purchase-summary",
+    name: "Purchase Summary",
+    nameGu: "ખરીદી સારાંશ પત્રક",
     category: "TRANSACTION",
-    tags: ["Payment Collection"],
-    description: "All customer collections and supplier disbursements",
+    tags: ["Summary"],
+    description: "Monthly and supplier-wise aggregate purchase volumes",
   },
 
-  // 5. Item Section
-  {
-    id: "stock-summary",
-    tabId: "stock-summary",
-    name: "Stock Summary",
-    nameGu: "સ્ટોક સિલક રિપોર્ટ",
-    category: "ITEM",
-    tags: ["Item", "Summary"],
-    description: "Current on-hand quantities, reorder levels & valuation",
-  },
-  {
-    id: "stock-movement",
-    tabId: "stock-movement",
-    name: "Stock Movement Report",
-    nameGu: "સ્ટોક હિલચાલ પત્રક",
-    category: "ITEM",
-    tags: ["Item"],
-    description: "Item batch receipts, sales dispatches & adjustments",
-  },
-  {
-    id: "item-batch-report",
-    tabId: "item-batch-report",
-    name: "Item Batch & Expiry Report",
-    nameGu: "આઇટમ બેચ અને એક્સપાયરી રિપોર્ટ",
-    category: "ITEM",
-    tags: ["Item"],
-    description: "Batch-wise inventory with manufacturing & expiry dates",
-  },
+  // Item Category
   {
     id: "item-report-party",
     tabId: "item-sales-report",
@@ -354,52 +196,69 @@ const ALL_REPORTS: ReportItem[] = [
     description: "Product sales breakdown for each client/customer",
   },
   {
-    id: "low-stock-alert",
-    tabId: "low-stock-alert",
-    name: "Low Stock Alert Report",
-    nameGu: "ઓછા સ્ટોકની ચેતવણી પત્રક",
+    id: "item-sales-purchase-summary",
+    tabId: "item-sales-report",
+    name: "Item Sales and Purchase Summary",
+    nameGu: "આઇટમ વેચાણ અને ખરીદી સારાંશ",
     category: "ITEM",
     tags: ["Item", "Summary"],
-    badge: "ALERT",
+    description: "Combined inward and outward movement per item",
+  },
+  {
+    id: "low-stock-summary",
+    tabId: "low-stock-alert",
+    name: "Low Stock Summary",
+    nameGu: "ઓછા સ્ટોકની સારાંશ પત્રક",
+    category: "ITEM",
+    tags: ["Item", "Summary"],
     description: "Items that have breached the minimum reorder threshold",
   },
-
-  // 6. Party Section
   {
-    id: "party-ledger",
-    tabId: "party-ledger",
-    name: "Party Statement (Khata)",
-    nameGu: "પાર્ટી ખાતાવહી (Khata Ledger)",
-    category: "PARTY",
-    tags: ["Party"],
-    description: "Comprehensive debit/credit ledger statement for parties",
+    id: "rate-list",
+    tabId: "stock-summary",
+    name: "Rate List",
+    nameGu: "ભાવ પત્રક (Rate List)",
+    category: "ITEM",
+    tags: ["Item"],
+    description: "Active wholesale and retail selling prices for all items",
   },
   {
-    id: "party-aging",
+    id: "stock-detail-report",
+    tabId: "stock-movement",
+    name: "Stock Detail Report",
+    nameGu: "સ્ટોક વિગતવાર અહેવાલ",
+    category: "ITEM",
+    tags: ["Item"],
+    description: "Item batch receipts, dispatches and quantity adjustments",
+  },
+  {
+    id: "stock-summary",
+    tabId: "stock-summary",
+    name: "Stock Summary",
+    nameGu: "સ્ટોક સિલક રિપોર્ટ",
+    category: "ITEM",
+    tags: ["Item", "Summary"],
+    description: "Current on-hand quantities, reorder levels & valuation",
+  },
+  {
+    id: "stock-summary-godown",
+    tabId: "stock-summary",
+    name: "Stock Summary - Godown wise",
+    nameGu: "ગોડાઉન મુજબ સ્ટોક સારાંશ",
+    category: "ITEM",
+    tags: ["Item"],
+    description: "Warehouse and godown segregated stock quantities",
+  },
+
+  // Party Category
+  {
+    id: "receivable-ageing",
     tabId: "party-aging",
     name: "Receivable Ageing Report",
     nameGu: "ઉઘરાણી મુદત વિશ્લેષણ (૩૦/૬૦/૯૦+ દિવસ)",
     category: "PARTY",
     tags: ["Party", "Summary"],
     description: "Aging analysis of unpaid bills by customer",
-  },
-  {
-    id: "payable-aging",
-    tabId: "outstanding",
-    name: "Payable Ageing Report",
-    nameGu: "ચૂકવણી મુદત વિશ્લેષણ (સપ્લાયર્સ)",
-    category: "PARTY",
-    tags: ["Party", "Summary"],
-    description: "Overdue supplier bills and pending vendor payouts",
-  },
-  {
-    id: "outstanding",
-    tabId: "outstanding",
-    name: "Outstanding Balances",
-    nameGu: "બાકી સિલક (લેણાં-દેવાં)",
-    category: "PARTY",
-    tags: ["Party", "Payment Collection"],
-    description: "Consolidated balances of all debtors and creditors",
   },
   {
     id: "party-report-item",
@@ -410,150 +269,104 @@ const ALL_REPORTS: ReportItem[] = [
     tags: ["Party", "Item"],
     description: "Order frequency and volume by business customer",
   },
+  {
+    id: "party-statement",
+    tabId: "party-ledger",
+    name: "Party Statement (Ledger)",
+    nameGu: "પાર્ટી ખાતાવહી (Khata Ledger)",
+    category: "PARTY",
+    tags: ["Party"],
+    description: "Comprehensive debit/credit ledger statement for parties",
+  },
+  {
+    id: "party-wise-outstanding",
+    tabId: "outstanding",
+    name: "Party Wise Outstanding",
+    nameGu: "બાકી સિલક (લેણાં-દેવાં)",
+    category: "PARTY",
+    tags: ["Party", "Payment Collection"],
+    description: "Consolidated balances of all debtors and creditors",
+  },
+  {
+    id: "sales-summary-category",
+    tabId: "sales-summary",
+    name: "Sales Summary - Category Wise",
+    nameGu: "કેટેગરી મુજબ વેચાણ સારાંશ",
+    category: "PARTY",
+    tags: ["Category", "Summary"],
+    description: "Product category revenue volume and turnover",
+  },
 
-  // 7. Financial Section
+  // Additional Special Master Reports
   {
     id: "balance-sheet",
     tabId: "balance-sheet",
     name: "Balance Sheet",
     nameGu: "પાકું સરવૈયું (Paku Sarvaiyu)",
-    category: "FINANCIAL",
+    category: "TRANSACTION",
     tags: ["Summary", "Category"],
     description: "Assets, liabilities, and capital position statement",
+  },
+  {
+    id: "gstr-1",
+    tabId: "gstr-1",
+    name: "GSTR-1 (Sales)",
+    nameGu: "જીએસટીઆર-૧ વેચાણ રિટર્ન",
+    category: "GST",
+    tags: ["Invoice Details", "Summary"],
+    description: "B2B, B2C, HSN summary & tax outward register",
   },
   {
     id: "profit-loss",
     tabId: "profit-loss",
     name: "Profit And Loss Report",
     nameGu: "નફા-નુકસાન ખાતું (P&L Account)",
-    category: "FINANCIAL",
+    category: "TRANSACTION",
     tags: ["Summary", "Category"],
     description: "Gross profit, indirect expenses & net business earnings",
   },
   {
-    id: "trial-balance",
-    tabId: "trial-balance",
-    name: "Trial Balance",
-    nameGu: "કાચું સરવૈયું (Kachu Sarvaiyu)",
-    category: "FINANCIAL",
+    id: "sales-summary",
+    tabId: "sales-summary",
+    name: "Sales Summary",
+    nameGu: "વેચાણ સારાંશ (કર્મચારી/બ્રાન્ચ વાઇઝ)",
+    category: "TRANSACTION",
     tags: ["Summary"],
-    description: "Debit and credit trial balance verifying general ledger",
-  },
-  {
-    id: "cash-flow",
-    tabId: "cash-flow",
-    name: "Cash Flow Statement",
-    nameGu: "રોકડ પ્રવાહ પત્રક",
-    category: "FINANCIAL",
-    tags: ["Payment Collection", "Summary"],
-    description: "Inflows and outflows across operations and financing",
+    description: "Aggregate monthly/daily sales volumes & collections",
   },
 ];
 
 const DEFAULT_FAVORITES = [
-  "sales-register",
-  "purchase-register",
-  "bill-wise-profit",
   "balance-sheet",
+  "gstr-1",
   "profit-loss",
-  "stock-summary",
+  "sales-summary",
 ];
 
 const FILTER_TAGS: FilterChipTag[] = [
-  "ALL",
-  "Sales",
-  "Purchase",
   "Party",
   "Category",
   "Payment Collection",
   "Item",
   "Invoice Details",
   "Summary",
-  "GST",
 ];
-
-const CATEGORY_ORDER: ReportCategoryKey[] = [
-  "FAVOURITE",
-  "SALES",
-  "PURCHASE",
-  "GST",
-  "TRANSACTION",
-  "ITEM",
-  "PARTY",
-  "FINANCIAL",
-];
-
-const CATEGORY_CONFIG: Record<
-  ReportCategoryKey,
-  { title: string; titleGu: string; icon: string; bg: string; color: string }
-> = {
-  FAVOURITE: {
-    title: "Favourite",
-    titleGu: "મનપસંદ અહેવાલો",
-    icon: "⭐",
-    bg: "bg-amber-50",
-    color: "text-amber-500",
-  },
-  SALES: {
-    title: "Sales Reports",
-    titleGu: "વેચાણ અહેવાલો",
-    icon: "📈",
-    bg: "bg-orange-50",
-    color: "text-orange-600",
-  },
-  PURCHASE: {
-    title: "Purchase Reports",
-    titleGu: "ખરીદી અહેવાલો",
-    icon: "🛒",
-    bg: "bg-sky-50",
-    color: "text-sky-600",
-  },
-  GST: {
-    title: "GST",
-    titleGu: "જીએસટી પત્રકો",
-    icon: "🧾",
-    bg: "bg-emerald-50",
-    color: "text-emerald-600",
-  },
-  TRANSACTION: {
-    title: "Transaction",
-    titleGu: "રોજમેળ & વ્યવહારો",
-    icon: "💳",
-    bg: "bg-blue-50",
-    color: "text-blue-600",
-  },
-  ITEM: {
-    title: "Item",
-    titleGu: "આઇટમ & સ્ટોક",
-    icon: "📦",
-    bg: "bg-amber-50",
-    color: "text-amber-600",
-  },
-  PARTY: {
-    title: "Party",
-    titleGu: "પાર્ટી ખાતાવહી",
-    icon: "👥",
-    bg: "bg-purple-50",
-    color: "text-purple-600",
-  },
-  FINANCIAL: {
-    title: "Financial Statements",
-    titleGu: "નાણાકીય પત્રકો",
-    icon: "📊",
-    bg: "bg-rose-50",
-    color: "text-rose-600",
-  },
-};
 
 export function ReportsDashboard({
   lang,
   onSelectReport,
   onOpenCaSharing,
 }: ReportsDashboardProps) {
-  const [activeFilter, setActiveFilter] = useState<FilterChipTag>("ALL");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState<FilterChipTag | null>(null);
   const [favorites, setFavorites] = useState<string[]>(DEFAULT_FAVORITES);
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    GST: false,
+    TRANSACTION: false,
+    ITEM: false,
+    PARTY: false,
+  });
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -574,18 +387,27 @@ export function ReportsDashboard({
     }
   }, []);
 
-  // Keyboard shortcut Ctrl + F to focus search
+  // Global Ctrl+F listener for quick report search
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") {
         e.preventDefault();
-        searchInputRef.current?.focus();
-        searchInputRef.current?.select();
+        setSearchModalOpen(true);
+      } else if (e.key === "Escape") {
+        setSearchModalOpen(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  useEffect(() => {
+    if (searchModalOpen) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 50);
+    }
+  }, [searchModalOpen]);
 
   const toggleFavorite = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -607,330 +429,371 @@ export function ReportsDashboard({
     setExpandedSections((prev) => ({ ...prev, [sec]: !prev[sec] }));
   };
 
-  // Filtered reports
-  const filteredReports = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    return ALL_REPORTS.filter((r) => {
-      // Tag filter
-      if (activeFilter !== "ALL") {
-        const matchesTag = r.tags.includes(activeFilter) || r.category.toLowerCase() === activeFilter.toLowerCase();
-        if (!matchesTag) return false;
-      }
-      // Search query
-      if (q) {
-        const matchName = r.name.toLowerCase().includes(q);
-        const matchGu = r.nameGu?.toLowerCase().includes(q);
-        const matchDesc = r.description?.toLowerCase().includes(q);
-        const matchCat = r.category.toLowerCase().includes(q);
-        if (!matchName && !matchGu && !matchDesc && !matchCat) return false;
-      }
-      return true;
-    });
-  }, [activeFilter, searchQuery]);
+  // Group reports exactly matching the MyBillBook categories
+  const categoriesData = useMemo(() => {
+    const favItems = ALL_REPORTS.filter((r) => favorites.includes(r.id));
 
-  // Group by category
-  const reportsByCategory = useMemo(() => {
-    const map: Record<ReportCategoryKey, ReportItem[]> = {
-      FAVOURITE: [],
-      SALES: [],
-      PURCHASE: [],
-      GST: [],
-      TRANSACTION: [],
-      ITEM: [],
-      PARTY: [],
-      FINANCIAL: [],
+    const gstItems = ALL_REPORTS.filter(
+      (r) =>
+        r.category === "GST" &&
+        !["gstr-1"].includes(r.id) // keep official order
+    );
+
+    const transactionItems = ALL_REPORTS.filter(
+      (r) =>
+        r.category === "TRANSACTION" &&
+        !["balance-sheet", "profit-loss", "sales-summary"].includes(r.id)
+    );
+
+    const itemItems = ALL_REPORTS.filter((r) => r.category === "ITEM");
+    const partyItems = ALL_REPORTS.filter((r) => r.category === "PARTY");
+
+    const filterList = (items: ReportItem[]) => {
+      if (!activeFilter) return items;
+      return items.filter((r) => r.tags.includes(activeFilter));
     };
 
-    // Favorites list (only show if it matches current search & filter)
-    const favSet = new Set(favorites);
-    ALL_REPORTS.forEach((r) => {
-      if (favSet.has(r.id)) {
-        const q = searchQuery.trim().toLowerCase();
-        const matchesTag = activeFilter === "ALL" || r.tags.includes(activeFilter) || r.category.toLowerCase() === activeFilter.toLowerCase();
-        const matchesQuery =
-          !q ||
-          r.name.toLowerCase().includes(q) ||
-          r.nameGu?.toLowerCase().includes(q) ||
-          r.description?.toLowerCase().includes(q);
-        if (matchesTag && matchesQuery) {
-          map.FAVOURITE.push(r);
-        }
-      }
-    });
+    return {
+      FAVOURITE: filterList(favItems),
+      GST: filterList(gstItems),
+      TRANSACTION: filterList(transactionItems),
+      ITEM: filterList(itemItems),
+      PARTY: filterList(partyItems),
+    };
+  }, [favorites, activeFilter]);
 
-    // Populate filtered categories
-    filteredReports.forEach((r) => {
-      if (map[r.category]) {
-        map[r.category].push(r);
-      }
-    });
+  // Search results
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return ALL_REPORTS.slice(0, 8);
+    const q = searchQuery.toLowerCase().trim();
+    return ALL_REPORTS.filter(
+      (r) =>
+        r.name.toLowerCase().includes(q) ||
+        r.nameGu?.toLowerCase().includes(q) ||
+        r.description?.toLowerCase().includes(q)
+    );
+  }, [searchQuery]);
 
-    return map;
-  }, [filteredReports, favorites, activeFilter, searchQuery]);
-
-  // Identify only non-empty categories to display (fixes empty card "No matching reports" issue)
-  const nonZeroCategories = useMemo(() => {
-    return CATEGORY_ORDER.filter((catKey) => {
-      const items = reportsByCategory[catKey];
-      return items && items.length > 0;
-    });
-  }, [reportsByCategory]);
-
-  const renderReportList = (
+  const renderCategorySection = (
+    title: string,
+    icon: React.ReactNode,
     items: ReportItem[],
     sectionKey: string,
-    defaultLimit = 6
+    limit = 5,
+    isFavouriteSection = false
   ) => {
     const isExpanded = expandedSections[sectionKey] || false;
-    const displayedItems = isExpanded ? items : items.slice(0, defaultLimit);
-    const hasMore = items.length > defaultLimit;
+    const displayedItems = isExpanded || isFavouriteSection ? items : items.slice(0, limit);
+    const hasMore = items.length > limit && !isFavouriteSection;
 
     return (
-      <div className="divide-y divide-slate-100">
-        {displayedItems.map((r) => {
-          const isFav = favorites.includes(r.id);
-          return (
-            <div
-              key={r.id}
-              onClick={() => onSelectReport(r.tabId)}
-              className="group flex items-center justify-between py-2.5 px-3 hover:bg-slate-50/80 rounded-lg transition-colors cursor-pointer"
-            >
-              <div className="min-w-0 pr-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-800 group-hover:text-[#F47721] transition-colors truncate">
-                    {r.name}
-                  </span>
-                  {r.badge && (
-                    <span className="px-1.5 py-0.2 text-[9px] font-bold rounded bg-orange-100 text-orange-800 uppercase shrink-0">
-                      {r.badge}
-                    </span>
-                  )}
-                </div>
-                {lang === "gu" && r.nameGu && (
-                  <p className="text-[11px] text-slate-500 font-gujarati truncate mt-0.5">
-                    {r.nameGu}
-                  </p>
-                )}
-              </div>
+      <div className="flex flex-col justify-between h-full bg-white">
+        <div>
+          {/* Section Header */}
+          <div className="px-5 py-3 border-b border-[#E2E8F0] flex items-center gap-2.5 bg-white">
+            <span className="text-[#64748B] flex items-center justify-center w-4 h-4">
+              {icon}
+            </span>
+            <h3 className="text-[13px] font-semibold text-[#334155] tracking-tight">
+              {title}
+            </h3>
+          </div>
 
-              <div className="flex items-center gap-1.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={(e) => toggleFavorite(r.id, e)}
-                  title={isFav ? "Remove from Favourites" : "Add to Favourites"}
-                  className="p-1 text-slate-300 hover:text-amber-400 transition-colors rounded"
-                >
-                  <svg
-                    className={`w-4 h-4 ${isFav ? "text-amber-400 fill-amber-400" : "fill-none stroke-current"}`}
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
+          {/* Report rows */}
+          <div className="divide-y divide-slate-50">
+            {displayedItems.length === 0 ? (
+              <div className="py-6 text-center text-xs text-slate-400 italic">
+                No reports match selected filter
+              </div>
+            ) : (
+              displayedItems.map((report) => {
+                const isFav = favorites.includes(report.id);
+                return (
+                  <div
+                    key={report.id}
+                    onClick={() => onSelectReport(report.tabId)}
+                    className="group flex items-center justify-between px-5 py-2.5 hover:bg-[#F8FAFC] transition-colors cursor-pointer"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                    />
-                  </svg>
-                </button>
-                <svg
-                  className="w-3.5 h-3.5 text-slate-300 group-hover:text-[#F47721] group-hover:translate-x-0.5 transition-all"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </div>
-          );
-        })}
+                    <span className="text-[13px] font-normal text-[#1E293B] group-hover:text-[#4F46E5] transition-colors truncate pr-2">
+                      {report.name}
+                    </span>
 
+                    <div className="flex items-center gap-2 shrink-0">
+                      {/* Golden Crown Icon */}
+                      <span title="Pro Feature">
+                        <svg className="w-3.5 h-3.5 text-[#E5A128]" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
+                        </svg>
+                      </span>
+
+                      {/* Favorite Toggle Star */}
+                      <button
+                        type="button"
+                        onClick={(e) => toggleFavorite(report.id, e)}
+                        className={`p-0.5 rounded transition-colors ${
+                          isFav
+                            ? "text-[#F59E0B]"
+                            : "text-slate-300 opacity-0 group-hover:opacity-100 hover:text-[#F59E0B]"
+                        }`}
+                        title={isFav ? "Remove from Favourite" : "Add to Favourite"}
+                      >
+                        <svg
+                          className={`w-3.5 h-3.5 ${
+                            isFav ? "fill-[#F59E0B] text-[#F59E0B]" : "fill-none stroke-current"
+                          }`}
+                          viewBox="0 0 24 24"
+                          strokeWidth={2}
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* See More / See Less Toggle */}
         {hasMore && (
-          <button
-            type="button"
-            onClick={() => toggleSection(sectionKey)}
-            className="w-full text-center py-2 text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50/50 rounded-lg transition-colors mt-1"
-          >
-            {isExpanded ? "See less ^" : `See all (${items.length}) v`}
-          </button>
+          <div className="px-5 py-2.5">
+            <button
+              type="button"
+              onClick={() => toggleSection(sectionKey)}
+              className="text-xs font-semibold text-[#4F46E5] hover:text-[#4338CA] flex items-center gap-1 cursor-pointer"
+            >
+              <span>{isExpanded ? "See less" : "See more"}</span>
+              <span>{isExpanded ? "^" : "v"}</span>
+            </button>
+          </div>
         )}
       </div>
     );
   };
 
   return (
-    <div className="space-y-6 w-full min-w-0 max-w-full pb-16 animate-fadeIn">
-      {/* 1. Header with CA Reports Sharing Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-xs">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-              {lang === "gu" ? "અહેવાલો (Reports Dashboard)" : "Reports"}
-            </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-[#F47721] uppercase tracking-wider">
-              Statutory Center
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
-            {lang === "gu"
-              ? "તમામ નાણાકીય પત્રકો, જીએસટી રિટર્ન, સ્ટોક ખાતાવહી અને વ્યવહાર અહેવાલો"
-              : "Business intelligence, GST statutory returns, financial statements & inventory reports"}
-          </p>
-        </div>
+    <div className="space-y-4 w-full min-w-0 max-w-full pb-16 animate-fadeIn">
+      {/* 1. Header Bar matching MyBillBook */}
+      <div className="flex items-center justify-between gap-4 pt-1 pb-1">
+        <h1 className="text-2xl font-bold text-[#1E293B] tracking-tight">
+          Reports
+        </h1>
 
-        {/* CA Reports Sharing Button */}
-        <div className="flex items-center gap-2.5 w-full sm:w-auto shrink-0">
-          <button
-            type="button"
-            onClick={onOpenCaSharing}
-            className="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-purple-700 via-indigo-600 to-indigo-700 hover:from-purple-800 hover:to-indigo-800 text-white text-xs sm:text-sm font-bold rounded-xl shadow-md shadow-indigo-600/20 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
-          >
-            <svg className="w-4 h-4 text-purple-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            <span>CA Reports Sharing</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onOpenCaSharing}
+          className="px-4 py-2 bg-[#4338CA] hover:bg-[#3730A3] text-white text-xs sm:text-sm font-semibold rounded-md shadow-2xs transition-colors flex items-center gap-2 active:scale-95 cursor-pointer"
+        >
+          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"
+            />
+          </svg>
+          <span>CA Reports Sharing</span>
+        </button>
       </div>
 
-      {/* 2. Filter By Chips Bar & Find Report Input */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-3">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          {/* Filter Chips */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1.5 lg:pb-0 scrollbar-none flex-wrap">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0 flex items-center gap-1 mr-1">
-              <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-              </svg>
-              Filter By
-            </span>
+      {/* 2. Filter By Chips Bar */}
+      <div className="flex items-center gap-2.5 flex-wrap py-1">
+        <span className="text-xs font-semibold text-[#64748B] mr-1">
+          Filter By
+        </span>
 
-            {FILTER_TAGS.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => setActiveFilter(tag)}
-                className={`py-1.5 px-3 text-xs font-semibold rounded-lg border transition-all shrink-0 ${
-                  activeFilter === tag
-                    ? "bg-[#F47721] text-white border-[#F47721] shadow-xs"
-                    : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
-                }`}
-              >
-                {tag === "ALL" ? "All Reports" : tag}
-              </button>
-            ))}
-          </div>
-
-          {/* Search Bar (Find Report - Ctrl + F) */}
-          <div className="relative min-w-[240px] sm:min-w-[300px]">
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Find Report (Ctrl + F)..."
-              className="w-full pl-9 pr-14 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 focus:border-[#F47721] transition-all placeholder:text-slate-400"
-            />
-            <svg
-              className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
-              {searchQuery ? (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery("")}
-                  className="text-slate-400 hover:text-slate-600 text-xs px-1 font-bold"
-                >
-                  ✕
-                </button>
-              ) : (
-                <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-slate-200/80 text-slate-500 rounded border border-slate-300/60 shadow-2xs">
-                  Ctrl+F
-                </kbd>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {searchQuery && (
-          <div className="text-[11px] text-slate-500 flex items-center justify-between pt-1">
-            <span>
-              Found <strong>{filteredReports.length}</strong> matching report{filteredReports.length === 1 ? "" : "s"} for &quot;{searchQuery}&quot;
-            </span>
+        {FILTER_TAGS.map((tag) => {
+          const isActive = activeFilter === tag;
+          return (
             <button
+              key={tag}
               type="button"
-              onClick={() => {
-                setSearchQuery("");
-                setActiveFilter("ALL");
-              }}
-              className="text-[#F47721] font-bold hover:underline"
+              onClick={() => setActiveFilter(isActive ? null : tag)}
+              className={`px-4 py-1.5 text-xs font-medium rounded-full border transition-all cursor-pointer ${
+                isActive
+                  ? "bg-[#1E293B] border-[#1E293B] text-white font-semibold shadow-2xs"
+                  : "bg-white border-[#D1D5DB] text-[#334155] hover:bg-slate-50 hover:border-slate-400"
+              }`}
             >
-              Clear Search
+              {tag}
             </button>
-          </div>
+          );
+        })}
+
+        {activeFilter && (
+          <button
+            type="button"
+            onClick={() => setActiveFilter(null)}
+            className="text-xs text-[#4F46E5] hover:underline ml-1 font-medium cursor-pointer"
+          >
+            Clear Filter
+          </button>
         )}
       </div>
 
-      {/* 3. Categorized Cards Grid - Dynamically ONLY renders categories that have matching items */}
-      {nonZeroCategories.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-12 text-center shadow-xs">
-          <div className="w-12 h-12 mx-auto rounded-2xl bg-orange-50 flex items-center justify-center text-xl mb-3">
-            🔍
+      {/* 3. Seamless Unified 3-Column Reports Table (Matching MyBillBook EXACTLY) */}
+      <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-2xs overflow-hidden">
+        {/* TOP ROW: Favourite (col 1) | GST (col 2) | Transaction (col 3) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3">
+          {/* Col 1: Favourite */}
+          <div className="border-b lg:border-b-0 lg:border-r border-[#E2E8F0] flex flex-col justify-between">
+            {renderCategorySection(
+              "Favourite",
+              <svg className="w-4 h-4 text-[#64748B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+              </svg>,
+              categoriesData.FAVOURITE,
+              "FAVOURITE",
+              10,
+              true
+            )}
           </div>
-          <h3 className="text-sm font-bold text-slate-800">
-            {lang === "gu" ? "કોઈ મેળ ખાતા અહેવાલો મળ્યા નથી" : "No matching reports found"}
-          </h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            {searchQuery
-              ? `No reports found matching "${searchQuery}" in ${activeFilter === "ALL" ? "any category" : activeFilter}.`
-              : `There are currently no reports with the "${activeFilter}" filter tag.`}
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setActiveFilter("ALL");
-              setSearchQuery("");
-            }}
-            className="mt-4 px-4 py-2 bg-[#F47721] hover:bg-orange-600 text-white text-xs font-bold rounded-xl shadow-xs transition-colors"
-          >
-            {lang === "gu" ? "તમામ અહેવાલો બતાવો" : "Show All Reports"}
-          </button>
+
+          {/* Col 2: GST */}
+          <div className="border-b lg:border-b-0 lg:border-r border-[#E2E8F0] flex flex-col justify-between">
+            {renderCategorySection(
+              "GST",
+              <svg className="w-4 h-4 text-[#64748B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+              </svg>,
+              categoriesData.GST,
+              "GST",
+              8
+            )}
+          </div>
+
+          {/* Col 3: Transaction */}
+          <div className="flex flex-col justify-between">
+            {renderCategorySection(
+              "Transaction",
+              <svg className="w-4 h-4 text-[#64748B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>,
+              categoriesData.TRANSACTION,
+              "TRANSACTION",
+              6
+            )}
+          </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {nonZeroCategories.map((catKey) => {
-            const items = reportsByCategory[catKey];
-            const cfg = CATEGORY_CONFIG[catKey];
-            return (
-              <div
-                key={catKey}
-                className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 sm:p-5 flex flex-col justify-between hover:shadow-md transition-shadow"
+
+        {/* HORIZONTAL DIVIDER */}
+        <div className="border-t border-[#E2E8F0]" />
+
+        {/* BOTTOM ROW: Item (col 1) | Party (col 2) | Empty Col 3 with Docked Find Report */}
+        <div className="grid grid-cols-1 lg:grid-cols-3">
+          {/* Col 1: Item */}
+          <div className="border-b lg:border-b-0 lg:border-r border-[#E2E8F0] flex flex-col justify-between">
+            {renderCategorySection(
+              "Item",
+              <svg className="w-4 h-4 text-[#64748B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>,
+              categoriesData.ITEM,
+              "ITEM",
+              5
+            )}
+          </div>
+
+          {/* Col 2: Party */}
+          <div className="border-b lg:border-b-0 lg:border-r border-[#E2E8F0] flex flex-col justify-between">
+            {renderCategorySection(
+              "Party",
+              <svg className="w-4 h-4 text-[#64748B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>,
+              categoriesData.PARTY,
+              "PARTY",
+              5
+            )}
+          </div>
+
+          {/* Col 3: Empty Area with Docked Find Report (Ctrl + F) at the bottom right */}
+          <div className="relative min-h-[160px] flex flex-col justify-end items-end p-5 bg-white">
+            <button
+              type="button"
+              onClick={() => setSearchModalOpen(true)}
+              className="flex items-center gap-1.5 text-xs text-[#64748B] hover:text-[#1E293B] cursor-pointer group transition-colors"
+            >
+              <span>Find Report</span>
+              <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-[#F1F5F9] text-[#64748B] rounded border border-[#CBD5E1]">
+                Ctrl
+              </kbd>
+              <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-[#F1F5F9] text-[#64748B] rounded border border-[#CBD5E1]">
+                F
+              </kbd>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Search Spotlight Modal */}
+      {searchModalOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-start justify-center pt-20 px-4"
+          onClick={() => setSearchModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-3.5 border-b border-slate-100 flex items-center gap-2.5">
+              <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search any report (e.g. Sales, GST, Stock, Daybook, Profit)..."
+                className="w-full text-xs sm:text-sm bg-transparent focus:outline-none text-slate-900 placeholder:text-slate-400"
+              />
+              <button
+                type="button"
+                onClick={() => setSearchModalOpen(false)}
+                className="p-1 rounded-md text-slate-400 hover:text-slate-600 text-xs"
               >
-                <div>
-                  <div className="flex items-center justify-between pb-3 mb-2 border-b border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <span className={`w-7 h-7 rounded-lg ${cfg.bg} ${cfg.color} flex items-center justify-center font-bold text-sm`}>
-                        {cfg.icon}
-                      </span>
-                      <h3 className="text-sm font-bold text-slate-900">
-                        {lang === "gu" && cfg.titleGu ? cfg.titleGu : cfg.title}
-                      </h3>
+                ESC
+              </button>
+            </div>
+
+            <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 p-1">
+              {searchResults.length === 0 ? (
+                <div className="py-8 text-center text-xs text-slate-400">
+                  No matching reports found for &quot;{searchQuery}&quot;
+                </div>
+              ) : (
+                searchResults.map((r) => (
+                  <div
+                    key={r.id}
+                    onClick={() => {
+                      setSearchModalOpen(false);
+                      onSelectReport(r.tabId);
+                    }}
+                    className="flex items-center justify-between px-3 py-2.5 hover:bg-indigo-50/60 rounded-xl cursor-pointer group transition-colors"
+                  >
+                    <div>
+                      <p className="text-xs font-semibold text-slate-800 group-hover:text-indigo-600">
+                        {r.name}
+                      </p>
+                      <p className="text-[10px] text-slate-400 truncate max-w-sm">
+                        {r.description || r.category}
+                      </p>
                     </div>
-                    <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-                      {items.length} {items.length === 1 ? "report" : "reports"}
+                    <span className="text-[10px] uppercase font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full shrink-0">
+                      {r.category}
                     </span>
                   </div>
-                  {renderReportList(items, catKey, 6)}
-                </div>
-              </div>
-            );
-          })}
+                ))
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "../../../../context/auth-context";
 import { apiClient, extractList } from "../../../../lib/api-client";
 import { AddItemsModal, CatalogItem } from "../../../../components/invoice/add-items-modal";
@@ -101,11 +101,14 @@ function formatDisplayDate(val?: string): string {
 
 export default function CreateCreditNotePage() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const isDebitNote = pathname.includes("/debit-note");
   const editId = searchParams.get("edit");
   const duplicateId = searchParams.get("duplicate");
   const invoiceParamId = searchParams.get("invoiceId");
   const { lang, tenantContext } = useAuth();
+  const docLabel = isDebitNote ? "Debit Note" : "Credit Note";
 
   // Mode: Edit vs Preview
   const [activeMode, setActiveMode] = useState<"edit" | "preview">("edit");
@@ -604,9 +607,9 @@ export default function CreateCreditNotePage() {
       } else {
         const targetId = res?.id || res?.data?.id;
         if (targetId) {
-          router.push(`/sales/credit-note/view/${targetId}`);
+          router.push(isDebitNote ? `/sales/debit-note` : `/sales/credit-note/view/${targetId}`);
         } else {
-          router.push("/sales/credit-note");
+          router.push(isDebitNote ? "/sales/debit-note" : "/sales/credit-note");
         }
       }
     } catch (err: any) {
@@ -622,7 +625,7 @@ export default function CreateCreditNotePage() {
       <header className="h-14 bg-white border-b border-slate-200 px-4 flex items-center justify-between shrink-0 sticky top-0 z-40">
         <div className="flex items-center gap-3">
           <Link
-            href="/sales/credit-note"
+            href={isDebitNote ? "/sales/debit-note" : "/sales/credit-note"}
             className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
           >
             <svg className="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -631,7 +634,7 @@ export default function CreateCreditNotePage() {
             <span>Exit</span>
           </Link>
           <h1 className="text-sm font-bold text-slate-900 tracking-tight">
-            {lang === "gu" ? "ક્રેડિટ નોટ બનાવો" : "Create Credit Note"}
+            {lang === "gu" ? (isDebitNote ? "ડેબિટ નોટ બનાવો" : "ક્રેડિટ નોટ બનાવો") : (isDebitNote ? "Create Debit Note" : "Create Credit Note")}
           </h1>
         </div>
 
@@ -738,7 +741,9 @@ export default function CreateCreditNotePage() {
           <div className="w-full max-w-4xl bg-white border border-slate-200 rounded-xl shadow-lg p-8 space-y-6">
             <div className="flex justify-between items-start border-b border-slate-200 pb-4">
               <div>
-                <h2 className="text-xl font-bold text-slate-900 tracking-tight">CREDIT NOTE / SALES RETURN</h2>
+                <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+                  {isDebitNote ? "DEBIT NOTE" : "CREDIT NOTE / SALES RETURN"}
+                </h2>
                 <p className="text-xs text-slate-500 mt-1">Original for Recipient</p>
               </div>
               <div className="text-right text-xs space-y-1">
@@ -993,7 +998,7 @@ export default function CreateCreditNotePage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-medium text-slate-600 mb-1">Credit Note No.</label>
+                  <label className="block text-[11px] font-medium text-slate-600 mb-1">{docLabel} No.</label>
                   <input
                     type="text"
                     value={returnNumber}
@@ -1002,7 +1007,7 @@ export default function CreateCreditNotePage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-medium text-slate-600 mb-1">Credit Note Date</label>
+                  <label className="block text-[11px] font-medium text-slate-600 mb-1">{docLabel} Date</label>
                   <input
                     type="date"
                     value={returnDate}
@@ -1022,7 +1027,7 @@ export default function CreateCreditNotePage() {
                 {selectedInvoice ? (
                   <div className="flex items-center justify-between rounded-lg border border-indigo-200 bg-indigo-50/40 px-3 py-1.5 text-xs">
                     <span className="font-semibold text-indigo-900">
-                      Invoice #{selectedInvoice.invoiceNumber} ({formatDisplayDate(selectedInvoice.invoiceDate)}) - {formatInr(selectedInvoice.grandTotal)}
+                      Invoice #{String(selectedInvoice.invoiceNumber || "").replace(/^#+/, "")} ({formatDisplayDate(selectedInvoice.invoiceDate)}) - {formatInr(selectedInvoice.grandTotal)}
                     </span>
                     <button
                       type="button"
@@ -1110,33 +1115,50 @@ export default function CreateCreditNotePage() {
 
                       {/* Item Name & Description */}
                       <td className="px-3 py-2">
-                        <input
-                          type="text"
-                          value={item.name}
-                          onChange={(e) => updateLineItem(item.id, { name: e.target.value })}
-                          placeholder="Item name"
-                          className="w-full font-semibold text-slate-900 border-b border-transparent hover:border-slate-300 focus:border-indigo-500 focus:outline-none py-0.5"
-                        />
-                        <textarea
-                          rows={1}
-                          value={item.description}
-                          onChange={(e) => updateLineItem(item.id, { description: e.target.value })}
-                          placeholder="Enter Description (optional)"
-                          className="w-full text-[11px] text-slate-500 mt-1 resize-none border border-slate-100 focus:border-slate-300 rounded p-1 focus:outline-none"
-                        />
+                        {selectedInvoice ? (
+                          <div className="py-0.5">
+                            <p className="font-bold text-slate-900 text-xs">{item.name}</p>
+                            {item.salesItemId && (
+                              <span className="inline-flex items-center text-[9px] font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-1.5 py-0.2 rounded mt-0.5">
+                                From Invoice
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <>
+                            <input
+                              type="text"
+                              value={item.name}
+                              onChange={(e) => updateLineItem(item.id, { name: e.target.value })}
+                              placeholder="Item name"
+                              className="w-full font-semibold text-slate-900 border-b border-transparent hover:border-slate-300 focus:border-indigo-500 focus:outline-none py-0.5"
+                            />
+                            <textarea
+                              rows={1}
+                              value={item.description}
+                              onChange={(e) => updateLineItem(item.id, { description: e.target.value })}
+                              placeholder="Enter Description (optional)"
+                              className="w-full text-[11px] text-slate-500 mt-1 resize-none border border-slate-100 focus:border-slate-300 rounded p-1 focus:outline-none"
+                            />
+                          </>
+                        )}
                       </td>
 
                       {/* HSN */}
                       <td className="px-3 py-2">
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={item.hsn}
-                            onChange={(e) => updateLineItem(item.id, { hsn: e.target.value })}
-                            placeholder="HSN"
-                            className="w-full rounded border border-slate-200 px-2 py-1 text-xs focus:border-indigo-500 focus:outline-none"
-                          />
-                        </div>
+                        {selectedInvoice ? (
+                          <span className="text-xs text-slate-600 font-medium px-2 py-1 block">{item.hsn || "—"}</span>
+                        ) : (
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={item.hsn}
+                              onChange={(e) => updateLineItem(item.id, { hsn: e.target.value })}
+                              placeholder="HSN"
+                              className="w-full rounded border border-slate-200 px-2 py-1 text-xs focus:border-indigo-500 focus:outline-none"
+                            />
+                          </div>
+                        )}
                       </td>
 
                       {/* QTY & Unit */}
@@ -1158,55 +1180,78 @@ export default function CreateCreditNotePage() {
 
                       {/* Price / Item */}
                       <td className="px-3 py-2">
-                        <div className="relative">
-                          <span className="absolute left-2 top-1.5 text-slate-400">₹</span>
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={item.unitPrice}
-                            onChange={(e) => updateLineItem(item.id, { unitPrice: Number(e.target.value) || 0 })}
-                            className="w-full rounded border border-slate-200 pl-5 pr-2 py-1 text-xs font-semibold focus:border-indigo-500 focus:outline-none"
-                          />
-                        </div>
+                        {selectedInvoice ? (
+                          <span className="text-xs font-bold text-slate-800 px-2 py-1 block text-right">
+                            {formatInr(item.unitPrice)}
+                          </span>
+                        ) : (
+                          <div className="relative">
+                            <span className="absolute left-2 top-1.5 text-slate-400">₹</span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={item.unitPrice}
+                              onChange={(e) => updateLineItem(item.id, { unitPrice: Number(e.target.value) || 0 })}
+                              className="w-full rounded border border-slate-200 pl-5 pr-2 py-1 text-xs font-semibold focus:border-indigo-500 focus:outline-none"
+                            />
+                          </div>
+                        )}
                       </td>
 
                       {/* Discount */}
                       <td className="px-3 py-2">
-                        <div className="flex items-center gap-1">
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={item.discountValue}
-                            onChange={(e) => updateLineItem(item.id, { discountValue: Number(e.target.value) || 0 })}
-                            className="w-16 rounded border border-slate-200 px-2 py-1 text-xs focus:border-indigo-500 focus:outline-none"
-                          />
-                          <select
-                            value={item.discountType}
-                            onChange={(e) => updateLineItem(item.id, { discountType: e.target.value as any })}
-                            className="text-[10px] font-bold bg-slate-100 rounded border border-slate-200 px-1 py-1"
-                          >
-                            <option value="PERCENT">%</option>
-                            <option value="FIXED">₹</option>
-                          </select>
-                        </div>
+                        {selectedInvoice ? (
+                          <span className="text-xs text-slate-600 font-medium px-1.5 py-1 block text-right">
+                            {item.discountValue ? `${item.discountValue} ${item.discountType === "PERCENT" ? "%" : "₹"}` : "0"}
+                          </span>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={item.discountValue}
+                              onChange={(e) => updateLineItem(item.id, { discountValue: Number(e.target.value) || 0 })}
+                              className="w-16 rounded border border-slate-200 px-2 py-1 text-xs focus:border-indigo-500 focus:outline-none"
+                            />
+                            <select
+                              value={item.discountType}
+                              onChange={(e) => updateLineItem(item.id, { discountType: e.target.value as any })}
+                              className="text-[10px] font-bold bg-slate-100 rounded border border-slate-200 px-1 py-1"
+                            >
+                              <option value="PERCENT">%</option>
+                              <option value="FIXED">₹</option>
+                            </select>
+                          </div>
+                        )}
                       </td>
 
                       {/* Tax */}
                       <td className="px-3 py-2">
-                        <select
-                          value={item.taxRate}
-                          onChange={(e) => updateLineItem(item.id, { taxRate: Number(e.target.value) })}
-                          className="w-full rounded border border-slate-200 px-2 py-1 text-xs font-medium focus:border-indigo-500 focus:outline-none"
-                        >
-                          {GST_RATES.map((g) => (
-                            <option key={g.label} value={g.value}>
-                              {g.label}
-                            </option>
-                          ))}
-                        </select>
-                        <p className="text-[10px] text-slate-400 mt-0.5 text-right">({formatInr(item.taxAmount)})</p>
+                        {selectedInvoice ? (
+                          <div className="text-right">
+                            <span className="inline-block rounded bg-slate-100 text-slate-700 px-2 py-1 text-[11px] font-semibold">
+                              GST @ {item.taxRate}%
+                            </span>
+                            <p className="text-[10px] text-slate-400 mt-0.5">({formatInr(item.taxAmount)})</p>
+                          </div>
+                        ) : (
+                          <>
+                            <select
+                              value={item.taxRate}
+                              onChange={(e) => updateLineItem(item.id, { taxRate: Number(e.target.value) })}
+                              className="w-full rounded border border-slate-200 px-2 py-1 text-xs font-medium focus:border-indigo-500 focus:outline-none"
+                            >
+                              {GST_RATES.map((g) => (
+                                <option key={g.label} value={g.value}>
+                                  {g.label}
+                                </option>
+                              ))}
+                            </select>
+                            <p className="text-[10px] text-slate-400 mt-0.5 text-right">({formatInr(item.taxAmount)})</p>
+                          </>
+                        )}
                       </td>
 
                       {/* Amount */}
@@ -1231,22 +1276,28 @@ export default function CreateCreditNotePage() {
               </table>
 
               {/* Add Item Dashed Box & Scan Barcode */}
-              <div className="p-3 border-t border-slate-200 flex items-center justify-between gap-3 bg-white">
-                <button
-                  type="button"
-                  onClick={() => setIsAddItemsModalOpen(true)}
-                  className="flex-1 py-2.5 border-2 border-dashed border-indigo-200 rounded-xl text-center text-xs font-semibold text-[#4F46E5] hover:bg-indigo-50/50 transition-colors cursor-pointer"
-                >
-                  + Add Item
-                </button>
-                <button
-                  type="button"
-                  className="flex items-center gap-1.5 px-4 py-2.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shrink-0 shadow-2xs"
-                >
-                  <span>📷</span>
-                  <span>Scan Barcode</span>
-                </button>
-              </div>
+              {!selectedInvoice ? (
+                <div className="p-3 border-t border-slate-200 flex items-center justify-between gap-3 bg-white">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddItemsModalOpen(true)}
+                    className="flex-1 py-2.5 border-2 border-dashed border-indigo-200 rounded-xl text-center text-xs font-semibold text-[#4F46E5] hover:bg-indigo-50/50 transition-colors cursor-pointer"
+                  >
+                    + Add Item
+                  </button>
+                  <button
+                    type="button"
+                    className="flex items-center gap-1.5 px-4 py-2.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shrink-0 shadow-2xs"
+                  >
+                    <span>📷</span>
+                    <span>Scan Barcode</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="p-2.5 bg-slate-50/80 border-t border-slate-200 text-center text-xs text-slate-500">
+                  <span>🔒 Items are locked to Sales Invoice #{selectedInvoice.invoiceNumber}. Only return quantities can be adjusted.</span>
+                </div>
+              )}
 
               {/* Subtotal Row */}
               <div className="bg-[#F8FAFC] border-t border-slate-200 px-4 py-3 flex items-center justify-between text-xs font-semibold text-slate-700">

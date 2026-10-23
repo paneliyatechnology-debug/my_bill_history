@@ -55,7 +55,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${notoSansGujarati.variable} scroll-smooth`}>
+    <html lang="en" data-scroll-behavior="smooth" className={`${inter.variable} ${notoSansGujarati.variable} scroll-smooth`}>
       <body className="antialiased min-h-screen bg-[#F8F9FB] text-[#202124]">
         <PwaRegister />
         <AuthProvider>

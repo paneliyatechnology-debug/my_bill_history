@@ -1038,7 +1038,9 @@ export class PurchasesService {
       const returnCount = await tx.purchaseReturn.count({
         where: { companyId: tenant.companyId },
       });
-      const returnNumber = `DN-${returnDate.getFullYear()}-${String(returnCount + 1).padStart(4, "0")}`;
+      const returnNumber =
+        dto.returnNumber ||
+        `DN-${returnDate.getFullYear()}-${String(returnCount + 1).padStart(4, "0")}`;
 
       // 8. Create PurchaseReturn and PurchaseReturnItem records
       const purchaseReturn = await tx.purchaseReturn.create({
@@ -1539,6 +1541,136 @@ export class PurchasesService {
     }
 
     return purchaseReturn;
+  }
+
+  async deletePurchaseReturn(id: string, tenant: TenantContext) {
+    const purchaseReturn = await this.prisma.purchaseReturn.findFirst({
+      where: {
+        id,
+        companyId: tenant.companyId,
+      },
+    });
+
+    if (!purchaseReturn) {
+      throw new NotFoundException(`Purchase return with ID ${id} not found.`);
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Delete associated stock transactions
+      await tx.stockTransaction.deleteMany({
+        where: {
+          companyId: tenant.companyId,
+          referenceDocId: id,
+        },
+      });
+
+      // 2. Revert account balances and delete associated vouchers
+      const vouchers = await tx.voucher.findMany({
+        where: {
+          companyId: tenant.companyId,
+          sourceEntityId: id,
+        },
+        include: { journalEntries: true },
+      });
+
+      for (const voucher of vouchers) {
+        for (const entry of voucher.journalEntries) {
+          const acc = await tx.ledgerAccount.findUnique({
+            where: { id: entry.accountId },
+            include: { group: true },
+          });
+          if (acc) {
+            const reversedBalance = applyTransactionToBalance(
+              acc.group.nature as any,
+              acc.currentBalance.toString(),
+              entry.creditAmount,
+              entry.debitAmount,
+            );
+            await tx.ledgerAccount.update({
+              where: { id: acc.id },
+              data: { currentBalance: reversedBalance.toFixed(2) },
+            });
+          }
+        }
+      }
+
+      if (vouchers.length > 0) {
+        await tx.voucher.deleteMany({
+          where: {
+            companyId: tenant.companyId,
+            sourceEntityId: id,
+          },
+        });
+      }
+
+      // 3. Restore purchase invoice balance if linked
+      if (purchaseReturn.purchaseInvoiceId) {
+        const inv = await tx.purchaseInvoice.findUnique({
+          where: { id: purchaseReturn.purchaseInvoiceId },
+        });
+        if (inv) {
+          const restoredBalance = toDecimal(inv.balanceAmount).plus(
+            toDecimal(purchaseReturn.grandTotal),
+          );
+          await tx.purchaseInvoice.update({
+            where: { id: inv.id },
+            data: { balanceAmount: restoredBalance.toFixed(2) },
+          });
+        }
+      }
+
+      // 4. Delete return items
+      await tx.purchaseReturnItem.deleteMany({
+        where: { returnId: id },
+      });
+
+      // 5. Delete return document
+      const deleted = await tx.purchaseReturn.delete({
+        where: { id },
+      });
+
+      await this.audit.record({
+        organizationId: tenant.organizationId,
+        companyId: tenant.companyId,
+        userId: tenant.userId || "",
+        action: "DELETE_PURCHASE_RETURN",
+        entityName: "PurchaseReturn",
+        entityId: id,
+        newState: {
+          returnNumber: purchaseReturn.returnNumber,
+          grandTotal: purchaseReturn.grandTotal?.toString(),
+        },
+      });
+
+      return { success: true, message: "Purchase return deleted successfully", deleted };
+    });
+  }
+
+  async updatePurchaseReturn(
+    id: string,
+    dto: CreatePurchaseReturnDto & { purchaseInvoiceId?: string; returnNumber?: string },
+    tenant: TenantContext,
+  ) {
+    const existing = await this.prisma.purchaseReturn.findFirst({
+      where: { id, companyId: tenant.companyId },
+    });
+    if (!existing) {
+      throw new NotFoundException(`Purchase return with ID ${id} not found.`);
+    }
+
+    // 1. Delete previous return records, stock, and ledger atomically
+    await this.deletePurchaseReturn(id, tenant);
+
+    // 2. Re-create with the updated items and preserve returnNumber
+    const purchaseId = dto.purchaseInvoiceId || existing.purchaseInvoiceId;
+    return await this.createPurchaseReturn(
+      purchaseId,
+      {
+        ...dto,
+        returnNumber: dto.returnNumber || existing.returnNumber,
+      },
+      tenant,
+    );
   }
 
   async recordPurchasePayment(

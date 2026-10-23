@@ -394,14 +394,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     pathname === "/sales/returns/new" ||
     (pathname.startsWith("/sales/returns/") &&
       (pathname.endsWith("/edit") || pathname.endsWith("/new"))) ||
+    pathname === "/purchases/returns/create" ||
+    pathname === "/purchases/returns/new" ||
+    (pathname.startsWith("/purchases/returns/") &&
+      (pathname.endsWith("/edit") || pathname.endsWith("/new") || pathname.endsWith("/create"))) ||
+    pathname.includes("/purchases/debit-note/create") ||
+    pathname.includes("/purchases/debit-memo/create") ||
+    pathname.includes("/purchases/returns/create") ||
     pathname === "/sales/credit-note/create" ||
     pathname === "/sales/credit-note/new" ||
     (pathname.startsWith("/sales/credit-note/") &&
       (pathname.endsWith("/edit") || pathname.endsWith("/new"))) ||
+    pathname.includes("/sales/debit-note/create") ||
+    pathname.includes("/sales/debit-note/new") ||
     (pathname.includes("delivery-challan") &&
       (pathname.includes("/create") || pathname.includes("/new") || pathname.includes("/edit"))) ||
     (pathname.includes("proforma") &&
-      (pathname.includes("/create") || pathname.includes("/new") || pathname.includes("/edit")));
+      (pathname.includes("/create") || pathname.includes("/new") || pathname.includes("/edit"))) ||
+    pathname.includes("/purchases/orders/create") ||
+    pathname.includes("/purchases/orders/new") ||
+    pathname.includes("/purchases/purchase_order/create") ||
+    pathname.includes("/purchases/purchase-order/create") ||
+    pathname.includes("/purchases/purchase-orders/create") ||
+    (pathname.startsWith("/purchases/orders/") &&
+      (pathname.endsWith("/edit") || pathname.endsWith("/new") || pathname.endsWith("/create")));
 
   if (isDedicatedInvoicePage) {
     return <>{children}</>;
@@ -555,6 +571,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           href: "/sales/credit-note",
         },
         {
+          name: "Debit Note",
+          nameGujarati: "ડેબિટ નોટ",
+          href: "/sales/debit-note",
+        },
+        {
           name: "Delivery Challan",
           nameGujarati: "ડિલિવરી ચલણ",
           href: "/sales/delivery-challan",
@@ -595,7 +616,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {
           name: "Payment Out",
           nameGujarati: "જાવક ચૂકવણી (Payment Out)",
-          href: "/finance/vouchers",
+          href: "/purchases/payment-out",
         },
         {
           name: "Purchase Return",
@@ -603,14 +624,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           href: "/purchases/returns",
         },
         {
-          name: "Debit Note",
-          nameGujarati: "ડેબિટ નોટ",
-          href: "/purchases/returns?type=debit-note",
+          name: "Debit Memo",
+          nameGujarati: "ડેબિટ મેમો",
+          href: "/purchases/debit-memo",
         },
         {
           name: "Purchase Orders",
           nameGujarati: "ખરીદી ઓર્ડર",
-          href: "/purchases/new",
+          href: "/purchases/orders",
         },
       ],
     },
@@ -863,11 +884,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     },
   ];
 
+  const isCashBankPage =
+    pathname === "/finance/cash-bank" ||
+    pathname === "/cash-bank";
+
   return (
     <div className="h-[100dvh] h-screen w-full flex overflow-hidden bg-[#F8F9FB] print:h-auto print:min-h-0 print:overflow-visible print:bg-white print:block">
       {/* 1. DESKTOP MYBILLBOOK DARK SIDEBAR */}
       <aside
-        className={`hidden lg:flex flex-col shrink-0 h-full bg-[#0E1726] border-r border-[#1E293B] text-white transition-all duration-300 z-30 select-none print:hidden ${
+        className={`${
+          isCashBankPage ? "hidden" : "hidden lg:flex"
+        } flex-col shrink-0 h-full bg-[#0E1726] border-r border-[#1E293B] text-white transition-all duration-300 z-30 select-none print:hidden ${
           isSidebarCollapsed ? "w-20" : "w-64"
         }`}
       >
@@ -1198,7 +1225,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                               pathname.startsWith("/sales/proforma")) ||
                             (item.href === "/sales/returns" &&
                               pathname.startsWith("/sales/returns") &&
-                              !pathname.includes("credit-note"));
+                              !pathname.includes("credit-note")) ||
+                            (item.href === "/purchases/orders" &&
+                              (pathname.startsWith("/purchases/orders") ||
+                                pathname.startsWith("/purchases/purchase_order") ||
+                                pathname.startsWith("/purchases/purchase-order") ||
+                                pathname.startsWith("/purchases/purchase-orders")));
                           return (
                             <Link
                               key={`${item.name}-${item.href}`}
@@ -1303,12 +1335,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* TOPBAR HEADER */}
         <header className="shrink-0 h-16 bg-white border-b border-[#E5E7EB] px-3 sm:px-6 flex items-center justify-between z-20 shadow-xs max-w-full min-w-0 print:hidden">
-          {/* Left: Active Company/Branch Context & Mobile Brand Logo */}
+          {/* Left: Active Company/Branch Context & Brand Logo */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
-            {/* Mobile Brand Logo when desktop sidebar is hidden (< lg) */}
+            {/* Menu Drawer Toggle Button (Visible on mobile, and on desktop when sidebar is hidden) */}
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className={`${
+                isCashBankPage ? "flex" : "lg:hidden flex"
+              } items-center justify-center p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer mr-0.5`}
+              title={lang === "gu" ? "મેનૂ ખોલો" : "Open Navigation Menu"}
+              aria-label="Navigation Menu"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
+            {/* Brand Logo when desktop sidebar is hidden */}
             <Link
               href="/"
-              className="lg:hidden flex items-center gap-2 shrink-0 group mr-0.5"
+              className={`${
+                isCashBankPage ? "flex" : "lg:hidden flex"
+              } items-center gap-2 shrink-0 group mr-0.5`}
               title="MyBill History"
               aria-label="MyBill History"
             >
@@ -1472,7 +1520,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           className={`flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden relative z-10 ${
             pathname === "/" ||
             pathname.startsWith("/purchases") ||
-            pathname.startsWith("/sales")
+            pathname.startsWith("/sales") ||
+            isCashBankPage
               ? "p-2 sm:p-3 lg:p-4"
               : "p-3 sm:p-6 lg:p-8"
           } pb-24 lg:pb-8 overscroll-y-contain focus:outline-none print:p-0 print:m-0 print:overflow-visible print:h-auto print:w-full print:block`}
@@ -1481,7 +1530,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             className={`${
               pathname === "/" ||
               pathname.startsWith("/purchases") ||
-              pathname.startsWith("/sales")
+              pathname.startsWith("/sales") ||
+              isCashBankPage
                 ? "w-full min-w-0 max-w-none"
                 : "max-w-7xl w-full min-w-0 mx-auto"
             } print:max-w-none print:w-full print:p-0 print:m-0`}
@@ -1491,10 +1541,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </main>
       </div>
 
-      {/* 4. MOBILE DRAWER OVERLAY */}
+      {/* 4. MOBILE & DESKTOP FLYOUT DRAWER OVERLAY */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 z-50 lg:hidden flex print:hidden"
+          className={`fixed inset-0 z-50 ${isCashBankPage ? "flex" : "lg:hidden flex"} print:hidden`}
           role="dialog"
           aria-modal="true"
           aria-label="Navigation drawer"
