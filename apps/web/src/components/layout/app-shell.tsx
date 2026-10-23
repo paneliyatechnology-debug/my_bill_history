@@ -209,12 +209,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   }, [isLoading, isAuthenticated, pathname, router]);
 
-  // If on public pages (login, intro, features, unauthenticated home) or dedicated superadmin portal, render children cleanly without standard business shell
+  // If on public pages (login, intro, features, unauthenticated home), dedicated superadmin portal, or dedicated fullscreen POS counter, render children cleanly without standard business shell
   if (
     pathname === "/login" ||
     pathname === "/intro" ||
     pathname === "/features" ||
     pathname.startsWith("/superadmin") ||
+    pathname === "/pos" ||
+    pathname === "/sales/pos" ||
     (!isAuthenticated && pathname === "/")
   ) {
     return <>{children}</>;
