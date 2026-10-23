@@ -378,21 +378,21 @@ function DashboardContent() {
       {/* ─────────────────────────────────────────────────────────────
           1. DASHBOARD TOP HEADER BAR
       ───────────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between pt-1">
-        <h1 className="text-lg sm:text-xl font-bold text-slate-800 tracking-tight">
+      <div className="flex items-center justify-between pt-1 gap-2">
+        <h1 className="text-base sm:text-lg md:text-xl font-bold text-slate-800 tracking-tight shrink-0">
           Dashboard
         </h1>
 
-        {/* 5 Action Icons Matching MyBillBook Topbar */}
-        <div className="flex items-center gap-1 sm:gap-2 text-slate-500">
-          {/* Desktop App */}
+        {/* Action Icons Matching MyBillBook Topbar */}
+        <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 text-slate-500">
+          {/* Desktop App (hidden on small mobile screens since it's an .exe installer) */}
           <button
             type="button"
             onClick={() => setActiveModal("desktop")}
-            className="p-2 rounded-lg hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="hidden sm:inline-flex p-1.5 sm:p-2 rounded-lg hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
             title="Desktop App"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </button>
@@ -401,10 +401,10 @@ function DashboardContent() {
           <button
             type="button"
             onClick={() => setActiveModal("announcements")}
-            className="p-2 rounded-lg hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="p-1.5 sm:p-2 rounded-lg hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
             title="Announcements & Updates"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
             </svg>
           </button>
@@ -413,10 +413,10 @@ function DashboardContent() {
           <button
             type="button"
             onClick={() => setActiveModal("gift")}
-            className="p-2 rounded-lg hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="p-1.5 sm:p-2 rounded-lg hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
             title="Refer & Earn"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V6a2 2 0 10-2 2h2zm0 0h8.4a.6.6 0 01.6.6v3.8a.6.6 0 01-.6.6H3.6a.6.6 0 01-.6-.6V8.6a.6.6 0 01.6-.6H12zm-8.4 5H20.4M5 13v7.4a.6.6 0 00.6.6h12.8a.6.6 0 00.6-.6V13" />
             </svg>
           </button>
@@ -425,10 +425,10 @@ function DashboardContent() {
           <button
             type="button"
             onClick={() => setActiveModal("support")}
-            className="p-2 rounded-lg hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="p-1.5 sm:p-2 rounded-lg hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
             title="Help & Support"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
           </button>
@@ -438,24 +438,107 @@ function DashboardContent() {
             href="https://wa.me/919510442798?text=Hello%20Support%20myownbillbook"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2 rounded-lg hover:text-emerald-600 hover:bg-slate-100 transition-colors"
+            className="p-1.5 sm:p-2 rounded-lg hover:text-emerald-600 hover:bg-slate-100 transition-colors"
             title="WhatsApp Support"
           >
-            <svg className="w-5 h-5 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12.031 2C6.494 2 2 6.494 2 12.031c0 1.808.48 3.518 1.319 5.008L2 22l5.12-1.309c1.442.793 3.096 1.24 4.911 1.24 5.538 0 10.031-4.494 10.031-10.031S17.569 2 12.031 2zm5.82 14.28c-.244.686-1.42 1.314-1.956 1.37-.506.052-1.15.074-3.321-.822-2.775-1.144-4.54-3.957-4.678-4.143-.138-.186-1.12-1.492-1.12-2.846s.707-2.02.959-2.296c.244-.268.532-.336.71-.336.177 0 .355.002.51.01.164.009.384-.062.6.457.222.533.754 1.84.82 1.974.066.134.11.29.022.468-.088.177-.132.288-.266.443-.133.155-.28.347-.399.466-.134.133-.273.278-.118.544.155.266.69 1.137 1.48 1.84 1.016.906 1.874 1.186 2.14 1.319.266.133.422.11.577-.067.155-.177.666-.776.844-1.042.177-.266.355-.222.6-.133.244.089 1.554.733 1.82 1.022.266.289.444.422.51.533.067.11.067.644-.177 1.33z" />
             </svg>
           </a>
         </div>
       </div>
 
-    
+      {/* ─────────────────────────────────────────────────────────────
+          1.5 PROMOTIONAL BANNERS CAROUSEL / GRID (MOBILE SWIPABLE)
+      ───────────────────────────────────────────────────────────── */}
+      <div className="flex md:grid md:grid-cols-3 gap-3 overflow-x-auto pb-1 pt-0.5 no-scrollbar snap-x snap-mandatory">
+        {/* Banner 1: AI Collections */}
+        <Link
+          href="/finance/ai-collections"
+          className="min-w-[270px] sm:min-w-[300px] md:min-w-0 flex-1 snap-start bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-2xl p-3.5 sm:p-4 shadow-xs flex items-center justify-between gap-3 group transition-all"
+        >
+          <div className="space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
+              New Feature
+            </span>
+            <h4 className="text-xs sm:text-sm font-bold leading-tight">
+              AI Payment Follow-up
+            </h4>
+            <p className="text-[11px] text-white/90 leading-tight">
+              Automated calls & WhatsApp to recover ₹ overdue faster.
+            </p>
+          </div>
+          <div className="w-14 h-14 shrink-0 relative flex items-center justify-center">
+            <Image
+              src="/banner-cashflo.png"
+              alt="AI Collections"
+              width={56}
+              height={56}
+              className="object-contain drop-shadow group-hover:scale-105 transition-transform"
+            />
+          </div>
+        </Link>
 
+        {/* Banner 2: Real-time Stock Inventory */}
+        <Link
+          href="/masters/items"
+          className="min-w-[270px] sm:min-w-[300px] md:min-w-0 flex-1 snap-start bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl p-3.5 sm:p-4 shadow-xs flex items-center justify-between gap-3 group transition-all"
+        >
+          <div className="space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
+              Inventory
+            </span>
+            <h4 className="text-xs sm:text-sm font-bold leading-tight">
+              Stock Valuation & Profit
+            </h4>
+            <p className="text-[11px] text-white/90 leading-tight">
+              Track multi-warehouse batches, expiry, and profit margins.
+            </p>
+          </div>
+          <div className="w-14 h-14 shrink-0 relative flex items-center justify-center">
+            <Image
+              src="/banner-inventory.png"
+              alt="Inventory"
+              width={56}
+              height={56}
+              className="object-contain drop-shadow group-hover:scale-105 transition-transform"
+            />
+          </div>
+        </Link>
+
+        {/* Banner 3: Upgrade to Annual Plan */}
+        <div
+          onClick={() => setActiveModal("sales")}
+          className="min-w-[270px] sm:min-w-[300px] md:min-w-0 flex-1 snap-start bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-2xl p-3.5 sm:p-4 shadow-xs flex items-center justify-between gap-3 group transition-all cursor-pointer"
+        >
+          <div className="space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full font-mono">
+              Save 65%
+            </span>
+            <h4 className="text-xs sm:text-sm font-bold leading-tight">
+              Upgrade to Annual
+            </h4>
+            <p className="text-[11px] text-white/90 leading-tight">
+              Unlimited e-invoices, multi-branch, and priority support.
+            </p>
+          </div>
+          <div className="w-14 h-14 shrink-0 relative flex items-center justify-center">
+            <Image
+              src="/banner-upgrade.png"
+              alt="Upgrade"
+              width={56}
+              height={56}
+              className="object-contain drop-shadow group-hover:scale-105 transition-transform"
+            />
+          </div>
+        </div>
+      </div>
 
       {/* ─────────────────────────────────────────────────────────────
           2. BUSINESS OVERVIEW SECTION & 3 CORE CARDS
       ───────────────────────────────────────────────────────────── */}
       <div className="space-y-2.5">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-0">
           <h2 className="text-sm font-bold text-slate-800 tracking-tight">
             Business Overview
           </h2>
@@ -482,11 +565,11 @@ function DashboardContent() {
         </div>
 
         {/* 3 Metric Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
           {/* Card 1: To Collect */}
           <Link
             href="/masters/parties?filter=receivable"
-            className="bg-[#F0FDF4] border border-[#DCFCE7] rounded-xl p-4.5 sm:p-5 hover:border-emerald-300 hover:shadow-xs transition-all block group relative"
+            className="bg-[#F0FDF4] border border-[#DCFCE7] rounded-xl p-3.5 sm:p-5 hover:border-emerald-300 hover:shadow-xs transition-all block group relative"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-800">
@@ -499,7 +582,7 @@ function DashboardContent() {
                 </svg>
               </span>
             </div>
-            <div className="text-2xl sm:text-[28px] font-black text-slate-900 mt-2 tracking-tight">
+            <div className="text-xl sm:text-2xl md:text-[28px] font-black text-slate-900 mt-2 tracking-tight">
               ₹ {formatInr(toCollect)}
             </div>
           </Link>
@@ -507,7 +590,7 @@ function DashboardContent() {
           {/* Card 2: To Pay */}
           <Link
             href="/masters/parties?filter=payable"
-            className="bg-[#FEF2F2] border border-[#FEE2E2] rounded-xl p-4.5 sm:p-5 hover:border-rose-300 hover:shadow-xs transition-all block group relative"
+            className="bg-[#FEF2F2] border border-[#FEE2E2] rounded-xl p-3.5 sm:p-5 hover:border-rose-300 hover:shadow-xs transition-all block group relative"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-800">
@@ -520,7 +603,7 @@ function DashboardContent() {
                 </svg>
               </span>
             </div>
-            <div className="text-2xl sm:text-[28px] font-black text-slate-900 mt-2 tracking-tight">
+            <div className="text-xl sm:text-2xl md:text-[28px] font-black text-slate-900 mt-2 tracking-tight">
               ₹ {formatInr(toPay)}
             </div>
           </Link>
@@ -528,7 +611,7 @@ function DashboardContent() {
           {/* Card 3: Total Cash + Bank Balance */}
           <Link
             href="/finance/cash-bank"
-            className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4.5 sm:p-5 hover:border-blue-300 hover:shadow-xs transition-all block group relative"
+            className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-3.5 sm:p-5 hover:border-blue-300 hover:shadow-xs transition-all block group relative sm:col-span-2 md:col-span-1"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
@@ -543,7 +626,7 @@ function DashboardContent() {
                 </svg>
               </span>
             </div>
-            <div className="text-2xl sm:text-[28px] font-black text-slate-900 mt-2 tracking-tight">
+            <div className="text-xl sm:text-2xl md:text-[28px] font-black text-slate-900 mt-2 tracking-tight">
               ₹ {formatInr(cashBankBalance)}
             </div>
           </Link>
@@ -557,11 +640,50 @@ function DashboardContent() {
         {/* Left Column: Latest Transactions (col-span-8) */}
         <div className="lg:col-span-8 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs overflow-hidden flex flex-col justify-between">
           <div>
-            <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+            <div className="px-4 sm:px-5 py-3 sm:py-3.5 border-b border-slate-100 flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-800">Latest Transactions</h3>
+              <Link
+                href="/reports"
+                className="text-xs font-semibold text-[#2563EB] hover:underline sm:hidden"
+              >
+                View all
+              </Link>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Mobile View (< sm): Clean Touch-friendly Card List */}
+            <div className="divide-y divide-slate-100 sm:hidden">
+              {transactions.slice(0, 5).map((tx) => (
+                <div
+                  key={tx.id}
+                  onClick={() => tx.link && router.push(tx.link)}
+                  className="p-3.5 active:bg-slate-50 transition-colors flex items-center justify-between gap-3 cursor-pointer"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="text-xs font-bold text-slate-900 truncate">
+                        {tx.partyName}
+                      </span>
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700 whitespace-nowrap">
+                        {tx.type}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[11px] text-slate-500 font-mono">
+                      <span>{tx.txnNo}</span>
+                      <span>•</span>
+                      <span>{tx.date}</span>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="text-xs font-bold font-mono text-slate-900 block">
+                      ₹ {formatInr(tx.amount)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop View (>= sm): Full Data Table */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-slate-100 bg-white text-[11px] font-bold text-slate-600 uppercase tracking-wider">
@@ -601,7 +723,7 @@ function DashboardContent() {
             </div>
           </div>
 
-          <div className="border-t border-slate-100 p-2.5 text-center">
+          <div className="border-t border-slate-100 p-2.5 text-center hidden sm:block">
             <Link
               href="/reports"
               className="text-xs font-semibold text-[#2563EB] hover:underline inline-block py-1"
@@ -612,11 +734,11 @@ function DashboardContent() {
         </div>
 
         {/* Right Column: Scan & Record Bills (col-span-4) */}
-        <div className="lg:col-span-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-5 flex flex-col justify-between space-y-4">
+        <div className="lg:col-span-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-4 sm:p-5 flex flex-col justify-between space-y-3.5 sm:space-y-4">
           {/* Header */}
           <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#F97316] text-white flex items-center justify-center font-bold text-xl shadow-xs shrink-0">
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#F97316] text-white flex items-center justify-center font-bold text-xl shadow-xs shrink-0">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                 </svg>
@@ -667,7 +789,7 @@ function DashboardContent() {
             </button>
           </div>
 
-          {/* Drag & Drop Upload Zone */}
+          {/* Drag & Drop / Tap Upload Zone */}
           <div
             onDragOver={(e) => {
               e.preventDefault();
@@ -676,7 +798,7 @@ function DashboardContent() {
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleFileDrop}
             onClick={() => setIsScannerModalOpen(true)}
-            className={`border-2 border-dashed rounded-xl p-7 text-center transition-all cursor-pointer flex flex-col items-center justify-center group ${isDragging
+            className={`border-2 border-dashed rounded-xl p-5 sm:p-7 text-center transition-all cursor-pointer flex flex-col items-center justify-center group active:scale-[0.99] ${isDragging
                 ? "border-[#EA580C] bg-[#FFF7ED]"
                 : "border-[#FDBA74] bg-[#FFF7ED]/60 hover:bg-[#FFF7ED]"
               }`}
@@ -688,16 +810,16 @@ function DashboardContent() {
               accept=".pdf,.jpg,.jpeg,.png"
               className="hidden"
             />
-            <div className="w-10 h-10 rounded-full bg-[#FFEDD5] text-[#EA580C] flex items-center justify-center mb-2.5 group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-full bg-[#FFEDD5] text-[#EA580C] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
             </div>
             <p className="font-bold text-xs text-[#9A3412] tracking-tight">
-              Drag & Drop or Upload file
+              Tap to Upload or Drag & Drop
             </p>
             <p className="text-[10px] text-slate-500 mt-0.5">
-              (PDF, JPG, JPEG & PNG file supported, max 5MB)
+              (PDF, JPG, JPEG & PNG supported, max 5MB)
             </p>
           </div>
         </div>
@@ -706,17 +828,17 @@ function DashboardContent() {
       {/* ─────────────────────────────────────────────────────────────
           4. BOTTOM SECTION: SALES REPORT (AREA CHART & METRICS)
       ───────────────────────────────────────────────────────────── */}
-      <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-5 space-y-4">
+      <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-4 sm:p-5 space-y-4">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-slate-800">
-            Sales Report - 17 Oct 2026 to 23 Oct 2026
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-xs sm:text-sm font-bold text-slate-800 truncate">
+            Sales Report (Last 7 Days)
           </h3>
 
           <select
             value={chartPeriod}
             onChange={(e) => setChartPeriod(e.target.value as any)}
-            className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 font-semibold text-slate-700 cursor-pointer focus:outline-none"
+            className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 font-semibold text-slate-700 cursor-pointer focus:outline-none shrink-0"
           >
             <option value="Daily">Daily</option>
             <option value="Weekly">Weekly</option>
@@ -725,11 +847,11 @@ function DashboardContent() {
         </div>
 
         {/* Content: 75% Area Chart + 25% Stats */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-center">
           {/* Chart Left Column (lg:col-span-9) */}
           <div className="lg:col-span-9 relative w-full overflow-hidden">
             {/* SVG Chart */}
-            <div className="relative w-full h-[220px]">
+            <div className="relative w-full h-[180px] sm:h-[220px]">
               <svg
                 viewBox="0 0 660 220"
                 className="w-full h-full overflow-visible"
@@ -749,7 +871,7 @@ function DashboardContent() {
                   return (
                     <g key={val}>
                       <line
-                        x1="60"
+                        x1="55"
                         y1={y}
                         x2="650"
                         y2={y}
@@ -758,10 +880,11 @@ function DashboardContent() {
                         strokeDasharray={val === 0 ? "none" : "3 3"}
                       />
                       <text
-                        x="52"
+                        x="48"
                         y={y + 3.5}
                         textAnchor="end"
-                        className="text-[10px] fill-slate-400 font-mono"                      >
+                        className="text-[10px] fill-slate-400 font-mono"
+                      >
                         ₹ {formatInr(val)}
                       </text>
                     </g>
@@ -789,13 +912,14 @@ function DashboardContent() {
                     <circle
                       cx={pt.x}
                       cy={pt.y}
-                      r={pt.data.sales > 0 ? "4" : "2"}
+                      r={pt.data.sales > 0 ? "4" : "2.5"}
                       fill="#16A34A"
                       stroke="#FFFFFF"
                       strokeWidth="2"
                       className="cursor-pointer hover:r-6 transition-all"
                       onMouseEnter={() => setHoveredPoint(pt.data)}
                       onMouseLeave={() => setHoveredPoint(null)}
+                      onTouchStart={() => setHoveredPoint(pt.data)}
                     />
                     {/* X-axis Day Label */}
                     <text
@@ -810,7 +934,7 @@ function DashboardContent() {
                 ))}
               </svg>
 
-              {/* Tooltip on Hover */}
+              {/* Tooltip on Hover / Touch */}
               {hoveredPoint && (
                 <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-lg pointer-events-none z-10 flex items-center gap-2">
                   <span>{hoveredPoint.dayLabel} ({hoveredPoint.dateIso}):</span>
@@ -820,18 +944,18 @@ function DashboardContent() {
             </div>
           </div>
 
-          {/* Stats Right Column (lg:col-span-3) */}
-          <div className="lg:col-span-3 lg:border-l border-slate-100 lg:pl-6 space-y-5">
-            <div>
+          {/* Stats Right Column (lg:col-span-3) - Responsive 2-col on mobile */}
+          <div className="lg:col-span-3 grid grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4 border-t lg:border-t-0 lg:border-l border-slate-100 pt-3.5 lg:pt-0 lg:pl-6">
+            <div className="bg-slate-50/80 lg:bg-transparent p-3 lg:p-0 rounded-xl border border-slate-100 lg:border-0">
               <p className="text-xs text-slate-500 font-medium">Last 7 days sales</p>
-              <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
+              <div className="text-lg sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight mt-0.5 sm:mt-1">
                 ₹ {formatInr(sevenDaysSales)}
               </div>
             </div>
 
-            <div>
+            <div className="bg-slate-50/80 lg:bg-transparent p-3 lg:p-0 rounded-xl border border-slate-100 lg:border-0">
               <p className="text-xs text-slate-500 font-medium">Invoices Made</p>
-              <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
+              <div className="text-lg sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight mt-0.5 sm:mt-1">
                 {invoicesCount}
               </div>
             </div>
