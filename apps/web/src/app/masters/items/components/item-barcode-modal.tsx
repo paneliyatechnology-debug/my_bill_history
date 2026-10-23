@@ -19,7 +19,7 @@ export function ItemBarcodeModal({
   barcode,
   itemName,
   salesPrice,
-  companyName = "MyBill History",
+  companyName = "myownbillbook",
   lang = "en",
 }: ItemBarcodeModalProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);

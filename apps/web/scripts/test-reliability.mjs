@@ -1,5 +1,5 @@
 /**
- * Automated Regression Test Suite: MyBill History Stability & Reliability
+ * Automated Regression Test Suite: myownbillbook Stability & Reliability
  * 
  * Verifies:
  * 1. Request timeouts (ApiError with isTimeout = true, HTTP 408)

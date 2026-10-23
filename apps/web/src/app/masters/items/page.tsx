@@ -1164,7 +1164,7 @@ export default function ItemsPage() {
         categories={categories}
         warehouses={warehouses}
         parties={parties}
-        companyName={currentCompany?.tradeName || currentCompany?.legalName || "MyBill History"}
+        companyName={currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook"}
         lang={lang}
         onAddCategory={handleAddNewCategory}
       />
@@ -1185,7 +1185,7 @@ export default function ItemsPage() {
         categories={categories}
         warehouses={warehouses}
         parties={parties}
-        companyName={currentCompany?.tradeName || currentCompany?.legalName || "MyBill History"}
+        companyName={currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook"}
         lang={lang}
         onAddCategory={handleAddNewCategory}
       />
@@ -1222,7 +1222,7 @@ export default function ItemsPage() {
             : barcodeModalItem?.name || ""
         }
         salesPrice={Number(barcodeModalItem?.retailPrice) || 0}
-        companyName={currentCompany?.tradeName || currentCompany?.legalName || "MyBill History"}
+        companyName={currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook"}
         lang={lang}
       />
 

@@ -7,7 +7,7 @@ const __dirname = path.dirname(__filename);
 
 async function runTranslationAudit() {
   console.log("=================================================");
-  console.log("MyBill History — Bidirectional Translation Audit");
+  console.log("myownbillbook — Bidirectional Translation Audit");
   console.log("=================================================\n");
 
   const results = {

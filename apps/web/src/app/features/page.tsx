@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { useAuth } from "../../context/auth-context";
 import { WaveBackground } from "../../components/ui/wave-background";
+import { BrandLogo } from "../../components/ui/brand-logo";
 
 interface FeatureItem {
   id: string;
@@ -395,19 +396,7 @@ export default function FeaturesPage() {
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-[#E5E7EB] shadow-xs">
         <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-3">
           {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-2.5 sm:gap-3 shrink-0 group">
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-tr from-[#F47721] to-[#FF9343] flex items-center justify-center text-white font-extrabold text-lg sm:text-xl shadow-saffron group-hover:scale-105 transition-transform shrink-0">
-              ₹
-            </div>
-            <div className="flex flex-col">
-              <span className="font-extrabold text-base sm:text-xl text-[#202124] tracking-tight leading-tight whitespace-nowrap">
-                MyBill <span className="text-[#F47721]">History</span>
-              </span>
-              <span className="text-[9px] sm:text-[10px] text-[#667085] tracking-wider uppercase font-semibold hidden xs:inline">
-                Paneliya Technology
-              </span>
-            </div>
-          </Link>
+          <BrandLogo size="lg" showSubtitle subtitle="Paneliya Technology" />
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-4 xl:gap-6 2xl:gap-7 text-xs font-semibold text-[#475467] shrink-0">
@@ -801,13 +790,8 @@ export default function FeaturesPage() {
       <footer className="border-t border-[#E5E7EB] bg-white py-10 sm:py-12 px-3.5 sm:px-6 lg:px-8 text-xs text-[#667085]">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
           <div className="flex items-center gap-2.5 justify-center md:justify-start">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#F47721] to-[#FF9343] flex items-center justify-center text-white font-extrabold text-xs shadow-xs">
-              ₹
-            </div>
-            <span className="font-extrabold text-sm text-[#202124]">
-              MyBill <span className="text-[#F47721]">History</span>
-            </span>
-            <span className="text-[10px] text-[#98A2B3]">© 2026 Paneliya Technology</span>
+            <BrandLogo size="sm" />
+            <span className="text-[10px] text-[#98A2B3] ml-2">© 2026 Paneliya Technology</span>
           </div>
 
           <div className="flex items-center gap-4 sm:gap-6 text-[11px] font-semibold justify-center flex-wrap">

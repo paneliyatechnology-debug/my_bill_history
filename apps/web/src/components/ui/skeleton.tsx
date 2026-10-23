@@ -121,8 +121,9 @@ export function InitialAppLoader({
         </div>
 
         <div>
-          <h2 className="text-lg font-bold text-slate-900 tracking-tight">
-            MyBill History
+          <h2 className="text-lg font-black tracking-tight">
+            <span className="text-[#1E589D]">myown</span>
+            <span className="text-[#EA580C]">billbook</span>
           </h2>
           <p className="text-xs text-[#667085] mt-1">{message}</p>
         </div>

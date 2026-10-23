@@ -1757,7 +1757,7 @@ export default function CashAndBankPage() {
                 metadata={{
                   title: `${selectedAccount?.name || "Cash & Bank"} Statement`,
                   fileName: `statement_${selectedAccount?.name || "cash_and_bank"}`,
-                  companyName: companyDetails?.tradeName || "MyBill History",
+                  companyName: companyDetails?.tradeName || "myownbillbook",
                   companyGstin: companyDetails?.gstin || "24AAAAA0000A1Z5",
                 }}
                 lang={lang}

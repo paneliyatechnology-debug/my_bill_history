@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
 import { WaveBackground } from "../../components/ui/wave-background";
+import Image from "next/image";
 
 function LoginContent() {
   const router = useRouter();
@@ -201,12 +202,20 @@ function LoginContent() {
 
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-[#E5E7EB] p-6 sm:p-8 space-y-5 relative z-10 border-t-4 border-t-[#F47721] my-8">
         {/* Brand Header */}
-        <div className="text-center space-y-1.5">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-[#F47721] to-[#FF9B50] flex items-center justify-center text-white font-bold text-2xl sm:text-3xl shadow-saffron mx-auto ring-4 ring-orange-50">
-            ₹
+        <div className="text-center space-y-2">
+          <div className="w-16 h-16 relative mx-auto flex items-center justify-center">
+            <Image
+              src="/logo-icon.png"
+              alt="myownbillbook"
+              width={64}
+              height={64}
+              className="object-contain"
+              priority
+            />
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-[#202124] tracking-tight">
-            MyBill History
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+            <span className="text-[#1E589D]">myown</span>
+            <span className="text-[#EA580C]">billbook</span>
           </h1>
           <p className="text-xs text-[#667085] font-medium max-w-xs mx-auto">
             {lang === "gu"

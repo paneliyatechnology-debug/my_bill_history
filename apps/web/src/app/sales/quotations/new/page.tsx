@@ -1800,7 +1800,7 @@ export default function NewQuotationPage() {
           partyGstin: selectedParty?.gstin,
           partyPhone: selectedParty?.phone,
           partyAddress: selectedParty?.address,
-          companyName: currentCompany?.tradeName || currentCompany?.legalName || "MyBill History",
+          companyName: currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook",
           companyGstin: currentCompany?.gstin || "24AAAAA0000A1Z5",
           companyState: currentCompany?.stateCode ? `Gujarat (${currentCompany.stateCode})` : "Gujarat (24)",
           notes,

@@ -25,7 +25,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "MyBill History — Modern Indian GST Billing, Invoicing & ERP Software",
+  title: "myownbillbook — Modern Indian GST Billing, Invoicing & ERP Software",
   description:
     "Fast, reliable Indian GST billing, inventory, POS, and accounting platform in English & Gujarati",
   manifest: "/manifest.json",
@@ -34,16 +34,16 @@ export const metadata: Metadata = {
     apple: "/icon-192.png",
   },
   openGraph: {
-    title: "MyBill History — Modern Indian GST Billing & Accounting ERP",
+    title: "myownbillbook — Modern Indian GST Billing & Accounting ERP",
     description:
       "Fast GST billing, POS counter, Gemini AI bill scanning, inventory and double-entry accounting in English and Gujarati.",
     type: "website",
     locale: "en_IN",
-    siteName: "MyBill History",
+    siteName: "myownbillbook",
   },
   twitter: {
     card: "summary_large_image",
-    title: "MyBill History — Modern Indian GST Billing & Accounting ERP",
+    title: "myownbillbook — Modern Indian GST Billing & Accounting ERP",
     description:
       "Fast GST billing, POS counter, Gemini AI bill scanning, inventory and double-entry accounting in English and Gujarati.",
   },

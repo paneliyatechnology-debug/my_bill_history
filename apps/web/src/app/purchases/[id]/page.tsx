@@ -351,7 +351,7 @@ function PurchaseInvoiceDetailContent() {
           {/* WhatsApp / Share */}
           <button
             onClick={() => {
-              const comp = currentCompany?.tradeName || currentCompany?.legalName || "MyBill History";
+              const comp = currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook";
               const text = `*Purchase Invoice Record*\nVendor Bill No: ${invoice.vendorInvoiceNumber}\nSupplier: ${invoice.party?.name}\nDate: ${new Date(invoice.invoiceDate).toLocaleDateString("en-IN")}\nGrand Total: ₹${Number(invoice.grandTotal).toFixed(2)}\nBalance Due: ₹${balance.toFixed(2)}\n\nRecorded by: ${comp}`;
               const phone = invoice.party?.phone ? invoice.party.phone.replace(/[^0-9]/g, "") : "";
               const waUrl = phone
@@ -581,7 +581,7 @@ function PurchaseInvoiceDetailContent() {
         {/* Authorized Signatory Line */}
         <div className="pt-12 flex justify-between items-end border-t border-slate-100 text-xs">
           <div className="text-slate-400 font-mono text-[10px]">
-            Generated via MyBill History Billing SaaS Engine
+            Generated via myownbillbook Billing SaaS Engine
           </div>
           <div className="text-right space-y-1 min-w-[200px]">
             <div className="font-semibold text-slate-800 text-[11px] uppercase">

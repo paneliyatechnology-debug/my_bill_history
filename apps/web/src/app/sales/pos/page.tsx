@@ -1074,7 +1074,7 @@ export default function PosTerminalPage() {
 
           <div class="text-center border-t-dashed" style="margin-top: 8px;">
             <p>Thank you for shopping with us!</p>
-            <p style="font-size: 0.8em; color: #555;">Powered by MyBill History</p>
+            <p style="font-size: 0.8em; color: #555;">Powered by myownbillbook</p>
           </div>
         </body>
       </html>

@@ -520,7 +520,7 @@ export default function PartiesPage() {
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  const companyName = currentCompany?.tradeName || currentCompany?.legalName || "MyBill History";
+                  const companyName = currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook";
                   const bal = Number(p.balance || 0);
                   const text = `*Statement from ${companyName}*\nDear ${p.name},\nYour current balance is ₹${bal.toLocaleString("en-IN")}.\nKindly let us know if you need any invoices.\n\nThank you!`;
                   const cleanPhone = p.phone.replace(/[^0-9]/g, "");
@@ -762,7 +762,7 @@ export default function PartiesPage() {
                       <button
                         type="button"
                         onClick={() => {
-                          const companyName = currentCompany?.tradeName || currentCompany?.legalName || "MyBill History";
+                          const companyName = currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook";
                           const bal = Number(selectedParty.balance || 0);
                           const text = `*Statement from ${companyName}*\nDear ${selectedParty.name},\nYour balance is ₹${bal.toLocaleString("en-IN")}.\nTotal Transactions: ${partyTransactions.length}.\n\nThank you!`;
                           const cleanPhone = selectedParty.phone.replace(/[^0-9]/g, "");
@@ -1196,7 +1196,7 @@ export default function PartiesPage() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm tracking-wide">SharedLedger™ by MyBill History</span>
+                      <span className="font-bold text-sm tracking-wide">SharedLedger™ by myownbillbook</span>
                       <span className="text-[10px] uppercase font-bold bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full">New</span>
                     </div>
                     <p className="text-xs text-indigo-100 mt-0.5">
@@ -1413,7 +1413,7 @@ export default function PartiesPage() {
                         const companyName =
                           currentCompany?.tradeName ||
                           currentCompany?.legalName ||
-                          "MyBill History";
+                          "myownbillbook";
                         const text = `*Payment Reminder from ${companyName}*\nDear ${p.name},\nThis is a friendly reminder regarding your outstanding bill. Kindly arrange payment at your earliest convenience.\n\nThank you!`;
                         const cleanPhone = p.phone.replace(/[^0-9]/g, "");
                         const waUrl = cleanPhone

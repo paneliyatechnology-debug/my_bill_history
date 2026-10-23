@@ -912,7 +912,7 @@ export default function SettingsPage() {
               {/* Stamp box preview */}
               <div className="bg-white p-4 rounded-xl border border-slate-300 shadow-xs min-w-[240px] text-right space-y-1">
                 <p className="font-bold text-slate-900 text-[11px] uppercase">
-                  For {formData.tradeName || formData.legalName || "MyBill History Enterprise"}
+                  For {formData.tradeName || formData.legalName || "myownbillbook Enterprise"}
                 </p>
                 <div className="h-14 flex items-end justify-end py-1">
                   {formData.signatureUrl ? (

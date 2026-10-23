@@ -8,7 +8,7 @@ export interface WaveBackgroundProps {
 /**
  * WaveBackground
  * 
- * Provides calibrated background treatments for MyBill History:
+ * Provides calibrated background treatments for myownbillbook:
  * - "inner": Clean, subtle, distraction-free neutral canvas (#F7F8FA) with faint top warm glow.
  *            NO wave vectors crossing content, tables, filters, or cards.
  * - "dashboard": Attractive, premium Bhagwa ambient depth with gentle harmonic contours.

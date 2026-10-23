@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useAuth } from "../../context/auth-context";
 import { WaveBackground } from "../ui/wave-background";
+import { BrandLogo } from "../ui/brand-logo";
 
 export function IntroductionPage() {
   const { lang, setLang } = useAuth();
@@ -217,8 +218,8 @@ export function IntroductionPage() {
     {
       q:
         lang === "gu"
-          ? "શું MyBill History અંગ્રેજી અને ગુજરાતી બંને ભાષાને સંપૂર્ણ સપોર્ટ કરે છે?"
-          : "Does MyBill History provide complete bilingual English and Gujarati support?",
+          ? "શું myownbillbook અંગ્રેજી અને ગુજરાતી બંને ભાષાને સંપૂર્ણ સપોર્ટ કરે છે?"
+          : "Does myownbillbook provide complete bilingual English and Gujarati support?",
       a:
         lang === "gu"
           ? "હા! સમગ્ર સોફ્ટવેર (ડેશબોર્ડ, ઇન્વોઇસિંગ, રિપોર્ટ્સ, ખાતાવહી અને સેટિંગ્સ) અંગ્રેજી અને ગુજરાતી (Noto Sans Gujarati ફોન્ટ સાથે) બંનેમાં ઉપલબ્ધ છે. તમે ૧-ક્લિકમાં ભાષા બદલી શકો છો."
@@ -251,8 +252,8 @@ export function IntroductionPage() {
           : "Can I print both standard A4 GST invoices and POS thermal receipts?",
       a:
         lang === "gu"
-          ? "હા! MyBill History માં ઓફિશિયલ A4 જીએસટી ઇન્વોઇસ (૪ કસ્ટમ રંગ થીમ્સ સાથે) તેમજ રિટેલ કાઉન્ટર માટે 58mm / 80mm થર્મલ રસીદ પ્રિન્ટિંગ મોડ ઉપલબ્ધ છે."
-          : "Yes! MyBill History supports official A4 GST Tax Invoices (with 4 elegant theme color variations) as well as 58mm/80mm POS thermal receipts for fast retail counters.",
+          ? "હા! myownbillbook માં ઓફિશિયલ A4 જીએસટી ઇન્વોઇસ (૪ કસ્ટમ રંગ થીમ્સ સાથે) તેમજ રિટેલ કાઉન્ટર માટે 58mm / 80mm થર્મલ રસીદ પ્રિન્ટિંગ મોડ ઉપલબ્ધ છે."
+          : "Yes! myownbillbook supports official A4 GST Tax Invoices (with 4 elegant theme color variations) as well as 58mm/80mm POS thermal receipts for fast retail counters.",
     },
     {
       q:
@@ -281,7 +282,7 @@ export function IntroductionPage() {
           : "Can I manage multiple companies and branch locations under one account?",
       a:
         lang === "gu"
-          ? "હા! MyBill History માં મલ્ટી-કંપની અને મલ્ટી-બ્રાન્ચ આર્કિટેક્ચર છે. તમે ટોપબારમાંથી ૧ સેકન્ડમાં કંપની કે બ્રાન્ચ સ્વિચ કરી શકો છો, અને કર્મચારીઓ માટે કેશિયર, એકાઉન્ટન્ટ અથવા મેનેજરની પરમિશન્સ આપી શકો છો."
+          ? "હા! myownbillbook માં મલ્ટી-કંપની અને મલ્ટી-બ્રાન્ચ આર્કિટેક્ચર છે. તમે ટોપબારમાંથી ૧ સેકન્ડમાં કંપની કે બ્રાન્ચ સ્વિચ કરી શકો છો, અને કર્મચારીઓ માટે કેશિયર, એકાઉન્ટન્ટ અથવા મેનેજરની પરમિશન્સ આપી શકો છો."
           : "Yes! The platform includes native multi-company and multi-branch support. Switch between legal entities or branches seamlessly from the topbar, and configure granular roles for cashiers, accountants, and branch managers.",
     },
     {
@@ -316,19 +317,7 @@ export function IntroductionPage() {
       >
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-5 xl:px-8 h-16 sm:h-20 flex items-center justify-between gap-2 lg:gap-3 xl:gap-4">
           {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-2 sm:gap-3 shrink-0 group min-w-0 whitespace-nowrap">
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-tr from-[#F47721] to-[#FF9343] flex items-center justify-center text-white font-extrabold text-lg sm:text-xl shadow-saffron group-hover:scale-105 transition-transform shrink-0">
-              ₹
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="font-extrabold text-sm xs:text-base sm:text-xl text-[#202124] tracking-tight leading-tight whitespace-nowrap">
-                MyBill <span className="text-[#F47721]">History</span>
-              </span>
-              <span className="text-[9px] sm:text-[10px] text-[#667085] tracking-wider uppercase font-semibold hidden xs:inline truncate">
-                Paneliya Technology
-              </span>
-            </div>
-          </Link>
+          <BrandLogo size="lg" showSubtitle subtitle="Paneliya Technology" />
 
           {/* Navigation Links with Features Dropdown (Desktop) */}
           <nav className="hidden lg:flex items-center gap-2.5 xl:gap-4 2xl:gap-6 text-xs font-semibold text-[#475467] shrink-0">
@@ -822,7 +811,7 @@ export function IntroductionPage() {
                 <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-400" />
                 <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-400" />
                 <span className="ml-1 sm:ml-2 text-xs font-bold text-[#667085] hidden md:inline">
-                  MyBill History ERP — {
+                  myownbillbook ERP — {
                     activePreviewTab === "invoice"
                       ? (lang === "gu" ? "જીએસટી ઇન્વોઇસ એન્જિન" : "Invoice Engine")
                       : activePreviewTab === "dashboard"
@@ -1661,7 +1650,7 @@ export function IntroductionPage() {
           </h2>
           <p className="text-xs sm:text-sm text-[#667085] break-words">
             {lang === "gu"
-              ? "તમારો વ્યવસાય ગમે તે ક્ષેત્રનો હોય, MyBill History સરળતાથી ગોઠવાઈ જાય છે."
+              ? "તમારો વ્યવસાય ગમે તે ક્ષેત્રનો હોય, myownbillbook સરળતાથી ગોઠવાઈ જાય છે."
               : "From fast-turnover retail shops to multi-godown distributors and fabricators."}
           </p>
         </div>
@@ -1842,14 +1831,7 @@ export function IntroductionPage() {
         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Col 1: Brand Info */}
           <div className="reveal-on-scroll reveal-delay-1 space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[#F47721] flex items-center justify-center text-white font-bold text-base shadow-saffron shrink-0">
-                ₹
-              </div>
-              <span className="font-extrabold text-base text-[#202124]">
-                MyBill History
-              </span>
-            </div>
+            <BrandLogo size="md" />
             <p className="text-xs text-[#667085] leading-relaxed">
               {lang === "gu"
                 ? "આધુનિક ભારતીય જીએસટી બિલિંગ, સ્માર્ટ ખરીદી સ્કેનર અને પાકી નામા પદ્ધતિ ERP."

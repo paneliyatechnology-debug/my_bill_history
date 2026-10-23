@@ -1,6 +1,6 @@
 {
-  "name": "MyBill History — Your Invoice & History Companion",
-  "short_name": "MyBill History",
+  "name": "myownbillbook — GST Billing, Invoicing & ERP",
+  "short_name": "myownbillbook",
   "description": "High-throughput Indian Billing, Inventory & Double-Entry Accounting Platform",
   "start_url": "/",
   "id": "/",
@@ -8,7 +8,7 @@
   "display": "standalone",
   "orientation": "any",
   "background_color": "#ffffff",
-  "theme_color": "#dc2626",
+  "theme_color": "#1E589D",
   "icons": [
     {
       "src": "/icon-192.png",

@@ -797,7 +797,7 @@ export default function InvoiceDetailPage() {
                   <button
                     onClick={() => {
                       setIsShareDropdownOpen(false);
-                      const companyName = currentCompany?.tradeName || currentCompany?.legalName || "MyBill History";
+                      const companyName = currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook";
                       const text = `*Invoice from ${companyName}*\nInvoice No: ${invoice.invoiceNumber}\nDate: ${new Date(invoice.invoiceDate).toLocaleDateString("en-IN")}\nGrand Total: ₹${Number(invoice.grandTotal).toFixed(2)}\nOutstanding Balance: ₹${bal.toFixed(2)}\n\nThank you for your business!`;
                       const phone = invoice.party?.phone ? invoice.party.phone.replace(/[^0-9]/g, "") : "";
                       const waUrl = phone
@@ -906,7 +906,7 @@ export default function InvoiceDetailPage() {
                         ★ GST Tax Compliant Invoice
                       </div>
                       <h2 className="text-sm sm:text-2xl font-black tracking-tight uppercase text-white drop-shadow-xs leading-tight">
-                        {activeComp?.tradeName || activeComp?.legalName || currentCompany?.tradeName || "MyBill History Enterprise"}
+                        {activeComp?.tradeName || activeComp?.legalName || currentCompany?.tradeName || "myownbillbook Enterprise"}
                       </h2>
                       {activeComp?.addressLine1 && (
                         <p className="text-[10px] sm:text-xs text-orange-100 max-w-sm line-clamp-2 sm:line-clamp-none">
@@ -976,7 +976,7 @@ export default function InvoiceDetailPage() {
                         <span>🏢</span> Corporate Tax Invoice
                       </div>
                       <h2 className="text-sm sm:text-2xl font-black tracking-tight uppercase text-[#1E3A8A] leading-tight">
-                        {activeComp?.tradeName || activeComp?.legalName || currentCompany?.tradeName || "MyBill History Enterprise"}
+                        {activeComp?.tradeName || activeComp?.legalName || currentCompany?.tradeName || "myownbillbook Enterprise"}
                       </h2>
                       {activeComp?.addressLine1 && (
                         <p className="text-[10px] sm:text-xs text-slate-600 line-clamp-2 sm:line-clamp-none max-w-sm">
@@ -1041,7 +1041,7 @@ export default function InvoiceDetailPage() {
                         <span>🌿</span> Emerald Trade Certified
                       </div>
                       <h2 className="text-sm sm:text-2xl font-black tracking-tight uppercase text-emerald-950 leading-tight">
-                        {activeComp?.tradeName || activeComp?.legalName || currentCompany?.tradeName || "MyBill History Enterprise"}
+                        {activeComp?.tradeName || activeComp?.legalName || currentCompany?.tradeName || "myownbillbook Enterprise"}
                       </h2>
                       {activeComp?.addressLine1 && (
                         <p className="text-[10px] sm:text-xs text-emerald-900/80 line-clamp-2 sm:line-clamp-none max-w-sm">
@@ -1106,7 +1106,7 @@ export default function InvoiceDetailPage() {
                         ✨ Premium Enterprise Billing
                       </div>
                       <h2 className="text-sm sm:text-2xl font-black tracking-tight uppercase text-white drop-shadow-xs leading-tight">
-                        {activeComp?.tradeName || activeComp?.legalName || currentCompany?.tradeName || "MyBill History Enterprise"}
+                        {activeComp?.tradeName || activeComp?.legalName || currentCompany?.tradeName || "myownbillbook Enterprise"}
                       </h2>
                       {activeComp?.addressLine1 && (
                         <p className="text-[10px] sm:text-xs text-indigo-100 max-w-sm line-clamp-2 sm:line-clamp-none">
@@ -1170,7 +1170,7 @@ export default function InvoiceDetailPage() {
                         {activeComp?.tradeName ||
                           activeComp?.legalName ||
                           currentCompany?.tradeName ||
-                          "MyBill History Enterprise"}
+                          "myownbillbook Enterprise"}
                       </h2>
                       {activeComp?.addressLine1 && (
                         <p className="text-[10px] sm:text-xs text-slate-600 line-clamp-2 sm:line-clamp-none max-w-sm">
@@ -1828,7 +1828,7 @@ export default function InvoiceDetailPage() {
                 </p>
                 <div className="text-left sm:text-right space-y-1.5 w-full sm:w-auto sm:min-w-[200px]">
                   <p className="font-bold text-slate-900 uppercase text-[11px]">
-                    For {activeComp?.tradeName || activeComp?.legalName || currentCompany?.tradeName || "MyBill History Enterprise"}
+                    For {activeComp?.tradeName || activeComp?.legalName || currentCompany?.tradeName || "myownbillbook Enterprise"}
                   </p>
 
                   {/* Signature Preview / Stamp */}

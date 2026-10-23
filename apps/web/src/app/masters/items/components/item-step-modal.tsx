@@ -97,7 +97,7 @@ export function ItemStepModal({
   units,
   categories,
   warehouses,
-  companyName = "MyBill History",
+  companyName = "myownbillbook",
   lang = "en",
   onAddCategory,
   parties,

@@ -186,7 +186,7 @@ async function generateTestPdf() {
         align: "right",
       });
 
-      const sysText = "MyBill History GST Billing — Confidential Statutory Document";
+      const sysText = "myownbillbook GST Billing — Confidential Statutory Document";
       doc.text(sysText, margin, pageHeight - 6);
     },
   });

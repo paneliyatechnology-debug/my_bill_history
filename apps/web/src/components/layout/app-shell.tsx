@@ -7,6 +7,8 @@ import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
 import { CompanySwitcher } from "../tenants/company-switcher";
 import { WaveBackground } from "../ui/wave-background";
+import { BrandLogo } from "../ui/brand-logo";
+import Image from "next/image";
 
 interface SubNavItem {
   name: string;
@@ -300,26 +302,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         }}
       >
         <div
-          className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#F47721] to-[#FF9B50] flex items-center justify-center text-white font-bold text-3xl shadow-saffron animate-pulse mb-3"
+          className="w-16 h-16 flex items-center justify-center mb-3 animate-pulse relative"
           style={{
             width: "4rem",
             height: "4rem",
-            borderRadius: "1rem",
-            backgroundColor: "#F47721",
-            color: "#FFFFFF",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "1.875rem",
           }}
         >
-          ₹
+          <Image
+            src="/logo-icon.png"
+            alt="myownbillbook"
+            width={64}
+            height={64}
+            className="object-contain"
+            priority
+          />
         </div>
-        <p
-          className="text-base font-bold text-[#202124]"
-          style={{ color: "#202124", fontWeight: 700 }}
-        >
-          MyBill History
+        <p className="text-lg font-black tracking-tight">
+          <span className="text-[#1E589D]">myown</span>
+          <span className="text-[#EA580C]">billbook</span>
         </p>
         <p
           className="text-xs text-[#98A2B3] mt-1 font-mono"
@@ -779,7 +779,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       nameGujarati: "AI ઉઘરાણી (Collections)",
       group: "BUSINESS TOOLS",
       badge: "New",
-      href: "/finance/vouchers",
+      href: "/finance/ai-collections",
       icon: (
         <svg
           className="w-5 h-5"
@@ -1354,21 +1354,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
 
             {/* Brand Logo when desktop sidebar is hidden */}
-            <Link
-              href="/"
+            <div
               className={`${
                 isCashBankPage ? "flex" : "lg:hidden flex"
-              } items-center gap-2 shrink-0 group mr-0.5`}
-              title="MyBill History"
-              aria-label="MyBill History"
+              } items-center shrink-0 mr-1`}
             >
-              <div className="w-8 h-8 rounded-lg bg-[#F47721] flex items-center justify-center text-white font-bold text-base shadow-saffron group-hover:scale-105 transition-transform">
-                ₹
-              </div>
-              <span className="hidden min-[480px]:inline font-bold text-xs sm:text-sm text-[#202124] tracking-tight">
-                MyBill History
-              </span>
-            </Link>
+              <BrandLogo size="md" />
+            </div>
 
             {/* Active Company & Branch Context Switchers */}
             <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 sm:flex-initial">
@@ -1558,20 +1550,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           />
           <div className="relative w-72 max-w-[85vw] bg-white h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-left duration-200">
             {/* Mobile Header with visible close button */}
-            <div className="h-16 shrink-0 flex items-center justify-between px-4 border-b border-[#E5E7EB] bg-[#FFFAF5]">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-[#F47721] flex items-center justify-center text-white font-bold text-base shadow-saffron">
-                  ₹
-                </div>
-                <div>
-                  <span className="font-bold text-sm text-[#202124] block">
-                    MyBill History
-                  </span>
-                  <span className="text-[10px] text-[#F47721] font-semibold">
-                    {currentCompany?.tradeName || "Billing & Retail"}
-                  </span>
-                </div>
-              </div>
+            <div className="h-16 shrink-0 flex items-center justify-between px-4 border-b border-[#E5E7EB] bg-[#F8F9FB]">
+              <BrandLogo size="sm" showSubtitle subtitle={currentCompany?.tradeName || "Billing & Retail"} />
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="p-2 text-[#667085] hover:text-[#202124] hover:bg-[#F3F4F6] rounded-md transition-colors"

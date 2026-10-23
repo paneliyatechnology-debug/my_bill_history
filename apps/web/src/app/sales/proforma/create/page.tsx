@@ -1358,7 +1358,7 @@ export default function CreateProformaInvoicePage() {
             (selectedParty?.billingAddress
               ? `${selectedParty.billingAddress.line1 || ""}, ${selectedParty.billingAddress.city || ""}`
               : undefined),
-          companyName: currentCompany?.tradeName || currentCompany?.legalName || "MyBill History",
+          companyName: currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook",
           companyGstin: currentCompany?.gstin || "24AAAAA0000A1Z5",
           companyState: currentCompany?.stateCode ? `State Code (${currentCompany.stateCode})` : "Gujarat (24)",
           notes,
