@@ -32,12 +32,14 @@ export class DatabaseService
             "expires_at" TIMESTAMPTZ NOT NULL,
             "consumed_at" TIMESTAMPTZ,
             "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-        );
-        CREATE INDEX IF NOT EXISTS "email_otps_email_purpose_created_at_idx"
-            ON "email_otps"("email", "purpose", "created_at");
+        )
       `).catch((err) => {
-        this.logger.warn(`Notice: email_otps schema init: ${err.message}`);
+        this.logger.warn(`Notice: email_otps table init: ${err.message}`);
       });
+      await this.$executeRawUnsafe(`
+        CREATE INDEX IF NOT EXISTS "email_otps_email_purpose_created_at_idx"
+            ON "email_otps"("email", "purpose", "created_at")
+      `).catch(() => {});
     } catch {
       // Allow startup in environments without active DB
     }
