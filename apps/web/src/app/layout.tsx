@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Noto_Sans_Gujarati } from "next/font/google";
+import { DM_Mono, Inter, Manrope, Noto_Sans_Gujarati, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "../context/auth-context";
 import { AppShell } from "../components/layout/app-shell";
@@ -8,6 +8,28 @@ import { PwaRegister } from "../components/pwa-register";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  weight: ["500", "600", "700"],
+  variable: "--font-playfair",
+  display: "swap",
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-manrope",
+  display: "swap",
+});
+
+const dmMono = DM_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-dm-mono",
   display: "swap",
 });
 
@@ -36,7 +58,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "myownbillbook — Modern Indian GST Billing & Accounting ERP",
     description:
-      "Fast GST billing, POS counter, Gemini AI bill scanning, inventory and double-entry accounting in English and Gujarati.",
+      "Fast GST billing, POS counter, instant bill scanning, inventory and double-entry accounting in English and Gujarati.",
     type: "website",
     locale: "en_IN",
     siteName: "myownbillbook",
@@ -45,7 +67,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "myownbillbook — Modern Indian GST Billing & Accounting ERP",
     description:
-      "Fast GST billing, POS counter, Gemini AI bill scanning, inventory and double-entry accounting in English and Gujarati.",
+      "Fast GST billing, POS counter, instant bill scanning, inventory and double-entry accounting in English and Gujarati.",
   },
 };
 
@@ -55,7 +77,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" data-scroll-behavior="smooth" className={`${inter.variable} ${notoSansGujarati.variable} scroll-smooth`}>
+    <html lang="en" data-scroll-behavior="smooth" className={`${inter.variable} ${playfair.variable} ${manrope.variable} ${dmMono.variable} ${notoSansGujarati.variable} scroll-smooth`}>
       <body className="antialiased min-h-screen bg-[#F8F9FB] text-[#202124]">
         <PwaRegister />
         <AuthProvider>

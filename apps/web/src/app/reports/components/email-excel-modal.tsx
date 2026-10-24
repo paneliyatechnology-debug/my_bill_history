@@ -8,7 +8,7 @@ interface EmailExcelModalProps {
   onClose: () => void;
   reportName: string;
   lang?: string;
-  onSendEmail?: (email: string, notes: string) => Promise<void> | void;
+  onSendEmail?: (email: string, notes: string, subject: string) => Promise<void> | void;
 }
 
 export function EmailExcelModal({
@@ -35,17 +35,17 @@ export function EmailExcelModal({
 
     setIsSending(true);
     try {
-      if (onSendEmail) {
-        await onSendEmail(recipientEmail, notes);
-      } else {
-        // Fallback simulation with toast feedback
-        await new Promise((r) => setTimeout(r, 600));
+      if (!onSendEmail) {
+        throw new Error("Email sending is not connected.");
       }
+      await onSendEmail(recipientEmail, notes, subject);
       setIsSuccess(true);
       setTimeout(() => {
         setIsSuccess(false);
         onClose();
       }, 1500);
+    } catch (err: any) {
+      alert(err?.message || "Could not send the email.");
     } finally {
       setIsSending(false);
     }
@@ -77,7 +77,7 @@ export function EmailExcelModal({
             <div>
               <p className="font-semibold text-blue-900">{reportName}</p>
               <p className="text-[11px] text-blue-700">
-                Excel (.xlsx) attachment will be generated and delivered automatically.
+                A summary of this report is emailed. Download Excel separately if the spreadsheet file is needed.
               </p>
             </div>
           </div>

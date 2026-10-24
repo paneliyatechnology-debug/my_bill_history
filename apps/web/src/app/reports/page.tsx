@@ -4644,6 +4644,7 @@ export default function ReportsPage({
           isOpen={isCaModalOpen}
           onClose={() => setIsCaModalOpen(false)}
           lang={lang}
+          companyName={currentCompany?.tradeName || currentCompany?.legalName || "My Business"}
         />
       )}
 
@@ -4654,8 +4655,22 @@ export default function ReportsPage({
           onClose={() => setIsEmailModalOpen(false)}
           reportName={currentTabMeta.label}
           lang={lang}
-          onSendEmail={async () => {
-            await handleExportReport("xlsx");
+          onSendEmail={async (email, notes) => {
+            const result = await apiClient.post<any>("/mail/send", {
+              to: email,
+              subject: `${currentTabMeta.label} — ${startDate} to ${endDate}`,
+              heading: currentTabMeta.label,
+              intro: notes,
+              details: [
+                { label: "Report", value: currentTabMeta.label },
+                { label: "Period", value: `${startDate} to ${endDate}` },
+                { label: "Business", value: currentCompany?.tradeName || currentCompany?.legalName || "—" },
+              ],
+              text: "Open Reports and use Download Excel if you also need the spreadsheet file.",
+            });
+            if (result && result.delivered === false) {
+              throw new Error(result.message || "Email was not delivered. Configure SMTP on the server.");
+            }
           }}
         />
       )}

@@ -87,6 +87,17 @@ const config: Config = {
           "Arial",
           "sans-serif",
         ],
+        editorial: [
+          "var(--font-playfair)",
+          "var(--font-noto-gujarati)",
+          "Georgia",
+          "serif",
+        ],
+        manrope: [
+          "var(--font-manrope)",
+          "var(--font-noto-gujarati)",
+          "sans-serif",
+        ],
         gujarati: [
           "var(--font-noto-gujarati)",
           "Shruti",
@@ -95,6 +106,7 @@ const config: Config = {
           "sans-serif",
         ],
         mono: [
+          "var(--font-dm-mono)",
           "ui-monospace",
           "SFMono-Regular",
           "Menlo",

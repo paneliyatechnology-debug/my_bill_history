@@ -1651,3 +1651,17 @@ model SupportSession {
   @@index([targetCompanyId, isRevoked], map: "idx_support_sessions_comp")
   @@map("support_sessions")
 }
+
+model EmailOtp {
+  id         String    @id @default(uuid()) @db.Uuid
+  email      String    @db.VarChar(150)
+  purpose    String    @db.VarChar(32)
+  codeHash   String    @map("code_hash") @db.VarChar(128)
+  attempts   Int       @default(0)
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz
+  consumedAt DateTime? @map("consumed_at") @db.Timestamptz
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([email, purpose, createdAt])
+  @@map("email_otps")
+}

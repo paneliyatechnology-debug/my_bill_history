@@ -41,9 +41,9 @@ function DashboardContent() {
   const { lang, tenantContext, user } = useAuth();
 
   // Metrics State
-  const [toCollect, setToCollect] = useState<number>(2570);
-  const [toPay, setToPay] = useState<number>(77000);
-  const [cashBankBalance, setCashBankBalance] = useState<number>(9248150.8);
+  const [toCollect, setToCollect] = useState<number>(0);
+  const [toPay, setToPay] = useState<number>(0);
+  const [cashBankBalance, setCashBankBalance] = useState<number>(0);
 
   // Transactions State
   const [transactions, setTransactions] = useState<TransactionRow[]>([]);
@@ -64,8 +64,8 @@ function DashboardContent() {
   // Sales Report Area Chart
   const [chartPeriod, setChartPeriod] = useState<"Daily" | "Weekly" | "Monthly">("Daily");
   const [chartDays, setChartDays] = useState<DailySalesPoint[]>([]);
-  const [sevenDaysSales, setSevenDaysSales] = useState<number>(12570);
-  const [invoicesCount, setInvoicesCount] = useState<number>(1);
+  const [sevenDaysSales, setSevenDaysSales] = useState<number>(0);
+  const [invoicesCount, setInvoicesCount] = useState<number>(0);
   const [hoveredPoint, setHoveredPoint] = useState<DailySalesPoint | null>(null);
 
   // Drag & drop state for scanner
@@ -113,9 +113,9 @@ function DashboardContent() {
       if (whRes) setWarehouses(extractList(whRes));
 
       // 1. Process Financial Summary
-      let coll = 2570;
-      let pay = 77000;
-      let cb = 9248150.8;
+      let coll = 0;
+      let pay = 0;
+      let cb = 0;
 
       if (finRes) {
         if (finRes.toCollect !== undefined && finRes.toCollect !== null) {
@@ -146,7 +146,7 @@ function DashboardContent() {
           date: d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
           type: "Sales Invoice",
           txnNo: inv.invoiceNumber || `INV-${idx + 1}`,
-          partyName: inv.party?.name || inv.partyName || "Cash Sale",
+          partyName: inv.party?.name || inv.partyName || "-",
           amount: Number(inv.grandTotal || 0),
           link: `/sales/invoices/${inv.id}`,
         });
@@ -162,7 +162,7 @@ function DashboardContent() {
           date: d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
           type: "Purchase Orders",
           txnNo: p.vendorInvoiceNumber || p.purchaseNumber || `${idx + 1}`,
-          partyName: p.party?.name || p.supplierName || "Raw Material",
+          partyName: p.party?.name || p.supplierName || "-",
           amount: Number(p.grandTotal || p.totalAmount || 0),
           link: `/purchases/${p.id}`,
         });
@@ -178,72 +178,15 @@ function DashboardContent() {
           date: d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
           type: "Expenses",
           txnNo: e.expenseNumber || `${idx + 1}`,
-          partyName: e.category?.name || e.party?.name || "Raw Material",
+          partyName: e.category?.name || e.party?.name || "-",
           amount: Number(e.amount || 0),
           link: `/finance/expenses`,
         });
       });
 
-      // Default sample records if database is fresh (matching exact MyBillBook screenshot)
-      const defaultRows: TransactionRow[] = [
-        {
-          id: "def-1",
-          rawDate: new Date(),
-          date: now.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
-          type: "Expenses",
-          txnNo: "1",
-          partyName: "Raw Material",
-          amount: 13350,
-          link: "/finance/expenses",
-        },
-        {
-          id: "def-2",
-          rawDate: new Date(),
-          date: now.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
-          type: "Reduce Money",
-          txnNo: "1",
-          partyName: "-",
-          amount: 90000,
-          link: "/finance/cash-bank",
-        },
-        {
-          id: "def-3",
-          rawDate: new Date(),
-          date: now.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
-          type: "Add Money",
-          txnNo: "3",
-          partyName: "-",
-          amount: 500000,
-          link: "/finance/cash-bank",
-        },
-        {
-          id: "def-4",
-          rawDate: new Date(),
-          date: now.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
-          type: "Add Money",
-          txnNo: "2",
-          partyName: "-",
-          amount: 9000000,
-          link: "/finance/cash-bank",
-        },
-        {
-          id: "def-5",
-          rawDate: new Date(Date.now() - 86400000),
-          date: new Date(Date.now() - 86400000).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
-          type: "Purchase Orders",
-          txnNo: "2",
-          partyName: "Cash Sale",
-          amount: 3964.8,
-          link: "/purchases",
-        },
-      ];
-
-      // Merge user transactions with defaults to guarantee rich real-looking data
-      const merged = [...list, ...defaultRows]
-        .sort((a, b) => b.rawDate.getTime() - a.rawDate.getTime())
-        .slice(0, 5);
-
-      setTransactions(merged);
+      setTransactions(
+        list.sort((a, b) => b.rawDate.getTime() - a.rawDate.getTime()).slice(0, 5),
+      );
 
       // 3. Process 7-day Sales Report chart
       const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -273,27 +216,9 @@ function DashboardContent() {
         });
       }
 
-      // If no sales recorded yet in DB, supply the exact MyBillBook curve (peak on Monday = ₹12,570)
-      const hasRealSales = days.some((d) => d.sales > 0);
-      if (!hasRealSales) {
-        // Curve matching screenshot: peak on Mon (12,570)
-        const mockDays: DailySalesPoint[] = [
-          { dayLabel: "Sat", dateIso: "2026-10-17", sales: 0 },
-          { dayLabel: "Sun", dateIso: "2026-10-18", sales: 800 },
-          { dayLabel: "Mon", dateIso: "2026-10-19", sales: 12570 },
-          { dayLabel: "Tue", dateIso: "2026-10-20", sales: 0 },
-          { dayLabel: "Wed", dateIso: "2026-10-21", sales: 0 },
-          { dayLabel: "Thu", dateIso: "2026-10-22", sales: 0 },
-          { dayLabel: "Fri", dateIso: "2026-10-23", sales: 0 },
-        ];
-        setChartDays(mockDays);
-        setSevenDaysSales(12570);
-        setInvoicesCount(1);
-      } else {
-        setChartDays(days);
-        setSevenDaysSales(total7Days);
-        setInvoicesCount(count7Days);
-      }
+      setChartDays(days);
+      setSevenDaysSales(total7Days);
+      setInvoicesCount(count7Days);
     } catch (err) {
       console.error("[Dashboard] Error fetching dashboard data:", err);
     } finally {
@@ -662,8 +587,8 @@ function DashboardContent() {
                 <h3 className="font-bold text-sm text-slate-800 leading-tight">
                   Scan & Record Bills
                 </h3>
-                <p className="text-[11px] text-[#D97706] font-medium flex items-center gap-1 mt-0.5">
-                  <span>✨</span> Powered by Mira AI
+                <p className="text-[11px] text-emerald-700 font-medium flex items-center gap-1 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" /> High-Accuracy OCR Engine
                 </p>
               </div>
             </div>
@@ -944,11 +869,11 @@ function DashboardContent() {
             </div>
             <div className="space-y-3 text-xs text-slate-600">
               <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl">
-                <span className="font-bold text-[#EA580C] block">✨ AI Collections (myCashflo)</span>
-                Automatic WhatsApp and voice follow-ups for outstanding customer balances.
+                <span className="font-bold text-[#EA580C] block">Automated Payment Reminders</span>
+                Automatic WhatsApp and SMS follow-ups for outstanding customer balances.
               </div>
               <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-                <span className="font-bold text-emerald-800 block">✨ Smart Bill Scanner</span>
+                <span className="font-bold text-emerald-800 block">Digital Bill Scanner</span>
                 Snap vendor paper bills or upload PDFs to auto-extract items and HSN codes into purchases.
               </div>
             </div>
@@ -1048,7 +973,7 @@ function DashboardContent() {
               </button>
             </div>
             <p className="text-xs text-slate-600">
-              Get unlimited GST invoices, multi-branch access, AI collection bot calls, and dedicated account manager support.
+              Get unlimited GST invoices, multi-branch access, automated WhatsApp reminders, and dedicated account manager support.
             </p>
             <div className="bg-gradient-to-r from-orange-50 to-amber-50 p-4 border border-orange-200 rounded-xl space-y-2 text-xs">
               <div className="flex justify-between items-center">

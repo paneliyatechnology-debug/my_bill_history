@@ -642,3 +642,140 @@ body {
   background-size: 16px 16px;
 }
 
+@keyframes marqueeInfinite {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-infinite {
+  display: flex !important;
+  width: max-content !important;
+  animation: marqueeInfinite 24s linear infinite !important;
+  will-change: transform;
+}
+
+.animate-marquee-infinite:hover {
+  animation-play-state: paused !important;
+}
+
+/* =========================================================================
+   BACKEND DASHBOARD & APP PORTAL THEME
+   Sidebar: #17191F | Active Menu: #3B404A | Text: #F1F3F5 | CTA Accent: #E87536
+   ========================================================================= */
+:root {
+  --sidebar-bg: #17191F;
+  --sidebar-active: #3B404A;
+  --sidebar-text: #F1F3F5;
+  --cta-accent: #E87536;
+  --primary: #E87536;
+  --primary-hover: #D66527;
+  --primary-pressed: #C0551E;
+  --saffron: #E87536;
+  --saffron-light: #FFF0E8;
+}
+
+/* Primary Action Buttons across all backend pages (Items, Sales, Invoices, Purchases, Settings, etc.) */
+button.btn-primary,
+.btn-primary,
+.bg-\[\#5c56df\],
+.bg-\[\#5C56DF\],
+.bg-\[\#6366F1\],
+.bg-\[\#4F46E5\],
+.bg-\[\#4338CA\],
+.bg-\[\#C24E1D\],
+.bg-\[\#F47721\],
+.bg-\[\#EA580C\],
+.bg-\[\#D95F12\],
+.bg-\[\#F97316\],
+.bg-primary,
+.bg-primary-500,
+.bg-primary-600,
+.bg-saffron,
+.bg-saffron-500,
+.bg-indigo-600 {
+  background-color: #E87536 !important;
+  color: #FFFFFF !important;
+}
+
+/* Hover states for action buttons */
+.hover\:bg-\[\#4d47d4\]:hover,
+.hover\:bg-\[\#4D47CB\]:hover,
+.hover\:bg-\[\#4F46E5\]:hover,
+.hover\:bg-\[\#3730A3\]:hover,
+.hover\:bg-\[\#D95F12\]:hover,
+.hover\:bg-\[\#C2410C\]:hover,
+.hover\:bg-\[\#B94B0A\]:hover,
+.hover\:bg-\[\#E06612\]:hover,
+.hover\:bg-primary-hover:hover,
+.hover\:bg-primary-600:hover,
+.hover\:bg-primary-700:hover,
+.hover\:bg-saffron-hover:hover,
+.hover\:bg-indigo-700:hover {
+  background-color: #D66527 !important;
+}
+
+/* Primary Brand Text Highlights */
+.text-\[\#5c56df\],
+.text-\[\#5C56DF\],
+.text-\[\#6366F1\],
+.text-\[\#4F46E5\],
+.text-\[\#C24E1D\],
+.text-\[\#F47721\],
+.text-\[\#EA580C\],
+.text-\[\#D95F12\],
+.text-primary,
+.text-primary-500,
+.text-primary-600,
+.text-indigo-600,
+.text-saffron {
+  color: #E87536 !important;
+}
+
+/* Hover text */
+.hover\:text-indigo-600:hover,
+.hover\:text-primary:hover,
+.hover\:text-\[\#5c56df\]:hover {
+  color: #D66527 !important;
+}
+
+/* Primary Borders */
+.border-\[\#5c56df\],
+.border-\[\#5C56DF\],
+.border-\[\#6366F1\],
+.border-\[\#C24E1D\],
+.border-\[\#F47721\],
+.border-\[\#EA580C\],
+.border-primary,
+.border-primary-500,
+.border-indigo-600,
+.border-saffron {
+  border-color: #E87536 !important;
+}
+
+/* Focus Rings and Focus Borders */
+.focus\:ring-\[\#C24E1D\]:focus,
+.focus\:ring-primary:focus,
+.focus\:ring-indigo-500:focus,
+.focus\:ring-saffron:focus {
+  --tw-ring-color: #E87536 !important;
+}
+
+.focus\:border-\[\#5C56DF\]:focus,
+.focus\:border-\[\#5c56df\]:focus {
+  border-color: #E87536 !important;
+}
+
+/* Checkboxes and Radios */
+.accent-indigo-600,
+.accent-\[\#5c56df\],
+.accent-\[\#5C56DF\],
+input[type="checkbox"]:focus,
+input[type="radio"]:focus {
+  accent-color: #E87536 !important;
+}
+
+

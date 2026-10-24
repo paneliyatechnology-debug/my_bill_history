@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
+import { sendAppEmail, mailResultMessage } from "../../../lib/send-app-email";
 import {
   QuickSettingsModal,
   DEFAULT_QUICK_SETTINGS,
@@ -453,17 +454,43 @@ export default function SalesInvoicesDashboardPage() {
     }
   };
 
-  // Bulk Download / Email Simulation
-  const handleBulkDownloadSubmit = () => {
+  const handleBulkDownloadSubmit = async () => {
+    if (bulkDownloadSendToCa) {
+      if (!bulkDownloadCaEmail.includes("@")) {
+        setToastMessage("Enter the CA email before sending the bundle.");
+        return;
+      }
+      setIsExporting(true);
+      try {
+        const partyName = parties.find((p) => p.id === bulkDownloadPartyId)?.name || "All parties";
+        const result = await sendAppEmail({
+          to: bulkDownloadCaEmail.trim(),
+          cc: bulkDownloadEmail.includes("@") ? bulkDownloadEmail.trim() : undefined,
+          subject: `Sales invoice summary — ${bulkDownloadDateRange}`,
+          heading: "Sales invoice summary",
+          intro: "A sales invoice summary was shared from myownbillbook.",
+          details: [
+            { label: "Invoices", value: String(filteredInvoices.length) },
+            { label: "Date range", value: bulkDownloadDateRange },
+            { label: "Party", value: partyName },
+          ],
+          text: "Open Sales Invoices in myownbillbook to download the full bundle.",
+        });
+        setIsBulkDownloadOpen(false);
+        setToastMessage(mailResultMessage(result));
+      } catch (err: any) {
+        setToastMessage(err?.message || "Could not email the invoice bundle.");
+      } finally {
+        setIsExporting(false);
+      }
+      return;
+    }
+
     setIsExporting(true);
     setTimeout(() => {
       setIsExporting(false);
       setIsBulkDownloadOpen(false);
-      if (bulkDownloadSendToCa && bulkDownloadCaEmail) {
-        setToastMessage(`Invoices bundle successfully sent to CA at ${bulkDownloadCaEmail}!`);
-      } else {
-        setToastMessage("Invoices bundle exported and downloaded successfully!");
-      }
+      setToastMessage("Invoices bundle exported and downloaded successfully!");
     }, 1200);
   };
 

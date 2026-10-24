@@ -5,6 +5,7 @@ import { HealthModule } from "./health/health.module";
 import { DatabaseModule } from "./database/database.module";
 import { AuditModule } from "./audit/audit.module";
 import { AuthModule } from "./auth/auth.module";
+import { MailModule } from "./mail/mail.module";
 import { TenantsModule } from "./tenants/tenants.module";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { RolesGuard } from "./common/guards/roles.guard";
@@ -49,6 +50,7 @@ import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
     }),
     DatabaseModule,
     AuditModule,
+    MailModule,
     AuthModule,
     TenantsModule,
     SuperAdminModule,

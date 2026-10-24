@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Modal } from "../../../components/ui/modal";
+import { mailResultMessage, sendAppEmail } from "../../../lib/send-app-email";
 
 interface CaSharingModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export function CaSharingModal({
   const [caWhatsapp, setCaWhatsapp] = useState("");
   const [caEmail, setCaEmail] = useState("");
   const [isSaved, setIsSaved] = useState(false);
+  const [emailNote, setEmailNote] = useState<string | null>(null);
   const [showLearnMore, setShowLearnMore] = useState(false);
 
   // Load saved CA details from localStorage
@@ -66,6 +68,29 @@ export function CaSharingModal({
       }, 1400);
     } catch {
       // ignore
+    }
+  };
+
+  const handleEmailCa = async () => {
+    if (!caEmail.includes("@")) {
+      setEmailNote(lang === "gu" ? "CA નો ઈમેલ દાખલ કરો." : "Enter the CA email first.");
+      return;
+    }
+    try {
+      const result = await sendAppEmail({
+        to: caEmail.trim(),
+        subject: `${companyName} books are ready for review`,
+        heading: "Books ready for review",
+        intro: `Hello ${caName || "Sir"}, ${companyName} has shared its books for GST and financial review.`,
+        details: [
+          { label: "Business", value: companyName },
+          { label: "Prepared for", value: caName || "Chartered Accountant" },
+        ],
+        text: "Open Reports and use Email Excel whenever a register needs to be sent.",
+      });
+      setEmailNote(mailResultMessage(result, lang === "gu" ? "gu" : "en"));
+    } catch (err: any) {
+      setEmailNote(err?.message || "Could not email the CA.");
     }
   };
 
@@ -239,8 +264,11 @@ export function CaSharingModal({
 
               {/* Note banner */}
               <div className="p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl text-amber-900 text-[11px] leading-relaxed">
-                <strong>Note:</strong> GSTR Reports will be automatically sent to CA on 1st of every month
+                <strong>Note:</strong> Email Excel or Email CA sends the report when you choose to. Nothing is sent automatically.
               </div>
+              {emailNote && (
+                <p className="text-[11px] font-semibold text-slate-700">{emailNote}</p>
+              )}
 
               {/* Add Your CA Banner Card */}
               <div className="p-3 bg-orange-50/50 border border-orange-100 rounded-xl flex items-center justify-between gap-3">
@@ -257,21 +285,30 @@ export function CaSharingModal({
                     </p>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleSendViaWhatsapp}
-                  className="px-3 py-1.5 text-xs font-bold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 rounded-lg shadow-2xs shrink-0 transition-colors"
-                >
-                  Share on WhatsApp
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={handleEmailCa}
+                    className="px-3 py-1.5 text-xs font-bold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 rounded-lg shadow-2xs transition-colors"
+                  >
+                    Email CA
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSendViaWhatsapp}
+                    className="px-3 py-1.5 text-xs font-bold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 rounded-lg shadow-2xs transition-colors"
+                  >
+                    Share on WhatsApp
+                  </button>
+                </div>
               </div>
 
               {showLearnMore && (
                 <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 space-y-1">
                   <p className="font-semibold text-slate-800">How CA Reports Sharing Works:</p>
                   <p>1. Enter your Chartered Accountant or tax auditor details.</p>
-                  <p>2. On the 1st of every month, GSTR-1, GSTR-3B, Sales and Purchase registers are compiled.</p>
-                  <p>3. Your CA receives an encrypted, verified download link via WhatsApp and email.</p>
+                  <p>2. Open a report and use Email Excel to send that period to the CA inbox.</p>
+                  <p>3. Use Email CA to send a review note to the saved address.</p>
                 </div>
               )}
 

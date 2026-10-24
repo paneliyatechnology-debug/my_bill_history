@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../../context/auth-context";
 import { apiClient } from "../../../../lib/api-client";
+import { mailResultMessage, sendAppEmail } from "../../../../lib/send-app-email";
 import { Modal } from "../../../../components/ui/modal";
 import { StatusBadge } from "../../../../components/ui/badge";
 import {
@@ -45,6 +46,7 @@ interface InvoiceDetail {
     gstin?: string;
     stateCode: string;
     phone?: string;
+    email?: string;
     billingAddress?: any;
   };
   items: Array<{
@@ -111,6 +113,9 @@ export default function InvoiceDetailPage() {
   const [stockConfirmPrompt, setStockConfirmPrompt] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [emailShareOpen, setEmailShareOpen] = useState(false);
+  const [emailShareTo, setEmailShareTo] = useState("");
+  const [emailShareBusy, setEmailShareBusy] = useState(false);
 
   const [companyDetails, setCompanyDetails] = useState<any>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -821,6 +826,17 @@ export default function InvoiceDetailPage() {
                     <span>🔗</span>
                     <span>Copy Invoice Link</span>
                   </button>
+                  <button
+                    onClick={() => {
+                      setIsShareDropdownOpen(false);
+                      setEmailShareTo(invoice.party?.email || "");
+                      setEmailShareOpen(true);
+                    }}
+                    className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 border-t border-slate-100"
+                  >
+                    <span>✉️</span>
+                    <span>Email Invoice</span>
+                  </button>
                 </div>
               )}
             </div>
@@ -869,6 +885,55 @@ export default function InvoiceDetailPage() {
             ✕
           </button>
         </div>
+      )}
+
+      {emailShareOpen && invoice && (
+        <form
+          className="print:hidden p-3 bg-white border border-slate-200 rounded-xl flex flex-col sm:flex-row gap-2 items-stretch sm:items-center"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setEmailShareBusy(true);
+            setActionError(null);
+            try {
+              const companyName = currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook";
+              const result = await sendAppEmail({
+                to: emailShareTo.trim(),
+                subject: `Invoice ${invoice.invoiceNumber} from ${companyName}`,
+                heading: `Invoice ${invoice.invoiceNumber}`,
+                intro: `${companyName} shared this sales invoice with you.`,
+                details: [
+                  { label: "Invoice", value: invoice.invoiceNumber },
+                  { label: "Date", value: new Date(invoice.invoiceDate).toLocaleDateString("en-IN") },
+                  { label: "Party", value: invoice.party?.name || "—" },
+                  { label: "Grand total", value: `₹${Number(invoice.grandTotal).toFixed(2)}` },
+                  { label: "Balance", value: `₹${bal.toFixed(2)}` },
+                ],
+                text: "Open the invoice in myownbillbook to print or download the PDF.",
+              });
+              setActionSuccess(mailResultMessage(result, lang === "gu" ? "gu" : "en"));
+              if (result.delivered) setEmailShareOpen(false);
+            } catch (err: any) {
+              setActionError(err?.message || "Could not email this invoice.");
+            } finally {
+              setEmailShareBusy(false);
+            }
+          }}
+        >
+          <input
+            type="email"
+            required
+            value={emailShareTo}
+            onChange={(e) => setEmailShareTo(e.target.value)}
+            placeholder="customer@email.com"
+            className="flex-1 px-3 py-2 text-xs border border-slate-200 rounded-lg"
+          />
+          <button type="submit" disabled={emailShareBusy} className="px-3 py-2 text-xs font-bold text-white bg-[#F47721] rounded-lg disabled:opacity-60">
+            {emailShareBusy ? "Sending..." : "Send email"}
+          </button>
+          <button type="button" onClick={() => setEmailShareOpen(false)} className="px-3 py-2 text-xs font-semibold text-slate-600">
+            Cancel
+          </button>
+        </form>
       )}
 
       {/* Tax Invoice Document Viewport (Clean, Authentic Responsive A4 Format for Mobile & Desktop) */}

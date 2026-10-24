@@ -14,6 +14,7 @@ export interface UserProfile {
   id: string;
   name: string;
   fullName?: string;
+  email?: string;
   phone: string;
   role?: string;
 }
@@ -106,6 +107,7 @@ interface AuthContextType {
     defaultContext?: TenantContextState;
   }) => Promise<void>;
   logout: () => void;
+  patchUser: (partial: Partial<UserProfile>) => void;
   switchCompany: (companyId: string) => Promise<void>;
   switchBranch: (branchId: string) => Promise<void>;
   switchFinancialYear: (financialYearId: string) => Promise<void>;
@@ -336,6 +338,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const patchUser = (partial: Partial<UserProfile>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = {
+        ...prev,
+        ...partial,
+        name: partial.name || partial.fullName || prev.name,
+      };
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("billing_user_profile", JSON.stringify(next));
+        } catch {
+          // Storage failover
+        }
+      }
+      return next;
+    });
+  };
+
   const logout = () => {
     setToken(null);
     setUser(null);
@@ -464,6 +485,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         currentFY,
         login,
         logout,
+        patchUser,
         switchCompany,
         switchBranch,
         switchFinancialYear,

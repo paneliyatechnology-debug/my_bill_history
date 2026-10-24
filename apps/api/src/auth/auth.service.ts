@@ -4,6 +4,7 @@ import {
   ConflictException,
   ForbiddenException,
   NotFoundException,
+  BadRequestException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
@@ -23,6 +24,8 @@ import { SupportSessionRegistry } from "../super-admin/support-session.registry"
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { SwitchContextDto } from "./dto/switch-context.dto";
+import { EmailOtpService } from "./email-otp.service";
+import { isDeliverableEmail, normalizeEmail } from "../mail/email.util";
 
 @Injectable()
 export class AuthService {
@@ -32,18 +35,31 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly audit: AuditService,
     private readonly sessionRegistry: SupportSessionRegistry,
+    private readonly emailOtp: EmailOtpService,
   ) {}
 
   /**
    * Atomic registration creating Tenant, Organization, Company, Main Branch, FY and Owner User
    */
   async register(dto: RegisterDto) {
+    const email = dto.email ? normalizeEmail(dto.email) : "";
+    if (this.emailOtp.requiresVerification() && !isDeliverableEmail(email)) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: "A real email address is required. We send a verification code before creating the account.",
+        messageGujarati:
+          "ખરો ઈમેલ જરૂરી છે. ખાતું બનતા પહેલા ઈમેલ પર ચકાસણી કોડ મોકલાય છે.",
+      });
+    }
+
     // 1. Check existing phone or email collision
     const existing = await this.prisma.user.findFirst({
       where: {
         OR: [
           { phone: dto.phone },
-          dto.email ? { email: dto.email } : { phone: dto.phone },
+          email
+            ? { email: { equals: email, mode: "insensitive" } }
+            : { phone: dto.phone },
         ],
       },
     });
@@ -57,6 +73,10 @@ export class AuthService {
       });
     }
 
+    if (this.emailOtp.requiresVerification()) {
+      await this.emailOtp.consume(email, "REGISTER", dto.otp || "");
+    }
+
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(dto.password, saltRounds);
     const stateCode = dto.stateCode || "24"; // Default Gujarat
@@ -67,7 +87,7 @@ export class AuthService {
       const tenant = await tx.tenant.create({
         data: {
           primaryPhone: dto.phone,
-          primaryEmail: dto.email || null,
+          primaryEmail: email || null,
           subscriptionTier: SubscriptionTier.TRIAL,
           subscriptionEnds: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30-day trial
         },
@@ -97,7 +117,7 @@ export class AuthService {
           city: "Ahmedabad",
           pincode: "380001",
           phone: dto.phone,
-          email: dto.email || null,
+          email: email || null,
         },
       });
 
@@ -135,7 +155,7 @@ export class AuthService {
           organizationId: organization.id,
           fullName: dto.fullName,
           phone: dto.phone,
-          email: dto.email || `${dto.phone}@billing.local`,
+          email: email || `${dto.phone}@billing.local`,
           passwordHash,
           role: UserRole.COMPANY_ADMIN,
           preferredLang: dto.preferredLang || "en",
@@ -214,10 +234,13 @@ export class AuthService {
    * User login validating credentials and issuing verified tenant context
    */
   async login(dto: LoginDto, clientIp?: string, userAgent?: string) {
-    const id = dto.identifier || (dto as any).phone || (dto as any).email || "";
+    const id = String(dto.identifier || (dto as any).phone || (dto as any).email || "").trim();
     const user = await this.prisma.user.findFirst({
       where: {
-        OR: [{ phone: id }, { email: id }],
+        OR: [
+          { phone: id },
+          { email: { equals: id, mode: "insensitive" } },
+        ],
       },
       include: {
         organization: true,
@@ -548,6 +571,181 @@ export class AuthService {
     return {
       success: true,
       message: "Logged out successfully. All active support sessions revoked.",
+    };
+  }
+
+  async sendPublicOtp(input: {
+    email: string;
+    purpose: "REGISTER" | "PASSWORD_RESET";
+    phone?: string;
+  }) {
+    return this.emailOtp.send(input);
+  }
+
+  async sendEmailChangeOtp(email: string) {
+    return this.emailOtp.send({ email, purpose: "EMAIL_CHANGE" });
+  }
+
+  async resetPassword(input: { email: string; otp: string; newPassword: string }) {
+    const password = String(input.newPassword || "");
+    if (password.length < 6 || password.length > 72) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: "Password must be between 6 and 72 characters.",
+        messageGujarati: "પાસવર્ડ 6 થી 72 અક્ષરનો હોવો જોઈએ.",
+      });
+    }
+
+    const email = normalizeEmail(input.email);
+    await this.emailOtp.consume(email, "PASSWORD_RESET", input.otp);
+    const user = await this.emailOtp.findActiveUserByEmail(email);
+    const passwordHash = await bcrypt.hash(password, 10);
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash },
+    });
+
+    const company = await this.prisma.company.findFirst({
+      where: { organizationId: user.organizationId },
+      orderBy: { createdAt: "asc" },
+      select: { id: true },
+    });
+    if (company) {
+      await this.audit.record({
+        organizationId: user.organizationId,
+        companyId: company.id,
+        userId: user.id,
+        action: "AUTH_PASSWORD_RESET",
+        entityName: "User",
+        entityId: user.id,
+        newState: { email },
+      });
+    }
+
+    return {
+      success: true,
+      message: "Password updated. Sign in with the new password.",
+      messageGujarati: "પાસવર્ડ અપડેટ થયો. નવા પાસવર્ડથી પ્રવેશ કરો.",
+    };
+  }
+
+  async changePassword(
+    userId: string,
+    input: { currentPassword: string; newPassword: string },
+  ) {
+    const next = String(input.newPassword || "");
+    if (next.length < 6 || next.length > 72) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: "Password must be between 6 and 72 characters.",
+        messageGujarati: "પાસવર્ડ 6 થી 72 અક્ષરનો હોવો જોઈએ.",
+      });
+    }
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.isActive) {
+      throw new NotFoundException("User profile not found.");
+    }
+    const matches = await bcrypt.compare(String(input.currentPassword || ""), user.passwordHash);
+    if (!matches) {
+      throw new UnauthorizedException({
+        statusCode: 401,
+        message: "Current password is incorrect.",
+        messageGujarati: "હાલનો પાસવર્ડ ખોટો છે.",
+      });
+    }
+    const passwordHash = await bcrypt.hash(next, 10);
+    await this.prisma.user.update({ where: { id: user.id }, data: { passwordHash } });
+    return { success: true, message: "Password changed." };
+  }
+
+  async updateProfile(
+    userId: string,
+    input: { fullName?: string; email?: string; otp?: string },
+  ) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.isActive) {
+      throw new NotFoundException("User profile not found.");
+    }
+
+    const fullName = String(input.fullName || "").trim();
+    const nextEmail = input.email ? normalizeEmail(input.email) : "";
+    const emailChanged = Boolean(nextEmail) && nextEmail !== normalizeEmail(user.email);
+
+    if (fullName && (fullName.length < 2 || fullName.length > 150)) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: "Enter a full name between 2 and 150 characters.",
+        messageGujarati: "પૂરું નામ 2 થી 150 અક્ષરનું હોવું જોઈએ.",
+      });
+    }
+    if (emailChanged && !isDeliverableEmail(nextEmail)) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: "Enter a real email address.",
+        messageGujarati: "ખરો ઈમેલ સરનામું દાખલ કરો.",
+      });
+    }
+    if (emailChanged) {
+      const taken = await this.prisma.user.findFirst({
+        where: {
+          id: { not: user.id },
+          email: { equals: nextEmail, mode: "insensitive" },
+        },
+        select: { id: true },
+      });
+      if (taken) {
+        throw new ConflictException({
+          statusCode: 409,
+          message: "This email is already used by another account.",
+          messageGujarati: "આ ઈમેલ બીજા ખાતા સાથે પહેલેથી જોડાયેલો છે.",
+        });
+      }
+    }
+    if (emailChanged && this.emailOtp.requiresVerification()) {
+      await this.emailOtp.consume(nextEmail, "EMAIL_CHANGE", input.otp || "");
+    }
+
+    const updated = await this.prisma.executeBypassRls(async (tx) => {
+      const saved = await tx.user.update({
+        where: { id: user.id },
+        data: {
+          ...(fullName ? { fullName } : {}),
+          ...(emailChanged ? { email: nextEmail } : {}),
+        },
+      });
+      if (emailChanged) {
+        await tx.company.updateMany({
+          where: { organizationId: user.organizationId, email: user.email },
+          data: { email: nextEmail },
+        });
+        const organization = await tx.organization.findUnique({
+          where: { id: user.organizationId },
+          select: { tenantId: true },
+        });
+        if (organization) {
+          await tx.tenant.updateMany({
+            where: {
+              id: organization.tenantId,
+              OR: [{ primaryEmail: user.email }, { primaryEmail: null }],
+            },
+            data: { primaryEmail: nextEmail },
+          });
+        }
+      }
+      return saved;
+    });
+
+    return {
+      success: true,
+      user: {
+        id: updated.id,
+        fullName: updated.fullName,
+        name: updated.fullName,
+        email: updated.email,
+        phone: updated.phone,
+        role: updated.role,
+        preferredLang: updated.preferredLang,
+      },
     };
   }
 }

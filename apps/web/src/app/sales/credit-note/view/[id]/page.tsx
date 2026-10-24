@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../../../context/auth-context";
 import { apiClient } from "../../../../../lib/api-client";
+import { mailResultMessage, sendAppEmail } from "../../../../../lib/send-app-email";
 
 // Helper: Indian Rupee Formatter
 function formatInr(val: number | string | undefined): string {
@@ -76,6 +77,7 @@ interface SalesReturnDetail {
     id: string;
     name: string;
     phone?: string;
+    email?: string;
     gstin?: string;
     billingAddress?: any;
     stateCode?: string;
@@ -190,6 +192,32 @@ export default function CreditNoteViewPage() {
     setIsShareOpen(false);
     navigator.clipboard.writeText(window.location.href);
     showToast("Link copied to clipboard!");
+  }
+
+  async function handleEmailCreditNote() {
+    setIsShareOpen(false);
+    if (!data) return;
+    const to = window.prompt("Email this credit note to:", data.party?.email || "");
+    if (!to) return;
+    try {
+      const companyName = currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook";
+      const result = await sendAppEmail({
+        to: to.trim(),
+        subject: `Credit note ${data.returnNumber} from ${companyName}`,
+        heading: `Credit note ${data.returnNumber}`,
+        intro: `${companyName} shared this credit note with you.`,
+        details: [
+          { label: "Credit note", value: data.returnNumber },
+          { label: "Party", value: data.party?.name || "—" },
+          { label: "Date", value: formatDisplayDate(data.returnDate) },
+          { label: "Amount", value: formatInr(data.grandTotal) },
+        ],
+        text: "Open the credit note in myownbillbook to print or download it.",
+      });
+      showToast(mailResultMessage(result, lang === "gu" ? "gu" : "en"));
+    } catch (err: any) {
+      showToast(err?.message || "Could not email this credit note.");
+    }
   }
 
   if (isLoading) {
@@ -369,6 +397,14 @@ export default function CreditNoteViewPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-3.05a4.5 4.5 0 00-1.242-7.244l-4.5-4.5a4.5 4.5 0 00-6.364 6.364l1.757 1.757" />
                   </svg>
                   <span>Copy Link</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleEmailCreditNote}
+                  className="flex w-full items-center gap-2 px-3.5 py-2 text-slate-700 hover:bg-slate-50 border-t border-slate-100"
+                >
+                  <span>✉️</span>
+                  <span>Email Credit Note</span>
                 </button>
               </div>
             )}

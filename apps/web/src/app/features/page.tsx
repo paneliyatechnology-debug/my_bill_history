@@ -3,8 +3,7 @@
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { useAuth } from "../../context/auth-context";
-import { WaveBackground } from "../../components/ui/wave-background";
-import { BrandLogo } from "../../components/ui/brand-logo";
+import { MarketingFooter, MarketingHeader, serif } from "../../components/landing/marketing-chrome";
 
 interface FeatureItem {
   id: string;
@@ -19,10 +18,9 @@ interface FeatureItem {
 }
 
 export default function FeaturesPage() {
-  const { lang, setLang, isAuthenticated } = useAuth();
+  const { lang, isAuthenticated } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // All 28 Verified Features implemented in the application
   const features: FeatureItem[] = useMemo(
@@ -385,176 +383,13 @@ export default function FeaturesPage() {
   return (
     <div
       lang={lang}
-      className={`min-h-screen w-full bg-[#F7F8FA] text-[#202124] relative overflow-x-hidden selection:bg-[#FFF3E8] selection:text-[#F47721] ${
-        lang === "gu" ? "font-gujarati" : "font-sans"
+      className={`min-h-screen w-full bg-[#F3EBDD] text-[#102033] relative overflow-x-hidden ${
+        lang === "gu" ? "font-gujarati" : ""
       }`}
+      style={{ fontFamily: "var(--font-manrope), var(--font-noto-gujarati), sans-serif" }}
     >
-      {/* Decorative Wave Ambience */}
-      <WaveBackground variant="dashboard" />
 
-      {/* ================= 1. HEADER ================= */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-[#E5E7EB] shadow-xs">
-        <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-3">
-          {/* Brand Logo */}
-          <BrandLogo size="lg" showSubtitle subtitle="Paneliya Technology" />
-
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-4 xl:gap-6 2xl:gap-7 text-xs font-semibold text-[#475467] shrink-0">
-            <Link href="/" className="hover:text-[#F47721] transition-colors whitespace-nowrap py-1">
-              {lang === "gu" ? "મુખ્ય પૃષ્ઠ" : "Home"}
-            </Link>
-            <Link href="/features" className="text-[#F47721] font-bold border-b-2 border-[#F47721] pb-1 whitespace-nowrap">
-              {lang === "gu" ? "તમામ સુવિધાઓ" : "Features"}
-            </Link>
-            <Link href="/intro#sales-billing" className="hover:text-[#F47721] transition-colors whitespace-nowrap py-1">
-              {lang === "gu" ? "બિલિંગ મોડલ" : "Invoicing Engine"}
-            </Link>
-            <Link href="/intro#how-it-works" className="hover:text-[#F47721] transition-colors whitespace-nowrap py-1">
-              {lang === "gu" ? "કેવી રીતે કામ કરે છે" : "How It Works"}
-            </Link>
-            <Link href="/intro#faq" className="hover:text-[#F47721] transition-colors whitespace-nowrap py-1">
-              {lang === "gu" ? "પ્રશ્નોત્તરી (FAQ)" : "FAQ"}
-            </Link>
-          </nav>
-
-          {/* Right Action Cluster */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {/* Bilingual Toggle */}
-            <button
-              type="button"
-              onClick={() => setLang(lang === "gu" ? "en" : "gu")}
-              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-[#E5E7EB] bg-white text-xs font-bold text-[#344054] hover:border-[#F47721] hover:text-[#F47721] transition-colors shrink-0 shadow-2xs min-h-[36px] cursor-pointer whitespace-nowrap"
-              aria-label={lang === "gu" ? "Switch to English" : "Switch to Gujarati"}
-            >
-              <span>🌐</span>
-              <span className="whitespace-nowrap">{lang === "gu" ? "English" : "ગુજરાતી"}</span>
-            </button>
-
-            {isAuthenticated ? (
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#F47721] hover:bg-[#D95F12] text-white text-xs font-bold shadow-saffron transition-all shrink-0 min-h-[38px] whitespace-nowrap"
-              >
-                <span className="whitespace-nowrap">{lang === "gu" ? "ડેશબોર્ડ ખોલો" : "Open Dashboard"}</span>
-                <span>→</span>
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="hidden sm:inline-flex items-center text-xs font-bold text-[#344054] hover:text-[#F47721] px-2.5 py-1.5 transition-colors whitespace-nowrap shrink-0"
-                >
-                  <span className="whitespace-nowrap">{lang === "gu" ? "સાઇન ઇન" : "Sign In"}</span>
-                </Link>
-                <Link
-                  href="/login?mode=signup"
-                  className="inline-flex items-center justify-center gap-1 px-3 sm:px-4 py-2 rounded-xl bg-[#F47721] hover:bg-[#D95F12] text-white text-xs font-bold shadow-saffron transition-all shrink-0 min-h-[38px] active:scale-95 whitespace-nowrap"
-                >
-                  <span className="whitespace-nowrap">{lang === "gu" ? "શરૂ કરો" : "Get Started"}</span>
-                  <span className="hidden xs:inline">→</span>
-                </Link>
-              </>
-            )}
-
-            {/* Mobile Hamburger Button */}
-            <button
-              type="button"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 text-[#667085] hover:text-[#202124] rounded-lg border border-[#E5E7EB] min-h-[38px] min-w-[38px] flex items-center justify-center shrink-0 cursor-pointer"
-              aria-label="Toggle Mobile Navigation"
-              aria-expanded={isMobileMenuOpen}
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                {isMobileMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Navigation Drawer */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden border-t border-[#E5E7EB] bg-white p-4 space-y-3 max-h-[85vh] overflow-y-auto animate-fadeIn shadow-xl">
-            <div className="space-y-1">
-              <Link
-                href="/"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-3 py-2.5 rounded-lg text-xs font-semibold text-[#202124] hover:bg-[#FFF3E8] hover:text-[#F47721] min-h-[42px] flex items-center"
-              >
-                🏠 {lang === "gu" ? "મુખ્ય પૃષ્ઠ" : "Home"}
-              </Link>
-              <Link
-                href="/features"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-3 py-2.5 rounded-lg text-xs font-bold bg-[#FFF3E8] text-[#F47721] min-h-[42px] flex items-center"
-              >
-                ✨ {lang === "gu" ? "તમામ સુવિધાઓ (Features)" : "All Features Showcase"}
-              </Link>
-              <Link
-                href="/intro#sales-billing"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-3 py-2.5 rounded-lg text-xs font-semibold text-[#202124] hover:bg-[#FFF3E8] hover:text-[#F47721] min-h-[42px] flex items-center"
-              >
-                🧾 {lang === "gu" ? "જીએસટી બિલિંગ ડેમો" : "Invoicing Engine Demo"}
-              </Link>
-              <Link
-                href="/intro#faq"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-3 py-2.5 rounded-lg text-xs font-semibold text-[#202124] hover:bg-[#FFF3E8] hover:text-[#F47721] min-h-[42px] flex items-center"
-              >
-                ❓ {lang === "gu" ? "પ્રશ્નોત્તરી (FAQ)" : "FAQ"}
-              </Link>
-            </div>
-
-            {/* Mobile Drawer Language Switcher */}
-            <div className="pt-2 border-t border-[#E5E7EB] flex items-center justify-between">
-              <span className="text-xs font-semibold text-[#667085]">
-                {lang === "gu" ? "ભાષા પસંદ કરો (Language)" : "Language"}
-              </span>
-              <div className="flex items-center bg-[#F3F4F6] p-1 rounded-xl border border-[#E5E7EB]">
-                <button
-                  type="button"
-                  onClick={() => setLang("en")}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                    lang === "en" ? "bg-white text-[#F47721] shadow-xs" : "text-[#667085] hover:text-[#202124]"
-                  }`}
-                >
-                  English
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLang("gu")}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all font-gujarati ${
-                    lang === "gu" ? "bg-white text-[#F47721] shadow-xs" : "text-[#667085] hover:text-[#202124]"
-                  }`}
-                >
-                  ગુજરાતી
-                </button>
-              </div>
-            </div>
-
-            <div className="pt-1 border-t border-[#E5E7EB] flex flex-col gap-2">
-              <Link
-                href="/login?mode=signup"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full py-3 text-center bg-[#F47721] text-white font-bold text-xs rounded-xl shadow-saffron min-h-[44px] flex items-center justify-center cursor-pointer active:scale-98"
-              >
-                {lang === "gu" ? "મફત એકાઉન્ટ બનાવો (Sign Up)" : "Create Free Account"}
-              </Link>
-              <Link
-                href="/login"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full py-2.5 text-center bg-[#F8F9FA] text-[#344054] font-bold text-xs rounded-xl border border-[#E5E7EB] min-h-[44px] flex items-center justify-center cursor-pointer"
-              >
-                {lang === "gu" ? "સાઇન ઇન (Login)" : "Sign In to Account"}
-              </Link>
-            </div>
-          </div>
-        )}
-      </header>
+      <MarketingHeader mode="site" />
 
       {/* ================= 2. HERO SECTION ================= */}
       <section className="pt-10 sm:pt-16 pb-8 sm:pb-12 px-3.5 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center relative">
@@ -567,19 +402,19 @@ export default function FeaturesPage() {
           <span className="tracking-wide uppercase font-extrabold">
             {lang === "gu" ? "તમામ સુવિધાઓ ડિરેક્ટરી" : "EXPLORE FEATURES"}
           </span>
-          <span className="text-[#F47721]">•</span>
+          <span className="text-[#C24E1D]">•</span>
           <span className="font-semibold">{features.length} {lang === "gu" ? "ચકાસાયેલી સુવિધાઓ" : "Verified Modules"}</span>
         </div>
 
         {/* Strong Heading */}
-        <h1 className="text-2xl xs:text-3xl sm:text-5xl lg:text-6xl font-black text-[#18263B] tracking-tight leading-[1.18] max-w-4xl mx-auto break-words">
+        <h1 className="text-2xl xs:text-3xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.08] max-w-4xl mx-auto break-words text-[#102033]" style={serif}>
           {lang === "gu" ? (
             <>
-              તમારા વેપાર માટે <span className="text-[#F47721]">જરૂરી તમામ સુવિધાઓ</span>
+              તમારા વેપાર માટે <span className="text-[#C24E1D]">જરૂરી તમામ સુવિધાઓ</span>
             </>
           ) : (
             <>
-              Everything Your Business Needs, <span className="text-[#F47721]">Built Right In</span>
+              Everything Your Business Needs, <span className="text-[#C24E1D]">Built Right In</span>
             </>
           )}
         </h1>
@@ -611,7 +446,7 @@ export default function FeaturesPage() {
                   ? "સુવિધા શોધો (દા.ત. POS, Gemini, GSTR-1, રોજમેળ, બેચ)..."
                   : "Search features (e.g., POS, Gemini, GSTR-1, Daybook, Batch)..."
               }
-              className="w-full pl-10 pr-9 py-2.5 sm:py-3 rounded-2xl bg-white border border-[#E5E7EB] text-xs sm:text-sm text-[#202124] placeholder:text-[#98A2B3] shadow-xs focus:outline-none focus:border-[#F47721] focus:ring-2 focus:ring-[#FED7AA]/50 transition-all"
+              className="w-full pl-10 pr-9 py-2.5 sm:py-3 rounded-2xl bg-white border border-[#E5E7EB] text-xs sm:text-sm text-[#202124] placeholder:text-[#98A2B3] shadow-xs focus:outline-none focus:border-[#C24E1D] focus:ring-2 focus:ring-[#FED7AA]/50 transition-all"
             />
             {searchQuery && (
               <button
@@ -639,7 +474,7 @@ export default function FeaturesPage() {
                 onClick={() => setSelectedCategory(cat.id)}
                 className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-1.5 min-h-[38px] active:scale-95 ${
                   isActive
-                    ? "bg-[#F47721] text-white shadow-saffron"
+                    ? "bg-[#C24E1D] text-white shadow-saffron"
                     : "bg-white text-[#667085] hover:text-[#202124] hover:bg-[#FFF3E8] hover:border-[#FED7AA] border border-[#E5E7EB]"
                 }`}
               >
@@ -677,7 +512,7 @@ export default function FeaturesPage() {
                 setSearchQuery("");
                 setSelectedCategory("all");
               }}
-              className="px-4 py-2 bg-[#F47721] text-white rounded-xl text-xs font-bold shadow-saffron cursor-pointer"
+              className="px-4 py-2 bg-[#C24E1D] text-white rounded-xl text-xs font-bold shadow-saffron cursor-pointer"
             >
               {lang === "gu" ? "તમામ સુવિધાઓ બતાવો" : "Reset Filters"}
             </button>
@@ -689,7 +524,7 @@ export default function FeaturesPage() {
               return (
                 <div
                   key={feat.id}
-                  className="group bg-white rounded-2xl border border-[#E5E7EB] p-5 sm:p-6 shadow-2xs hover:shadow-xl hover:border-[#F47721]/60 transition-all duration-200 transform hover:-translate-y-1 flex flex-col justify-between"
+                  className="group bg-white rounded-2xl border border-[#E5E7EB] p-5 sm:p-6 shadow-2xs hover:shadow-xl hover:border-[#C24E1D]/60 transition-all duration-200 transform hover:-translate-y-1 flex flex-col justify-between"
                 >
                   {/* Card Header: Icon + Category Badge */}
                   <div>
@@ -703,7 +538,7 @@ export default function FeaturesPage() {
                     </div>
 
                     {/* Feature Title */}
-                    <h3 className="text-base sm:text-lg font-extrabold text-[#18263B] group-hover:text-[#F47721] transition-colors leading-snug">
+                    <h3 className="text-base sm:text-lg font-extrabold text-[#18263B] group-hover:text-[#C24E1D] transition-colors leading-snug">
                       {lang === "gu" ? feat.nameGu : feat.nameEn}
                     </h3>
 
@@ -729,7 +564,7 @@ export default function FeaturesPage() {
                   <div className="pt-4 mt-4 border-t border-[#F2F4F7] flex items-center justify-between">
                     <Link
                       href={destinationHref}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#F47721] hover:text-[#D95F12] group-hover:translate-x-0.5 transition-all focus:outline-none"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#C24E1D] hover:text-[#D95F12] group-hover:translate-x-0.5 transition-all focus:outline-none"
                     >
                       <span>{lang === "gu" ? "મોડ્યુલ ખોલો" : "Open Module"}</span>
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -751,7 +586,7 @@ export default function FeaturesPage() {
       <section className="px-3.5 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-16 sm:pb-24">
         <div className="relative bg-gradient-to-br from-[#18263B] via-[#0F172A] to-[#1E293B] text-white rounded-3xl p-6 sm:p-12 overflow-hidden shadow-2xl border border-white/10">
           {/* Subtle Orange Glow Ambient */}
-          <div className="absolute -top-24 -right-24 w-80 h-80 bg-[#F47721]/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-24 -right-24 w-80 h-80 bg-[#C24E1D]/20 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 max-w-2xl space-y-4">
             <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold uppercase tracking-wider text-[#FED7AA]">
@@ -771,7 +606,7 @@ export default function FeaturesPage() {
             <div className="pt-2 flex flex-col xs:flex-row items-stretch xs:items-center gap-3">
               <Link
                 href="/login?mode=signup"
-                className="px-6 py-3.5 bg-[#F47721] hover:bg-[#D95F12] text-white text-xs sm:text-sm font-extrabold rounded-xl shadow-saffron text-center transition-all min-h-[44px] flex items-center justify-center cursor-pointer active:scale-95"
+                className="px-6 py-3.5 bg-[#C24E1D] hover:bg-[#D95F12] text-white text-xs sm:text-sm font-extrabold rounded-xl shadow-saffron text-center transition-all min-h-[44px] flex items-center justify-center cursor-pointer active:scale-95"
               >
                 {lang === "gu" ? "મફત નોંધણી કરો (Get Started Free) →" : "Create Free Account →"}
               </Link>
@@ -786,33 +621,7 @@ export default function FeaturesPage() {
         </div>
       </section>
 
-      {/* ================= 6. FOOTER ================= */}
-      <footer className="border-t border-[#E5E7EB] bg-white py-10 sm:py-12 px-3.5 sm:px-6 lg:px-8 text-xs text-[#667085]">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
-          <div className="flex items-center gap-2.5 justify-center md:justify-start">
-            <BrandLogo size="sm" />
-            <span className="text-[10px] text-[#98A2B3] ml-2">© 2026 Paneliya Technology</span>
-          </div>
-
-          <div className="flex items-center gap-4 sm:gap-6 text-[11px] font-semibold justify-center flex-wrap">
-            <Link href="/" className="hover:text-[#F47721] transition-colors">
-              {lang === "gu" ? "મુખ્ય પૃષ્ઠ" : "Home"}
-            </Link>
-            <Link href="/features" className="hover:text-[#F47721] text-[#F47721] transition-colors">
-              {lang === "gu" ? "સુવિધાઓ" : "Features"}
-            </Link>
-            <Link href="/intro#sales-billing" className="hover:text-[#F47721] transition-colors">
-              {lang === "gu" ? "જીએસટી બિલિંગ" : "Invoicing"}
-            </Link>
-            <Link href="/intro#faq" className="hover:text-[#F47721] transition-colors">
-              {lang === "gu" ? "પ્રશ્નોત્તરી" : "FAQ"}
-            </Link>
-            <Link href="/login" className="hover:text-[#F47721] transition-colors">
-              {lang === "gu" ? "સાઇન ઇન" : "Sign In"}
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <MarketingFooter />
     </div>
   );
 }

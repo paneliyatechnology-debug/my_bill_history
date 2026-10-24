@@ -2,10 +2,12 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Body,
   Req,
   HttpCode,
   HttpStatus,
+  BadRequestException,
 } from "@nestjs/common";
 import { FastifyRequest } from "fastify";
 import { Throttle } from "@nestjs/throttler";
@@ -60,5 +62,73 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async logout(@CurrentUser("id") userId: string) {
     return this.authService.logout(userId);
+  }
+
+  @Public()
+  @Throttle({
+    default: { limit: process.env.NODE_ENV === "test" ? 1000 : 5, ttl: 60000 },
+  })
+  @Post("otp/send")
+  @HttpCode(HttpStatus.OK)
+  async sendOtp(@Body() body: { email?: string; purpose?: string; phone?: string }) {
+    const purpose = body?.purpose;
+    if (purpose !== "REGISTER" && purpose !== "PASSWORD_RESET") {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: "Choose a valid email code purpose.",
+        messageGujarati: "માન્ય ઈમેલ કોડનો હેતુ પસંદ કરો.",
+      });
+    }
+    return this.authService.sendPublicOtp({
+      email: body.email || "",
+      purpose,
+      phone: body.phone,
+    });
+  }
+
+  @Public()
+  @Throttle({
+    default: { limit: process.env.NODE_ENV === "test" ? 1000 : 5, ttl: 60000 },
+  })
+  @Post("password/reset")
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(
+    @Body() body: { email?: string; otp?: string; newPassword?: string },
+  ) {
+    return this.authService.resetPassword({
+      email: body?.email || "",
+      otp: body?.otp || "",
+      newPassword: body?.newPassword || "",
+    });
+  }
+
+  @Throttle({
+    default: { limit: process.env.NODE_ENV === "test" ? 1000 : 5, ttl: 60000 },
+  })
+  @Post("email/send-otp")
+  @HttpCode(HttpStatus.OK)
+  async sendEmailChangeOtp(@Body() body: { email?: string }) {
+    return this.authService.sendEmailChangeOtp(body?.email || "");
+  }
+
+  @Post("password/change")
+  @HttpCode(HttpStatus.OK)
+  async changePassword(
+    @CurrentUser("id") userId: string,
+    @Body() body: { currentPassword?: string; newPassword?: string },
+  ) {
+    return this.authService.changePassword(userId, {
+      currentPassword: body?.currentPassword || "",
+      newPassword: body?.newPassword || "",
+    });
+  }
+
+  @Patch("profile")
+  @HttpCode(HttpStatus.OK)
+  async updateProfile(
+    @CurrentUser("id") userId: string,
+    @Body() body: { fullName?: string; email?: string; otp?: string },
+  ) {
+    return this.authService.updateProfile(userId, body || {});
   }
 }

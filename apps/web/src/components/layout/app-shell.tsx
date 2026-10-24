@@ -8,6 +8,11 @@ import { apiClient } from "../../lib/api-client";
 import { CompanySwitcher } from "../tenants/company-switcher";
 import { WaveBackground } from "../ui/wave-background";
 import { BrandLogo } from "../ui/brand-logo";
+import { SettingsSidebar } from "../settings/settings-sidebar";
+const SIDEBAR_BG = "#17191F";
+const ACTIVE_MENU_BG = "#3B404A";
+const TEXT_COLOR = "#F1F3F5";
+const CTA_ACCENT = "#E87536";
 import Image from "next/image";
 
 interface SubNavItem {
@@ -148,7 +153,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       const next = { ...prev, [sectionId]: !prev[sectionId] };
       try {
         localStorage.setItem("sidebar_expanded_sections", JSON.stringify(next));
-      } catch {}
+      } catch { }
       return next;
     });
   };
@@ -158,7 +163,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       const next = !prev;
       try {
         localStorage.setItem("sidebar_collapsed", String(next));
-      } catch {}
+      } catch { }
       return next;
     });
   };
@@ -202,7 +207,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       pathname !== "/login" &&
       pathname !== "/" &&
       pathname !== "/intro" &&
-      pathname !== "/features"
+      pathname !== "/features" &&
+      pathname !== "/Myownbillbook" &&
+      pathname !== "/copy-code"
     ) {
       const redirectParam = pathname
         ? `?redirect=${encodeURIComponent(pathname)}`
@@ -211,11 +218,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   }, [isLoading, isAuthenticated, pathname, router]);
 
-  // If on public pages (login, intro, features, unauthenticated home), dedicated superadmin portal, or dedicated fullscreen POS counter, render children cleanly without standard business shell
+  // If on public pages (login, intro, features, Myownbillbook, unauthenticated home), dedicated superadmin portal, or dedicated fullscreen POS counter, render children cleanly without standard business shell
   if (
     pathname === "/login" ||
+    pathname === "/copy-code" ||
     pathname === "/intro" ||
     pathname === "/features" ||
+    pathname === "/rojmek" ||
+    pathname === "/Myownbillbook" ||
+    pathname.toLowerCase() === "/rojmek" ||
     pathname.startsWith("/superadmin") ||
     pathname === "/pos" ||
     pathname === "/sales/pos" ||
@@ -262,9 +273,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-3 mt-6">
           <button
             onClick={() => retryWorkspace()}
-            className="py-2.5 px-5 bg-[#F47721] hover:bg-[#D95F12] active:bg-[#B94B0A] text-white rounded-xl text-xs font-bold transition-all shadow-saffron"
+            className="py-2.5 px-5 bg-[#C24E1D] hover:bg-[#D95F12] active:bg-[#B94B0A] text-white rounded-xl text-xs font-bold transition-all shadow-saffron"
             style={{
-              backgroundColor: "#F47721",
+              backgroundColor: "#C24E1D",
               color: "#FFFFFF",
               padding: "10px 20px",
               borderRadius: "12px",
@@ -350,9 +361,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => window.location.reload()}
-                className="py-1.5 px-4 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-lg text-xs font-bold transition-all shadow-saffron"
+                className="py-1.5 px-4 bg-[#C24E1D] hover:bg-[#D95F12] text-white rounded-lg text-xs font-bold transition-all shadow-saffron"
                 style={{
-                  backgroundColor: "#F47721",
+                  backgroundColor: "#C24E1D",
                   color: "#FFFFFF",
                   padding: "6px 16px",
                   borderRadius: "8px",
@@ -775,10 +786,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     // --- GROUP 3: BUSINESS TOOLS ---
     {
       id: "ai_collections",
-      name: "AI Collections",
-      nameGujarati: "AI ઉઘરાણી (Collections)",
+      name: "Payment Reminders",
+      nameGujarati: "ઓટો ઉઘરાણી (Follow-ups)",
       group: "BUSINESS TOOLS",
-      badge: "New",
+      badge: "Smart",
       href: "/finance/ai-collections",
       icon: (
         <svg
@@ -886,114 +897,82 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     },
   ];
 
+  const isSettingsPage = pathname.startsWith("/settings") || pathname.startsWith("/pricing-settings");
   const isCashBankPage =
     pathname === "/finance/cash-bank" ||
     pathname === "/cash-bank";
 
   return (
     <div className="h-[100dvh] h-screen w-full flex overflow-hidden bg-[#F8F9FB] print:h-auto print:min-h-0 print:overflow-visible print:bg-white print:block">
-      {/* 1. DESKTOP MYBILLBOOK DARK SIDEBAR */}
-      <aside
-        className={`${
-          isCashBankPage ? "hidden" : "hidden lg:flex"
-        } flex-col shrink-0 h-full bg-[#0E1726] border-r border-[#1E293B] text-white transition-all duration-300 z-30 select-none print:hidden ${
-          isSidebarCollapsed ? "w-20" : "w-64"
-        }`}
-      >
-        {/* Brand / Company Profile Header */}
-        <div
-          className={`shrink-0 flex items-center border-b border-[#1E293B] bg-[#0E1726] transition-all relative ${
-            isSidebarCollapsed
-              ? "justify-center px-2 py-4"
-              : "justify-between px-4 py-3.5"
-          }`}
-        >
-          <div
-            className={`flex items-center gap-3 ${
-              isSidebarCollapsed ? "justify-center" : "overflow-hidden"
-            }`}
-          >
-            {/* Orange Avatar Circle with First Letter */}
-            <div className="w-10 h-10 rounded-full bg-[#F47721] flex items-center justify-center text-white font-extrabold text-base shadow-sm shrink-0 uppercase">
-              {currentCompany?.tradeName?.charAt(0) ||
-                currentCompany?.legalName?.charAt(0) ||
-                "M"}
-            </div>
-            {!isSidebarCollapsed && (
-              <div className="flex flex-col truncate min-w-0">
-                <span className="text-sm font-bold text-white tracking-tight leading-tight truncate">
-                  {currentCompany?.tradeName ||
-                    currentCompany?.legalName ||
-                    "MODI CHAI"}
-                </span>
-                <span className="text-xs text-slate-400 font-mono tracking-wide mt-0.5 truncate">
-                  {user?.phone || currentCompany?.gstin || "9510442798"}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Floating Collapse / Expand Toggle Button */}
-          <button
-            onClick={toggleSidebarCollapse}
-            className={`transition-colors ${
-              isSidebarCollapsed
-                ? "absolute -right-3 top-5 w-6 h-6 bg-[#1E293B] border border-slate-700 shadow-xs rounded-full flex items-center justify-center text-slate-300 hover:text-white z-40"
-                : "p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg"
-            }`}
-            title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            aria-label={
-              isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
-            }
-          >
-            <svg
-              className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                isSidebarCollapsed ? "rotate-180 text-[#F47721]" : ""
-              }`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2.5}
-                d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
-              />
-            </svg>
-          </button>
+      {/* 1. DEDICATED MYBILLBOOK SETTINGS SIDEBAR (When in Settings mode) */}
+      {isSettingsPage && (
+        <div className="hidden lg:flex shrink-0 h-full print:hidden">
+          <SettingsSidebar />
         </div>
+      )}
 
-        {/* Quick Action Pill: + Create Sales Invoice */}
-        <div
-          className={`p-3 shrink-0 ${isSidebarCollapsed ? "flex justify-center" : ""}`}
-        >
-          <Link
-            href="/sales/invoices/new"
-            className={`bg-white hover:bg-slate-100 text-slate-900 rounded-xl flex items-center transition-all shadow-sm group ${
-              isSidebarCollapsed
-                ? "w-11 h-11 justify-center"
-                : "w-full justify-between px-3.5 py-2.5"
+      {/* 2. REGULAR DESKTOP MYBILLBOOK DARK SIDEBAR (When in dashboard mode) */}
+      {!isSettingsPage && (
+        <aside
+          style={{ backgroundColor: SIDEBAR_BG }}
+          className={`${isCashBankPage ? "hidden" : "hidden lg:flex"
+            } flex-col shrink-0 h-full border-r border-slate-700/50 text-white transition-all duration-300 z-30 select-none print:hidden ${isSidebarCollapsed ? "w-20" : "w-64"
             }`}
-            title={
-              lang === "gu"
-                ? "+ નવું વેચાણ બિલ બનાવો"
-                : "+ Create Sales Invoice"
-            }
+        >
+          {/* Brand / Company Profile Header */}
+          <div
+            style={{ backgroundColor: SIDEBAR_BG }}
+            className={`shrink-0 flex items-center border-b border-slate-700/50 transition-all relative ${isSidebarCollapsed
+                ? "justify-center px-2 py-4"
+                : "justify-between px-4 py-3.5"
+              }`}
           >
-            <div className="flex items-center gap-2 truncate">
-              <span className="text-base font-black text-slate-900 group-hover:scale-110 transition-transform">
-                +
-              </span>
+            <Link
+              href="/settings/account"
+              className={`flex items-center gap-3 group hover:bg-white/5 rounded-xl p-1 transition-all ${isSidebarCollapsed ? "justify-center" : "overflow-hidden flex-1 min-w-0"
+                }`}
+              title={lang === "gu" ? "કંપની સેટિંગ્સ ખોલો" : "Open Company Settings"}
+            >
+              {/* Avatar Circle with First Letter using primaryColor */}
+              <div
+                style={{ backgroundColor: CTA_ACCENT }}
+                className="w-10 h-10 rounded-full group-hover:scale-105 flex items-center justify-center text-white font-extrabold text-base shadow-sm shrink-0 uppercase transition-transform"
+              >
+                {currentCompany?.tradeName?.charAt(0) ||
+                  currentCompany?.legalName?.charAt(0) ||
+                  "B"}
+              </div>
               {!isSidebarCollapsed && (
-                <span className="text-xs font-bold text-slate-900 truncate">
-                  {lang === "gu" ? "વેચાણ બિલ બનાવો" : "Create Sales Invoice"}
-                </span>
+                <div className="flex flex-col truncate min-w-0 text-left">
+                  <span className="text-sm font-bold text-white group-hover:text-amber-300 tracking-tight leading-tight truncate transition-colors">
+                    {currentCompany?.tradeName ||
+                      currentCompany?.legalName ||
+                      (lang === "gu" ? "કંપની" : "Company")}
+                  </span>
+                  {(user?.phone || currentCompany?.gstin) && (
+                    <span className="text-xs text-[#E8D5B5] font-mono tracking-wide mt-0.5 truncate">
+                      {user?.phone || currentCompany?.gstin}
+                    </span>
+                  )}
+                </div>
               )}
-            </div>
-            {!isSidebarCollapsed && (
+            </Link>
+
+            {/* Floating Collapse / Expand Toggle Button */}
+            <button
+              onClick={toggleSidebarCollapse}
+              className={`transition-colors ${isSidebarCollapsed
+                  ? "absolute -right-3 top-5 w-6 h-6 bg-[#1E293B] border border-slate-700 shadow-xs rounded-full flex items-center justify-center text-slate-300 hover:text-white z-40"
+                  : "p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg shrink-0"
+                }`}
+              title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-label={
+                isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
+              }
+            >
               <svg
-                className="w-3.5 h-3.5 text-slate-500 shrink-0"
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${isSidebarCollapsed ? "rotate-180" : ""
+                  }`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -1001,187 +980,102 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
+                  strokeWidth={2.5}
+                  d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
                 />
               </svg>
-            )}
-          </Link>
-        </div>
+            </button>
+          </div>
 
-        {/* Navigation Item Tree */}
-        <nav
-          aria-label="Sidebar Navigation"
-          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-2 py-1 space-y-1 scrollbar-thin scrollbar-thumb-slate-700"
-        >
-          {(() => {
-            let lastGroup = "";
-            return navigationSections.map((section) => {
-              const showGroupHeader =
-                !isSidebarCollapsed &&
-                section.group &&
-                section.group !== lastGroup;
-              if (section.group) {
-                lastGroup = section.group;
-              }
+          {/* Navigation Item Tree */}
+          <nav
+            aria-label="Sidebar Navigation"
+            className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-2 py-2 space-y-1 scrollbar-thin scrollbar-thumb-slate-700"
+          >
+            {(() => {
+              let lastGroup = "";
+              return navigationSections.map((section) => {
+                const showGroupHeader =
+                  !isSidebarCollapsed &&
+                  section.group &&
+                  section.group !== lastGroup;
+                if (section.group) {
+                  lastGroup = section.group;
+                }
 
-              // Direct Link (Dashboard, Cash & Bank, Expenses, Reports, etc.)
-              if (
-                section.href &&
-                (!section.items || section.items.length === 0)
-              ) {
-                const isActive =
-                  pathname === section.href ||
-                  (section.href !== "/" && pathname.startsWith(section.href));
-                return (
-                  <React.Fragment key={section.id}>
-                    {showGroupHeader && (
-                      <div className="px-3 pt-3 pb-1 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-                        {section.group}
-                      </div>
-                    )}
-                    <Link
-                      href={section.href}
-                      className={`flex items-center transition-all ${
-                        isSidebarCollapsed
-                          ? `w-11 h-11 mx-auto justify-center rounded-xl ${
-                              isActive
-                                ? "bg-[#2563EB] text-white font-bold shadow-xs"
-                                : "text-slate-300 hover:text-white hover:bg-white/5"
-                            }`
-                          : `gap-3 px-3 py-2 rounded-xl text-xs font-semibold ${
-                              isActive
-                                ? "bg-[#2563EB] text-white shadow-xs"
-                                : "text-slate-300 hover:text-white hover:bg-white/5"
-                            }`
-                      }`}
-                      title={
-                        lang === "gu" ? section.nameGujarati : section.name
-                      }
-                    >
-                      <span
-                        className={isActive ? "text-white" : "text-slate-400"}
-                      >
-                        {section.icon}
-                      </span>
-                      {!isSidebarCollapsed && (
-                        <span className="truncate flex-1">
-                          {lang === "gu" ? section.nameGujarati : section.name}
-                        </span>
+                // Direct Link (Dashboard, Cash & Bank, Expenses, Reports, etc.)
+                if (
+                  section.href &&
+                  (!section.items || section.items.length === 0)
+                ) {
+                  const isActive =
+                    pathname === section.href ||
+                    (section.href !== "/" && pathname.startsWith(section.href));
+                  return (
+                    <React.Fragment key={section.id}>
+                      {showGroupHeader && (
+                        <div className="px-3 pt-3 pb-1 text-[10px] font-bold tracking-wider text-[#C4A882] uppercase">
+                          {section.group}
+                        </div>
                       )}
-                      {!isSidebarCollapsed && section.badge && (
-                        <span className="px-1.5 py-0.2 bg-[#EF4444] text-white text-[9px] font-bold rounded">
-                          {section.badge}
-                        </span>
-                      )}
-                    </Link>
-                  </React.Fragment>
-                );
-              }
-
-              // Accordion Section with Submenu (Sales, Purchases, Items, Parties)
-              const isExpanded = expandedSections[section.id];
-              const hasActiveChild = section.items?.some((sub) =>
-                pathname.startsWith(sub.href),
-              );
-
-              if (isSidebarCollapsed) {
-                // Collapsed mode: Icon button with hover flyout menu
-                return (
-                  <div key={section.id} className="relative group my-0.5">
-                    <Link
-                      href={section.items?.[0]?.href || "#"}
-                      className={`w-11 h-11 mx-auto flex items-center justify-center rounded-xl text-xs font-medium transition-all ${
-                        hasActiveChild
-                          ? "bg-[#2563EB] text-white font-bold shadow-xs"
-                          : "text-slate-300 hover:text-white hover:bg-white/5"
-                      }`}
-                      title={
-                        lang === "gu" ? section.nameGujarati : section.name
-                      }
-                    >
-                      <span
-                        className={
-                          hasActiveChild ? "text-white" : "text-slate-400"
+                      <Link
+                        href={section.href}
+                        className={`flex items-center transition-all ${isSidebarCollapsed
+                            ? `w-11 h-11 mx-auto justify-center rounded-xl ${isActive
+                              ? "text-white font-bold shadow-xs"
+                              : "text-slate-300 hover:text-white hover:bg-white/10"
+                            }`
+                            : `gap-3 px-3 py-2 rounded-xl text-xs font-semibold ${isActive
+                              ? "text-white shadow-xs font-bold"
+                              : "text-slate-300 hover:text-white hover:bg-white/10"
+                            }`
+                          }`}
+                        style={{ backgroundColor: isActive ? ACTIVE_MENU_BG : undefined, color: isActive ? TEXT_COLOR : undefined }}
+                        title={
+                          lang === "gu" ? section.nameGujarati : section.name
                         }
                       >
-                        {section.icon}
-                      </span>
-                    </Link>
-
-                    {/* Floating Flyout Menu on Hover when Collapsed */}
-                    <div className="hidden group-hover:block absolute left-full top-0 ml-2 w-56 bg-[#0E1726] rounded-xl shadow-2xl border border-slate-700 py-2 z-50 animate-fadeIn">
-                      <div className="px-3.5 py-1.5 border-b border-slate-800 mb-1">
-                        <p className="text-xs font-bold text-white">
-                          {section.name}
-                        </p>
-                        {lang === "gu" && (
-                          <p className="text-[10px] text-slate-400 font-gujarati">
-                            {section.nameGujarati}
-                          </p>
+                        <span
+                          className={isActive ? "text-white" : "text-slate-400"}
+                        >
+                          {section.icon}
+                        </span>
+                        {!isSidebarCollapsed && (
+                          <span className="truncate flex-1">
+                            {lang === "gu" ? section.nameGujarati : section.name}
+                          </span>
                         )}
-                      </div>
-                      <div className="space-y-0.5 px-1.5">
-                        {section.items?.map((item) => {
-                          const isSubActive =
-                            pathname === item.href ||
-                            (item.href === "/sales/payment-in" &&
-                              pathname.startsWith("/sales/payment-in")) ||
-                            (item.href === "/sales/credit-note" &&
-                              pathname.startsWith("/sales/credit-note")) ||
-                            (item.href === "/sales/delivery-challan" &&
-                              (pathname.startsWith("/sales/delivery-challan") ||
-                                pathname.startsWith("/sales/delivery-challans"))) ||
-                            (item.href === "/sales/proforma" &&
-                              pathname.startsWith("/sales/proforma")) ||
-                            (item.href === "/sales/returns" &&
-                              pathname.startsWith("/sales/returns") &&
-                              !pathname.includes("credit-note"));
-                          return (
-                            <Link
-                              key={`${item.name}-${item.href}`}
-                              href={item.href}
-                              className={`block px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                                isSubActive
-                                  ? "bg-[#2563EB] text-white font-bold"
-                                  : "text-slate-300 hover:text-white hover:bg-white/10"
-                              }`}
-                            >
-                              <div className="truncate">{item.name}</div>
-                              {lang === "gu" && (
-                                <div className="text-[10px] text-slate-400 font-gujarati truncate">
-                                  {item.nameGujarati}
-                                </div>
-                              )}
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
+                        {!isSidebarCollapsed && section.badge && (
+                          <span className="px-1.5 py-0.2 bg-[#EF4444] text-white text-[9px] font-bold rounded">
+                            {section.badge}
+                          </span>
+                        )}
+                      </Link>
+                    </React.Fragment>
+                  );
+                }
 
-              // Expanded mode: Standard MyBillBook accordion item
-              return (
-                <React.Fragment key={section.id}>
-                  {showGroupHeader && (
-                    <div className="px-3 pt-3 pb-1 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-                      {section.group}
-                    </div>
-                  )}
-                  <div className="space-y-0.5">
-                    <button
-                      type="button"
-                      onClick={() => toggleSection(section.id)}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                        hasActiveChild
-                          ? "text-white bg-white/10 font-bold"
-                          : "text-slate-300 hover:text-white hover:bg-white/5"
-                      }`}
-                      title={section.name}
-                    >
-                      <div className="flex items-center gap-3 truncate">
+                // Accordion Section with Submenu (Sales, Purchases, Items, Parties)
+                const isExpanded = expandedSections[section.id];
+                const hasActiveChild = section.items?.some((sub) =>
+                  pathname.startsWith(sub.href),
+                );
+
+                if (isSidebarCollapsed) {
+                  // Collapsed mode: Icon button with hover flyout menu
+                  return (
+                    <div key={section.id} className="relative group my-0.5">
+                      <Link
+                        href={section.items?.[0]?.href || "#"}
+                        className={`w-11 h-11 mx-auto flex items-center justify-center rounded-xl text-xs font-medium transition-all ${hasActiveChild
+                            ? "text-white font-bold shadow-xs"
+                            : "text-slate-300 hover:text-white hover:bg-white/10"
+                          }`}
+                        style={{ backgroundColor: hasActiveChild ? ACTIVE_MENU_BG : undefined, color: hasActiveChild ? TEXT_COLOR : undefined }}
+                        title={
+                          lang === "gu" ? section.nameGujarati : section.name
+                        }
+                      >
                         <span
                           className={
                             hasActiveChild ? "text-white" : "text-slate-400"
@@ -1189,122 +1083,210 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         >
                           {section.icon}
                         </span>
-                        <span className="truncate">
-                          {lang === "gu" ? section.nameGujarati : section.name}
-                        </span>
-                      </div>
-                      <svg
-                        className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 ${
-                          isExpanded ? "rotate-90 text-white" : ""
-                        }`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </button>
+                      </Link>
 
-                    {/* Submenu Items */}
-                    {isExpanded && (
-                      <div className="pl-9 pr-1 py-1 space-y-0.5">
-                        {section.items?.map((item) => {
-                          const isItemActive =
-                            pathname === item.href ||
-                            (item.href === "/sales/payment-in" &&
-                              pathname.startsWith("/sales/payment-in")) ||
-                            (item.href === "/sales/credit-note" &&
-                              pathname.startsWith("/sales/credit-note")) ||
-                            (item.href === "/sales/delivery-challan" &&
-                              (pathname.startsWith("/sales/delivery-challan") ||
-                                pathname.startsWith("/sales/delivery-challans"))) ||
-                            (item.href === "/sales/proforma" &&
-                              pathname.startsWith("/sales/proforma")) ||
-                            (item.href === "/sales/returns" &&
-                              pathname.startsWith("/sales/returns") &&
-                              !pathname.includes("credit-note")) ||
-                            (item.href === "/purchases/orders" &&
-                              (pathname.startsWith("/purchases/orders") ||
-                                pathname.startsWith("/purchases/purchase_order") ||
-                                pathname.startsWith("/purchases/purchase-order") ||
-                                pathname.startsWith("/purchases/purchase-orders")));
-                          return (
-                            <Link
-                              key={`${item.name}-${item.href}`}
-                              href={item.href}
-                              className={`block py-1.5 px-2.5 rounded-lg text-xs font-medium transition-colors ${
-                                isItemActive
-                                  ? "bg-[#2563EB] text-white font-bold"
-                                  : "text-slate-400 hover:text-white hover:bg-white/5"
-                              }`}
-                            >
-                              <span className="truncate">
-                                {lang === "gu" ? item.nameGujarati : item.name}
-                              </span>
-                            </Link>
-                          );
-                        })}
+                      {/* Floating Flyout Menu on Hover when Collapsed */}
+                      <div
+                        style={{ backgroundColor: SIDEBAR_BG }}
+                        className="hidden group-hover:block absolute left-full top-0 ml-2 w-56 rounded-xl shadow-2xl border border-slate-700 py-2 z-50 animate-fadeIn"
+                      >
+                        <div className="px-3.5 py-1.5 border-b border-slate-800 mb-1">
+                          <p className="text-xs font-bold text-white">
+                            {section.name}
+                          </p>
+                          {lang === "gu" && (
+                            <p className="text-[10px] text-slate-400 font-gujarati">
+                              {section.nameGujarati}
+                            </p>
+                          )}
+                        </div>
+                        <div className="space-y-0.5 px-1.5">
+                          {section.items?.map((item) => {
+                            const isSubActive =
+                              pathname === item.href ||
+                              (item.href === "/sales/payment-in" &&
+                                pathname.startsWith("/sales/payment-in")) ||
+                              (item.href === "/sales/credit-note" &&
+                                pathname.startsWith("/sales/credit-note")) ||
+                              (item.href === "/sales/delivery-challan" &&
+                                (pathname.startsWith("/sales/delivery-challan") ||
+                                  pathname.startsWith("/sales/delivery-challans"))) ||
+                              (item.href === "/sales/proforma" &&
+                                pathname.startsWith("/sales/proforma")) ||
+                              (item.href === "/sales/returns" &&
+                                pathname.startsWith("/sales/returns") &&
+                                !pathname.includes("credit-note"));
+                            return (
+                              <Link
+                                key={`${item.name}-${item.href}`}
+                                href={item.href}
+                                className={`block px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${isSubActive
+                                    ? "text-white font-bold"
+                                    : "text-slate-300 hover:text-white hover:bg-white/10"
+                                  }`}
+                                style={{ backgroundColor: isSubActive ? ACTIVE_MENU_BG : undefined, color: isSubActive ? TEXT_COLOR : undefined }}
+                              >
+                                <div className="truncate">{item.name}</div>
+                                {lang === "gu" && (
+                                  <div className="text-[10px] text-slate-400 font-gujarati truncate">
+                                    {item.nameGujarati}
+                                  </div>
+                                )}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                // Expanded mode: Standard MyBillBook accordion item
+                return (
+                  <React.Fragment key={section.id}>
+                    {showGroupHeader && (
+                      <div className="px-3 pt-3 pb-1 text-[10px] font-bold tracking-wider text-[#E8D5B5] uppercase">
+                        {section.group}
                       </div>
                     )}
-                  </div>
-                </React.Fragment>
-              );
-            });
-          })()}
-        </nav>
+                    <div className="space-y-0.5">
+                      <button
+                        type="button"
+                        onClick={() => toggleSection(section.id)}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${hasActiveChild
+                            ? "text-white font-bold shadow-xs"
+                            : "text-slate-300 hover:text-white hover:bg-white/10"
+                          }`}
+                        style={{ backgroundColor: hasActiveChild ? ACTIVE_MENU_BG : undefined, color: hasActiveChild ? TEXT_COLOR : undefined }}
+                        title={section.name}
+                      >
+                        <div className="flex items-center gap-3 truncate">
+                          <span
+                            className={
+                              hasActiveChild ? "text-white" : "text-slate-400"
+                            }
+                          >
+                            {section.icon}
+                          </span>
+                          <span className="truncate">
+                            {lang === "gu" ? section.nameGujarati : section.name}
+                          </span>
+                        </div>
+                        <svg
+                          className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 ${isExpanded ? "rotate-90 text-white" : ""
+                            }`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </button>
 
-        {/* Sidebar Footer: Settings & Security Badges */}
-        <div className="shrink-0 p-3 border-t border-[#1E293B] bg-[#0A101D] flex flex-col gap-2">
-          <Link
-            href="/settings"
-            className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-              pathname.startsWith("/settings")
-                ? "bg-[#2563EB] text-white shadow-xs"
-                : "text-slate-300 hover:text-white hover:bg-white/5"
-            }`}
-            title="Settings"
+                      {/* Submenu Items */}
+                      {isExpanded && (
+                        <div className="pl-9 pr-1 py-1 space-y-0.5">
+                          {section.items?.map((item) => {
+                            const isItemActive =
+                              pathname === item.href ||
+                              (item.href === "/sales/payment-in" &&
+                                pathname.startsWith("/sales/payment-in")) ||
+                              (item.href === "/sales/credit-note" &&
+                                pathname.startsWith("/sales/credit-note")) ||
+                              (item.href === "/sales/delivery-challan" &&
+                                (pathname.startsWith("/sales/delivery-challan") ||
+                                  pathname.startsWith("/sales/delivery-challans"))) ||
+                              (item.href === "/sales/proforma" &&
+                                pathname.startsWith("/sales/proforma")) ||
+                              (item.href === "/sales/returns" &&
+                                pathname.startsWith("/sales/returns") &&
+                                !pathname.includes("credit-note")) ||
+                              (item.href === "/purchases/orders" &&
+                                (pathname.startsWith("/purchases/orders") ||
+                                  pathname.startsWith("/purchases/purchase_order") ||
+                                  pathname.startsWith("/purchases/purchase-order") ||
+                                  pathname.startsWith("/purchases/purchase-orders")));
+                            return (
+                              <Link
+                                key={`${item.name}-${item.href}`}
+                                href={item.href}
+                                className={`block py-1.5 px-2.5 rounded-lg text-xs font-medium transition-colors ${isItemActive
+                                    ? "text-white font-bold shadow-2xs"
+                                    : "text-slate-400 hover:text-white hover:bg-white/10"
+                                  }`}
+                                style={{ backgroundColor: isItemActive ? ACTIVE_MENU_BG : undefined, color: isItemActive ? TEXT_COLOR : undefined }}
+                              >
+                                <span className="truncate">
+                                  {lang === "gu" ? item.nameGujarati : item.name}
+                                </span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </React.Fragment>
+                );
+              });
+            })()}
+          </nav>
+
+          {/* Sidebar Footer: Theme Customizer, Settings & Security Badges */}
+          <div
+            style={{ backgroundColor: SIDEBAR_BG }}
+            className="shrink-0 p-3 border-t border-slate-700/50 flex flex-col gap-1.5"
           >
-            <svg
-              className="w-4 h-4 text-slate-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+            <Link
+              href="/settings/account"
+              className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${pathname.startsWith("/settings")
+                  ? "text-white shadow-xs font-bold"
+                  : "text-slate-300 hover:text-white hover:bg-white/10"
+                }`}
+              style={{ backgroundColor: pathname.startsWith("/settings") ? ACTIVE_MENU_BG : undefined, color: pathname.startsWith("/settings") ? TEXT_COLOR : undefined }}
+              title="Settings"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.8}
-                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.8}
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
-            {!isSidebarCollapsed && (
-              <span>{lang === "gu" ? "સેટિંગ્સ" : "Settings"}</span>
-            )}
-          </Link>
+              <svg
+                className="w-4 h-4 text-slate-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.8}
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.8}
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              {!isSidebarCollapsed && (
+                <span>{lang === "gu" ? "સેટિંગ્સ" : "Settings"}</span>
+              )}
+            </Link>
 
-          {!isSidebarCollapsed && (
-            <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 px-1">
-              <span className="flex items-center gap-1">
-                <span>🛡️</span> 100% Secure
-              </span>
-              <span className="flex items-center gap-1">
-                <span>✓</span> ISO Certified
-              </span>
-            </div>
-          )}
-        </div>
-      </aside>
+            {!isSidebarCollapsed && (
+              <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 px-1">
+                <span className="flex items-center gap-1">
+                  <span>🛡️</span> 100% Secure
+                </span>
+                <span className="flex items-center gap-1">
+                  <span>✓</span> ISO Certified
+                </span>
+              </div>
+            )}
+          </div>
+        </aside>
+      )}
 
       {/* 2. MAIN APPLICATION CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0 h-full overflow-hidden print:h-auto print:min-h-0 print:overflow-visible print:block print:w-full relative bg-[#F7F8FA]">
@@ -1335,73 +1317,191 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        {/* TOPBAR HEADER */}
-        <header className="shrink-0 h-16 bg-white border-b border-[#E5E7EB] px-3 sm:px-6 flex items-center justify-between z-20 shadow-xs max-w-full min-w-0 print:hidden">
-          {/* Left: Active Company/Branch Context & Brand Logo */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
-            {/* Menu Drawer Toggle Button (Visible on mobile, and on desktop when sidebar is hidden) */}
+        {/* TOPBAR HEADER: In Settings mode, show mobile header with Back to Dashboard; in regular mode, show regular topbar */}
+        {isSettingsPage ? (
+          <header className="lg:hidden shrink-0 h-14 bg-white border-b border-[#E5E7EB] px-3 flex items-center justify-between z-20 shadow-xs print:hidden">
+            <Link
+              href="/"
+              className="flex items-center gap-1.5 text-xs font-bold text-slate-800 hover:text-slate-900 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors shadow-2xs"
+            >
+              <svg className="w-3.5 h-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span>{lang === "gu" ? "ડેશબોર્ડ" : "Dashboard"}</span>
+            </Link>
+
+            <span className="text-xs font-bold text-slate-800 truncate px-2">
+              {lang === "gu" ? "સેટિંગ્સ" : "Settings"}
+            </span>
+
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className={`${
-                isCashBankPage ? "flex" : "lg:hidden flex"
-              } items-center justify-center p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer mr-0.5`}
-              title={lang === "gu" ? "મેનૂ ખોલો" : "Open Navigation Menu"}
-              aria-label="Navigation Menu"
+              className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg flex items-center gap-1"
+              title="Settings Menu"
             >
+              <span className="text-[11px] font-semibold text-slate-500">Menu</span>
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
+          </header>
+        ) : (
+          <header className="shrink-0 h-16 sm:h-18 bg-white border-b border-[#E5E7EB] px-3 sm:px-6 flex items-center justify-between z-20 shadow-xs max-w-full min-w-0 print:hidden">
+            {/* Left: Active Company/Branch Context & Brand Logo */}
+            <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
+              {/* Menu Drawer Toggle Button (Visible on mobile, and on desktop when sidebar is hidden) */}
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className={`${isCashBankPage ? "flex" : "lg:hidden flex"
+                  } items-center justify-center p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer shrink-0`}
+                title={lang === "gu" ? "મેનૂ ખોલો" : "Open Navigation Menu"}
+                aria-label="Navigation Menu"
+              >
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
 
-            {/* Brand Logo when desktop sidebar is hidden */}
-            <div
-              className={`${
-                isCashBankPage ? "flex" : "lg:hidden flex"
-              } items-center shrink-0 mr-1`}
-            >
-              <BrandLogo size="md" />
+              {/* Brand Logo when desktop sidebar is hidden: compact icon on mobile (< sm), full horizontal logo on sm+ */}
+              <div
+                className={`${isCashBankPage ? "flex" : "lg:hidden flex"
+                  } items-center shrink-0`}
+              >
+                <div className="hidden sm:block">
+                  <BrandLogo size="md" variant="horizontal" />
+                </div>
+                <div className="block sm:hidden">
+                  <BrandLogo size="sm" variant="icon" />
+                </div>
+              </div>
+
+              {/* Active Company & Branch Context Switchers */}
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <CompanySwitcher />
+
+                {/* Branch Pill */}
+                {branches.length > 1 && (
+                  <select
+                    value={currentBranch?.id || ""}
+                    onChange={(e) => switchBranch(e.target.value)}
+                    className="text-xs sm:text-sm font-semibold bg-[#F8F9FB] text-[#4B5563] border border-[#E5E7EB] rounded-lg px-2.5 py-1.5 focus:outline-none cursor-pointer hidden md:block max-w-[130px] truncate"
+                    title={`Branch: ${currentBranch?.name || ""}`}
+                    aria-label="Select branch"
+                  >
+                    {branches.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                {/* Financial Year Tag */}
+                <span className="text-xs sm:text-[13px] font-mono font-bold text-[#4B5563] bg-[#F3F4F6] px-2.5 py-1 rounded-md border border-[#E5E7EB] hidden lg:inline whitespace-nowrap">
+                  {currentFY?.name || "FY 2026-27"}
+                </span>
+              </div>
             </div>
 
-            {/* Active Company & Branch Context Switchers */}
-            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 sm:flex-initial">
-              <CompanySwitcher />
-
-              {/* Branch Pill */}
-              {branches.length > 1 && (
-                <select
-                  value={currentBranch?.id || ""}
-                  onChange={(e) => switchBranch(e.target.value)}
-                  className="text-xs font-medium bg-[#F8F9FB] text-[#667085] border border-[#E5E7EB] rounded-md px-2 py-1 focus:outline-none cursor-pointer hidden md:block max-w-[120px] truncate"
-                  title={`Branch: ${currentBranch?.name || ""}`}
-                  aria-label="Select branch"
+            {/* Right: Quick Action, Language Toggle & User/Logout */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto pl-1 sm:pl-2">
+              {/* SuperAdmin Portal shortcut if user has SUPER_ADMIN role */}
+              {user?.role === "SUPER_ADMIN" && (
+                <Link
+                  href="/superadmin"
+                  className="hidden min-[420px]:flex items-center gap-1.5 py-1.5 px-3 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-xl text-xs sm:text-sm font-bold transition-all shrink-0 shadow-xs"
+                  title="Open SuperAdmin Master Control Portal"
+                  aria-label="SuperAdmin Portal"
                 >
-                  {branches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
+                  <svg
+                    className="w-4 h-4 shrink-0 text-purple-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                    />
+                  </svg>
+                  <span className="hidden sm:inline">SuperAdmin</span>
+                </Link>
               )}
 
-              {/* Financial Year Tag */}
-              <span className="text-[11px] font-mono font-medium text-[#667085] bg-[#F3F4F6] px-2 py-0.5 rounded border border-[#E5E7EB] hidden lg:inline whitespace-nowrap">
-                {currentFY?.name || "FY 2026-27"}
-              </span>
-            </div>
-          </div>
+              {/* Primary Action Button: Create Bill (hidden if already on new bill page) */}
+              {pathname !== "/sales/invoices/new" && (
+                <Link
+                  href="/sales/invoices/new"
+                  className="flex items-center gap-1.5 sm:gap-2 py-2 px-3 sm:px-4.5 text-white rounded-xl text-xs sm:text-[14px] font-bold shadow-xs transition-all shrink-0 whitespace-nowrap active:scale-95 bg-[#E87536] hover:bg-[#D66527]"
+                  title={
+                    lang === "gu" ? "નવું વેચાણ બિલ (F2)" : "Create New Bill (F2)"
+                  }
+                  aria-label={
+                    lang === "gu"
+                      ? "નવું બિલ બનાવો (Create New Bill)"
+                      : "Create New Bill"
+                  }
+                >
+                  <svg
+                    className="w-4 h-4 shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2.4}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  {/* Short label on mobile screens, full label on tablets and desktop */}
+                  <span className="hidden sm:inline font-bold">
+                    {lang === "gu" ? "નવું બિલ બનાવો" : "Create New Bill"}
+                  </span>
+                  <span className="inline sm:hidden font-bold">
+                    {lang === "gu" ? "બિલ" : "Bill"}
+                  </span>
+                </Link>
+              )}
 
-          {/* Right: Quick Action, Language Toggle & User/Logout */}
-          <div className="flex items-center gap-1 min-[360px]:gap-1.5 sm:gap-3 shrink-0 ml-auto pl-1 sm:pl-2">
-            {/* SuperAdmin Portal shortcut if user has SUPER_ADMIN role */}
-            {user?.role === "SUPER_ADMIN" && (
-              <Link
-                href="/superadmin"
-                className="hidden min-[420px]:flex items-center gap-1 sm:gap-1.5 py-1 sm:py-1.5 px-2 sm:px-3 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-button text-[11px] sm:text-xs font-bold transition-all shrink-0 shadow-xs"
-                title="Open SuperAdmin Master Control Portal"
-                aria-label="SuperAdmin Portal"
+              {/* Bilingual Language Switcher (EN | ગુજ) */}
+              <div className="flex items-center bg-[#F3F4F6] p-0.5 rounded-lg border border-[#E5E7EB] shrink-0 text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => setLang("en")}
+                  className={`px-2 py-1 text-xs sm:text-[13px] font-bold rounded-md transition-all ${
+                    lang === "en"
+                      ? "bg-white text-slate-900 shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  EN
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLang("gu")}
+                  className={`px-2 py-1 text-xs sm:text-[13px] font-bold rounded-md transition-all ${
+                    lang === "gu"
+                      ? "bg-white text-slate-900 shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  ગુજરાતી
+                </button>
+              </div>
+
+              {/* Logout / User Trigger: Hidden on mobile (< md), visible on desktop (>= md) */}
+              <button
+                onClick={logout}
+                className="hidden md:inline-flex items-center justify-center p-1 sm:p-1.5 text-[#667085] hover:text-[#DC3545] hover:bg-rose-50 rounded-lg transition-colors shrink-0"
+                title={lang === "gu" ? "લોગઆઉટ" : "Logout"}
+                aria-label="Logout"
               >
                 <svg
-                  className="w-3.5 h-3.5 shrink-0 text-purple-600"
+                  className="w-4 h-4 sm:w-5 sm:h-5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -1409,126 +1509,35 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                    strokeWidth={1.8}
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                   />
                 </svg>
-                <span className="hidden sm:inline">SuperAdmin Portal</span>
-              </Link>
-            )}
-
-            {/* Primary Action Button: Create Bill (hidden if already on new bill page) */}
-            {pathname !== "/sales/invoices/new" && (
-              <Link
-                href="/sales/invoices/new"
-                className="flex items-center gap-1 sm:gap-1.5 py-1.5 px-2 min-[360px]:px-2.5 sm:px-3.5 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-button text-xs sm:text-sm font-semibold shadow-saffron transition-all shrink-0 whitespace-nowrap active:scale-95"
-                title={
-                  lang === "gu" ? "નવું વેચાણ બિલ (F2)" : "Create New Bill (F2)"
-                }
-                aria-label={
-                  lang === "gu"
-                    ? "નવું બિલ બનાવો (Create New Bill)"
-                    : "Create New Bill"
-                }
-              >
-                <svg
-                  className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2.2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-                {/* Short label on mobile screens, full label on tablets and desktop */}
-                <span className="hidden sm:inline">
-                  {lang === "gu" ? "નવું બિલ બનાવો" : "Create New Bill"}
-                </span>
-                <span className="inline sm:hidden font-bold">
-                  {lang === "gu" ? "બિલ" : "Bill"}
-                </span>
-              </Link>
-            )}
-
-            {/* Bilingual Language Switcher (EN | ગુજ) */}
-            <div className="flex items-center bg-[#F3F4F6] p-0.5 rounded-lg border border-[#E5E7EB] shrink-0">
-              <button
-                type="button"
-                onClick={() => setLang("en")}
-                className={`px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] min-[360px]:text-[11px] sm:text-xs font-bold rounded-md transition-all ${
-                  lang === "en"
-                    ? "bg-white text-[#F47721] shadow-xs"
-                    : "text-[#667085] hover:text-[#202124]"
-                }`}
-                aria-label="Switch language to English"
-              >
-                EN
-              </button>
-              <button
-                type="button"
-                onClick={() => setLang("gu")}
-                className={`px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] min-[360px]:text-[11px] sm:text-xs font-bold rounded-md transition-all font-gujarati ${
-                  lang === "gu"
-                    ? "bg-white text-[#F47721] shadow-xs"
-                    : "text-[#667085] hover:text-[#202124]"
-                }`}
-                aria-label="Switch language to Gujarati"
-              >
-                <span className="hidden sm:inline">ગુજરાતી</span>
-                <span className="sm:hidden">ગુજ</span>
               </button>
             </div>
-
-            {/* Logout / User Trigger: Hidden on mobile (< md), visible on desktop (>= md) */}
-            <button
-              onClick={logout}
-              className="hidden md:inline-flex items-center justify-center p-1 sm:p-1.5 text-[#667085] hover:text-[#DC3545] hover:bg-rose-50 rounded-lg transition-colors shrink-0"
-              title={lang === "gu" ? "લોગઆઉટ" : "Logout"}
-              aria-label="Logout"
-            >
-              <svg
-                className="w-4 h-4 sm:w-5 sm:h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.8}
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                />
-              </svg>
-            </button>
-          </div>
-        </header>
+          </header>
+        )}
 
         {/* 3. SCROLLABLE PAGE BODY */}
         <main
           id="main-content"
           tabIndex={-1}
-          className={`flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden relative z-10 ${
-            pathname === "/" ||
-            pathname.startsWith("/purchases") ||
-            pathname.startsWith("/sales") ||
-            isCashBankPage
-              ? "p-2 sm:p-3 lg:p-4"
-              : "p-3 sm:p-6 lg:p-8"
-          } pb-24 lg:pb-8 overscroll-y-contain focus:outline-none print:p-0 print:m-0 print:overflow-visible print:h-auto print:w-full print:block`}
-        >
-          <div
-            className={`${
-              pathname === "/" ||
+          className={`flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden relative z-10 ${pathname === "/" ||
               pathname.startsWith("/purchases") ||
               pathname.startsWith("/sales") ||
               isCashBankPage
+              ? "p-2 sm:p-3 lg:p-4"
+              : "p-3 sm:p-6 lg:p-8"
+            } pb-24 lg:pb-8 overscroll-y-contain focus:outline-none print:p-0 print:m-0 print:overflow-visible print:h-auto print:w-full print:block`}
+        >
+          <div
+            className={`${pathname === "/" ||
+                pathname.startsWith("/purchases") ||
+                pathname.startsWith("/sales") ||
+                isCashBankPage
                 ? "w-full min-w-0 max-w-none"
                 : "max-w-7xl w-full min-w-0 mx-auto"
-            } print:max-w-none print:w-full print:p-0 print:m-0`}
+              } print:max-w-none print:w-full print:p-0 print:m-0`}
           >
             {children}
           </div>
@@ -1548,232 +1557,203 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             onClick={() => setIsMobileMenuOpen(false)}
             aria-hidden="true"
           />
-          <div className="relative w-72 max-w-[85vw] bg-white h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-left duration-200">
-            {/* Mobile Header with visible close button */}
-            <div className="h-16 shrink-0 flex items-center justify-between px-4 border-b border-[#E5E7EB] bg-[#F8F9FB]">
-              <BrandLogo size="sm" showSubtitle subtitle={currentCompany?.tradeName || "Billing & Retail"} />
-              <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 text-[#667085] hover:text-[#202124] hover:bg-[#F3F4F6] rounded-md transition-colors"
-                aria-label="Close navigation drawer"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            {/* Mobile Nav Items */}
-            <nav
-              aria-label="Mobile Navigation"
-              className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain p-3 space-y-1"
-            >
-              {navigationSections.map((sec) => (
-                <div key={sec.id} className="space-y-0.5">
-                  {sec.href ? (
-                    <Link
-                      href={sec.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-button text-sm font-medium transition-colors ${
-                        pathname === sec.href ||
-                        (sec.href !== "/" && pathname.startsWith(sec.href))
-                          ? "bg-[#FFF3E8] text-[#F47721] font-bold"
-                          : "text-[#667085] hover:bg-[#F8F9FB]"
-                      }`}
+          <div className="relative w-72 max-w-[85vw] bg-[#17191F] text-[#F1F3F5] h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-left duration-200">
+            {isSettingsPage ? (
+              <div className="h-full flex flex-col bg-[#17191F] text-[#F1F3F5]">
+                <div className="h-14 shrink-0 flex items-center justify-between px-4 border-b border-[#252830] bg-[#13151A]">
+                  <span className="text-xs font-bold text-[#F1F3F5]">
+                    {lang === "gu" ? "સેટિંગ્સ મેનૂ" : "Settings Menu"}
+                  </span>
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="p-1.5 text-[#98A2B3] hover:text-[#F1F3F5] hover:bg-[#3B404A] rounded-lg text-sm transition-colors"
+                    aria-label="Close settings drawer"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto">
+                  <SettingsSidebar onCloseMobile={() => setIsMobileMenuOpen(false)} />
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Mobile Header with visible close button */}
+                <div className="h-16 shrink-0 flex items-center justify-between px-4 border-b border-[#252830] bg-[#13151A]">
+                  <BrandLogo size="sm" showSubtitle subtitle={currentCompany?.tradeName || "Billing & Retail"} />
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="p-2 text-[#98A2B3] hover:text-[#F1F3F5] hover:bg-[#3B404A] rounded-md transition-colors"
+                    aria-label="Close navigation drawer"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
                     >
-                      {sec.icon}
-                      <span>{lang === "gu" ? sec.nameGujarati : sec.name}</span>
-                    </Link>
-                  ) : (
-                    <div>
-                      <div className="px-3 pt-3 pb-1 text-[11px] font-bold text-[#98A2B3] uppercase tracking-wider">
-                        {lang === "gu" ? sec.nameGujarati : sec.name}
-                      </div>
-                      <div className="pl-4 space-y-1">
-                        {sec.items?.map((item) => (
-                          <Link
-                            key={`${item.name}-${item.href}`}
-                            href={item.href}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className={`flex items-center gap-2.5 px-3 py-2 rounded-button text-sm transition-colors ${
-                              pathname === item.href ||
-                              (item.href === "/sales/payment-in" &&
-                                pathname.startsWith("/sales/payment-in")) ||
-                              (item.href === "/sales/delivery-challan" &&
-                                pathname.startsWith("/sales/delivery-challan")) ||
-                              (item.href === "/sales/proforma" &&
-                                pathname.startsWith("/sales/proforma")) ||
-                              (item.href === "/sales/returns" &&
-                                pathname.startsWith("/sales/returns") &&
-                                !pathname.includes("credit-note"))
-                                ? "bg-[#FFF3E8] text-[#F47721] font-bold"
-                                : "text-[#667085] hover:bg-[#F8F9FB]"
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Mobile Nav Items */}
+                <nav
+                  aria-label="Mobile Navigation"
+                  className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain p-3 space-y-1"
+                >
+                  {navigationSections.map((sec) => (
+                    <div key={sec.id} className="space-y-0.5">
+                      {sec.href ? (
+                        <Link
+                          href={sec.href}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className={`flex items-center gap-3 px-3 py-2.5 rounded-button text-sm font-medium transition-colors ${pathname === sec.href ||
+                              (sec.href !== "/" && pathname.startsWith(sec.href))
+                              ? "bg-[#3B404A] text-[#F1F3F5] font-bold border-l-2 border-[#E87536]"
+                              : "text-[#D0D5DD] hover:text-[#FFFFFF] hover:bg-[#252932]"
                             }`}
-                          >
-                            <span>
-                              {lang === "gu" ? item.nameGujarati : item.name}
-                            </span>
-                          </Link>
+                        >
+                          {sec.icon}
+                          <span>{lang === "gu" ? sec.nameGujarati : sec.name}</span>
+                        </Link>
+                      ) : (
+                        <div>
+                          <div className="px-3 pt-3 pb-1 text-[11px] font-bold text-[#848B98] uppercase tracking-wider">
+                            {lang === "gu" ? sec.nameGujarati : sec.name}
+                          </div>
+                          <div className="pl-4 space-y-1">
+                            {sec.items?.map((item) => (
+                              <Link
+                                key={`${item.name}-${item.href}`}
+                                href={item.href}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className={`flex items-center gap-2.5 px-3 py-2 rounded-button text-sm transition-colors ${pathname === item.href ||
+                                    (item.href === "/sales/payment-in" &&
+                                      pathname.startsWith("/sales/payment-in")) ||
+                                    (item.href === "/sales/delivery-challan" &&
+                                      pathname.startsWith("/sales/delivery-challan")) ||
+                                    (item.href === "/sales/proforma" &&
+                                      pathname.startsWith("/sales/proforma")) ||
+                                    (item.href === "/sales/returns" &&
+                                      pathname.startsWith("/sales/returns") &&
+                                      !pathname.includes("credit-note"))
+                                    ? "bg-[#3B404A] text-[#F1F3F5] font-bold border-l-2 border-[#E87536]"
+                                    : "text-[#D0D5DD] hover:text-[#FFFFFF] hover:bg-[#252932]"
+                                  }`}
+                              >
+                                <span>
+                                  {lang === "gu" ? item.nameGujarati : item.name}
+                                </span>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </nav>
+
+                {/* Mobile Drawer Footer: Branch switch & user profile & logout */}
+                <div className="p-3 border-t border-[#252830] bg-[#13151A] space-y-2 shrink-0">
+                  {branches.length > 1 && (
+                    <div>
+                      <label className="block text-[10px] font-bold text-[#848B98] uppercase tracking-wider mb-1">
+                        {lang === "gu" ? "શાખા" : "Current Branch"}
+                      </label>
+                      <select
+                        value={currentBranch?.id || ""}
+                        onChange={(e) => switchBranch(e.target.value)}
+                        className="w-full text-xs font-medium bg-[#252830] text-[#F1F3F5] border border-[#3B404A] rounded-md px-2 py-1.5 focus:outline-none"
+                        aria-label="Select branch"
+                      >
+                        {branches.map((b) => (
+                          <option key={b.id} value={b.id}>
+                            {b.name}
+                          </option>
                         ))}
-                      </div>
+                      </select>
                     </div>
                   )}
-                </div>
-              ))}
-            </nav>
 
-            {/* Mobile Drawer Footer: Branch switch & user profile & logout */}
-            <div className="p-3 border-t border-[#E5E7EB] bg-[#FFFAF5] space-y-2 shrink-0">
-              {branches.length > 1 && (
-                <div>
-                  <label className="block text-[10px] font-bold text-[#667085] uppercase tracking-wider mb-1">
-                    {lang === "gu" ? "શાખા" : "Current Branch"}
-                  </label>
-                  <select
-                    value={currentBranch?.id || ""}
-                    onChange={(e) => switchBranch(e.target.value)}
-                    className="w-full text-xs font-medium bg-white text-[#202124] border border-[#E5E7EB] rounded-md px-2 py-1.5 focus:outline-none"
-                    aria-label="Select branch"
-                  >
-                    {branches.map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
+                  {user?.role === "SUPER_ADMIN" && (
+                    <Link
+                      href="/superadmin"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center justify-between w-full px-2.5 py-1.5 bg-[#252932] hover:bg-[#3B404A] text-[#E87536] border border-[#3B404A] rounded-md text-xs font-bold transition-all"
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <span>⚡</span>
+                        <span>SuperAdmin Portal</span>
+                      </span>
+                      <span>→</span>
+                    </Link>
+                  )}
 
-              {user?.role === "SUPER_ADMIN" && (
-                <Link
-                  href="/superadmin"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between w-full px-2.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-md text-xs font-bold transition-all"
-                >
-                  <span className="flex items-center gap-1.5">
-                    <span>⚡</span>
-                    <span>SuperAdmin Portal</span>
-                  </span>
-                  <span>→</span>
-                </Link>
-              )}
+                  <div className="flex items-center justify-between pt-1">
+                    <div className="flex items-center gap-2 truncate">
+                      <div className="w-8 h-8 rounded-full bg-[#E87536] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                        {user?.fullName?.charAt(0) || "U"}
+                      </div>
+                      <div className="flex flex-col truncate">
+                        <span className="text-xs font-bold text-[#F1F3F5] truncate">
+                          {user?.fullName || "User"}
+                        </span>
+                        <span className="text-[10px] text-[#98A2B3] truncate">
+                          {currentFY?.name || "FY 2026-27"}
+                        </span>
+                      </div>
+                    </div>
 
-              <div className="flex items-center justify-between pt-1">
-                <div className="flex items-center gap-2 truncate">
-                  <div className="w-8 h-8 rounded-full bg-[#FFF3E8] border border-[#FED7AA] flex items-center justify-center text-[#F47721] font-bold text-xs shrink-0">
-                    {user?.fullName?.charAt(0) || "U"}
-                  </div>
-                  <div className="flex flex-col truncate">
-                    <span className="text-xs font-bold text-[#202124] truncate">
-                      {user?.fullName || "User"}
-                    </span>
-                    <span className="text-[10px] text-[#667085] truncate">
-                      {currentFY?.name || "FY 2026-27"}
-                    </span>
+                    <button
+                      onClick={logout}
+                      className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-[#F1F3F5] hover:text-[#E87536] hover:bg-[#252932] rounded-md transition-colors"
+                      title={lang === "gu" ? "લોગઆઉટ" : "Logout"}
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.8}
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                        />
+                      </svg>
+                      <span>{lang === "gu" ? "લોગઆઉટ" : "Logout"}</span>
+                    </button>
                   </div>
                 </div>
-
-                <button
-                  onClick={logout}
-                  className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-[#DC3545] hover:bg-rose-50 rounded-md transition-colors"
-                  title={lang === "gu" ? "લોગઆઉટ" : "Logout"}
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.8}
-                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                    />
-                  </svg>
-                  <span>{lang === "gu" ? "લોગઆઉટ" : "Logout"}</span>
-                </button>
-              </div>
-            </div>
+              </>
+            )}
           </div>
         </div>
       )}
 
-      {/* 5. MOBILE BOTTOM NAVIGATION BAR */}
-      <nav
-        aria-label="Mobile Navigation Bar"
-        className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-[#E5E7EB] z-40 px-2 py-1.5 flex items-center justify-around shadow-lg no-print print:hidden print-hide"
-        data-print-hide="true"
-      >
-        <Link
-          href="/"
-          className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${
-            pathname === "/"
-              ? "text-[#F47721]"
-              : "text-[#667085] hover:text-[#202124]"
-          }`}
+      {/* 5. MOBILE BOTTOM NAVIGATION BAR (Hidden in Settings mode) */}
+      {!isSettingsPage && (
+        <nav
+          aria-label="Mobile Navigation Bar"
+          className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-[#E5E7EB] z-40 px-2 py-1.5 flex items-center justify-around shadow-lg no-print print:hidden print-hide"
+          data-print-hide="true"
         >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+          <Link
+            href="/"
+            className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${pathname === "/"
+                ? "text-[#C24E1D]"
+                : "text-[#667085] hover:text-[#202124]"
+              }`}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.8}
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-            />
-          </svg>
-          <span>{lang === "gu" ? "ડેશબોર્ડ" : "Dashboard"}</span>
-        </Link>
-
-        <Link
-          href="/sales/invoices"
-          className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${
-            pathname.startsWith("/sales/invoices")
-              ? "text-[#F47721]"
-              : "text-[#667085] hover:text-[#202124]"
-          }`}
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.8}
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-          <span>{lang === "gu" ? "વેચાણ" : "Sales"}</span>
-        </Link>
-
-        <Link
-          href="/sales/pos"
-          className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${
-            pathname === "/sales/pos"
-              ? "text-[#F47721]"
-              : "text-[#667085] hover:text-[#202124]"
-          }`}
-        >
-          <div className="w-8 h-8 -mt-3 rounded-full bg-[#F47721] text-white flex items-center justify-center shadow-saffron">
             <svg
-              className="w-4 h-4"
+              className="w-5 h-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -1781,60 +1761,107 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2.2}
-                d="M12 4v16m8-8H4"
+                strokeWidth={1.8}
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
               />
             </svg>
-          </div>
-          <span>{lang === "gu" ? "ઝડપી POS" : "POS"}</span>
-        </Link>
+            <span>{lang === "gu" ? "ડેશબોર્ડ" : "Dashboard"}</span>
+          </Link>
 
-        <Link
-          href="/purchases"
-          className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${
-            pathname.startsWith("/purchases")
-              ? "text-[#F47721]"
-              : "text-[#667085] hover:text-[#202124]"
-          }`}
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+          <Link
+            href="/sales/invoices"
+            className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${pathname.startsWith("/sales/invoices")
+                ? "text-[#C24E1D]"
+                : "text-[#667085] hover:text-[#202124]"
+              }`}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.8}
-              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-            />
-          </svg>
-          <span>{lang === "gu" ? "ખરીદી" : "Purchase"}</span>
-        </Link>
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.8}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <span>{lang === "gu" ? "વેચાણ" : "Sales"}</span>
+          </Link>
 
-        <button
-          type="button"
-          onClick={() => setIsMobileMenuOpen(true)}
-          className="flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold text-[#667085] hover:text-[#202124] transition-colors"
-          aria-label="Open full navigation menu"
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+          <Link
+            href="/sales/pos"
+            className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${pathname === "/sales/pos"
+                ? "text-[#C24E1D]"
+                : "text-[#667085] hover:text-[#202124]"
+              }`}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.8}
-              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-            />
-          </svg>
-          <span>{lang === "gu" ? "મેનૂ" : "Menu"}</span>
-        </button>
-      </nav>
+            <div className="w-8 h-8 -mt-3 rounded-full bg-[#C24E1D] text-white flex items-center justify-center shadow-saffron">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+            </div>
+            <span>{lang === "gu" ? "ઝડપી POS" : "POS"}</span>
+          </Link>
+
+          <Link
+            href="/purchases"
+            className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${pathname.startsWith("/purchases")
+                ? "text-[#C24E1D]"
+                : "text-[#667085] hover:text-[#202124]"
+              }`}
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.8}
+                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+              />
+            </svg>
+            <span>{lang === "gu" ? "ખરીદી" : "Purchase"}</span>
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold text-[#667085] hover:text-[#202124] transition-colors"
+            aria-label="Open full navigation menu"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.8}
+                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+              />
+            </svg>
+            <span>{lang === "gu" ? "મેનૂ" : "Menu"}</span>
+          </button>
+        </nav>
+      )}
     </div>
   );
 }

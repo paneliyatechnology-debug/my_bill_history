@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Myownbillbook Logo">
+  <defs>
+    <linearGradient id="Myownbillbook-mark-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0E1E30"/>
+      <stop offset="100%" stop-color="#060E18"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="13" fill="url(#Myownbillbook-mark-bg)" stroke="#E15A2B" stroke-opacity="0.25" stroke-width="1.2"/>
+  <text x="24" y="34" text-anchor="middle" font-family="'Noto Sans Gujarati', 'Noto Serif Gujarati', 'Shruti', 'Gujarati Sangam MN', system-ui, sans-serif" font-size="29" font-weight="800" fill="#E15A2B">ર</text>
+</svg>
