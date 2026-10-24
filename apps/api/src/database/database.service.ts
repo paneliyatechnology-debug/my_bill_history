@@ -22,6 +22,22 @@ export class DatabaseService
     try {
       await this.$connect();
       await this.detectRoleCapabilities();
+      await this.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "email_otps" (
+            "id" UUID NOT NULL PRIMARY KEY,
+            "email" VARCHAR(150) NOT NULL,
+            "purpose" VARCHAR(32) NOT NULL,
+            "code_hash" VARCHAR(128) NOT NULL,
+            "attempts" INTEGER NOT NULL DEFAULT 0,
+            "expires_at" TIMESTAMPTZ NOT NULL,
+            "consumed_at" TIMESTAMPTZ,
+            "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS "email_otps_email_purpose_created_at_idx"
+            ON "email_otps"("email", "purpose", "created_at");
+      `).catch((err) => {
+        this.logger.warn(`Notice: email_otps schema init: ${err.message}`);
+      });
     } catch {
       // Allow startup in environments without active DB
     }
