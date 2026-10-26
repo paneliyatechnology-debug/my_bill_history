@@ -44,7 +44,7 @@ export interface RequestOptions extends RequestInit {
   skipAuthRedirect?: boolean;
 }
 
-const DEFAULT_TIMEOUT_MS = 30000;
+const DEFAULT_TIMEOUT_MS = 60000; // 60s to accommodate cloud cold starts (Render/Fly)
 
 const getStoredToken = (): string | null => {
   if (typeof window === "undefined") return null;
@@ -161,8 +161,8 @@ async function request<T>(
     if (timedOut || fetchError?.name === "AbortError") {
       throw new ApiError(
         408,
-        `Request to ${cleanPath} timed out after ${timeoutMs}ms.`,
-        "વિનંતીનો સમય સમાપ્ત થયો. કૃપા કરીને પુનઃ પ્રયાસ કરો.",
+        `Request to ${cleanPath} timed out after ${Math.round(timeoutMs / 1000)}s. If the backend is on a free tier (Render), it may be waking up from sleep. Please try again in a few moments.`,
+        "સર્વર શરૂ થવામાં સમય લાગી રહ્યો છે (Render Cold Start). કૃપા કરીને ૧૦-૧૫ સેકન્ડ પછી ફરી પ્રયાસ કરો.",
         fetchError,
         true,
         false,

@@ -22,10 +22,20 @@ export default function (phase) {
       '*.local',
     ],
     async rewrites() {
+      // In production on Vercel, forward to Render backend if defined in either variable
+      const rawTarget =
+        process.env.API_INTERNAL_URL ||
+        process.env.NEXT_PUBLIC_API_URL ||
+        'http://localhost:4000/api/v1';
+
+      // Normalize target so it ends with /:path*
+      const baseClean = rawTarget.replace(/\/+$/, '').replace(/\/api\/v1$/, '');
+      const destination = `${baseClean}/api/v1/:path*`;
+
       return [
         {
           source: '/api/v1/:path*',
-          destination: process.env.API_INTERNAL_URL || 'http://localhost:4000/api/v1/:path*',
+          destination,
         },
       ];
     },
