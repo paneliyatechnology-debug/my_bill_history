@@ -1,4 +1,4 @@
-name: Monorepo CI
+name: Frontend CI
 
 on:
   push:
@@ -27,14 +27,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Generate Prisma Client
-        run: pnpm db:generate
-
       - name: Type Check
         run: pnpm type-check
 
       - name: Run Tests
         run: pnpm test
 
-      - name: Build Projects
+      - name: Build Next.js Application
         run: pnpm build
