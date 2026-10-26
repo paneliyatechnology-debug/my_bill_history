@@ -516,3 +516,172 @@ export interface FinancialSummaryDto {
   currency: string;
   asOf: string;
 }
+
+/**
+ * =========================================================
+ * DATA IMPORT SYSTEM TYPES & CONTRACTS
+ * =========================================================
+ */
+
+export enum ImportModuleType {
+  PARTIES = "parties",
+  CUSTOMERS = "customers",
+  SUPPLIERS = "suppliers",
+  ITEMS = "items",
+  SERVICES = "services",
+  ITEM_CATEGORIES = "item_categories",
+  CATEGORIES = "item_categories",
+  UNITS_OF_MEASURE = "units_of_measure",
+  UNITS = "units_of_measure",
+  WAREHOUSES = "warehouses",
+  ITEM_BATCHES = "item_batches",
+  HSN_MASTERS = "hsn_masters",
+  OPENING_STOCK = "opening_stock",
+  SALES_INVOICES = "sales_invoices",
+  PURCHASE_INVOICES = "purchase_invoices",
+  DELIVERY_CHALLANS = "delivery_challans",
+  SALES_RETURNS = "sales_returns",
+  PURCHASE_RETURNS = "purchase_returns",
+  LEDGER_GROUPS = "ledger_groups",
+  LEDGER_ACCOUNTS = "ledger_accounts",
+  JOURNAL_VOUCHERS = "journal_vouchers",
+  BILL_OF_MATERIALS = "bill_of_materials",
+}
+
+export enum ImportMode {
+  CREATE_ONLY = "CREATE_ONLY",
+  SKIP_DUPLICATES = "SKIP_DUPLICATES",
+  UPDATE_EXISTING = "UPDATE_EXISTING",
+}
+
+export enum ImportErrorPolicy {
+  IMPORT_VALID_ONLY = "IMPORT_VALID_ONLY",
+  ABORT_ON_ERROR = "ABORT_ON_ERROR",
+}
+
+export enum ImportStatus {
+  PENDING = "PENDING",
+  PARSING = "PARSING",
+  VALIDATING = "VALIDATING",
+  CONFIRMED = "CONFIRMED",
+  PROCESSING = "PROCESSING",
+  COMPLETED = "COMPLETED",
+  FAILED = "FAILED",
+  CANCELLED = "CANCELLED",
+}
+
+export interface ImportFieldDefinition {
+  key: string;
+  label: string;
+  labelGujarati: string;
+  required: boolean;
+  type: "string" | "number" | "date" | "boolean" | "enum";
+  enumValues?: string[];
+  synonyms: string[];
+  description: string;
+  descriptionGujarati: string;
+  sampleValue: any;
+  isIdentifier?: boolean;
+}
+
+export interface ImportModuleSchema {
+  module: ImportModuleType;
+  title: string;
+  titleGujarati: string;
+  category: "MASTERS" | "INVENTORY" | "SALES" | "PURCHASES" | "ACCOUNTING" | "MANUFACTURING";
+  description: string;
+  descriptionGujarati: string;
+  routeHref: string;
+  identifierField: string;
+  supportsModes: ImportMode[];
+  fields: ImportFieldDefinition[];
+  notes?: string;
+  notesGujarati?: string;
+}
+
+export interface ImportErrorRow {
+  rowNumber: number;
+  column?: string;
+  field?: string;
+  providedValue?: any;
+  errorCode: string;
+  errorMessage: string;
+  errorMessageGujarati?: string;
+  isBlocking: boolean;
+  actionTaken?: "FAILED" | "SKIPPED" | "WARNING";
+}
+
+export interface ImportRowPreview {
+  rowNumber: number;
+  data: Record<string, any>;
+  status: "VALID" | "WARNING" | "INVALID" | "DUPLICATE";
+  action: "CREATE" | "UPDATE" | "SKIP" | "FAIL";
+  messages: string[];
+  matchedExistingId?: string;
+  matchedExistingName?: string;
+}
+
+export interface ImportParseResult {
+  jobId: string;
+  fileName: string;
+  fileFormat: string;
+  fileSize: number;
+  worksheets: string[];
+  selectedWorksheet: string;
+  headers: string[];
+  detectedMapping: Record<string, string>;
+  totalRows: number;
+  sampleRows: Record<string, any>[];
+}
+
+export interface ImportPreviewResult {
+  jobId: string;
+  module: ImportModuleType;
+  totalRows: number;
+  validRows: number;
+  invalidRows: number;
+  duplicateRows: number;
+  warningCount: number;
+  rows: ImportRowPreview[];
+  summary: {
+    newRecords: number;
+    updateRecords: number;
+    skipRecords: number;
+    failedRecords: number;
+  };
+}
+
+export interface ImportJobDto {
+  id: string;
+  organizationId: string;
+  companyId: string;
+  userId?: string;
+  module: ImportModuleType;
+  fileName: string;
+  fileSize: number;
+  fileFormat: string;
+  worksheetName?: string;
+  status: ImportStatus;
+  mode: ImportMode;
+  errorPolicy: ImportErrorPolicy;
+  totalRows: number;
+  validRows: number;
+  importedRows: number;
+  updatedRows: number;
+  skippedRows: number;
+  failedRows: number;
+  columnMapping?: Record<string, string>;
+  errors?: ImportErrorRow[];
+  summary?: {
+    durationMs?: number;
+    createdIds?: string[];
+    updatedIds?: string[];
+    affectedAccounts?: string[];
+  };
+  errorMessage?: string;
+  idempotencyKey?: string;
+  startedAt?: string;
+  completedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}

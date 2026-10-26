@@ -7,3 +7,4 @@ export * from "./credentials";
 export * from "./secret-box";
 export * from "./nic-provider";
 export * from "./itc-settlement";
+export * from "./gstin-verification";

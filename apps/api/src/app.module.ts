@@ -29,6 +29,7 @@ import { DistributionModule } from "./distribution/distribution.module";
 import { ReconciliationModule } from "./reconciliation/reconciliation.module";
 import { GstModule } from "./gst/gst.module";
 import { SuperAdminModule } from "./super-admin/super-admin.module";
+import { ImportsModule } from "./imports/imports.module";
 
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 
@@ -69,6 +70,7 @@ import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
     DistributionModule,
     ReconciliationModule,
     GstModule,
+    ImportsModule,
     HealthModule,
   ],
   providers: [

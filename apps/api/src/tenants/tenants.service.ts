@@ -4,6 +4,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
+import * as bcrypt from "bcryptjs";
 import { DatabaseService } from "../database/database.service";
 import { AuditService } from "../audit/audit.service";
 import { LedgersService } from "../ledgers/ledgers.service";
@@ -653,6 +654,198 @@ export class TenantsService {
     return this.prisma.warehouse.delete({
       where: { id },
     });
+  }
+
+  async getOrganizationUsers(ctx: TenantContext) {
+    if (!ctx.organizationId) {
+      return [];
+    }
+    const users = await this.prisma.user.findMany({
+      where: { organizationId: ctx.organizationId },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        phone: true,
+        role: true,
+        preferredLang: true,
+        isActive: true,
+        createdAt: true,
+        branchAssignments: {
+          select: {
+            branch: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+              },
+            },
+            role: true,
+            isDefault: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "asc" },
+    });
+
+    return users.map((u) => {
+      const defaultBranch =
+        u.branchAssignments?.find((b) => b.isDefault)?.branch?.name ||
+        u.branchAssignments?.[0]?.branch?.name ||
+        "All Branches";
+
+      return {
+        id: u.id,
+        name: u.fullName,
+        phone: u.phone,
+        email: u.email,
+        role: u.role,
+        branch: defaultBranch,
+        status: u.isActive ? ("Active" as const) : ("Inactive" as const),
+        createdAt: u.createdAt.toISOString(),
+      };
+    });
+  }
+
+  async createOrganizationUser(
+    ctx: TenantContext,
+    dto: {
+      name: string;
+      phone: string;
+      email?: string;
+      role: UserRole;
+      branchId?: string;
+    },
+  ) {
+    if (!ctx.organizationId) {
+      throw new ForbiddenException("Organization context required.");
+    }
+
+    const existing = await this.prisma.user.findFirst({
+      where: { phone: dto.phone },
+    });
+    if (existing) {
+      throw new BadRequestException("User with this phone number already exists.");
+    }
+
+    const email = dto.email || `${dto.phone}@billing.internal`;
+    const defaultPassword = await bcrypt.hash(dto.phone, 10);
+
+    const created = await this.prisma.user.create({
+      data: {
+        organizationId: ctx.organizationId,
+        fullName: dto.name,
+        phone: dto.phone,
+        email,
+        passwordHash: defaultPassword,
+        role: dto.role,
+        isActive: true,
+        preferredLang: "en",
+      },
+    });
+
+    const branchId = dto.branchId || ctx.branchId;
+    if (branchId) {
+      await this.prisma.userBranchAssignment
+        .create({
+          data: {
+            userId: created.id,
+            branchId,
+            role: dto.role,
+            isDefault: true,
+          },
+        })
+        .catch(() => {});
+    }
+
+    return {
+      id: created.id,
+      name: created.fullName,
+      phone: created.phone,
+      email: created.email,
+      role: created.role,
+      branch: "All Branches",
+      status: "Active" as const,
+      createdAt: created.createdAt.toISOString(),
+    };
+  }
+
+  async updateOrganizationUser(
+    ctx: TenantContext,
+    userId: string,
+    dto: {
+      name?: string;
+      role?: UserRole;
+      isActive?: boolean;
+    },
+  ) {
+    if (!ctx.organizationId) {
+      throw new ForbiddenException("Organization context required.");
+    }
+
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, organizationId: ctx.organizationId },
+    });
+    if (!user) {
+      throw new NotFoundException("User not found in this organization.");
+    }
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(dto.name ? { fullName: dto.name } : {}),
+        ...(dto.role ? { role: dto.role } : {}),
+        ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
+      },
+    });
+  }
+
+  async deleteOrganizationUser(ctx: TenantContext, userId: string) {
+    if (!ctx.organizationId) {
+      throw new ForbiddenException("Organization context required.");
+    }
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, organizationId: ctx.organizationId },
+    });
+    if (!user) {
+      throw new NotFoundException("User not found in this organization.");
+    }
+    if (user.id === ctx.userId) {
+      throw new BadRequestException("You cannot delete your own account.");
+    }
+
+    return this.prisma.user.delete({
+      where: { id: userId },
+    });
+  }
+
+  async getOrganizationActivities(ctx: TenantContext) {
+    if (!ctx.organizationId) {
+      return [];
+    }
+    const logs = await this.prisma.auditLog.findMany({
+      where: { organizationId: ctx.organizationId },
+      include: {
+        user: {
+          select: {
+            fullName: true,
+            phone: true,
+            role: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 30,
+    });
+
+    return logs.map((log) => ({
+      id: log.id,
+      userName: log.user?.fullName || "Admin",
+      userRole: log.user?.role || "ADMIN",
+      action: log.action.replace(/_/g, " "),
+      timestamp: log.createdAt.toISOString(),
+      details: `${log.entityName} ${log.entityId ? `#${log.entityId.slice(0, 8)}` : ""}`,
+    }));
   }
 }
 

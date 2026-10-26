@@ -10,7 +10,8 @@
     "type-check": "tsc --noEmit",
     "test:reliability": "node scripts/test-reliability.mjs",
     "test:export": "node scripts/test-export-system.mjs",
-    "test": "node scripts/test-reliability.mjs && node scripts/test-export-system.mjs",
+    "test:gstin": "node scripts/test-gstin-verification.mjs",
+    "test": "node scripts/test-reliability.mjs && node scripts/test-export-system.mjs && node scripts/test-gstin-verification.mjs",
     "lint": "tsc --noEmit"
   },
   "dependencies": {

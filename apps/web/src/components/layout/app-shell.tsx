@@ -785,6 +785,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
     // --- GROUP 3: BUSINESS TOOLS ---
     {
+      id: "data_import",
+      name: "Data Import (Excel / CSV)",
+      nameGujarati: "ડેટા આયાત (Excel / CSV)",
+      group: "BUSINESS TOOLS",
+      badge: "Excel/CSV",
+      href: "/app/data-import",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.8}
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+          />
+        </svg>
+      ),
+    },
+    {
       id: "ai_collections",
       name: "Payment Reminders",
       nameGujarati: "ઓટો ઉઘરાણી (Follow-ups)",
@@ -812,7 +835,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       name: "Staff Attendance & Payroll",
       nameGujarati: "સ્ટાફ હાજરી અને પગાર",
       group: "BUSINESS TOOLS",
-      href: "/masters/parties",
+      href: "/app/sam",
       icon: (
         <svg
           className="w-5 h-5"
@@ -834,7 +857,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       name: "Manage Users",
       nameGujarati: "વપરાશકર્તા સંચાલન",
       group: "BUSINESS TOOLS",
-      href: "/settings",
+      href: "/settings/user-management",
       icon: (
         <svg
           className="w-5 h-5"
@@ -1010,7 +1033,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 ) {
                   const isActive =
                     pathname === section.href ||
-                    (section.href !== "/" && pathname.startsWith(section.href));
+                    (section.href !== "/" && pathname.startsWith(section.href)) ||
+                    (section.id === "payroll" && (pathname === "/payroll" || pathname.startsWith("/app/sam"))) ||
+                    (section.id === "users" && (pathname === "/settings/user-management" || pathname.startsWith("/app/settings/user-management")));
                   return (
                     <React.Fragment key={section.id}>
                       {showGroupHeader && (
@@ -1274,7 +1299,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               )}
             </Link>
 
-            {!isSidebarCollapsed && (
+            {/* {!isSidebarCollapsed && (
               <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 px-1">
                 <span className="flex items-center gap-1">
                   <span>🛡️</span> 100% Secure
@@ -1283,7 +1308,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <span>✓</span> ISO Certified
                 </span>
               </div>
-            )}
+            )} */}
           </div>
         </aside>
       )}
@@ -1614,7 +1639,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                           href={sec.href}
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={`flex items-center gap-3 px-3 py-2.5 rounded-button text-sm font-medium transition-colors ${pathname === sec.href ||
-                              (sec.href !== "/" && pathname.startsWith(sec.href))
+                              (sec.href !== "/" && pathname.startsWith(sec.href)) ||
+                              (sec.id === "payroll" && (pathname === "/payroll" || pathname.startsWith("/app/sam"))) ||
+                              (sec.id === "users" && (pathname === "/settings/user-management" || pathname.startsWith("/app/settings/user-management")))
                               ? "bg-[#3B404A] text-[#F1F3F5] font-bold border-l-2 border-[#E87536]"
                               : "text-[#D0D5DD] hover:text-[#FFFFFF] hover:bg-[#252932]"
                             }`}

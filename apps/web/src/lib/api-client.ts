@@ -223,6 +223,10 @@ async function request<T>(
 }
 
 export const apiClient = {
+  getBaseUrl(): string {
+    return API_BASE;
+  },
+
   get<T>(
     path: string,
     params?: Record<string, any>,

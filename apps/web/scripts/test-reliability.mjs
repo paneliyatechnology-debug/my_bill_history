@@ -60,7 +60,7 @@ async function runAsyncTest(name, fn) {
 }
 
 console.log("\n========================================================");
-console.log("RUNNING MYBILL HISTORY RELIABILITY & STABILITY REGRESSION TESTS");
+console.log("RUNNING MYOwnBILL HISTORY RELIABILITY & STABILITY REGRESSION TESTS");
 console.log("========================================================\n");
 
 // 1. ApiError Class Structure

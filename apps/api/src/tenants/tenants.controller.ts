@@ -123,5 +123,55 @@ export class TenantsController {
   ) {
     return this.tenantsService.deleteWarehouse(ctx, id);
   }
+
+  @Get("users")
+  async getOrganizationUsers(@CurrentTenant() ctx: TenantContext) {
+    return this.tenantsService.getOrganizationUsers(ctx);
+  }
+
+  @Post("users")
+  @Roles(UserRole.COMPANY_ADMIN, UserRole.ORG_ADMIN, UserRole.SUPER_ADMIN)
+  async createOrganizationUser(
+    @CurrentTenant() ctx: TenantContext,
+    @Body()
+    dto: {
+      name: string;
+      phone: string;
+      email?: string;
+      role: UserRole;
+      branchId?: string;
+    },
+  ) {
+    return this.tenantsService.createOrganizationUser(ctx, dto);
+  }
+
+  @Patch("users/:id")
+  @Roles(UserRole.COMPANY_ADMIN, UserRole.ORG_ADMIN, UserRole.SUPER_ADMIN)
+  async updateOrganizationUser(
+    @CurrentTenant() ctx: TenantContext,
+    @Param("id") id: string,
+    @Body()
+    dto: {
+      name?: string;
+      role?: UserRole;
+      isActive?: boolean;
+    },
+  ) {
+    return this.tenantsService.updateOrganizationUser(ctx, id, dto);
+  }
+
+  @Delete("users/:id")
+  @Roles(UserRole.COMPANY_ADMIN, UserRole.ORG_ADMIN, UserRole.SUPER_ADMIN)
+  async deleteOrganizationUser(
+    @CurrentTenant() ctx: TenantContext,
+    @Param("id") id: string,
+  ) {
+    return this.tenantsService.deleteOrganizationUser(ctx, id);
+  }
+
+  @Get("activities")
+  async getOrganizationActivities(@CurrentTenant() ctx: TenantContext) {
+    return this.tenantsService.getOrganizationActivities(ctx);
+  }
 }
 

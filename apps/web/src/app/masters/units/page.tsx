@@ -5,6 +5,8 @@ import { useAuth } from "../../../context/auth-context";
 import { apiClient } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
+import { ImportWizardModal } from "../../../components/imports/import-wizard-modal";
+import { ImportModuleType } from "@billing/shared-types";
 
 interface Unit {
   id: string;
@@ -23,6 +25,7 @@ export default function UnitsPage() {
 
   // Create Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -186,29 +189,42 @@ export default function UnitsPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => {
-            setFormData({ name: "", code: "", decimalPlaces: 2 });
-            setFormError(null);
-            setIsModalOpen(true);
-          }}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsImportModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs sm:text-sm font-bold rounded-xl shadow-2xs transition-all cursor-pointer"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          <span>{lang === "gu" ? "નવો એકમ ઉમેરો" : "Add Unit"}</span>
-        </button>
+            <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            <span>{lang === "gu" ? "એક્સેલ ઈમ્પોર્ટ" : "Import Excel"}</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setFormData({ name: "", code: "", decimalPlaces: 2 });
+              setFormError(null);
+              setIsModalOpen(true);
+            }}
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            <span>{lang === "gu" ? "નવો એકમ ઉમેરો" : "Add Unit"}</span>
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -588,6 +604,14 @@ export default function UnitsPage() {
           </div>
         </div>
       </Modal>
+
+      {/* Excel / CSV Import Wizard Modal */}
+      <ImportWizardModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        preselectedModule={ImportModuleType.UNITS}
+        onSuccess={fetchUnits}
+      />
     </div>
   );
 }

@@ -16,6 +16,8 @@ import { CurrentTenant } from "../common/decorators/current-tenant.decorator";
 import { GstDocumentsService } from "./gst-documents.service";
 import { Gstr2bService } from "./gstr2b.service";
 import { GstPortalService } from "./gst-portal.service";
+import { GstVerificationService } from "./gst-verification.service";
+import { VerifyGstinDto } from "./dto/verify-gstin.dto";
 
 const readers = [
   UserRole.SUPER_ADMIN,
@@ -37,7 +39,21 @@ export class GstController {
     private readonly gstr2b: Gstr2bService,
     private readonly portal: GstPortalService,
     private readonly documents: GstDocumentsService,
+    private readonly gstVerification: GstVerificationService,
   ) {}
+
+  @Post("verify-gstin")
+  @Roles(...readers, ...writers)
+  verifyGstin(
+    @CurrentTenant() tenant: TenantContext,
+    @Body() body: VerifyGstinDto,
+  ) {
+    return this.gstVerification.verifyGstin(
+      tenant,
+      body?.gstin,
+      body?.forceRefresh,
+    );
+  }
 
   @Post("debit-notes")
   @Roles(...writers)

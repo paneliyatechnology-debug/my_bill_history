@@ -95,7 +95,7 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
     {
       id: "user-management",
       href: "/settings/user-management",
-      label: "User Management",
+      label: "Manage Users",
       labelGujarati: "યુઝર્સ મેનેજમેન્ટ",
       icon: (
         <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -262,9 +262,9 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
 
         {/* Footer Security Badges */}
         <div className="p-3 border-t border-[#F1F3F5] bg-slate-50/60 flex flex-col gap-1.5 shrink-0">
-          <div className="text-[10px] text-slate-400 font-medium">
+          {/* <div className="text-[10px] text-slate-400 font-medium">
             App Version : 9.25.1
-          </div>
+          </div> */}
           {/* <div className="flex items-center justify-between text-[10px] text-slate-500 font-medium">
             <span className="flex items-center gap-1">
               <svg className="w-3 h-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

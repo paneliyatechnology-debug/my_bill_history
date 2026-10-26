@@ -10,6 +10,8 @@ import { ItemStepModal, ItemFormData, PartyOption } from "./components/item-step
 import { ItemBarcodeModal } from "./components/item-barcode-modal";
 import { AdjustStockModal } from "./components/adjust-stock-modal";
 import { getItemPartyPrices, setItemPartyPrices } from "../../../lib/party-item-pricing";
+import { ImportWizardModal } from "../../../components/imports/import-wizard-modal";
+import { ImportModuleType } from "@billing/shared-types";
 
 interface Item {
   id: string;
@@ -209,6 +211,7 @@ export default function ItemsPage() {
 
   // Modals & Action States
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [adjustStockItem, setAdjustStockItem] = useState<Item | null>(null);
@@ -1024,6 +1027,18 @@ export default function ItemsPage() {
               )}
             </div>
 
+            {/* Import Excel Button */}
+            <button
+              type="button"
+              onClick={() => setIsImportModalOpen(true)}
+              className="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-lg shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer"
+            >
+              <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              <span>{lang === "gu" ? "એક્સેલ ઈમ્પોર્ટ" : "Import Excel"}</span>
+            </button>
+
             {/* Create Item Button */}
             <button
               onClick={handleOpenCreateModal}
@@ -1144,11 +1159,13 @@ export default function ItemsPage() {
             <span>Product Library</span>
           </button>
           <button
-            onClick={() => alert("Upload Excel: Select your file with Item Name, HSN, Tax Rate, and Stock.")}
+            onClick={() => setIsImportModalOpen(true)}
             className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
           >
-            <span>📊</span>
-            <span>Upload Excel</span>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            <span>{lang === "gu" ? "એક્સેલ થી અપલોડ કરો" : "Upload Excel / CSV"}</span>
           </button>
         </div>
       </div>
@@ -1437,6 +1454,14 @@ export default function ItemsPage() {
           </div>
         </div>
       </Modal>
+
+      {/* Excel / CSV Import Wizard Modal */}
+      <ImportWizardModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        preselectedModule={ImportModuleType.ITEMS}
+        onSuccess={fetchData}
+      />
     </div>
   );
 }

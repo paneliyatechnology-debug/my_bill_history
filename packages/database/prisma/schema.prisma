@@ -162,6 +162,7 @@ model Company {
   gstr2bReconciliations    Gstr2bReconciliation[]
   gstr2bAdjustments        Gstr2bAdjustment[]
   gstApiAuditLogs          GstApiAuditLog[]
+  importJobs               ImportJob[]
 
   @@unique([gstin, organizationId])
   @@index([organizationId])
@@ -1664,4 +1665,62 @@ model EmailOtp {
 
   @@index([email, purpose, createdAt])
   @@map("email_otps")
+}
+
+// ---------------------------------------------------------
+// 12. DATA IMPORT SYSTEM (EXCEL / CSV IMPORT JOBS)
+// ---------------------------------------------------------
+
+enum DbImportStatus {
+  PENDING
+  PARSING
+  VALIDATING
+  CONFIRMED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum DbImportMode {
+  CREATE_ONLY
+  SKIP_DUPLICATES
+  UPDATE_EXISTING
+}
+
+model ImportJob {
+  id              String         @id @default(uuid()) @db.Uuid
+  organizationId  String         @map("organization_id") @db.Uuid
+  companyId       String         @map("company_id") @db.Uuid
+  userId          String?        @map("user_id") @db.Uuid
+  module          String         @db.VarChar(50)
+  fileName        String         @map("file_name") @db.VarChar(255)
+  fileSize        Int            @map("file_size")
+  fileFormat      String         @map("file_format") @db.VarChar(20)
+  worksheetName   String?        @map("worksheet_name") @db.VarChar(100)
+  status          DbImportStatus @default(PENDING)
+  mode            DbImportMode   @default(SKIP_DUPLICATES)
+  errorPolicy     String         @default("IMPORT_VALID_ONLY") @map("error_policy") @db.VarChar(30)
+  totalRows       Int            @default(0) @map("total_rows")
+  validRows       Int            @default(0) @map("valid_rows")
+  importedRows    Int            @default(0) @map("imported_rows")
+  updatedRows     Int            @default(0) @map("updated_rows")
+  skippedRows     Int            @default(0) @map("skipped_rows")
+  failedRows      Int            @default(0) @map("failed_rows")
+  columnMapping   Json?          @map("column_mapping")
+  errorsJson      Json?          @map("errors_json")
+  summaryJson     Json?          @map("summary_json")
+  errorMessage    String?        @map("error_message") @db.Text
+  idempotencyKey  String?        @map("idempotency_key") @db.VarChar(100)
+  startedAt       DateTime?      @map("started_at")
+  completedAt     DateTime?      @map("completed_at")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  company         Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, companyId, createdAt])
+  @@index([companyId, module])
+  @@index([idempotencyKey])
+  @@map("import_jobs")
 }

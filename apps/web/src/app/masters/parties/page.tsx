@@ -1,12 +1,40 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { Badge, StatusBadge } from "../../../components/ui/badge";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
+import { ImportWizardModal } from "../../../components/imports/import-wizard-modal";
+import { ImportModuleType } from "@billing/shared-types";
+
+export interface VerifiedGstinDetails {
+  gstin: string;
+  legalName: string | null;
+  tradeName: string | null;
+  registrationStatus: "ACTIVE" | "CANCELLED" | "SUSPENDED" | "INACTIVE" | "UNKNOWN";
+  registrationDate: string | null;
+  taxpayerType: string | null;
+  constitutionOfBusiness: string | null;
+  pan: string | null;
+  stateCode: string | null;
+  stateName: string | null;
+  stateNameGujarati?: string | null;
+  address: {
+    line1: string | null;
+    city: string | null;
+    district?: string | null;
+    state?: string | null;
+    stateCode?: string | null;
+    pincode: string | null;
+  };
+  source: string;
+  alreadyExistsInCompany?: boolean;
+  message?: string;
+  messageGujarati?: string;
+}
 
 interface Party {
   id: string;
@@ -49,6 +77,7 @@ export default function PartiesPage() {
 
   // Create Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -105,51 +134,174 @@ export default function PartiesPage() {
     suggestedGstin: string;
     calculatedChecksum: string;
   } | null>(null);
+  const [verifiedGstinData, setVerifiedGstinData] = useState<VerifiedGstinDetails | null>(null);
+  const [editVerifiedGstinData, setEditVerifiedGstinData] = useState<VerifiedGstinDetails | null>(null);
+  const [nameConflict, setNameConflict] = useState<{
+    existing: string;
+    verified: string;
+    isEdit: boolean;
+  } | null>(null);
+  const activeGstinRequestRef = useRef<string>("");
 
-  const handleGstinLookup = async (gstinValue: string, isEdit: boolean = false) => {
+  const handleGstinLookup = async (
+    gstinValue: string,
+    isEdit: boolean = false,
+    forceRefresh: boolean = false,
+  ) => {
     const clean = gstinValue.trim().toUpperCase();
     setGstinCorrection(null);
     setGstinAutofillSuccess(null);
+    setNameConflict(null);
+
+    if (isEdit) {
+      setEditVerifiedGstinData(null);
+    } else {
+      setVerifiedGstinData(null);
+    }
 
     if (clean.length < 15) return;
 
+    // Fast statutory pattern validation before calling backend
+    const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+    if (!GSTIN_REGEX.test(clean)) {
+      setFormError(
+        lang === "gu"
+          ? `GSTIN ફોર્મેટ અમાન્ય છે (૧૫ અક્ષરો: ૨ રાજ્ય કોડ + ૧૦ પાન + ૧ એન્ટિટી + Z + ચકાસણી અક્ષર).`
+          : `Invalid GSTIN format (15 characters: 2-digit State Code + 10-char PAN + Entity + 'Z' + Checksum).`
+      );
+      return;
+    }
+
+    activeGstinRequestRef.current = clean;
     setIsGstinFetching(true);
     setFormError(null);
+
     try {
-      const res: any = await apiClient.get(`/parties/lookup/gstin/${clean}`);
-      if (res && res.isValid) {
+      let res: any;
+      try {
+        res = await apiClient.post("/gst/verify-gstin", {
+          gstin: clean,
+          forceRefresh,
+        });
+      } catch {
+        // Resilient fallback to legacy lookup endpoint if verify-gstin is unavailable
+        res = await apiClient.get(`/parties/lookup/gstin/${clean}`);
+      }
+
+      // Ignore stale responses if the user changed the input while request was in flight
+      if (activeGstinRequestRef.current !== clean) {
+        return;
+      }
+
+      if (res && res.isValid && (res.success || res.legalName || res.tradeName || res.source)) {
         const autofillName = res.tradeName || res.legalName || "";
+        const autofillAddressLine = res.address?.line1 || res.address?.line2 || "";
+        const autofillCity = res.address?.city || res.address?.district || "";
+        const autofillPincode = res.address?.pincode || "";
+        const autofillStateCode = res.stateCode || (clean.length >= 2 ? clean.substring(0, 2) : "24");
+        const currentFormName = isEdit ? editFormData.name : formData.name;
+
+        const verifiedDetails: VerifiedGstinDetails = {
+          gstin: res.gstin || clean,
+          legalName: res.legalName || null,
+          tradeName: res.tradeName || null,
+          registrationStatus: (res.registrationStatus || res.status || "ACTIVE").toUpperCase() as any,
+          registrationDate: res.registrationDate || null,
+          taxpayerType: res.taxpayerType || res.gstType || "Regular",
+          constitutionOfBusiness: res.constitutionOfBusiness || res.constitution || null,
+          pan: res.pan || (clean.length >= 12 ? clean.substring(2, 12) : null),
+          stateCode: autofillStateCode,
+          stateName: res.stateName || null,
+          stateNameGujarati: res.stateNameGujarati || null,
+          address: {
+            line1: autofillAddressLine || null,
+            city: autofillCity || null,
+            district: res.address?.district || null,
+            state: res.address?.state || null,
+            stateCode: autofillStateCode,
+            pincode: autofillPincode || null,
+          },
+          source: res.source || "LIVE_API",
+          alreadyExistsInCompany: Boolean(res.alreadyExistsInCompany),
+          message: res.message,
+          messageGujarati: res.messageGujarati,
+        };
+
         if (isEdit) {
-          setEditFormData((prev) => ({
-            ...prev,
-            gstin: clean,
-            name: autofillName || prev.name,
-            stateCode: res.stateCode || prev.stateCode,
-            line1: res.address?.line1 || prev.line1,
-            city: res.address?.city || prev.city,
-            pincode: res.address?.pincode || prev.pincode,
-          }));
+          setEditVerifiedGstinData(verifiedDetails);
         } else {
-          setFormData((prev) => ({
-            ...prev,
-            gstin: clean,
-            name: autofillName || prev.name,
-            stateCode: res.stateCode || prev.stateCode,
-            line1: res.address?.line1 || prev.line1,
-            city: res.address?.city || prev.city,
-            pincode: res.address?.pincode || prev.pincode,
-          }));
+          setVerifiedGstinData(verifiedDetails);
+        }
+
+        // Conflict detection: If user already manually typed a conflicting name
+        if (
+          currentFormName &&
+          currentFormName.trim() &&
+          autofillName &&
+          currentFormName.trim().toLowerCase() !== autofillName.trim().toLowerCase()
+        ) {
+          setNameConflict({
+            existing: currentFormName,
+            verified: autofillName,
+            isEdit,
+          });
+
+          // Autofill address and state code, keep user-entered name intact until resolved
+          if (isEdit) {
+            setEditFormData((prev) => ({
+              ...prev,
+              gstin: clean,
+              stateCode: autofillStateCode || prev.stateCode,
+              line1: autofillAddressLine || prev.line1,
+              city: autofillCity || prev.city,
+              pincode: autofillPincode || prev.pincode,
+            }));
+          } else {
+            setFormData((prev) => ({
+              ...prev,
+              gstin: clean,
+              stateCode: autofillStateCode || prev.stateCode,
+              line1: autofillAddressLine || prev.line1,
+              city: autofillCity || prev.city,
+              pincode: autofillPincode || prev.pincode,
+            }));
+          }
+        } else {
+          // No conflict: safe automatic fill of entire form
+          if (isEdit) {
+            setEditFormData((prev) => ({
+              ...prev,
+              gstin: clean,
+              name: autofillName || prev.name,
+              nameGujarati: res.nameGujarati || prev.nameGujarati,
+              stateCode: autofillStateCode || prev.stateCode,
+              line1: autofillAddressLine || prev.line1,
+              city: autofillCity || prev.city,
+              pincode: autofillPincode || prev.pincode,
+            }));
+          } else {
+            setFormData((prev) => ({
+              ...prev,
+              gstin: clean,
+              name: autofillName || prev.name,
+              nameGujarati: res.nameGujarati || prev.nameGujarati,
+              stateCode: autofillStateCode || prev.stateCode,
+              line1: autofillAddressLine || prev.line1,
+              city: autofillCity || prev.city,
+              pincode: autofillPincode || prev.pincode,
+            }));
+          }
         }
 
         if (autofillName) {
           setGstinAutofillSuccess(
-            `${autofillName} • ${res.stateName || res.stateCode} (${res.constitution || "Verified Taxpayer"})`
+            `${autofillName} • ${res.stateName || res.stateCode} (${res.constitutionOfBusiness || res.constitution || "Verified Taxpayer"})`
           );
         } else {
           setGstinAutofillSuccess(
             lang === "gu"
-              ? `માન્ય GSTIN (${res.stateNameGujarati || res.stateName}) • પાન: ${res.pan} • ${res.constitution || "ચકાસાયેલ"}`
-              : `Valid GSTIN (${res.stateName}) • PAN: ${res.pan} • ${res.constitution || "Verified"}`
+              ? `માન્ય GSTIN (${res.stateNameGujarati || res.stateName}) • પાન: ${res.pan} • ${res.constitutionOfBusiness || res.constitution || "ચકાસાયેલ"}`
+              : `Valid GSTIN (${res.stateName}) • PAN: ${res.pan} • ${res.constitutionOfBusiness || res.constitution || "Verified"}`
           );
         }
       } else if (res && !res.isValid && res.suggestedGstin) {
@@ -166,9 +318,17 @@ export default function PartiesPage() {
         setFormError(lang === "gu" && res.errorGujarati ? res.errorGujarati : res.error);
       }
     } catch (err: any) {
-      console.warn("GSTIN lookup failed:", err);
+      if (activeGstinRequestRef.current === clean) {
+        setFormError(
+          lang === "gu" && err.messageGujarati
+            ? err.messageGujarati
+            : err.message || "Failed to verify GSTIN with provider."
+        );
+      }
     } finally {
-      setIsGstinFetching(false);
+      if (activeGstinRequestRef.current === clean) {
+        setIsGstinFetching(false);
+      }
     }
   };
 
@@ -267,6 +427,8 @@ export default function PartiesPage() {
   const handleOpenCreateModal = () => {
     setGstinAutofillSuccess(null);
     setGstinCorrection(null);
+    setVerifiedGstinData(null);
+    setNameConflict(null);
     setFormData({
       type: "CUSTOMER",
       name: "",
@@ -325,6 +487,8 @@ export default function PartiesPage() {
   const handleOpenEditModal = (party: Party) => {
     setGstinAutofillSuccess(null);
     setGstinCorrection(null);
+    setEditVerifiedGstinData(null);
+    setNameConflict(null);
     setEditingParty(party);
     setEditFormData({
       type: party.type,
@@ -602,6 +766,17 @@ export default function PartiesPage() {
                 <span>+</span>
                 <span>{lang === "gu" ? "વેચાણ બિલ બનાવો" : "Create Invoice"}</span>
               </Link>
+              <button
+                type="button"
+                onClick={() => setIsImportModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-2xs"
+                title="Import Parties from Excel or CSV"
+              >
+                <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                <span>{lang === "gu" ? "એક્સેલ ઈમ્પોર્ટ" : "Import Excel"}</span>
+              </button>
               <button
                 type="button"
                 onClick={handleOpenCreateModal}
@@ -1238,25 +1413,38 @@ export default function PartiesPage() {
               </p>
             </div>
 
-            <button
-              onClick={handleOpenCreateModal}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F47721] hover:bg-[#D95F12] active:bg-[#B94B0A] text-white text-xs sm:text-sm font-bold rounded-xl shadow-saffron transition-all w-full sm:w-auto shrink-0 cursor-pointer"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setIsImportModalOpen(true)}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-800 border border-emerald-300 text-xs sm:text-sm font-bold rounded-xl shadow-2xs transition-all w-full sm:w-auto shrink-0 cursor-pointer"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              <span>{lang === "gu" ? "નવો વેપારી ઉમેરો" : "Add New Party"}</span>
-            </button>
+                <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                <span>{lang === "gu" ? "એક્સેલ / CSV ઈમ્પોર્ટ" : "Import Excel / CSV"}</span>
+              </button>
+
+              <button
+                onClick={handleOpenCreateModal}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F47721] hover:bg-[#D95F12] active:bg-[#B94B0A] text-white text-xs sm:text-sm font-bold rounded-xl shadow-saffron transition-all w-full sm:w-auto shrink-0 cursor-pointer"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                <span>{lang === "gu" ? "નવો વેપારી ઉમેરો" : "Add New Party"}</span>
+              </button>
+            </div>
           </div>
 
           {/* 3 Summary KPI Cards (Matching MyBillBook) */}
@@ -1528,8 +1716,8 @@ export default function PartiesPage() {
             </div>
           </div>
 
-          {/* GSTIN and State Code with Live Autofill */}
-          <div className="bg-slate-50/90 p-3 rounded-lg border border-slate-200 space-y-2">
+          {/* GSTIN and State Code with Live Autofill & Verification */}
+          <div className="bg-slate-50/90 p-3.5 rounded-lg border border-slate-200 space-y-2.5">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="sm:col-span-2">
                 <div className="flex items-center justify-between mb-1">
@@ -1549,25 +1737,42 @@ export default function PartiesPage() {
                       setFormData({ ...formData, gstin: clean });
                       if (clean.trim().length === 15) {
                         handleGstinLookup(clean, false);
+                      } else {
+                        setVerifiedGstinData(null);
+                        setGstinAutofillSuccess(null);
+                        setGstinCorrection(null);
+                        setNameConflict(null);
                       }
                     }}
-                    placeholder="24AAAAA0000A1Z5"
+                    placeholder="24AAAAA0000A1Z2"
                     maxLength={15}
                     className="w-full text-xs p-2 bg-white border border-slate-300 rounded font-mono uppercase focus:ring-1 focus:ring-emerald-500"
                   />
                   <button
                     type="button"
                     disabled={isGstinFetching || !formData.gstin || formData.gstin.trim().length < 15}
-                    onClick={() => handleGstinLookup(formData.gstin, false)}
+                    onClick={() => handleGstinLookup(formData.gstin, false, true)}
                     className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white rounded text-xs font-medium flex items-center gap-1.5 shrink-0 shadow-sm transition-colors cursor-pointer disabled:cursor-not-allowed"
-                    title="Fetch company name & address from GSTIN"
+                    title="Verify GSTIN with official portal & autofill details"
                   >
                     {isGstinFetching ? (
                       <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                     ) : (
                       <span>⚡</span>
                     )}
-                    <span>{lang === "gu" ? "લાવો" : "Autofill"}</span>
+                    <span>
+                      {isGstinFetching
+                        ? lang === "gu"
+                          ? "ચકાસી રહ્યા છીએ..."
+                          : "Verifying..."
+                        : verifiedGstinData
+                        ? lang === "gu"
+                          ? "ફરી ચકાસો"
+                          : "Re-verify"
+                        : lang === "gu"
+                        ? "વેરિફાઈ જીએસટી"
+                        : "Verify GSTIN"}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1594,20 +1799,121 @@ export default function PartiesPage() {
             {isGstinFetching && (
               <div className="flex items-center gap-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700 animate-pulse">
                 <span className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></span>
-                <span>{lang === "gu" ? "જીએસટી પોર્ટલ પરથી વેપારીની વિગતો લાવી રહ્યા છીએ..." : "Looking up taxpayer details from GST portal..."}</span>
+                <span>{lang === "gu" ? "જીએસટી પોર્ટલ પરથી વેપારીની વિગતો લાવી રહ્યા છીએ..." : "Contacting GST portal and verifying taxpayer details..."}</span>
               </div>
             )}
 
-            {/* GSTIN Autofill Success */}
-            {gstinAutofillSuccess && !isGstinFetching && (
-              <div className="flex items-center justify-between p-2 bg-emerald-50 border border-emerald-200 rounded text-xs text-emerald-800">
-                <div className="flex items-center gap-2">
-                  <span className="text-emerald-600 font-bold">✓</span>
-                  <span className="font-medium">{gstinAutofillSuccess}</span>
+            {/* Name Discrepancy Conflict Resolution Banner */}
+            {nameConflict && !nameConflict.isEdit && !isGstinFetching && (
+              <div className="p-2.5 bg-amber-50 border border-amber-300 rounded text-xs text-amber-900 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-amber-800">
+                    {lang === "gu" ? "નામ વિસંગતતા જણાઈ:" : "Party Name Discrepancy:"}
+                  </span>
+                  <span className="text-[10px] bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded font-mono">
+                    Review
+                  </span>
                 </div>
-                <span className="text-[10px] font-semibold uppercase bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">
-                  {lang === "gu" ? "ઓટોફિલ સફળ" : "Autofilled"}
-                </span>
+                <p className="text-slate-700 text-[11px]">
+                  {lang === "gu"
+                    ? `તમે દાખલ કરેલ નામ '${nameConflict.existing}' છે, પરંતુ પોર્ટલ પર નોંધાયેલ નામ '${nameConflict.verified}' છે.`
+                    : `You entered '${nameConflict.existing}', but the GST portal record is '${nameConflict.verified}'.`}
+                </p>
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData((prev) => ({ ...prev, name: nameConflict.verified }));
+                      setNameConflict(null);
+                    }}
+                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-medium cursor-pointer"
+                  >
+                    {lang === "gu" ? "વેરિફાઇડ નામ વાપરો" : "Use Verified Name"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNameConflict(null)}
+                    className="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-xs font-medium cursor-pointer"
+                  >
+                    {lang === "gu" ? "દાખલ કરેલ નામ રાખો" : "Keep Entered Name"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Verified Taxpayer Card */}
+            {verifiedGstinData && !isGstinFetching && (
+              <div className="p-2.5 bg-emerald-50/70 border border-emerald-200 rounded text-xs text-slate-800 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-emerald-600 font-bold">✓</span>
+                    <span className="font-bold text-slate-900">
+                      {verifiedGstinData.tradeName || verifiedGstinData.legalName || "Verified Taxpayer"}
+                    </span>
+                  </div>
+                  <span
+                    className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded border ${
+                      verifiedGstinData.registrationStatus === "ACTIVE"
+                        ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                        : verifiedGstinData.registrationStatus === "CANCELLED"
+                        ? "bg-rose-100 text-rose-800 border-rose-300"
+                        : "bg-amber-100 text-amber-800 border-amber-300"
+                    }`}
+                  >
+                    {verifiedGstinData.registrationStatus}
+                  </span>
+                </div>
+
+                {/* Cancelled / Suspended Warning */}
+                {verifiedGstinData.registrationStatus === "CANCELLED" && (
+                  <div className="p-2 bg-rose-50 border border-rose-300 rounded text-rose-800 text-[11px]">
+                    ⚠️ {lang === "gu"
+                      ? "આ GSTIN રદ (Cancelled) થયેલ છે. આ પાર્ટી સાથેના બિલો પર ITC દાવો માન્ય રહેશે નહીં."
+                      : "Warning: This GSTIN is officially CANCELLED. ITC cannot be claimed on supplies from cancelled registrations."}
+                  </div>
+                )}
+                {verifiedGstinData.registrationStatus === "SUSPENDED" && (
+                  <div className="p-2 bg-amber-50 border border-amber-300 rounded text-amber-800 text-[11px]">
+                    ⚠️ {lang === "gu"
+                      ? "આ GSTIN હાલમાં સસ્પેન્ડ (Suspended) છે."
+                      : "Warning: This GSTIN is currently SUSPENDED by tax authorities."}
+                  </div>
+                )}
+
+                {/* Taxpayer Meta Details */}
+                <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600 pt-1 border-t border-emerald-200/60">
+                  <div>
+                    <span className="text-slate-400">Legal: </span>
+                    <span className="font-medium text-slate-700">{verifiedGstinData.legalName || "—"}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400">Type: </span>
+                    <span className="font-medium text-slate-700">{verifiedGstinData.taxpayerType || "Regular"}</span>
+                  </div>
+                  {verifiedGstinData.constitutionOfBusiness && (
+                    <div className="col-span-2">
+                      <span className="text-slate-400">Constitution: </span>
+                      <span className="font-medium text-slate-700">{verifiedGstinData.constitutionOfBusiness}</span>
+                    </div>
+                  )}
+                  {verifiedGstinData.address?.line1 && (
+                    <div className="col-span-2 truncate">
+                      <span className="text-slate-400">Address: </span>
+                      <span className="font-mono text-slate-700">
+                        {verifiedGstinData.address.line1}, {verifiedGstinData.address.city || ""}{" "}
+                        {verifiedGstinData.address.pincode || ""}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {verifiedGstinData.alreadyExistsInCompany && (
+                  <div className="text-[11px] text-amber-700 bg-amber-50/80 p-1.5 rounded border border-amber-200">
+                    ℹ️ {lang === "gu"
+                      ? "આ GSTIN વાળી પાર્ટી તમારા ખાતામાં પહેલેથી હાજર છે."
+                      : "A party with this GSTIN already exists in your company records."}
+                  </div>
+                )}
               </div>
             )}
 
@@ -1794,8 +2100,8 @@ export default function PartiesPage() {
             </div>
           </div>
 
-          {/* GSTIN and State Code with Live Autofill */}
-          <div className="bg-slate-50/90 p-3 rounded-lg border border-slate-200 space-y-2">
+          {/* GSTIN and State Code with Live Autofill & Verification */}
+          <div className="bg-slate-50/90 p-3.5 rounded-lg border border-slate-200 space-y-2.5">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="sm:col-span-2">
                 <div className="flex items-center justify-between mb-1">
@@ -1815,25 +2121,42 @@ export default function PartiesPage() {
                       setEditFormData({ ...editFormData, gstin: clean });
                       if (clean.trim().length === 15) {
                         handleGstinLookup(clean, true);
+                      } else {
+                        setEditVerifiedGstinData(null);
+                        setGstinAutofillSuccess(null);
+                        setGstinCorrection(null);
+                        setNameConflict(null);
                       }
                     }}
-                    placeholder="24AAAAA0000A1Z5"
+                    placeholder="24AAAAA0000A1Z2"
                     maxLength={15}
                     className="w-full text-xs p-2 bg-white border border-slate-300 rounded font-mono uppercase focus:ring-1 focus:ring-emerald-500"
                   />
                   <button
                     type="button"
                     disabled={isGstinFetching || !editFormData.gstin || editFormData.gstin.trim().length < 15}
-                    onClick={() => handleGstinLookup(editFormData.gstin, true)}
+                    onClick={() => handleGstinLookup(editFormData.gstin, true, true)}
                     className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white rounded text-xs font-medium flex items-center gap-1.5 shrink-0 shadow-sm transition-colors cursor-pointer disabled:cursor-not-allowed"
-                    title="Fetch company name & address from GSTIN"
+                    title="Verify GSTIN with official portal & autofill details"
                   >
                     {isGstinFetching ? (
                       <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                     ) : (
                       <span>⚡</span>
                     )}
-                    <span>{lang === "gu" ? "લાવો" : "Autofill"}</span>
+                    <span>
+                      {isGstinFetching
+                        ? lang === "gu"
+                          ? "ચકાસી રહ્યા છીએ..."
+                          : "Verifying..."
+                        : editVerifiedGstinData
+                        ? lang === "gu"
+                          ? "ફરી ચકાસો"
+                          : "Re-verify"
+                        : lang === "gu"
+                        ? "વેરિફાઈ જીએસટી"
+                        : "Verify GSTIN"}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1860,20 +2183,121 @@ export default function PartiesPage() {
             {isGstinFetching && (
               <div className="flex items-center gap-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700 animate-pulse">
                 <span className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></span>
-                <span>{lang === "gu" ? "જીએસટી પોર્ટલ પરથી વેપારીની વિગતો લાવી રહ્યા છીએ..." : "Looking up taxpayer details from GST portal..."}</span>
+                <span>{lang === "gu" ? "જીએસટી પોર્ટલ પરથી વેપારીની વિગતો લાવી રહ્યા છીએ..." : "Contacting GST portal and verifying taxpayer details..."}</span>
               </div>
             )}
 
-            {/* GSTIN Autofill Success */}
-            {gstinAutofillSuccess && !isGstinFetching && (
-              <div className="flex items-center justify-between p-2 bg-emerald-50 border border-emerald-200 rounded text-xs text-emerald-800">
-                <div className="flex items-center gap-2">
-                  <span className="text-emerald-600 font-bold">✓</span>
-                  <span className="font-medium">{gstinAutofillSuccess}</span>
+            {/* Name Discrepancy Conflict Resolution Banner */}
+            {nameConflict && nameConflict.isEdit && !isGstinFetching && (
+              <div className="p-2.5 bg-amber-50 border border-amber-300 rounded text-xs text-amber-900 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-amber-800">
+                    {lang === "gu" ? "નામ વિસંગતતા જણાઈ:" : "Party Name Discrepancy:"}
+                  </span>
+                  <span className="text-[10px] bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded font-mono">
+                    Review
+                  </span>
                 </div>
-                <span className="text-[10px] font-semibold uppercase bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">
-                  {lang === "gu" ? "ઓટોફિલ સફળ" : "Autofilled"}
-                </span>
+                <p className="text-slate-700 text-[11px]">
+                  {lang === "gu"
+                    ? `તમે દાખલ કરેલ નામ '${nameConflict.existing}' છે, પરંતુ પોર્ટલ પર નોંધાયેલ નામ '${nameConflict.verified}' છે.`
+                    : `You entered '${nameConflict.existing}', but the GST portal record is '${nameConflict.verified}'.`}
+                </p>
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditFormData((prev) => ({ ...prev, name: nameConflict.verified }));
+                      setNameConflict(null);
+                    }}
+                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-medium cursor-pointer"
+                  >
+                    {lang === "gu" ? "વેરિફાઇડ નામ વાપરો" : "Use Verified Name"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNameConflict(null)}
+                    className="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-xs font-medium cursor-pointer"
+                  >
+                    {lang === "gu" ? "દાખલ કરેલ નામ રાખો" : "Keep Entered Name"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Verified Taxpayer Card */}
+            {editVerifiedGstinData && !isGstinFetching && (
+              <div className="p-2.5 bg-emerald-50/70 border border-emerald-200 rounded text-xs text-slate-800 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-emerald-600 font-bold">✓</span>
+                    <span className="font-bold text-slate-900">
+                      {editVerifiedGstinData.tradeName || editVerifiedGstinData.legalName || "Verified Taxpayer"}
+                    </span>
+                  </div>
+                  <span
+                    className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded border ${
+                      editVerifiedGstinData.registrationStatus === "ACTIVE"
+                        ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                        : editVerifiedGstinData.registrationStatus === "CANCELLED"
+                        ? "bg-rose-100 text-rose-800 border-rose-300"
+                        : "bg-amber-100 text-amber-800 border-amber-300"
+                    }`}
+                  >
+                    {editVerifiedGstinData.registrationStatus}
+                  </span>
+                </div>
+
+                {/* Cancelled / Suspended Warning */}
+                {editVerifiedGstinData.registrationStatus === "CANCELLED" && (
+                  <div className="p-2 bg-rose-50 border border-rose-300 rounded text-rose-800 text-[11px]">
+                    ⚠️ {lang === "gu"
+                      ? "આ GSTIN રદ (Cancelled) થયેલ છે. આ પાર્ટી સાથેના બિલો પર ITC દાવો માન્ય રહેશે નહીં."
+                      : "Warning: This GSTIN is officially CANCELLED. ITC cannot be claimed on supplies from cancelled registrations."}
+                  </div>
+                )}
+                {editVerifiedGstinData.registrationStatus === "SUSPENDED" && (
+                  <div className="p-2 bg-amber-50 border border-amber-300 rounded text-amber-800 text-[11px]">
+                    ⚠️ {lang === "gu"
+                      ? "આ GSTIN હાલમાં સસ્પેન્ડ (Suspended) છે."
+                      : "Warning: This GSTIN is currently SUSPENDED by tax authorities."}
+                  </div>
+                )}
+
+                {/* Taxpayer Meta Details */}
+                <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600 pt-1 border-t border-emerald-200/60">
+                  <div>
+                    <span className="text-slate-400">Legal: </span>
+                    <span className="font-medium text-slate-700">{editVerifiedGstinData.legalName || "—"}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400">Type: </span>
+                    <span className="font-medium text-slate-700">{editVerifiedGstinData.taxpayerType || "Regular"}</span>
+                  </div>
+                  {editVerifiedGstinData.constitutionOfBusiness && (
+                    <div className="col-span-2">
+                      <span className="text-slate-400">Constitution: </span>
+                      <span className="font-medium text-slate-700">{editVerifiedGstinData.constitutionOfBusiness}</span>
+                    </div>
+                  )}
+                  {editVerifiedGstinData.address?.line1 && (
+                    <div className="col-span-2 truncate">
+                      <span className="text-slate-400">Address: </span>
+                      <span className="font-mono text-slate-700">
+                        {editVerifiedGstinData.address.line1}, {editVerifiedGstinData.address.city || ""}{" "}
+                        {editVerifiedGstinData.address.pincode || ""}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {editVerifiedGstinData.alreadyExistsInCompany && (
+                  <div className="text-[11px] text-amber-700 bg-amber-50/80 p-1.5 rounded border border-amber-200">
+                    ℹ️ {lang === "gu"
+                      ? "આ GSTIN વાળી પાર્ટી તમારા ખાતામાં પહેલેથી હાજર છે."
+                      : "A party with this GSTIN already exists in your company records."}
+                  </div>
+                )}
               </div>
             )}
 
@@ -2145,6 +2569,14 @@ export default function PartiesPage() {
           </div>
         </div>
       </Modal>
+
+      {/* Excel / CSV Import Wizard Modal */}
+      <ImportWizardModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        preselectedModule={ImportModuleType.PARTIES}
+        onSuccess={fetchParties}
+      />
     </div>
   );
 }
