@@ -124,7 +124,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       }
       localStorage.removeItem("billing_support_session");
       localStorage.removeItem("billing_tenant_context");
-      router.push("/superadmin");
+      router.push("/");
     }
   };
 
@@ -227,8 +227,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     pathname === "/rojmek" ||
     pathname === "/Myownbillbook" ||
     pathname.toLowerCase() === "/rojmek" ||
-    pathname.startsWith("/superadmin") ||
-    pathname === "/pos" ||
+        pathname === "/pos" ||
     pathname === "/sales/pos" ||
     (!isAuthenticated && pathname === "/")
   ) {
@@ -1430,30 +1429,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
             {/* Right: Quick Action, Language Toggle & User/Logout */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto pl-1 sm:pl-2">
-              {/* SuperAdmin Portal shortcut if user has SUPER_ADMIN role */}
-              {user?.role === "SUPER_ADMIN" && (
-                <Link
-                  href="/superadmin"
-                  className="hidden min-[420px]:flex items-center gap-1.5 py-1.5 px-3 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-xl text-xs sm:text-sm font-bold transition-all shrink-0 shadow-xs"
-                  title="Open SuperAdmin Master Control Portal"
-                  aria-label="SuperAdmin Portal"
-                >
-                  <svg
-                    className="w-4 h-4 shrink-0 text-purple-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                    />
-                  </svg>
-                  <span className="hidden sm:inline">SuperAdmin</span>
-                </Link>
-              )}
 
               {/* Primary Action Button: Create Bill (hidden if already on new bill page) */}
               {pathname !== "/sales/invoices/new" && (
@@ -1706,20 +1681,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         ))}
                       </select>
                     </div>
-                  )}
-
-                  {user?.role === "SUPER_ADMIN" && (
-                    <Link
-                      href="/superadmin"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center justify-between w-full px-2.5 py-1.5 bg-[#252932] hover:bg-[#3B404A] text-[#E87536] border border-[#3B404A] rounded-md text-xs font-bold transition-all"
-                    >
-                      <span className="flex items-center gap-1.5">
-                        <span>⚡</span>
-                        <span>SuperAdmin Portal</span>
-                      </span>
-                      <span>→</span>
-                    </Link>
                   )}
 
                   <div className="flex items-center justify-between pt-1">

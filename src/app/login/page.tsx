@@ -67,13 +67,8 @@ function LoginContent() {
   // If already logged in, redirect accordingly — but never if redirected due to expired session
   useEffect(() => {
     if (!authLoading && isAuthenticated && user && !reasonParam) {
-      if (user.role === "SUPER_ADMIN") {
-        const dest = redirectParam && redirectParam.startsWith("/") ? redirectParam : "/superadmin";
-        router.replace(dest);
-      } else {
-        const dest = redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("/superadmin") ? redirectParam : "/";
-        router.replace(dest);
-      }
+      const dest = redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("/superadmin") ? redirectParam : "/";
+      router.replace(dest);
     }
   }, [authLoading, isAuthenticated, user, router, redirectParam, reasonParam]);
 
@@ -96,13 +91,8 @@ function LoginContent() {
           defaultContext: res.defaultContext,
         });
 
-        if (res.user?.role === "SUPER_ADMIN") {
-          const dest = redirectParam && redirectParam.startsWith("/") ? redirectParam : "/superadmin";
-          router.push(dest);
-        } else {
-          const dest = redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("/superadmin") ? redirectParam : "/";
-          router.push(dest);
-        }
+        const dest = redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("/superadmin") ? redirectParam : "/";
+        router.push(dest);
       } else {
         setError(
           lang === "gu"
@@ -270,12 +260,6 @@ function LoginContent() {
     setError(null);
   };
 
-  const handleFillDemoSuperAdmin = () => {
-    setMode("login");
-    setIdentifier("superadmin@billing.local");
-    setPassword("Password123#");
-    setError(null);
-  };
 
   return (
     <div className="h-full min-h-[100dvh] w-full bg-[#F3EBDD] flex flex-col justify-center items-center p-4 relative overflow-y-auto">
@@ -726,13 +710,7 @@ function LoginContent() {
           >
             {lang === "gu" ? "ડેમો બિઝનેસ ભરો" : "Demo Business User"}
           </button>
-          <button
-            type="button"
-            onClick={handleFillDemoSuperAdmin}
-            className="text-[11px] text-[#667085] hover:text-[#4F46E5] hover:underline font-semibold"
-          >
-            {lang === "gu" ? "સુપર એડમિન ભરો" : "Demo SuperAdmin"}
-          </button>
+
         </div>
       </div>
     </div>
