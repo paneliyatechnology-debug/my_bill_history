@@ -40,6 +40,62 @@ export class DatabaseService
         CREATE INDEX IF NOT EXISTS "email_otps_email_purpose_created_at_idx"
             ON "email_otps"("email", "purpose", "created_at")
       `).catch(() => {});
+
+      // Self-healing schema initialization for Import Jobs in cloud environments
+      await this.$executeRawUnsafe(`
+        DO $$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'DbImportStatus') THEN
+                CREATE TYPE "DbImportStatus" AS ENUM ('PENDING', 'PARSING', 'VALIDATING', 'IMPORTING', 'COMPLETED', 'FAILED', 'CANCELLED');
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'DbImportMode') THEN
+                CREATE TYPE "DbImportMode" AS ENUM ('CREATE_ONLY', 'SKIP_DUPLICATES', 'UPDATE_EXISTING');
+            END IF;
+        END $$;
+      `).catch((err) => {
+        this.logger.warn(`Notice: DbImport enums init: ${err.message}`);
+      });
+
+      await this.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "import_jobs" (
+            "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+            "organization_id" UUID NOT NULL,
+            "company_id" UUID NOT NULL,
+            "user_id" UUID,
+            "module" VARCHAR(50) NOT NULL,
+            "file_name" VARCHAR(255) NOT NULL,
+            "file_size" INTEGER NOT NULL,
+            "file_format" VARCHAR(20) NOT NULL,
+            "worksheet_name" VARCHAR(100),
+            "status" "DbImportStatus" NOT NULL DEFAULT 'PENDING',
+            "mode" "DbImportMode" NOT NULL DEFAULT 'SKIP_DUPLICATES',
+            "error_policy" VARCHAR(30) NOT NULL DEFAULT 'IMPORT_VALID_ONLY',
+            "total_rows" INTEGER NOT NULL DEFAULT 0,
+            "valid_rows" INTEGER NOT NULL DEFAULT 0,
+            "imported_rows" INTEGER NOT NULL DEFAULT 0,
+            "updated_rows" INTEGER NOT NULL DEFAULT 0,
+            "skipped_rows" INTEGER NOT NULL DEFAULT 0,
+            "failed_rows" INTEGER NOT NULL DEFAULT 0,
+            "column_mapping" JSONB,
+            "errors_json" JSONB,
+            "summary_json" JSONB,
+            "error_message" TEXT,
+            "idempotency_key" VARCHAR(100),
+            "started_at" TIMESTAMP(3),
+            "completed_at" TIMESTAMP(3),
+            "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT "import_jobs_pkey" PRIMARY KEY ("id")
+        );
+      `).catch((err) => {
+        this.logger.warn(`Notice: import_jobs table init: ${err.message}`);
+      });
+
+      await this.$executeRawUnsafe(`
+        CREATE INDEX IF NOT EXISTS "import_jobs_organization_id_company_id_created_at_idx" ON "import_jobs"("organization_id", "company_id", "created_at");
+        CREATE INDEX IF NOT EXISTS "import_jobs_company_id_module_idx" ON "import_jobs"("company_id", "module");
+        CREATE INDEX IF NOT EXISTS "import_jobs_idempotency_key_idx" ON "import_jobs"("idempotency_key");
+      `).catch(() => {});
     } catch {
       // Allow startup in environments without active DB
     }
