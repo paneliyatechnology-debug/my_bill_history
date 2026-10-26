@@ -3,6 +3,7 @@ import {
   ConflictException,
   BadRequestException,
   NotFoundException,
+  Logger,
 } from "@nestjs/common";
 import { DatabaseService } from "../database/database.service";
 import { AuditService } from "../audit/audit.service";
@@ -21,6 +22,8 @@ import {
 
 @Injectable()
 export class PartiesService {
+  private readonly logger = new Logger(PartiesService.name);
+
   constructor(
     private readonly prisma: DatabaseService,
     private readonly audit: AuditService,
@@ -229,7 +232,12 @@ export class PartiesService {
       }
 
       if (query.isActive !== undefined && query.isActive !== "") {
-        where.isActive = query.isActive === true || query.isActive === "true";
+        if (query.isActive !== "all") {
+          where.isActive = query.isActive === true || query.isActive === "true";
+        }
+      } else {
+        // By default, only show active parties in directory
+        where.isActive = true;
       }
 
       if (query.search && query.search.trim()) {
@@ -511,13 +519,33 @@ export class PartiesService {
         });
       }
 
-      // Check if party has invoices
-      const [salesCount, purchaseCount] = await Promise.all([
+      // Check if party has any dependent financial records
+      const [
+        salesCount,
+        purchaseCount,
+        salesReturnCount,
+        purchaseReturnCount,
+        challanCount,
+        debitNoteCount,
+        advanceCount,
+      ] = await Promise.all([
         tx.salesInvoice.count({ where: { partyId: id } }),
         tx.purchaseInvoice.count({ where: { partyId: id } }),
+        tx.salesReturn.count({ where: { partyId: id } }),
+        tx.purchaseReturn.count({ where: { partyId: id } }),
+        tx.deliveryChallan.count({ where: { partyId: id } }),
+        tx.outwardDebitNote.count({ where: { partyId: id } }),
+        tx.advanceReceipt.count({ where: { partyId: id } }),
       ]);
 
-      const hasTransactions = salesCount > 0 || purchaseCount > 0;
+      const hasTransactions =
+        salesCount > 0 ||
+        purchaseCount > 0 ||
+        salesReturnCount > 0 ||
+        purchaseReturnCount > 0 ||
+        challanCount > 0 ||
+        debitNoteCount > 0 ||
+        advanceCount > 0;
 
       if (hasTransactions && !force) {
         // Safe archive/deactivate
@@ -550,23 +578,71 @@ export class PartiesService {
       }
 
       if (force && hasTransactions) {
+        // 1. Unlink ledger and scan references
+        await tx.purchaseBillScan.updateMany({
+          where: { matchedPartyId: id },
+          data: { matchedPartyId: null },
+        });
         await tx.ledgerAccount.updateMany({
           where: { partyId: id },
           data: { partyId: null },
         });
-        await tx.salesInvoiceItem.deleteMany({
-          where: { invoice: { partyId: id } },
-        });
-        await tx.salesInvoice.deleteMany({
+
+        // 2. Delete delivery challans & items (cascades)
+        await tx.deliveryChallan.deleteMany({
           where: { partyId: id },
         });
+
+        // 3. Delete debit notes & items (cascades)
+        await tx.outwardDebitNote.deleteMany({
+          where: { partyId: id },
+        });
+
+        // 4. Delete advance receipts & adjustments (cascades)
+        await tx.advanceReceipt.deleteMany({
+          where: { partyId: id },
+        });
+
+        // 5. Delete purchase returns FIRST (releases purchase invoice items)
+        await tx.purchaseReturn.deleteMany({
+          where: { partyId: id },
+        });
+
+        // 6. Delete sales returns FIRST (releases sales invoice items)
+        await tx.salesReturn.deleteMany({
+          where: { partyId: id },
+        });
+
+        // 7. Delete payment allocations
+        await tx.paymentAllocation.deleteMany({
+          where: {
+            OR: [
+              { salesInvoice: { partyId: id } },
+              { purchaseInvoice: { partyId: id } },
+            ],
+          },
+        });
+
+        // 8. Delete purchase invoices & items
         await tx.purchaseInvoiceItem.deleteMany({
           where: { invoice: { partyId: id } },
         });
         await tx.purchaseInvoice.deleteMany({
           where: { partyId: id },
         });
+
+        // 9. Delete sales invoices & items
+        await tx.salesInvoiceItem.deleteMany({
+          where: { invoice: { partyId: id } },
+        });
+        await tx.salesInvoice.deleteMany({
+          where: { partyId: id },
+        });
       } else {
+        await tx.purchaseBillScan.updateMany({
+          where: { matchedPartyId: id },
+          data: { matchedPartyId: null },
+        });
         await tx.ledgerAccount.updateMany({
           where: { partyId: id },
           data: { partyId: null },
@@ -611,6 +687,7 @@ export class PartiesService {
 
     let deletedCount = 0;
     let archivedCount = 0;
+    let failedCount = 0;
 
     for (const id of ids) {
       try {
@@ -620,8 +697,9 @@ export class PartiesService {
         } else {
           archivedCount++;
         }
-      } catch {
-        // continue
+      } catch (err: any) {
+        this.logger.warn(`Failed to delete party ${id}: ${err?.message}`);
+        failedCount++;
       }
     }
 
@@ -630,8 +708,9 @@ export class PartiesService {
       count: ids.length,
       deletedCount,
       archivedCount,
-      message: `${deletedCount + archivedCount} parties processed (${deletedCount} deleted, ${archivedCount} archived).`,
-      messageGujarati: `${deletedCount + archivedCount} પાર્ટીઓ પ્રક્રિયા કરાઈ (${deletedCount} કાઢી નાખી, ${archivedCount} આર્કાઇવ કરી).`,
+      failedCount,
+      message: `${deletedCount + archivedCount} parties processed (${deletedCount} deleted, ${archivedCount} archived${failedCount > 0 ? `, ${failedCount} failed` : ""}).`,
+      messageGujarati: `${deletedCount + archivedCount} પાર્ટીઓ પ્રક્રિયા કરાઈ (${deletedCount} કાઢી નાખી, ${archivedCount} આર્કાઇવ કરી${failedCount > 0 ? `, ${failedCount} નિષ્ફળ` : ""}).`,
     };
   }
 

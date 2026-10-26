@@ -110,6 +110,7 @@ export default function PartiesPage() {
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const [bulkForceDelete, setBulkForceDelete] = useState(false);
+  const [actionMessage, setActionMessage] = useState<{ text: string; type: "success" | "info" } | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -350,6 +351,7 @@ export default function PartiesPage() {
       const res: any = await apiClient.get("/parties", {
         search: searchTerm || undefined,
         type: typeFilter !== "ALL" ? typeFilter : undefined,
+        isActive: true,
       });
       setParties(extractList(res));
     } catch (err: any) {
@@ -551,11 +553,19 @@ export default function PartiesPage() {
   const handleDeleteParty = async () => {
     if (!partyToDelete) return;
     setIsDeleting(true);
+    setError(null);
     try {
-      await apiClient.delete(`/parties/${partyToDelete.id}${singleForceDelete ? "?force=true" : ""}`);
+      const res: any = await apiClient.delete(`/parties/${partyToDelete.id}${singleForceDelete ? "?force=true" : ""}`);
       setPartyToDelete(null);
       setSingleForceDelete(false);
       await fetchParties();
+      if (res?.message) {
+        setActionMessage({
+          text: lang === "gu" && res.messageGujarati ? res.messageGujarati : res.message,
+          type: "success",
+        });
+        setTimeout(() => setActionMessage(null), 5000);
+      }
     } catch (err: any) {
       setError(
         lang === "gu" && err.messageGujarati
@@ -572,7 +582,7 @@ export default function PartiesPage() {
     setIsBulkDeleting(true);
     setError(null);
     try {
-      await apiClient.post("/parties/bulk-delete", {
+      const res: any = await apiClient.post("/parties/bulk-delete", {
         ids: Array.from(selectedIds),
         force: bulkForceDelete,
       });
@@ -580,6 +590,13 @@ export default function PartiesPage() {
       setIsBulkDeleteModalOpen(false);
       setBulkForceDelete(false);
       await fetchParties();
+      if (res?.message) {
+        setActionMessage({
+          text: lang === "gu" && res.messageGujarati ? res.messageGujarati : res.message,
+          type: "success",
+        });
+        setTimeout(() => setActionMessage(null), 5000);
+      }
     } catch (err: any) {
       setError(
         lang === "gu" && err.messageGujarati
@@ -719,6 +736,19 @@ export default function PartiesPage() {
       {error && (
         <div className="p-4 bg-rose-50 border border-rose-100 text-xs text-rose-700 font-medium rounded-xl">
           {error}
+        </div>
+      )}
+
+      {actionMessage && (
+        <div className="p-4 bg-emerald-50 border border-emerald-100 text-xs text-emerald-800 font-medium rounded-xl flex items-center justify-between">
+          <span>{actionMessage.text}</span>
+          <button
+            type="button"
+            onClick={() => setActionMessage(null)}
+            className="text-emerald-600 hover:text-emerald-800 font-bold ml-3 cursor-pointer"
+          >
+            ✕
+          </button>
         </div>
       )}
 
