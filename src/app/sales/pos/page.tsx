@@ -239,11 +239,11 @@ export default function PosTerminalPage() {
   const fetchData = useCallback(async () => {
     try {
       const [itemsRes, partiesRes, categoriesRes, unitsRes, invoicesRes]: any = await Promise.all([
-        apiClient.get("/items").catch(() => []),
-        apiClient.get("/parties").catch(() => []),
-        apiClient.get("/categories").catch(() => []),
-        apiClient.get("/units").catch(() => []),
-        apiClient.get("/invoices", { limit: 15 }).catch(() => []),
+        apiClient.get("/masters/items").catch(() => []),
+        apiClient.get("/masters/parties").catch(() => []),
+        apiClient.get("/masters/categories").catch(() => []),
+        apiClient.get("/masters/units").catch(() => []),
+        apiClient.get("/sales/invoices", { limit: 15 }).catch(() => []),
       ]);
 
       const loadedItems = extractList<CatalogItem>(itemsRes);
@@ -846,7 +846,7 @@ export default function PosTerminalPage() {
       isSuccess = true;
     } else {
       try {
-        const res: any = await apiClient.post("/invoices/pos-checkout", payload);
+        const res: any = await apiClient.post("/sales/pos-checkout", payload);
         generatedInvoiceNumber = res?.invoiceNumber || offlineBillNumber;
         isSuccess = true;
       } catch (err: any) {
@@ -1098,7 +1098,7 @@ export default function PosTerminalPage() {
       const taxVal = parseFloat(newItemForm.taxRate) || 0;
       const defaultUom = units.find((u) => u.symbol?.toUpperCase() === newItemForm.unit.toUpperCase()) || units[0];
 
-      const res: any = await apiClient.post("/items", {
+      const res: any = await apiClient.post("/masters/items", {
         type: newItemForm.type,
         name: newItemForm.name.trim(),
         categoryId: newItemForm.categoryId || undefined,

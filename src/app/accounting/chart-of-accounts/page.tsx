@@ -41,7 +41,7 @@ export default function ChartOfAccountsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res: any = await apiClient.get("/ledger-groups");
+      const res: any = await apiClient.get("/accounting/groups");
       setGroups(Array.isArray(res) ? res : []);
     } catch (err: any) {
       setError(err.message || "Failed to load ledger groups.");
@@ -61,7 +61,7 @@ export default function ChartOfAccountsPage() {
     setSeedSuccess(null);
     setError(null);
     try {
-      await apiClient.post("/ledger-groups/seed");
+      await apiClient.post("/accounting/groups/seed");
       setSeedSuccess(
         lang === "gu"
           ? "ભારતીય SME સ્ટાન્ડર્ડ ખાતાવહી સફળતાપૂર્વક તૈયાર થઈ ગઈ!"
@@ -80,7 +80,7 @@ export default function ChartOfAccountsPage() {
     setFormError(null);
     setIsSubmitting(true);
     try {
-      await apiClient.post("/ledger-groups", {
+      await apiClient.post("/accounting/groups", {
         code: formData.code,
         name: formData.name,
         nameGujarati: formData.nameGujarati || undefined,

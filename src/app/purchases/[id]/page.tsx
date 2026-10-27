@@ -131,9 +131,9 @@ function PurchaseInvoiceDetailContent() {
     setError(null);
     try {
       const [invRes, payRes, ledgerRes]: any = await Promise.all([
-        apiClient.get(`/purchases/${id}`),
-        apiClient.get(`/purchases/${id}/payments`).catch(() => ({ payments: [] })),
-        apiClient.get("/ledgers", { nature: "ASSET", limit: 100 }).catch(() => ({ data: [] })),
+        apiClient.get(`/purchases/invoices/${id}`),
+        apiClient.get(`/purchases/invoices/${id}/payments`).catch(() => ({ payments: [] })),
+        apiClient.get("/accounting/ledgers", { nature: "ASSET", limit: 100 }).catch(() => ({ data: [] })),
       ]);
 
       setInvoice(invRes);

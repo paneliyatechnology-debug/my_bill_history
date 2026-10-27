@@ -225,8 +225,8 @@ export default function SalesInvoicesDashboardPage() {
     setError(null);
     try {
       const [invRes, partyRes]: any = await Promise.all([
-        apiClient.get("/invoices/sales"),
-        apiClient.get("/parties", { type: "CUSTOMER" }).catch(() => []),
+        apiClient.get("/sales/invoices"),
+        apiClient.get("/masters/parties", { type: "CUSTOMER" }).catch(() => []),
       ]);
       setInvoices(extractList(invRes));
       setParties(extractList(partyRes));
@@ -387,7 +387,7 @@ export default function SalesInvoicesDashboardPage() {
   const handleDuplicateInvoice = async (inv: SalesInvoice) => {
     setActiveActionMenuId(null);
     try {
-      const res: any = await apiClient.get(`/invoices/sales/${inv.id}`);
+      const res: any = await apiClient.get(`/sales/invoices/${inv.id}`);
       const fullData = res?.data || res;
       if (typeof window !== "undefined") {
         localStorage.setItem("billing_clone_invoice", JSON.stringify(fullData));
@@ -404,7 +404,7 @@ export default function SalesInvoicesDashboardPage() {
     if (!paymentInvoice || !paymentAmount || Number(paymentAmount) <= 0) return;
     setIsSubmittingPayment(true);
     try {
-      await apiClient.post(`/invoices/sales/${paymentInvoice.id}/payments`, {
+      await apiClient.post(`/sales/invoices/${paymentInvoice.id}/payments`, {
         amount: Number(paymentAmount),
         paymentMode,
         paymentDate: new Date(paymentDate).toISOString(),
@@ -425,7 +425,7 @@ export default function SalesInvoicesDashboardPage() {
     if (!cancelInvoice) return;
     setIsCancelling(true);
     try {
-      await apiClient.post(`/invoices/sales/${cancelInvoice.id}/cancel`, {
+      await apiClient.post(`/sales/invoices/${cancelInvoice.id}/cancel`, {
         cancellationReason: cancelReason || "Customer requested cancellation",
       });
       setIsCancelModalOpen(false);
@@ -443,7 +443,7 @@ export default function SalesInvoicesDashboardPage() {
     if (selectedIds.size === 0) return;
     setIsBulkDeleting(true);
     try {
-      await apiClient.post("/invoices/sales/bulk-delete", {
+      await apiClient.post("/sales/invoices/bulk-delete", {
         ids: Array.from(selectedIds),
       });
       setSelectedIds(new Set());

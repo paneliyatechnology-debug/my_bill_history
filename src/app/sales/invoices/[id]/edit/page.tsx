@@ -72,9 +72,9 @@ export default function EditInvoicePage() {
     setError(null);
     try {
       const [invRes, partiesRes, itemsRes]: any = await Promise.all([
-        apiClient.get(`/invoices/sales/${id}`),
-        apiClient.get("/parties", { type: "CUSTOMER" }),
-        apiClient.get("/items"),
+        apiClient.get(`/sales/invoices/${id}`),
+        apiClient.get("/masters/parties", { type: "CUSTOMER" }),
+        apiClient.get("/masters/items"),
       ]);
 
       const pList = extractList<PartyOption>(partiesRes);
@@ -287,7 +287,7 @@ export default function EditInvoicePage() {
     };
 
     try {
-      await apiClient.put(`/invoices/sales/${id}`, payload);
+      await apiClient.put(`/sales/invoices/${id}`, payload);
       router.push(`/sales/invoices/${id}`);
     } catch (err: any) {
       setError(err.message || "Failed to update sales invoice.");

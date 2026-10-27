@@ -214,7 +214,7 @@ export default function PurchaseReturnsPage() {
       if (endDate) params.endDate = endDate;
       if (searchQuery.trim()) params.search = searchQuery.trim();
 
-      const res: any = await apiClient.get("/purchase-returns", params);
+      const res: any = await apiClient.get("/purchases/debit-notes", params);
       const items = extractList<any>(res);
 
       const parsed: PurchaseReturnRow[] = items.map((r: any) => ({
@@ -281,7 +281,7 @@ export default function PurchaseReturnsPage() {
     setActiveActionMenu(null);
     if (!window.confirm("Are you sure you want to delete this purchase return?")) return;
     try {
-      await apiClient.delete(`/purchase-returns/${id}`);
+      await apiClient.delete(`/purchases/invoices/debit-notes/${id}`);
       showToast("Purchase return deleted successfully");
       fetchReturns();
     } catch (err: any) {

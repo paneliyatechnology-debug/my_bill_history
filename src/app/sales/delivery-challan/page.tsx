@@ -130,7 +130,7 @@ export default function DeliveryChallanListingPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res: any = await apiClient.get("/distribution/challans");
+      const res: any = await apiClient.get("/sales/challans");
       setChallans(extractList(res));
     } catch (err: any) {
       setError(err?.message || "Failed to load delivery challans.");
@@ -249,7 +249,7 @@ export default function DeliveryChallanListingPage() {
   const handleCloseChallan = async (ch: DeliveryChallan) => {
     setActiveActionMenuId(null);
     try {
-      await apiClient.post(`/distribution/challans/${ch.id}/close`, {});
+      await apiClient.post(`/sales/challans/${ch.id}/close`, {});
       await fetchData();
     } catch (err: any) {
       setError(err?.message || "Failed to close challan.");
@@ -260,7 +260,7 @@ export default function DeliveryChallanListingPage() {
   const handleCancelSubmit = async () => {
     if (!selectedChallan) return;
     try {
-      await apiClient.post(`/distribution/challans/${selectedChallan.id}/cancel`, {
+      await apiClient.post(`/sales/challans/${selectedChallan.id}/cancel`, {
         reason: cancelReason || "Cancelled by user",
       });
       setIsCancelModalOpen(false);
@@ -276,7 +276,7 @@ export default function DeliveryChallanListingPage() {
     if (!challanToDelete) return;
     setIsDeleting(true);
     try {
-      await apiClient.delete(`/distribution/challans/${challanToDelete.id}`);
+      await apiClient.delete(`/sales/challans/${challanToDelete.id}`);
       setChallanToDelete(null);
       await fetchData();
     } catch (err: any) {

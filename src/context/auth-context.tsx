@@ -303,6 +303,102 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [token, tenantContext.companyId, refreshTenantMetadata]);
 
+  // Real-Time Socket Stream (SSE) & Instant AJAX Suspension Watchdog
+  useEffect(() => {
+    if (!token || !user) return;
+    if (typeof window === "undefined") return;
+
+    let es: EventSource | null = null;
+    let fallbackInterval: NodeJS.Timeout | null = null;
+    let isTerminated = false;
+
+    const executeInstantLogout = (reason: string) => {
+      if (isTerminated) return;
+      isTerminated = true;
+
+      try {
+        if (es) {
+          es.close();
+          es = null;
+        }
+        if (fallbackInterval) {
+          clearInterval(fallbackInterval);
+          fallbackInterval = null;
+        }
+      } catch {}
+
+      try {
+        localStorage.removeItem("billing_auth_token");
+        localStorage.removeItem("billing_user_profile");
+        localStorage.removeItem("billing_tenant_context");
+      } catch {}
+
+      // Trigger immediate UI alert and replace current page without requiring user redirect
+      alert(
+        "🚫 ખાતું સ્થગિત કરેલ છે (Account Suspended)\n\nસુપરએડમિન દ્વારા આ સંસ્થા/ટેનન્ટ એકાઉન્ટ સ્થગિત (Suspend) કરવામાં આવ્યું છે.\nતમે લોગઆઉટ થાવ છો."
+      );
+
+      window.location.replace("/login?reason=suspended");
+    };
+
+    // 1. Live Server-Sent Events (SSE) Socket Stream for Instant 0-second Push
+    try {
+      const baseUrl = apiClient.getBaseUrl();
+      const orgId = tenantContext.organizationId || "";
+      const streamUrl = `${baseUrl}/auth/session-stream?token=${encodeURIComponent(token)}&organizationId=${encodeURIComponent(orgId)}`;
+      
+      es = new EventSource(streamUrl);
+
+      es.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload && payload.type === "TENANT_SUSPENDED") {
+            executeInstantLogout("Real-Time Event: TENANT_SUSPENDED");
+          }
+        } catch {
+          // Heartbeat parse ignore
+        }
+      };
+
+      es.onerror = () => {
+        // In case of SSE transport issue, fallback to fast AJAX
+      };
+    } catch (e) {
+      console.warn("SSE initialization error:", e);
+    }
+
+    // 2. High-Frequency AJAX Live-Check (Every 3 seconds fallback)
+    const runLiveCheck = async () => {
+      if (isTerminated) return;
+      if (window.location.pathname.startsWith("/login")) return;
+
+      try {
+        await apiClient.get("/auth/live-status", undefined, undefined, { timeoutMs: 3000 });
+      } catch (err: any) {
+        const status = err?.statusCode || err?.originalError?.statusCode;
+        const errType = err?.originalError?.error || err?.message;
+        if (status === 401 || errType === "TENANT_SUSPENDED") {
+          executeInstantLogout("Live-Check 401: TENANT_SUSPENDED");
+        }
+      }
+    };
+
+    fallbackInterval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        runLiveCheck();
+      }
+    }, 30000);
+
+    const onFocus = () => runLiveCheck();
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      if (es) es.close();
+      if (fallbackInterval) clearInterval(fallbackInterval);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [token, user, tenantContext.organizationId]);
+
   const login = async (data: {
     accessToken: string;
     user: UserProfile;

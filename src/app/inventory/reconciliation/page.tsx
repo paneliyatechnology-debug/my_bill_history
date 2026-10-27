@@ -85,7 +85,7 @@ export default function InventoryReconciliationPage() {
   useEffect(() => {
     async function loadWarehouses() {
       try {
-        const res: any = await apiClient.get("/warehouses");
+        const res: any = await apiClient.get("/masters/warehouses");
         setWarehouses(extractList(res));
       } catch {
         // ignore
@@ -108,9 +108,9 @@ export default function InventoryReconciliationPage() {
 
     try {
       const [reconRes, transitRes, mfgRes]: any = await Promise.all([
-        apiClient.get("/reconciliation/stock-gl", queryParams),
-        apiClient.get("/reconciliation/in-transit", queryParams),
-        apiClient.get("/reconciliation/manufacturing-cost", queryParams),
+        apiClient.get("/inventory/reconciliation/stock-gl", queryParams),
+        apiClient.get("/inventory/reconciliation/in-transit", queryParams),
+        apiClient.get("/inventory/reconciliation/manufacturing-cost", queryParams),
       ]);
 
       setStockGlData(reconRes);

@@ -36,7 +36,7 @@ export default function PurchaseReturnViewPage() {
     if (!returnId) return;
     setIsLoading(true);
     apiClient
-      .get(`/purchase-returns/${returnId}`)
+      .get(`/purchases/invoices/debit-notes/${returnId}`)
       .then((res: any) => {
         setData(res);
       })
@@ -129,7 +129,7 @@ export default function PurchaseReturnViewPage() {
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this purchase return?")) return;
     try {
-      await apiClient.delete(`/purchase-returns/${returnId}`);
+      await apiClient.delete(`/purchases/invoices/debit-notes/${returnId}`);
       alert("Purchase return deleted");
       router.push("/purchases/returns");
     } catch (err: any) {
@@ -305,7 +305,7 @@ export default function PurchaseReturnViewPage() {
             {isMoreMenuOpen && (
               <div className="absolute right-0 top-10 z-40 w-36 rounded-lg border border-slate-200 bg-white py-1 shadow-lg text-xs">
                 <Link
-                  href={`/purchases/returns/create?edit=${returnId}`}
+                  href={`/purchases/invoices/returns/create?edit=${returnId}`}
                   className="flex w-full items-center px-3 py-1.5 hover:bg-slate-50 text-slate-700"
                 >
                   Edit Return

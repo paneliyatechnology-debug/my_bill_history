@@ -199,6 +199,18 @@ async function request<T>(
       errBody = { message: response.statusText || `HTTP ${response.status}` };
     }
 
+    if (
+      (response.status === 401 ||
+        (response.status === 403 &&
+          (errBody?.error === "TENANT_SUSPENDED" ||
+            errBody?.error === "ACCOUNT_DEACTIVATED" ||
+            errBody?.error === "SESSION_REVOKED"))) &&
+      typeof window !== "undefined" &&
+      !options.skipAuthRedirect
+    ) {
+      handleUnauthorized();
+    }
+
     const message = Array.isArray(errBody?.message)
       ? errBody.message.join(", ")
       : errBody?.message || response.statusText || `Request failed with status ${response.status}`;

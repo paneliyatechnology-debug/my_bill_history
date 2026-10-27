@@ -118,7 +118,7 @@ export default function ProformaInvoiceListingPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res: any = await apiClient.get("/invoices/sales", {
+      const res: any = await apiClient.get("/sales/invoices", {
         category: "PROFORMA_INVOICE",
         limit: 200,
       });
@@ -221,7 +221,7 @@ export default function ProformaInvoiceListingPage() {
   const handleConvertToTaxInvoice = async (inv: ProformaInvoice) => {
     setActiveActionMenuId(null);
     try {
-      await apiClient.post(`/invoices/sales/${inv.id}/convert-to-tax-invoice`, {});
+      await apiClient.post(`/sales/invoices/${inv.id}/convert-to-tax-invoice`, {});
       await fetchData();
       router.push(`/sales/invoices/${inv.id}`);
     } catch (err: any) {
@@ -233,7 +233,7 @@ export default function ProformaInvoiceListingPage() {
   const handleCancelSubmit = async () => {
     if (!selectedInvoice) return;
     try {
-      await apiClient.post(`/invoices/sales/${selectedInvoice.id}/cancel`, {
+      await apiClient.post(`/sales/invoices/${selectedInvoice.id}/cancel`, {
         reason: cancelReason || "Cancelled by user",
       });
       setIsCancelModalOpen(false);
@@ -249,7 +249,7 @@ export default function ProformaInvoiceListingPage() {
     if (!invoiceToDelete) return;
     setIsDeleting(true);
     try {
-      await apiClient.delete(`/invoices/sales/${invoiceToDelete.id}`);
+      await apiClient.delete(`/sales/invoices/${invoiceToDelete.id}`);
       setInvoiceToDelete(null);
       await fetchData();
     } catch (err: any) {

@@ -110,7 +110,7 @@ export default function HsnMasterPage() {
       if (statusFilter === "ACTIVE") params.set("isActive", "true");
       if (statusFilter === "INACTIVE") params.set("isActive", "false");
 
-      const res: HsnResponse = (await apiClient.get(`/hsn?${params.toString()}`)) as any;
+      const res: HsnResponse = (await apiClient.get(`/masters/hsn?${params.toString()}`)) as any;
       setData(res.items || []);
       setTotal(res.total || 0);
       setTotalPages(res.totalPages || 1);
@@ -169,7 +169,7 @@ export default function HsnMasterPage() {
 
     setIsSubmitting(true);
     try {
-      await apiClient.post("/hsn", {
+      await apiClient.post("/masters/hsn", {
         code,
         type: formData.type,
         description: formData.description.trim(),
@@ -227,7 +227,7 @@ export default function HsnMasterPage() {
 
     setIsSubmitting(true);
     try {
-      await apiClient.put(`/hsn/${editingItem.id}`, {
+      await apiClient.put(`/masters/hsn/${editingItem.id}`, {
         description: editFormData.description.trim(),
         descriptionGujarati: editFormData.descriptionGujarati.trim() || undefined,
         chapter: editFormData.chapter.trim() || undefined,
@@ -254,7 +254,7 @@ export default function HsnMasterPage() {
   const handleToggleStatus = async (item: HsnMasterItem) => {
     const nextStatus = !item.isActive;
     try {
-      await apiClient.patch(`/hsn/${item.id}/status`, { isActive: nextStatus });
+      await apiClient.patch(`/masters/hsn/${item.id}/status`, { isActive: nextStatus });
       setData((prev) =>
         prev.map((i) => (i.id === item.id ? { ...i, isActive: nextStatus } : i)),
       );
@@ -273,7 +273,7 @@ export default function HsnMasterPage() {
     setViewingItem(item);
     setIsDetailsLoading(true);
     try {
-      const full: any = await apiClient.get(`/hsn/${item.id}`);
+      const full: any = await apiClient.get(`/masters/hsn/${item.id}`);
       setViewingItem(full);
     } catch (err) {
       console.warn("Could not fetch full HSN details:", err);
@@ -289,7 +289,7 @@ export default function HsnMasterPage() {
     setDeleteError(null);
 
     try {
-      await apiClient.delete(`/hsn/${deletingItem.id}`);
+      await apiClient.delete(`/masters/hsn/${deletingItem.id}`);
       setDeletingItem(null);
       showNotification(`Code ${deletingItem.code} deleted.`);
       await fetchHsnList();

@@ -51,7 +51,7 @@ export default function WarehousesPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res: any = await apiClient.get("/tenants/warehouses");
+      const res: any = await apiClient.get("/masters/warehouses");
       setWarehouses(Array.isArray(res) ? res : []);
     } catch (err: any) {
       setError(err.message || "Failed to load warehouses.");
@@ -72,7 +72,7 @@ export default function WarehousesPage() {
     setIsSubmitting(true);
 
     try {
-      await apiClient.post("/tenants/warehouses", {
+      await apiClient.post("/masters/warehouses", {
         name: formData.name,
         address: formData.address || undefined,
         branchId: formData.branchId || undefined,
@@ -106,7 +106,7 @@ export default function WarehousesPage() {
     setIsSubmitting(true);
 
     try {
-      await apiClient.put(`/tenants/warehouses/${editingWh.id}`, {
+      await apiClient.put(`/masters/warehouses/${editingWh.id}`, {
         name: editFormData.name,
         address: editFormData.address || undefined,
         isDefault: editFormData.isDefault,
@@ -126,7 +126,7 @@ export default function WarehousesPage() {
     if (!whToDelete) return;
     setIsDeleting(true);
     try {
-      await apiClient.delete(`/tenants/warehouses/${whToDelete.id}`);
+      await apiClient.delete(`/masters/warehouses/${whToDelete.id}`);
       setWhToDelete(null);
       await fetchWarehouses();
     } catch (err: any) {

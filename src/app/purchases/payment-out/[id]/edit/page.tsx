@@ -105,9 +105,9 @@ export default function EditPaymentOutPage() {
       setIsLoadingInitial(true);
       try {
         const [existingVoucher, partiesRes, ledgersRes] = await Promise.all([
-          apiClient.get<any>(`/vouchers/payment-out/${voucherId}`),
-          apiClient.get<any>("/parties", { type: "SUPPLIER", limit: 100 }),
-          apiClient.get<any>("/ledgers/accounts", { limit: 100 }).catch(() => ({ data: [] })),
+          apiClient.get<any>(`/purchases/payment-out/${voucherId}`),
+          apiClient.get<any>("/masters/parties", { type: "SUPPLIER", limit: 100 }),
+          apiClient.get<any>("/accounting/accounts", { limit: 100 }).catch(() => ({ data: [] })),
         ]);
 
         const partyList = extractList<PartyOption>(partiesRes);
@@ -142,7 +142,7 @@ export default function EditPaymentOutPage() {
           }
 
           // Load purchase invoices for this party and merge with existing allocations
-          const purchasesRes = await apiClient.get<any>("/purchases", {
+          const purchasesRes = await apiClient.get<any>("/purchases/invoices", {
             partyId: existingVoucher.partyId,
             limit: 100,
           });
@@ -349,7 +349,7 @@ export default function EditPaymentOutPage() {
 
     setIsSubmitting(true);
     try {
-      await apiClient.put<any>(`/vouchers/payment-out/${voucherId}`, {
+      await apiClient.put<any>(`/purchases/payment-out/${voucherId}`, {
         partyId,
         voucherDate,
         amount: paidNum,

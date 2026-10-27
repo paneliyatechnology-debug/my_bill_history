@@ -27,7 +27,7 @@ export default function StockMovementsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res: any = await apiClient.get("/invoices/stock/transactions");
+      const res: any = await apiClient.get("/inventory/stock-movements");
       const list = extractList<StockMovement>(res);
       setMovements(list);
     } catch (err: any) {

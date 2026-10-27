@@ -93,24 +93,12 @@ function DashboardContent() {
     updateTimestamp();
 
     try {
-      const now = new Date();
-      const sevenDaysAgo = new Date(now);
-      sevenDaysAgo.setDate(now.getDate() - 6);
-
-      const [finRes, invRes, purchRes, expRes, bankRes, partyRes, itemRes, whRes]: any = await Promise.all([
-        apiClient.get("/reports/financial-summary").catch(() => null),
-        apiClient.get("/invoices", { limit: 20 }).catch(() => null),
-        apiClient.get("/purchases", { limit: 20 }).catch(() => null),
-        apiClient.get("/expenses", { limit: 20 }).catch(() => null),
-        apiClient.get("/bank-accounts").catch(() => null),
-        apiClient.get("/parties", { limit: 100 }).catch(() => null),
-        apiClient.get("/items", { limit: 100 }).catch(() => null),
-        apiClient.get("/warehouses").catch(() => null),
+      // Clean, single-purpose Dashboard APIs
+      const [finRes, txnsRes, chartRes]: any = await Promise.all([
+        apiClient.get("/dashboard/summary").catch(() => null),
+        apiClient.get("/dashboard/latest-transactions", { limit: 5 }).catch(() => null),
+        apiClient.get("/dashboard/sales-overview", { days: 7 }).catch(() => null),
       ]);
-
-      if (partyRes) setParties(extractList(partyRes));
-      if (itemRes) setItemsList(extractList(itemRes));
-      if (whRes) setWarehouses(extractList(whRes));
 
       // 1. Process Financial Summary
       let coll = 0;
@@ -133,92 +121,35 @@ function DashboardContent() {
       setToPay(pay);
       setCashBankBalance(cb);
 
-      // 2. Process Transactions (merged, unified)
-      const list: TransactionRow[] = [];
-
-      // Invoices
-      const rawInvs = extractList(invRes);
-      rawInvs.forEach((inv: any, idx: number) => {
-        const d = new Date(inv.invoiceDate || inv.createdAt);
-        list.push({
-          id: inv.id || `inv-${idx}`,
-          rawDate: d,
-          date: d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
-          type: "Sales Invoice",
-          txnNo: inv.invoiceNumber || `INV-${idx + 1}`,
-          partyName: inv.party?.name || inv.partyName || "-",
-          amount: Number(inv.grandTotal || 0),
-          link: `/sales/invoices/${inv.id}`,
-        });
-      });
-
-      // Purchases
-      const rawPurch = extractList(purchRes);
-      rawPurch.forEach((p: any, idx: number) => {
-        const d = new Date(p.billDate || p.createdAt);
-        list.push({
-          id: p.id || `purch-${idx}`,
-          rawDate: d,
-          date: d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
-          type: "Purchase Orders",
-          txnNo: p.vendorInvoiceNumber || p.purchaseNumber || `${idx + 1}`,
-          partyName: p.party?.name || p.supplierName || "-",
-          amount: Number(p.grandTotal || p.totalAmount || 0),
-          link: `/purchases/${p.id}`,
-        });
-      });
-
-      // Expenses
-      const rawExp = extractList(expRes);
-      rawExp.forEach((e: any, idx: number) => {
-        const d = new Date(e.expenseDate || e.createdAt);
-        list.push({
-          id: e.id || `exp-${idx}`,
-          rawDate: d,
-          date: d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
-          type: "Expenses",
-          txnNo: e.expenseNumber || `${idx + 1}`,
-          partyName: e.category?.name || e.party?.name || "-",
-          amount: Number(e.amount || 0),
-          link: `/finance/expenses`,
-        });
-      });
-
-      setTransactions(
-        list.sort((a, b) => b.rawDate.getTime() - a.rawDate.getTime()).slice(0, 5),
-      );
-
-      // 3. Process 7-day Sales Report chart
-      const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-      const days: DailySalesPoint[] = [];
-      let total7Days = 0;
-      let count7Days = 0;
-
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(now);
-        d.setDate(now.getDate() - i);
-        const dayLabel = dayNames[d.getDay()];
-        const iso = d.toISOString().slice(0, 10);
-
-        // Filter invoices on this day
-        const dayInvs = rawInvs.filter((inv: any) => (inv.invoiceDate || "").startsWith(iso));
-        const daySum = dayInvs.reduce((acc: number, cur: any) => acc + Number(cur.grandTotal || 0), 0);
-
-        if (dayInvs.length > 0) {
-          total7Days += daySum;
-          count7Days += dayInvs.length;
-        }
-
-        days.push({
-          dayLabel,
-          dateIso: iso,
-          sales: daySum,
-        });
+      // 2. Process Transactions (from unified /dashboard/latest-transactions endpoint)
+      if (txnsRes?.transactions) {
+        setTransactions(
+          txnsRes.transactions.map((t: any, idx: number) => {
+            const d = new Date(t.date || t.rawDate);
+            return {
+              id: t.id || `txn-${idx}`,
+              rawDate: d,
+              date: d.toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              }),
+              type: t.type,
+              txnNo: t.txnNo,
+              partyName: t.partyName,
+              amount: Number(t.amount || 0),
+              link: t.link,
+            };
+          })
+        );
       }
 
-      setChartDays(days);
-      setSevenDaysSales(total7Days);
-      setInvoicesCount(count7Days);
+      // 3. Process 7-day Sales Report chart (from /dashboard/sales-overview)
+      if (chartRes?.chartDays) {
+        setChartDays(chartRes.chartDays);
+        setSevenDaysSales(Number(chartRes.sevenDaysSales || 0));
+        setInvoicesCount(Number(chartRes.invoicesCount || 0));
+      }
     } catch (err) {
       console.error("[Dashboard] Error fetching dashboard data:", err);
     } finally {
@@ -227,9 +158,29 @@ function DashboardContent() {
     }
   }, [updateTimestamp]);
 
+  const lastFetchedCompanyId = useRef<string | null>(null);
+
   useEffect(() => {
+    if (!tenantContext.companyId) return;
+    if (lastFetchedCompanyId.current === tenantContext.companyId) return;
+    lastFetchedCompanyId.current = tenantContext.companyId;
     fetchDashboardData();
   }, [fetchDashboardData, tenantContext.companyId]);
+
+  // Lazy-load scanner masters dependencies only when scanner modal is opened
+  useEffect(() => {
+    if (!isScannerModalOpen) return;
+    if (parties.length > 0 && itemsList.length > 0) return;
+    Promise.all([
+      apiClient.get("/masters/parties", { limit: 100 }).catch(() => null),
+      apiClient.get("/masters/items", { limit: 100 }).catch(() => null),
+      apiClient.get("/masters/warehouses").catch(() => null),
+    ]).then(([p, it, wh]) => {
+      if (p) setParties(extractList(p));
+      if (it) setItemsList(extractList(it));
+      if (wh) setWarehouses(extractList(wh));
+    });
+  }, [isScannerModalOpen, parties.length, itemsList.length]);
 
   // Generate SVG path for the smooth area chart
   const { pathD, areaD, points, maxVal } = useMemo(() => {

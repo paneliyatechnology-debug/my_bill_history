@@ -56,7 +56,7 @@ export default function VouchersPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res: any = await apiClient.get("/vouchers", {
+      const res: any = await apiClient.get("/accounting/vouchers", {
         search: searchTerm || undefined,
         voucherType: typeFilter !== "ALL" ? typeFilter : undefined,
       });
@@ -82,7 +82,7 @@ export default function VouchersPage() {
     setReversalError(null);
 
     try {
-      await apiClient.post(`/vouchers/${reversalTarget.id}/reverse`, {
+      await apiClient.post(`/accounting/vouchers/${reversalTarget.id}/reverse`, {
         reason: reversalReason,
         reversalDate: new Date().toISOString().split("T")[0],
       });

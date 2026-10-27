@@ -139,9 +139,9 @@ export default function CreateDeliveryChallanPage() {
     setError(null);
     try {
       const [ptRes, itRes, whRes]: any = await Promise.allSettled([
-        apiClient.get("/parties"),
-        apiClient.get("/items"),
-        apiClient.get("/tenants/warehouses").catch(() => apiClient.get("/warehouses")),
+        apiClient.get("/masters/parties"),
+        apiClient.get("/masters/items"),
+        apiClient.get("/masters/warehouses"),
       ]);
 
       const pList = ptRes.status === "fulfilled" ? extractList<PartyOption>(ptRes.value) : [];
@@ -159,7 +159,7 @@ export default function CreateDeliveryChallanPage() {
 
       // Fetch next sequence
       try {
-        const nextRes: any = await apiClient.get("/distribution/challans/next-number").catch(() => null);
+        const nextRes: any = await apiClient.get("/sales/challans/next-number").catch(() => null);
         if (nextRes?.nextNumber) {
           setChallanNumber(String(nextRes.nextNumber));
         }
@@ -382,7 +382,7 @@ export default function CreateDeliveryChallanPage() {
     setError(null);
 
     try {
-      await apiClient.post("/distribution/challans", {
+      await apiClient.post("/sales/challans", {
         challanNumber: challanNumber.trim() || undefined,
         challanDate: new Date(challanDate).toISOString(),
         challanType: "JOB_WORK",
@@ -430,7 +430,7 @@ export default function CreateDeliveryChallanPage() {
     setIsSavingParty(true);
     setPartyError(null);
     try {
-      const res: any = await apiClient.post("/parties", {
+      const res: any = await apiClient.post("/masters/parties", {
         name: newPartyName.trim(),
         phone: newPartyPhone.trim() || undefined,
         gstin: newPartyGstin.toUpperCase().trim() || undefined,

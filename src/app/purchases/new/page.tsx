@@ -364,13 +364,13 @@ function NewPurchaseInvoiceContent() {
         compRes,
         purchasesRes,
       ]: any = await Promise.all([
-        apiClient.get("/parties"),
-        apiClient.get("/items"),
-        apiClient.get("/tenants/warehouses"),
-        apiClient.get("/ledgers", { nature: "ASSET", limit: 100 }),
-        apiClient.get("/units").catch(() => apiClient.get("/masters/units")).catch(() => []),
+        apiClient.get("/masters/parties"),
+        apiClient.get("/masters/items"),
+        apiClient.get("/masters/warehouses"),
+        apiClient.get("/accounting/ledgers", { nature: "ASSET", limit: 100 }),
+        apiClient.get("/masters/units").catch(() => apiClient.get("/masters/units")).catch(() => []),
         apiClient.get("/tenants/company").catch(() => null),
-        apiClient.get("/purchases", { limit: 100 }).catch(() => null),
+        apiClient.get("/purchases/invoices", { limit: 100 }).catch(() => null),
       ]);
 
       const rawParties = extractList<SupplierOption>(partiesRes);
@@ -772,7 +772,7 @@ function NewPurchaseInvoiceContent() {
 
     // 2. Check backend DB search
     try {
-      const searchRes: any = await apiClient.get("/items", { search: cleanName, limit: 5 });
+      const searchRes: any = await apiClient.get("/masters/items", { search: cleanName, limit: 5 });
       const searchList = extractList<ItemOption>(searchRes);
       match = searchList.find(
         (i) =>
@@ -792,7 +792,7 @@ function NewPurchaseInvoiceContent() {
     let primaryUomId = units[0]?.id;
     if (!primaryUomId) {
       try {
-        const uomRes: any = await apiClient.get("/units").catch(() => []);
+        const uomRes: any = await apiClient.get("/masters/units").catch(() => []);
         const uomList = extractList<any>(uomRes);
         if (uomList.length > 0) {
           setUnits(uomList);
@@ -805,7 +805,7 @@ function NewPurchaseInvoiceContent() {
 
     if (!primaryUomId) {
       try {
-        const newUom: any = await apiClient.post("/units", {
+        const newUom: any = await apiClient.post("/masters/units", {
           name: "Pieces",
           symbol: "PCS",
           uqcCode: "PCS",
@@ -828,7 +828,7 @@ function NewPurchaseInvoiceContent() {
         lower.includes("expense") ||
         lower.includes("charge");
 
-      const created: any = await apiClient.post("/items", {
+      const created: any = await apiClient.post("/masters/items", {
         type: isService ? "SERVICE" : "PRODUCT",
         name: cleanName,
         hsnCode: hsn?.trim() || (isService ? "9983" : "1001"),
@@ -908,7 +908,7 @@ function NewPurchaseInvoiceContent() {
       let existing = suppliers.find((s) => s.id === resolvedPartyId);
       if (!existing && !resolvedSupplierObj) {
         try {
-          const fetched: any = await apiClient.get(`/parties/${resolvedPartyId}`);
+          const fetched: any = await apiClient.get(`/masters/parties/${resolvedPartyId}`);
           if (fetched?.id) {
             existing = fetched;
             resolvedSupplierObj = fetched;
@@ -952,7 +952,7 @@ function NewPurchaseInvoiceContent() {
       // If not in local state, search backend DB
       if (!found && scannedData.supplierName && scannedData.supplierName.trim().length > 1) {
         try {
-          const searchRes: any = await apiClient.get("/parties", {
+          const searchRes: any = await apiClient.get("/masters/parties", {
             search: scannedData.supplierName.trim(),
             limit: 10,
           });
@@ -979,7 +979,7 @@ function NewPurchaseInvoiceContent() {
       } else if (scannedData.supplierName && scannedData.supplierName.trim().length > 1) {
         // Auto-create supplier party so user has zero manual work
         try {
-          const newSupRes: any = await apiClient.post("/parties", {
+          const newSupRes: any = await apiClient.post("/masters/parties", {
             type: "SUPPLIER",
             name: scannedData.supplierName.trim(),
             gstin: scannedData.supplierGstin?.trim() || undefined,
@@ -999,7 +999,7 @@ function NewPurchaseInvoiceContent() {
           console.warn("Auto-create supplier note:", createErr);
           // If conflict (already exists in DB), re-fetch parties to get the existing one
           try {
-            const refetchRes: any = await apiClient.get("/parties", {
+            const refetchRes: any = await apiClient.get("/masters/parties", {
               search: scannedData.supplierName.trim(),
               limit: 5,
             });
@@ -1308,7 +1308,7 @@ function NewPurchaseInvoiceContent() {
     setIsSavingSupplier(true);
     setSupplierError(null);
     try {
-      const res: any = await apiClient.post("/parties", {
+      const res: any = await apiClient.post("/masters/parties", {
         type: "SUPPLIER",
         name: newSupplierName.trim(),
         phone: newSupplierPhone.trim() || undefined,
@@ -1356,7 +1356,7 @@ function NewPurchaseInvoiceContent() {
     setIsSavingItem(true);
     setItemError(null);
     try {
-      const res: any = await apiClient.post("/items", {
+      const res: any = await apiClient.post("/masters/items", {
         type: newItemType,
         name: newItemName.trim(),
         hsnCode: newItemHsn.trim() || (newItemType === "SERVICE" ? "9983" : "1001"),
@@ -1498,7 +1498,7 @@ function NewPurchaseInvoiceContent() {
         }),
       };
 
-      const res: any = await apiClient.post("/purchases", payload);
+      const res: any = await apiClient.post("/purchases/invoices", payload);
       const savedInvoiceId = res?.id || res?.purchaseInvoice?.id;
 
       // Settlement if paid

@@ -348,7 +348,7 @@ export default function PartiesPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res: any = await apiClient.get("/parties", {
+      const res: any = await apiClient.get("/masters/parties", {
         search: searchTerm || undefined,
         type: typeFilter !== "ALL" ? typeFilter : undefined,
         isActive: true,
@@ -383,8 +383,8 @@ export default function PartiesPage() {
     if (!selectedParty) return;
     setIsLoadingTransactions(true);
     Promise.all([
-      apiClient.get(`/invoices/sales`, { partyId: selectedParty.id }).catch(() => ({ data: [] })),
-      apiClient.get(`/purchases`, { partyId: selectedParty.id }).catch(() => ({ data: [] })),
+      apiClient.get(`/sales/invoices`, { partyId: selectedParty.id }).catch(() => ({ data: [] })),
+      apiClient.get(`/purchases/invoices`, { partyId: selectedParty.id }).catch(() => ({ data: [] })),
     ])
       .then(([salesRes, purchRes]: any[]) => {
         const sales = Array.isArray(salesRes?.data)
@@ -455,7 +455,7 @@ export default function PartiesPage() {
     setIsSubmitting(true);
 
     try {
-      await apiClient.post("/parties", {
+      await apiClient.post("/masters/parties", {
         type: formData.type,
         name: formData.name,
         nameGujarati: formData.nameGujarati || undefined,
@@ -518,7 +518,7 @@ export default function PartiesPage() {
     setIsSubmitting(true);
 
     try {
-      await apiClient.put(`/parties/${editingParty.id}`, {
+      await apiClient.put(`/masters/parties/${editingParty.id}`, {
         type: editFormData.type,
         name: editFormData.name,
         nameGujarati: editFormData.nameGujarati || undefined,
@@ -555,7 +555,7 @@ export default function PartiesPage() {
     setIsDeleting(true);
     setError(null);
     try {
-      const res: any = await apiClient.delete(`/parties/${partyToDelete.id}${singleForceDelete ? "?force=true" : ""}`);
+      const res: any = await apiClient.delete(`/masters/parties/${partyToDelete.id}${singleForceDelete ? "?force=true" : ""}`);
       setPartyToDelete(null);
       setSingleForceDelete(false);
       await fetchParties();
@@ -582,7 +582,7 @@ export default function PartiesPage() {
     setIsBulkDeleting(true);
     setError(null);
     try {
-      const res: any = await apiClient.post("/parties/bulk-delete", {
+      const res: any = await apiClient.post("/masters/parties/bulk-delete", {
         ids: Array.from(selectedIds),
         force: bulkForceDelete,
       });

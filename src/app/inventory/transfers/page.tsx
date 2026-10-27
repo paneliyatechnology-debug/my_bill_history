@@ -135,9 +135,9 @@ export default function StockTransfersPage() {
     setError(null);
     try {
       const [trRes, whRes, itRes]: any = await Promise.all([
-        apiClient.get("/distribution/transfers"),
-        apiClient.get("/warehouses"),
-        apiClient.get("/items"),
+        apiClient.get("/inventory/transfers"),
+        apiClient.get("/masters/warehouses"),
+        apiClient.get("/masters/items"),
       ]);
       setTransfers(extractList(trRes));
       setWarehouses(extractList(whRes));
@@ -219,7 +219,7 @@ export default function StockTransfersPage() {
     setIsSubmitting(true);
     setActionError(null);
     try {
-      await apiClient.post("/distribution/transfers", {
+      await apiClient.post("/inventory/transfers", {
         transferNumber: createForm.transferNumber || undefined,
         transferDate: createForm.transferDate,
         fromWarehouseId: createForm.fromWarehouseId,
@@ -256,7 +256,7 @@ export default function StockTransfersPage() {
     setIsSubmitting(true);
     setActionError(null);
     try {
-      await apiClient.post(`/distribution/transfers/${selectedTransfer.id}/dispatch`, {
+      await apiClient.post(`/inventory/transfers/${selectedTransfer.id}/dispatch`, {
         challanNumber: dispatchForm.challanNumber || undefined,
       });
       setIsDispatchModalOpen(false);
@@ -311,7 +311,7 @@ export default function StockTransfersPage() {
     setIsSubmitting(true);
     setActionError(null);
     try {
-      await apiClient.post(`/distribution/transfers/${selectedTransfer.id}/receive`, {
+      await apiClient.post(`/inventory/transfers/${selectedTransfer.id}/receive`, {
         items: receiveItems.map((i) => ({
           transferItemId: i.transferItemId,
           receivedQuantity: Number(i.receivedQty),
@@ -341,7 +341,7 @@ export default function StockTransfersPage() {
     setIsSubmitting(true);
     setActionError(null);
     try {
-      await apiClient.post(`/distribution/transfers/${selectedTransfer.id}/cancel`, {
+      await apiClient.post(`/inventory/transfers/${selectedTransfer.id}/cancel`, {
         reason: cancelReason || "Cancelled by user",
       });
       setIsCancelModalOpen(false);
@@ -360,7 +360,7 @@ export default function StockTransfersPage() {
     setReconData(null);
     setIsReconModalOpen(true);
     try {
-      const res: any = await apiClient.get(`/distribution/transfers/${tr.id}/reconciliation`);
+      const res: any = await apiClient.get(`/inventory/transfers/${tr.id}/reconciliation`);
       setReconData(res);
     } catch (err: any) {
       setActionError(err.message || "Failed to fetch reconciliation details.");

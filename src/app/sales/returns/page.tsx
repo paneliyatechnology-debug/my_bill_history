@@ -220,7 +220,7 @@ export default function SalesReturnsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res: any = await apiClient.get("/sales-returns", {
+      const res: any = await apiClient.get("/sales/credit-notes", {
         search: searchQuery.trim() || undefined,
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
@@ -754,7 +754,7 @@ export default function SalesReturnsPage() {
                 onClick={async () => {
                   setIsDeleting(true);
                   try {
-                    await apiClient.delete(`/sales-returns/${deleteTarget.id}`);
+                    await apiClient.delete(`/sales/credit-notes/${deleteTarget.id}`);
                     setRows((curr) => curr.filter((r) => r.id !== deleteTarget.id));
                     setDeleteTarget(null);
                     setToast("Sales return deleted successfully.");

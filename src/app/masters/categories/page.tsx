@@ -55,7 +55,7 @@ export default function CategoriesPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res: any = await apiClient.get("/categories");
+      const res: any = await apiClient.get("/masters/categories");
       setCategories(Array.isArray(res) ? res : []);
     } catch (err: any) {
       setError(err.message || "Failed to load categories.");
@@ -76,7 +76,7 @@ export default function CategoriesPage() {
     setIsSubmitting(true);
 
     try {
-      await apiClient.post("/categories", {
+      await apiClient.post("/masters/categories", {
         name: formData.name,
         nameGujarati: formData.nameGujarati || undefined,
         description: formData.description || undefined,
@@ -108,7 +108,7 @@ export default function CategoriesPage() {
     setIsSubmitting(true);
 
     try {
-      await apiClient.put(`/categories/${editingCategory.id}`, {
+      await apiClient.put(`/masters/categories/${editingCategory.id}`, {
         name: editFormData.name,
         nameGujarati: editFormData.nameGujarati || undefined,
       });
@@ -127,7 +127,7 @@ export default function CategoriesPage() {
     if (!categoryToDelete) return;
     setIsDeleting(true);
     try {
-      await apiClient.delete(`/categories/${categoryToDelete.id}`);
+      await apiClient.delete(`/masters/categories/${categoryToDelete.id}`);
       setCategoryToDelete(null);
       await fetchCategories();
     } catch (err: any) {
@@ -142,7 +142,7 @@ export default function CategoriesPage() {
     setIsBulkDeleting(true);
     setError(null);
     try {
-      await apiClient.post("/categories/bulk-delete", {
+      await apiClient.post("/masters/categories/bulk-delete", {
         ids: Array.from(selectedIds),
       });
       setSelectedIds(new Set());

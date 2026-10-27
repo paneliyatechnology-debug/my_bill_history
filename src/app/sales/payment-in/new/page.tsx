@@ -120,9 +120,9 @@ export default function CreatePaymentInPage() {
     (async () => {
       try {
         const [partyRes, ledgerRes, receiptRes]: any = await Promise.all([
-          apiClient.get("/parties", { limit: 200 }),
-          apiClient.get("/ledgers", { limit: 200 }),
-          apiClient.get("/vouchers/receipts", { limit: 1 }),
+          apiClient.get("/masters/parties", { limit: 200 }),
+          apiClient.get("/accounting/ledgers", { limit: 200 }),
+          apiClient.get("/sales/payment-in", { limit: 1 }),
         ]);
         if (cancelled) return;
 
@@ -180,7 +180,7 @@ export default function CreatePaymentInPage() {
     setIsLoadingInvoices(true);
     (async () => {
       try {
-        const res: any = await apiClient.get("/invoices/sales", {
+        const res: any = await apiClient.get("/sales/invoices", {
           partyId,
           limit: 100,
         });
@@ -407,7 +407,7 @@ export default function CreatePaymentInPage() {
 
     setIsCreatingParty(true);
     try {
-      const res: any = await apiClient.post("/parties", {
+      const res: any = await apiClient.post("/masters/parties", {
         name: partyFormData.name.trim(),
         phone: partyFormData.phone.trim() || undefined,
         gstin: partyFormData.gstin.trim() || undefined,
@@ -478,7 +478,7 @@ export default function CreatePaymentInPage() {
 
     setIsSaving(true);
     try {
-      await apiClient.post("/vouchers/receipt", {
+      await apiClient.post("/sales/payment-in", {
         partyId,
         voucherDate,
         depositToAccountId: depositToAccountId || undefined,

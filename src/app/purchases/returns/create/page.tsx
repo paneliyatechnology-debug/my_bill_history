@@ -271,7 +271,7 @@ export default function CreatePurchaseReturnPage() {
   // Load parties, inventory, and count on mount
   useEffect(() => {
     apiClient
-      .get("/parties")
+      .get("/masters/parties")
       .then((res: any) => {
         const list = extractList<Party>(res);
         setParties(list);
@@ -279,7 +279,7 @@ export default function CreatePurchaseReturnPage() {
       .catch(() => {});
 
     apiClient
-      .get("/items")
+      .get("/masters/items")
       .then((res: any) => {
         const list = extractList<any>(res);
         const mapped: InventoryItem[] = list.map((it: any) => ({
@@ -299,7 +299,7 @@ export default function CreatePurchaseReturnPage() {
       .catch(() => {});
 
     apiClient
-      .get("/purchase-returns")
+      .get("/purchases/debit-notes")
       .then((res: any) => {
         const list = extractList<any>(res);
         setReturnNumber(String(list.length + 1));
@@ -309,7 +309,7 @@ export default function CreatePurchaseReturnPage() {
     // Preload recent purchase invoices for instant linking and auto-fill
     setIsLoadingInvoices(true);
     apiClient
-      .get("/purchases", { limit: 100 })
+      .get("/purchases/invoices", { limit: 100 })
       .then((res: any) => {
         const list = extractList<any>(res);
         setInvoices(list);
@@ -362,7 +362,7 @@ export default function CreatePurchaseReturnPage() {
     if (!editId) return;
     setIsEditMode(true);
     apiClient
-      .get(`/purchase-returns/${editId}`)
+      .get(`/purchases/invoices/debit-notes/${editId}`)
       .then((res: any) => {
         const ret = res?.data || res;
         if (!ret) return;
@@ -463,7 +463,7 @@ export default function CreatePurchaseReturnPage() {
     setIsLoadingInvoices(true);
 
     try {
-      const res: any = await apiClient.get("/purchases", { partyId: party.id });
+      const res: any = await apiClient.get("/purchases/invoices", { partyId: party.id });
       const list = extractList<any>(res);
       setInvoices(list);
     } catch (err) {
@@ -499,7 +499,7 @@ export default function CreatePurchaseReturnPage() {
         billingAddress: editPartyForm.billingAddress.trim() || undefined,
       };
 
-      await apiClient.put(`/parties/${selectedParty.id}`, updatedData).catch(() => {});
+      await apiClient.put(`/masters/parties/${selectedParty.id}`, updatedData).catch(() => {});
 
       const updatedParty: Party = {
         ...selectedParty,
@@ -538,7 +538,7 @@ export default function CreatePurchaseReturnPage() {
           : undefined,
       };
 
-      const res: any = await apiClient.post("/parties", payload).catch(() => null);
+      const res: any = await apiClient.post("/masters/parties", payload).catch(() => null);
       const newParty: Party = {
         id: res?.data?.id || res?.id || `p-${Date.now()}`,
         name: createPartyForm.name.trim(),
@@ -575,7 +575,7 @@ export default function CreatePurchaseReturnPage() {
         taxRate: Number(createItemForm.taxRate || 18),
       };
 
-      const res: any = await apiClient.post("/items", payload).catch(() => null);
+      const res: any = await apiClient.post("/masters/items", payload).catch(() => null);
       const newItem: InventoryItem = {
         id: res?.data?.id || res?.id || `itm-${Date.now()}`,
         name: createItemForm.name.trim(),
@@ -630,7 +630,7 @@ export default function CreatePurchaseReturnPage() {
     try {
       let fullItems: any[] = [];
       try {
-        const full: any = await apiClient.get(`/purchases/${inv.id}`);
+        const full: any = await apiClient.get(`/purchases/invoices/${inv.id}`);
         if (full?.party) {
           const p = full.party;
           setSelectedParty({
@@ -947,7 +947,7 @@ export default function CreatePurchaseReturnPage() {
         if (invoices.length > 0) {
           purchaseId = invoices[0].id;
         } else {
-          const createdPurchase: any = await apiClient.post("/purchases", {
+          const createdPurchase: any = await apiClient.post("/purchases/invoices", {
             vendorInvoiceNumber: `PB-${Date.now().toString().slice(-6)}`,
             invoiceDate: returnDate,
             partyId: selectedParty.id,
@@ -985,9 +985,9 @@ export default function CreatePurchaseReturnPage() {
 
       let res: any;
       if (editId) {
-        res = await apiClient.put(`/purchase-returns/${editId}`, payload);
+        res = await apiClient.put(`/purchases/invoices/debit-notes/${editId}`, payload);
       } else {
-        res = await apiClient.post("/purchase-returns", payload);
+        res = await apiClient.post("/purchases/debit-notes", payload);
       }
       const newId = res?.id || res?.purchaseReturn?.id;
 

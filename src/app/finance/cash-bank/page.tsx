@@ -393,8 +393,8 @@ export default function CashAndBankPage() {
     setError(null);
     try {
       const [ledgersRes, groupsRes, compRes]: any = await Promise.all([
-        apiClient.get("/ledgers"),
-        apiClient.get("/ledger-groups").catch(() => []),
+        apiClient.get("/accounting/ledgers"),
+        apiClient.get("/accounting/groups").catch(() => []),
         apiClient.get("/tenants/company").catch(() => null),
       ]);
 
@@ -665,7 +665,7 @@ export default function CashAndBankPage() {
       }
 
       // Fallback: Fetch payment / receipt / contra vouchers directly
-      const vRes: any = await apiClient.get("/vouchers", {
+      const vRes: any = await apiClient.get("/accounting/vouchers", {
         limit: 100,
         startDate: fromDate,
         endDate: toDate,
@@ -902,7 +902,7 @@ export default function CashAndBankPage() {
               },
             ];
 
-      await apiClient.post("/vouchers", {
+      await apiClient.post("/accounting/vouchers", {
         voucherType,
         voucherNumber: `ADJ-${Date.now().toString().slice(-6)}`,
         voucherDate: addReduceForm.date,
@@ -975,7 +975,7 @@ export default function CashAndBankPage() {
         transferForm.remarks.trim() ||
         `Transfer from ${fromAcc?.name} to ${toAcc?.name}`;
 
-      await apiClient.post("/vouchers", {
+      await apiClient.post("/accounting/vouchers", {
         voucherType: "CONTRA",
         voucherNumber: `TRF-${Date.now().toString().slice(-6)}`,
         voucherDate: transferForm.date,
@@ -1045,7 +1045,7 @@ export default function CashAndBankPage() {
         throw new Error("Bank Accounts ledger group not found.");
       }
 
-      const created: any = await apiClient.post("/ledgers", {
+      const created: any = await apiClient.post("/accounting/ledgers", {
         name: accName,
         code: bankForm.accountNumber ? bankForm.accountNumber.trim() : `BNK-${Date.now().toString().slice(-4)}`,
         groupId: bankGroup.id,

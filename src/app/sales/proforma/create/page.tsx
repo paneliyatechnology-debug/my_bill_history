@@ -150,9 +150,9 @@ export default function CreateProformaInvoicePage() {
     setError(null);
     try {
       const [ptRes, itRes, whRes]: any = await Promise.allSettled([
-        apiClient.get("/parties"),
-        apiClient.get("/items"),
-        apiClient.get("/warehouses").catch(() => apiClient.get("/tenants/warehouses")),
+        apiClient.get("/masters/parties"),
+        apiClient.get("/masters/items"),
+        apiClient.get("/masters/warehouses"),
       ]);
 
       const pList = ptRes.status === "fulfilled" ? extractList<PartyOption>(ptRes.value) : [];
@@ -170,7 +170,7 @@ export default function CreateProformaInvoicePage() {
 
       // Fetch sequence
       try {
-        const seqRes: any = await apiClient.get("/invoices/sales/next-number", { category: "PROFORMA_INVOICE" }).catch(() => null);
+        const seqRes: any = await apiClient.get("/sales/invoices/next-number", { category: "PROFORMA_INVOICE" }).catch(() => null);
         if (seqRes?.nextNumber) {
           setInvoiceNumber(String(seqRes.nextNumber));
         }
@@ -374,7 +374,7 @@ export default function CreateProformaInvoicePage() {
     setError(null);
 
     try {
-      await apiClient.post("/invoices/sales?isDraft=true", {
+      await apiClient.post("/sales/invoices?isDraft=true", {
         category: "PROFORMA_INVOICE",
         invoiceNumber: invoiceNumber.trim() || undefined,
         invoiceDate: new Date(invoiceDate).toISOString(),
@@ -423,7 +423,7 @@ export default function CreateProformaInvoicePage() {
     setIsSavingParty(true);
     setPartyError(null);
     try {
-      const res: any = await apiClient.post("/parties", {
+      const res: any = await apiClient.post("/masters/parties", {
         name: newPartyName.trim(),
         phone: newPartyPhone.trim() || undefined,
         gstin: newPartyGstin.toUpperCase().trim() || undefined,

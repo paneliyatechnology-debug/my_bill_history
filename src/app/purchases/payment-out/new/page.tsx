@@ -108,9 +108,9 @@ export default function CreatePaymentOutPage() {
     async function loadData() {
       try {
         const [partiesRes, ledgersRes, nextNumRes] = await Promise.all([
-          apiClient.get<any>("/parties", { type: "SUPPLIER", limit: 100 }),
-          apiClient.get<any>("/ledgers/accounts", { limit: 100 }).catch(() => ({ data: [] })),
-          apiClient.get<any>("/vouchers/payments-out", { limit: 1 }).catch(() => null),
+          apiClient.get<any>("/masters/parties", { type: "SUPPLIER", limit: 100 }),
+          apiClient.get<any>("/accounting/accounts", { limit: 100 }).catch(() => ({ data: [] })),
+          apiClient.get<any>("/purchases/payment-out", { limit: 1 }).catch(() => null),
         ]);
 
         const partyList = extractList<PartyOption>(partiesRes);
@@ -161,7 +161,7 @@ export default function CreatePaymentOutPage() {
     async function fetchPendingBills() {
       setIsLoadingBills(true);
       try {
-        const res = await apiClient.get<any>("/purchases", {
+        const res = await apiClient.get<any>("/purchases/invoices", {
           partyId,
           limit: 100,
         });
@@ -385,7 +385,7 @@ export default function CreatePaymentOutPage() {
 
     setIsSubmitting(true);
     try {
-      const res = await apiClient.post<any>("/vouchers/payment-out", {
+      const res = await apiClient.post<any>("/purchases/payment-out", {
         partyId,
         voucherDate,
         amount: paidNum,

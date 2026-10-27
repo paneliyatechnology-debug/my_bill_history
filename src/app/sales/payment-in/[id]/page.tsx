@@ -72,7 +72,7 @@ export default function PaymentInDetailPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await apiClient.get<ReceiptDetail>(`/vouchers/${id}`);
+      const res = await apiClient.get<ReceiptDetail>(`/sales/payment-in/${id}`);
       setReceipt(res);
     } catch (err: any) {
       setError(err.message || "Payment not found.");
@@ -101,7 +101,7 @@ export default function PaymentInDetailPage() {
     setIsReversing(true);
     setError(null);
     try {
-      await apiClient.post(`/vouchers/${receipt.id}/reverse`, {
+      await apiClient.post(`/sales/payment-in/${receipt.id}/reverse`, {
         reason: reverseReason.trim(),
       });
       router.push("/sales/payment-in");

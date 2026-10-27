@@ -339,9 +339,9 @@ export default function NewInvoicePage() {
     setError(null);
     try {
       const [partiesRes, itemsRes, unitsRes]: any = await Promise.all([
-        apiClient.get("/parties", { type: "CUSTOMER" }),
-        apiClient.get("/items"),
-        apiClient.get("/units").catch(() => []),
+        apiClient.get("/masters/parties", { type: "CUSTOMER" }),
+        apiClient.get("/masters/items"),
+        apiClient.get("/masters/units").catch(() => []),
       ]);
       const pList = extractList<PartyOption>(partiesRes);
       const iList = extractList<ItemOption>(itemsRes);
@@ -667,7 +667,7 @@ export default function NewInvoicePage() {
 
     // 2. Query backend parties
     try {
-      const searchRes: any = await apiClient.get("/parties", {
+      const searchRes: any = await apiClient.get("/masters/parties", {
         type: "CUSTOMER",
         search: rawGstin || rawName || rawPhone,
         limit: 5,
@@ -691,7 +691,7 @@ export default function NewInvoicePage() {
     if (rawName && rawName.length > 1) {
       try {
         const stateCode = target.stateCode || (rawGstin ? rawGstin.slice(0, 2) : "24");
-        const res: any = await apiClient.post("/parties", {
+        const res: any = await apiClient.post("/masters/parties", {
           type: "CUSTOMER",
           name: rawName,
           phone: rawPhone || undefined,
@@ -745,7 +745,7 @@ export default function NewInvoicePage() {
 
     // 2. Query backend items
     try {
-      const searchRes: any = await apiClient.get("/items", { search: cleanName, limit: 5 });
+      const searchRes: any = await apiClient.get("/masters/items", { search: cleanName, limit: 5 });
       const searchList = extractList<ItemOption>(searchRes);
       match = searchList.find(
         (i) =>
@@ -765,13 +765,13 @@ export default function NewInvoicePage() {
     try {
       let primaryUomId = units[0]?.id;
       if (!primaryUomId) {
-        const uomRes: any = await apiClient.get("/units").catch(() => []);
+        const uomRes: any = await apiClient.get("/masters/units").catch(() => []);
         const uomList = extractList<any>(uomRes);
         if (uomList.length > 0) {
           setUnits(uomList);
           primaryUomId = uomList[0].id;
         } else {
-          const newUom: any = await apiClient.post("/units", {
+          const newUom: any = await apiClient.post("/masters/units", {
             name: "Pieces",
             symbol: "PCS",
             uqcCode: "PCS",
@@ -789,7 +789,7 @@ export default function NewInvoicePage() {
         lower.includes("service") ||
         lower.includes("charge");
 
-      const created: any = await apiClient.post("/items", {
+      const created: any = await apiClient.post("/masters/items", {
         type: isService ? "SERVICE" : "PRODUCT",
         name: cleanName,
         hsnCode: hsn?.trim() || (isService ? "9983" : "1001"),
@@ -1077,7 +1077,7 @@ export default function NewInvoicePage() {
 
       let newPartyObj: PartyOption;
       try {
-        const res: any = await apiClient.post("/parties", payload);
+        const res: any = await apiClient.post("/masters/parties", payload);
         newPartyObj = {
           id: res.id || String(Date.now()),
           name: res.name || partyFormData.name,
@@ -1219,14 +1219,14 @@ export default function NewInvoicePage() {
       };
 
       const res: any = await apiClient.post(
-        `/invoices/sales${isDraft ? "?isDraft=true" : ""}`,
+        `/sales/invoices${isDraft ? "?isDraft=true" : ""}`,
         invoicePayload
       );
 
       // If partial payment was recorded, post it against the created invoice
       if (!isFullyPaid && effectiveReceived > 0 && res?.id) {
         try {
-          await apiClient.post(`/invoices/sales/${res.id}/payments`, {
+          await apiClient.post(`/sales/invoices/${res.id}/payments`, {
             amount: effectiveReceived,
             paymentMode,
             paymentDate: new Date(invoiceDate).toISOString(),

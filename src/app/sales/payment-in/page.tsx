@@ -194,7 +194,7 @@ export default function PaymentInPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res: any = await apiClient.get("/vouchers/receipts", {
+      const res: any = await apiClient.get("/sales/payment-in", {
         search: searchQuery.trim() || undefined,
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
@@ -243,7 +243,7 @@ export default function PaymentInPage() {
     setIsReversing(true);
     setReverseError(null);
     try {
-      await apiClient.post(`/vouchers/${reverseTarget.id}/reverse`, {
+      await apiClient.post(`/sales/payment-in/${reverseTarget.id}/reverse`, {
         reason: reverseReason.trim(),
       });
       setReverseTarget(null);

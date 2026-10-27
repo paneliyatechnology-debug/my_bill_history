@@ -62,8 +62,8 @@ export default function LedgersPage() {
     setError(null);
     try {
       const [ledgersRes, groupsRes]: any = await Promise.all([
-        apiClient.get("/ledgers"),
-        apiClient.get("/ledger-groups"),
+        apiClient.get("/accounting/ledgers"),
+        apiClient.get("/accounting/groups"),
       ]);
       setLedgers(extractList<LedgerAccount>(ledgersRes));
       setGroups(extractList<GroupOption>(groupsRes));
@@ -86,7 +86,7 @@ export default function LedgersPage() {
     setIsSubmitting(true);
 
     try {
-      await apiClient.post("/ledgers", {
+      await apiClient.post("/accounting/ledgers", {
         code: formData.code,
         name: formData.name,
         nameGujarati: formData.nameGujarati || undefined,

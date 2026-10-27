@@ -140,7 +140,7 @@ export default function PaymentOutViewPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await apiClient.get<PaymentOutDetail>(`/vouchers/payment-out/${id}`);
+      const res = await apiClient.get<PaymentOutDetail>(`/purchases/payment-out/${id}`);
       setPayment(res);
     } catch (err: any) {
       setError(err.message || "Payment voucher not found.");
@@ -165,7 +165,7 @@ export default function PaymentOutViewPage() {
     if (!payment) return;
     setIsDeleting(true);
     try {
-      await apiClient.delete(`/vouchers/payment-out/${payment.id}`);
+      await apiClient.delete(`/purchases/payment-out/${payment.id}`);
       setShowDeleteModal(false);
       setToast(lang === "gu" ? "ચુકવણી રદ થઈ ગઈ." : "Payment Out deleted successfully.");
       setTimeout(() => {

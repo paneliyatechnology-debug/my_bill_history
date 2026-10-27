@@ -88,7 +88,7 @@ export function AdjustStockModal({
     setErrorMsg(null);
 
     try {
-      await apiClient.post(`/items/${item.id}/adjust-stock`, {
+      await apiClient.post(`/masters/items/${item.id}/adjust-stock`, {
         quantity: numQty,
         type: adjustType,
         warehouseId: warehouseId || undefined,

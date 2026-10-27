@@ -270,8 +270,8 @@ export default function InvoiceDetailPage() {
     setError(null);
     try {
       const [invRes, allocRes, retRes, compRes]: any = await Promise.all([
-        apiClient.get(`/invoices/sales/${id}`),
-        apiClient.get(`/invoices/sales/${id}/allocations`).catch(() => []),
+        apiClient.get(`/sales/invoices/${id}`),
+        apiClient.get(`/sales/invoices/${id}/allocations`).catch(() => []),
         apiClient
           .get(`/sales-returns`, { salesInvoiceId: id })
           .catch(() => ({ data: [] })),
@@ -311,7 +311,7 @@ export default function InvoiceDetailPage() {
     setActionError(null);
     try {
       await apiClient.post(
-        `/invoices/sales/${invoice.id}/issue`,
+        `/sales/invoices/${invoice.id}/issue`,
         { allowNegativeStock: forceNegativeStock },
         undefined,
         `issue_key_${Date.now()}`,
@@ -352,7 +352,7 @@ export default function InvoiceDetailPage() {
 
     try {
       await apiClient.post(
-        `/invoices/sales/${invoice.id}/payments`,
+        `/sales/invoices/${invoice.id}/payments`,
         {
           amount: Number(paymentAmount) || 0,
           paymentMode,
@@ -380,7 +380,7 @@ export default function InvoiceDetailPage() {
 
     try {
       await apiClient.post(
-        `/invoices/sales/${invoice.id}/cancel`,
+        `/sales/invoices/${invoice.id}/cancel`,
         {
           cancellationReason: cancelReason,
         },

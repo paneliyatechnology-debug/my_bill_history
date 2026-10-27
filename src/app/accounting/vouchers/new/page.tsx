@@ -48,7 +48,7 @@ export default function NewVoucherPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res: any = await apiClient.get("/ledgers");
+      const res: any = await apiClient.get("/accounting/ledgers");
       const accList: AccountOption[] = extractList<AccountOption>(res);
       setAccounts(accList);
       if (accList.length >= 2) {
@@ -133,7 +133,7 @@ export default function NewVoucherPage() {
 
     setIsSubmitting(true);
     try {
-      await apiClient.post("/vouchers", {
+      await apiClient.post("/accounting/vouchers", {
         voucherType,
         voucherNumber,
         voucherDate,

@@ -57,7 +57,7 @@ export default function UnitsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res: any = await apiClient.get("/units");
+      const res: any = await apiClient.get("/masters/units");
       setUnits(
         Array.isArray(res)
           ? res.map((u: any) => ({
@@ -85,7 +85,7 @@ export default function UnitsPage() {
     setIsSubmitting(true);
 
     try {
-      await apiClient.post("/units", {
+      await apiClient.post("/masters/units", {
         name: formData.name,
         code: formData.code.toUpperCase(),
         symbol: formData.code.toUpperCase(),
@@ -120,7 +120,7 @@ export default function UnitsPage() {
     setIsSubmitting(true);
 
     try {
-      await apiClient.put(`/units/${editingUnit.id}`, {
+      await apiClient.put(`/masters/units/${editingUnit.id}`, {
         name: editFormData.name,
         symbol: editFormData.code.toUpperCase(),
         uqcCode: editFormData.code.toUpperCase(),
@@ -141,7 +141,7 @@ export default function UnitsPage() {
     if (!unitToDelete) return;
     setIsDeleting(true);
     try {
-      await apiClient.delete(`/units/${unitToDelete.id}`);
+      await apiClient.delete(`/masters/units/${unitToDelete.id}`);
       setUnitToDelete(null);
       await fetchUnits();
     } catch (err: any) {
@@ -156,7 +156,7 @@ export default function UnitsPage() {
     setIsBulkDeleting(true);
     setError(null);
     try {
-      await apiClient.post("/units/bulk-delete", {
+      await apiClient.post("/masters/units/bulk-delete", {
         ids: Array.from(selectedIds),
       });
       setSelectedIds(new Set());

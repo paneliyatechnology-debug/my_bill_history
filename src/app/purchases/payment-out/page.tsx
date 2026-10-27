@@ -225,7 +225,7 @@ export default function PaymentOutDashboardPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await apiClient.get<any>("/vouchers/payments-out", {
+      const res = await apiClient.get<any>("/purchases/payment-out", {
         search: searchQuery.trim() || undefined,
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
@@ -269,7 +269,7 @@ export default function PaymentOutDashboardPage() {
     if (!cancelTarget) return;
     setIsCancelling(true);
     try {
-      await apiClient.delete(`/vouchers/payment-out/${cancelTarget.id}`);
+      await apiClient.delete(`/purchases/payment-out/${cancelTarget.id}`);
       setCancelTarget(null);
       setToast(lang === "gu" ? "ચુકવણી રદ કરી દીધી." : "Payment Out voucher cancelled successfully.");
       await fetchPayments();

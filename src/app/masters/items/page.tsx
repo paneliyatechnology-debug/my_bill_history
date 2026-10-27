@@ -261,14 +261,14 @@ export default function ItemsPage() {
     setError(null);
     try {
       const [itemsRes, unitsRes, catsRes, whRes, partiesRes]: any = await Promise.all([
-        apiClient.get("/items", {
+        apiClient.get("/masters/items", {
           search: searchTerm || undefined,
           type: typeFilter !== "ALL" ? typeFilter : undefined,
         }),
-        apiClient.get("/units"),
-        apiClient.get("/categories"),
-        apiClient.get("/warehouses").catch(() => []),
-        apiClient.get("/parties").catch(() => []),
+        apiClient.get("/masters/units"),
+        apiClient.get("/masters/categories"),
+        apiClient.get("/masters/warehouses").catch(() => []),
+        apiClient.get("/masters/parties").catch(() => []),
       ]);
 
       setItems(extractList(itemsRes));
@@ -299,7 +299,7 @@ export default function ItemsPage() {
       uomId = units[0].id;
     }
 
-    const createdRes: any = await apiClient.post("/items", {
+    const createdRes: any = await apiClient.post("/masters/items", {
       type: data.type,
       name: data.name.trim(),
       nameGujarati: data.nameGujarati?.trim() || undefined,
@@ -394,7 +394,7 @@ export default function ItemsPage() {
   const handleUpdateItemStep = async (data: ItemFormData) => {
     if (!editingItem) return;
 
-    await apiClient.put(`/items/${editingItem.id}`, {
+    await apiClient.put(`/masters/items/${editingItem.id}`, {
       type: data.type,
       name: data.name.trim(),
       nameGujarati: data.nameGujarati?.trim() || undefined,
@@ -437,7 +437,7 @@ export default function ItemsPage() {
   };
 
   const handleAddNewCategory = async (catName: string) => {
-    const res: any = await apiClient.post("/categories", {
+    const res: any = await apiClient.post("/masters/categories", {
       name: catName,
     });
     const newCat = res?.data || res;
@@ -495,7 +495,7 @@ export default function ItemsPage() {
     setDeleteError(null);
     try {
       const idsArray = Array.from(selectedIds);
-      const res: any = await apiClient.post("/items/bulk-delete", {
+      const res: any = await apiClient.post("/masters/items/bulk-delete", {
         ids: idsArray,
         force: bulkForceDelete,
       });

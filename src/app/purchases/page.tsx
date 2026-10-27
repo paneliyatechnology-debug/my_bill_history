@@ -223,7 +223,7 @@ export default function PurchasesPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res: any = await apiClient.get("/purchases", {
+      const res: any = await apiClient.get("/purchases/invoices", {
         limit: 200,
       });
       setInvoices(
@@ -239,9 +239,9 @@ export default function PurchasesPage() {
   const fetchDependencies = async () => {
     try {
       const [partiesRes, itemsRes, whRes]: any = await Promise.all([
-        apiClient.get("/parties", { type: "SUPPLIER" }).catch(() => apiClient.get("/parties")),
-        apiClient.get("/items"),
-        apiClient.get("/tenants/warehouses"),
+        apiClient.get("/masters/parties", { type: "SUPPLIER" }).catch(() => apiClient.get("/masters/parties")),
+        apiClient.get("/masters/items"),
+        apiClient.get("/masters/warehouses"),
       ]);
       setParties(Array.isArray(partiesRes) ? partiesRes : partiesRes?.items || []);
       setItemsList(Array.isArray(itemsRes) ? itemsRes : itemsRes?.items || []);
@@ -383,7 +383,7 @@ export default function PurchasesPage() {
   const handleDuplicatePurchase = async (inv: PurchaseInvoice) => {
     setActiveActionMenuId(null);
     try {
-      const res: any = await apiClient.get(`/purchases/${inv.id}`);
+      const res: any = await apiClient.get(`/purchases/invoices/${inv.id}`);
       const fullData = res?.data || res;
       if (typeof window !== "undefined") {
         localStorage.setItem("billing_clone_purchase", JSON.stringify(fullData));
@@ -401,7 +401,7 @@ export default function PurchasesPage() {
     setIsDeletingSingle(true);
     setError(null);
     try {
-      await apiClient.delete(`/purchases/${purchaseToDelete.id}`);
+      await apiClient.delete(`/purchases/invoices/${purchaseToDelete.id}`);
       setSuccessBanner(
         lang === "gu"
           ? `ખરીદી બિલ #${purchaseToDelete.vendorInvoiceNumber} સફળતાપૂર્વક કાઢી નાખવામાં આવ્યું.`
@@ -434,7 +434,7 @@ export default function PurchasesPage() {
     setPayKey(`pay-${invoice.id}-${Date.now()}`);
     try {
       const [ledger] = await Promise.all([
-        apiClient.get<any>("/ledgers", { nature: "ASSET", limit: 100 }).catch(() => ({ data: [] })),
+        apiClient.get<any>("/accounting/ledgers", { nature: "ASSET", limit: 100 }).catch(() => ({ data: [] })),
       ]);
       const rows = ledger.data || ledger.items || [];
       setPayAccounts(rows.filter((account: any) => /cash|bank/i.test(account.name || "")));
@@ -966,7 +966,7 @@ export default function PurchasesPage() {
                   return (
                     <tr
                       key={inv.id}
-                      onClick={() => router.push(`/purchases/${inv.id}`)}
+                      onClick={() => router.push(`/purchases/invoices/${inv.id}`)}
                       className="hover:bg-slate-50/70 transition-colors cursor-pointer"
                     >
                       {/* Date */}
@@ -1037,7 +1037,7 @@ export default function PurchasesPage() {
                             onClick={(e) => e.stopPropagation()}
                           >
                             <Link
-                              href={`/purchases/${inv.id}`}
+                              href={`/purchases/invoices/${inv.id}`}
                               className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
                             >
                               <span>👁️</span>
@@ -1056,7 +1056,7 @@ export default function PurchasesPage() {
                             )}
 
                             <Link
-                              href={`/purchases/${inv.id}`}
+                              href={`/purchases/invoices/${inv.id}`}
                               className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
                             >
                               <span>✏️</span>
