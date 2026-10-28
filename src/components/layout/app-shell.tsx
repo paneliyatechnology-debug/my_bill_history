@@ -920,6 +920,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   ];
 
   const isSettingsPage = pathname.startsWith("/settings") || pathname.startsWith("/pricing-settings");
+  const isStudioSettings =
+    pathname.startsWith("/settings/invoice") ||
+    pathname.startsWith("/settings/thermal-print");
   const isCashBankPage =
     pathname === "/finance/cash-bank" ||
     pathname === "/cash-bank";
@@ -1525,7 +1528,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           className={`flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden relative z-10 ${pathname === "/" ||
               pathname.startsWith("/purchases") ||
               pathname.startsWith("/sales") ||
-              isCashBankPage
+              isCashBankPage ||
+              isStudioSettings
               ? "p-2 sm:p-3 lg:p-4"
               : "p-3 sm:p-6 lg:p-8"
             } pb-24 lg:pb-8 overscroll-y-contain focus:outline-none print:p-0 print:m-0 print:overflow-visible print:h-auto print:w-full print:block`}
@@ -1534,7 +1538,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             className={`${pathname === "/" ||
                 pathname.startsWith("/purchases") ||
                 pathname.startsWith("/sales") ||
-                isCashBankPage
+                isCashBankPage ||
+                isStudioSettings
                 ? "w-full min-w-0 max-w-none"
                 : "max-w-7xl w-full min-w-0 mx-auto"
               } print:max-w-none print:w-full print:p-0 print:m-0`}

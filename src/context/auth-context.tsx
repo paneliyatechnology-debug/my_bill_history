@@ -65,6 +65,8 @@ export interface PlanEntitlementsInfo {
   maxBranchesPerCompany: number;
   maxUsers: number;
   subscriptionEnds?: string | null;
+  isExpired?: boolean;
+  daysRemaining?: number;
   isActive: boolean;
   features: {
     multiCompany: boolean;
