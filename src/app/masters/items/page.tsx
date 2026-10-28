@@ -634,7 +634,7 @@ export default function ItemsPage() {
             <div className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">
               {it.name}
             </div>
-            {it.nameGujarati && (
+            {lang === "gu" && it.nameGujarati && (
               <div className="text-[11px] font-normal text-slate-500">
                 {it.nameGujarati}
               </div>
@@ -1067,7 +1067,7 @@ export default function ItemsPage() {
               </div>
               <Badge variant={it.type === "PRODUCT" ? "info" : "purple"}>{it.type}</Badge>
             </div>
-            {it.nameGujarati && <p className="text-xs text-slate-500">{it.nameGujarati}</p>}
+            {lang === "gu" && it.nameGujarati && <p className="text-xs text-slate-500">{it.nameGujarati}</p>}
             <div className="flex items-center justify-between text-xs text-slate-600 font-mono">
               <span>Code: {it.sku || it.barcode || "—"}</span>
               <span>HSN: {it.hsnCode}</span>
@@ -1278,7 +1278,7 @@ export default function ItemsPage() {
                 {itemToDelete?.isActive ? "ACTIVE" : "INACTIVE"}
               </span>
             </div>
-            {itemToDelete?.nameGujarati && (
+            {lang === "gu" && itemToDelete?.nameGujarati && (
               <p className="text-[11px] text-slate-500">{itemToDelete.nameGujarati}</p>
             )}
             <div className="text-[11px] text-slate-500 font-mono flex gap-3">

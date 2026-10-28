@@ -1444,7 +1444,7 @@ export default function InvoiceDetailPage() {
                             </td>
                             <td className="py-2 px-2 sm:px-2.5 font-semibold text-slate-900">
                               <div className="leading-snug text-xs sm:text-xs">{item.item?.name || item.description || "Product"}</div>
-                              {item.item?.nameGujarati && (
+                              {lang === "gu" && item.item?.nameGujarati && (
                                 <div className="text-[10px] text-slate-500 font-normal">{item.item.nameGujarati}</div>
                               )}
                               {/* Mobile Subtitle: Displays HSN, GST rate, and Discount clearly below item name */}
@@ -2582,7 +2582,7 @@ export default function InvoiceDetailPage() {
                   <svg className="w-3.5 h-3.5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
-                  <span>1. Generate E-Way Bill (સિસ્ટમ જનરેશન)</span>
+                  <span>{lang === "gu" ? "1. Generate E-Way Bill (સિસ્ટમ જનરેશન)" : "1. Generate E-Way Bill"}</span>
                 </button>
                 <button
                   type="button"
@@ -2595,7 +2595,7 @@ export default function InvoiceDetailPage() {
                   <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                   </svg>
-                  <span>2. Link Govt Portal EWB (પોર્ટલ નંબર જોડો)</span>
+                  <span>{lang === "gu" ? "2. Link Govt Portal EWB (પોર્ટલ નંબર જોડો)" : "2. Link Govt Portal EWB"}</span>
                 </button>
               </div>
 

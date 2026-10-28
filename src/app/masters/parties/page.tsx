@@ -630,7 +630,7 @@ export default function PartiesPage() {
                 <span>{p.name}</span>
                 <span className="text-[10px] text-slate-400 group-hover:text-[#4F46E5]">↗</span>
               </div>
-              {p.nameGujarati && (
+              {lang === "gu" && p.nameGujarati && (
                 <div className="text-[11px] font-normal text-slate-500">
                   {p.nameGujarati}
                 </div>
@@ -771,7 +771,7 @@ export default function PartiesPage() {
               <span className="text-slate-300">/</span>
               <div className="flex items-center gap-2">
                 <span className="text-sm sm:text-base font-bold text-slate-900">{selectedParty.name}</span>
-                {selectedParty.nameGujarati && (
+                {lang === "gu" && selectedParty.nameGujarati && (
                   <span className="text-xs text-slate-500 font-normal">({selectedParty.nameGujarati})</span>
                 )}
                 <Badge
@@ -883,7 +883,7 @@ export default function PartiesPage() {
                           <div className="font-bold text-xs text-slate-900 truncate flex items-center gap-1.5">
                             <span>{p.name}</span>
                           </div>
-                          {p.nameGujarati && (
+                          {lang === "gu" && p.nameGujarati && (
                             <div className="text-[10px] text-slate-500 truncate">{p.nameGujarati}</div>
                           )}
                           <div className="text-[11px] text-slate-500 font-mono mt-0.5 truncate">
@@ -930,7 +930,7 @@ export default function PartiesPage() {
                         <h2 className="text-base sm:text-lg font-bold text-slate-900">
                           {selectedParty.name}
                         </h2>
-                        {selectedParty.nameGujarati && (
+                        {lang === "gu" && selectedParty.nameGujarati && (
                           <span className="text-xs text-slate-500 font-normal">
                             ({selectedParty.nameGujarati})
                           </span>
@@ -1185,7 +1185,7 @@ export default function PartiesPage() {
                             <span className="text-slate-500">Party Name:</span>
                             <span className="font-semibold text-slate-900">{selectedParty.name}</span>
                           </div>
-                          {selectedParty.nameGujarati && (
+                          {lang === "gu" && selectedParty.nameGujarati && (
                             <div className="flex justify-between">
                               <span className="text-slate-500">Gujarati Name:</span>
                               <span className="font-semibold text-slate-900">{selectedParty.nameGujarati}</span>
@@ -1613,7 +1613,7 @@ export default function PartiesPage() {
                     {p.type}
                   </Badge>
                 </div>
-                {p.nameGujarati && <p className="text-xs text-slate-500">{p.nameGujarati}</p>}
+                {lang === "gu" && p.nameGujarati && <p className="text-xs text-slate-500">{p.nameGujarati}</p>}
                 <div className="flex items-center justify-between text-xs text-slate-600 font-mono">
                   <span>📞 {p.phone || "—"}</span>
                   <span>State: {p.stateCode}</span>
@@ -1993,20 +1993,22 @@ export default function PartiesPage() {
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-              {lang === "gu" ? "નામ ગુજરાતીમાં" : "Name in Gujarati (Optional)"}
-            </label>
-            <input
-              type="text"
-              value={formData.nameGujarati}
-              onChange={(e) =>
-                setFormData({ ...formData, nameGujarati: e.target.value })
-              }
-              placeholder={lang === "gu" ? "દા.ત. શ્રી ગણેશ પ્રોવિઝન સ્ટોર" : "e.g. Shree Ganesh Provision Store"}
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
-            />
-          </div>
+          {lang === "gu" && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                નામ ગુજરાતીમાં (વૈકલ્પિક)
+              </label>
+              <input
+                type="text"
+                value={formData.nameGujarati}
+                onChange={(e) =>
+                  setFormData({ ...formData, nameGujarati: e.target.value })
+                }
+                placeholder="દા.ત. શ્રી ગણેશ પ્રોવિઝન સ્ટોર"
+                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
+              />
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
@@ -2377,20 +2379,22 @@ export default function PartiesPage() {
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-              {lang === "gu" ? "નામ ગુજરાતીમાં" : "Name in Gujarati (Optional)"}
-            </label>
-            <input
-              type="text"
-              value={editFormData.nameGujarati}
-              onChange={(e) =>
-                setEditFormData({ ...editFormData, nameGujarati: e.target.value })
-              }
-              placeholder={lang === "gu" ? "દા.ત. શ્રી ગણેશ પ્રોવિઝન સ્ટોર" : "e.g. Shree Ganesh Provision Store"}
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
-            />
-          </div>
+          {lang === "gu" && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                નામ ગુજરાતીમાં (વૈકલ્પિક)
+              </label>
+              <input
+                type="text"
+                value={editFormData.nameGujarati}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, nameGujarati: e.target.value })
+                }
+                placeholder="દા.ત. શ્રી ગણેશ પ્રોવિઝન સ્ટોર"
+                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
+              />
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>

@@ -273,7 +273,7 @@ export default function FinanceLedgersPage() {
       cell: (l) => (
         <div>
           <div className="font-bold text-slate-900">{l.name}</div>
-          {l.nameGujarati && (
+          {lang === "gu" && l.nameGujarati && (
             <div className="text-[11px] font-medium text-slate-500">
               {l.nameGujarati}
             </div>
@@ -669,18 +669,20 @@ export default function FinanceLedgersPage() {
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-              {lang === "gu" ? "ખાતાનું નામ (ગુજરાતીમાં)" : "Account Name (Gujarati)"}
-            </label>
-            <input
-              type="text"
-              value={formData.nameGujarati}
-              onChange={(e) => setFormData({ ...formData, nameGujarati: e.target.value })}
-              placeholder="દા.ત. એચડીએફસી બેંક ખાતું, દુકાન ભાડું"
-              className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:bg-white focus:border-primary outline-none"
-            />
-          </div>
+          {lang === "gu" && (
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                ખાતાનું નામ (ગુજરાતીમાં)
+              </label>
+              <input
+                type="text"
+                value={formData.nameGujarati}
+                onChange={(e) => setFormData({ ...formData, nameGujarati: e.target.value })}
+                placeholder="દા.ત. એચડીએફસી બેંક ખાતું, દુકાન ભાડું"
+                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:bg-white focus:border-primary outline-none"
+              />
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -766,17 +768,19 @@ export default function FinanceLedgersPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                {lang === "gu" ? "ખાતાનું નામ (ગુજરાતીમાં)" : "Account Name (Gujarati)"}
-              </label>
-              <input
-                type="text"
-                value={editFormData.nameGujarati}
-                onChange={(e) => setEditFormData({ ...editFormData, nameGujarati: e.target.value })}
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:bg-white focus:border-primary outline-none"
-              />
-            </div>
+            {lang === "gu" && (
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  ખાતાનું નામ (ગુજરાતીમાં)
+                </label>
+                <input
+                  type="text"
+                  value={editFormData.nameGujarati}
+                  onChange={(e) => setEditFormData({ ...editFormData, nameGujarati: e.target.value })}
+                  className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:bg-white focus:border-primary outline-none"
+                />
+              </div>
+            )}
 
             <div className="flex items-center gap-2 pt-2">
               <input

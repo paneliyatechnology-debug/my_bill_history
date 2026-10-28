@@ -250,14 +250,18 @@ export default function CategoriesPage() {
               <span className="font-semibold text-slate-900">{c.name}</span>
             ),
           },
-          {
-            header: lang === "gu" ? "ગુજરાતી નામ" : "Gujarati Name",
-            accessorKey: "nameGujarati",
-            sortable: true,
-            cell: (c) => (
-              <span className="text-slate-600">{c.nameGujarati || "—"}</span>
-            ),
-          },
+          ...(lang === "gu"
+            ? [
+                {
+                  header: "ગુજરાતી નામ",
+                  accessorKey: "nameGujarati",
+                  sortable: true,
+                  cell: (c: any) => (
+                    <span className="text-slate-600">{c.nameGujarati || "—"}</span>
+                  ),
+                },
+              ]
+            : []),
           {
             header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
             className: "text-center",
@@ -307,7 +311,7 @@ export default function CategoriesPage() {
           <div key={c.id} className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="font-semibold text-slate-900">{c.name}</span>
-              {c.nameGujarati && (
+              {lang === "gu" && c.nameGujarati && (
                 <span className="text-xs text-slate-500">{c.nameGujarati}</span>
               )}
             </div>
@@ -360,20 +364,22 @@ export default function CategoriesPage() {
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-              Name in Gujarati (Optional)
-            </label>
-            <input
-              type="text"
-              value={formData.nameGujarati}
-              onChange={(e) =>
-                setFormData({ ...formData, nameGujarati: e.target.value })
-              }
-              placeholder={lang === "gu" ? "દા.ત. મસાલા અને તેજાના" : "e.g. Spices & Condiments"}
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
-            />
-          </div>
+          {lang === "gu" && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                નામ ગુજરાતીમાં (વૈકલ્પિક)
+              </label>
+              <input
+                type="text"
+                value={formData.nameGujarati}
+                onChange={(e) =>
+                  setFormData({ ...formData, nameGujarati: e.target.value })
+                }
+                placeholder="દા.ત. મસાલા અને તેજાના"
+                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
+              />
+            </div>
+          )}
 
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
             <button
@@ -428,20 +434,22 @@ export default function CategoriesPage() {
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-              Name in Gujarati (Optional)
-            </label>
-            <input
-              type="text"
-              value={editFormData.nameGujarati}
-              onChange={(e) =>
-                setEditFormData({ ...editFormData, nameGujarati: e.target.value })
-              }
-              placeholder={lang === "gu" ? "દા.ત. મસાલા અને તેજાના" : "e.g. Spices & Condiments"}
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
-            />
-          </div>
+          {lang === "gu" && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                નામ ગુજરાતીમાં (વૈકલ્પિક)
+              </label>
+              <input
+                type="text"
+                value={editFormData.nameGujarati}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, nameGujarati: e.target.value })
+                }
+                placeholder="દા.ત. મસાલા અને તેજાના"
+                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
+              />
+            </div>
+          )}
 
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
             <button

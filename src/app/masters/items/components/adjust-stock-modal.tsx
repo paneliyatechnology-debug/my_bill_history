@@ -237,7 +237,7 @@ export function AdjustStockModal({
                   <p className="font-bold text-slate-900 text-sm mt-0.5">
                     {item.name}
                   </p>
-                  {item.nameGujarati && (
+                  {lang === "gu" && item.nameGujarati && (
                     <p className="text-xs text-slate-500 mt-0.5">
                       {item.nameGujarati}
                     </p>

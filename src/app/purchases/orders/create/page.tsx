@@ -951,7 +951,7 @@ export default function CreatePurchaseOrderPage() {
                                         <div className="pr-3">
                                           <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors flex items-center gap-1.5">
                                             <span>{itm.name}</span>
-                                            {itm.nameGujarati && (
+                                            {lang === "gu" && itm.nameGujarati && (
                                               <span className="text-[11px] font-normal text-slate-500">
                                                 ({itm.nameGujarati})
                                               </span>

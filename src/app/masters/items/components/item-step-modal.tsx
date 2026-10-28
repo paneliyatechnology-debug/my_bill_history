@@ -688,18 +688,20 @@ export function ItemStepModal({
                         />
                       </div>
 
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
-                          {lang === "gu" ? "નામ ગુજરાતીમાં (વૈકલ્પિક)" : "Name in Gujarati (Optional)"}
-                        </label>
-                        <input
-                          type="text"
-                          value={form.nameGujarati}
-                          onChange={(e) => setForm({ ...form, nameGujarati: e.target.value })}
-                          placeholder="દા.ત. પેન્ટ્સ, બાસમતી ચોખા ૨૫ કિલો"
-                          className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-medium text-slate-800"
-                        />
-                      </div>
+                      {lang === "gu" && (
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
+                            નામ ગુજરાતીમાં (વૈકલ્પિક)
+                          </label>
+                          <input
+                            type="text"
+                            value={form.nameGujarati}
+                            onChange={(e) => setForm({ ...form, nameGujarati: e.target.value })}
+                            placeholder="દા.ત. પેન્ટ્સ, બાસમતી ચોખા ૨૫ કિલો"
+                            className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-medium text-slate-800"
+                          />
+                        </div>
+                      )}
                     </div>
 
                     {/* Sales Price & GST Tax Rate Row */}

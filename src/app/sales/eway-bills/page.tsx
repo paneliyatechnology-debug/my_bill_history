@@ -720,7 +720,7 @@ export default function EWayBillsPage() {
       <Modal
         isOpen={isLinkModalOpen}
         onClose={() => setIsLinkModalOpen(false)}
-        title="Link Govt Portal E-Way Bill (મેન્યુઅલ રેકોર્ડ)"
+        title={lang === "gu" ? "Link Govt Portal E-Way Bill (મેન્યુઅલ રેકોર્ડ)" : "Link Govt Portal E-Way Bill"}
         titleGujarati="સરકારી પોર્ટલ (ewaybillgst.gov.in) પરથી બનેલ ૧૨ અંકનો EWB નંબર જોડો"
         maxWidth="lg"
         footer={
@@ -772,7 +772,7 @@ export default function EWayBillsPage() {
                     : "border-slate-200 text-slate-600 hover:bg-slate-50"
                 }`}
               >
-                Delivery Challan (ચલણ)
+                {lang === "gu" ? "Delivery Challan (ચલણ)" : "Delivery Challan"}
               </button>
               <button
                 type="button"
@@ -786,7 +786,7 @@ export default function EWayBillsPage() {
                     : "border-slate-200 text-slate-600 hover:bg-slate-50"
                 }`}
               >
-                Sales Invoice (વેચાણ બિલ)
+                {lang === "gu" ? "Sales Invoice (વેચાણ બિલ)" : "Sales Invoice"}
               </button>
             </div>
           </div>

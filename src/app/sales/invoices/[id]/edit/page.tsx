@@ -433,8 +433,8 @@ export default function EditInvoicePage() {
               onChange={(e) => setPaymentMode(e.target.value)}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none"
             >
-              <option value="UNPAID_CREDIT">Unpaid / Credit (બાકી)</option>
-              <option value="CASH">Cash (રોકડ)</option>
+              <option value="UNPAID_CREDIT">{lang === "gu" ? "Unpaid / Credit (બાકી)" : "Unpaid / Credit"}</option>
+              <option value="CASH">{lang === "gu" ? "Cash (રોકડ)" : "Cash"}</option>
               <option value="BANK_TRANSFER">Bank Transfer / NEFT</option>
               <option value="UPI">UPI Payment</option>
               <option value="CHEQUE">Cheque</option>

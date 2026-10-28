@@ -947,7 +947,7 @@ export default function ExpensesPage() {
                         {/* Category */}
                         <td className="py-3.5 px-4">
                           <span className="font-semibold text-slate-900">{details.categoryName}</span>
-                          {details.expenseAccount?.nameGujarati && (
+                          {lang === "gu" && details.expenseAccount?.nameGujarati && (
                             <span className="text-[10px] text-slate-400 block">
                               {details.expenseAccount.nameGujarati}
                             </span>

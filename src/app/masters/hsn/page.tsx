@@ -716,7 +716,7 @@ export default function HsnMasterPage() {
                       <div className="font-medium text-slate-900 text-xs">
                         {item.description}
                       </div>
-                      {item.descriptionGujarati && (
+                      {lang === "gu" && item.descriptionGujarati && (
                         <div className="text-[11px] text-slate-500 font-normal mt-0.5">
                           {item.descriptionGujarati}
                         </div>
@@ -1038,20 +1038,22 @@ export default function HsnMasterPage() {
           </div>
 
           {/* Description Gujarati */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              {lang === "gu" ? "ગુજરાતી વિગત" : "Description (Gujarati - Optional)"}
-            </label>
-            <input
-              type="text"
-              placeholder={lang === "gu" ? "દા.ત. ઔદ્યોગિક મશીનરી સ્પેરપાર્ટ્સ" : "e.g. Industrial Machinery Spare Parts"}
-              value={formData.descriptionGujarati}
-              onChange={(e) =>
-                setFormData({ ...formData, descriptionGujarati: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-            />
-          </div>
+          {lang === "gu" && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                ગુજરાતી વિગત (વૈકલ્પિક)
+              </label>
+              <input
+                type="text"
+                placeholder="દા.ત. ઔદ્યોગિક મશીનરી સ્પેરપાર્ટ્સ"
+                value={formData.descriptionGujarati}
+                onChange={(e) =>
+                  setFormData({ ...formData, descriptionGujarati: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              />
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* GST Rate */}
@@ -1187,22 +1189,24 @@ export default function HsnMasterPage() {
           </div>
 
           {/* Description Gujarati */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Description (Gujarati)
-            </label>
-            <input
-              type="text"
-              value={editFormData.descriptionGujarati}
-              onChange={(e) =>
-                setEditFormData({
-                  ...editFormData,
-                  descriptionGujarati: e.target.value,
-                })
-              }
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-            />
-          </div>
+          {lang === "gu" && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                ગુજરાતી વિગત (વૈકલ્પિક)
+              </label>
+              <input
+                type="text"
+                value={editFormData.descriptionGujarati}
+                onChange={(e) =>
+                  setEditFormData({
+                    ...editFormData,
+                    descriptionGujarati: e.target.value,
+                  })
+                }
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              />
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* GST Rate */}
@@ -1334,7 +1338,7 @@ export default function HsnMasterPage() {
                 <p className="text-slate-900 font-medium mt-0.5 text-sm">
                   {viewingItem.description}
                 </p>
-                {viewingItem.descriptionGujarati && (
+                {lang === "gu" && viewingItem.descriptionGujarati && (
                   <p className="text-slate-600 mt-1">
                     {viewingItem.descriptionGujarati}
                   </p>

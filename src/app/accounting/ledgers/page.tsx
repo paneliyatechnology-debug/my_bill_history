@@ -133,7 +133,7 @@ export default function LedgersPage() {
       cell: (l) => (
         <div>
           <div className="font-semibold text-slate-900">{l.name}</div>
-          {l.nameGujarati && (
+          {lang === "gu" && l.nameGujarati && (
             <div className="text-[11px] font-normal text-slate-500">
               {l.nameGujarati}
             </div>
@@ -294,7 +294,7 @@ export default function LedgersPage() {
             </div>
             <div>
               <div className="font-semibold text-slate-900">{l.name}</div>
-              {l.nameGujarati && (
+              {lang === "gu" && l.nameGujarati && (
                 <div className="text-xs text-slate-500">{l.nameGujarati}</div>
               )}
             </div>
@@ -356,20 +356,22 @@ export default function LedgersPage() {
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-              Name in Gujarati (Optional)
-            </label>
-            <input
-              type="text"
-              value={formData.nameGujarati}
-              onChange={(e) =>
-                setFormData({ ...formData, nameGujarati: e.target.value })
-              }
-              placeholder={lang === "gu" ? "એચડીએફસી બેંક ખાતું" : "e.g. HDFC Bank Account"}
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
-            />
-          </div>
+          {lang === "gu" && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                નામ ગુજરાતીમાં (વૈકલ્પિક)
+              </label>
+              <input
+                type="text"
+                value={formData.nameGujarati}
+                onChange={(e) =>
+                  setFormData({ ...formData, nameGujarati: e.target.value })
+                }
+                placeholder="એચડીએફસી બેંક ખાતું"
+                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
