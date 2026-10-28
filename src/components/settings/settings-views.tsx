@@ -1065,7 +1065,7 @@ function ManageBusinessSettingsView() {
     enableTcs: !!c?.enableTcs,
     eInvoiceApplicable: !!c?.eInvoiceApplicable,
     gstRegistered: c?.gstRegistered !== undefined ? !!c.gstRegistered : !!currentCompany?.gstin,
-    businessTypes: Array.isArray(c?.businessTypes) ? c.businessTypes : [],
+    businessTypes: (Array.isArray(c?.businessTypes) ? c.businessTypes : []) as string[],
     industryType: c?.industryType || "",
     registrationType: c?.registrationType || "PRIVATE_LIMITED",
     extraDetails: (c?.extraDetails || {}) as Record<string, string>,
@@ -1360,7 +1360,7 @@ function ManageBusinessSettingsView() {
       const has = prev.businessTypes.includes(id);
       return {
         ...prev,
-        businessTypes: has ? prev.businessTypes.filter((x) => x !== id) : [...prev.businessTypes, id],
+        businessTypes: has ? prev.businessTypes.filter((x: string) => x !== id) : [...prev.businessTypes, id],
       };
     });
   };
