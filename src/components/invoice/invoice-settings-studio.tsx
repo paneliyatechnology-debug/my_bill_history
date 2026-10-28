@@ -304,7 +304,6 @@ export function InvoiceSettingsStudio() {
             showMfgDate: s.showMfgDate ?? DEFAULT_STATE.showMfgDate,
             itemCustomColumns: Array.isArray(s.itemCustomColumns) ? s.itemCustomColumns : [],
             industryType: s.industryType || DEFAULT_STATE.industryType,
-            festiveTheme: s.festiveTheme ?? DEFAULT_STATE.festiveTheme,
             fontFamily: s.fontFamily || DEFAULT_STATE.fontFamily,
             fontSize: s.fontSize || DEFAULT_STATE.fontSize,
             tablePadding: s.tablePadding || DEFAULT_STATE.tablePadding,
