@@ -44,6 +44,23 @@ function LoginContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [logoutNotice, setLogoutNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("billing_logout_notice");
+      if (!raw) return;
+      sessionStorage.removeItem("billing_logout_notice");
+      const parsed = JSON.parse(raw);
+      setLogoutNotice(
+        lang === "gu"
+          ? parsed.messageGujarati || parsed.message
+          : parsed.message || parsed.messageGujarati,
+      );
+    } catch {
+      // ignore
+    }
+  }, [lang]);
 
   useEffect(() => {
     const otpParam = (searchParams.get("otp") || "").replace(/\D/g, "").slice(0, 6);
@@ -356,7 +373,7 @@ function LoginContent() {
           </button>
         </div>
 
-        {reasonParam === "session_expired" && !error && (
+        {reasonParam === "session_expired" && !error && !logoutNotice && (
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 font-semibold flex items-center gap-2 animate-fadeIn">
             <span className="text-base">🔒</span>
             <span>
@@ -364,6 +381,35 @@ function LoginContent() {
                 ? "તમારું સત્ર સમાપ્ત થઈ ગયું છે. કૃપા કરીને ફરીથી લોગિન કરો."
                 : "Your session has expired. Please sign in again."}
             </span>
+          </div>
+        )}
+
+        {reasonParam === "suspended" && !error && !logoutNotice && (
+          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-semibold flex items-center gap-2 animate-fadeIn">
+            <span className="text-base">🚫</span>
+            <span>
+              {lang === "gu"
+                ? "તમારું ટેનન્ટ સુપરએડમિન દ્વારા સસ્પેન્ડ કરવામાં આવ્યું છે."
+                : "Your organization account has been suspended by the platform administrator."}
+            </span>
+          </div>
+        )}
+
+        {reasonParam === "session_revoked" && !error && !logoutNotice && (
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 font-semibold flex items-center gap-2 animate-fadeIn">
+            <span className="text-base">🔒</span>
+            <span>
+              {lang === "gu"
+                ? "સુરક્ષા ફેરફારને કારણે સત્ર બંધ કરવામાં આવ્યું છે. ફરી લોગિન કરો."
+                : "Your session was closed because of a security change. Please sign in again."}
+            </span>
+          </div>
+        )}
+
+        {logoutNotice && !error && (
+          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-semibold flex items-center gap-2 animate-fadeIn">
+            <span className="text-base">🚫</span>
+            <span>{logoutNotice}</span>
           </div>
         )}
 

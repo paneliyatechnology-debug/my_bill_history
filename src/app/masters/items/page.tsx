@@ -31,6 +31,15 @@ interface Item {
   trackBatches?: boolean;
   trackSerialNo?: boolean;
   isActive: boolean;
+  openingBatchNumber?: string;
+  openingMfgDate?: string;
+  openingExpiryDate?: string;
+  batches?: Array<{
+    id: string;
+    batchNumber: string;
+    mfgDate?: string;
+    expiryDate?: string;
+  }>;
   categoryId?: string | null;
   primaryUomId?: string;
   secondaryUomId?: string | null;
@@ -256,32 +265,45 @@ export default function ItemsPage() {
     }
   }, [successMessage]);
 
+  // Units, categories, warehouses, and parties do not depend on the search box.
+  // Reloading them on every keystroke was a second full round of API calls.
+  const catalogCompanyRef = useRef<string | null>(null);
+
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
+    const companyId = tenantContext.companyId || "";
+    const shouldLoadCatalog = catalogCompanyRef.current !== companyId;
     try {
       const [itemsRes, unitsRes, catsRes, whRes, partiesRes]: any = await Promise.all([
         apiClient.get("/masters/items", {
           search: searchTerm || undefined,
           type: typeFilter !== "ALL" ? typeFilter : undefined,
         }),
-        apiClient.get("/masters/units"),
-        apiClient.get("/masters/categories"),
-        apiClient.get("/masters/warehouses").catch(() => []),
-        apiClient.get("/masters/parties").catch(() => []),
+        shouldLoadCatalog ? apiClient.get("/masters/units") : Promise.resolve(null),
+        shouldLoadCatalog ? apiClient.get("/masters/categories") : Promise.resolve(null),
+        shouldLoadCatalog
+          ? apiClient.get("/masters/warehouses").catch(() => [])
+          : Promise.resolve(null),
+        shouldLoadCatalog
+          ? apiClient.get("/masters/parties").catch(() => [])
+          : Promise.resolve(null),
       ]);
 
       setItems(extractList(itemsRes));
-      setUnits(extractList(unitsRes));
-      setCategories(extractList(catsRes));
-      setWarehouses(extractList(whRes));
-      setParties(extractList(partiesRes));
+      if (shouldLoadCatalog) {
+        setUnits(extractList(unitsRes));
+        setCategories(extractList(catsRes));
+        setWarehouses(extractList(whRes));
+        setParties(extractList(partiesRes));
+        catalogCompanyRef.current = companyId;
+      }
     } catch (err: any) {
       setError(err.message || "Failed to load item catalog.");
     } finally {
       setIsLoading(false);
     }
-  }, [searchTerm, typeFilter]);
+  }, [searchTerm, typeFilter, tenantContext.companyId]);
 
   useEffect(() => {
     if (tenantContext.companyId) {
@@ -319,19 +341,13 @@ export default function ItemsPage() {
       openingStock: data.type === "PRODUCT" ? Number(data.openingStock) || 0 : 0,
       openingStockDate: data.asOfDate || undefined,
       warehouseId: data.warehouseId || undefined,
-      openingBatchNumber:
-        data.trackBatches && data.openingBatchNumber
-          ? data.openingBatchNumber.trim()
-          : undefined,
-      openingExpiryDate:
-        data.trackBatches && data.openingExpiryDate
-          ? data.openingExpiryDate
-          : undefined,
-      openingMfgDate:
-        data.trackBatches && data.openingMfgDate
-          ? data.openingMfgDate
-          : undefined,
-      trackBatches: data.type === "PRODUCT" ? Boolean(data.trackBatches) : false,
+      openingBatchNumber: data.openingBatchNumber ? data.openingBatchNumber.trim() : undefined,
+      openingExpiryDate: data.openingExpiryDate || undefined,
+      openingMfgDate: data.openingMfgDate || undefined,
+      trackBatches:
+        data.type === "PRODUCT"
+          ? Boolean(data.trackBatches || data.openingBatchNumber || data.openingMfgDate || data.openingExpiryDate)
+          : false,
       trackSerialNo: Boolean(data.trackSerialNo),
     });
 
@@ -349,7 +365,18 @@ export default function ItemsPage() {
     await fetchData();
   };
 
-  const handleOpenEditModal = (item: Item) => {
+  const handleOpenEditModal = async (item: Item) => {
+    try {
+      const res: any = await apiClient.get(`/masters/items/${item.id}`);
+      if (res && (res.data || res.id)) {
+        const fullItem = res.data || res;
+        setEditingItem(fullItem);
+        setIsEditModalOpen(true);
+        return;
+      }
+    } catch (err) {
+      console.warn("Could not fetch full item details, using item from list:", err);
+    }
     setEditingItem(item);
     setIsEditModalOpen(true);
   };
@@ -358,6 +385,11 @@ export default function ItemsPage() {
     if (!editingItem) return undefined;
     const defaultWh =
       warehouses.find((w) => w.isDefault)?.id || warehouses[0]?.id || "";
+    const firstBatch = (editingItem.batches && editingItem.batches[0]) || null;
+    const batchNum = editingItem.openingBatchNumber || firstBatch?.batchNumber || "";
+    const mfg = (editingItem.openingMfgDate || firstBatch?.mfgDate || "").split("T")[0];
+    const exp = (editingItem.openingExpiryDate || firstBatch?.expiryDate || "").split("T")[0];
+
     return {
       id: editingItem.id,
       type: editingItem.type,
@@ -384,8 +416,11 @@ export default function ItemsPage() {
       warehouseId: defaultWh,
       minStockLevel: Number(editingItem.minStockLevel ?? 10),
       enableLowStockWarning: Number(editingItem.minStockLevel || 0) > 0,
-      trackBatches: Boolean(editingItem.trackBatches),
+      trackBatches: Boolean(editingItem.trackBatches || batchNum || mfg || exp),
       trackSerialNo: Boolean(editingItem.trackSerialNo),
+      openingBatchNumber: batchNum,
+      openingMfgDate: mfg,
+      openingExpiryDate: exp,
       isActive: editingItem.isActive !== false,
       partyWisePrices: getItemPartyPrices(editingItem.id),
     };
@@ -417,7 +452,13 @@ export default function ItemsPage() {
       openingStockDate: data.asOfDate || undefined,
       warehouseId: data.warehouseId || undefined,
       minStockLevel: data.enableLowStockWarning ? (Number(data.minStockLevel) || 0) : 0,
-      trackBatches: data.type === "PRODUCT" ? Boolean(data.trackBatches) : false,
+      openingBatchNumber: data.openingBatchNumber ? data.openingBatchNumber.trim() : undefined,
+      openingMfgDate: data.openingMfgDate || undefined,
+      openingExpiryDate: data.openingExpiryDate || undefined,
+      trackBatches:
+        data.type === "PRODUCT"
+          ? Boolean(data.trackBatches || data.openingBatchNumber || data.openingMfgDate || data.openingExpiryDate)
+          : false,
       trackSerialNo: Boolean(data.trackSerialNo),
       isActive: Boolean(data.isActive),
     });

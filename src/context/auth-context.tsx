@@ -86,6 +86,72 @@ export interface TenantContextState {
   financialYearId?: string;
 }
 
+const WORKSPACE_CACHE_KEY = "billing_workspace_cache";
+const LOGOUT_NOTICE_KEY = "billing_logout_notice";
+const SUBSCRIPTION_DISMISS_KEY = "billing_subscription_dismissed";
+
+interface WorkspaceCache {
+  companyId: string;
+  organizationId?: string;
+  companies: CompanyInfo[];
+  branches: BranchInfo[];
+  financialYears: FinancialYearInfo[];
+  entitlements: PlanEntitlementsInfo | null;
+}
+
+export interface SubscriptionNotice {
+  message: string;
+  messageGujarati?: string;
+  subscriptionEnds?: string | null;
+  daysRemaining?: number;
+  tier?: string;
+}
+
+function readWorkspaceCache(): WorkspaceCache | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(WORKSPACE_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as WorkspaceCache;
+    if (!parsed?.companyId || !Array.isArray(parsed.companies)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeWorkspaceCache(cache: WorkspaceCache) {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(WORKSPACE_CACHE_KEY, JSON.stringify(cache));
+  } catch {
+    // Storage failover
+  }
+}
+
+function clearSessionWorkspace() {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem(WORKSPACE_CACHE_KEY);
+    sessionStorage.removeItem(SUBSCRIPTION_DISMISS_KEY);
+  } catch {
+    // Storage failover
+  }
+}
+
+function clearAuthStorage() {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem("billing_auth_token");
+    localStorage.removeItem("billing_user_profile");
+    localStorage.removeItem("billing_tenant_context");
+    localStorage.removeItem("billing_support_session");
+  } catch {
+    // Storage failover
+  }
+  clearSessionWorkspace();
+}
+
 interface AuthContextType {
   user: UserProfile | null;
   token: string | null;
@@ -133,6 +199,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [branches, setBranches] = useState<BranchInfo[]>([]);
   const [financialYears, setFinancialYears] = useState<FinancialYearInfo[]>([]);
   const [entitlements, setEntitlements] = useState<PlanEntitlementsInfo | null>(null);
+  const [subscriptionNotice, setSubscriptionNotice] = useState<SubscriptionNotice | null>(null);
 
   // In-flight promise ref to deduplicate concurrent refreshTenantMetadata requests
   const inFlightRefreshRef = useRef<Promise<void> | null>(null);
@@ -179,7 +246,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Deduplicate in-flight calls
     if (inFlightRefreshRef.current) {
       return inFlightRefreshRef.current;
     }
@@ -188,7 +254,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const refreshPromise = (async () => {
       try {
-        // Run tenant requests concurrently using Promise.allSettled
         const [compSettled, branchSettled, fySettled] = await Promise.allSettled([
           apiClient.get<any>("/tenants/companies"),
           apiClient.get<BranchInfo[]>("/tenants/branches"),
@@ -197,37 +262,86 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         let hasError = false;
         let lastErrorMsg = "";
+        let nextCompanies: CompanyInfo[] | null = null;
+        let nextBranches: BranchInfo[] | null = null;
+        let nextYears: FinancialYearInfo[] | null = null;
+        let nextEntitlements: PlanEntitlementsInfo | null = null;
 
-        // 1. Process Companies
         if (compSettled.status === "fulfilled") {
           const res = compSettled.value;
-          const compsList = Array.isArray(res) ? res : res?.companies || [];
-          setCompanies(compsList);
+          const list: CompanyInfo[] = Array.isArray(res)
+            ? res
+            : Array.isArray(res?.companies)
+              ? res.companies
+              : [];
+          nextCompanies = list;
+          setCompanies(list);
           if (res?.entitlements) {
-            setEntitlements(res.entitlements);
+            nextEntitlements = res.entitlements;
+            setEntitlements(nextEntitlements);
           }
         } else {
           hasError = true;
           lastErrorMsg = compSettled.reason?.message || "Failed to load companies";
         }
 
-        // 2. Process Branches
         if (branchSettled.status === "fulfilled") {
-          setBranches(branchSettled.value || []);
+          nextBranches = Array.isArray(branchSettled.value) ? branchSettled.value : [];
+          setBranches(nextBranches);
         } else {
           hasError = true;
           lastErrorMsg = branchSettled.reason?.message || "Failed to load branches";
         }
 
-        // 3. Process Financial Years
         if (fySettled.status === "fulfilled") {
-          setFinancialYears(fySettled.value || []);
+          nextYears = Array.isArray(fySettled.value) ? fySettled.value : [];
+          setFinancialYears(nextYears);
         } else {
           hasError = true;
           lastErrorMsg = fySettled.reason?.message || "Failed to load financial years";
         }
 
-        // If companies loaded, clear error even if secondary metadata had transient issue
+        if (nextCompanies) {
+          let companyId = "";
+          let organizationId = "";
+          try {
+            const raw = localStorage.getItem("billing_tenant_context");
+            const ctx = raw ? JSON.parse(raw) : {};
+            companyId = ctx.companyId || "";
+            organizationId = ctx.organizationId || "";
+          } catch {
+            companyId = "";
+          }
+          const previous = readWorkspaceCache();
+          writeWorkspaceCache({
+            companyId: companyId || previous?.companyId || "",
+            organizationId: organizationId || previous?.organizationId,
+            companies: nextCompanies,
+            branches: nextBranches || previous?.branches || [],
+            financialYears: nextYears || previous?.financialYears || [],
+            entitlements: nextEntitlements || previous?.entitlements || null,
+          });
+          const ent = nextEntitlements || previous?.entitlements || null;
+          if (ent?.isExpired) {
+            const dismissed =
+              typeof window !== "undefined"
+                ? sessionStorage.getItem(SUBSCRIPTION_DISMISS_KEY)
+                : null;
+            if (dismissed !== String(ent.subscriptionEnds || "")) {
+              setSubscriptionNotice({
+                message: "Your subscription has ended. Renew the plan to continue billing.",
+                messageGujarati:
+                  "તમારું સબ્સ્ક્રિપ્શન પૂરું થઈ ગયું છે. બિલિંગ ચાલુ રાખવા પ્લાન રિન્યૂ કરો.",
+                subscriptionEnds: ent.subscriptionEnds,
+                daysRemaining: ent.daysRemaining,
+                tier: ent.tier,
+              });
+            }
+          } else {
+            setSubscriptionNotice(null);
+          }
+        }
+
         if (compSettled.status === "fulfilled") {
           setWorkspaceError(null);
         } else if (hasError) {
@@ -283,6 +397,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setTenantContext({});
           }
         }
+
+        const cached = readWorkspaceCache();
+        if (cached) {
+          setCompanies(cached.companies);
+          setBranches(cached.branches || []);
+          setFinancialYears(cached.financialYears || []);
+          setEntitlements(cached.entitlements);
+          if (cached.entitlements?.isExpired) {
+            const dismissed = sessionStorage.getItem(SUBSCRIPTION_DISMISS_KEY);
+            if (dismissed !== String(cached.entitlements.subscriptionEnds || "")) {
+              setSubscriptionNotice({
+                message: "Your subscription has ended. Renew the plan to continue billing.",
+                messageGujarati:
+                  "તમારું સબ્સ્ક્રિપ્શન પૂરું થઈ ગયું છે. બિલિંગ ચાલુ રાખવા પ્લાન રિન્યૂ કરો.",
+                subscriptionEnds: cached.entitlements.subscriptionEnds,
+                daysRemaining: cached.entitlements.daysRemaining,
+                tier: cached.entitlements.tier,
+              });
+            }
+          }
+        }
       }
     } catch {
       // Safe fallback
@@ -298,106 +433,194 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(timer);
   }, []);
 
-  // Sync tenant metadata when authenticated and tenant context is available
+  // Read companies, branches, and financial years from the login session.
+  // Hit the API only when that session cache is missing or belongs to another company.
   useEffect(() => {
-    if (token && tenantContext.companyId) {
-      refreshTenantMetadata();
+    if (!token || !tenantContext.companyId) return;
+    const cached = readWorkspaceCache();
+    if (
+      cached &&
+      cached.companyId === tenantContext.companyId &&
+      cached.companies.length > 0
+    ) {
+      setCompanies(cached.companies);
+      setBranches(cached.branches || []);
+      setFinancialYears(cached.financialYears || []);
+      setEntitlements(cached.entitlements);
+      setWorkspaceError(null);
+      return;
     }
+    refreshTenantMetadata();
   }, [token, tenantContext.companyId, refreshTenantMetadata]);
 
-  // Real-Time Socket Stream (SSE) & Instant AJAX Suspension Watchdog
+  // One live event from the server. No polling.
+  // Suspended -> logout with the server reason.
+  // Licence ended -> subscription popup. Licence renewed -> popup closes and the session cache updates.
   useEffect(() => {
     if (!token || !user) return;
     if (typeof window === "undefined") return;
 
     let es: EventSource | null = null;
-    let fallbackInterval: NodeJS.Timeout | null = null;
-    let isTerminated = false;
+    let retryTimer: number | null = null;
+    let stopped = false;
+    let retry = 0;
 
-    const executeInstantLogout = (reason: string) => {
-      if (isTerminated) return;
-      isTerminated = true;
-
-      try {
-        if (es) {
-          es.close();
-          es = null;
+    const applySubscription = (payload: any, openPopup: boolean) => {
+      const ends = payload?.subscriptionEnds ?? null;
+      const isExpired = Boolean(payload?.isExpired);
+      setEntitlements((prev) => {
+        const next: PlanEntitlementsInfo = {
+          tier: payload?.tier || prev?.tier || "TRIAL",
+          name: prev?.name || payload?.tier || "Plan",
+          nameGujarati: prev?.nameGujarati || prev?.name || "પ્લાન",
+          maxCompanies: prev?.maxCompanies ?? 1,
+          currentCount: prev?.currentCount ?? 0,
+          canAddCompany: prev?.canAddCompany ?? false,
+          maxBranchesPerCompany: prev?.maxBranchesPerCompany ?? 1,
+          maxUsers: prev?.maxUsers ?? 1,
+          subscriptionEnds: ends,
+          isExpired,
+          daysRemaining: Number(payload?.daysRemaining ?? prev?.daysRemaining ?? 0),
+          isActive: !isExpired,
+          features: prev?.features || {
+            multiCompany: false,
+            multiBranch: false,
+            posCounter: false,
+            manufacturing: false,
+            distribution: false,
+            gstrReconciliation: false,
+            eInvoiceEWay: false,
+          },
+        };
+        const cached = readWorkspaceCache();
+        if (cached) {
+          writeWorkspaceCache({ ...cached, entitlements: next });
         }
-        if (fallbackInterval) {
-          clearInterval(fallbackInterval);
-          fallbackInterval = null;
-        }
-      } catch {}
-
-      try {
-        localStorage.removeItem("billing_auth_token");
-        localStorage.removeItem("billing_user_profile");
-        localStorage.removeItem("billing_tenant_context");
-      } catch {}
-
-      // Trigger immediate UI alert and replace current page without requiring user redirect
-      alert(
-        "🚫 ખાતું સ્થગિત કરેલ છે (Account Suspended)\n\nસુપરએડમિન દ્વારા આ સંસ્થા/ટેનન્ટ એકાઉન્ટ સ્થગિત (Suspend) કરવામાં આવ્યું છે.\nતમે લોગઆઉટ થાવ છો."
-      );
-
-      window.location.replace("/login?reason=suspended");
+        return next;
+      });
+      if (!openPopup || !isExpired) {
+        sessionStorage.removeItem(SUBSCRIPTION_DISMISS_KEY);
+        setSubscriptionNotice(null);
+        return;
+      }
+      setSubscriptionNotice({
+        message: payload?.message || "Your subscription has ended. Renew the plan to continue billing.",
+        messageGujarati: payload?.messageGujarati,
+        subscriptionEnds: ends,
+        daysRemaining: Number(payload?.daysRemaining ?? 0),
+        tier: payload?.tier,
+      });
     };
 
-    // 1. Live Server-Sent Events (SSE) Socket Stream for Instant 0-second Push
-    try {
+    const forceLogout = (condition: string, payload?: any) => {
+      if (stopped) return;
+      stopped = true;
+      try {
+        if (es) es.close();
+      } catch {
+        // ignore
+      }
+      try {
+        sessionStorage.setItem(
+          LOGOUT_NOTICE_KEY,
+          JSON.stringify({
+            reason: condition,
+            message: payload?.message || "Your session has ended.",
+            messageGujarati: payload?.messageGujarati || "",
+          }),
+        );
+      } catch {
+        // ignore
+      }
+      clearAuthStorage();
+      window.location.replace(`/login?reason=${encodeURIComponent(condition)}`);
+    };
+
+    const connect = () => {
+      if (stopped) return;
+      try {
+        if (es) es.close();
+      } catch {
+        // ignore
+      }
       const baseUrl = apiClient.getBaseUrl();
       const orgId = tenantContext.organizationId || "";
       const streamUrl = `${baseUrl}/auth/session-stream?token=${encodeURIComponent(token)}&organizationId=${encodeURIComponent(orgId)}`;
-      
       es = new EventSource(streamUrl);
+
+      es.onopen = () => {
+        retry = 0;
+      };
 
       es.onmessage = (event) => {
         try {
           const payload = JSON.parse(event.data);
-          if (payload && payload.type === "TENANT_SUSPENDED") {
-            executeInstantLogout("Real-Time Event: TENANT_SUSPENDED");
+          const condition = payload?.condition || payload?.type;
+          if (!condition || condition === "PING") return;
+          if (condition === "TENANT_SUSPENDED" || condition === "SESSION_REVOKED") {
+            const sessionOrg = tenantContext.organizationId || "";
+            const eventOrg = payload?.organizationId || "";
+            const targetsThisAccount = Boolean(eventOrg && sessionOrg && eventOrg === sessionOrg);
+            if (!targetsThisAccount) return;
+            if (user?.role === "SUPER_ADMIN") {
+              try {
+                const raw = localStorage.getItem("billing_support_session");
+                const support = raw ? JSON.parse(raw) : null;
+                if (support?.originalToken) {
+                  localStorage.setItem("billing_auth_token", support.originalToken);
+                  localStorage.removeItem("billing_support_session");
+                  localStorage.removeItem("billing_tenant_context");
+                  window.location.replace("/");
+                }
+              } catch {
+                // The platform admin stays signed in either way.
+              }
+              return;
+            }
+            forceLogout(condition === "TENANT_SUSPENDED" ? "suspended" : "session_revoked", payload);
+            return;
+          }
+          if (condition === "SUBSCRIPTION_EXPIRED" || condition === "SUBSCRIPTION_ACTIVE" || condition === "TENANT_ACTIVATED") {
+            const sessionOrg = tenantContext.organizationId || "";
+            const eventOrg = payload?.organizationId || "";
+            if (eventOrg && sessionOrg && eventOrg !== sessionOrg) return;
+            if (user?.role === "SUPER_ADMIN") return;
+          }
+          if (condition === "SUBSCRIPTION_EXPIRED") {
+            applySubscription(payload, true);
+            return;
+          }
+          if (condition === "SUBSCRIPTION_ACTIVE" || condition === "TENANT_ACTIVATED") {
+            applySubscription({ ...payload, isExpired: false }, false);
           }
         } catch {
-          // Heartbeat parse ignore
+          // Ignore malformed keep-alive frames
         }
       };
 
       es.onerror = () => {
-        // In case of SSE transport issue, fallback to fast AJAX
-      };
-    } catch (e) {
-      console.warn("SSE initialization error:", e);
-    }
-
-    // 2. High-Frequency AJAX Live-Check (Every 3 seconds fallback)
-    const runLiveCheck = async () => {
-      if (isTerminated) return;
-      if (window.location.pathname.startsWith("/login")) return;
-
-      try {
-        await apiClient.get("/auth/live-status", undefined, undefined, { timeoutMs: 3000 });
-      } catch (err: any) {
-        const status = err?.statusCode || err?.originalError?.statusCode;
-        const errType = err?.originalError?.error || err?.message;
-        if (status === 401 || errType === "TENANT_SUSPENDED") {
-          executeInstantLogout("Live-Check 401: TENANT_SUSPENDED");
+        try {
+          es?.close();
+        } catch {
+          // ignore
         }
-      }
+        if (stopped) return;
+        const delay = Math.min(15000, 1000 * 2 ** retry);
+        retry += 1;
+        retryTimer = window.setTimeout(connect, delay);
+      };
     };
 
-    fallbackInterval = setInterval(() => {
-      if (document.visibilityState === "visible") {
-        runLiveCheck();
-      }
-    }, 30000);
-
-    const onFocus = () => runLiveCheck();
-    window.addEventListener("focus", onFocus);
+    connect();
 
     return () => {
-      if (es) es.close();
-      if (fallbackInterval) clearInterval(fallbackInterval);
-      window.removeEventListener("focus", onFocus);
+      stopped = true;
+      if (retryTimer) window.clearTimeout(retryTimer);
+      try {
+        es?.close();
+      } catch {
+        // ignore
+      }
     };
   }, [token, user, tenantContext.organizationId]);
 
@@ -462,18 +685,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setCompanies([]);
     setBranches([]);
     setFinancialYears([]);
+    setEntitlements(null);
+    setSubscriptionNotice(null);
     setWorkspaceError(null);
+    clearAuthStorage();
 
     if (typeof window !== "undefined") {
-      try {
-        localStorage.removeItem("billing_auth_token");
-        localStorage.removeItem("billing_user_profile");
-        localStorage.removeItem("billing_tenant_context");
-      } catch {
-        // Storage failover
-      }
       window.location.replace("/login");
     }
+  };
+
+  const dismissSubscriptionNotice = () => {
+    const ends = subscriptionNotice?.subscriptionEnds || "";
+    try {
+      sessionStorage.setItem(SUBSCRIPTION_DISMISS_KEY, String(ends));
+    } catch {
+      // ignore
+    }
+    setSubscriptionNotice(null);
   };
 
   const switchCompany = async (companyId: string) => {
@@ -593,6 +822,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
+      {subscriptionNotice && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/45 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-slate-200 p-6">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[#C24E1D]">
+              {lang === "gu" ? "સબ્સ્ક્રિપ્શન" : "Subscription"}
+            </div>
+            <h2 className="mt-1 text-lg font-bold text-slate-900">
+              {lang === "gu" ? "લાઇસન્સ પૂરું થયું" : "Licence has ended"}
+            </h2>
+            <p className="mt-2 text-sm text-slate-600">
+              {lang === "gu"
+                ? subscriptionNotice.messageGujarati || subscriptionNotice.message
+                : subscriptionNotice.message}
+            </p>
+            <div className="mt-4 rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700 space-y-1">
+              {subscriptionNotice.tier && (
+                <div>
+                  <span className="font-semibold">{lang === "gu" ? "પ્લાન: " : "Plan: "}</span>
+                  {subscriptionNotice.tier}
+                </div>
+              )}
+              {subscriptionNotice.subscriptionEnds && (
+                <div>
+                  <span className="font-semibold">{lang === "gu" ? "સમાપ્તિ: " : "Ended: "}</span>
+                  {new Date(subscriptionNotice.subscriptionEnds).toLocaleDateString("en-IN", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </div>
+              )}
+              {typeof subscriptionNotice.daysRemaining === "number" && (
+                <div>
+                  <span className="font-semibold">{lang === "gu" ? "બાકી દિવસ: " : "Days left: "}</span>
+                  {subscriptionNotice.daysRemaining}
+                </div>
+              )}
+            </div>
+            <div className="mt-5 flex gap-2">
+              <a
+                href="/settings/pricing"
+                className="flex-1 h-10 rounded-xl bg-[#C24E1D] text-white text-sm font-semibold inline-flex items-center justify-center"
+              >
+                {lang === "gu" ? "પ્લાન જુઓ" : "View plans"}
+              </a>
+              <button
+                type="button"
+                onClick={dismissSubscriptionNotice}
+                className="flex-1 h-10 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700"
+              >
+                {lang === "gu" ? "પછી" : "Later"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AuthContext.Provider>
   );
 }

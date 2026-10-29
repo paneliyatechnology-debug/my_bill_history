@@ -1932,17 +1932,20 @@ export default function CreatePurchaseReturnPage() {
                                 GST @ {line.taxRate}%
                               </span>
                             ) : (
-                              <select
-                                value={line.taxRate}
-                                onChange={(e) => updateItemLine(idx, "taxRate", Number(e.target.value))}
-                                className="w-22 rounded border border-slate-200 px-1 py-1 text-xs text-right text-slate-600 focus:outline-hidden focus:border-[#2563EB]"
-                              >
-                                <option value="0">None (0%)</option>
-                                <option value="5">GST @ 5%</option>
-                                <option value="12">GST @ 12%</option>
-                                <option value="18">GST @ 18%</option>
-                                <option value="28">GST @ 28%</option>
-                              </select>
+                              <div className="relative flex items-center min-w-[70px]">
+                                <input
+                                  type="number"
+                                  step="any"
+                                  min="0"
+                                  max="100"
+                                  list="gst-rates-return"
+                                  value={line.taxRate}
+                                  onChange={(e) => updateItemLine(idx, "taxRate", Number(e.target.value) || 0)}
+                                  placeholder="0"
+                                  className="w-22 rounded border border-slate-200 px-1.5 pr-4 py-1 text-xs text-right text-slate-700 font-mono focus:outline-hidden focus:border-[#2563EB]"
+                                />
+                                <span className="absolute right-1 text-[11px] font-bold text-slate-400 pointer-events-none">%</span>
+                              </div>
                             )}
                           </td>
                         )}
@@ -2620,17 +2623,30 @@ export default function CreatePurchaseReturnPage() {
             </div>
             <div>
               <label className="block font-bold text-slate-700 mb-1">GST Tax Rate</label>
-              <select
-                value={createItemForm.taxRate}
-                onChange={(e) => setCreateItemForm({ ...createItemForm, taxRate: Number(e.target.value) })}
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 font-semibold focus:outline-none focus:border-[#2563EB]"
-              >
-                <option value={0}>0%</option>
-                <option value={5}>5%</option>
-                <option value={12}>12%</option>
-                <option value={18}>18%</option>
-                <option value={28}>28%</option>
-              </select>
+              <div className="relative flex items-center">
+                <input
+                  type="number"
+                  step="any"
+                  min="0"
+                  max="100"
+                  list="gst-rates-return"
+                  value={createItemForm.taxRate}
+                  onChange={(e) => setCreateItemForm({ ...createItemForm, taxRate: Number(e.target.value) || 0 })}
+                  placeholder="0"
+                  className="w-full p-2 pr-6 border border-slate-300 rounded-lg text-slate-800 font-semibold text-right font-mono focus:outline-none focus:border-[#2563EB]"
+                />
+                <span className="absolute right-2 text-xs font-bold text-slate-400 pointer-events-none">%</span>
+              </div>
+              <datalist id="gst-rates-return">
+                <option value="0">0% (None)</option>
+                <option value="0.1">0.1%</option>
+                <option value="0.25">0.25%</option>
+                <option value="3">3%</option>
+                <option value="5">5%</option>
+                <option value="12">12%</option>
+                <option value="18">18%</option>
+                <option value="28">28%</option>
+              </datalist>
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">

@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
 import { FestiveThumb, InvoiceLivePreview, ThemeMiniCard } from "./invoice-live-preview";
+import { resolveThemeDefinition } from "@/lib/invoice-theme-keys";
 
 export interface CustomField {
   id: string;
@@ -25,6 +27,9 @@ export interface InvoiceStudioState {
   accentColor: string;
   customColorHex: string;
   festiveTheme: string | null;
+  festiveVariant?: number;
+  uniqueThemeKey?: string;
+  paperSize?: "A4" | "A5" | "US_LETTER" | "LEGAL" | "THERMAL_80" | "DL";
 
   // Theme Settings Toggles
   showPartyBalance: boolean;
@@ -80,6 +85,9 @@ const DEFAULT_STATE: InvoiceStudioState = {
   accentColor: "#111111",
   customColorHex: "#111111",
   festiveTheme: null,
+  festiveVariant: 1,
+  uniqueThemeKey: "stylish",
+  paperSize: "A4",
 
   showPartyBalance: false,
   enableFreeItemQuantity: false,
@@ -131,12 +139,12 @@ const DEFAULT_STATE: InvoiceStudioState = {
 };
 
 const COLOR_PALETTE = [
-  { id: "#111111", name: "Charcoal Black" },
-  { id: "#16A34A", name: "Forest Green" },
+  { id: "#111827", name: "Charcoal Black" },
+  { id: "#4D7C0F", name: "Olive Green" },
   { id: "#0284C7", name: "Ocean Blue" },
   { id: "#7C3AED", name: "Royal Purple" },
   { id: "#DC2626", name: "Crimson Red" },
-  { id: "#4F46E5", name: "Slate Indigo" },
+  { id: "#4338CA", name: "Slate Indigo" },
   { id: "#D97706", name: "Mustard Gold" },
   { id: "#C2410C", name: "Rust Brown" },
 ];
@@ -157,6 +165,12 @@ const STANDARD_THEMES = [
   { id: "stylish", name: "Stylish", kind: "stylish" as const, desc: "Clean modern bill without heavy boxes" },
   { id: "luxury", name: "Luxury", kind: "luxury" as const, isNew: true, desc: "Ornate border, premium header & gold lines" },
   { id: "advanced_gst_tally", name: "Advanced GST (Tally)", kind: "tally" as const, desc: "Boxed GST layout with complete HSN table" },
+  { id: "advanced_gst", name: "Advanced GST", kind: "gst" as const, desc: "Colour banner + tax column" },
+  { id: "billbook", name: "Billbook", kind: "billbook" as const, desc: "Logo mark + footer" },
+  { id: "advanced_compact", name: "Advanced GST (A5)", kind: "compact" as const, desc: "Tight A5 GST layout" },
+  { id: "tallybook_lite", name: "Billbook (A5)", kind: "lite" as const, desc: "Light A5 bill format" },
+  { id: "modern", name: "Modern", kind: "modern" as const, desc: "Accent rail + pill bar" },
+  { id: "simple", name: "Simple", kind: "simple" as const, desc: "Hairline rules only" },
 ];
 
 const ALL_MODAL_THEMES: Array<{
@@ -203,10 +217,34 @@ export function InvoiceSettingsStudio() {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<InvoiceStudioState>(DEFAULT_STATE);
   const [saveBanner, setSaveBanner] = useState<string | null>(null);
+  const [festiveThemesList, setFestiveThemesList] = useState<any[]>(FESTIVE_THEMES);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const skipRemoteLoad = useRef(false);
   const signatureInputRef = useRef<HTMLInputElement>(null);
+  const themeStoreScrollRef = useRef<HTMLDivElement>(null);
+  const [scrollThumb, setScrollThumb] = useState({ leftPercent: 0, widthPercent: 35 });
+
+  const [showAllThemesInline, setShowAllThemesInline] = useState(false);
+
+  const handleThemeStoreScroll = () => {
+    const el = themeStoreScrollRef.current;
+    if (!el) return;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    if (maxScroll > 0) {
+      const scrollRatio = el.scrollLeft / maxScroll;
+      const widthRatio = Math.max(20, Math.min(60, (el.clientWidth / el.scrollWidth) * 100));
+      const maxLeft = 100 - widthRatio;
+      setScrollThumb({
+        leftPercent: scrollRatio * maxLeft,
+        widthPercent: widthRatio,
+      });
+    }
+  };
+
+  const scrollThemeStoreRight = () => {
+    themeStoreScrollRef.current?.scrollBy({ left: 180, behavior: "smooth" });
+  };
 
   const companyKey = currentCompany?.id || "default_co";
 
@@ -253,32 +291,37 @@ export function InvoiceSettingsStudio() {
     skipRemoteLoad.current = false;
     const loadSettings = async () => {
       try {
+        const themeCatalog: any = await apiClient.get("/invoice-settings/themes");
+        if (themeCatalog?.managedThemes && Array.isArray(themeCatalog.managedThemes)) {
+          const festiveOnly = themeCatalog.managedThemes
+            .filter((t: any) => t.category === "festive" || t.category === "branding")
+            .map((t: any) => ({
+              id: t.id,
+              name: t.name,
+              tone: "linear-gradient(160deg,#FED7AA,#FFF7ED)",
+              thumbnail: t.thumbnail,
+              variants: t.variants,
+            }));
+          if (festiveOnly.length > 0) {
+            setFestiveThemesList(festiveOnly);
+          }
+        }
+      } catch {}
+      try {
         const res: any = await apiClient.get("/invoice-settings");
         if (res && res.settings) {
           if (skipRemoteLoad.current) return;
           const s = res.settings;
+          const def = resolveThemeDefinition(
+            s.uniqueThemeKey || s.festiveTheme || s.themeId,
+            s.festiveVariant
+          );
           const merged: InvoiceStudioState = {
             ...DEFAULT_STATE,
-            themeId: s.themeId || DEFAULT_STATE.themeId,
-            festiveTheme:
-              s.festiveTheme === "logo"
-                ? "logo"
-                : s.festiveTheme ||
-                  ([
-                    "your_logo",
-                    "navratri",
-                    "durga_puja",
-                    "dussehra",
-                    "dhanteras",
-                    "diwali",
-                    "uttarayan",
-                    "independence",
-                    "ganesh_chaturthi",
-                  ].includes(s.themeId)
-                    ? s.themeId === "your_logo"
-                      ? "logo"
-                      : s.themeId
-                    : null),
+            themeId: def.isFestive ? "festival" : def.uniqueKey,
+            festiveTheme: def.isFestive ? def.baseTheme : null,
+            festiveVariant: def.variant,
+            uniqueThemeKey: def.uniqueKey,
             accentColor: s.accentColor || DEFAULT_STATE.accentColor,
             showPartyBalance: s.showPartyBalance ?? DEFAULT_STATE.showPartyBalance,
             enableFreeItemQuantity: s.enableFreeItemQuantity ?? DEFAULT_STATE.enableFreeItemQuantity,
@@ -326,7 +369,18 @@ export function InvoiceSettingsStudio() {
         const local = localStorage.getItem(`billing_invoice_settings_${companyKey}`);
         if (local) {
           const parsed = JSON.parse(local);
-          const merged = { ...DEFAULT_STATE, ...parsed };
+          const def = resolveThemeDefinition(
+            parsed.uniqueThemeKey || parsed.festiveTheme || parsed.themeId,
+            parsed.festiveVariant
+          );
+          const merged: InvoiceStudioState = {
+            ...DEFAULT_STATE,
+            ...parsed,
+            themeId: def.isFestive ? "festival" : def.uniqueKey,
+            festiveTheme: def.isFestive ? def.baseTheme : null,
+            festiveVariant: def.variant,
+            uniqueThemeKey: def.uniqueKey,
+          };
           setState(merged);
           setHistory([merged]);
           setHistoryIndex(0);
@@ -341,56 +395,71 @@ export function InvoiceSettingsStudio() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      const def = resolveThemeDefinition(
+        state.festiveTheme
+          ? `${state.festiveTheme}_${state.festiveVariant || 1}`
+          : state.uniqueThemeKey || state.themeId,
+        state.festiveVariant
+      );
+      const stateToSave: InvoiceStudioState = {
+        ...state,
+        uniqueThemeKey: def.uniqueKey,
+        festiveVariant: def.variant,
+        festiveTheme: def.isFestive ? def.baseTheme : null,
+        themeId: def.isFestive ? "festival" : def.uniqueKey,
+      };
+
       const dto = {
-        themeId:
-          state.festiveTheme === "logo"
-            ? "your_logo"
-            : state.festiveTheme
-              ? state.festiveTheme
-              : state.themeId,
-        festiveTheme: state.festiveTheme === "logo" ? "your_logo" : state.festiveTheme,
-        accentColor: state.accentColor,
-        showPartyBalance: state.showPartyBalance,
-        enableFreeItemQuantity: state.enableFreeItemQuantity,
-        showItemDescription: state.showItemDescription,
-        showAlternateUnit: state.showAlternateUnit,
-        showPhoneNumber: state.showPhoneNumber,
-        showTimeOnInvoice: state.showTimeOnInvoice,
-        printHistory: state.priceHistory,
-        autoApplyLuxuryForSharing: state.autoApplyLuxuryForSharing,
-        showPoNumber: state.showPoNumber,
-        showEwayBillNumber: state.showEwayBillNumber,
-        showVehicleNumber: state.showVehicleNumber,
-        showDiscount: state.showDiscount,
-        showTaxBreakup: state.showTax,
-        showTaxColumn: state.showTax,
-        showHsn: state.showHsn,
-        showShippingAddress: state.showShippingAddress,
-        showPricePerItem: state.showPricePerItem,
-        showQuantity: state.showQuantity,
-        showBatch: state.showBatchNo,
-        showExpiry: state.showExpDate,
-        showMfgDate: state.showMfgDate,
-        itemCustomColumns: state.itemCustomColumns,
-        invoiceCustomFields: state.invoiceCustomFields,
-        partyCustomFields: state.partyCustomFields,
-        industryType: state.industryType,
-        fontFamily: state.fontFamily,
-        fontSize: state.fontSize,
-        tablePadding: state.tablePadding,
-        borderStyle: state.borderStyle,
-        selectedBankAccount: state.selectedBankAccount,
-        selectedPaymentQr: state.selectedPaymentQr,
-        termsAndConditions: state.termsAndConditions,
-        enableReceiverSignature: state.enableReceiverSignature,
+        themeId: def.baseTheme,
+        festiveTheme: def.isFestive ? def.uniqueKey : null,
+        festiveVariant: def.variant,
+        uniqueThemeKey: def.uniqueKey,
+        accentColor: stateToSave.accentColor,
+        showPartyBalance: stateToSave.showPartyBalance,
+        enableFreeItemQuantity: stateToSave.enableFreeItemQuantity,
+        showItemDescription: stateToSave.showItemDescription,
+        showAlternateUnit: stateToSave.showAlternateUnit,
+        showPhoneNumber: stateToSave.showPhoneNumber,
+        showTimeOnInvoice: stateToSave.showTimeOnInvoice,
+        printHistory: stateToSave.priceHistory,
+        autoApplyLuxuryForSharing: stateToSave.autoApplyLuxuryForSharing,
+        showPoNumber: stateToSave.showPoNumber,
+        showEwayBillNumber: stateToSave.showEwayBillNumber,
+        showVehicleNumber: stateToSave.showVehicleNumber,
+        showDiscount: stateToSave.showDiscount,
+        showTaxBreakup: stateToSave.showTax,
+        showTaxColumn: stateToSave.showTax,
+        showHsn: stateToSave.showHsn,
+        showShippingAddress: stateToSave.showShippingAddress,
+        showPricePerItem: stateToSave.showPricePerItem,
+        showQuantity: stateToSave.showQuantity,
+        showBatch: stateToSave.showBatchNo,
+        showExpiry: stateToSave.showExpDate,
+        showMfgDate: stateToSave.showMfgDate,
+        itemCustomColumns: stateToSave.itemCustomColumns,
+        invoiceCustomFields: stateToSave.invoiceCustomFields,
+        partyCustomFields: stateToSave.partyCustomFields,
+        industryType: stateToSave.industryType,
+        fontFamily: stateToSave.fontFamily,
+        fontSize: stateToSave.fontSize,
+        tablePadding: stateToSave.tablePadding,
+        borderStyle: stateToSave.borderStyle,
+        selectedBankAccount: stateToSave.selectedBankAccount,
+        selectedPaymentQr: stateToSave.selectedPaymentQr,
+        termsAndConditions: stateToSave.termsAndConditions,
+        enableReceiverSignature: stateToSave.enableReceiverSignature,
       };
 
       await apiClient.put("/invoice-settings", dto);
 
-      localStorage.setItem(`billing_invoice_settings_${companyKey}`, JSON.stringify(state));
-      localStorage.setItem(`billing_invoice_settings`, JSON.stringify(state));
+      localStorage.setItem(`billing_invoice_settings_${companyKey}`, JSON.stringify(stateToSave));
+      localStorage.setItem(`billing_invoice_settings`, JSON.stringify(stateToSave));
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("billing_invoice_settings_updated", { detail: stateToSave }));
+      }
 
-      setLastSaved(state);
+      setLastSaved(stateToSave);
+      setState(stateToSave);
       setSaveBanner("Changes saved successfully!");
       setTimeout(() => setSaveBanner(null), 3000);
     } catch {
@@ -744,7 +813,7 @@ export function InvoiceSettingsStudio() {
           </div>
 
           <div
-            className={`relative w-full max-w-[850px] min-h-[640px] overflow-auto rounded-lg bg-white p-5 text-[12px] shadow-[0_8px_30px_rgba(15,23,42,0.08)] transition-all ${
+            className={`relative w-full max-w-[850px] max-h-[calc(100vh-210px)] min-h-[600px] overflow-y-auto rounded-xl bg-slate-100/75 p-3 sm:p-5 pb-36 border border-slate-200/80 transition-all flex justify-center items-start ${
               selectorActive ? "cursor-crosshair ring-2 ring-indigo-400" : ""
             }`}
           >
@@ -859,48 +928,143 @@ export function InvoiceSettingsStudio() {
         </section>
 
         <aside className="space-y-4">
-          <div className="rounded-2xl border border-violet-100 bg-[#FBF7FF] p-4 shadow-xs">
-            <div className="mb-3 flex items-center justify-between">
+          <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs space-y-2.5">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <span className="text-base">🎁</span>
-                <h3 className="text-sm font-semibold tracking-tight text-slate-800">ThemeStore</h3>
+                <h3 className="text-sm font-bold tracking-tight text-slate-800">ThemeStore</h3>
                 <span className="text-slate-400 hover:text-slate-600 cursor-pointer" title="Seasonal and festive designs">ⓘ</span>
               </div>
               {state.festiveTheme && (
                 <button
                   type="button"
-                  onClick={() => updateState({ festiveTheme: null })}
-                  className="text-[10px] font-semibold text-rose-600 hover:underline"
+                  onClick={() => updateState({ festiveTheme: null, themeId: "stylish", uniqueThemeKey: "stylish" })}
+                  className="text-[11px] font-semibold text-rose-600 hover:underline"
                 >
                   Clear Festive
                 </button>
               )}
             </div>
 
-            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
-              {FESTIVE_THEMES.map((th) => {
-                const isActive = state.festiveTheme === th.id;
-                return (
+            <div className="relative">
+              <div
+                ref={themeStoreScrollRef}
+                onScroll={handleThemeStoreScroll}
+                className="flex gap-2.5 overflow-x-auto pb-1.5 pt-0.5 scrollbar-none"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              >
+                {festiveThemesList.map((th) => {
+                  const isActive =
+                    state.festiveTheme === th.id ||
+                    (!state.festiveTheme && th.id === "logo" && state.themeId === "your_logo");
+                  return (
+                    <div
+                      key={th.id}
+                      onClick={() =>
+                        updateState({
+                          festiveTheme: isActive ? null : th.id,
+                          themeId: isActive ? "stylish" : th.id === "logo" ? "your_logo" : th.id,
+                          uniqueThemeKey: isActive ? "stylish" : th.id === "logo" ? "your_logo" : `${th.id}_${state.festiveVariant || 1}`,
+                          themeMode: "preset",
+                        })
+                      }
+                      className="flex shrink-0 flex-col items-center cursor-pointer p-0.5"
+                    >
+                      <FestiveThumb
+                        id={th.id}
+                        name={th.name}
+                        customThumbUrl={th.thumbnail}
+                        tone={th.tone}
+                        isSelected={isActive}
+                        onDeselect={() =>
+                          updateState({
+                            festiveTheme: null,
+                            themeId: "stylish",
+                            uniqueThemeKey: "stylish",
+                          })
+                        }
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Scroll Right Button Matching myBillBook */}
+              <button
+                type="button"
+                onClick={scrollThemeStoreRight}
+                className="absolute -right-2 top-10 -translate-y-1/2 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white shadow-md text-slate-700 hover:bg-slate-50 transition-colors"
+                title="Scroll more themes"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Custom Horizontal Scrollbar Track & Thumb Matching Screenshot */}
+            <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden relative">
+              <div
+                className="absolute top-0 bottom-0 rounded-full bg-slate-300 transition-[left,width] duration-75"
+                style={{
+                  left: `${scrollThumb.leftPercent}%`,
+                  width: `${scrollThumb.widthPercent}%`,
+                }}
+              />
+            </div>
+
+            {/* Festive Variant Selection Pills & Unlock Action Button (Matching Screenshot) */}
+            {state.festiveTheme && (
+              <div className="pt-2 border-t border-slate-100 space-y-2.5">
+                <div className="flex items-center gap-2">
                   <button
-                    key={th.id}
                     type="button"
-                    onClick={() =>
-                      updateState({
-                        festiveTheme: isActive ? null : th.id,
-                        themeId: isActive ? "advanced_gst_tally" : th.id === "logo" ? "your_logo" : th.id,
-                        themeMode: "preset",
-                      })
-                    }
-                    className={`flex shrink-0 flex-col items-center rounded-md p-0.5 transition-all ${
-                      isActive ? "ring-2 ring-[#7C3AED]" : "hover:ring-1 hover:ring-slate-300"
+                    onClick={() => updateState({ festiveVariant: 1, uniqueThemeKey: `${state.festiveTheme}_1` })}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
+                      (state.festiveVariant || 1) === 1
+                        ? "border-[#5346F5] bg-violet-50 text-[#5346F5] shadow-xs"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
                     }`}
                   >
-                    <FestiveThumb id={th.id} name={th.id === "logo" ? "YOUR LOGO" : th.name} tone={th.tone} />
-                    <span className="mt-1 max-w-[84px] truncate text-[10px] font-medium text-slate-700">{th.name}</span>
+                    <span>{(festiveThemesList.find((t) => t.id === state.festiveTheme)?.name || "Navaratri")} 1</span>
+                    {(state.festiveVariant || 1) === 1 && (
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateState({ festiveTheme: null, themeId: "stylish", uniqueThemeKey: "stylish" });
+                        }}
+                        className="text-slate-400 hover:text-rose-600 text-[11px] ml-0.5 cursor-pointer"
+                        title="Deselect theme"
+                      >
+                        ✕
+                      </span>
+                    )}
                   </button>
-                );
-              })}
-            </div>
+                  <button
+                    type="button"
+                    onClick={() => updateState({ festiveVariant: 2, uniqueThemeKey: `${state.festiveTheme}_2` })}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
+                      state.festiveVariant === 2
+                        ? "border-[#5346F5] bg-violet-50 text-[#5346F5] shadow-xs"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                    }`}
+                  >
+                    <span>{(festiveThemesList.find((t) => t.id === state.festiveTheme)?.name || "Navaratri")} 2</span>
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSaveBanner("Festive theme applied to invoice!");
+                    setTimeout(() => setSaveBanner(null), 3000);
+                  }}
+                  className="w-full rounded-xl bg-[#5346F5] hover:bg-[#4338CA] py-2.5 text-xs font-bold text-white shadow-xs transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>Unlock theme now</span>
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
@@ -918,15 +1082,15 @@ export function InvoiceSettingsStudio() {
 
               <button
                 type="button"
-                onClick={() => setShowAllThemesModal(true)}
+                onClick={() => setShowAllThemesInline(!showAllThemesInline)}
                 className="text-xs font-bold text-[#5346F5] hover:underline"
               >
-                See All
+                {showAllThemesInline ? "Show Less" : "See All"}
               </button>
             </div>
 
-            <div className="grid grid-cols-4 gap-2">
-              {STANDARD_THEMES.map((thm) => {
+            <div className={`grid ${showAllThemesInline ? "grid-cols-3 gap-2.5" : "grid-cols-4 gap-2"}`}>
+              {(showAllThemesInline ? STANDARD_THEMES : STANDARD_THEMES.slice(0, 3)).map((thm) => {
                 const isSelected = !state.festiveTheme && state.themeMode === "preset" && state.themeId === thm.id;
                 return (
                   <button
@@ -937,15 +1101,16 @@ export function InvoiceSettingsStudio() {
                         themeId: thm.id,
                         themeMode: "preset",
                         festiveTheme: null,
-                        accentColor: thm.id === "luxury" && state.accentColor === "#111111" ? "#C9A227" : state.accentColor,
+                        uniqueThemeKey: thm.id,
+                        accentColor: thm.id === "luxury" && state.accentColor === "#111827" ? "#C9A227" : state.accentColor,
                       })
                     }
-                    className={`relative flex flex-col items-center rounded-md p-1 text-center transition-all ${
-                      isSelected ? "ring-2 ring-[#7C3AED]" : "hover:ring-1 hover:ring-slate-300"
+                    className={`relative flex flex-col items-center rounded-xl p-1 text-center transition-all ${
+                      isSelected ? "ring-2 ring-[#5346F5] bg-violet-50/30" : "hover:ring-1 hover:ring-slate-300"
                     }`}
                   >
                     {thm.isNew && (
-                      <span className="absolute -top-1 right-0 z-10 rounded bg-rose-500 px-1 text-[8px] font-bold uppercase text-white">
+                      <span className="absolute -top-1 right-0 z-10 rounded bg-rose-500 px-1 text-[8px] font-bold uppercase text-white shadow-xs">
                         NEW
                       </span>
                     )}
@@ -954,13 +1119,15 @@ export function InvoiceSettingsStudio() {
                   </button>
                 );
               })}
-              <button
-                type="button"
-                onClick={() => setShowAllThemesModal(true)}
-                className="flex flex-col items-center justify-center rounded-md border border-dashed border-slate-300 bg-slate-50 text-xs font-semibold text-[#5346F5] hover:bg-indigo-50"
-              >
-                See All
-              </button>
+              {!showAllThemesInline && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllThemesInline(true)}
+                  className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-xs font-semibold text-[#5346F5] hover:bg-indigo-50 min-h-[92px]"
+                >
+                  See All
+                </button>
+              )}
             </div>
 
             <div className="pt-2 border-t border-slate-100">
@@ -976,22 +1143,18 @@ export function InvoiceSettingsStudio() {
                 <span className="text-slate-400 hover:text-slate-600" title="Customize margins, fonts and layouts">ⓘ</span>
               </label>
 
-              <button
-                type="button"
-                onClick={() => {
-                  updateState({ themeMode: "custom" });
-                  setShowCustomThemeModal(true);
-                }}
-                className="mt-2.5 w-full rounded-xl bg-[#5346F5] hover:bg-[#4338CA] py-2 text-xs font-semibold text-white shadow-xs transition-colors"
+              <Link
+                href="/app/settings/invoice/customise"
+                className="mt-2.5 block text-center w-full rounded-xl bg-[#5346F5] hover:bg-[#4338CA] py-2 text-xs font-semibold text-white shadow-xs transition-colors"
               >
                 Create your own theme
-              </button>
+              </Link>
             </div>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
             <h3 className="mb-2.5 text-xs font-bold uppercase tracking-wider text-slate-800">Select Color</h3>
-            <div className="flex flex-wrap items-center gap-2.5">
+            <div className="grid grid-cols-4 gap-2.5">
               {COLOR_PALETTE.map((c) => {
                 const isSelected = state.accentColor.toLowerCase() === c.id.toLowerCase();
                 return (
@@ -1001,8 +1164,8 @@ export function InvoiceSettingsStudio() {
                     title={c.name}
                     onClick={() => updateState({ accentColor: c.id, customColorHex: c.id })}
                     style={{ backgroundColor: c.id }}
-                    className={`relative flex h-8 w-8 items-center justify-center rounded-lg transition-transform active:scale-90 ${
-                      isSelected ? "ring-2 ring-offset-2 ring-slate-900 scale-105" : "hover:opacity-90"
+                    className={`relative flex h-8 w-full items-center justify-center rounded-lg transition-transform active:scale-95 ${
+                      isSelected ? "ring-2 ring-offset-2 ring-slate-900 shadow-sm" : "hover:opacity-90"
                     }`}
                   >
                     {isSelected && (
@@ -1013,15 +1176,18 @@ export function InvoiceSettingsStudio() {
                   </button>
                 );
               })}
-
-              <div className="flex items-center gap-1.5 ml-auto">
+            </div>
+            <div className="mt-2.5 flex items-center justify-between pt-2 border-t border-slate-100">
+              <span className="text-xs text-slate-600 font-medium">Custom color:</span>
+              <div className="flex items-center gap-1.5">
                 <input
                   type="color"
                   value={state.customColorHex}
                   onChange={(e) => updateState({ accentColor: e.target.value, customColorHex: e.target.value })}
-                  className="h-8 w-8 cursor-pointer rounded-lg border border-slate-200 p-0.5"
+                  className="h-7 w-8 cursor-pointer rounded-lg border border-slate-200 p-0.5"
                   title="Pick custom hex color"
                 />
+                <span className="text-xs font-mono text-slate-700 uppercase">{state.accentColor}</span>
               </div>
             </div>
           </div>
@@ -1510,7 +1676,7 @@ export function InvoiceSettingsStudio() {
                   key={th.id}
                   type="button"
                   onClick={() => {
-                    updateState({ themeId: th.id, themeMode: "preset", festiveTheme: null });
+                    updateState({ themeId: th.id, themeMode: "preset", festiveTheme: null, uniqueThemeKey: th.id });
                     setShowAllThemesModal(false);
                   }}
                   className={`flex flex-col items-center rounded-xl border p-3 text-center transition-all ${
@@ -1539,6 +1705,7 @@ export function InvoiceSettingsStudio() {
                       updateState({
                         festiveTheme: th.id,
                         themeId: th.id === "logo" ? "your_logo" : th.id,
+                        uniqueThemeKey: th.id === "logo" ? "your_logo" : `${th.id}_${state.festiveVariant || 1}`,
                         themeMode: "preset",
                       });
                       setShowAllThemesModal(false);

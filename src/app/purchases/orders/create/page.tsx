@@ -1087,17 +1087,20 @@ export default function CreatePurchaseOrderPage() {
 
                         {/* TAX */}
                         <td className="px-3 py-2 text-right">
-                          <select
-                            value={line.taxRate}
-                            onChange={(e) => updateItemLine(idx, "taxRate", Number(e.target.value))}
-                            className="w-22 rounded border border-slate-200 px-1.5 py-1 text-xs text-right text-slate-700 font-medium focus:outline-hidden focus:border-blue-500 bg-white"
-                          >
-                            <option value="0">0%</option>
-                            <option value="5">5%</option>
-                            <option value="12">12%</option>
-                            <option value="18">18%</option>
-                            <option value="28">28%</option>
-                          </select>
+                          <div className="relative flex items-center min-w-[70px]">
+                            <input
+                              type="number"
+                              step="any"
+                              min="0"
+                              max="100"
+                              list="gst-rates-po"
+                              value={line.taxRate}
+                              onChange={(e) => updateItemLine(idx, "taxRate", Number(e.target.value) || 0)}
+                              placeholder="0"
+                              className="w-22 rounded border border-slate-200 px-1.5 pr-4 py-1 text-xs text-right text-slate-700 font-mono font-medium focus:outline-hidden focus:border-blue-500 bg-white"
+                            />
+                            <span className="absolute right-1 text-[11px] font-bold text-slate-400 pointer-events-none">%</span>
+                          </div>
                           <span className="text-[10px] text-slate-400 block mt-0.5">
                             (₹ {line.taxAmount.toFixed(1)})
                           </span>
@@ -1638,17 +1641,30 @@ export default function CreatePurchaseOrderPage() {
               </div>
               <div>
                 <label className="block font-semibold text-slate-600 mb-1">GST Rate (%)</label>
-                <select
-                  value={createItemForm.taxRate}
-                  onChange={(e) => setCreateItemForm((prev) => ({ ...prev, taxRate: Number(e.target.value) }))}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs bg-white"
-                >
-                  <option value="0">0%</option>
+                <div className="relative flex items-center">
+                  <input
+                    type="number"
+                    step="any"
+                    min="0"
+                    max="100"
+                    list="gst-rates-po"
+                    value={createItemForm.taxRate}
+                    onChange={(e) => setCreateItemForm((prev) => ({ ...prev, taxRate: Number(e.target.value) || 0 }))}
+                    placeholder="0"
+                    className="w-full rounded-lg border border-slate-300 p-2 pr-6 text-xs text-right font-mono bg-white"
+                  />
+                  <span className="absolute right-2 text-xs font-bold text-slate-400 pointer-events-none">%</span>
+                </div>
+                <datalist id="gst-rates-po">
+                  <option value="0">0% (None)</option>
+                  <option value="0.1">0.1%</option>
+                  <option value="0.25">0.25%</option>
+                  <option value="3">3%</option>
                   <option value="5">5%</option>
                   <option value="12">12%</option>
                   <option value="18">18%</option>
                   <option value="28">28%</option>
-                </select>
+                </datalist>
               </div>
             </div>
             <div className="flex justify-end gap-2 pt-2">

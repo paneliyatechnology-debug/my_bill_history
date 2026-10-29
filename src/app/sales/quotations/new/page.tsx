@@ -1208,17 +1208,20 @@ export default function NewQuotationPage() {
 
                         {/* TAX DROPDOWN + CALCULATED TAX AMOUNT */}
                         <td className="py-3 px-3">
-                          <select
-                            value={row.taxRate}
-                            onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value))}
-                            className="w-full text-xs p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-right font-mono text-slate-700 focus:bg-white focus:outline-none"
-                          >
-                            <option value="0">0%</option>
-                            <option value="5">5%</option>
-                            <option value="12">12%</option>
-                            <option value="18">18%</option>
-                            <option value="28">28%</option>
-                          </select>
+                          <div className="relative flex items-center min-w-[70px]">
+                            <input
+                              type="number"
+                              step="any"
+                              min="0"
+                              max="100"
+                              list="gst-rates-quote"
+                              value={row.taxRate}
+                              onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value) || 0)}
+                              placeholder="0"
+                              className="w-full text-xs p-1.5 pr-4 bg-slate-50 border border-slate-200 rounded-lg text-right font-mono text-slate-700 focus:bg-white focus:outline-none"
+                            />
+                            <span className="absolute right-1 text-[11px] font-bold text-slate-400 pointer-events-none">%</span>
+                          </div>
                           <div className="text-[10px] text-slate-400 font-mono mt-0.5 text-right">
                             ({formatInr(lineTaxAmount)})
                           </div>
@@ -1418,19 +1421,32 @@ export default function NewQuotationPage() {
                       className="w-full text-xs text-right bg-transparent font-mono font-bold focus:outline-none"
                     />
                   </div>
-                  <select
-                    value={chg.taxRate}
-                    onChange={(e) =>
-                      handleUpdateCharge(chg.id, "taxRate", Number(e.target.value) || 0)
-                    }
-                    className="text-xs p-1.5 bg-slate-50 border border-slate-200 rounded-lg font-medium text-slate-700 focus:bg-white focus:outline-none"
-                  >
-                    <option value="0">0%</option>
+                  <div className="relative flex items-center min-w-[80px]">
+                    <input
+                      type="number"
+                      step="any"
+                      min="0"
+                      max="100"
+                      list="gst-rates-quote"
+                      value={chg.taxRate}
+                      onChange={(e) =>
+                        handleUpdateCharge(chg.id, "taxRate", Number(e.target.value) || 0)
+                      }
+                      placeholder="0"
+                      className="w-full text-xs p-1.5 pr-4 bg-slate-50 border border-slate-200 rounded-lg font-mono font-semibold text-slate-700 text-right focus:bg-white focus:outline-none"
+                    />
+                    <span className="absolute right-1.5 text-[11px] font-bold text-slate-400 pointer-events-none">%</span>
+                  </div>
+                  <datalist id="gst-rates-quote">
+                    <option value="0">0% (None)</option>
+                    <option value="0.1">0.1%</option>
+                    <option value="0.25">0.25%</option>
+                    <option value="3">3%</option>
                     <option value="5">5%</option>
                     <option value="12">12%</option>
                     <option value="18">18%</option>
                     <option value="28">28%</option>
-                  </select>
+                  </datalist>
                   <button
                     type="button"
                     onClick={() => handleRemoveCharge(chg.id)}

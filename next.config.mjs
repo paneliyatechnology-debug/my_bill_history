@@ -21,10 +21,11 @@ export default function (phase) {
       '*.local',
     ],
     async rewrites() {
-      // In production on Vercel, forward to Render backend if defined in either variable
+      // Browser calls use same-origin /api/v1. Only an absolute backend URL can be the proxy target.
+      const absoluteApi = (url) => (url && /^https?:\/\//i.test(url) ? url : "");
       const rawTarget =
-        process.env.API_INTERNAL_URL ||
-        process.env.NEXT_PUBLIC_API_URL ||
+        absoluteApi(process.env.API_INTERNAL_URL) ||
+        absoluteApi(process.env.NEXT_PUBLIC_API_URL) ||
         'http://localhost:4000/api/v1';
 
       // Normalize target so it ends with /:path*

@@ -835,22 +835,35 @@ export function QuickSettingsModal({
                     <label className="block text-[11px] font-semibold text-slate-600 mb-1">
                       Default GST Rate for New Rows
                     </label>
-                    <select
-                      value={formData.defaultTaxRate}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          defaultTaxRate: Number(e.target.value) || 0,
-                        })
-                      }
-                      className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none"
-                    >
+                    <div className="relative flex items-center">
+                      <input
+                        type="number"
+                        step="any"
+                        min="0"
+                        max="100"
+                        list="gst-rates-quick-settings"
+                        value={formData.defaultTaxRate}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            defaultTaxRate: Number(e.target.value) || 0,
+                          })
+                        }
+                        placeholder="e.g. 5, 12, 18, 28"
+                        className="w-full p-2 pr-6 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 font-mono text-right focus:bg-white focus:outline-none"
+                      />
+                      <span className="absolute right-2 text-xs font-bold text-slate-400 pointer-events-none">%</span>
+                    </div>
+                    <datalist id="gst-rates-quick-settings">
                       <option value="0">0% (Exempt / Nil)</option>
+                      <option value="0.1">0.1%</option>
+                      <option value="0.25">0.25%</option>
+                      <option value="3">3%</option>
                       <option value="5">5% (Essential Goods)</option>
                       <option value="12">12% (Standard)</option>
                       <option value="18">18% (General Goods / Services)</option>
                       <option value="28">28% (Luxury / Sin Goods)</option>
-                    </select>
+                    </datalist>
                   </div>
                 </div>
 

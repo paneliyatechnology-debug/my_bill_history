@@ -741,21 +741,30 @@ export function ItemStepModal({
                         <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
                           {lang === "gu" ? "જીએસટી કર દર (%) *" : "GST Tax Rate (%)"}
                         </label>
-                        <select
-                          value={form.taxRate}
-                          onChange={(e) => setForm({ ...form, taxRate: Number(e.target.value) })}
-                          className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-semibold text-slate-800"
-                        >
-                          <option value={0}>None (0%)</option>
-                          <option value={0}>Exempted</option>
-                          <option value={0.1}>GST @ 0.1%</option>
-                          <option value={0.25}>GST @ 0.25%</option>
-                          <option value={3}>GST @ 3%</option>
-                          <option value={5}>GST @ 5% (Standard Essential)</option>
-                          <option value={12}>GST @ 12% (Standard)</option>
-                          <option value={18}>GST @ 18% (Standard Services/Goods)</option>
-                          <option value={28}>GST @ 28% (Luxury / Sin)</option>
-                        </select>
+                        <div className="relative flex items-center">
+                          <input
+                            type="number"
+                            step="any"
+                            min="0"
+                            max="100"
+                            list="gst-rates-basic"
+                            value={form.taxRate}
+                            onChange={(e) => setForm({ ...form, taxRate: Number(e.target.value) || 0 })}
+                            placeholder="ex: 5, 12, 18, 28"
+                            className="w-full text-xs p-2.5 pr-8 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-semibold text-slate-900"
+                          />
+                          <span className="absolute right-3 text-xs font-bold text-slate-400 pointer-events-none">%</span>
+                        </div>
+                        <datalist id="gst-rates-basic">
+                          <option value="0">0% (None / Exempt)</option>
+                          <option value="0.1">0.1%</option>
+                          <option value="0.25">0.25%</option>
+                          <option value="3">3%</option>
+                          <option value="5">5% (Standard Essential)</option>
+                          <option value="12">12% (Standard)</option>
+                          <option value="18">18% (Standard Services/Goods)</option>
+                          <option value="28">28% (Luxury / Sin)</option>
+                        </datalist>
                       </div>
                     </div>
 
@@ -1273,21 +1282,30 @@ export function ItemStepModal({
                         <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
                           {lang === "gu" ? "જીએસટી દર (%)" : "GST Tax Rate(%)"}
                         </label>
-                        <select
-                          value={form.taxRate}
-                          onChange={(e) => setForm({ ...form, taxRate: Number(e.target.value) })}
-                          className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-semibold text-slate-800"
-                        >
-                          <option value={0}>None (0%)</option>
-                          <option value={0}>Exempted</option>
-                          <option value={0.1}>GST @ 0.1%</option>
-                          <option value={0.25}>GST @ 0.25%</option>
-                          <option value={3}>GST @ 3%</option>
-                          <option value={5}>GST @ 5%</option>
-                          <option value={12}>GST @ 12%</option>
-                          <option value={18}>GST @ 18%</option>
-                          <option value={28}>GST @ 28%</option>
-                        </select>
+                        <div className="relative flex items-center">
+                          <input
+                            type="number"
+                            step="any"
+                            min="0"
+                            max="100"
+                            list="gst-rates-pricing"
+                            value={form.taxRate}
+                            onChange={(e) => setForm({ ...form, taxRate: Number(e.target.value) || 0 })}
+                            placeholder="ex: 5, 12, 18, 28"
+                            className="w-full text-xs p-2.5 pr-8 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-semibold text-slate-900"
+                          />
+                          <span className="absolute right-3 text-xs font-bold text-slate-400 pointer-events-none">%</span>
+                        </div>
+                        <datalist id="gst-rates-pricing">
+                          <option value="0">0% (None / Exempt)</option>
+                          <option value="0.1">0.1%</option>
+                          <option value="0.25">0.25%</option>
+                          <option value="3">3%</option>
+                          <option value="5">5% (Standard Essential)</option>
+                          <option value="12">12% (Standard)</option>
+                          <option value="18">18% (Standard Services/Goods)</option>
+                          <option value="28">28% (Luxury / Sin)</option>
+                        </datalist>
                       </div>
                     </div>
 

@@ -785,17 +785,30 @@ export default function CreateProformaInvoicePage() {
                           />
                         </td>
                         <td className="py-2.5 px-3">
-                          <select
-                            value={row.taxRate}
-                            onChange={(e) => handleUpdateRow(row.id, "taxRate", Number(e.target.value))}
-                            className="w-full p-1.5 border border-slate-200 rounded-lg text-xs font-mono font-bold text-right text-indigo-700 focus:outline-none"
-                          >
-                            <option value="0">0%</option>
+                          <div className="relative flex items-center min-w-[70px]">
+                            <input
+                              type="number"
+                              step="any"
+                              min="0"
+                              max="100"
+                              list="gst-rates-proforma"
+                              value={row.taxRate}
+                              onChange={(e) => handleUpdateRow(row.id, "taxRate", Number(e.target.value) || 0)}
+                              placeholder="0"
+                              className="w-full p-1.5 pr-4 border border-slate-200 rounded-lg text-xs font-mono font-bold text-right text-indigo-700 focus:outline-none"
+                            />
+                            <span className="absolute right-1 text-[11px] font-bold text-slate-400 pointer-events-none">%</span>
+                          </div>
+                          <datalist id="gst-rates-proforma">
+                            <option value="0">0% (None)</option>
+                            <option value="0.1">0.1%</option>
+                            <option value="0.25">0.25%</option>
+                            <option value="3">3%</option>
                             <option value="5">5%</option>
                             <option value="12">12%</option>
                             <option value="18">18%</option>
                             <option value="28">28%</option>
-                          </select>
+                          </datalist>
                         </td>
                         <td className="py-2.5 px-4 text-right font-mono font-bold text-slate-900">
                           {formatInr(lineTotal)}

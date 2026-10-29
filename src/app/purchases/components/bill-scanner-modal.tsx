@@ -2167,17 +2167,30 @@ export function BillScannerModal({
                                     </td>
 
                                     <td className="p-2">
-                                      <select
-                                        value={Number(item.taxRate) || 18}
-                                        onChange={(e) => handleLineChange(idx, "taxRate", Number(e.target.value))}
-                                        className="w-full text-xs rounded border border-slate-200 p-1.5 text-center"
-                                      >
-                                        <option value="0">0%</option>
+                                      <div className="relative flex items-center min-w-[70px]">
+                                        <input
+                                          type="number"
+                                          step="any"
+                                          min="0"
+                                          max="100"
+                                          list="gst-rates-scanner"
+                                          value={item.taxRate ?? 18}
+                                          onChange={(e) => handleLineChange(idx, "taxRate", Number(e.target.value) || 0)}
+                                          placeholder="0"
+                                          className="w-full text-xs rounded border border-slate-200 p-1.5 pr-4 text-right font-mono"
+                                        />
+                                        <span className="absolute right-1 text-[11px] font-bold text-slate-400 pointer-events-none">%</span>
+                                      </div>
+                                      <datalist id="gst-rates-scanner">
+                                        <option value="0">0% (None)</option>
+                                        <option value="0.1">0.1%</option>
+                                        <option value="0.25">0.25%</option>
+                                        <option value="3">3%</option>
                                         <option value="5">5%</option>
                                         <option value="12">12%</option>
                                         <option value="18">18%</option>
                                         <option value="28">28%</option>
-                                      </select>
+                                      </datalist>
                                     </td>
 
                                     <td className="p-3 text-right font-mono font-bold text-slate-800">
