@@ -1732,7 +1732,7 @@ export default function PartiesPage() {
         /* PARTIES DIRECTORY & REGISTER VIEW (Matching MyBillBook) */
         <div className="space-y-6">
           {/* SharedLedger Announcement Banner */}
-          {showSharedLedgerBanner && (
+          {/* {showSharedLedgerBanner && (
             <div className="relative overflow-hidden bg-gradient-to-r from-indigo-700 via-indigo-800 to-purple-800 text-white rounded-2xl p-4 sm:p-5 shadow-subtle">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3.5">
@@ -1767,7 +1767,7 @@ export default function PartiesPage() {
                 </div>
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle">
@@ -2010,7 +2010,7 @@ export default function PartiesPage() {
           />
 
           {/* Bottom Excel / Tally Migration Banner (Matching MyBillBook) */}
-          <div className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl p-5 border border-slate-800 shadow-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
+          {/* <div className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl p-5 border border-slate-800 shadow-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-2xl shrink-0">
                 📊
@@ -2031,7 +2031,7 @@ export default function PartiesPage() {
             >
               Upload Excel Sheet ⤓
             </button>
-          </div>
+          </div> */}
         </div>
       )}
 
