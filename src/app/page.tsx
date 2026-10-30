@@ -434,7 +434,7 @@ function DashboardContent() {
             <div className="px-4 sm:px-5 py-3 sm:py-3.5 border-b border-slate-100 flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-800">Latest Transactions</h3>
               <Link
-                href="/reports"
+                href="/app/home/vouchers/all_transactions"
                 className="text-xs font-semibold text-[#2563EB] hover:underline sm:hidden"
               >
                 View all
@@ -516,7 +516,7 @@ function DashboardContent() {
 
           <div className="border-t border-slate-100 p-2.5 text-center hidden sm:block">
             <Link
-              href="/reports"
+              href="/app/home/vouchers/all_transactions"
               className="text-xs font-semibold text-[#2563EB] hover:underline inline-block py-1"
             >
               See All Transactions
