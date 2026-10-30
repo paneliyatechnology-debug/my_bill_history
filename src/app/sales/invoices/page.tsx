@@ -528,40 +528,48 @@ export default function SalesInvoicesDashboardPage() {
                 setIsBulkActionsMenuOpen(false);
                 setActiveActionMenuId(null);
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-3 py-2 border border-[#E2E8E5] bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-[#174B43] text-xs font-semibold rounded-xl transition-colors cursor-pointer shadow-2xs"
             >
-              <span>📊</span>
+              <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
               <span>Reports</span>
               <span className="text-[10px] text-slate-400">▾</span>
             </button>
 
             {isReportsMenuOpen && (
               <div 
-                className="absolute right-0 top-10 z-50 w-48 bg-white border border-slate-200 rounded-xl shadow-xl py-1 text-xs animate-in fade-in zoom-in-95 duration-100"
+                className="absolute right-0 top-10 z-50 w-52 bg-white border border-[#E2E8E5] rounded-xl shadow-xl py-1 text-xs animate-in fade-in zoom-in-95 duration-100"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                <div className="px-3 py-1.5 text-[10px] font-bold text-[#8E9F9A] uppercase tracking-wider border-b border-slate-100">
                   Quick Reports
                 </div>
                 <Link
                   href="/reports?tab=sales-summary"
-                  className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors"
                 >
-                  <span>📑</span>
+                  <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
                   <span>Sales Summary</span>
                 </Link>
                 <Link
                   href="/reports?tab=gstr-1"
-                  className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors"
                 >
-                  <span>🇮🇳</span>
+                  <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                   <span>GSTR-1 (Excel)</span>
                 </Link>
                 <Link
                   href="/reports?tab=profit-loss"
-                  className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors"
                 >
-                  <span>💰</span>
+                  <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                   <span>Bill Wise Profit</span>
                 </Link>
               </div>
@@ -572,10 +580,13 @@ export default function SalesInvoicesDashboardPage() {
           <button
             type="button"
             onClick={() => setIsQuickSettingsOpen(true)}
-            className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-xl transition-colors cursor-pointer shadow-2xs"
+            className="p-2 border border-[#E2E8E5] bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-[#5A6B66] hover:text-[#174B43] rounded-xl transition-colors cursor-pointer shadow-2xs"
             title="Quick Invoice Settings"
           >
-            ⚙️
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
           </button>
 
           {/* Bulk Actions Dropdown Button */}
@@ -588,16 +599,18 @@ export default function SalesInvoicesDashboardPage() {
                 setIsReportsMenuOpen(false);
                 setActiveActionMenuId(null);
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-3 py-2 border border-[#E2E8E5] bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-[#174B43] text-xs font-semibold rounded-xl transition-colors cursor-pointer shadow-2xs"
             >
-              <span>📦</span>
+              <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
               <span>Bulk Actions</span>
               <span className="text-[10px] text-slate-400">▾</span>
             </button>
 
             {isBulkActionsMenuOpen && (
               <div 
-                className="absolute right-0 top-10 z-50 w-44 bg-white border border-slate-200 rounded-xl shadow-xl py-1 text-xs animate-in fade-in zoom-in-95 duration-100"
+                className="absolute right-0 top-10 z-50 w-48 bg-white border border-[#E2E8E5] rounded-xl shadow-xl py-1 text-xs animate-in fade-in zoom-in-95 duration-100"
                 onClick={(e) => e.stopPropagation()}
               >
                 <button
@@ -606,9 +619,11 @@ export default function SalesInvoicesDashboardPage() {
                     setIsBulkActionsMenuOpen(false);
                     setIsBulkDownloadOpen(true);
                   }}
-                  className="w-full text-left flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors cursor-pointer"
+                  className="w-full text-left flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors cursor-pointer"
                 >
-                  <span>📥</span>
+                  <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
                   <span>Bulk Download</span>
                 </button>
                 {selectedIds.size > 0 && (
@@ -620,7 +635,9 @@ export default function SalesInvoicesDashboardPage() {
                     }}
                     className="w-full text-left flex items-center gap-2 px-3 py-2 text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer border-t border-slate-100"
                   >
-                    <span>🗑️</span>
+                    <svg className="w-3.5 h-3.5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
                     <span>Delete Selected ({selectedIds.size})</span>
                   </button>
                 )}
@@ -632,9 +649,9 @@ export default function SalesInvoicesDashboardPage() {
           <button
             type="button"
             onClick={() => setIsImportModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-xl shadow-2xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#F2FAF7] hover:bg-[#E6F7F2] text-[#174B43] border border-[#85D5C2] text-xs font-bold rounded-xl shadow-2xs transition-all cursor-pointer"
           >
-            <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
             </svg>
             <span>{lang === "gu" ? "એક્સેલ ઈમ્પોર્ટ" : "Import Excel"}</span>
@@ -643,9 +660,11 @@ export default function SalesInvoicesDashboardPage() {
           {/* Primary CTA: Create Sales Invoice */}
           <Link
             href="/sales/invoices/new"
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#26A58A] hover:bg-[#208E76] active:bg-[#1B7864] text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#26A58A] hover:bg-[#208E76] active:bg-[#1B7864] text-white text-xs font-bold rounded-xl shadow-jade transition-all cursor-pointer"
           >
-            <span>+</span>
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
             <span>Create Sales Invoice</span>
           </Link>
         </div>
@@ -773,13 +792,17 @@ export default function SalesInvoicesDashboardPage() {
 
           {/* Search Input */}
           <div className="relative flex-1 min-w-0 sm:max-w-md">
-            <span className="absolute left-3 top-2.5 text-xs text-slate-400">🔍</span>
+            <span className="absolute left-3 top-2.5 text-xs text-[#8E9F9A] pointer-events-none">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </span>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by Party Name or Invoice Number..."
-              className="w-full pl-8 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500"
+              className="w-full pl-8 pr-8 py-2 bg-slate-50 border border-[#E2E8E5] rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-[#26A58A] focus:ring-1 focus:ring-[#26A58A]"
             />
             {searchQuery && (
               <button
@@ -796,7 +819,7 @@ export default function SalesInvoicesDashboardPage() {
         {/* Right: Selected Chips indicator */}
         {selectedIds.size > 0 && (
           <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
+            <span className="text-xs font-bold text-[#174B43] bg-[#E6F7F2] px-2.5 py-1 rounded-lg border border-[#85D5C2]">
               {selectedIds.size} Selected
             </span>
             <button
@@ -811,17 +834,17 @@ export default function SalesInvoicesDashboardPage() {
       </div>
 
       {/* 4. INVOICES DATA TABLE (Exact MyBillBook Columns & Styling) */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-2xs overflow-hidden">
+      <div className="bg-white border border-[#E2E8E5] rounded-2xl shadow-2xs overflow-hidden">
         <div className="overflow-x-auto min-h-[360px]">
           <table className="w-full text-left text-xs border-collapse min-w-[760px]">
-            <thead className="bg-[#F8F9FA] text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200 text-[11px]">
+            <thead className="bg-[#FAFBFD] text-[#5A6B66] uppercase tracking-wider font-bold border-b border-[#E2E8E5] text-[11px]">
               <tr>
                 <th className="py-3 px-3 w-10 text-center">
                   <input
                     type="checkbox"
                     checked={isAllSelected}
                     onChange={handleSelectAll}
-                    className="w-4 h-4 text-blue-600 rounded cursor-pointer"
+                    className="w-4 h-4 text-[#26A58A] rounded cursor-pointer focus:ring-[#26A58A]"
                   />
                 </th>
                 <th className="py-3 px-3 min-w-[100px]">DATE</th>
@@ -834,26 +857,28 @@ export default function SalesInvoicesDashboardPage() {
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-[#F1F5F9]">
               {isLoading ? (
                 <tr>
                   <td colSpan={8} className="py-16 text-center text-slate-400">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-blue-600 border-t-transparent mb-2" />
-                    <p className="text-xs font-semibold">Loading sales invoices...</p>
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-[#26A58A] border-t-transparent mb-2" />
+                    <p className="text-xs font-semibold text-[#174B43]">Loading sales invoices...</p>
                   </td>
                 </tr>
               ) : filteredInvoices.length === 0 ? (
-                /* Empty State matching Video (01:13) */
+                /* Empty State */
                 <tr>
                   <td colSpan={8} className="py-16 px-4 text-center">
                     <div className="max-w-sm mx-auto space-y-3">
-                      <div className="w-16 h-16 mx-auto bg-slate-100 rounded-full flex items-center justify-center text-2xl text-slate-400">
-                        📄
+                      <div className="w-14 h-14 mx-auto bg-[#E6F7F2] border border-[#85D5C2] rounded-full flex items-center justify-center text-[#26A58A]">
+                        <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
                       </div>
-                      <h3 className="text-sm font-bold text-slate-800">
+                      <h3 className="text-sm font-bold text-[#1A2E2B]">
                         No Transactions Matching the Current Filter
                       </h3>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-[#5A6B66]">
                         Try changing the date range, status filter, or search keywords.
                       </p>
                       <button
@@ -863,7 +888,7 @@ export default function SalesInvoicesDashboardPage() {
                           setDateRangePreset("ALL");
                           setSearchQuery("");
                         }}
-                        className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                        className="px-4 py-2 bg-[#26A58A] hover:bg-[#208E76] text-white rounded-xl text-xs font-bold shadow-jade transition-colors cursor-pointer"
                       >
                         Reset Filters
                       </button>
@@ -909,7 +934,7 @@ export default function SalesInvoicesDashboardPage() {
                       <td className="py-3 px-3 whitespace-nowrap">
                         <Link
                           href={`/sales/invoices/${inv.id}`}
-                          className="font-bold text-blue-600 hover:underline font-mono"
+                          className="font-bold text-[#174B43] hover:text-[#26A58A] transition-colors font-mono"
                         >
                           {inv.invoiceNumber}
                         </Link>
@@ -959,7 +984,7 @@ export default function SalesInvoicesDashboardPage() {
                       {/* Status Badge */}
                       <td className="py-3 px-3 text-center whitespace-nowrap">
                         {status === "PAID" && (
-                          <span className="px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <span className="px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-[#E6F7F2] text-[#174B43] border border-[#85D5C2]">
                             Paid
                           </span>
                         )}
@@ -1016,16 +1041,18 @@ export default function SalesInvoicesDashboardPage() {
                               actionMenuOpenUp
                                 ? "bottom-8 origin-bottom-right"
                                 : "top-10 origin-top-right"
-                            } z-50 w-48 bg-white border border-slate-200 rounded-xl shadow-xl py-1 text-xs text-left animate-in fade-in zoom-in-95 duration-100`}
+                            } z-50 w-48 bg-white border border-[#E2E8E5] rounded-xl shadow-xl py-1 text-xs text-left animate-in fade-in zoom-in-95 duration-100`}
                             onClick={(e) => e.stopPropagation()}
                           >
                             {/* 1. Edit */}
                             {inv.status !== "CANCELLED" && (
                               <Link
                                 href={`/sales/invoices/${inv.id}/edit`}
-                                className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                                className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors"
                               >
-                                <span>✏️</span>
+                                <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
                                 <span>Edit</span>
                               </Link>
                             )}
@@ -1038,9 +1065,11 @@ export default function SalesInvoicesDashboardPage() {
                                 setIsHistoryModalOpen(true);
                                 setActiveActionMenuId(null);
                               }}
-                              className="w-full text-left flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors cursor-pointer"
+                              className="w-full text-left flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors cursor-pointer"
                             >
-                              <span>📜</span>
+                              <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
                               <span>Edit History</span>
                             </button>
 
@@ -1048,9 +1077,11 @@ export default function SalesInvoicesDashboardPage() {
                             <button
                               type="button"
                               onClick={() => handleDuplicateInvoice(inv)}
-                              className="w-full text-left flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors cursor-pointer"
+                              className="w-full text-left flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors cursor-pointer"
                             >
-                              <span>📋</span>
+                              <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
                               <span>Duplicate</span>
                             </button>
 
@@ -1066,7 +1097,9 @@ export default function SalesInvoicesDashboardPage() {
                                 }}
                                 className="w-full text-left flex items-center gap-2 px-3 py-2 text-emerald-700 hover:bg-emerald-50 transition-colors cursor-pointer"
                               >
-                                <span>💳</span>
+                                <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
                                 <span>Record Payment</span>
                               </button>
                             )}
@@ -1082,7 +1115,9 @@ export default function SalesInvoicesDashboardPage() {
                                 }}
                                 className="w-full text-left flex items-center gap-2 px-3 py-2 text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer border-t border-slate-100"
                               >
-                                <span>🚫</span>
+                                <svg className="w-3.5 h-3.5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                </svg>
                                 <span>Cancel Invoice</span>
                               </button>
                             )}

@@ -512,17 +512,17 @@ export default function PurchasesPage() {
         </h1>
 
         {/* Center: Segmented Tabs (All Invoices | Incomplete Scans) */}
-        <div className="inline-flex items-center bg-[#f1f5f9] p-1 rounded-lg border border-slate-200/70">
+        <div className="inline-flex items-center bg-[#F2FAF7] p-1 rounded-xl border border-[#BCEADF]">
           <button
             type="button"
             onClick={() => setActiveTab("ALL")}
-            className={`px-4 py-1.5 rounded-md text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
               activeTab === "ALL"
-                ? "bg-white text-[#4f46e5] shadow-xs border border-indigo-100"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white text-[#174B43] shadow-xs border border-[#85D5C2]/50 font-bold"
+                : "text-[#5A6B66] hover:text-[#174B43]"
             }`}
           >
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="w-3.5 h-3.5 text-[#26A58A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
               <polyline points="14 2 14 8 20 8" />
               <line x1="16" y1="13" x2="8" y2="13" />
@@ -535,15 +535,15 @@ export default function PurchasesPage() {
           <button
             type="button"
             onClick={() => setActiveTab("INCOMPLETE_SCANS")}
-            className={`px-4 py-1.5 rounded-md text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
               activeTab === "INCOMPLETE_SCANS"
-                ? "bg-white text-[#ea580c] shadow-xs border border-amber-200/80"
-                : "text-slate-600 hover:text-slate-900 font-medium"
+                ? "bg-white text-amber-700 shadow-xs border border-amber-300 font-bold"
+                : "text-[#5A6B66] hover:text-[#174B43] font-medium"
             }`}
           >
             <svg
               className={`w-3.5 h-3.5 ${
-                activeTab === "INCOMPLETE_SCANS" ? "text-[#ea580c]" : "text-slate-400"
+                activeTab === "INCOMPLETE_SCANS" ? "text-amber-600" : "text-[#8E9F9A]"
               }`}
               viewBox="0 0 24 24"
               fill="none"
@@ -570,44 +570,50 @@ export default function PurchasesPage() {
                 e.stopPropagation();
                 setIsReportsMenuOpen(!isReportsMenuOpen);
               }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-slate-50 border border-indigo-200 text-[#4f46e5] text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-[#F2FAF7] border border-[#E2E8E5] hover:border-[#85D5C2] text-[#174B43] text-xs font-semibold rounded-xl shadow-2xs transition-colors cursor-pointer"
             >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg className="w-3.5 h-3.5 text-[#26A58A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="18" y1="20" x2="18" y2="10" />
                 <line x1="12" y1="20" x2="12" y2="4" />
                 <line x1="6" y1="20" x2="6" y2="14" />
               </svg>
               <span>Reports</span>
-              <span className="text-[10px]">▼</span>
+              <span className="text-[10px] text-slate-400">▼</span>
             </button>
 
             {isReportsMenuOpen && (
               <div
-                className="absolute right-0 top-9 z-50 w-52 bg-white border border-slate-200 rounded-xl shadow-xl py-1 text-xs animate-in fade-in zoom-in-95 duration-100"
+                className="absolute right-0 top-9 z-50 w-52 bg-white border border-[#E2E8E5] rounded-xl shadow-xl py-1 text-xs animate-in fade-in zoom-in-95 duration-100"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                <div className="px-3 py-1.5 text-[10px] font-bold text-[#8E9F9A] uppercase tracking-wider border-b border-slate-100">
                   Purchase Reports
                 </div>
                 <Link
                   href="/reports?tab=purchase-summary"
-                  className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors"
                 >
-                  <span>📑</span>
+                  <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
                   <span>Purchase Summary</span>
                 </Link>
                 <Link
                   href="/reports?tab=gstr-2b"
-                  className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors"
                 >
-                  <span>🇮🇳</span>
+                  <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                   <span>GSTR-2B vs Purchases</span>
                 </Link>
                 <Link
                   href="/reports?tab=outstanding&partyType=SUPPLIER"
-                  className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors"
                 >
-                  <span>💳</span>
+                  <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
                   <span>Supplier Outstanding</span>
                 </Link>
               </div>
@@ -677,21 +683,21 @@ export default function PurchasesPage() {
             {/* Card 1: Total Purchases */}
         <div
           onClick={() => setStatusFilter("ALL")}
-          className={`bg-white p-4 rounded-lg border transition-all cursor-pointer shadow-2xs ${
+          className={`bg-white p-4 rounded-2xl border transition-all cursor-pointer shadow-2xs ${
             statusFilter === "ALL"
-              ? "border-[#4f46e5]/40 ring-1 ring-[#4f46e5]/30 bg-indigo-50/10"
-              : "border-slate-200 hover:border-slate-300"
+              ? "border-[#26A58A] ring-1 ring-[#26A58A]/30 bg-[#E6F7F2]/30"
+              : "border-[#E2E8E5] hover:border-[#85D5C2]"
           }`}
         >
-          <div className="flex items-center gap-2 text-xs font-medium text-[#4f46e5]">
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div className="flex items-center gap-2 text-xs font-bold text-[#174B43]">
+            <svg className="w-3.5 h-3.5 text-[#26A58A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
               <line x1="3" y1="6" x2="21" y2="6" />
               <path d="M16 10a4 4 0 0 1-8 0" />
             </svg>
             <span>Total Purchases</span>
           </div>
-          <div className="text-xl sm:text-2xl font-bold text-slate-800 mt-2 tracking-tight">
+          <div className="text-xl sm:text-2xl font-black text-[#1A2E2B] font-mono mt-2 tracking-tight">
             {formatDisplayAmount(metrics.totalPurchases)}
           </div>
         </div>
@@ -890,9 +896,12 @@ export default function PurchasesPage() {
 
           <Link
             href="/purchases/new"
-            className="inline-flex items-center justify-center px-4 py-2 bg-[#4c35de] hover:bg-[#4338ca] text-white text-xs font-semibold rounded-lg shadow-xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#26A58A] hover:bg-[#208E76] active:bg-[#1B7864] text-white text-xs font-bold rounded-xl shadow-jade transition-colors cursor-pointer"
           >
-            Create Purchase Invoice
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Create Purchase Invoice</span>
           </Link>
         </div>
       </div>

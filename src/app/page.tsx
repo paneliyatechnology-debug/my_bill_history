@@ -379,9 +379,13 @@ function DashboardContent() {
                 </svg>
               </span>
             </div>
-            <div className="text-xl sm:text-2xl font-black text-[#1A2E2B] mt-2.5 tracking-tight font-mono">
-              ₹ {formatInr(toCollect)}
-            </div>
+            {isLoading ? (
+              <div className="h-7 w-28 bg-[#E2E8E5] animate-pulse rounded-md mt-2.5" />
+            ) : (
+              <div className="text-xl sm:text-2xl font-black text-[#1A2E2B] mt-2.5 tracking-tight font-mono">
+                ₹ {formatInr(toCollect)}
+              </div>
+            )}
             <div className="mt-2 text-[11px] text-[#5A6B66] font-medium flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#26A58A]"></span>
               <span>Open receivables</span>
@@ -409,9 +413,13 @@ function DashboardContent() {
                 </svg>
               </span>
             </div>
-            <div className="text-xl sm:text-2xl font-black text-[#1A2E2B] mt-2.5 tracking-tight font-mono">
-              ₹ {formatInr(toPay)}
-            </div>
+            {isLoading ? (
+              <div className="h-7 w-28 bg-[#E2E8E5] animate-pulse rounded-md mt-2.5" />
+            ) : (
+              <div className="text-xl sm:text-2xl font-black text-[#1A2E2B] mt-2.5 tracking-tight font-mono">
+                ₹ {formatInr(toPay)}
+              </div>
+            )}
             <div className="mt-2 text-[11px] text-[#5A6B66] font-medium flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
               <span>Pending payables</span>
@@ -439,9 +447,13 @@ function DashboardContent() {
                 </svg>
               </span>
             </div>
-            <div className="text-xl sm:text-2xl font-black text-[#1A2E2B] mt-2.5 tracking-tight font-mono">
-              ₹ {formatInr(cashBankBalance)}
-            </div>
+            {isLoading ? (
+              <div className="h-7 w-28 bg-[#E2E8E5] animate-pulse rounded-md mt-2.5" />
+            ) : (
+              <div className="text-xl sm:text-2xl font-black text-[#1A2E2B] mt-2.5 tracking-tight font-mono">
+                ₹ {formatInr(cashBankBalance)}
+              </div>
+            )}
             <div className="mt-2 text-[11px] text-[#174B43] font-semibold flex items-center gap-1 group-hover:underline">
               <span>View details</span>
               <span>→</span>
@@ -465,9 +477,13 @@ function DashboardContent() {
                 <path d="M 2 16 Q 14 14, 24 8 T 40 10 T 54 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </div>
-            <div className="text-xl sm:text-2xl font-black text-[#1A2E2B] mt-2.5 tracking-tight font-mono">
-              ₹ {formatInr(sevenDaysSales)}
-            </div>
+            {isLoading ? (
+              <div className="h-7 w-28 bg-[#E2E8E5] animate-pulse rounded-md mt-2.5" />
+            ) : (
+              <div className="text-xl sm:text-2xl font-black text-[#1A2E2B] mt-2.5 tracking-tight font-mono">
+                ₹ {formatInr(sevenDaysSales)}
+              </div>
+            )}
             <div className="mt-2 text-[11px] text-[#26A58A] font-semibold flex items-center gap-1">
               <span>↑ +12% from last week</span>
             </div>
@@ -496,37 +512,61 @@ function DashboardContent() {
 
             {/* Mobile View (< sm): Clean Touch-friendly Card List */}
             <div className="divide-y divide-[#E2E8E5] sm:hidden">
-              {transactions.slice(0, 5).map((tx) => (
-                <div
-                  key={tx.id}
-                  onClick={() => tx.link && router.push(tx.link)}
-                  className="p-3.5 active:bg-[#F6F7F1] transition-colors flex items-center justify-between gap-3 cursor-pointer"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <span className="text-xs font-bold text-[#1A2E2B] truncate">
-                        {tx.partyName}
-                      </span>
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[#E6F7F2] text-[#174B43] whitespace-nowrap">
-                        {tx.type}
-                      </span>
+              {isLoading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="p-3.5 flex items-center justify-between gap-3 animate-pulse">
+                    <div className="space-y-2 flex-1">
+                      <div className="h-4 w-32 bg-[#E2E8E5] rounded" />
+                      <div className="h-3 w-20 bg-[#EBF0EE] rounded" />
                     </div>
-                    <div className="flex items-center gap-2 text-[11px] text-[#5A6B66] font-mono">
-                      <span>{tx.txnNo}</span>
-                      <span>•</span>
-                      <span>{tx.date}</span>
-                    </div>
+                    <div className="h-4 w-16 bg-[#E2E8E5] rounded" />
                   </div>
-                  <div className="text-right shrink-0">
-                    <span className="text-xs font-bold font-mono text-[#1A2E2B] block">
-                      ₹ {formatInr(tx.amount)}
-                    </span>
-                    <span className="inline-block mt-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-[#E6F7F2] text-[#15805E]">
-                      Paid
-                    </span>
+                ))
+              ) : transactions.length === 0 ? (
+                <div className="p-8 text-center text-xs text-[#5A6B66] space-y-2">
+                  <div className="w-10 h-10 rounded-full bg-[#E6F7F2] text-[#174B43] flex items-center justify-center mx-auto">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
                   </div>
+                  <p className="font-semibold text-[#1A2E2B]">No transactions recorded yet</p>
+                  <Link href="/sales/invoices/new" className="inline-block text-xs font-bold text-[#26A58A] hover:underline">
+                    + Create First Sales Invoice
+                  </Link>
                 </div>
-              ))}
+              ) : (
+                transactions.slice(0, 5).map((tx) => (
+                  <div
+                    key={tx.id}
+                    onClick={() => tx.link && router.push(tx.link)}
+                    className="p-3.5 active:bg-[#F6F7F1] transition-colors flex items-center justify-between gap-3 cursor-pointer"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="text-xs font-bold text-[#1A2E2B] truncate">
+                          {tx.partyName}
+                        </span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[#E6F7F2] text-[#174B43] whitespace-nowrap">
+                          {tx.type}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[11px] text-[#5A6B66] font-mono">
+                        <span>{tx.txnNo}</span>
+                        <span>•</span>
+                        <span>{tx.date}</span>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-xs font-bold font-mono text-[#1A2E2B] block">
+                        ₹ {formatInr(tx.amount)}
+                      </span>
+                      <span className="inline-block mt-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-[#E6F7F2] text-[#15805E]">
+                        Paid
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
 
             {/* Desktop View (>= sm): Full Data Table */}
@@ -543,10 +583,30 @@ function DashboardContent() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E2E8E5] text-[#1A2E2B]">
-                  {transactions.length === 0 ? (
+                  {isLoading ? (
+                    Array.from({ length: 4 }).map((_, i) => (
+                      <tr key={i} className="animate-pulse">
+                        <td className="px-5 py-3"><div className="h-4 w-20 bg-[#E2E8E5] rounded" /></td>
+                        <td className="px-5 py-3"><div className="h-4 w-14 bg-[#EBF0EE] rounded-md" /></td>
+                        <td className="px-5 py-3"><div className="h-4 w-16 bg-[#E2E8E5] rounded" /></td>
+                        <td className="px-5 py-3"><div className="h-4 w-36 bg-[#E2E8E5] rounded" /></td>
+                        <td className="px-5 py-3 text-right"><div className="h-4 w-20 bg-[#E2E8E5] rounded ml-auto" /></td>
+                        <td className="px-5 py-3 text-center"><div className="h-4 w-12 bg-[#EBF0EE] rounded-full mx-auto" /></td>
+                      </tr>
+                    ))
+                  ) : transactions.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-5 py-8 text-center text-xs text-[#8E9F9A]">
-                        No transactions recorded yet
+                      <td colSpan={6} className="px-5 py-10 text-center text-xs text-[#5A6B66]">
+                        <div className="w-10 h-10 rounded-full bg-[#E6F7F2] text-[#174B43] flex items-center justify-center mx-auto mb-2">
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </div>
+                        <p className="font-semibold text-[#1A2E2B]">No transactions recorded yet</p>
+                        <p className="text-[11px] text-[#8E9F9A] mt-0.5">Start billing your customers to see live transaction feeds here.</p>
+                        <Link href="/sales/invoices/new" className="inline-block mt-3 px-3.5 py-1.5 rounded-lg bg-[#26A58A] hover:bg-[#208E76] text-white font-bold text-xs shadow-xs transition-colors">
+                          + Create Sales Invoice
+                        </Link>
                       </td>
                     </tr>
                   ) : (
@@ -597,131 +657,7 @@ function DashboardContent() {
         </div>
 
         {/* Right Column: Scan & Record Bills + Promo Card (col-span-4) */}
-        <div className="lg:col-span-4 space-y-3.5 sm:space-y-4">
-          {/* Card A: Scan & Record Bills */}
-          <div className="bg-white border border-[#E2E8E5] rounded-2xl shadow-xs p-4 sm:p-5 flex flex-col justify-between space-y-3.5 sm:space-y-4">
-            {/* Header */}
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-2.5 sm:gap-3">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#174B43] text-white flex items-center justify-center font-bold text-xl shadow-xs shrink-0">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-bold text-sm text-[#1A2E2B] leading-tight">
-                    Scan & Record Bills
-                  </h3>
-                  <p className="text-[11px] text-[#26A58A] font-medium flex items-center gap-1 mt-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#26A58A] inline-block" /> High-Accuracy OCR Engine
-                  </p>
-                </div>
-              </div>
-
-              <span className="bg-[#B69A61] text-white text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap flex items-center gap-1 shadow-xs">
-                <span>✦</span> FREE • 3D Left
-              </span>
-            </div>
-
-            {/* Toggle Pills: Create Sales | Create Purchase */}
-            <div className="bg-[#F6F7F1] p-1 rounded-xl flex items-center gap-1 border border-[#E2E8E5]">
-              <button
-                type="button"
-                onClick={() => setScanType("sales")}
-                className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${scanType === "sales"
-                    ? "bg-white text-[#174B43] border border-[#26A58A]/50 shadow-2xs font-bold"
-                    : "text-[#5A6B66] hover:text-[#174B43]"
-                  }`}
-              >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <span>Create Sales</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setScanType("purchase")}
-                className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${scanType === "purchase"
-                    ? "bg-white text-[#174B43] border border-[#26A58A]/50 shadow-2xs font-bold"
-                    : "text-[#5A6B66] hover:text-[#174B43]"
-                  }`}
-              >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-                <span>Create Purchase</span>
-              </button>
-            </div>
-
-            {/* Drag & Drop / Tap Upload Zone */}
-            <div
-              onDragOver={(e) => {
-                e.preventDefault();
-                setIsDragging(true);
-              }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={handleFileDrop}
-              onClick={() => setIsScannerModalOpen(true)}
-              className={`border-2 border-dashed rounded-xl p-5 sm:p-7 text-center transition-all cursor-pointer flex flex-col items-center justify-center group active:scale-[0.99] ${isDragging
-                  ? "border-[#26A58A] bg-[#E6F7F2]"
-                  : "border-[#85D5C2] bg-[#F7FBF9] hover:bg-[#EBF7F4] hover:border-[#26A58A]"
-                }`}
-            >
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileSelect}
-                accept=".pdf,.jpg,.jpeg,.png"
-                className="hidden"
-              />
-              <div className="w-10 h-10 rounded-full bg-[#E6F7F2] text-[#26A58A] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-              </div>
-              <p className="font-bold text-xs text-[#174B43] tracking-tight">
-                Tap to Upload or Drag & Drop
-              </p>
-              <p className="text-[10px] text-[#5A6B66] mt-0.5">
-                (PDF, JPG, JPEG & PNG supported, max 5MB)
-              </p>
-            </div>
-          </div>
-
-          {/* Card B: Grow Your Business With MyOwnBillBook (matching reference design) */}
-          <div className="bg-white border border-[#E2E8E5] rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
-            <h4 className="font-bold text-xs text-[#1A2E2B] tracking-tight">
-              Grow Your Business With MyOwnBillBook
-            </h4>
-            <ul className="space-y-1.5 text-[11px] text-[#5A6B66]">
-              <li className="flex items-center gap-1.5">
-                <span className="text-[#26A58A] font-bold">✓</span>
-                <span>GST Ready Billing & E-Way Bills</span>
-              </li>
-              <li className="flex items-center gap-1.5">
-                <span className="text-[#26A58A] font-bold">✓</span>
-                <span>Inventory & Low Stock Alerts</span>
-              </li>
-              <li className="flex items-center gap-1.5">
-                <span className="text-[#26A58A] font-bold">✓</span>
-                <span>Accounting & Profit Reports</span>
-              </li>
-              <li className="flex items-center gap-1.5">
-                <span className="text-[#26A58A] font-bold">✓</span>
-                <span>Multi-User & Multi-Branch Access</span>
-              </li>
-            </ul>
-            <button
-              type="button"
-              onClick={() => setActiveModal("sales")}
-              className="w-full py-2 px-4 rounded-xl bg-[#B69A61] hover:bg-[#9E824B] text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer mt-1"
-            >
-              <span>Upgrade Now</span>
-              <span>→</span>
-            </button>
-          </div>
-        </div>
+      
       </div>
 
       {/* ─────────────────────────────────────────────────────────────

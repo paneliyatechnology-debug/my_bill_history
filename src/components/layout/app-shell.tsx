@@ -328,8 +328,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           />
         </div>
         <p className="text-lg font-black tracking-tight">
-          <span className="text-[#1E589D]">myown</span>
-          <span className="text-[#EA580C]">billbook</span>
+          <span className="text-[#174B43]">MyOwn</span>
+          <span className="text-[#26A58A]">BillBook</span>
         </p>
         <p
           className="text-xs text-[#98A2B3] mt-1 font-mono"
@@ -343,11 +343,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Watchdog recovery options if loading is delayed */}
         {loadingWatchdogTriggered && (
           <div
-            className="mt-6 p-4 max-w-sm bg-white rounded-2xl border border-[#FED7AA] shadow-sm flex flex-col items-center"
+            className="mt-6 p-4 max-w-sm bg-white rounded-2xl border border-[#BCEADF] shadow-sm flex flex-col items-center"
             style={{
               maxWidth: "24rem",
               backgroundColor: "#FFFFFF",
-              border: "1px solid #FED7AA",
+              border: "1px solid #BCEADF",
               borderRadius: "1rem",
               padding: "1rem",
             }}
@@ -360,9 +360,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => window.location.reload()}
-                className="py-1.5 px-4 bg-[#C24E1D] hover:bg-[#D95F12] text-white rounded-lg text-xs font-bold transition-all shadow-saffron"
+                className="py-1.5 px-4 bg-[#26A58A] hover:bg-[#208E76] text-white rounded-lg text-xs font-bold transition-all shadow-jade"
                 style={{
-                  backgroundColor: "#C24E1D",
+                  backgroundColor: "#26A58A",
                   color: "#FFFFFF",
                   padding: "6px 16px",
                   borderRadius: "8px",
@@ -1746,7 +1746,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link
             href="/"
             className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${pathname === "/"
-                ? "text-[#C24E1D]"
+                ? "text-[#26A58A]"
                 : "text-[#667085] hover:text-[#202124]"
               }`}
           >
@@ -1769,7 +1769,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link
             href="/sales/invoices"
             className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${pathname.startsWith("/sales/invoices")
-                ? "text-[#C24E1D]"
+                ? "text-[#26A58A]"
                 : "text-[#667085] hover:text-[#202124]"
               }`}
           >
@@ -1792,11 +1792,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link
             href="/sales/pos"
             className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${pathname === "/sales/pos"
-                ? "text-[#C24E1D]"
+                ? "text-[#26A58A]"
                 : "text-[#667085] hover:text-[#202124]"
               }`}
           >
-            <div className="w-8 h-8 -mt-3 rounded-full bg-[#C24E1D] text-white flex items-center justify-center shadow-saffron">
+            <div className="w-8 h-8 -mt-3 rounded-full bg-[#26A58A] text-white flex items-center justify-center shadow-jade">
               <svg
                 className="w-4 h-4"
                 fill="none"
@@ -1817,7 +1817,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link
             href="/purchases"
             className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${pathname.startsWith("/purchases")
-                ? "text-[#C24E1D]"
+                ? "text-[#26A58A]"
                 : "text-[#667085] hover:text-[#202124]"
               }`}
           >
