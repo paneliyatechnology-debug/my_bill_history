@@ -77,14 +77,14 @@ export function Modal({
       <div
         className={`relative z-10 bg-white rounded-2xl shadow-2xl border border-slate-200/90 w-full ${widthClasses} max-h-[92vh] flex flex-col overflow-hidden my-auto transition-all animate-in fade-in zoom-in-95 duration-150 print:shadow-none print:border-none print:p-0 print:m-0 print:max-h-none print:max-w-none print:w-full print:rounded-none print:overflow-visible`}
       >
-        {/* Header with Bhagwa accent bar */}
-        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-[#E5E7EB] bg-gradient-to-r from-[#FFFAF5] via-white to-white border-t-4 border-t-[#F47721] shrink-0 print:hidden">
+        {/* Header with Forest Teal & Jade accent bar */}
+        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-[#E2E8E5] bg-gradient-to-r from-[#F0F7F5] via-white to-white border-t-4 border-t-[#26A58A] shrink-0 print:hidden">
           <div className="min-w-0 pr-4">
-            <h3 className="text-base sm:text-lg font-bold text-[#202124] tracking-tight truncate">
+            <h3 className="text-base sm:text-lg font-bold text-[#1A2E2B] tracking-tight truncate">
               {title}
             </h3>
             {isGu && titleGujarati && (
-              <p className="text-xs text-[#F47721] font-medium font-gujarati mt-0.5 truncate">
+              <p className="text-xs text-[#174B43] font-medium font-gujarati mt-0.5 truncate">
                 {titleGujarati}
               </p>
             )}
@@ -92,7 +92,7 @@ export function Modal({
           <button
             onClick={onClose}
             type="button"
-            className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg p-1.5 transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-[#F47721]/30"
+            className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg p-1.5 transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-[#26A58A]/30"
             aria-label="Close"
           >
             <svg

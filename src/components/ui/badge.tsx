@@ -23,9 +23,9 @@ export function Badge({
 }: BadgeProps) {
   const variantStyles: Record<BadgeVariant, string> = {
     primary:
-      "bg-[#FFF3E8] text-[#F47721] border-[#FDBA74] font-semibold",
+      "bg-[#E6F7F2] text-[#174B43] border-[#85D5C2] font-semibold",
     saffron:
-      "bg-[#FFF3E8] text-[#F47721] border-[#FDBA74] font-semibold",
+      "bg-[#E6F7F2] text-[#174B43] border-[#85D5C2] font-semibold",
     success:
       "bg-emerald-50 text-emerald-800 border-emerald-200 font-medium",
     warning:

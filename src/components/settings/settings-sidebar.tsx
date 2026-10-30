@@ -166,15 +166,15 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
         {/* Top Section */}
         <div className="flex flex-col min-h-0 flex-1">
           {/* Company Profile Header */}
-          <div className="p-4 border-b border-[#F1F3F5] flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#EA580C] text-white font-extrabold text-base flex items-center justify-center shrink-0 shadow-xs uppercase">
+          <div className="p-4 border-b border-[#E2E8E5] flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[#174B43] text-white font-extrabold text-base flex items-center justify-center shrink-0 shadow-xs uppercase">
               {initialLetter}
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-sm font-bold text-slate-900 truncate tracking-tight leading-tight">
                 {displayName}
               </span>
-              <span className="text-xs text-slate-500 font-mono tracking-wide mt-0.5 truncate">
+              <span className="text-xs text-[#5A6B66] font-mono tracking-wide mt-0.5 truncate">
                 {displayPhone}
               </span>
             </div>
@@ -185,11 +185,11 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
             <Link
               href="/"
               onClick={onCloseMobile}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-full bg-[#0B1528] hover:bg-[#1E293B] text-white text-xs font-bold transition-all shadow-xs group"
+              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-full bg-[#174B43] hover:bg-[#133E37] text-white text-xs font-bold transition-all shadow-xs group"
               title={lang === "gu" ? "મુખ્ય ડેશબોર્ડ પર પાછા જાઓ" : "Back to Dashboard"}
             >
               <svg
-                className="w-3.5 h-3.5 text-slate-300 group-hover:-translate-x-0.5 transition-transform"
+                className="w-3.5 h-3.5 text-emerald-200 group-hover:-translate-x-0.5 transition-transform"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -213,12 +213,12 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
                   onClick={onCloseMobile}
                   className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
                     isActive
-                      ? "bg-[#3B404A] text-[#F1F3F5] shadow-xs font-bold"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
+                      ? "bg-[#E6F7F2] text-[#174B43] shadow-xs font-bold border-l-2 border-[#26A58A]"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-[#F2FAF7]"
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <span className={isActive ? "text-[#F1F3F5]" : "text-slate-400 group-hover:text-slate-600"}>
+                    <span className={isActive ? "text-[#26A58A]" : "text-slate-400 group-hover:text-slate-600"}>
                       {item.icon}
                     </span>
                     <span className="truncate">
@@ -280,9 +280,9 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
             </span>
           </div> */}
           <div className="flex items-center gap-1 text-[11px] font-bold text-slate-700 mt-1">
-            <span className="text-[#1E589D]">my</span>
-            <span className="text-[#EA580C]">BillBook</span>
-            <span className="text-[9px] text-slate-400 font-normal">by Paneliyatechnology</span>
+            <span className="text-[#174B43]">MyOwn</span>
+            <span className="text-[#26A58A]">BillBook</span>
+            <span className="text-[9px] text-[#8E9F9A] font-normal">by Paneliya Technology</span>
           </div>
         </div>
       </aside>

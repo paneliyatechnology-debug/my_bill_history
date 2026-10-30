@@ -9,10 +9,10 @@ import { CompanySwitcher } from "../tenants/company-switcher";
 import { WaveBackground } from "../ui/wave-background";
 import { BrandLogo } from "../ui/brand-logo";
 import { SettingsSidebar } from "../settings/settings-sidebar";
-const SIDEBAR_BG = "#17191F";
-const ACTIVE_MENU_BG = "#3B404A";
-const TEXT_COLOR = "#F1F3F5";
-const CTA_ACCENT = "#E87536";
+const SIDEBAR_BG = "#174B43";
+const ACTIVE_MENU_BG = "#26A58A";
+const TEXT_COLOR = "#FFFFFF";
+const CTA_ACCENT = "#26A58A";
 import Image from "next/image";
 
 interface SubNavItem {
@@ -243,10 +243,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   ) {
     return (
       <div
-        className="h-full min-h-[100dvh] w-full bg-[#F8F9FB] flex flex-col items-center justify-center p-6 text-center"
+        className="h-full min-h-[100dvh] w-full bg-[#F6F7F1] flex flex-col items-center justify-center p-6 text-center"
         style={{
           minHeight: "100vh",
-          backgroundColor: "#F8F9FB",
+          backgroundColor: "#F6F7F1",
           fontFamily: "var(--font-inter), sans-serif",
         }}
       >
@@ -304,10 +304,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   if (isLoading) {
     return (
       <div
-        className="h-full min-h-[100dvh] w-full bg-[#F8F9FB] flex flex-col items-center justify-center p-4 text-center"
+        className="h-full min-h-[100dvh] w-full bg-[#F6F7F1] flex flex-col items-center justify-center p-4 text-center"
         style={{
           minHeight: "100vh",
-          backgroundColor: "#F8F9FB",
+          backgroundColor: "#F6F7F1",
           fontFamily: "var(--font-inter), sans-serif",
         }}
       >
@@ -933,7 +933,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     pathname === "/cash-bank";
 
   return (
-    <div className="h-[100dvh] h-screen w-full flex overflow-hidden bg-[#F8F9FB] print:h-auto print:min-h-0 print:overflow-visible print:bg-white print:block">
+    <div className="h-[100dvh] h-screen w-full flex overflow-hidden bg-[#F6F7F1] print:h-auto print:min-h-0 print:overflow-visible print:bg-white print:block">
       {/* 1. DEDICATED MYBILLBOOK SETTINGS SIDEBAR (When in Settings mode) */}
       {isSettingsPage && (
         <div className="hidden lg:flex shrink-0 h-full print:hidden">
@@ -946,13 +946,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <aside
           style={{ backgroundColor: SIDEBAR_BG }}
           className={`${isCashBankPage ? "hidden" : "hidden lg:flex"
-            } flex-col shrink-0 h-full border-r border-slate-700/50 text-white transition-all duration-300 z-30 select-none print:hidden ${isSidebarCollapsed ? "w-20" : "w-64"
+            } flex-col shrink-0 h-full border-r border-[#1F5E54] text-white transition-all duration-300 z-30 select-none print:hidden ${isSidebarCollapsed ? "w-20" : "w-64"
             }`}
         >
           {/* Brand / Company Profile Header */}
           <div
             style={{ backgroundColor: SIDEBAR_BG }}
-            className={`shrink-0 flex items-center border-b border-slate-700/50 transition-all relative ${isSidebarCollapsed
+            className={`shrink-0 flex items-center border-b border-[#1F5E54] transition-all relative ${isSidebarCollapsed
                 ? "justify-center px-2 py-4"
                 : "justify-between px-4 py-3.5"
               }`}
@@ -974,13 +974,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </div>
               {!isSidebarCollapsed && (
                 <div className="flex flex-col truncate min-w-0 text-left">
-                  <span className="text-sm font-bold text-white group-hover:text-amber-300 tracking-tight leading-tight truncate transition-colors">
+                  <span className="text-sm font-bold text-white group-hover:text-[#85D5C2] tracking-tight leading-tight truncate transition-colors">
                     {currentCompany?.tradeName ||
                       currentCompany?.legalName ||
                       (lang === "gu" ? "કંપની" : "Company")}
                   </span>
                   {(user?.phone || currentCompany?.gstin) && (
-                    <span className="text-xs text-[#E8D5B5] font-mono tracking-wide mt-0.5 truncate">
+                    <span className="text-xs text-[#A7C7C0] font-mono tracking-wide mt-0.5 truncate">
                       {user?.phone || currentCompany?.gstin}
                     </span>
                   )}
@@ -992,7 +992,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <button
               onClick={toggleSidebarCollapse}
               className={`transition-colors ${isSidebarCollapsed
-                  ? "absolute -right-3 top-5 w-6 h-6 bg-[#1E293B] border border-slate-700 shadow-xs rounded-full flex items-center justify-center text-slate-300 hover:text-white z-40"
+                  ? "absolute -right-3 top-5 w-6 h-6 bg-[#133E37] border border-[#1F5E54] shadow-xs rounded-full flex items-center justify-center text-slate-300 hover:text-white z-40"
                   : "p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg shrink-0"
                 }`}
               title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -1046,7 +1046,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   return (
                     <React.Fragment key={section.id}>
                       {showGroupHeader && (
-                        <div className="px-3 pt-3 pb-1 text-[10px] font-bold tracking-wider text-[#C4A882] uppercase">
+                        <div className="px-3 pt-3 pb-1 text-[10px] font-bold tracking-wider text-[#90B6AE] uppercase">
                           {section.group}
                         </div>
                       )}
@@ -1054,12 +1054,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         href={section.href}
                         className={`flex items-center transition-all ${isSidebarCollapsed
                             ? `w-11 h-11 mx-auto justify-center rounded-xl ${isActive
-                              ? "text-white font-bold shadow-xs"
-                              : "text-slate-300 hover:text-white hover:bg-white/10"
+                              ? "text-white font-bold shadow-xs bg-[#26A58A]"
+                              : "text-[#C4DBD6] hover:text-white hover:bg-white/10"
                             }`
                             : `gap-3 px-3 py-2 rounded-xl text-xs font-semibold ${isActive
-                              ? "text-white shadow-xs font-bold"
-                              : "text-slate-300 hover:text-white hover:bg-white/10"
+                              ? "text-white shadow-xs font-bold bg-[#26A58A]"
+                              : "text-[#C4DBD6] hover:text-white hover:bg-white/10"
                             }`
                           }`}
                         style={{ backgroundColor: isActive ? ACTIVE_MENU_BG : undefined, color: isActive ? TEXT_COLOR : undefined }}
@@ -1068,7 +1068,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         }
                       >
                         <span
-                          className={isActive ? "text-white" : "text-slate-400"}
+                          className={isActive ? "text-white" : "text-[#A7C7C0]"}
                         >
                           {section.icon}
                         </span>
@@ -1100,8 +1100,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       <Link
                         href={section.items?.[0]?.href || "#"}
                         className={`w-11 h-11 mx-auto flex items-center justify-center rounded-xl text-xs font-medium transition-all ${hasActiveChild
-                            ? "text-white font-bold shadow-xs"
-                            : "text-slate-300 hover:text-white hover:bg-white/10"
+                            ? "text-white font-bold shadow-xs bg-[#26A58A]"
+                            : "text-[#C4DBD6] hover:text-white hover:bg-white/10"
                           }`}
                         style={{ backgroundColor: hasActiveChild ? ACTIVE_MENU_BG : undefined, color: hasActiveChild ? TEXT_COLOR : undefined }}
                         title={
@@ -1110,7 +1110,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       >
                         <span
                           className={
-                            hasActiveChild ? "text-white" : "text-slate-400"
+                            hasActiveChild ? "text-white" : "text-[#A7C7C0]"
                           }
                         >
                           {section.icon}
@@ -1120,14 +1120,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       {/* Floating Flyout Menu on Hover when Collapsed */}
                       <div
                         style={{ backgroundColor: SIDEBAR_BG }}
-                        className="hidden group-hover:block absolute left-full top-0 ml-2 w-56 rounded-xl shadow-2xl border border-slate-700 py-2 z-50 animate-fadeIn"
+                        className="hidden group-hover:block absolute left-full top-0 ml-2 w-56 rounded-xl shadow-2xl border border-[#1F5E54] py-2 z-50 animate-fadeIn"
                       >
-                        <div className="px-3.5 py-1.5 border-b border-slate-800 mb-1">
+                        <div className="px-3.5 py-1.5 border-b border-[#1F5E54] mb-1">
                           <p className="text-xs font-bold text-white">
                             {section.name}
                           </p>
                           {lang === "gu" && (
-                            <p className="text-[10px] text-slate-400 font-gujarati">
+                            <p className="text-[10px] text-[#A7C7C0] font-gujarati">
                               {section.nameGujarati}
                             </p>
                           )}
@@ -1177,7 +1177,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 return (
                   <React.Fragment key={section.id}>
                     {showGroupHeader && (
-                      <div className="px-3 pt-3 pb-1 text-[10px] font-bold tracking-wider text-[#E8D5B5] uppercase">
+                      <div className="px-3 pt-3 pb-1 text-[10px] font-bold tracking-wider text-[#90B6AE] uppercase">
                         {section.group}
                       </div>
                     )}
@@ -1186,8 +1186,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         type="button"
                         onClick={() => toggleSection(section.id)}
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${hasActiveChild
-                            ? "text-white font-bold shadow-xs"
-                            : "text-slate-300 hover:text-white hover:bg-white/10"
+                            ? "text-white font-bold shadow-xs bg-[#26A58A]"
+                            : "text-[#C4DBD6] hover:text-white hover:bg-white/10"
                           }`}
                         style={{ backgroundColor: hasActiveChild ? ACTIVE_MENU_BG : undefined, color: hasActiveChild ? TEXT_COLOR : undefined }}
                         title={section.name}
@@ -1248,8 +1248,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                 key={`${item.name}-${item.href}`}
                                 href={item.href}
                                 className={`block py-1.5 px-2.5 rounded-lg text-xs font-medium transition-colors ${isItemActive
-                                    ? "text-white font-bold shadow-2xs"
-                                    : "text-slate-400 hover:text-white hover:bg-white/10"
+                                    ? "text-white font-bold shadow-2xs bg-[#26A58A]"
+                                    : "text-[#A7C7C0] hover:text-white hover:bg-white/10"
                                   }`}
                                 style={{ backgroundColor: isItemActive ? ACTIVE_MENU_BG : undefined, color: isItemActive ? TEXT_COLOR : undefined }}
                               >
@@ -1442,7 +1442,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {pathname !== "/sales/invoices/new" && (
                 <Link
                   href="/sales/invoices/new"
-                  className="flex items-center gap-1.5 sm:gap-2 py-2 px-3 sm:px-4.5 text-white rounded-xl text-xs sm:text-[14px] font-bold shadow-xs transition-all shrink-0 whitespace-nowrap active:scale-95 bg-[#E87536] hover:bg-[#D66527]"
+                  className="flex items-center gap-1.5 sm:gap-2 py-2 px-3 sm:px-4.5 text-white rounded-xl text-xs sm:text-[14px] font-bold shadow-xs transition-all shrink-0 whitespace-nowrap active:scale-95 bg-[#26A58A] hover:bg-[#208E76]"
                   title={
                     lang === "gu" ? "નવું વેચાણ બિલ (F2)" : "Create New Bill (F2)"
                   }
@@ -1567,16 +1567,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             onClick={() => setIsMobileMenuOpen(false)}
             aria-hidden="true"
           />
-          <div className="relative w-72 max-w-[85vw] bg-[#17191F] text-[#F1F3F5] h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-left duration-200">
+          <div className="relative w-72 max-w-[85vw] bg-[#174B43] text-white h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-left duration-200">
             {isSettingsPage ? (
-              <div className="h-full flex flex-col bg-[#17191F] text-[#F1F3F5]">
-                <div className="h-14 shrink-0 flex items-center justify-between px-4 border-b border-[#252830] bg-[#13151A]">
-                  <span className="text-xs font-bold text-[#F1F3F5]">
+              <div className="h-full flex flex-col bg-[#174B43] text-white">
+                <div className="h-14 shrink-0 flex items-center justify-between px-4 border-b border-[#1F5E54] bg-[#133E37]">
+                  <span className="text-xs font-bold text-white">
                     {lang === "gu" ? "સેટિંગ્સ મેનૂ" : "Settings Menu"}
                   </span>
                   <button
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="p-1.5 text-[#98A2B3] hover:text-[#F1F3F5] hover:bg-[#3B404A] rounded-lg text-sm transition-colors"
+                    className="p-1.5 text-[#A7C7C0] hover:text-white hover:bg-white/10 rounded-lg text-sm transition-colors"
                     aria-label="Close settings drawer"
                   >
                     ✕
@@ -1589,11 +1589,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             ) : (
               <>
                 {/* Mobile Header with visible close button */}
-                <div className="h-16 shrink-0 flex items-center justify-between px-4 border-b border-[#252830] bg-[#13151A]">
+                <div className="h-16 shrink-0 flex items-center justify-between px-4 border-b border-[#1F5E54] bg-[#133E37]">
                   <BrandLogo size="sm" showSubtitle subtitle={currentCompany?.tradeName || "Billing & Retail"} />
                   <button
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="p-2 text-[#98A2B3] hover:text-[#F1F3F5] hover:bg-[#3B404A] rounded-md transition-colors"
+                    className="p-2 text-[#A7C7C0] hover:text-white hover:bg-white/10 rounded-md transition-colors"
                     aria-label="Close navigation drawer"
                   >
                     <svg
@@ -1627,8 +1627,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                               (sec.href !== "/" && pathname.startsWith(sec.href)) ||
                               (sec.id === "payroll" && (pathname === "/payroll" || pathname.startsWith("/app/sam"))) ||
                               (sec.id === "users" && (pathname === "/settings/user-management" || pathname.startsWith("/app/settings/user-management")))
-                              ? "bg-[#3B404A] text-[#F1F3F5] font-bold border-l-2 border-[#E87536]"
-                              : "text-[#D0D5DD] hover:text-[#FFFFFF] hover:bg-[#252932]"
+                              ? "bg-[#26A58A] text-white font-bold"
+                              : "text-[#C4DBD6] hover:text-white hover:bg-white/10"
                             }`}
                         >
                           {sec.icon}
@@ -1636,7 +1636,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         </Link>
                       ) : (
                         <div>
-                          <div className="px-3 pt-3 pb-1 text-[11px] font-bold text-[#848B98] uppercase tracking-wider">
+                          <div className="px-3 pt-3 pb-1 text-[11px] font-bold text-[#90B6AE] uppercase tracking-wider">
                             {lang === "gu" ? sec.nameGujarati : sec.name}
                           </div>
                           <div className="pl-4 space-y-1">
@@ -1655,8 +1655,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                     (item.href === "/sales/returns" &&
                                       pathname.startsWith("/sales/returns") &&
                                       !pathname.includes("credit-note"))
-                                    ? "bg-[#3B404A] text-[#F1F3F5] font-bold border-l-2 border-[#E87536]"
-                                    : "text-[#D0D5DD] hover:text-[#FFFFFF] hover:bg-[#252932]"
+                                    ? "bg-[#26A58A] text-white font-bold"
+                                    : "text-[#C4DBD6] hover:text-white hover:bg-white/10"
                                   }`}
                               >
                                 <span>
@@ -1672,16 +1672,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </nav>
 
                 {/* Mobile Drawer Footer: Branch switch & user profile & logout */}
-                <div className="p-3 border-t border-[#252830] bg-[#13151A] space-y-2 shrink-0">
+                <div className="p-3 border-t border-[#1F5E54] bg-[#133E37] space-y-2 shrink-0">
                   {branches.length > 1 && (
                     <div>
-                      <label className="block text-[10px] font-bold text-[#848B98] uppercase tracking-wider mb-1">
+                      <label className="block text-[10px] font-bold text-[#90B6AE] uppercase tracking-wider mb-1">
                         {lang === "gu" ? "શાખા" : "Current Branch"}
                       </label>
                       <select
                         value={currentBranch?.id || ""}
                         onChange={(e) => switchBranch(e.target.value)}
-                        className="w-full text-xs font-medium bg-[#252830] text-[#F1F3F5] border border-[#3B404A] rounded-md px-2 py-1.5 focus:outline-none"
+                        className="w-full text-xs font-medium bg-[#174B43] text-white border border-[#1F5E54] rounded-md px-2 py-1.5 focus:outline-none"
                         aria-label="Select branch"
                       >
                         {branches.map((b) => (
@@ -1695,14 +1695,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
                   <div className="flex items-center justify-between pt-1">
                     <div className="flex items-center gap-2 truncate">
-                      <div className="w-8 h-8 rounded-full bg-[#E87536] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                      <div className="w-8 h-8 rounded-full bg-[#26A58A] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
                         {user?.fullName?.charAt(0) || "U"}
                       </div>
                       <div className="flex flex-col truncate">
-                        <span className="text-xs font-bold text-[#F1F3F5] truncate">
+                        <span className="text-xs font-bold text-white truncate">
                           {user?.fullName || "User"}
                         </span>
-                        <span className="text-[10px] text-[#98A2B3] truncate">
+                        <span className="text-[10px] text-[#A7C7C0] truncate">
                           {currentFY?.name || "FY 2026-27"}
                         </span>
                       </div>
@@ -1710,7 +1710,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
                     <button
                       onClick={logout}
-                      className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-[#F1F3F5] hover:text-[#E87536] hover:bg-[#252932] rounded-md transition-colors"
+                      className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-[#C4DBD6] hover:text-[#26A58A] hover:bg-white/10 rounded-md transition-colors"
                       title={lang === "gu" ? "લોગઆઉટ" : "Logout"}
                     >
                       <svg

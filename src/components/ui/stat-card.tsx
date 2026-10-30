@@ -27,20 +27,20 @@ export function StatCard({
   const isGu = auth?.lang === "gu";
 
   const borderVariants = {
-    default: "border-[#E5E7EB] hover:border-[#D1D5DB] bg-white",
-    primary: "border-[#FED7AA] bg-[#FFFAF5] hover:border-[#F47721]",
-    saffron: "border-[#FED7AA] bg-[#FFFAF5] hover:border-[#F47721]",
-    brand: "border-[#FED7AA] bg-[#FFFAF5] hover:border-[#F47721]",
+    default: "border-[#E2E8E5] hover:border-[#CBD5E1] bg-white",
+    primary: "border-[#85D5C2] bg-[#F2FAF7] hover:border-[#26A58A]",
+    saffron: "border-[#85D5C2] bg-[#F2FAF7] hover:border-[#26A58A]",
+    brand: "border-[#85D5C2] bg-[#F2FAF7] hover:border-[#26A58A]",
     success: "border-emerald-200 bg-emerald-50/20 hover:border-emerald-300",
     warning: "border-amber-200 bg-amber-50/20 hover:border-amber-300",
     danger: "border-rose-200 bg-rose-50/20 hover:border-rose-300",
   };
 
   const iconBgVariants = {
-    default: "bg-[#F3F4F6] text-[#667085]",
-    primary: "bg-[#FFF3E8] text-[#F47721]",
-    saffron: "bg-[#FFF3E8] text-[#F47721]",
-    brand: "bg-[#FFF3E8] text-[#F47721]",
+    default: "bg-[#EEF1E8] text-[#5A6B66]",
+    primary: "bg-[#E6F7F2] text-[#26A58A]",
+    saffron: "bg-[#E6F7F2] text-[#26A58A]",
+    brand: "bg-[#E6F7F2] text-[#26A58A]",
     success: "bg-emerald-100/60 text-emerald-700",
     warning: "bg-amber-100/60 text-amber-700",
     danger: "bg-rose-100/60 text-rose-700",

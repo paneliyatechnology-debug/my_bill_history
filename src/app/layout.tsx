@@ -78,7 +78,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" data-scroll-behavior="smooth" className={`${inter.variable} ${playfair.variable} ${manrope.variable} ${dmMono.variable} ${notoSansGujarati.variable} scroll-smooth`}>
-      <body className="antialiased min-h-screen bg-[#F8F9FB] text-[#202124]">
+      <body className="antialiased min-h-screen bg-[#F6F7F1] text-[#1A2E2B]">
         <PwaRegister />
         <AuthProvider>
           <AppShell>{children}</AppShell>

@@ -26,12 +26,12 @@ export function WaveBackground({
         aria-hidden="true"
         data-testid="inner-page-background"
       >
-        {/* Subtle, soft warm ambient gradient wash near the top of content canvas */}
-        <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-[#FFF5EC]/60 via-[#F7F8FA]/70 to-transparent pointer-events-none" />
+        {/* Subtle, soft ambient gradient wash near the top of content canvas */}
+        <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-[#E6F7F2]/40 via-[#F6F7F1]/70 to-transparent pointer-events-none" />
 
         {/* Faint soft glow orbs strictly behind header area (Zero harsh lines) */}
-        <div className="absolute -top-24 right-1/4 w-[480px] h-[340px] rounded-full bg-gradient-to-br from-[#F47721]/[0.025] via-[#FB923C]/[0.015] to-transparent blur-3xl pointer-events-none" />
-        <div className="absolute -top-20 left-8 w-[380px] h-[280px] rounded-full bg-gradient-to-tr from-[#F47721]/[0.02] to-transparent blur-2xl pointer-events-none" />
+        <div className="absolute -top-24 right-1/4 w-[480px] h-[340px] rounded-full bg-gradient-to-br from-[#26A58A]/[0.035] via-[#174B43]/[0.02] to-transparent blur-3xl pointer-events-none" />
+        <div className="absolute -top-20 left-8 w-[380px] h-[280px] rounded-full bg-gradient-to-tr from-[#26A58A]/[0.025] to-transparent blur-2xl pointer-events-none" />
       </div>
     );
   }
@@ -49,23 +49,23 @@ export function WaveBackground({
       <div
         className={`absolute -top-32 right-0 ${
           isDashboard ? "w-[500px] h-[500px] opacity-70" : "w-[550px] h-[550px]"
-        } rounded-full bg-gradient-to-br from-[#F47721]/8 via-[#F59E0B]/5 to-transparent blur-3xl`}
+        } rounded-full bg-gradient-to-br from-[#26A58A]/8 via-[#174B43]/5 to-transparent blur-3xl`}
       />
       <div
         className={`absolute top-1/4 -left-32 ${
-          isDashboard ? "w-[500px] h-[500px] opacity-50" : "w-[650px] h-[650px]"
-        } rounded-full bg-gradient-to-tr from-[#6366F1]/5 via-[#94A3B8]/6 to-transparent blur-3xl`}
+          isDashboard ? "w-[500px] h-[500px] opacity-40" : "w-[650px] h-[650px]"
+        } rounded-full bg-gradient-to-tr from-[#174B43]/6 via-[#94A3B8]/6 to-transparent blur-3xl`}
       />
       <div
         className={`absolute -bottom-32 right-1/4 ${
           isDashboard ? "w-[500px] h-[500px] opacity-60" : "w-[600px] h-[600px]"
-        } rounded-full bg-gradient-to-tl from-[#F47721]/6 via-[#FBBF24]/5 to-transparent blur-3xl`}
+        } rounded-full bg-gradient-to-tl from-[#26A58A]/6 via-[#85D5C2]/5 to-transparent blur-3xl`}
       />
 
       {/* Precision Minimalist Abstract Wave Lines SVG */}
       <svg
         className={`w-full h-full object-cover ${
-          isDashboard ? "opacity-45" : "opacity-85"
+          isDashboard ? "opacity-35" : "opacity-75"
         }`}
         viewBox="0 0 1440 900"
         fill="none"
@@ -73,12 +73,12 @@ export function WaveBackground({
         preserveAspectRatio="none"
       >
         <defs>
-          {/* Saffron Primary Flow Gradient */}
+          {/* Jade Primary Flow Gradient */}
           <linearGradient id="wave-saffron-flow" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#F47721" stopOpacity="0.08" />
-            <stop offset="35%" stopColor="#F47721" stopOpacity="0.22" />
-            <stop offset="65%" stopColor="#FB923C" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#F59E0B" stopOpacity="0.10" />
+            <stop offset="0%" stopColor="#174B43" stopOpacity="0.08" />
+            <stop offset="35%" stopColor="#26A58A" stopOpacity="0.22" />
+            <stop offset="65%" stopColor="#4EBFA5" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#174B43" stopOpacity="0.10" />
           </linearGradient>
 
           {/* Slate & Architectural Contour Gradient */}
@@ -89,18 +89,18 @@ export function WaveBackground({
             <stop offset="100%" stopColor="#94A3B8" stopOpacity="0.08" />
           </linearGradient>
 
-          {/* Warm Amber/Gold Accent Gradient */}
+          {/* Forest Accent Gradient */}
           <linearGradient id="wave-amber-flow" x1="100%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#D97706" stopOpacity="0.06" />
-            <stop offset="50%" stopColor="#F59E0B" stopOpacity="0.20" />
-            <stop offset="100%" stopColor="#F47721" stopOpacity="0.10" />
+            <stop offset="0%" stopColor="#133E37" stopOpacity="0.06" />
+            <stop offset="50%" stopColor="#26A58A" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="#174B43" stopOpacity="0.10" />
           </linearGradient>
 
-          {/* Indigo Soft Precision Gradient */}
+          {/* Jade Soft Precision Gradient */}
           <linearGradient id="wave-indigo-flow" x1="0%" y1="50%" x2="100%" y2="50%">
-            <stop offset="0%" stopColor="#6366F1" stopOpacity="0.06" />
-            <stop offset="50%" stopColor="#818CF8" stopOpacity="0.16" />
-            <stop offset="100%" stopColor="#F47721" stopOpacity="0.10" />
+            <stop offset="0%" stopColor="#174B43" stopOpacity="0.06" />
+            <stop offset="50%" stopColor="#26A58A" stopOpacity="0.16" />
+            <stop offset="100%" stopColor="#85D5C2" stopOpacity="0.10" />
           </linearGradient>
         </defs>
 

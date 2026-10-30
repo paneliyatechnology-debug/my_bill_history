@@ -314,7 +314,7 @@ export function DataTable<T>({
         >
           <input
             type="checkbox"
-            className="w-4 h-4 rounded border-slate-300 text-[#F47721] focus:ring-[#F47721] cursor-pointer accent-[#F47721]"
+            className="w-4 h-4 rounded border-slate-300 text-[#26A58A] focus:ring-[#26A58A] cursor-pointer accent-[#26A58A]"
             checked={isAllPageSelected}
             ref={(el) => {
               if (el) el.indeterminate = isSomePageSelected;
@@ -336,7 +336,7 @@ export function DataTable<T>({
           >
             <input
               type="checkbox"
-              className="w-4 h-4 rounded border-slate-300 text-[#F47721] focus:ring-[#F47721] cursor-pointer accent-[#F47721]"
+              className="w-4 h-4 rounded border-slate-300 text-[#26A58A] focus:ring-[#26A58A] cursor-pointer accent-[#26A58A]"
               checked={isChecked}
               onChange={() => handleToggleRow(rowKey)}
               aria-label={`Select row ${rowKey}`}
@@ -464,10 +464,10 @@ export function DataTable<T>({
   };
 
   const isSaffron = themeColor === "saffron";
-  const focusRingClass = isSaffron ? "focus:ring-[#F47721]" : "focus:ring-purple-500";
-  const activePageClass = isSaffron ? "bg-[#F47721] text-white shadow-sm" : "bg-[#7C3AED] text-white shadow-sm";
-  const sortedHeaderClass = isSaffron ? "bg-[#FFF3E8] text-[#F47721]" : "bg-purple-50/70 text-purple-700";
-  const spinnerClass = isSaffron ? "border-[#F47721]" : "border-purple-600";
+  const focusRingClass = isSaffron ? "focus:ring-[#26A58A]" : "focus:ring-[#174B43]";
+  const activePageClass = isSaffron ? "bg-[#26A58A] text-white shadow-xs font-bold" : "bg-[#174B43] text-white shadow-xs font-bold";
+  const sortedHeaderClass = isSaffron ? "bg-[#E6F7F2] text-[#174B43]" : "bg-[#EBF2F0] text-[#174B43]";
+  const spinnerClass = isSaffron ? "border-[#26A58A]" : "border-[#174B43]";
 
   return (
     <div className="w-full space-y-4">
@@ -799,7 +799,7 @@ export function DataTable<T>({
       {selectable && effectiveSelectedIds.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#1E293B]/95 backdrop-blur-md text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700/80 flex flex-wrap items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-5 duration-200 min-w-[320px] max-w-[95vw]">
           <div className="flex items-center gap-3">
-            <span className="bg-[#F47721] text-white text-xs px-2.5 py-1 rounded-full font-bold shadow-sm">
+            <span className="bg-[#26A58A] text-white text-xs px-2.5 py-1 rounded-full font-bold shadow-xs">
               {effectiveSelectedIds.size}
             </span>
             <span className="text-xs sm:text-sm font-semibold tracking-wide">

@@ -136,15 +136,15 @@ export function CompanySwitcher() {
         aria-label={`Current business: ${displayName}`}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className="group flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-orange-200/90 bg-gradient-to-r from-orange-50/70 to-amber-50/40 hover:from-orange-50 hover:to-amber-50 hover:border-[#E87536]/50 text-left transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-[#E87536]/30 max-w-[150px] min-[390px]:max-w-[190px] sm:max-w-[280px] md:max-w-[340px] shadow-xs select-none shrink min-w-0"
+        className="group flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-[#D0DED9] bg-white hover:bg-[#F2FAF7] hover:border-[#26A58A]/50 text-left transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-[#26A58A]/30 max-w-[150px] min-[390px]:max-w-[190px] sm:max-w-[280px] md:max-w-[340px] shadow-xs select-none shrink min-w-0"
       >
-        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#E87536] text-white flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 shadow-xs uppercase">
+        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#174B43] text-white flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 shadow-xs uppercase">
           {getInitials(displayName)}
         </div>
 
         <div className="min-w-0 flex-1 overflow-hidden">
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="block text-xs min-[400px]:text-sm font-bold text-slate-900 truncate group-hover:text-[#E87536] transition-colors leading-tight">
+            <span className="block text-xs min-[400px]:text-sm font-bold text-slate-900 truncate group-hover:text-[#174B43] transition-colors leading-tight">
               {displayName}
             </span>
             {currentCompany?.gstin && (
@@ -160,10 +160,10 @@ export function CompanySwitcher() {
           )}
         </div>
 
-        <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-md flex items-center justify-center text-slate-400 group-hover:text-[#E87536] shrink-0 transition-colors">
+        <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-md flex items-center justify-center text-slate-400 group-hover:text-[#174B43] shrink-0 transition-colors">
           <svg
             className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200 ${
-              isOpen ? "rotate-180 text-[#E87536]" : ""
+              isOpen ? "rotate-180 text-[#174B43]" : ""
             }`}
             fill="none"
             viewBox="0 0 24 24"
@@ -192,9 +192,9 @@ export function CompanySwitcher() {
           aria-label="Switch Business Dropdown"
         >
           {/* Header */}
-          <div className="px-4 py-3 bg-gradient-to-r from-orange-50/80 via-amber-50/40 to-white border-b border-orange-100/80 flex items-center justify-between">
+          <div className="px-4 py-3 bg-gradient-to-r from-[#EBF4F1] via-[#F2FAF7] to-white border-b border-[#D5E3DF] flex items-center justify-between">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-7 h-7 rounded-lg bg-orange-500/10 text-[#F47721] flex items-center justify-center shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-[#174B43]/10 text-[#174B43] flex items-center justify-center shrink-0">
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -342,7 +342,7 @@ export function CompanySwitcher() {
                     onClick={() => handleSelectCompany(c)}
                     className={`w-full group flex items-start gap-3 p-2.5 rounded-xl text-left transition-all duration-150 border ${
                       isSelected
-                        ? "bg-gradient-to-r from-orange-50/90 to-amber-50/60 border-orange-200/90 shadow-2xs"
+                        ? "bg-gradient-to-r from-[#E6F7F2] to-[#F2FAF7] border-[#85D5C2] shadow-2xs"
                         : "bg-white hover:bg-slate-50/90 border-transparent hover:border-slate-200/80"
                     } disabled:opacity-60 cursor-pointer`}
                   >
@@ -350,8 +350,8 @@ export function CompanySwitcher() {
                     <div
                       className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs uppercase ${
                         isSelected
-                          ? "bg-gradient-to-br from-[#F47721] to-[#D95F12] text-white"
-                          : "bg-slate-100 text-slate-700 group-hover:bg-[#F47721] group-hover:text-white transition-colors"
+                          ? "bg-gradient-to-br from-[#174B43] to-[#26A58A] text-white"
+                          : "bg-slate-100 text-slate-700 group-hover:bg-[#174B43] group-hover:text-white transition-colors"
                       }`}
                     >
                       {initials}
@@ -360,7 +360,7 @@ export function CompanySwitcher() {
                     {/* Company Details */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-xs font-bold text-slate-900 group-hover:text-[#F47721] transition-colors leading-tight">
+                        <span className="text-xs font-bold text-slate-900 group-hover:text-[#174B43] transition-colors leading-tight">
                           {companyName}
                         </span>
                         {isSelected && (
@@ -435,7 +435,7 @@ export function CompanySwitcher() {
                   setIsOpen(false);
                   setIsModalOpen(true);
                 }}
-                className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-bold text-white bg-gradient-to-r from-[#F47721] to-[#EA580C] hover:from-[#EA580C] hover:to-[#C2410C] rounded-xl transition-all shadow-xs hover:shadow-sm"
+                className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-bold text-white bg-[#26A58A] hover:bg-[#208E76] rounded-xl transition-all shadow-xs hover:shadow-sm"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />

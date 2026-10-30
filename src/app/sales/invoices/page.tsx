@@ -643,7 +643,7 @@ export default function SalesInvoicesDashboardPage() {
           {/* Primary CTA: Create Sales Invoice */}
           <Link
             href="/sales/invoices/new"
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#5B52F9] hover:bg-[#4E45E4] active:bg-[#4338CA] text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#26A58A] hover:bg-[#208E76] active:bg-[#1B7864] text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer"
           >
             <span>+</span>
             <span>Create Sales Invoice</span>
@@ -658,18 +658,18 @@ export default function SalesInvoicesDashboardPage() {
           onClick={() => setStatusFilter("ALL")}
           className={`p-3 sm:p-4 rounded-2xl border transition-all cursor-pointer shadow-2xs flex flex-col justify-between min-w-0 ${
             statusFilter === "ALL"
-              ? "bg-blue-50/30 border-blue-500 ring-2 ring-blue-500/10"
-              : "bg-white border-slate-200 hover:border-slate-300"
+              ? "bg-[#E6F7F2]/50 border-[#26A58A] ring-2 ring-[#26A58A]/15"
+              : "bg-white border-[#E2E8E5] hover:border-[#85D5C2]"
           }`}
         >
           <div className="flex items-center justify-between pb-1 min-w-0">
-            <span className="text-xs font-bold text-slate-500 truncate">Total Sales</span>
-            <div className="text-[10px] sm:text-[11px] font-semibold text-blue-600 truncate ml-1">
+            <span className="text-xs font-bold text-[#5A6B66] truncate">Total Sales</span>
+            <div className="text-[10px] sm:text-[11px] font-semibold text-[#174B43] truncate ml-1">
               <span>{DATE_PRESET_LABELS[dateRangePreset]}</span>
             </div>
           </div>
           <div className="mt-2 min-w-0">
-            <p className="text-base sm:text-xl lg:text-2xl font-black font-mono text-slate-900 tracking-tight truncate">
+            <p className="text-base sm:text-xl lg:text-2xl font-black font-mono text-[#1A2E2B] tracking-tight truncate">
               {formatInr(metrics.totalSales)}
             </p>
           </div>

@@ -3,25 +3,38 @@
 @tailwind utilities;
 
 :root {
-  /* Bhagwa Saffron Brand Palette */
-  --primary: #F47721;
-  --primary-hover: #D95F12;
-  --primary-pressed: #B94B0A;
-  --saffron-light: #FFF3E8;
-  --saffron-subtle: #FFFAF5;
+  /* Forest Teal Signature Brand Palette */
+  --primary: #26A58A;
+  --primary-hover: #208E76;
+  --primary-pressed: #1B7864;
+  --forest-teal: #174B43;
+  --forest-teal-hover: #133E37;
+  --forest-teal-dark: #0F322C;
+  --forest-teal-light: #1F5E54;
+  --forest-teal-subtle: #EBF2F0;
+
+  --jade-teal: #26A58A;
+  --jade-teal-hover: #208E76;
+  --jade-teal-pressed: #1B7864;
+  --jade-teal-light: #E6F7F2;
+  --jade-teal-subtle: #F2FAF7;
+
+  --soft-ivory: #F6F7F1;
+  --soft-ivory-dark: #ECEEE5;
+  --soft-ivory-light: #FAFBF7;
 
   /* Surfaces & Canvas */
-  --bg-main: #F7F8FA;
+  --bg-main: #F6F7F1;
   --bg-card: #FFFFFF;
-  --bg-sidebar: #FFFFFF;
+  --bg-sidebar: #174B43;
 
   /* Typography Colors */
-  --text-main: #202124;
-  --text-secondary: #667085;
-  --text-muted: #98A2B3;
+  --text-main: #1A2E2B;
+  --text-secondary: #5A6B66;
+  --text-muted: #8E9F9A;
 
   /* Borders & Dividers */
-  --border-color: #E5E7EB;
+  --border-color: #E2E8E5;
 
   /* Semantic Feedback */
   --success: #16834A;
@@ -172,7 +185,7 @@ body {
 
 /* Focus indicator for keyboard navigation (F2, F4, Tab) */
 *:focus-visible {
-  outline: 2px solid #F47721;
+  outline: 2px solid #26A58A;
   outline-offset: 1px;
 }
 
@@ -251,8 +264,8 @@ body {
 @media (hover: hover) and (pointer: fine) {
   .saas-card-interactive:hover {
     transform: translateY(-4px);
-    box-shadow: 0 14px 28px -6px rgba(16, 24, 40, 0.08), 0 4px 12px -2px rgba(244, 119, 33, 0.06);
-    border-color: #FED7AA;
+    box-shadow: 0 14px 28px -6px rgba(23, 75, 67, 0.08), 0 4px 12px -2px rgba(38, 165, 138, 0.08);
+    border-color: #85D5C2;
   }
 }
 
@@ -263,17 +276,17 @@ body {
 /* 3. Interactive Buttons (Lift, Glow & Press Feedback) */
 .btn-primary-glow {
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.18s ease;
-  box-shadow: 0 4px 14px 0 rgba(244, 119, 33, 0.28);
+  box-shadow: 0 4px 14px 0 rgba(38, 165, 138, 0.28);
 }
 
 .btn-primary-glow:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 22px 0 rgba(244, 119, 33, 0.38);
+  box-shadow: 0 8px 22px 0 rgba(38, 165, 138, 0.38);
 }
 
 .btn-primary-glow:active {
   transform: translateY(0) scale(0.98);
-  box-shadow: 0 2px 8px 0 rgba(244, 119, 33, 0.22);
+  box-shadow: 0 2px 8px 0 rgba(38, 165, 138, 0.22);
 }
 
 .btn-secondary-interactive {
@@ -282,9 +295,9 @@ body {
 
 .btn-secondary-interactive:hover {
   transform: translateY(-1.5px);
-  background-color: #FFF8F3;
-  border-color: #F47721;
-  box-shadow: 0 4px 12px 0 rgba(16, 24, 40, 0.05);
+  background-color: #F2FAF7;
+  border-color: #26A58A;
+  box-shadow: 0 4px 12px 0 rgba(23, 75, 67, 0.05);
 }
 
 .btn-secondary-interactive:active {
@@ -663,22 +676,22 @@ body {
 }
 
 /* =========================================================================
-   BACKEND DASHBOARD & APP PORTAL THEME
-   Sidebar: #17191F | Active Menu: #3B404A | Text: #F1F3F5 | CTA Accent: #E87536
+   FOREST TEAL SIGNATURE APPLICATION THEME
+   Sidebar: #174B43 | Active Menu: #26A58A | Text: #FFFFFF | CTA Accent: #26A58A
    ========================================================================= */
 :root {
-  --sidebar-bg: #17191F;
-  --sidebar-active: #3B404A;
-  --sidebar-text: #F1F3F5;
-  --cta-accent: #E87536;
-  --primary: #E87536;
-  --primary-hover: #D66527;
-  --primary-pressed: #C0551E;
-  --saffron: #E87536;
-  --saffron-light: #FFF0E8;
+  --sidebar-bg: #174B43;
+  --sidebar-active: #26A58A;
+  --sidebar-text: #FFFFFF;
+  --cta-accent: #26A58A;
+  --primary: #26A58A;
+  --primary-hover: #208E76;
+  --primary-pressed: #1B7864;
+  --saffron: #26A58A;
+  --saffron-light: #E6F7F2;
 }
 
-/* Primary Action Buttons across all backend pages (Items, Sales, Invoices, Purchases, Settings, etc.) */
+/* Primary Action Buttons across all application pages (Items, Sales, Invoices, Purchases, Settings, etc.) */
 button.btn-primary,
 .btn-primary,
 .bg-\[\#5c56df\],
@@ -697,7 +710,7 @@ button.btn-primary,
 .bg-saffron,
 .bg-saffron-500,
 .bg-indigo-600 {
-  background-color: #E87536 !important;
+  background-color: #26A58A !important;
   color: #FFFFFF !important;
 }
 
@@ -715,7 +728,7 @@ button.btn-primary,
 .hover\:bg-primary-700:hover,
 .hover\:bg-saffron-hover:hover,
 .hover\:bg-indigo-700:hover {
-  background-color: #D66527 !important;
+  background-color: #208E76 !important;
 }
 
 /* Primary Brand Text Highlights */
@@ -732,14 +745,14 @@ button.btn-primary,
 .text-primary-600,
 .text-indigo-600,
 .text-saffron {
-  color: #E87536 !important;
+  color: #26A58A !important;
 }
 
 /* Hover text */
 .hover\:text-indigo-600:hover,
 .hover\:text-primary:hover,
 .hover\:text-\[\#5c56df\]:hover {
-  color: #D66527 !important;
+  color: #208E76 !important;
 }
 
 /* Primary Borders */
@@ -753,7 +766,7 @@ button.btn-primary,
 .border-primary-500,
 .border-indigo-600,
 .border-saffron {
-  border-color: #E87536 !important;
+  border-color: #26A58A !important;
 }
 
 /* Focus Rings and Focus Borders */
@@ -761,12 +774,12 @@ button.btn-primary,
 .focus\:ring-primary:focus,
 .focus\:ring-indigo-500:focus,
 .focus\:ring-saffron:focus {
-  --tw-ring-color: #E87536 !important;
+  --tw-ring-color: #26A58A !important;
 }
 
 .focus\:border-\[\#5C56DF\]:focus,
 .focus\:border-\[\#5c56df\]:focus {
-  border-color: #E87536 !important;
+  border-color: #26A58A !important;
 }
 
 /* Checkboxes and Radios */
@@ -775,7 +788,7 @@ button.btn-primary,
 .accent-\[\#5C56DF\],
 input[type="checkbox"]:focus,
 input[type="radio"]:focus {
-  accent-color: #E87536 !important;
+  accent-color: #26A58A !important;
 }
 
 

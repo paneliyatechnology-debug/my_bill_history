@@ -37,8 +37,8 @@ export function ReportEmptyState({
 
   return (
     <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-xs p-6 sm:p-10 text-center my-4 max-w-lg mx-auto w-full transition-all">
-      {/* Bhagwa-themed Icon Circle */}
-      <div className="w-14 h-14 rounded-full bg-[#FFF3E8] border border-[#FED7AA] flex items-center justify-center text-[#F47721] mx-auto text-2xl shadow-inner mb-4">
+      {/* Forest Teal & Jade Icon Circle */}
+      <div className="w-14 h-14 rounded-full bg-[#E6F7F2] border border-[#85D5C2] flex items-center justify-center text-[#26A58A] mx-auto text-2xl shadow-inner mb-4">
         {icon || (
           <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
@@ -52,12 +52,12 @@ export function ReportEmptyState({
       </div>
 
       {/* Heading */}
-      <h3 className="text-base sm:text-lg font-bold text-[#202124] tracking-tight">
+      <h3 className="text-base sm:text-lg font-bold text-[#1A2E2B] tracking-tight">
         {isGu ? titleGu : title}
       </h3>
 
       {/* Description */}
-      <p className="text-xs sm:text-sm text-[#667085] mt-1.5 max-w-sm mx-auto leading-relaxed">
+      <p className="text-xs sm:text-sm text-[#5A6B66] mt-1.5 max-w-sm mx-auto leading-relaxed">
         {isGu ? descriptionGu : description}
       </p>
 
@@ -68,7 +68,7 @@ export function ReportEmptyState({
             (primaryAction.href ? (
               <Link
                 href={primaryAction.href}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white text-xs font-bold rounded-lg shadow-saffron transition-all transform active:scale-98"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#26A58A] hover:bg-[#208E76] text-white text-xs font-bold rounded-lg shadow-jade transition-all transform active:scale-98"
               >
                 <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 4v16m8-8H4" />
@@ -79,7 +79,7 @@ export function ReportEmptyState({
               <button
                 type="button"
                 onClick={primaryAction.onClick}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white text-xs font-bold rounded-lg shadow-saffron transition-all transform active:scale-98"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#26A58A] hover:bg-[#208E76] text-white text-xs font-bold rounded-lg shadow-jade transition-all transform active:scale-98"
               >
                 <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 4v16m8-8H4" />

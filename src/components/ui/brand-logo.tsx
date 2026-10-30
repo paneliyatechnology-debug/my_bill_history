@@ -11,6 +11,7 @@ interface BrandLogoProps {
   className?: string;
   showSubtitle?: boolean;
   subtitle?: string;
+  onDark?: boolean;
 }
 
 export function BrandLogo({
@@ -20,6 +21,7 @@ export function BrandLogo({
   className = "",
   showSubtitle = false,
   subtitle = "Paneliya Technology",
+  onDark = false,
 }: BrandLogoProps) {
   const sizeMap = {
     sm: { icon: 24, text: "text-base", sub: "text-[8px]", height: 24 },
@@ -31,10 +33,10 @@ export function BrandLogo({
   const currentSize = sizeMap[size];
 
   const content = (
-    <div className={`flex items-center gap-2 select-none group ${className}`}>
-      {/* Logo Icon */}
+    <div className={`flex items-center gap-2.5 select-none group ${className}`}>
+      {/* Logo Icon with Jade Teal Leaf styling */}
       <div
-        className="relative shrink-0 flex items-center justify-center transition-transform group-hover:scale-105"
+        className="relative shrink-0 flex items-center justify-center rounded-xl transition-transform group-hover:scale-105"
         style={{ width: currentSize.icon, height: currentSize.icon }}
       >
         <Image
@@ -42,7 +44,7 @@ export function BrandLogo({
           alt="myownbillbook"
           width={currentSize.icon}
           height={currentSize.icon}
-          className="object-contain"
+          className="object-contain drop-shadow-xs"
           priority
         />
       </div>
@@ -53,12 +55,14 @@ export function BrandLogo({
           <span
             className={`font-black tracking-tight leading-none whitespace-nowrap ${currentSize.text}`}
           >
-            <span className="text-[#1E589D]">myown</span>
-            <span className="text-[#EA580C]">billbook</span>
+            <span className={onDark ? "text-white" : "text-[#174B43]"}>MyOwn</span>
+            <span className="text-[#26A58A]">BillBook</span>
           </span>
           {showSubtitle && (
             <span
-              className={`text-[#667085] tracking-wider uppercase font-semibold mt-0.5 truncate ${currentSize.sub}`}
+              className={`tracking-wider uppercase font-semibold mt-0.5 truncate ${
+                onDark ? "text-[#A7C7C0]" : "text-[#5A6B66]"
+              } ${currentSize.sub}`}
             >
               {subtitle}
             </span>

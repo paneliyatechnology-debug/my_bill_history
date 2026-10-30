@@ -138,7 +138,7 @@ export function ExportDropdown({
 
   const countBadge =
     selectedCount > 0 ? (
-      <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-orange-100 text-[#F47721]">
+      <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#E6F7F2] text-[#174B43]">
         {selectedCount}
       </span>
     ) : null;
@@ -176,7 +176,7 @@ export function ExportDropdown({
       >
         {isExporting ? (
           <>
-            <div className="w-3.5 h-3.5 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin shrink-0" />
+            <div className="w-3.5 h-3.5 border-2 border-[#26A58A] border-t-transparent rounded-full animate-spin shrink-0" />
             <span>
               {lang === "gu"
                 ? `${exportingFormat?.toUpperCase()}...`
@@ -228,7 +228,7 @@ export function ExportDropdown({
           {/* Header Info */}
           <div className="px-3.5 py-2 text-[11px] text-slate-500 font-medium">
             {selectedCount > 0 ? (
-              <span className="text-[#F47721] font-semibold">
+              <span className="text-[#174B43] font-semibold">
                 {lang === "gu"
                   ? `માત્ર પસંદ કરેલ ${selectedCount} રેકોર્ડ્સ એક્સપોર્ટ થશે`
                   : `Exporting ${selectedCount} selected row${selectedCount === 1 ? "" : "s"}`}
