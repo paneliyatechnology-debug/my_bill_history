@@ -93,10 +93,10 @@ function DashboardContent() {
     updateTimestamp();
 
     try {
-      // Clean, single-purpose Dashboard APIs
+      // Clean, single-purpose Dashboard APIs (unified all-transactions with limit: 5, sortBy: "date", sortOrder: "desc")
       const [finRes, txnsRes, chartRes]: any = await Promise.all([
         apiClient.get("/dashboard/summary").catch(() => null),
-        apiClient.get("/dashboard/latest-transactions", { limit: 5 }).catch(() => null),
+        apiClient.get("/dashboard/all-transactions", { page: 1, limit: 5, sortBy: "date", sortOrder: "desc" }).catch(() => null),
         apiClient.get("/dashboard/sales-overview", { days: 7 }).catch(() => null),
       ]);
 
@@ -121,10 +121,11 @@ function DashboardContent() {
       setToPay(pay);
       setCashBankBalance(cb);
 
-      // 2. Process Transactions (from unified /dashboard/latest-transactions endpoint)
-      if (txnsRes?.transactions) {
+      // 2. Process Transactions (from unified /dashboard/all-transactions endpoint)
+      const txnList = txnsRes?.items || txnsRes?.transactions || [];
+      if (Array.isArray(txnList) && txnList.length > 0) {
         setTransactions(
-          txnsRes.transactions.map((t: any, idx: number) => {
+          txnList.slice(0, 5).map((t: any, idx: number) => {
             const d = new Date(t.date || t.rawDate);
             return {
               id: t.id || `txn-${idx}`,
@@ -135,13 +136,15 @@ function DashboardContent() {
                 year: "numeric",
               }),
               type: t.type,
-              txnNo: t.txnNo,
-              partyName: t.partyName,
+              txnNo: t.transactionNumber || t.txnNo || "-",
+              partyName: t.partyName || "-",
               amount: Number(t.amount || 0),
-              link: t.link,
+              link: t.link || "/app/home/vouchers/all_transactions",
             };
           })
         );
+      } else {
+        setTransactions([]);
       }
 
       // 3. Process 7-day Sales Report chart (from /dashboard/sales-overview)
@@ -486,29 +489,37 @@ function DashboardContent() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-700">
-                  {transactions.map((tx) => (
-                    <tr
-                      key={tx.id}
-                      onClick={() => tx.link && router.push(tx.link)}
-                      className="hover:bg-slate-50/70 transition-colors cursor-pointer"
-                    >
-                      <td className="px-5 py-3 whitespace-nowrap text-slate-800 font-medium">
-                        {tx.date}
-                      </td>
-                      <td className="px-5 py-3 whitespace-nowrap">
-                        <span className="text-slate-800 font-medium">{tx.type}</span>
-                      </td>
-                      <td className="px-5 py-3 whitespace-nowrap font-mono text-slate-600">
-                        {tx.txnNo}
-                      </td>
-                      <td className="px-5 py-3 whitespace-nowrap text-slate-800 font-medium truncate max-w-[180px]">
-                        {tx.partyName}
-                      </td>
-                      <td className="px-5 py-3 whitespace-nowrap text-right font-mono font-bold text-slate-900">
-                        ₹ {formatInr(tx.amount)}
+                  {transactions.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-5 py-8 text-center text-xs text-slate-400">
+                        No transactions recorded yet
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    transactions.map((tx) => (
+                      <tr
+                        key={tx.id}
+                        onClick={() => tx.link && router.push(tx.link)}
+                        className="hover:bg-slate-50/70 transition-colors cursor-pointer"
+                      >
+                        <td className="px-5 py-3 whitespace-nowrap text-slate-800 font-medium">
+                          {tx.date}
+                        </td>
+                        <td className="px-5 py-3 whitespace-nowrap">
+                          <span className="text-slate-800 font-medium">{tx.type}</span>
+                        </td>
+                        <td className="px-5 py-3 whitespace-nowrap font-mono text-slate-600">
+                          {tx.txnNo}
+                        </td>
+                        <td className="px-5 py-3 whitespace-nowrap text-slate-800 font-medium truncate max-w-[180px]">
+                          {tx.partyName}
+                        </td>
+                        <td className="px-5 py-3 whitespace-nowrap text-right font-mono font-bold text-slate-900">
+                          ₹ {formatInr(tx.amount)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
