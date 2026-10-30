@@ -55,6 +55,23 @@ interface Party {
     state?: string;
     pincode: string;
   };
+  notes?: Array<{
+    id: string;
+    title: string;
+    description?: string;
+    descriptions?: string;
+    createdAt: string;
+  }>;
+  appointments?: Array<{
+    id: string;
+    title: string;
+    description?: string;
+    descriptions?: string;
+    date: string;
+    time: string;
+    status: string;
+    createdAt?: string;
+  }>;
 }
 
 export default function PartiesPage() {
@@ -65,7 +82,24 @@ export default function PartiesPage() {
 
   // MyBillBook Master-Detail & Dashboard States
   const [selectedParty, setSelectedParty] = useState<Party | null>(null);
-  const [partyDetailTab, setPartyDetailTab] = useState<"transactions" | "profile" | "ledger" | "items">("transactions");
+  const [partyDetailTab, setPartyDetailTab] = useState<"transactions" | "profile" | "notes" | "appointments" | "ledger" | "items">("transactions");
+  const [partyNotes, setPartyNotes] = useState<any[]>([]);
+  const [partyAppointments, setPartyAppointments] = useState<any[]>([]);
+  const [isLoadingNotesAppts, setIsLoadingNotesAppts] = useState(false);
+
+  // Notes Modal state
+  const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
+  const [noteTitle, setNoteTitle] = useState("");
+  const [noteDescription, setNoteDescription] = useState("");
+  const [isSavingNote, setIsSavingNote] = useState(false);
+
+  // Appointments Modal state
+  const [isAddAppointmentModalOpen, setIsAddAppointmentModalOpen] = useState(false);
+  const [apptTitle, setApptTitle] = useState("");
+  const [apptDescription, setApptDescription] = useState("");
+  const [apptDate, setApptDate] = useState("");
+  const [apptTime, setApptTime] = useState("11:00 AM");
+  const [isSavingAppt, setIsSavingAppt] = useState(false);
   const [partyTransactions, setPartyTransactions] = useState<any[]>([]);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
   const [detailSearch, setDetailSearch] = useState("");
@@ -425,6 +459,101 @@ export default function PartiesPage() {
       })
       .finally(() => setIsLoadingTransactions(false));
   }, [selectedParty]);
+
+  const fetchPartyNotesAndAppointments = useCallback(async (partyId: string) => {
+    setIsLoadingNotesAppts(true);
+    try {
+      const res: any = await apiClient.get(`/masters/parties/${partyId}`);
+      if (res) {
+        setPartyNotes(res.notes || []);
+        setPartyAppointments(res.appointments || []);
+      }
+    } catch (err) {
+      console.warn("Failed to load party notes and appointments:", err);
+    } finally {
+      setIsLoadingNotesAppts(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!selectedParty?.id) {
+      setPartyNotes([]);
+      setPartyAppointments([]);
+      return;
+    }
+    fetchPartyNotesAndAppointments(selectedParty.id);
+  }, [selectedParty?.id, fetchPartyNotesAndAppointments]);
+
+  const handleCreateNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedParty || !noteTitle.trim()) return;
+    setIsSavingNote(true);
+    try {
+      await apiClient.post(`/masters/parties/${selectedParty.id}/notes`, {
+        title: noteTitle.trim(),
+        description: noteDescription.trim(),
+        descriptions: noteDescription.trim(),
+      });
+      setNoteTitle("");
+      setNoteDescription("");
+      setIsAddNoteModalOpen(false);
+      fetchPartyNotesAndAppointments(selectedParty.id);
+    } catch (err: any) {
+      alert(err.message || "Failed to save note");
+    } finally {
+      setIsSavingNote(false);
+    }
+  };
+
+  const handleDeleteNote = async (noteId: string) => {
+    if (!confirm("Are you sure you want to delete this note?")) return;
+    try {
+      await apiClient.delete(`/notes/${noteId}`);
+      if (selectedParty) {
+        fetchPartyNotesAndAppointments(selectedParty.id);
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to delete note");
+    }
+  };
+
+  const handleCreateAppointment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedParty || !apptTitle.trim() || !apptDate) return;
+    setIsSavingAppt(true);
+    try {
+      await apiClient.post(`/masters/parties/${selectedParty.id}/appointments`, {
+        title: apptTitle.trim(),
+        description: apptDescription.trim(),
+        descriptions: apptDescription.trim(),
+        date: apptDate,
+        time: apptTime.trim(),
+        status: "SCHEDULED",
+      });
+      setApptTitle("");
+      setApptDescription("");
+      setApptDate("");
+      setApptTime("11:00 AM");
+      setIsAddAppointmentModalOpen(false);
+      fetchPartyNotesAndAppointments(selectedParty.id);
+    } catch (err: any) {
+      alert(err.message || "Failed to schedule appointment");
+    } finally {
+      setIsSavingAppt(false);
+    }
+  };
+
+  const handleDeleteAppointment = async (appointmentId: string) => {
+    if (!confirm("Are you sure you want to cancel this appointment?")) return;
+    try {
+      await apiClient.delete(`/appointments/${appointmentId}`);
+      if (selectedParty) {
+        fetchPartyNotesAndAppointments(selectedParty.id);
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to delete appointment");
+    }
+  };
 
   const handleOpenCreateModal = () => {
     setGstinAutofillSuccess(null);
@@ -963,6 +1092,13 @@ export default function PartiesPage() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-2">
+                    <Link
+                      href="/app/home/shared-ledger"
+                      className="p-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition-colors inline-flex items-center gap-1"
+                      title="Open Shared Ledger"
+                    >
+                      🔗 Shared Ledger
+                    </Link>
                     {selectedParty.phone && (
                       <button
                         type="button"
@@ -1065,6 +1201,36 @@ export default function PartiesPage() {
                   }`}
                 >
                   {lang === "gu" ? "પ્રોફાઇલ" : "Profile"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPartyDetailTab("notes")}
+                  className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
+                    partyDetailTab === "notes"
+                      ? "border-indigo-600 text-indigo-600"
+                      : "border-transparent text-slate-500 hover:text-slate-800"
+                  }`}
+                >
+                  <span>📝 {lang === "gu" ? "નોંધ" : "Notes"}</span>
+                  <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full font-mono">
+                    {partyNotes.length}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPartyDetailTab("appointments")}
+                  className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
+                    partyDetailTab === "appointments"
+                      ? "border-indigo-600 text-indigo-600"
+                      : "border-transparent text-slate-500 hover:text-slate-800"
+                  }`}
+                >
+                  <span>📅 {lang === "gu" ? "મુલાકાત" : "Appointments"}</span>
+                  <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full font-mono">
+                    {partyAppointments.length}
+                  </span>
                 </button>
 
                 <button
@@ -1258,6 +1424,180 @@ export default function PartiesPage() {
                   </div>
                 )}
 
+                {/* NOTES TAB */}
+                {partyDetailTab === "notes" && (
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-indigo-50/60 p-4 rounded-xl border border-indigo-100">
+                      <div>
+                        <div className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                          <span>📝 Notes & Remarks</span>
+                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                            {partyNotes.length}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 mt-0.5">
+                          Internal notes, payment follow-up remarks, or special instructions for {selectedParty.name}.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsAddNoteModalOpen(true)}
+                        className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
+                      >
+                        + Add Note
+                      </button>
+                    </div>
+
+                    {isLoadingNotesAppts ? (
+                      <div className="py-12 text-center text-xs text-slate-400">Loading notes...</div>
+                    ) : partyNotes.length === 0 ? (
+                      <div className="py-12 text-center bg-slate-50/60 rounded-xl border border-dashed border-slate-200 space-y-2">
+                        <div className="text-3xl">📝</div>
+                        <div className="font-bold text-sm text-slate-800">No Notes Added Yet</div>
+                        <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                          Keep track of discussions, special terms, or reminders by adding a note.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setIsAddNoteModalOpen(true)}
+                          className="mt-2 inline-flex items-center gap-1 px-3.5 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-xl shadow-sm"
+                        >
+                          + Add First Note
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {partyNotes.map((n: any) => (
+                          <div
+                            key={n.id}
+                            className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm hover:border-indigo-200 transition-all space-y-2 relative group"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <h4 className="font-bold text-sm text-slate-900">{n.title}</h4>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteNote(n.id)}
+                                title="Delete Note"
+                                className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-600 text-xs transition-opacity p-1 cursor-pointer"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                            <p className="text-xs text-slate-600 whitespace-pre-wrap leading-relaxed">
+                              {n.description || n.descriptions || "No description provided."}
+                            </p>
+                            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                              <span>📅 {new Date(n.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                              <span>{new Date(n.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* APPOINTMENTS TAB */}
+                {partyDetailTab === "appointments" && (
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-purple-50/60 p-4 rounded-xl border border-purple-100">
+                      <div>
+                        <div className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                          <span>📅 Scheduled Appointments & Follow-ups</span>
+                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                            {partyAppointments.length}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 mt-0.5">
+                          Scheduled visits, meetings, and balance collection reminders for {selectedParty.name}.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const tomorrow = new Date();
+                          tomorrow.setDate(tomorrow.getDate() + 1);
+                          setApptDate(tomorrow.toISOString().split("T")[0]);
+                          setIsAddAppointmentModalOpen(true);
+                        }}
+                        className="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
+                      >
+                        + Schedule Appointment
+                      </button>
+                    </div>
+
+                    {isLoadingNotesAppts ? (
+                      <div className="py-12 text-center text-xs text-slate-400">Loading appointments...</div>
+                    ) : partyAppointments.length === 0 ? (
+                      <div className="py-12 text-center bg-slate-50/60 rounded-xl border border-dashed border-slate-200 space-y-2">
+                        <div className="text-3xl">📅</div>
+                        <div className="font-bold text-sm text-slate-800">No Appointments Scheduled</div>
+                        <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                          Plan site visits, client meetings, or order review discussions.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const tomorrow = new Date();
+                            tomorrow.setDate(tomorrow.getDate() + 1);
+                            setApptDate(tomorrow.toISOString().split("T")[0]);
+                            setIsAddAppointmentModalOpen(true);
+                          }}
+                          className="mt-2 inline-flex items-center gap-1 px-3.5 py-1.5 bg-purple-600 text-white text-xs font-bold rounded-xl shadow-sm"
+                        >
+                          + Schedule First Appointment
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {partyAppointments.map((a: any) => (
+                          <div
+                            key={a.id}
+                            className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm hover:border-purple-200 transition-all space-y-3 relative group"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <h4 className="font-bold text-sm text-slate-900">{a.title}</h4>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                                    📅 {new Date(a.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                                  </span>
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-700">
+                                    ⏰ {a.time}
+                                  </span>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteAppointment(a.id)}
+                                title="Cancel Appointment"
+                                className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-600 text-xs transition-opacity p-1 cursor-pointer"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+
+                            {a.description && (
+                              <p className="text-xs text-slate-600 leading-relaxed">
+                                {a.description}
+                              </p>
+                            )}
+
+                            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                              <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                {a.status || "SCHEDULED"}
+                              </span>
+                              <span className="text-[11px] text-slate-400 font-mono">
+                                Created: {new Date(a.createdAt).toLocaleDateString("en-IN")}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* 3. LEDGER STATEMENT TAB */}
                 {partyDetailTab === "ledger" && (
                   <div className="space-y-4">
@@ -1410,13 +1750,12 @@ export default function PartiesPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => alert("SharedLedger invitation feature ready. Select any party and click Share on WhatsApp.")}
-                    className="px-4 py-2 bg-white text-indigo-900 hover:bg-indigo-50 text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
+                  <Link
+                    href="/app/home/shared-ledger"
+                    className="px-4 py-2 bg-white text-indigo-900 hover:bg-indigo-50 text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer inline-flex items-center gap-1.5"
                   >
-                    Invite Parties →
-                  </button>
+                    Open Shared Ledger →
+                  </Link>
                   <button
                     type="button"
                     onClick={() => setShowSharedLedgerBanner(false)}
@@ -2602,6 +2941,143 @@ export default function PartiesPage() {
             </button>
           </div>
         </div>
+      </Modal>
+
+      {/* Modal: Add Note */}
+      <Modal
+        isOpen={isAddNoteModalOpen}
+        onClose={() => setIsAddNoteModalOpen(false)}
+        title={`Add Note for ${selectedParty?.name || "Party"}`}
+        maxWidth="md"
+      >
+        <form onSubmit={handleCreateNote} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">
+              Note Title <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={noteTitle}
+              onChange={(e) => setNoteTitle(e.target.value)}
+              placeholder="e.g. Payment Reminder, Order Requirement, Delivery Notice"
+              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">
+              Description / Remarks
+            </label>
+            <textarea
+              rows={4}
+              value={noteDescription}
+              onChange={(e) => setNoteDescription(e.target.value)}
+              placeholder="Write detailed notes, instructions, or follow-up details..."
+              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none resize-none"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setIsAddNoteModalOpen(false)}
+              className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSavingNote || !noteTitle.trim()}
+              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50"
+            >
+              {isSavingNote ? "Saving..." : "Save Note"}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Modal: Schedule Appointment */}
+      <Modal
+        isOpen={isAddAppointmentModalOpen}
+        onClose={() => setIsAddAppointmentModalOpen(false)}
+        title={`Schedule Appointment with ${selectedParty?.name || "Party"}`}
+        maxWidth="md"
+      >
+        <form onSubmit={handleCreateAppointment} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">
+              Meeting / Appointment Title <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={apptTitle}
+              onChange={(e) => setApptTitle(e.target.value)}
+              placeholder="e.g. Monthly Account Reconciliation, Sample Show, Payment Follow-up"
+              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 outline-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Date <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="date"
+                required
+                value={apptDate}
+                onChange={(e) => setApptDate(e.target.value)}
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Time <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={apptTime}
+                onChange={(e) => setApptTime(e.target.value)}
+                placeholder="e.g. 11:00 AM, 04:30 PM"
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">
+              Description / Agenda
+            </label>
+            <textarea
+              rows={3}
+              value={apptDescription}
+              onChange={(e) => setApptDescription(e.target.value)}
+              placeholder="Meeting agenda, discussion points, or location details..."
+              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 outline-none resize-none"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setIsAddAppointmentModalOpen(false)}
+              className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSavingAppt || !apptTitle.trim() || !apptDate}
+              className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50"
+            >
+              {isSavingAppt ? "Scheduling..." : "Schedule Appointment"}
+            </button>
+          </div>
+        </form>
       </Modal>
 
       {/* Excel / CSV Import Wizard Modal */}

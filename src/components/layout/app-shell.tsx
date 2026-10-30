@@ -486,6 +486,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           nameGujarati: "બધી પાર્ટીઓ (ખાતાવહી)",
           href: "/masters/parties",
         },
+        {
+          name: "Shared Ledger",
+          nameGujarati: "શેર્ડ લેજર (Live Sync)",
+          href: "/app/home/shared-ledger",
+        },
       ],
     },
     {
