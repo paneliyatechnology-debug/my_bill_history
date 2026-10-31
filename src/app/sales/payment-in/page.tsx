@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
+import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/scorecard-ribbon";
+import { formatInr } from "@/components/design-system/tokens";
 
 type DateRangePreset =
   | "ALL"
@@ -36,7 +38,7 @@ const DATE_PRESET_LABELS: Record<DateRangePreset, string> = {
   PREV_FY: "Previous Fiscal Year",
   LAST_30_DAYS: "Last 30 Days",
   ALL: "All Time",
-  CUSTOM: "Custom Date Range",
+  CUSTOM: "Custom Range",
 };
 
 interface PaymentInRow {
@@ -45,21 +47,11 @@ interface PaymentInRow {
   voucherNumber?: string;
   paymentDate: string;
   partyName: string;
+  partyId?: string;
   totalSettled: number;
   amountReceived: number;
   paymentModeLabel: string;
   isCancelled?: boolean;
-}
-
-function formatInr(val: number | string): string {
-  const num = Number(val) || 0;
-  return (
-    "₹ " +
-    num.toLocaleString("en-IN", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    })
-  );
 }
 
 function formatPaymentDate(value?: string): string {
@@ -161,8 +153,9 @@ export default function PaymentInPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  
-  // URL Param checking for initial state (e.g. date_range_key=last-365-days)
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "SETTLED" | "ADVANCE" | "CANCELLED">("ALL");
+
+  // Date picker state
   const [dateRangePreset, setDateRangePreset] = useState<DateRangePreset>(() => {
     const key = searchParams?.get("date_range_key");
     if (key === "last-365-days") return "LAST_365_DAYS";
@@ -176,6 +169,7 @@ export default function PaymentInPage() {
   const [customStartDate, setCustomStartDate] = useState(() => searchParams?.get("start_date") || "");
   const [customEndDate, setCustomEndDate] = useState(() => searchParams?.get("end_date") || "");
 
+  // Actions & Reversal state
   const [activeActionMenuId, setActiveActionMenuId] = useState<string | null>(null);
   const [reverseTarget, setReverseTarget] = useState<PaymentInRow | null>(null);
   const [reverseReason, setReverseReason] = useState("");
@@ -198,7 +192,7 @@ export default function PaymentInPage() {
         search: searchQuery.trim() || undefined,
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
-        limit: 100,
+        limit: 150,
       });
       setRows(extractList<PaymentInRow>(res));
     } catch (err: any) {
@@ -248,7 +242,7 @@ export default function PaymentInPage() {
       });
       setReverseTarget(null);
       setReverseReason("");
-      setToast(lang === "gu" ? "ચુકવણી ઉલટાવી." : "Payment reversed successfully.");
+      setToast(lang === "gu" ? "ચુકવણી ઉલટાવી સફળ." : "Payment reversed successfully.");
       await fetchReceipts();
     } catch (err: any) {
       setReverseError(err.message || "Could not reverse this payment.");
@@ -257,69 +251,276 @@ export default function PaymentInPage() {
     }
   }
 
-  // Filtered rows for client search query if any
+  // KPI Metrics Calculations
+  const metrics = useMemo(() => {
+    let totalReceived = 0;
+    let totalSettled = 0;
+    let totalAdvance = 0;
+    let settledCount = 0;
+    let advanceCount = 0;
+    let cancelledCount = 0;
+    let activeCount = 0;
+
+    rows.forEach((r) => {
+      if (r.isCancelled) {
+        cancelledCount += 1;
+      } else {
+        const rec = Number(r.amountReceived) || 0;
+        const set = Number(r.totalSettled) || 0;
+        totalReceived += rec;
+        totalSettled += set;
+        activeCount += 1;
+        const adv = Math.max(0, rec - set);
+        if (adv > 0.009) {
+          totalAdvance += adv;
+          advanceCount += 1;
+        }
+        if (set > 0 && adv <= 0.009) {
+          settledCount += 1;
+        }
+      }
+    });
+
+    return {
+      totalReceived,
+      totalSettled,
+      totalAdvance,
+      settledCount,
+      advanceCount,
+      cancelledCount,
+      activeCount,
+      totalCount: rows.length,
+    };
+  }, [rows]);
+
+  // Filtered rows for client search query & status filter
   const displayedRows = useMemo(() => {
-    if (!searchQuery.trim()) return rows;
+    let filtered = rows;
+
+    if (statusFilter === "SETTLED") {
+      filtered = filtered.filter(
+        (r) => !r.isCancelled && (Number(r.amountReceived) || 0) <= (Number(r.totalSettled) || 0) + 0.009,
+      );
+    } else if (statusFilter === "ADVANCE") {
+      filtered = filtered.filter(
+        (r) => !r.isCancelled && (Number(r.amountReceived) || 0) > (Number(r.totalSettled) || 0) + 0.009,
+      );
+    } else if (statusFilter === "CANCELLED") {
+      filtered = filtered.filter((r) => r.isCancelled);
+    }
+
+    if (!searchQuery.trim()) return filtered;
     const q = searchQuery.toLowerCase().trim();
-    return rows.filter(
+    return filtered.filter(
       (r) =>
         (r.partyName && r.partyName.toLowerCase().includes(q)) ||
         (r.paymentNumber && r.paymentNumber.toLowerCase().includes(q)) ||
+        (r.voucherNumber && r.voucherNumber.toLowerCase().includes(q)) ||
         (r.paymentModeLabel && r.paymentModeLabel.toLowerCase().includes(q)),
     );
-  }, [rows, searchQuery]);
+  }, [rows, statusFilter, searchQuery]);
+
+  // Scorecard segments for ribbon
+  const scorecardSegments: ScorecardSegment[] = [
+    {
+      id: "all",
+      label: "Total Inflows / Received",
+      labelGujarati: "કુલ મળેલી રકમ",
+      value: metrics.totalReceived,
+      isCurrency: true,
+      subtext: `${metrics.activeCount} Active Receipts`,
+      subtextGujarati: `${metrics.activeCount} સક્રિય રસીદો`,
+      badge: DATE_PRESET_LABELS[dateRangePreset],
+      variant: "primary",
+      isActive: statusFilter === "ALL",
+      onClick: () => setStatusFilter("ALL"),
+    },
+    {
+      id: "settled",
+      label: "Invoices Settled",
+      labelGujarati: "સેટલ થયેલ બિલ",
+      value: metrics.totalSettled,
+      isCurrency: true,
+      subtext: `${metrics.settledCount} Invoices Cleared`,
+      subtextGujarati: `${metrics.settledCount} બિલ ચૂકવાયેલ`,
+      variant: "success",
+      isActive: statusFilter === "SETTLED",
+      onClick: () => setStatusFilter("SETTLED"),
+    },
+    {
+      id: "advance",
+      label: "Unallocated / Advance",
+      labelGujarati: "અગાઉથી જમા રકમ",
+      value: metrics.totalAdvance,
+      isCurrency: true,
+      subtext: `${metrics.advanceCount} With Unsettled Balances`,
+      subtextGujarati: `${metrics.advanceCount} બાકી એડવાન્સ`,
+      variant: "warning",
+      isActive: statusFilter === "ADVANCE",
+      onClick: () => setStatusFilter("ADVANCE"),
+    },
+    {
+      id: "cancelled",
+      label: "Reversed / Void",
+      labelGujarati: "રદ થયેલ વાઉચર",
+      value: metrics.cancelledCount,
+      isCurrency: false,
+      subtext: "Voided Records",
+      subtextGujarati: "રદ થયેલ વાઉચર",
+      variant: "neutral",
+      isActive: statusFilter === "CANCELLED",
+      onClick: () => setStatusFilter("CANCELLED"),
+    },
+  ];
+
+  // CSV Export
+  const handleExportCsv = () => {
+    if (displayedRows.length === 0) return;
+    const headers = ["Date", "Payment Number", "Party Name", "Total Settled", "Amount Received", "Payment Mode", "Status"];
+    const csvRows = displayedRows.map((r) => [
+      formatPaymentDate(r.paymentDate),
+      `"${r.paymentNumber || r.voucherNumber || ""}"`,
+      `"${(r.partyName || "").replace(/"/g, '""')}"`,
+      r.totalSettled || 0,
+      r.amountReceived || 0,
+      `"${r.paymentModeLabel || ""}"`,
+      r.isCancelled ? "Reversed" : "Active",
+    ]);
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...csvRows.map((e) => e.join(","))].join("\\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `payment_in_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setToast(lang === "gu" ? "CSV સફળતાપૂર્વક ડાઉનલોડ થયું!" : "Receipts exported to CSV successfully!");
+  };
+
+  // Helper for Payment Mode pill badges
+  const renderModeBadge = (modeLabel?: string) => {
+    const ml = (modeLabel || "cash").toLowerCase();
+    if (ml.includes("bank") || ml.includes("transfer") || ml.includes("neft") || ml.includes("rtgs")) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
+          <svg className="w-3 h-3 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+          {modeLabel || "Bank Transfer"}
+        </span>
+      );
+    }
+    if (ml.includes("upi") || ml.includes("gpay") || ml.includes("phonepe") || ml.includes("paytm")) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200/60">
+          <svg className="w-3 h-3 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          UPI
+        </span>
+      );
+    }
+    if (ml.includes("cheque") || ml.includes("check")) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">
+          <svg className="w-3 h-3 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Cheque
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+        <svg className="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <rect x="2" y="6" width="20" height="12" rx="2" />
+          <circle cx="12" cy="12" r="2" />
+        </svg>
+        Cash
+      </span>
+    );
+  };
 
   return (
-    <div className="space-y-4 px-6 py-4 min-w-0 max-w-[1600px] mx-auto pb-16 font-sans">
-      {/* 1. Top Header: Title & Settings/Print Buttons */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold tracking-tight text-[#1A2E2B]">
-          {lang === "gu" ? "આવક ચૂકવણી" : "Payment In"}
-        </h1>
-        <div className="flex items-center gap-2">
+    <div className="space-y-4 max-w-7xl mx-auto min-w-0 pb-16 font-sans">
+      {/* 1. TOP UNIFIED COMMAND STRIP */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:px-6 sm:py-3.5 rounded-2xl border border-[#E2E8E5] shadow-xs">
+        {/* Left: Module identity & title */}
+        <div>
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#26A58A]">
+              {lang === "gu" ? "રોકડ અને બેંક જમા (CASH & BANK)" : "RECEIPTS & CASH INFLOW"}
+            </span>
+            <span className="text-slate-300">•</span>
+            <span className="text-[10px] font-bold text-slate-500 font-mono">
+              {displayedRows.length} {lang === "gu" ? "રસીદો" : "Receipts"}
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl sm:text-2xl font-black text-[#1A2E2B] tracking-tight">
+              {lang === "gu" ? "આવક ચૂકવણી (Payment In)" : "Payment In Receipts"}
+            </h1>
+            <button
+              type="button"
+              onClick={fetchReceipts}
+              title="Refresh Receipts"
+              className="p-1 text-slate-400 hover:text-[#174B43] rounded-md transition-colors"
+            >
+              <svg className={`w-4 h-4 ${isLoading ? "animate-spin text-[#26A58A]" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Right: Quick Action Controls */}
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            title="Settings"
-            onClick={() => router.push("/settings")}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#E2E8E5] bg-white text-[#5A6B66] hover:bg-[#F2FAF7] hover:border-[#85D5C2] hover:text-[#174B43] shadow-2xs transition-colors"
+            onClick={handleExportCsv}
+            disabled={displayedRows.length === 0}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8E5] bg-white text-xs font-semibold text-[#1A2E2B] hover:bg-[#F2FAF7] hover:border-[#85D5C2] disabled:opacity-50 transition-colors shadow-2xs"
+            title="Export to CSV"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
+            <span>{lang === "gu" ? "નિકાસ" : "Export CSV"}</span>
           </button>
+
           <button
             type="button"
-            title="Print"
             onClick={() => window.print()}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#E2E8E5] bg-white text-[#5A6B66] hover:bg-[#F2FAF7] hover:border-[#85D5C2] hover:text-[#174B43] shadow-2xs transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8E5] bg-white text-xs font-semibold text-[#1A2E2B] hover:bg-[#F2FAF7] hover:border-[#85D5C2] transition-colors shadow-2xs"
+            title="Print Ledger"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+            <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
             </svg>
+            <span>Print</span>
           </button>
-        </div>
-      </div>
 
-      {/* 2. Tab Bar: Payment Received with Jade bottom border */}
-      <div className="border-b border-[#E2E8E5]">
-        <div className="inline-flex items-center gap-2 border-b-2 border-[#26A58A] pb-2 text-xs font-bold text-[#174B43]">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#E6F7F2] text-[#26A58A]">
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-              <circle cx="12" cy="12" r="10" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2" />
+          <Link
+            href="/sales/payment-in/new"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold shadow-md shadow-[#174B43]/20 hover:shadow-lg hover:shadow-[#174B43]/30 transition-all cursor-pointer"
+          >
+            <svg className="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-          </span>
-          {lang === "gu" ? "મળેલી ચુકવણી" : "Payment Received"}
+            <span>{lang === "gu" ? "+ નવી આવક ચૂકવણી" : "+ Record Payment In"}</span>
+          </Link>
         </div>
       </div>
 
-      {/* 3. Controls Bar: Search, Date Filter, and Create Payment In button */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-1">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Search box with 🔍 inside */}
-          <div className="relative w-64">
-            <span className="absolute left-3 top-2.5 text-[#8E9F9A]">
+      {/* 2. SCORECARD RIBBON */}
+      <ScorecardRibbon segments={scorecardSegments} lang={lang} />
+
+      {/* 3. CONTROLS BAR: OMNI-SEARCH, STATUS FILTER & DATE PICKER */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-[#E2E8E5] shadow-xs">
+        <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
+          {/* Omni Search Box */}
+          <div className="relative w-full sm:w-72">
+            <span className="absolute left-3 top-2.5 text-slate-400">
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <circle cx="11" cy="11" r="8" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" />
@@ -329,14 +530,14 @@ export default function PaymentInPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={lang === "gu" ? "શોધો" : "Search"}
-              className="w-full rounded-xl border border-[#E2E8E5] bg-[#F6F7F1] py-2 pl-9 pr-3 text-xs text-[#1A2E2B] placeholder-[#8E9F9A] focus:bg-white focus:border-[#26A58A] focus:ring-1 focus:ring-[#26A58A] focus:outline-none transition-colors"
+              placeholder={lang === "gu" ? "શોધો: પાર્ટી, વાઉચર નંબર, મોડ..." : "Search by party, voucher no, mode..."}
+              className="w-full rounded-xl border border-[#E2E8E5] bg-[#F6F7F1] py-2 pl-9 pr-8 text-xs text-[#1A2E2B] placeholder-slate-400 focus:bg-white focus:border-[#26A58A] focus:ring-1 focus:ring-[#26A58A] focus:outline-none transition-colors"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-2.5 text-xs text-[#8E9F9A] hover:text-[#1A2E2B]"
+                className="absolute right-2.5 top-2.5 text-xs text-slate-400 hover:text-slate-700"
               >
                 ✕
               </button>
@@ -414,7 +615,7 @@ export default function PaymentInPage() {
                       onClick={() => setIsDatePickerOpen(false)}
                       className="w-full mt-1 rounded-lg bg-[#26A58A] hover:bg-[#208E76] py-1.5 text-center font-bold text-white shadow-jade transition-colors cursor-pointer"
                     >
-                      Apply
+                      Apply Range
                     </button>
                   </div>
                 )}
@@ -423,52 +624,67 @@ export default function PaymentInPage() {
           </div>
         </div>
 
-        {/* Create Payment In Button */}
-        <Link
-          href="/sales/payment-in/new"
-          className="inline-flex items-center gap-1.5 justify-center rounded-xl bg-[#26A58A] px-4 py-2 text-xs font-bold text-white shadow-jade hover:bg-[#208E76] transition-all cursor-pointer"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-          </svg>
-          <span>{lang === "gu" ? "ચૂકવણી બનાવો" : "Create Payment In"}</span>
-        </Link>
+        {/* Status segment pills switcher */}
+        <div className="flex items-center gap-1 bg-[#F6F7F1] p-1 rounded-xl border border-[#E2E8E5] self-start sm:self-auto">
+          {(
+            [
+              { key: "ALL", label: "All" },
+              { key: "SETTLED", label: "Settled" },
+              { key: "ADVANCE", label: "Advance" },
+              { key: "CANCELLED", label: "Void" },
+            ] as const
+          ).map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setStatusFilter(tab.key)}
+              className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${
+                statusFilter === tab.key
+                  ? "bg-white text-[#174B43] shadow-xs font-bold"
+                  : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {error && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700 flex items-center justify-between">
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700 flex items-center justify-between shadow-2xs">
           <span>{error}</span>
           <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700">✕</button>
         </div>
       )}
 
-      {/* 4. Table: Exact columns matching myBillBook screenshot */}
-      <div className="overflow-visible rounded-xl border border-[#E2E8E5] bg-white shadow-xs">
+      {/* 4. ENTERPRISE DATA GRID */}
+      <div className="overflow-visible rounded-2xl border border-[#E2E8E5] bg-white shadow-xs">
         <div className="overflow-x-auto overflow-y-visible">
           <table className="min-w-full text-left text-xs border-collapse">
-            <thead className="bg-[#F8FAF9] border-b border-[#E2E8E5] text-[#5A6B66] font-semibold">
+            <thead className="bg-[#F8FAF9] border-b border-[#E2E8E5] text-[#5A6B66] font-semibold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="px-4 py-3 whitespace-nowrap">
+                <th className="px-4 py-3.5 whitespace-nowrap font-bold">
                   <div className="flex items-center gap-1">
                     <span>{lang === "gu" ? "તારીખ" : "Date"}</span>
-                    <span className="text-[#8E9F9A] text-[10px]">⇅</span>
+                    <span className="text-slate-300 text-[10px]">⇅</span>
                   </div>
                 </th>
-                <th className="px-4 py-3 whitespace-nowrap">{lang === "gu" ? "ચુકવણી નંબર" : "Payment Number"}</th>
-                <th className="px-4 py-3 whitespace-nowrap">{lang === "gu" ? "પાર્ટી" : "Party Name"}</th>
-                <th className="px-4 py-3 text-right whitespace-nowrap">{lang === "gu" ? "સેટલ રકમ" : "Total Amount Settled"}</th>
-                <th className="px-4 py-3 text-right whitespace-nowrap">{lang === "gu" ? "મળેલી રકમ" : "Amount Received"}</th>
-                <th className="px-4 py-3 whitespace-nowrap">{lang === "gu" ? "મોડ" : "Payment Mode"}</th>
-                <th className="px-4 py-3 w-10 text-center whitespace-nowrap" />
+                <th className="px-4 py-3.5 whitespace-nowrap font-bold">{lang === "gu" ? "વાઉચર / રસીદ નંબર" : "Voucher / Receipt No"}</th>
+                <th className="px-4 py-3.5 whitespace-nowrap font-bold">{lang === "gu" ? "પાર્ટી નામ" : "Customer / Party Name"}</th>
+                <th className="px-4 py-3.5 text-right whitespace-nowrap font-bold">{lang === "gu" ? "સેટલ રકમ" : "Settled on Bills"}</th>
+                <th className="px-4 py-3.5 text-right whitespace-nowrap font-bold">{lang === "gu" ? "મળેલી રકમ" : "Total Inflow"}</th>
+                <th className="px-4 py-3.5 whitespace-nowrap font-bold">{lang === "gu" ? "ચુકવણી પદ્ધતિ" : "Payment Mode"}</th>
+                <th className="px-4 py-3.5 text-center whitespace-nowrap font-bold">Status</th>
+                <th className="px-4 py-3.5 w-10 text-center whitespace-nowrap font-bold">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-[#E2E8E5]">
               {isLoading && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-16 text-center text-xs text-[#5A6B66]">
+                  <td colSpan={8} className="px-4 py-16 text-center text-xs text-[#5A6B66]">
                     <div className="flex items-center justify-center gap-2">
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#26A58A] border-t-transparent" />
-                      <span>{lang === "gu" ? "લોડ થઈ રહ્યું છે..." : "Loading payments..."}</span>
+                      <span>{lang === "gu" ? "લોડ થઈ રહ્યું છે..." : "Loading receipts..."}</span>
                     </div>
                   </td>
                 </tr>
@@ -476,25 +692,27 @@ export default function PaymentInPage() {
 
               {!isLoading && displayedRows.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-20 text-center text-[#5A6B66]">
-                    <div className="flex flex-col items-center justify-center">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#E6F7F2] text-[#174B43] mb-3">
-                        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                  <td colSpan={8} className="px-4 py-20 text-center text-[#5A6B66]">
+                    <div className="flex flex-col items-center justify-center max-w-md mx-auto">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#E6F7F2] text-[#174B43] mb-3 shadow-inner">
+                        <svg className="w-7 h-7 text-[#26A58A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75}>
                           <rect x="2" y="5" width="20" height="14" rx="2" />
                           <line x1="2" y1="10" x2="22" y2="10" />
                         </svg>
                       </div>
-                      <p className="text-sm font-bold text-[#1A2E2B]">
-                        {lang === "gu" ? "કોઈ ચુકવણી રેકોર્ડ મળી નથી." : "No payment records found"}
+                      <p className="text-base font-bold text-[#1A2E2B]">
+                        {lang === "gu" ? "કોઈ ચુકવણી રેકોર્ડ મળી નથી." : "No payment receipts found"}
                       </p>
-                      <p className="text-xs text-[#8E9F9A] mt-1 max-w-sm">
-                        {lang === "gu" ? "આ સમયગાળામાં કોઈ ચુકવણી નથી." : "Record incoming payments from customers to settle invoices."}
+                      <p className="text-xs text-slate-500 mt-1">
+                        {searchQuery
+                          ? "No transactions matched your current search filters."
+                          : "Record incoming customer payments to clear sales invoices and track your cash inflow."}
                       </p>
                       <Link
                         href="/sales/payment-in/new"
-                        className="mt-4 rounded-xl bg-[#26A58A] px-4 py-2 text-xs font-bold text-white shadow-jade hover:bg-[#208E76] transition-colors"
+                        className="mt-4 rounded-xl bg-[#174B43] px-4 py-2 text-xs font-bold text-white shadow-jade hover:bg-[#123B35] transition-colors"
                       >
-                        {lang === "gu" ? "ચૂકવણી બનાવો" : "Create Payment In"}
+                        {lang === "gu" ? "+ નવી આવક ચૂકવણી" : "+ Record Payment In"}
                       </Link>
                     </div>
                   </td>
@@ -505,42 +723,77 @@ export default function PaymentInPage() {
                 displayedRows.map((row) => (
                   <tr
                     key={row.id}
-                    className={`hover:bg-[#F2FAF7] transition-colors ${row.isCancelled ? "opacity-60 bg-slate-50/30" : ""}`}
+                    className={`hover:bg-[#F2FAF7]/70 transition-colors group ${
+                      row.isCancelled ? "opacity-60 bg-slate-50/50" : ""
+                    }`}
                   >
-                    <td className="px-4 py-3 text-[#1A2E2B] whitespace-nowrap font-normal">
+                    {/* Date */}
+                    <td className="px-4 py-3 text-[#1A2E2B] whitespace-nowrap font-medium text-xs">
                       {formatPaymentDate(row.paymentDate)}
                     </td>
-                    <td className="px-4 py-3 font-semibold text-[#1A2E2B] whitespace-nowrap">
+
+                    {/* Voucher / Receipt Number */}
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <button
                         type="button"
-                        className="hover:text-[#174B43] hover:underline transition-colors font-mono font-bold"
+                        className="text-[#174B43] hover:text-[#26A58A] hover:underline transition-colors font-mono font-bold text-xs"
                         onClick={() => router.push(`/sales/payment-in/${row.id}`)}
                       >
-                        {row.paymentNumber || row.voucherNumber}
+                        {row.paymentNumber || row.voucherNumber || "RCPT"}
                       </button>
-                      {row.isCancelled && (
-                        <span className="ml-2 rounded-full bg-slate-200/80 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-600">
+                    </td>
+
+                    {/* Party Name */}
+                    <td className="px-4 py-3 font-semibold text-[#1A2E2B] whitespace-nowrap">
+                      {row.partyId ? (
+                        <Link
+                          href={`/parties/${row.partyId}`}
+                          className="hover:text-[#174B43] hover:underline transition-colors"
+                        >
+                          {row.partyName}
+                        </Link>
+                      ) : (
+                        <span>{row.partyName}</span>
+                      )}
+                    </td>
+
+                    {/* Total Settled */}
+                    <td className="px-4 py-3 text-right font-medium text-slate-600 whitespace-nowrap font-mono">
+                      {formatInr(row.totalSettled)}
+                    </td>
+
+                    {/* Total Inflow Received */}
+                    <td className="px-4 py-3 text-right font-bold text-[#1A2E2B] whitespace-nowrap font-mono text-[13px]">
+                      {formatInr(row.amountReceived)}
+                    </td>
+
+                    {/* Payment Mode */}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {renderModeBadge(row.paymentModeLabel)}
+                    </td>
+
+                    {/* Status badge */}
+                    <td className="px-4 py-3 text-center whitespace-nowrap">
+                      {row.isCancelled ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
                           Reversed
+                        </span>
+                      ) : Number(row.amountReceived) > Number(row.totalSettled) + 0.009 ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
+                          Advance
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          Settled
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 font-medium text-[#1A2E2B] whitespace-nowrap">
-                      {row.partyName}
-                    </td>
-                    <td className="px-4 py-3 text-right font-medium text-[#5A6B66] whitespace-nowrap font-mono">
-                      {formatInr(row.totalSettled)}
-                    </td>
-                    <td className="px-4 py-3 text-right font-bold text-[#1A2E2B] whitespace-nowrap font-mono">
-                      {formatInr(row.amountReceived)}
-                    </td>
-                    <td className="px-4 py-3 text-[#5A6B66] whitespace-nowrap capitalize">
-                      {row.paymentModeLabel?.toLowerCase() === "cash" ? "Cash" : row.paymentModeLabel}
-                    </td>
-                    {/* Action 3-dots: relative with immediate popover to fix scroll issue */}
+
+                    {/* Action 3-dots */}
                     <td className="relative px-4 py-3 text-center whitespace-nowrap overflow-visible">
                       <button
                         type="button"
-                        className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-[#5A6B66] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors"
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors cursor-pointer"
                         onClick={(e) => {
                           e.stopPropagation();
                           setActiveActionMenuId(activeActionMenuId === row.id ? null : row.id);
@@ -551,40 +804,40 @@ export default function PaymentInPage() {
 
                       {activeActionMenuId === row.id && (
                         <div
-                          className="absolute right-3 top-8 z-50 w-36 rounded-xl border border-[#E2E8E5] bg-white py-1 text-left text-xs shadow-xl animate-in fade-in zoom-in-95 duration-100"
+                          className="absolute right-3 top-8 z-50 w-40 rounded-xl border border-[#E2E8E5] bg-white py-1.5 text-left text-xs shadow-xl animate-in fade-in zoom-in-95 duration-100"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <button
                             type="button"
-                            className="flex w-full items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] transition-colors"
+                            className="flex w-full items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] transition-colors cursor-pointer"
                             onClick={() => {
                               setActiveActionMenuId(null);
                               router.push(`/sales/payment-in/${row.id}`);
                             }}
                           >
-                            <svg className="w-3.5 h-3.5 text-[#5A6B66]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                            <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                               <circle cx="12" cy="12" r="3" />
                             </svg>
-                            <span>View</span>
+                            <span>View Voucher</span>
                           </button>
                           <button
                             type="button"
-                            className="flex w-full items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] transition-colors"
+                            className="flex w-full items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] transition-colors cursor-pointer"
                             onClick={() => {
                               setActiveActionMenuId(null);
                               router.push(`/sales/payment-in/${row.id}?print=1`);
                             }}
                           >
-                            <svg className="w-3.5 h-3.5 text-[#5A6B66]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                            <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                               <path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                             </svg>
-                            <span>Print</span>
+                            <span>Print Receipt</span>
                           </button>
                           {!row.isCancelled && (
                             <button
                               type="button"
-                              className="flex w-full items-center gap-2 px-3 py-2 text-rose-600 hover:bg-rose-50 transition-colors border-t border-slate-100"
+                              className="flex w-full items-center gap-2 px-3 py-2 text-rose-600 hover:bg-rose-50 transition-colors border-t border-slate-100 cursor-pointer"
                               onClick={() => {
                                 setActiveActionMenuId(null);
                                 setReverseTarget(row);
@@ -595,7 +848,7 @@ export default function PaymentInPage() {
                               <svg className="w-3.5 h-3.5 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                               </svg>
-                              <span>Reverse</span>
+                              <span>Reverse Payment</span>
                             </button>
                           )}
                         </div>
@@ -608,31 +861,53 @@ export default function PaymentInPage() {
         </div>
       </div>
 
-      {/* Reverse Payment Modal */}
+      {/* REVERSE PAYMENT CONFIRMATION MODAL */}
       {reverseTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl border border-[#E2E8E5] animate-in fade-in zoom-in-95 duration-150">
-            <h2 className="text-base font-bold text-[#1A2E2B]">
-              Reverse payment #{reverseTarget.paymentNumber}
-            </h2>
-            <p className="mt-1 text-xs text-[#5A6B66]">
-              This will atomically reverse the payment voucher and restore the outstanding balance of any settled invoices.
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-[#E2E8E5] animate-in fade-in zoom-in-95 duration-150 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-[#1A2E2B]">
+                  Reverse Payment #{reverseTarget.paymentNumber || reverseTarget.voucherNumber}
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Party: <strong className="text-slate-800">{reverseTarget.partyName}</strong> • {formatInr(reverseTarget.amountReceived)}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed bg-amber-50/70 p-3 rounded-xl border border-amber-200/60">
+              ⚠️ This will reverse the payment receipt and restore the outstanding balance of all settled sales invoices.
             </p>
-            <div className="mt-3">
-              <label className="block text-xs font-semibold text-[#1A2E2B] mb-1">Reversal Reason *</label>
+
+            <div>
+              <label className="block text-xs font-semibold text-[#1A2E2B] mb-1">
+                Reversal Reason <span className="text-rose-500">*</span>
+              </label>
               <textarea
                 value={reverseReason}
                 onChange={(e) => setReverseReason(e.target.value)}
-                placeholder="e.g. Customer requested refund or incorrect voucher entered"
-                className="w-full rounded-xl border border-[#E2E8E5] bg-[#F6F7F1] p-2.5 text-xs text-[#1A2E2B] placeholder-[#8E9F9A] focus:bg-white focus:border-[#26A58A] focus:ring-1 focus:ring-[#26A58A] focus:outline-none"
+                placeholder="e.g. Customer cancelled transaction, bounced cheque, or duplicate entry"
+                className="w-full rounded-xl border border-[#E2E8E5] bg-[#F6F7F1] p-3 text-xs text-[#1A2E2B] placeholder-slate-400 focus:bg-white focus:border-[#26A58A] focus:ring-1 focus:ring-[#26A58A] focus:outline-none transition-colors"
                 rows={3}
               />
             </div>
-            {reverseError && <p className="mt-2 text-xs text-rose-600">{reverseError}</p>}
-            <div className="mt-4 flex justify-end gap-2">
+
+            {reverseError && (
+              <p className="text-xs text-rose-600 font-medium bg-rose-50 p-2.5 rounded-lg border border-rose-200">
+                {reverseError}
+              </p>
+            )}
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
               <button
                 type="button"
-                className="rounded-xl border border-[#E2E8E5] px-3.5 py-1.5 text-xs font-medium text-[#5A6B66] hover:bg-[#F2FAF7]"
+                className="rounded-xl border border-[#E2E8E5] px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                 onClick={() => setReverseTarget(null)}
               >
                 Cancel
@@ -640,19 +915,19 @@ export default function PaymentInPage() {
               <button
                 type="button"
                 disabled={isReversing || !reverseReason.trim()}
-                className="rounded-xl bg-rose-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-rose-700 disabled:opacity-50 shadow-xs transition-colors"
+                className="rounded-xl bg-rose-600 px-5 py-2 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50 shadow-xs transition-colors cursor-pointer"
                 onClick={confirmReverse}
               >
-                {isReversing ? "Reversing..." : "Confirm Reverse"}
+                {isReversing ? "Reversing..." : "Confirm Reversal"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Toast Notification */}
+      {/* TOAST NOTIFICATION */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-medium text-white shadow-xl animate-in slide-in-from-bottom-2 duration-150">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-medium text-white shadow-xl animate-in slide-in-from-bottom-2 duration-150 border border-slate-800">
           <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
           </svg>

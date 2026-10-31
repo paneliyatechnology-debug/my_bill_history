@@ -10,6 +10,8 @@ import { AddItemsModal, CatalogItem } from "@/components/invoice/add-items-modal
 import { QuickSettingsModal, DEFAULT_QUICK_SETTINGS, QuickSettingsConfig } from "@/components/invoice/quick-settings-modal";
 import { ShortcutsModal } from "@/components/invoice/shortcuts-modal";
 import { SignatureModal } from "@/components/invoice/signature-modal";
+import { useActiveInvoiceTheme } from "@/lib/use-active-invoice-theme";
+import { DynamicThemedInvoice } from "@/components/invoice/dynamic-themed-invoice";
 import { InvoiceLivePreviewModal } from "@/components/invoice/invoice-live-preview-modal";
 import {
   InvoiceCustomization,
@@ -17,6 +19,17 @@ import {
   loadInvoiceCustomization,
 } from "@/lib/invoice-theme";
 import { INDIAN_STATES } from "@billing/shared-types";
+import {
+  DocumentHeaderCard,
+  DocumentInfoStrip,
+  DocumentItemsCard,
+  DocumentNotesAndTermsCard,
+  DocumentAdditionalInfoCard,
+  DocumentSummaryCard,
+  DocumentPaymentCard,
+  DocumentBottomBar,
+  PartySelectorCompact,
+} from "@/components/document-studio";
 
 interface PartyOption {
   id: string;
@@ -63,6 +76,7 @@ interface ProformaItemRow {
 export default function CreateProformaInvoicePage() {
   const router = useRouter();
   const { lang, tenantContext, currentCompany } = useAuth();
+  const { state: activeInvoiceTheme } = useActiveInvoiceTheme(currentCompany?.id);
 
   const [parties, setParties] = useState<PartyOption[]>([]);
   const [items, setItems] = useState<ItemOption[]>([]);
@@ -101,7 +115,13 @@ export default function CreateProformaInvoicePage() {
 
   // Notes, Terms & Conditions
   const [showNotes, setShowNotes] = useState(false);
-  const [notes, setNotes] = useState("");
+    const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
+  const [transportMode, setTransportMode] = useState("Road");
+  const [vehicleNo, setVehicleNo] = useState("");
+  const [ewayBillNo, setEwayBillNo] = useState("");
+  const [dispatchDate, setDispatchDate] = useState("");
+  const [paymentMode, setPaymentMode] = useState("Bank Transfer");
+const [notes, setNotes] = useState("");
   const [terms, setTerms] = useState(
     `1. Goods once sold will not be taken back or exchanged\n2. All disputes are subject to ${currentCompany?.city || "AHMEDABAD"} jurisdiction only`
   );
@@ -445,719 +465,469 @@ export default function CreateProformaInvoicePage() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-[#F0F2F5] pb-24 text-slate-800 font-sans">
-      {/* 1. TOP HEADER (Exact myBillBook layout with Mode Switcher & Exit) */}
-      <header className="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-xs px-3 sm:px-6 py-2.5">
-        <div className="w-full flex items-center justify-between gap-2 sm:gap-4 min-w-0">
-          {/* Left: Exit & Title */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <Link
-              href="/sales/proforma"
-              className="flex items-center gap-1 sm:gap-1.5 px-3 py-1.5 border border-slate-300 hover:bg-slate-50 rounded-lg text-xs font-bold text-slate-700 shadow-2xs transition-colors shrink-0"
-            >
-              <span>←</span>
-              <span>Exit</span>
-            </Link>
-            <h1 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight truncate">
-              Create Proforma Invoice
-            </h1>
-          </div>
+return (
+    <div className="min-h-screen bg-[#F6F8F7] pb-24 text-slate-800 font-sans">
+      {/* =========================================================================
+          TOP BAR: Compact Forest Teal Signature Enterprise Toolbar (Full-Width)
+          ========================================================================= */}
+      {/* Top header replaced by unified DocumentHeaderCard */}
 
-          {/* Center: Edit Mode / Preview Mode Switcher */}
-          <div className="hidden md:flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 shrink-0">
-            <button
-              type="button"
-              onClick={() => setViewMode("edit")}
-              className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
-                viewMode === "edit"
-                  ? "bg-white text-blue-600 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <span>📝</span>
-              <span>Edit Mode</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("preview")}
-              className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
-                viewMode === "preview"
-                  ? "bg-white text-blue-600 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <span>👁️</span>
-              <span>Preview Mode</span>
-            </button>
-          </div>
-
-          {/* Right: Actions */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-            <button
-              type="button"
-              onClick={() => {
-                setQuickSettingsTab("invoice");
-                setIsQuickSettingsOpen(true);
-              }}
-              className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg transition-colors cursor-pointer shadow-2xs"
-              title="Quick Settings"
-            >
-              ⚙️
-            </button>
-
-            <button
-              type="button"
-              disabled={isSubmitting}
-              onClick={() => handleSubmit(true)}
-              className="px-3.5 py-1.5 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
-            >
-              Save & New
-            </button>
-
-            <button
-              type="button"
-              disabled={isSubmitting}
-              onClick={() => handleSubmit(false)}
-              className="px-4 py-1.5 bg-[#174B43] hover:bg-[#123B35] active:bg-[#0F322C] text-white rounded-lg text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Saving...</span>
-                </>
-              ) : (
-                <span>Save</span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setIsShortcutsOpen(true)}
-              className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg transition-colors cursor-pointer shadow-2xs"
-              title="Shortcuts"
-            >
-              ⌨️
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Error Alert */}
-      {error && (
-        <div className="w-full mt-3 px-3 sm:px-6">
-          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-semibold flex items-center justify-between">
-            <span>{error}</span>
+      {/* Main Container */}
+      <main className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
+        {/* Error Alert */}
+        {error && (
+          <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs font-semibold text-rose-800 flex items-center justify-between shadow-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-base">⚠️</span>
+              <span>{error}</span>
+            </div>
             <button onClick={() => setError(null)} className="text-rose-500 font-bold hover:underline">
               ✕
             </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* 2. MAIN VOUCHER CANVAS (Exact myBillBook Structure) */}
-      <main className="w-full p-3 sm:p-5">
-        <div className="bg-white rounded-lg border border-slate-200 shadow-xs overflow-hidden">
-          {/* ROW 1: Bill To (Left) + Invoice Details (Right) */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
-            {/* LEFT BOX: Bill To */}
-            <div className="p-5 sm:p-6 space-y-3">
-              <div className="flex items-center justify-between text-xs text-slate-500 font-bold">
-                <span>Bill To</span>
+        {/* View Mode: Preview */}
+        {viewMode === "preview" ? (
+          <div className="space-y-4 animate-fadeIn">
+            {/* Preview Top Control Bar */}
+            <div className="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-xs">
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => setIsQuickSettingsOpen(true)}
-                  className="text-slate-400 hover:text-slate-700 p-1 rounded"
+                  onClick={() => setViewMode("edit")}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
-                  ⚙️
+                  <span>← {lang === "gu" ? "એડિટ મોડ પર પાછા જાઓ" : "Back to Edit Mode"}</span>
                 </button>
-              </div>
-
-              {!selectedParty ? (
-                /* Empty State: Large Dashed Blue Box matching myBillBook */
-                <div
-                  onClick={() => setIsAddPartyModalOpen(true)}
-                  className="w-full h-32 border-2 border-dashed border-[#93C5FD] hover:border-blue-500 rounded-xl bg-blue-50/20 hover:bg-blue-50/50 flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-all group"
-                >
-                  <span className="text-blue-600 font-bold text-xs sm:text-sm group-hover:scale-105 transition-transform flex items-center gap-1.5">
-                    <span className="text-lg">+</span>
-                    <span>Add Party</span>
-                  </span>
-                </div>
-              ) : (
-                /* Selected Party Display Card */
-                <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200 text-xs space-y-1 relative">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-slate-900 text-sm">{selectedParty.name}</h3>
-                    <button
-                      type="button"
-                      onClick={() => setIsAddPartyModalOpen(true)}
-                      className="text-blue-600 font-bold hover:underline text-[11px]"
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <span>{lang === "gu" ? "પ્રોફોર્મા ઇન્વોઇસ પ્રિવ્યૂ" : "Proforma Invoice Preview"}</span>
+                    <span
+                      className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
+                      style={{ backgroundColor: activeInvoiceTheme.accentColor || "#174B43" }}
                     >
-                      Change
-                    </button>
-                  </div>
-                  {selectedParty.phone && (
-                    <p className="text-slate-500">Phone: {selectedParty.phone}</p>
-                  )}
-                  {selectedParty.gstin && (
-                    <p className="font-mono text-indigo-700 font-bold">GSTIN: {selectedParty.gstin}</p>
-                  )}
-                  <p className="text-slate-500">
-                    Place of Supply: {placeOfSupply} -{" "}
-                    {INDIAN_STATES[placeOfSupply]?.name || "Gujarat"}
+                      {activeInvoiceTheme.uniqueThemeKey || activeInvoiceTheme.themeId}
+                    </span>
+                  </h2>
+                  <p className="text-[11px] text-slate-500">
+                    {lang === "gu" ? "સેટિંગ્સમાંથી પસંદ કરેલી થીમ મુજબ લાઇવ પ્રિવ્યૂ" : "Live preview rendered with your saved settings theme"}
                   </p>
                 </div>
-              )}
-            </div>
-
-            {/* RIGHT BOX: Invoice Details (Proforma No & Date & Due Date) */}
-            <div className="p-5 sm:p-6 space-y-3">
-              <div className="flex items-center justify-between text-xs text-slate-500 font-bold">
-                <span>Invoice Details</span>
+              </div>
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setIsQuickSettingsOpen(true)}
-                  className="text-slate-400 hover:text-slate-700 p-1 rounded"
+                  onClick={() => window.print()}
+                  className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
-                  ⚙️
+                  <span>🖨️ {lang === "gu" ? "પ્રિન્ટ" : "Print Document"}</span>
                 </button>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Proforma No. */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">
-                    Proforma Invoice No.
-                  </label>
-                  <input
-                    type="text"
-                    value={invoiceNumber}
-                    onChange={(e) => setInvoiceNumber(e.target.value)}
-                    className="w-full text-xs p-2.5 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
-                  />
-                </div>
-
-                {/* Proforma Date */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">
-                    Proforma Invoice Date
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      value={invoiceDate}
-                      onChange={(e) => setInvoiceDate(e.target.value)}
-                      className="w-full text-xs p-2.5 border border-slate-200 rounded-xl font-mono text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Due Date: + Add Due Date dashed button matching myBillBook */}
-              {!showDueDate ? (
-                <div
-                  onClick={() => setShowDueDate(true)}
-                  className="w-full py-2 border-2 border-dashed border-[#93C5FD] hover:border-blue-500 rounded-xl bg-blue-50/10 hover:bg-blue-50/30 flex items-center justify-center gap-1.5 cursor-pointer transition-all"
-                >
-                  <span className="text-blue-600 font-bold text-xs flex items-center gap-1">
-                    <span>+</span>
-                    <span>Add Due Date</span>
-                  </span>
-                </div>
-              ) : (
-                <div className="pt-1">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-xs font-semibold text-slate-600 mb-1">
-                      Due Date
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowDueDate(false)}
-                      className="text-[11px] text-slate-400 hover:text-slate-600"
-                    >
-                      ✕ Remove
-                    </button>
-                  </div>
-                  <input
-                    type="date"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full text-xs p-2.5 border border-slate-200 rounded-xl font-mono text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
-                  />
-                </div>
-              )}
             </div>
-          </div>
 
-          {/* ROW 2: ITEMS TABLE (Exact Grid from myBillBook screenshot) */}
-          <div className="border-t border-slate-200">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead className="bg-[#FAFBFD] text-slate-500 uppercase tracking-wider font-bold border-b border-slate-200 text-[11px]">
-                  <tr>
-                    <th className="py-2.5 px-3 w-12 text-center">NO</th>
-                    <th className="py-2.5 px-3 min-w-[240px]">ITEMS</th>
-                    <th className="py-2.5 px-3 w-28">HSN</th>
-                    <th className="py-2.5 px-3 w-28 text-right">QTY</th>
-                    <th className="py-2.5 px-3 w-32 text-right">PRICE/ITEM (₹)</th>
-                    <th className="py-2.5 px-3 w-28 text-right">DISCOUNT</th>
-                    <th className="py-2.5 px-3 w-24 text-right">TAX</th>
-                    <th className="py-2.5 px-4 w-32 text-right">AMOUNT (₹)</th>
-                    <th className="py-2.5 px-2 w-10 text-center">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setQuickSettingsTab("items");
-                          setIsQuickSettingsOpen(true);
-                        }}
-                        className="text-slate-400 hover:text-slate-700 p-1"
-                      >
-                        ⚙️
-                      </button>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {rows.map((row, idx) => {
-                    const qty = Number(row.quantity) || 0;
-                    const rate = Number(row.unitPrice) || 0;
-                    const discPercent = Number(row.discountPercent) || 0;
-                    const gross = qty * rate;
-                    const discVal = (gross * discPercent) / 100;
+            {/* Themed Document using DynamicThemedInvoice */}
+            <div className="bg-slate-100/70 p-4 sm:p-8 rounded-2xl border border-slate-200 overflow-x-auto flex justify-center">
+              <DynamicThemedInvoice
+                invoice={{
+                  category: "PROFORMA_INVOICE",
+                  invoiceNumber: invoiceNumber || "PI-001",
+                  invoiceDate: invoiceDate,
+                  dueDate: dueDate,
+                  paymentMode: "PROFORMA",
+                  placeOfSupply: placeOfSupply ? `State Code (${placeOfSupply})` : "Gujarat (24)",
+                  taxableAmount: totalTaxable,
+                  cgstAmount: totalCgst,
+                  sgstAmount: totalSgst,
+                  igstAmount: totalIgst,
+                  roundOff: autoRoundOff ? grandTotal - rawSubtotal : 0,
+                  grandTotal: grandTotal,
+                  paidAmount: Number(paymentAmountReceived) || 0,
+                  balanceAmount: balanceAmount,
+                  notes: notes,
+                  party: {
+                    name: selectedParty?.name || "Customer / Prospect",
+                    gstin: selectedParty?.gstin,
+                    phone: selectedParty?.phone,
+                    billingAddress: selectedParty?.billingAddress?.line1 || selectedParty?.address,
+                  },
+                  items: rows.map((r, idx) => {
+                    const q = Number(r.quantity) || 0;
+                    const rate = Number(r.unitPrice) || 0;
+                    const gross = q * rate;
+                    const disc = Number(r.discountPercent) || 0;
+                    const discVal = (gross * disc) / 100;
                     const taxable = Math.max(0, gross - discVal);
-                    const taxVal = (taxable * row.taxRate) / 100;
-                    const lineTotal = taxable + taxVal;
-
-                    return (
-                      <tr key={row.id} className="hover:bg-slate-50/60 transition-colors">
-                        <td className="py-2.5 px-3 text-center text-slate-400 font-mono font-semibold">
-                          {idx + 1}
-                        </td>
-                        <td className="py-2.5 px-3">
-                          <input
-                            type="text"
-                            value={row.itemName}
-                            onChange={(e) => handleUpdateRow(row.id, "itemName", e.target.value)}
-                            placeholder="Type item name..."
-                            className="w-full p-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          />
-                        </td>
-                        <td className="py-2.5 px-3">
-                          <input
-                            type="text"
-                            value={row.hsnCode}
-                            onChange={(e) => handleUpdateRow(row.id, "hsnCode", e.target.value)}
-                            placeholder="HSN"
-                            className="w-full p-1.5 border border-slate-200 rounded-lg text-xs font-mono text-slate-800 focus:outline-none"
-                          />
-                        </td>
-                        <td className="py-2.5 px-3">
-                          <input
-                            type="number"
-                            min="0.01"
-                            step="any"
-                            value={row.quantity}
-                            onChange={(e) => handleUpdateRow(row.id, "quantity", e.target.value)}
-                            className="w-full p-1.5 border border-slate-200 rounded-lg text-xs font-mono font-bold text-right text-slate-900 focus:outline-none"
-                          />
-                        </td>
-                        <td className="py-2.5 px-3">
-                          <input
-                            type="number"
-                            min="0"
-                            step="any"
-                            value={row.unitPrice}
-                            onChange={(e) => handleUpdateRow(row.id, "unitPrice", e.target.value)}
-                            className="w-full p-1.5 border border-slate-200 rounded-lg text-xs font-mono font-bold text-right text-slate-900 focus:outline-none"
-                          />
-                        </td>
-                        <td className="py-2.5 px-3">
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            step="any"
-                            value={row.discountPercent}
-                            onChange={(e) => handleUpdateRow(row.id, "discountPercent", e.target.value)}
-                            placeholder="%"
-                            className="w-full p-1.5 border border-slate-200 rounded-lg text-xs font-mono text-right text-slate-700 focus:outline-none"
-                          />
-                        </td>
-                        <td className="py-2.5 px-3">
-                          <div className="relative flex items-center min-w-[70px]">
-                            <input
-                              type="number"
-                              step="any"
-                              min="0"
-                              max="100"
-                              list="gst-rates-proforma"
-                              value={row.taxRate}
-                              onChange={(e) => handleUpdateRow(row.id, "taxRate", Number(e.target.value) || 0)}
-                              placeholder="0"
-                              className="w-full p-1.5 pr-4 border border-slate-200 rounded-lg text-xs font-mono font-bold text-right text-indigo-700 focus:outline-none"
-                            />
-                            <span className="absolute right-1 text-[11px] font-bold text-slate-400 pointer-events-none">%</span>
-                          </div>
-                          <datalist id="gst-rates-proforma">
-                            <option value="0">0% (None)</option>
-                            <option value="0.1">0.1%</option>
-                            <option value="0.25">0.25%</option>
-                            <option value="3">3%</option>
-                            <option value="5">5%</option>
-                            <option value="12">12%</option>
-                            <option value="18">18%</option>
-                            <option value="28">28%</option>
-                          </datalist>
-                        </td>
-                        <td className="py-2.5 px-4 text-right font-mono font-bold text-slate-900">
-                          {formatInr(lineTotal)}
-                        </td>
-                        <td className="py-2.5 px-2 text-center">
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveRow(row.id)}
-                            className="text-slate-400 hover:text-rose-600 p-1 cursor-pointer"
-                            title="Delete"
-                          >
-                            ✕
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-
-              {/* Large Dashed Blue Box: + Add Item & Scan Barcode */}
-              <div className="p-3 border-t border-slate-100 flex items-center justify-between gap-3">
-                <div
-                  onClick={() => setIsAddItemsModalOpen(true)}
-                  className="flex-1 py-3 border-2 border-dashed border-[#93C5FD] hover:border-blue-500 rounded-xl bg-blue-50/20 hover:bg-blue-50/40 flex items-center justify-center gap-2 cursor-pointer transition-colors group"
-                >
-                  <span className="text-blue-600 font-bold text-xs group-hover:scale-105 transition-transform">
-                    + Add Item
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setIsBarcodeOpen(true)}
-                  className="px-4 py-3 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-2 shrink-0 cursor-pointer shadow-2xs"
-                >
-                  <span>📷</span>
-                  <span>Scan Barcode</span>
-                </button>
-              </div>
-
-              {/* Table Footer: Subtotal Row */}
-              <div className="bg-[#FAFBFD] border-t border-slate-200 px-4 py-2.5 flex items-center text-xs font-semibold text-slate-600">
-                <div className="w-12 text-center"></div>
-                <div className="min-w-[240px] font-bold text-slate-700">Subtotal</div>
-                <div className="w-28"></div>
-                <div className="w-28 text-right font-mono font-bold text-slate-900">{totalQuantity}</div>
-                <div className="w-32"></div>
-                <div className="w-28 text-right font-mono text-slate-600">₹ {totalDiscount.toFixed(2)}</div>
-                <div className="w-24 text-right font-mono text-slate-600">₹ {totalTax.toFixed(2)}</div>
-                <div className="w-32 text-right font-mono font-bold text-slate-900 pr-1">
-                  ₹ {totalTaxable.toFixed(2)}
-                </div>
-                <div className="w-10"></div>
-              </div>
+                    const taxRate = Number(r.taxRate) || 0;
+                    const taxAmt = (taxable * taxRate) / 100;
+                    return {
+                      id: `row-${idx}`,
+                      description: r.itemName || "Product / Item",
+                      hsnCode: r.hsnCode,
+                      quantity: q,
+                      unit: r.unit || "PCS",
+                      unitPrice: rate,
+                      discountPercent: disc,
+                      taxRate: taxRate,
+                      taxableAmount: taxable,
+                      cgstAmount: isInterState ? 0 : taxAmt / 2,
+                      sgstAmount: isInterState ? 0 : taxAmt / 2,
+                      igstAmount: isInterState ? taxAmt : 0,
+                      totalAmount: taxable + taxAmt,
+                      item: { name: r.itemName },
+                    };
+                  }),
+                }}
+                settings={{
+                  ...activeInvoiceTheme,
+                  termsAndConditions: {
+                    ...activeInvoiceTheme.termsAndConditions,
+                    sales: terms || activeInvoiceTheme.termsAndConditions?.sales,
+                  },
+                }}
+                company={{
+                  tradeName: currentCompany?.tradeName || currentCompany?.legalName || "My Company",
+                  legalName: currentCompany?.legalName,
+                  addressLine1: (currentCompany as any)?.address || currentCompany?.city || "Gujarat, India",
+                  city: currentCompany?.city,
+                  gstin: currentCompany?.gstin,
+                  phone: (currentCompany as any)?.phone,
+                  stateCode: currentCompany?.stateCode || "24",
+                }}
+                printableId="printable-proforma-invoice"
+              />
             </div>
           </div>
+        ) : (
+          <div className="space-y-4">
+            {/* DOCUMENT HEADER CARD */}
+            <DocumentHeaderCard
+              title={lang === "gu" ? "પ્રોફોર્મા ઇન્વોઇસ" : "Proforma Invoice"}
+              subtitle={lang === "gu" ? "પ્રોફોર્મા ઇન્વોઇસ બનાવો અને મેનેજ કરો" : "Create and manage your proforma invoice"}
+              status="Draft"
+              onPreview={() => setViewMode("preview")}
+              onPrint={() => window.print()}
+              onSave={() => handleSubmit(false)}
+              onSaveAsDraft={() => handleSubmit(true)}
+              isSaving={isSubmitting}
+              saveButtonLabel="Save Proforma"
+              moreMenuItems={[
+                { label: "Quick Settings", onClick: () => { setQuickSettingsTab("invoice"); setIsQuickSettingsOpen(true); } },
+                { label: "Keyboard Shortcuts", onClick: () => setIsShortcutsOpen(true) },
+                { label: "Authorized Signature", onClick: () => setIsSignatureModalOpen(true) },
+              ]}
+            />
 
-          {/* ROW 3: BOTTOM SECTION (Left: Notes/Terms | Right: Totals) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200 border-t border-slate-200">
-            {/* LEFT COLUMN: Add Notes, Terms & Conditions, Bank & QR */}
-            <div className="lg:col-span-7 p-5 sm:p-6 space-y-4">
-              {/* Add Notes */}
-              <div>
-                {!showNotes ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowNotes(true)}
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <span>📝</span>
-                    <span>Add Notes</span>
-                  </button>
-                ) : (
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between text-xs text-slate-500 font-semibold">
-                      <span>Notes</span>
-                      <button
-                        type="button"
-                        onClick={() => setShowNotes(false)}
-                        className="text-slate-400 hover:text-slate-600 text-xs"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                    <textarea
-                      rows={2}
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Enter notes visible to client..."
-                      className="w-full p-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+            {/* 5-COLUMN DOCUMENT INFO STRIP */}
+            <DocumentInfoStrip
+              fields={[
+                {
+                  id: "customer",
+                  label: "Customer",
+                  required: true,
+                  type: "custom",
+                  customRender: (
+                    <PartySelectorCompact
+                      selectedParty={selectedParty}
+                      searchTerm={partySearchQuery}
+                      onSearchChange={setPartySearchQuery}
+                      isOpen={isAddPartyModalOpen}
+                      onOpenChange={setIsAddPartyModalOpen}
+                      filteredParties={filteredParties}
+                      onSelectParty={(id) => {
+                        setPartyId(id);
+                        const p = parties.find((party) => party.id === id);
+                        if (p?.stateCode) setPlaceOfSupply(p.stateCode);
+                      }}
+                      onClearParty={() => {
+                        setPartyId("");
+                        setPartySearchQuery("");
+                      }}
+                      onAddNew={() => setIsAddPartyModalOpen(true)}
+                      placeholder="Search customer..."
                     />
-                  </div>
-                )}
+                  ),
+                },
+                {
+                  id: "invoiceNumber",
+                  label: "Proforma No.",
+                  type: "text",
+                  value: invoiceNumber,
+                  onChange: setInvoiceNumber,
+                  placeholder: "PI-001",
+                },
+                {
+                  id: "invoiceDate",
+                  label: "Proforma Date",
+                  type: "date",
+                  value: invoiceDate,
+                  onChange: setInvoiceDate,
+                },
+                {
+                  id: "dueDate",
+                  label: "Valid Till",
+                  type: "date",
+                  value: dueDate,
+                  onChange: setDueDate,
+                },
+                {
+                  id: "placeOfSupply",
+                  label: "Place of Supply",
+                  type: "select",
+                  value: placeOfSupply,
+                  onChange: setPlaceOfSupply,
+                  options: Object.entries(INDIAN_STATES).map(([code, st]) => ({
+                    label: `${st.name} (${code})`,
+                    value: code,
+                  })),
+                },
+              ]}
+            />
+
+            {/* MAIN 2-COLUMN WORKSPACE MATCHING REFERENCE IMAGE */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              {/* Left Column (8 cols): Items & Services Table + Notes & Additional Info */}
+              <div className="lg:col-span-8 space-y-5">
+                <DocumentItemsCard
+                  title="Items & Services"
+                  itemsCount={rows.length}
+                  totalQty={totalQuantity}
+                  itemsTotal={grandTotal}
+                  onScanItem={() => setIsBarcodeOpen(true)}
+                  onImportItems={() => setIsAddItemsModalOpen(true)}
+                  onAddItem={() => setIsAddItemsModalOpen(true)}
+                  onAddBlankRow={() => {
+                    const newRow: ProformaItemRow = {
+                      id: `row-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+                      itemId: items[0]?.id || "",
+                      itemName: items[0]?.name || "",
+                      hsnCode: items[0]?.hsnCode || "1001",
+                      quantity: 1,
+                      unit: "PCS",
+                      unitPrice: items[0]?.retailPrice || 0,
+                      discountPercent: 0,
+                      taxRate: items[0]?.taxRate ?? 18,
+                    };
+                    setRows((prev) => [...prev, newRow]);
+                  }}
+                  addItemLabel="+ Add Item"
+                >
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 font-bold text-[11px] uppercase tracking-wider">
+                      <tr>
+                        <th className="py-3 px-3.5 text-center w-12">#</th>
+                        <th className="py-3 px-3.5">Item / Description</th>
+                        <th className="py-3 px-3 text-center w-28">HSN/SAC</th>
+                        <th className="py-3 px-3 text-right w-24">Qty</th>
+                        <th className="py-3 px-3 text-right w-28">Rate (₹)</th>
+                        <th className="py-3 px-3 text-right w-24">Discount</th>
+                        <th className="py-3 px-3 text-right w-24">Tax (%)</th>
+                        <th className="py-3 px-3 text-right w-28">Amount (₹)</th>
+                        <th className="py-3 px-3 text-center w-16">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {rows.length === 0 ? (
+                        <tr>
+                          <td colSpan={9} className="py-12 text-center text-slate-400">
+                            <div className="max-w-xs mx-auto space-y-2">
+                              <span className="text-2xl">📦</span>
+                              <p className="font-bold text-slate-700">No items added yet</p>
+                              <p className="text-[11px] text-slate-400">Add an item from catalog or enter details below</p>
+                              <button
+                                type="button"
+                                onClick={() => setIsAddItemsModalOpen(true)}
+                                className="px-3.5 py-1.5 bg-[#174B43] text-white rounded-xl text-xs font-bold shadow-2xs cursor-pointer"
+                              >
+                                + Add From Catalog
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        rows.map((row, idx) => {
+                          const q = Number(row.quantity) || 0;
+                          const rate = Number(row.unitPrice) || 0;
+                          const disc = Number(row.discountPercent) || 0;
+                          const gross = q * rate;
+                          const net = gross - (gross * disc) / 100;
+                          const lineTax = (net * row.taxRate) / 100;
+                          const lineTotal = net + lineTax;
+
+                          return (
+                            <tr key={row.id || `row-${idx}`} className="hover:bg-slate-50/70 transition-colors">
+                              <td className="py-3 px-3 text-center text-slate-400 font-mono text-[11px]">
+                                {idx + 1}
+                              </td>
+
+                              <td className="py-3 px-3">
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <select
+                                      value={row.itemId}
+                                      onChange={(e) => handleUpdateRow(row.id, "itemId", e.target.value)}
+                                      className="w-full text-xs py-1.5 px-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl font-bold text-slate-800"
+                                    >
+                                      {items.map((it) => (
+                                        <option key={it.id} value={it.id}>
+                                          {it.name} (Stock: {it.stockQuantity ?? 0})
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </div>
+                              </td>
+
+                              <td className="py-3 px-3">
+                                <input
+                                  type="text"
+                                  value={row.hsnCode}
+                                  onChange={(e) => handleUpdateRow(row.id, "hsnCode", e.target.value)}
+                                  className="w-full text-xs py-1.5 px-2 text-center font-mono bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white"
+                                  placeholder="1001"
+                                />
+                              </td>
+
+                              <td className="py-3 px-3">
+                                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
+                                  <input
+                                    type="number"
+                                    min="0.001"
+                                    step="any"
+                                    value={row.quantity}
+                                    onChange={(e) => handleUpdateRow(row.id, "quantity", e.target.value === "" ? "" : Number(e.target.value))}
+                                    className="w-full text-xs text-right font-mono font-bold text-slate-800 bg-transparent focus:outline-none"
+                                  />
+                                </div>
+                              </td>
+
+                              <td className="py-3 px-3">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  value={row.unitPrice}
+                                  onChange={(e) => handleUpdateRow(row.id, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))}
+                                  className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white"
+                                />
+                              </td>
+
+                              <td className="py-3 px-3">
+                                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    value={row.discountPercent}
+                                    onChange={(e) => handleUpdateRow(row.id, "discountPercent", e.target.value === "" ? "" : Number(e.target.value))}
+                                    placeholder="0"
+                                    className="w-full text-xs text-right font-mono bg-transparent focus:outline-none"
+                                  />
+                                  <span className="text-[10px] text-slate-400">%</span>
+                                </div>
+                              </td>
+
+                              <td className="py-3 px-3">
+                                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
+                                  <input
+                                    type="number"
+                                    step="any"
+                                    value={row.taxRate}
+                                    onChange={(e) => handleUpdateRow(row.id, "taxRate", Number(e.target.value) || 0)}
+                                    placeholder="18"
+                                    className="w-full text-xs text-right font-mono font-bold bg-transparent focus:outline-none"
+                                  />
+                                  <span className="text-[10px] text-slate-400">%</span>
+                                </div>
+                              </td>
+
+                              <td className="py-3 px-3 text-right font-mono font-black text-slate-900 text-xs">
+                                ₹ {lineTotal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </td>
+
+                              <td className="py-3 px-3 text-center">
+                                <div className="flex items-center justify-center gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveRow(row.id)}
+                                    className="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
+                                    title="Delete row"
+                                  >
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </DocumentItemsCard>
+
+                {/* Side-by-side: Notes & Terms + Additional Information */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <DocumentNotesAndTermsCard
+                    activeTab={activeNotesTab}
+                    onTabChange={setActiveNotesTab}
+                    notes={notes}
+                    onNotesChange={setNotes}
+                    terms={terms}
+                    onTermsChange={setTerms}
+                  />
+
+                  <DocumentAdditionalInfoCard
+                    transportMode={transportMode}
+                    onTransportModeChange={setTransportMode}
+                    vehicleNo={vehicleNo}
+                    onVehicleNoChange={setVehicleNo}
+                    ewayBillNo={ewayBillNo}
+                    onEwayBillNoChange={setEwayBillNo}
+                    dispatchDate={dispatchDate}
+                    onDispatchDateChange={setDispatchDate}
+                  />
+                </div>
               </div>
 
-              {/* Terms and Conditions */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs text-slate-600 font-bold">
-                  <span>Terms & Conditions</span>
-                  {terms && (
-                    <button
-                      type="button"
-                      onClick={() => setTerms("")}
-                      className="text-slate-400 hover:text-slate-700 text-xs p-1"
-                      title="Clear terms"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-                <textarea
-                  rows={3}
-                  value={terms}
-                  onChange={(e) => setTerms(e.target.value)}
-                  className="w-full p-2.5 border border-slate-200 rounded-xl text-xs font-mono text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-slate-50/30"
+              {/* Right Column (4 cols): Summary Card + Payment Details Card */}
+              <div className="lg:col-span-4 space-y-5">
+                <DocumentSummaryCard
+                  title="Proforma Summary"
+                  subtotal={totalTaxable}
+                  discount={Number(overallDiscountAmount) > 0 ? Number(overallDiscountAmount) : undefined}
+                  cgst={!isInterState ? totalCgst : undefined}
+                  sgst={!isInterState ? totalSgst : undefined}
+                  igst={isInterState ? totalIgst : undefined}
+                  roundOff={autoRoundOff ? (grandTotal - (totalTaxable + totalTax)) : undefined}
+                  grandTotal={grandTotal}
+                />
+
+                <DocumentPaymentCard
+                  amountReceived={paymentAmountReceived}
+                  onAmountReceivedChange={(val) => setPaymentAmountReceived(val === "" ? "" : val)}
+                  paymentMode={paymentMode}
+                  onPaymentModeChange={setPaymentMode}
+                  balanceDue={balanceAmount}
+                  onPaidInFull={() => setPaymentAmountReceived(grandTotal)}
                 />
               </div>
-
-              {/* Bank Details & Payment QR Links */}
-              <div className="space-y-2 pt-1 border-t border-slate-100">
-                {!showBankDetails ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowBankDetails(true)}
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <span>🏛️</span>
-                    <span>Add Bank Account</span>
-                  </button>
-                ) : (
-                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
-                    <div>
-                      <strong className="text-slate-800">
-                        {currentCompany?.bankName || "State Bank of India"}
-                      </strong>
-                      <div className="text-[11px] font-mono">
-                        A/C: {currentCompany?.bankAccountNo || "382901298471"} | IFSC:{" "}
-                        {currentCompany?.bankIfsc || "SBIN0001234"}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setShowBankDetails(false)}
-                      className="text-slate-400 hover:text-slate-700 text-xs"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                )}
-
-                {!showPaymentQr ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowPaymentQr(true)}
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <span>📱</span>
-                    <span>Add Payment QR</span>
-                  </button>
-                ) : (
-                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">📱</span>
-                      <div>
-                        <strong className="text-slate-800">Dynamic UPI QR</strong>
-                        <div className="text-[11px] text-slate-500">
-                          UPI ID: {currentCompany?.upiVpa || "business@upi"}
-                        </div>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setShowPaymentQr(false)}
-                      className="text-slate-400 hover:text-slate-700 text-xs"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                )}
-              </div>
             </div>
 
-            {/* RIGHT COLUMN: Additional Charges, Discounts, Auto Round Off, Totals, Signature */}
-            <div className="lg:col-span-5 p-5 sm:p-6 space-y-3.5 bg-white">
-              {/* Add Additional Charges */}
-              <div>
-                {!showAdditionalCharges ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowAdditionalCharges(true)}
-                    className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer"
-                  >
-                    <span className="text-sm font-black">+</span>
-                    <span>Add Additional Charges</span>
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={additionalChargeName}
-                      onChange={(e) => setAdditionalChargeName(e.target.value)}
-                      className="flex-1 p-1.5 border border-slate-200 rounded-lg text-xs"
-                    />
-                    <input
-                      type="number"
-                      min="0"
-                      value={additionalChargeAmount}
-                      onChange={(e) => setAdditionalChargeAmount(e.target.value === "" ? "" : Number(e.target.value))}
-                      placeholder="₹ 0"
-                      className="w-24 p-1.5 border border-slate-200 rounded-lg text-xs text-right font-mono"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowAdditionalCharges(false);
-                        setAdditionalChargeAmount("");
-                      }}
-                      className="text-slate-400 hover:text-slate-600 text-xs"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Taxable Amount Summary */}
-              <div className="flex items-center justify-between text-xs text-slate-600">
-                <span className="font-semibold">Taxable Amount</span>
-                <span className="font-mono font-bold text-slate-900">
-                  {formatInr(totalTaxable)}
-                </span>
-              </div>
-
-              {/* Add Discount */}
-              <div>
-                {!showOverallDiscount ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowOverallDiscount(true)}
-                    className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer"
-                  >
-                    <span className="text-sm font-black">+</span>
-                    <span>Add Discount</span>
-                  </button>
-                ) : (
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs text-slate-600 font-semibold">Overall Discount</span>
-                    <div className="flex items-center gap-1">
-                      <input
-                        type="number"
-                        min="0"
-                        value={overallDiscountAmount}
-                        onChange={(e) => setOverallDiscountAmount(e.target.value === "" ? "" : Number(e.target.value))}
-                        placeholder="₹ 0"
-                        className="w-28 p-1.5 border border-slate-200 rounded-lg text-xs text-right font-mono"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowOverallDiscount(false);
-                          setOverallDiscountAmount("");
-                        }}
-                        className="text-slate-400 hover:text-slate-600 text-xs"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Auto Round Off */}
-              <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={autoRoundOff}
-                    onChange={(e) => setAutoRoundOff(e.target.checked)}
-                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                  />
-                  <span className="font-semibold text-slate-700">Auto Round Off</span>
-                </label>
-                <span className="font-mono text-slate-500 text-xs">
-                  {autoRoundOff ? (grandTotal - rawSubtotal).toFixed(2) : "0.00"}
-                </span>
-              </div>
-
-              {/* Total Amount & Payment Received input */}
-              <div className="pt-2 border-t border-slate-200 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-slate-900">Total Amount:</span>
-                  <span className="text-base font-black font-mono text-slate-900">
-                    {formatInr(grandTotal)}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs font-semibold text-slate-600">Advance / Received:</span>
-                  <div className="relative w-44">
-                    <span className="absolute inset-y-0 left-2.5 flex items-center text-slate-400 text-xs">
-                      ₹
-                    </span>
-                    <input
-                      type="number"
-                      min="0"
-                      value={paymentAmountReceived}
-                      onChange={(e) => setPaymentAmountReceived(e.target.value === "" ? "" : Number(e.target.value))}
-                      placeholder="Enter payment amount"
-                      className="w-full pl-6 pr-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-mono font-bold text-right text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-xs font-bold pt-1">
-                  <span className="text-slate-600">Balance Amount</span>
-                  <span className="font-mono text-emerald-700 font-black">
-                    {formatInr(balanceAmount)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Add Signature Dashed Box matching myBillBook */}
-              <div className="pt-4 flex justify-end">
-                {!signatureData ? (
-                  <div
-                    onClick={() => setIsSignatureModalOpen(true)}
-                    className="w-48 h-20 border-2 border-dashed border-[#93C5FD] hover:border-blue-500 rounded-xl bg-blue-50/10 hover:bg-blue-50/30 flex items-center justify-center cursor-pointer transition-all group"
-                  >
-                    <span className="text-blue-600 font-bold text-xs group-hover:scale-105 transition-transform">
-                      + Add Signature
-                    </span>
-                  </div>
-                ) : (
-                  <div className="relative group border border-slate-200 rounded-xl p-2 bg-white">
-                    <img src={signatureData} alt="Signature" className="h-16 w-auto object-contain" />
-                    <button
-                      type="button"
-                      onClick={() => setSignatureData(null)}
-                      className="absolute top-1 right-1 bg-rose-500 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* STICKY BOTTOM ACTION BAR */}
+            <DocumentBottomBar
+              totalItems={rows.length}
+              totalAmount={grandTotal}
+              onSaveAsDraft={() => handleSubmit(true)}
+              onSave={() => handleSubmit(false)}
+              isSaving={isSubmitting}
+              saveButtonLabel="Save Proforma"
+              backHref="/sales/proforma"
+            />
           </div>
-        </div>
+
+        )}
       </main>
 
       {/* 3. MODALS */}
@@ -1351,12 +1121,14 @@ export default function CreateProformaInvoicePage() {
         }}
       />
 
-      {/* Live Preview Modal */}
+      {/* Live Preview Modal (if modal view is requested) */}
       <InvoiceLivePreviewModal
-        isOpen={viewMode === "preview"}
+        isOpen={false}
         onClose={() => setViewMode("edit")}
         customization={customization}
         lang={lang}
+        companyId={currentCompany?.id}
+        settings={activeInvoiceTheme}
         invoiceData={{
           category: "PROFORMA_INVOICE",
           invoiceNumber,

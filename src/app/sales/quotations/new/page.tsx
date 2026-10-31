@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/auth-context";
 import { apiClient, extractList } from "@/lib/api-client";
+import { useActiveInvoiceTheme } from "@/lib/use-active-invoice-theme";
+import { DynamicThemedInvoice } from "@/components/invoice/dynamic-themed-invoice";
 import { AddItemsModal, CatalogItem } from "@/components/invoice/add-items-modal";
 import { InvoiceLivePreviewModal } from "@/components/invoice/invoice-live-preview-modal";
 import { ConfettiCanvas } from "@/components/invoice/confetti-canvas";
@@ -21,6 +23,17 @@ import {
   DEFAULT_INVOICE_CUSTOMIZATION,
 } from "@/lib/invoice-theme";
 import { getPartyItemPrice } from "@/lib/party-item-pricing";
+import {
+  DocumentHeaderCard,
+  DocumentInfoStrip,
+  DocumentItemsCard,
+  DocumentNotesAndTermsCard,
+  DocumentAdditionalInfoCard,
+  DocumentSummaryCard,
+  DocumentBottomBar,
+  PartySelectorCompact,
+} from "@/components/document-studio";
+import { INDIAN_STATES } from "@/shared-types";
 
 interface PartyOption {
   id: string;
@@ -66,6 +79,7 @@ interface AdditionalChargeItem {
 export default function NewQuotationPage() {
   const router = useRouter();
   const { lang, tenantContext, currentCompany } = useAuth();
+  const { state: activeInvoiceTheme } = useActiveInvoiceTheme(currentCompany?.id);
 
   // Data lists
   const [parties, setParties] = useState<PartyOption[]>([]);
@@ -122,7 +136,12 @@ export default function NewQuotationPage() {
 
   // Bottom Add-ons
   const [showNotes, setShowNotes] = useState(false);
-  const [notes, setNotes] = useState("");
+    const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
+  const [transportMode, setTransportMode] = useState("Road");
+  const [vehicleNo, setVehicleNo] = useState("");
+  const [ewayBillNo, setEwayBillNo] = useState("");
+  const [dispatchDate, setDispatchDate] = useState("");
+const [notes, setNotes] = useState("");
   const [termsAndConditions, setTermsAndConditions] = useState(
     "1. Goods once sold will not be taken back or exchanged\n2. All disputes are subject to [ENTER_YOUR_CITY_NAME] jurisdiction only"
   );
@@ -650,7 +669,7 @@ export default function NewQuotationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F0F2F5] pb-24 text-slate-800">
+    <div className="min-h-screen bg-[#F6F8F7] pb-24 text-slate-800">
       {/* Confetti Animation Canvas */}
       <ConfettiCanvas
         active={isConfettiActive}
@@ -659,985 +678,461 @@ export default function NewQuotationPage() {
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-fade-in text-xs font-semibold">
-          <span>✓</span>
+        <div className="fixed bottom-6 right-6 z-50 bg-[#174B43] text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-fade-in text-xs font-semibold border border-[#85D5C2]/40">
+          <span className="w-4 h-4 rounded-full bg-emerald-400 text-[#174B43] flex items-center justify-center text-[10px] font-black">✓</span>
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* TOP NAVBAR (Exact myBillBook Header)                                      */}
-      {/* ========================================================================= */}
-      <header className="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-2xs px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4">
-        {/* Left: Exit + Title */}
-        <div className="flex items-center gap-3">
-          <Link
-            href="/sales/quotations"
-            className="px-3 py-1.5 border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
-            title="Exit to Quotations Register"
-          >
-            <span>←</span>
-            <span>Exit</span>
-          </Link>
-          <div className="h-5 w-px bg-slate-200" />
-          <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-            Create Quotation / Estimate
-          </h1>
-        </div>
+      {/* =========================================================================
+          TOP BAR: Compact Forest Teal Signature Enterprise Toolbar (Full-Width)
+          ========================================================================= */}
+      {/* Top header replaced by unified DocumentHeaderCard */}
 
-        {/* Center: Mode Toggles (Edit Mode vs Preview Mode) */}
-        <div className="hidden md:flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200">
-          <button
-            type="button"
-            onClick={() => setMode("edit")}
-            className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${
-              mode === "edit"
-                ? "bg-white text-[#174B43] shadow-2xs"
-                : "text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            ✏️ Edit Mode
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsPreviewModalOpen(true)}
-            className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${
-              mode === "preview"
-                ? "bg-white text-[#174B43] shadow-2xs"
-                : "text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            👁️ Preview Mode
-          </button>
-        </div>
-
-        {/* Right: Settings, Save & New, Save, Shortcuts */}
-        <div className="flex items-center gap-2">
-          {/* Quick Settings Gear */}
-          <button
-            type="button"
-            onClick={() => {
-              setQuickSettingsTab("items");
-              setIsQuickSettingsOpen(true);
-            }}
-            className="p-2 border border-slate-200 hover:bg-slate-50 rounded-lg text-slate-600 transition-colors cursor-pointer"
-            title="Quotation Settings"
-          >
-            ⚙️
-          </button>
-
-          {/* Save & New */}
-          <button
-            type="button"
-            disabled={isSubmitting}
-            onClick={() => handleSave(false, true)}
-            className="hidden sm:inline-flex items-center px-4 py-1.5 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold shadow-2xs transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
-            title="Save and create another quotation"
-          >
-            Save & New
-          </button>
-
-          {/* Primary Save Quotation Button */}
-          <button
-            type="button"
-            disabled={isSubmitting}
-            onClick={() => handleSave(false, false)}
-            className="px-6 py-1.5 bg-[#174B43] hover:bg-[#123B35] text-white rounded-lg text-xs font-bold shadow-xs transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
-          >
-            {isSubmitting ? (
-              <span className="animate-spin text-sm">⏳</span>
-            ) : (
-              <span>✓</span>
-            )}
-            <span>Save</span>
-          </button>
-
-          {/* Keyboard Shortcuts Icon */}
-          <button
-            type="button"
-            onClick={() => setIsShortcutsOpen(true)}
-            className="p-2 border border-slate-200 hover:bg-slate-50 rounded-lg text-slate-600 transition-colors cursor-pointer"
-            title="Keyboard Shortcuts"
-          >
-            ⌨️
-          </button>
-        </div>
-      </header>
-
-      {/* ========================================================================= */}
-      {/* MAIN CONTAINER (FULL SCREEN WIDE)                                         */}
-      {/* ========================================================================= */}
-      <main className="w-full px-4 sm:px-6 py-4 space-y-4">
+      {/* =========================================================================
+          MAIN APPLICATION CANVAS
+          ========================================================================= */}
+      <main className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
         {/* Error Alert */}
         {error && (
-          <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-semibold flex items-center justify-between shadow-2xs animate-shake">
+          <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs font-semibold text-rose-800 flex items-center justify-between shadow-xs">
             <div className="flex items-center gap-2">
               <span className="text-base">⚠️</span>
               <span>{error}</span>
             </div>
             <button
               onClick={() => setError(null)}
-              className="text-rose-400 hover:text-rose-700 font-bold"
+              className="text-rose-500 hover:text-rose-800 font-bold p-1 cursor-pointer"
             >
               ✕
             </button>
           </div>
         )}
 
-        {/* ========================================================================= */}
-        {/* ROW 1: 2-PANEL CARDS (BILL TO | INVOICE DETAILS) - EXACT MYBILLBOOK       */}
-        {/* ========================================================================= */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          
-          {/* CARD 1: BILL TO */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col justify-between min-h-[160px]">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <span className="text-xs font-bold text-slate-900 tracking-wider">Bill To</span>
-              <div className="flex items-center gap-1.5">
-                {selectedParty && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPartyFormData({
-                          name: selectedParty.name,
-                          phone: selectedParty.phone || "",
-                          gstin: selectedParty.gstin || "",
-                          billingLine1: selectedParty.address || "",
-                          billingCity: "Ahmedabad",
-                          billingState: "Gujarat",
-                          billingPincode: "380001",
-                          stateCode: selectedParty.stateCode || "24",
-                        });
-                        setIsCreatePartyModalOpen(true);
-                      }}
-                      className="text-[11px] font-bold text-slate-600 hover:text-slate-900 px-2 py-0.5 rounded border border-slate-200 hover:bg-slate-50 cursor-pointer"
-                    >
-                      ✏️ Edit Party
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsPartyDropdownOpen(true);
-                        setPartySearchTerm("");
-                      }}
-                      className="text-[11px] font-bold text-blue-600 hover:text-blue-800 px-2 py-0.5 rounded border border-blue-200 bg-blue-50/50 hover:bg-blue-50 cursor-pointer"
-                    >
-                      🔄 Change Party
-                    </button>
-                  </>
-                )}
+        {/* =======================================================================
+            VIEW MODE: PREVIEW MODE (A4 Document Sheet)
+            ======================================================================= */}
+        {mode === "preview" ? (
+          <div className="space-y-4 animate-fadeIn">
+            {/* Preview Top Control Bar */}
+            <div className="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-xs">
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => {
-                    setQuickSettingsTab("party");
-                    setIsQuickSettingsOpen(true);
-                  }}
-                  className="text-slate-400 hover:text-slate-700 text-xs p-1"
-                  title="Party Settings"
+                  onClick={() => setMode("edit")}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
-                  ⚙️
+                  <span>← {lang === "gu" ? "એડિટ મોડ પર પાછા જાઓ" : "Back to Edit Mode"}</span>
                 </button>
-              </div>
-            </div>
-
-            {/* Bill To Body */}
-            {!selectedParty ? (
-              <div className="py-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsPartyDropdownOpen(true);
-                    setPartySearchTerm("");
-                  }}
-                  className="w-full py-5 border-2 border-dashed border-blue-400 bg-blue-50/30 hover:bg-blue-50/70 transition-colors rounded-xl flex items-center justify-center cursor-pointer shadow-2xs group"
-                >
-                  <span className="text-blue-600 font-bold text-xs flex items-center gap-1.5 group-hover:scale-105 transition-transform">
-                    <span className="text-base font-black">+</span>
-                    <span>Add Party</span>
-                  </span>
-                </button>
-              </div>
-            ) : (
-              <div className="py-2 space-y-1">
-                <p className="text-sm font-extrabold text-slate-900">{selectedParty.name}</p>
-                <p className="text-xs text-slate-600">
-                  <span className="text-slate-400 font-medium">Phone Number: </span>
-                  <span className="font-semibold text-slate-800">{selectedParty.phone || "—"}</span>
-                </p>
-                {selectedParty.gstin && (
-                  <p className="text-xs text-slate-600 font-mono">
-                    <span className="text-slate-400 font-medium">GSTIN: </span>
-                    <span>{selectedParty.gstin}</span>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <span>{lang === "gu" ? "ક્વોટેશન પ્રિવ્યૂ" : "Quotation Preview"}</span>
+                    <span
+                      className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
+                      style={{ backgroundColor: activeInvoiceTheme.accentColor || "#174B43" }}
+                    >
+                      {activeInvoiceTheme.uniqueThemeKey || activeInvoiceTheme.themeId}
+                    </span>
+                  </h2>
+                  <p className="text-[11px] text-slate-500">
+                    {lang === "gu" ? "સેટિંગ્સમાંથી પસંદ કરેલી થીમ મુજબ લાઇવ પ્રિવ્યૂ" : "Live preview rendered with your saved settings theme"}
                   </p>
-                )}
-                {selectedParty.address && (
-                  <p className="text-xs text-slate-500 truncate" title={selectedParty.address}>
-                    {selectedParty.address}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Bill To Footer */}
-            {selectedParty && (
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                <span className="text-slate-500">Balance:</span>
-                <span
-                  className={`font-mono font-bold ${
-                    (selectedParty.outstandingBalance ?? 0) > 0
-                      ? "text-rose-600"
-                      : (selectedParty.outstandingBalance ?? 0) < 0
-                      ? "text-emerald-600"
-                      : "text-slate-500"
-                  }`}
-                >
-                  {formatInr(selectedParty.outstandingBalance ?? 0)}
-                  {(selectedParty.outstandingBalance ?? 0) > 0 ? " ↑" : (selectedParty.outstandingBalance ?? 0) < 0 ? " ↓" : ""}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* CARD 2: INVOICE DETAILS */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-4 flex flex-col justify-between min-h-[160px] space-y-2">
-            <div className="flex items-center justify-between pb-1 border-b border-slate-100">
-              <span className="text-xs font-bold text-slate-900 tracking-wider">Invoice Details</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setQuickSettingsTab("invoice");
-                  setIsQuickSettingsOpen(true);
-                }}
-                className="text-slate-400 hover:text-slate-700 text-xs p-1"
-                title="Invoice Settings"
-              >
-                ⚙️
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2.5 pt-1">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                  Quotation No.
-                </label>
-                <input
-                  type="text"
-                  value={quotationNumber}
-                  onChange={(e) => setQuotationNumber(e.target.value)}
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg font-mono font-bold text-slate-900 text-xs focus:bg-white focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                  Quotation Date
-                </label>
-                <input
-                  type="date"
-                  value={quotationDate}
-                  onChange={(e) => setQuotationDate(e.target.value)}
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-slate-900 text-xs focus:bg-white focus:outline-none focus:border-blue-500"
-                />
-              </div>
-            </div>
-
-            {/* Due Date / Validity section */}
-            {!showDueDate ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setShowDueDate(true);
-                  const d = new Date(quotationDate || todayStr);
-                  d.setDate(d.getDate() + 15);
-                  setDueDate(d.toISOString().split("T")[0]);
-                }}
-                className="w-full py-2.5 border-2 border-dashed border-blue-400 bg-blue-50/30 hover:bg-blue-50/70 transition-colors rounded-xl flex items-center justify-center cursor-pointer text-blue-600 font-bold text-xs shadow-2xs"
-              >
-                <span>+ Add Due Date</span>
-              </button>
-            ) : (
-              <div className="p-2 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
-                <div className="flex items-center justify-between text-[11px]">
-                  <label className="font-bold text-slate-700">Due Date / Valid Till</label>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setValidityDays(7)}
-                      className="px-1.5 py-0.5 bg-slate-200/70 hover:bg-slate-200 rounded text-[9px] font-bold text-slate-700 cursor-pointer"
-                    >
-                      +7D
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setValidityDays(15)}
-                      className="px-1.5 py-0.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded text-[9px] font-bold cursor-pointer"
-                    >
-                      +15D
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setValidityDays(30)}
-                      className="px-1.5 py-0.5 bg-slate-200/70 hover:bg-slate-200 rounded text-[9px] font-bold text-slate-700 cursor-pointer"
-                    >
-                      +30D
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowDueDate(false)}
-                      className="text-slate-400 hover:text-rose-600 font-bold ml-1"
-                      title="Remove Due Date"
-                    >
-                      ✕
-                    </button>
-                  </div>
                 </div>
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full p-1.5 bg-white border border-slate-200 rounded-lg font-mono text-slate-900 text-xs focus:outline-none focus:border-blue-500"
-                />
               </div>
-            )}
-          </div>
-        </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>🖨️ {lang === "gu" ? "પ્રિન્ટ" : "Print Quotation"}</span>
+                </button>
+              </div>
+            </div>
 
-        {/* ========================================================================= */}
-        {/* ROW 2: ITEMS TABLE (EXACT MYBILLBOOK DESIGN)                             */}
-        {/* ========================================================================= */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-[#FAFBFD] border-b border-slate-200 text-slate-600 font-bold text-[11px] uppercase tracking-wider">
-                <tr>
-                  <th className="py-3 px-3 text-center w-12">NO</th>
-                  <th className="py-3 px-3">ITEMS</th>
-                  <th className="py-3 px-3 text-center w-28">HSN</th>
-                  <th className="py-3 px-3 text-right w-28">QTY</th>
-                  <th className="py-3 px-3 text-right w-36">PRICE/ITEM (₹)</th>
-                  <th className="py-3 px-3 text-right w-32">DISCOUNT</th>
-                  <th className="py-3 px-3 text-right w-28">TAX</th>
-                  <th className="py-3 px-3 text-right w-36">AMOUNT (₹)</th>
-                  <th className="py-3 px-2 text-center w-12">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setQuickSettingsTab("items");
-                        setIsQuickSettingsOpen(true);
-                      }}
-                      className="text-slate-400 hover:text-slate-700 text-xs"
-                      title="Item Table Settings"
-                    >
-                      ⚙️
-                    </button>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {rows.length === 0 ? (
-                  /* Empty state card matching myBillBook with big dashed "+ Add Item" */
-                  <tr>
-                    <td colSpan={9} className="p-6">
-                      <button
-                        type="button"
-                        onClick={() => setIsAddItemsModalOpen(true)}
-                        className="w-full py-7 border-2 border-dashed border-blue-400 bg-blue-50/30 hover:bg-blue-50/70 transition-colors rounded-xl text-xs font-bold text-blue-600 flex items-center justify-center gap-2 cursor-pointer shadow-2xs group"
-                      >
-                        <span className="text-xl font-black group-hover:scale-125 transition-transform">+</span>
-                        <span className="text-sm font-bold">Add Item to Quotation</span>
-                      </button>
-                    </td>
-                  </tr>
-                ) : (
-                  rows.map((row, idx) => {
-                    const q = Number(row.quantity) || 0;
-                    const rate = Number(row.unitPrice) || 0;
-                    const disc = Number(row.discountPercent) || 0;
+            {/* Themed Document using DynamicThemedInvoice */}
+            <div className="bg-slate-100/70 p-4 sm:p-8 rounded-2xl border border-slate-200 overflow-x-auto flex justify-center">
+              <DynamicThemedInvoice
+                invoice={{
+                  category: "QUOTATION",
+                  invoiceNumber: quotationNumber || "QT-001",
+                  invoiceDate: quotationDate,
+                  dueDate: dueDate,
+                  paymentMode: "QUOTATION",
+                  placeOfSupply: placeOfSupply ? `State Code (${placeOfSupply})` : "Gujarat (24)",
+                  taxableAmount: totalTaxable,
+                  cgstAmount: totalTax > 0 ? totalTax / 2 : 0,
+                  sgstAmount: totalTax > 0 ? totalTax / 2 : 0,
+                  igstAmount: 0,
+                  roundOff: roundOff,
+                  grandTotal: grandTotal,
+                  paidAmount: 0,
+                  balanceAmount: grandTotal,
+                  notes: notes,
+                  party: {
+                    name: selectedParty?.name || "Cash Customer / Prospect",
+                    gstin: selectedParty?.gstin,
+                    phone: selectedParty?.phone,
+                    billingAddress: selectedParty?.address,
+                  },
+                  items: rows.map((r, idx) => {
+                    const selIt = items.find((i) => i.id === r.itemId);
+                    const q = Number(r.quantity) || 0;
+                    const rate = Number(r.unitPrice) || 0;
+                    const disc = Number(r.discountPercent) || 0;
                     const gross = q * rate;
-                    const netTaxable = gross - (gross * disc) / 100;
-                    const taxRate = Number(row.taxRate) || 0;
-                    const lineTaxAmount = (netTaxable * taxRate) / 100;
-                    const lineTotal = netTaxable + lineTaxAmount;
-                    const selectedItem = items.find((i) => i.id === row.itemId);
-
-                    return (
-                      <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
-                        {/* NO */}
-                        <td className="py-3 px-3 text-center text-slate-500 font-mono font-bold">
-                          {idx + 1}
-                        </td>
-
-                        {/* ITEMS: TITLE + OPTIONAL DESCRIPTION */}
-                        <td className="py-3 px-3">
-                          {row.itemId && selectedItem ? (
-                            <div className="space-y-1">
-                              <div className="flex items-center justify-between">
-                                <span className="font-bold text-slate-900 text-xs">
-                                  {selectedItem.name}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const updated = [...rows];
-                                    updated[idx].itemId = "";
-                                    setRows(updated);
-                                  }}
-                                  className="text-[10px] text-blue-600 hover:underline cursor-pointer"
-                                >
-                                  Change
-                                </button>
-                              </div>
-                              <input
-                                type="text"
-                                placeholder="Enter Description (optional)"
-                                value={row.description || ""}
-                                onChange={(e) => handleRowChange(idx, "description", e.target.value)}
-                                className="w-full text-[11px] p-1.5 bg-slate-50 border border-slate-200 rounded text-slate-700 placeholder:text-slate-400 focus:bg-white focus:outline-none"
-                              />
-                            </div>
-                          ) : (
-                            <select
-                              value={row.itemId}
-                              onChange={(e) => handleItemSelect(idx, e.target.value)}
-                              className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg font-semibold text-slate-900 focus:bg-white focus:outline-none"
-                            >
-                              <option value="">-- Select Item --</option>
-                              {items.map((it) => (
-                                <option key={it.id} value={it.id}>
-                                  {it.name} (Stock: {it.stockQuantity ?? 0})
-                                </option>
-                              ))}
-                            </select>
-                          )}
-                        </td>
-
-                        {/* HSN CODE WITH SEARCH ICON */}
-                        <td className="py-3 px-3">
-                          <div className="relative">
-                            <input
-                              type="text"
-                              value={row.hsnCode}
-                              onChange={(e) => handleRowChange(idx, "hsnCode", e.target.value)}
-                              className="w-full text-xs p-1.5 pl-6 bg-slate-50 border border-slate-200 rounded-md text-center font-mono text-slate-800 focus:bg-white focus:outline-none"
-                            />
-                            <span className="absolute left-1.5 top-2 text-[10px] text-slate-400 pointer-events-none">
-                              🔍
-                            </span>
-                          </div>
-                        </td>
-
-                        {/* QTY + UNIT BADGE */}
-                        <td className="py-3 px-3">
-                          <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1">
-                            <input
-                              type="number"
-                              min="0.001"
-                              step="any"
-                              value={row.quantity}
-                              onChange={(e) => handleRowChange(idx, "quantity", e.target.value)}
-                              className="w-full text-xs text-right font-mono font-bold text-slate-900 bg-transparent focus:outline-none"
-                            />
-                            <span className="text-[11px] font-bold text-slate-500 uppercase">
-                              {row.unit || "PCS"}
-                            </span>
-                          </div>
-                        </td>
-
-                        {/* PRICE/ITEM WITH PARTY RATE BADGE */}
-                        <td className="py-3 px-3">
-                          <input
-                            type="number"
-                            min="0"
-                            step="any"
-                            value={row.unitPrice}
-                            onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value)}
-                            className="w-full text-xs p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-right font-mono font-bold text-slate-900 focus:bg-white focus:outline-none"
-                          />
-                          {partyId && row.itemId && getPartyItemPrice(partyId, row.itemId, selectedParty?.name) !== null && (
-                            <div className="flex justify-end mt-1">
-                              <span
-                                title={`Party specific price active for ${selectedParty?.name || "this customer"}`}
-                                className="inline-flex items-center gap-0.5 text-[9px] font-semibold text-purple-700 bg-purple-50 border border-purple-200 px-1 py-0.5 rounded shadow-2xs"
-                              >
-                                <span>🏷️</span>
-                                <span>Party Rate</span>
-                              </span>
-                            </div>
-                          )}
-                        </td>
-
-                        {/* STACKED DISCOUNT (₹ AND %) */}
-                        <td className="py-3 px-3">
-                          <div className="space-y-1 w-28 ml-auto">
-                            <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5">
-                              <span className="text-[10px] font-bold text-slate-400">₹</span>
-                              <input
-                                type="number"
-                                min="0"
-                                value={row.discountAmount ?? ""}
-                                onChange={(e) =>
-                                  handleDiscountAmountChange(
-                                    idx,
-                                    e.target.value === "" ? "" : Number(e.target.value)
-                                  )
-                                }
-                                placeholder="0"
-                                className="w-full text-xs text-right font-mono bg-transparent focus:outline-none"
-                              />
-                            </div>
-                            <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5">
-                              <span className="text-[10px] font-bold text-slate-400">%</span>
-                              <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                value={row.discountPercent ?? ""}
-                                onChange={(e) =>
-                                  handleDiscountPercentChange(
-                                    idx,
-                                    e.target.value === "" ? "" : Number(e.target.value)
-                                  )
-                                }
-                                placeholder="0"
-                                className="w-full text-xs text-right font-mono bg-transparent focus:outline-none"
-                              />
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* TAX DROPDOWN + CALCULATED TAX AMOUNT */}
-                        <td className="py-3 px-3">
-                          <div className="relative flex items-center min-w-[70px]">
-                            <input
-                              type="number"
-                              step="any"
-                              min="0"
-                              max="100"
-                              list="gst-rates-quote"
-                              value={row.taxRate}
-                              onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value) || 0)}
-                              placeholder="0"
-                              className="w-full text-xs p-1.5 pr-4 bg-slate-50 border border-slate-200 rounded-lg text-right font-mono text-slate-700 focus:bg-white focus:outline-none"
-                            />
-                            <span className="absolute right-1 text-[11px] font-bold text-slate-400 pointer-events-none">%</span>
-                          </div>
-                          <div className="text-[10px] text-slate-400 font-mono mt-0.5 text-right">
-                            ({formatInr(lineTaxAmount)})
-                          </div>
-                        </td>
-
-                        {/* AMOUNT (₹) */}
-                        <td className="py-3 px-3 text-right font-mono font-bold text-slate-900 text-xs">
-                          {formatInr(lineTotal)}
-                        </td>
-
-                        {/* REMOVE BUTTON */}
-                        <td className="py-3 px-2 text-center">
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveRow(idx)}
-                            className="text-slate-400 hover:text-rose-600 transition-colors cursor-pointer p-1"
-                            title="Remove item"
-                          >
-                            ✕
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Action Strip: Add Items / Add Blank Row / Scan Barcode */}
-          <div className="p-3 bg-white border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
-            <button
-              type="button"
-              onClick={() => setIsAddItemsModalOpen(true)}
-              className="flex-1 py-2.5 bg-blue-50/70 border-2 border-dashed border-blue-400 rounded-xl text-xs font-bold text-blue-600 hover:bg-blue-100/70 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs group"
-            >
-              <span className="text-base font-black group-hover:scale-125 transition-transform">+</span>
-              <span>Add Item</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleAddRow}
-              className="px-4 py-2 border border-slate-300 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-700 flex items-center gap-1.5 shadow-2xs transition-colors shrink-0 cursor-pointer"
-              title="Add a blank row"
-            >
-              <span>+ Add Blank Row</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsAddItemsModalOpen(true)}
-              className="px-4 py-2 border border-slate-300 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-700 flex items-center gap-1.5 shadow-2xs transition-colors shrink-0 cursor-pointer"
-            >
-              <span>📷</span>
-              <span>Scan Barcode</span>
-            </button>
-          </div>
-
-          {/* Subtotal Strip */}
-          <div className="bg-[#F8F9FA] border-t border-slate-200 px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-600 font-medium">
-            <span className="font-bold text-slate-900 uppercase">Subtotal</span>
-            <div className="flex flex-wrap items-center gap-4 sm:gap-6 font-mono text-slate-700">
-              <span>Total Qty: <strong>{totalQty}</strong></span>
-              <span>Discount: <strong>{formatInr(totalDiscountAmt)}</strong></span>
-              <span>Tax: <strong>{formatInr(totalTax)}</strong></span>
-              <span className="font-bold text-slate-900 text-sm">
-                {formatInr(itemsSubtotal)}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* ========================================================================= */}
-        {/* ROW 3: BOTTOM SECTION (NOTES/TERMS & TOTALS)                             */}
-        {/* ========================================================================= */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pt-2">
-          
-          {/* Left Column (7 cols): Notes, Terms & Conditions, Bank Account, QR */}
-          <div className="lg:col-span-7 space-y-4">
-            
-            {/* Add Notes */}
-            {!showNotes ? (
-              <button
-                type="button"
-                onClick={() => setShowNotes(true)}
-                className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1.5 cursor-pointer"
-              >
-                <span>📝</span>
-                <span>+ Add Notes</span>
-              </button>
-            ) : (
-              <div className="space-y-1 bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-700">Notes / Remarks</label>
-                  <button
-                    type="button"
-                    onClick={() => setShowNotes(false)}
-                    className="text-slate-400 hover:text-slate-600 text-[10px]"
-                  >
-                    Hide
-                  </button>
-                </div>
-                <textarea
-                  rows={2}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Enter notes or remarks for customer..."
-                  className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none"
-                />
-              </div>
-            )}
-
-            {/* Terms & Conditions Box with Reset Icon */}
-            <div className="space-y-1.5 bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-800">Terms & Conditions</span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setTermsAndConditions(
-                      "1. Goods once sold will not be taken back or exchanged\n2. All disputes are subject to [ENTER_YOUR_CITY_NAME] jurisdiction only"
-                    )
-                  }
-                  title="Reset to default terms"
-                  className="text-slate-400 hover:text-slate-700 text-sm cursor-pointer"
-                >
-                  ⊗
-                </button>
-              </div>
-              <textarea
-                rows={3}
-                value={termsAndConditions}
-                onChange={(e) => setTermsAndConditions(e.target.value)}
-                placeholder="Terms and conditions for this quotation..."
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none font-sans"
+                    const discVal = (gross * disc) / 100;
+                    const taxable = Math.max(0, gross - discVal);
+                    const taxRate = Number(r.taxRate) || 0;
+                    const taxAmt = (taxable * taxRate) / 100;
+                    return {
+                      id: r.itemId || `row-${idx}`,
+                      description: selIt?.name || "Product / Item",
+                      hsnCode: r.hsnCode,
+                      quantity: q,
+                      unit: r.unit || "PCS",
+                      unitPrice: rate,
+                      discountPercent: disc,
+                      taxRate: taxRate,
+                      taxableAmount: taxable,
+                      cgstAmount: taxAmt / 2,
+                      sgstAmount: taxAmt / 2,
+                      igstAmount: 0,
+                      totalAmount: taxable + taxAmt,
+                      item: { name: selIt?.name },
+                    };
+                  }),
+                }}
+                settings={{
+                  ...activeInvoiceTheme,
+                  termsAndConditions: {
+                    ...activeInvoiceTheme.termsAndConditions,
+                    sales: termsAndConditions || activeInvoiceTheme.termsAndConditions?.quotation || activeInvoiceTheme.termsAndConditions?.sales,
+                  },
+                }}
+                company={{
+                  tradeName: currentCompany?.tradeName || currentCompany?.legalName || "My Company",
+                  legalName: currentCompany?.legalName,
+                  addressLine1: (currentCompany as any)?.address || currentCompany?.city || "Gujarat, India",
+                  city: currentCompany?.city,
+                  gstin: currentCompany?.gstin,
+                  phone: (currentCompany as any)?.phone,
+                  stateCode: currentCompany?.stateCode || "24",
+                }}
+                printableId="printable-quotation"
               />
             </div>
-
-            {/* Add Bank Account & Payment QR Links */}
-            <div className="flex flex-wrap items-center gap-4 pt-1">
-              <button
-                type="button"
-                onClick={() => setShowBankAccount(!showBankAccount)}
-                className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1.5 cursor-pointer"
-              >
-                <span>🏛️</span>
-                <span>{showBankAccount ? "Hide Bank Account" : "+ Add Bank Account"}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowPaymentQr(!showPaymentQr)}
-                className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1.5 cursor-pointer"
-              >
-                <span>📱</span>
-                <span>{showPaymentQr ? "Hide Payment QR" : "+ Add Payment QR"}</span>
-              </button>
-            </div>
-
-            {showBankAccount && (
-              <div className="p-3.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-700 space-y-1 shadow-2xs">
-                <p className="font-bold text-slate-900">Bank Details Included on Quotation:</p>
-                <p>Bank: <strong>HDFC Bank</strong> • A/c: <strong>50200012345678</strong></p>
-                <p>IFSC: <strong>HDFC0000123</strong> • Branch: Ahmedabad Main</p>
-              </div>
-            )}
-
-            {showPaymentQr && (
-              <div className="p-3.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-700 space-y-1 shadow-2xs">
-                <p className="font-bold text-slate-900">UPI Payment QR Enabled:</p>
-                <p>Dynamic UPI QR code will be printed on quotation for quick advance payment.</p>
-              </div>
-            )}
           </div>
+        ) : (
+          <div className="space-y-4">
+            {/* DOCUMENT HEADER CARD */}
+            <DocumentHeaderCard
+              title={lang === "gu" ? "ક્વોટેશન / એસ્ટીમેટ બનાવો" : "Create Quotation / Estimate"}
+              subtitle={lang === "gu" ? "તમારું ક્વોટેશન બનાવો અને મેનેજ કરો" : "Create and manage your quotation or estimate"}
+              status="Draft"
+              onPreview={() => setMode("preview")}
+              onPrint={() => window.print()}
+              onSave={() => handleSave(false, false)}
+              onSaveAsDraft={() => handleSave(true, false)}
+              isSaving={isSubmitting}
+              saveButtonLabel="Save Quotation"
+              moreMenuItems={[
+                { label: "Quick Settings", onClick: () => { setQuickSettingsTab("items"); setIsQuickSettingsOpen(true); } },
+                { label: "Keyboard Shortcuts", onClick: () => setIsShortcutsOpen(true) },
+                { label: "Authorized Signature", onClick: () => setIsSignatureModalOpen(true) },
+              ]}
+            />
 
-          {/* Right Column (5 cols): Additional Charges, Tax, Discounts, Totals & Signature */}
-          <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-2xs p-5 space-y-3.5">
-            
-            {/* Additional Charges */}
-            <div className="space-y-2 text-xs">
-              {additionalCharges.map((chg) => (
-                <div key={chg.id} className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    placeholder="Enter charge name"
-                    value={chg.name}
-                    onChange={(e) => handleUpdateCharge(chg.id, "name", e.target.value)}
-                    className="flex-1 text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none"
-                  />
-                  <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 w-24">
-                    <span className="text-slate-400 font-bold">₹</span>
-                    <input
-                      type="number"
-                      min="0"
-                      value={chg.amount}
-                      onChange={(e) =>
-                        handleUpdateCharge(chg.id, "amount", Number(e.target.value) || 0)
-                      }
-                      className="w-full text-xs text-right bg-transparent font-mono font-bold focus:outline-none"
+            {/* 5-COLUMN DOCUMENT INFO STRIP */}
+            <DocumentInfoStrip
+              fields={[
+                {
+                  id: "customer",
+                  label: "Customer",
+                  required: true,
+                  type: "custom",
+                  customRender: (
+                    <PartySelectorCompact
+                      selectedParty={selectedParty}
+                      searchTerm={partySearchTerm}
+                      onSearchChange={setPartySearchTerm}
+                      isOpen={isPartyDropdownOpen}
+                      onOpenChange={setIsPartyDropdownOpen}
+                      filteredParties={filteredParties}
+                      onSelectParty={(id) => {
+                        setPartyId(id);
+                        const p = parties.find((party) => party.id === id);
+                        if (p?.stateCode) setPlaceOfSupply(p.stateCode);
+                      }}
+                      onClearParty={() => {
+                        setPartyId("");
+                        setPartySearchTerm("");
+                      }}
+                      onAddNew={() => setIsCreatePartyModalOpen(true)}
+                      placeholder="Search customer..."
                     />
-                  </div>
-                  <div className="relative flex items-center min-w-[80px]">
-                    <input
-                      type="number"
-                      step="any"
-                      min="0"
-                      max="100"
-                      list="gst-rates-quote"
-                      value={chg.taxRate}
-                      onChange={(e) =>
-                        handleUpdateCharge(chg.id, "taxRate", Number(e.target.value) || 0)
-                      }
-                      placeholder="0"
-                      className="w-full text-xs p-1.5 pr-4 bg-slate-50 border border-slate-200 rounded-lg font-mono font-semibold text-slate-700 text-right focus:bg-white focus:outline-none"
-                    />
-                    <span className="absolute right-1.5 text-[11px] font-bold text-slate-400 pointer-events-none">%</span>
-                  </div>
-                  <datalist id="gst-rates-quote">
-                    <option value="0">0% (None)</option>
-                    <option value="0.1">0.1%</option>
-                    <option value="0.25">0.25%</option>
-                    <option value="3">3%</option>
-                    <option value="5">5%</option>
-                    <option value="12">12%</option>
-                    <option value="18">18%</option>
-                    <option value="28">28%</option>
-                  </datalist>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveCharge(chg.id)}
-                    className="text-slate-400 hover:text-rose-600 text-sm p-1"
-                  >
-                    ⨂
-                  </button>
-                </div>
-              ))}
+                  ),
+                },
+                {
+                  id: "quotationNumber",
+                  label: "Quotation No.",
+                  type: "text",
+                  value: quotationNumber,
+                  onChange: setQuotationNumber,
+                  placeholder: "EST-001",
+                },
+                {
+                  id: "quotationDate",
+                  label: "Quotation Date",
+                  type: "date",
+                  value: quotationDate,
+                  onChange: setQuotationDate,
+                },
+                {
+                  id: "dueDate",
+                  label: "Valid Till",
+                  type: "date",
+                  value: dueDate,
+                  onChange: setDueDate,
+                },
+                {
+                  id: "placeOfSupply",
+                  label: "Place of Supply",
+                  type: "select",
+                  value: placeOfSupply,
+                  onChange: setPlaceOfSupply,
+                  options: Object.entries(INDIAN_STATES).map(([code, st]) => ({
+                    label: `${st.name} (${code})`,
+                    value: code,
+                  })),
+                },
+              ]}
+            />
 
-              <button
-                type="button"
-                onClick={handleAddChargeRow}
-                className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1.5 cursor-pointer"
-              >
-                <span>₹</span>
-                <span>
-                  {additionalCharges.length === 0
-                    ? "+ Add Additional Charges"
-                    : "+ Add Another Charge"}
-                </span>
-              </button>
-            </div>
-
-            {/* Taxable Amount */}
-            <div className="flex items-center justify-between text-xs text-slate-600 font-medium pt-1">
-              <span>Taxable Amount</span>
-              <span className="font-mono font-bold text-slate-900">{formatInr(totalTaxable)}</span>
-            </div>
-
-            {/* Tax Breakdown */}
-            <div className="space-y-1.5 pt-2 border-t border-slate-100 text-xs">
-              {isInterState ? (
-                <div className="flex items-center justify-between text-slate-600">
-                  <span>Integrated GST (IGST)</span>
-                  <span className="font-mono font-bold text-slate-900">{formatInr(totalIgst)}</span>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center justify-between text-slate-600">
-                    <span>Central GST (CGST)</span>
-                    <span className="font-mono font-bold text-slate-900">{formatInr(totalCgst)}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-600">
-                    <span>State GST (SGST)</span>
-                    <span className="font-mono font-bold text-slate-900">{formatInr(totalSgst)}</span>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Add Discount */}
-            {!showOverallDiscount ? (
-              <button
-                type="button"
-                onClick={() => setShowOverallDiscount(true)}
-                className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1.5 cursor-pointer pt-1"
-              >
-                <span>%</span>
-                <span>+ Add Discount</span>
-              </button>
-            ) : (
-              <div className="flex items-center gap-2 pt-1 text-xs">
-                <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 w-20">
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={overallDiscountPercent}
-                    onChange={(e) => {
-                      const p = Number(e.target.value) || 0;
-                      setOverallDiscountPercent(p);
-                      const calcAmt = (itemsSubtotal * p) / 100;
-                      setOverallDiscountAmount(Number(calcAmt.toFixed(2)));
-                    }}
-                    className="w-full text-xs text-right bg-transparent font-mono focus:outline-none"
-                  />
-                  <span className="text-slate-500 font-bold">%</span>
-                </div>
-                <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 flex-1">
-                  <span className="text-slate-500 font-bold">₹</span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={overallDiscountAmount}
-                    onChange={(e) => {
-                      const amt = Number(e.target.value) || 0;
-                      setOverallDiscountAmount(amt);
-                      if (itemsSubtotal > 0) {
-                        setOverallDiscountPercent(
-                          Number(((amt / itemsSubtotal) * 100).toFixed(2))
-                        );
-                      }
-                    }}
-                    className="w-full text-xs text-right bg-transparent font-mono font-bold focus:outline-none"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowOverallDiscount(false);
-                    setOverallDiscountPercent(0);
-                    setOverallDiscountAmount(0);
-                  }}
-                  className="text-slate-400 hover:text-rose-600 text-sm p-1"
+            {/* MAIN 2-COLUMN WORKSPACE MATCHING REFERENCE IMAGE */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              {/* Left Column (8 cols): Items & Services Table + Notes & Additional Info */}
+              <div className="lg:col-span-8 space-y-5">
+                <DocumentItemsCard
+                  title="Items & Services"
+                  itemsCount={rows.length}
+                  totalQty={totalQty}
+                  itemsTotal={itemsSubtotal}
+                  onScanItem={() => setIsAddItemsModalOpen(true)}
+                  onImportItems={() => setIsAddItemsModalOpen(true)}
+                  onAddItem={() => setIsAddItemsModalOpen(true)}
+                  onAddBlankRow={handleAddRow}
+                  addItemLabel="+ Add Item"
                 >
-                  ⨂
-                </button>
-              </div>
-            )}
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 font-bold text-[11px] uppercase tracking-wider">
+                      <tr>
+                        <th className="py-3 px-3.5 text-center w-12">#</th>
+                        <th className="py-3 px-3.5">Item / Description</th>
+                        <th className="py-3 px-3 text-center w-28">HSN/SAC</th>
+                        <th className="py-3 px-3 text-right w-24">Qty</th>
+                        <th className="py-3 px-3 text-right w-28">Rate (₹)</th>
+                        <th className="py-3 px-3 text-right w-24">Discount</th>
+                        <th className="py-3 px-3 text-right w-24">Tax (%)</th>
+                        <th className="py-3 px-3 text-right w-28">Amount (₹)</th>
+                        <th className="py-3 px-3 text-center w-16">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {rows.length === 0 ? (
+                        <tr>
+                          <td colSpan={9} className="py-12 text-center text-slate-400">
+                            <div className="max-w-xs mx-auto space-y-2">
+                              <span className="text-2xl">📦</span>
+                              <p className="font-bold text-slate-700">No items added yet</p>
+                              <p className="text-[11px] text-slate-400">Add an item from catalog or enter details below</p>
+                              <button
+                                type="button"
+                                onClick={() => setIsAddItemsModalOpen(true)}
+                                className="px-3.5 py-1.5 bg-[#174B43] text-white rounded-xl text-xs font-bold shadow-2xs cursor-pointer"
+                              >
+                                + Add From Catalog
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        rows.map((row, idx) => {
+                          const q = Number(row.quantity) || 0;
+                          const rate = Number(row.unitPrice) || 0;
+                          const disc = Number(row.discountPercent) || 0;
+                          const gross = q * rate;
+                          const netTaxable = gross - (gross * disc) / 100;
+                          const taxRate = Number(row.taxRate) || 0;
+                          const lineTaxAmount = (netTaxable * taxRate) / 100;
+                          const lineTotal = netTaxable + lineTaxAmount;
+                          const selectedItem = items.find((i) => i.id === row.itemId);
 
-            {/* Auto Round Off */}
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-              <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-700">
-                <input
-                  type="checkbox"
-                  checked={isAutoRoundOff}
-                  onChange={(e) => setIsAutoRoundOff(e.target.checked)}
-                  className="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
+                          return (
+                            <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
+                              <td className="py-3 px-3 text-center text-slate-400 font-mono text-[11px]">
+                                {idx + 1}
+                              </td>
+
+                              <td className="py-3 px-3">
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <select
+                                      value={row.itemId}
+                                      onChange={(e) => handleItemSelect(idx, e.target.value)}
+                                      className="w-full text-xs py-1.5 px-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl font-bold text-slate-800"
+                                    >
+                                      {items.map((it) => (
+                                        <option key={it.id} value={it.id}>
+                                          {it.name} (Stock: {it.stockQuantity ?? 0})
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </div>
+                              </td>
+
+                              <td className="py-3 px-3">
+                                <input
+                                  type="text"
+                                  value={row.hsnCode}
+                                  onChange={(e) => handleRowChange(idx, "hsnCode", e.target.value)}
+                                  className="w-full text-xs py-1.5 px-2 text-center font-mono bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white"
+                                  placeholder="1001"
+                                />
+                              </td>
+
+                              <td className="py-3 px-3">
+                                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
+                                  <input
+                                    type="number"
+                                    min="0.001"
+                                    step="any"
+                                    value={row.quantity}
+                                    onChange={(e) => handleRowChange(idx, "quantity", e.target.value)}
+                                    className="w-full text-xs text-right font-mono font-bold text-slate-800 bg-transparent focus:outline-none"
+                                  />
+                                </div>
+                              </td>
+
+                              <td className="py-3 px-3">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  value={row.unitPrice}
+                                  onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value)}
+                                  className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white"
+                                />
+                              </td>
+
+                              <td className="py-3 px-3">
+                                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    value={row.discountPercent}
+                                    onChange={(e) => handleRowChange(idx, "discountPercent", e.target.value)}
+                                    placeholder="0"
+                                    className="w-full text-xs text-right font-mono bg-transparent focus:outline-none"
+                                  />
+                                  <span className="text-[10px] text-slate-400">%</span>
+                                </div>
+                              </td>
+
+                              <td className="py-3 px-3">
+                                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
+                                  <input
+                                    type="number"
+                                    step="any"
+                                    value={row.taxRate}
+                                    onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value) || 0)}
+                                    placeholder="18"
+                                    className="w-full text-xs text-right font-mono font-bold bg-transparent focus:outline-none"
+                                  />
+                                  <span className="text-[10px] text-slate-400">%</span>
+                                </div>
+                              </td>
+
+                              <td className="py-3 px-3 text-right font-mono font-black text-slate-900 text-xs">
+                                ₹ {lineTotal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </td>
+
+                              <td className="py-3 px-3 text-center">
+                                <div className="flex items-center justify-center gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveRow(idx)}
+                                    className="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
+                                    title="Delete row"
+                                  >
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </DocumentItemsCard>
+
+                {/* Side-by-side: Notes & Terms + Additional Information */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <DocumentNotesAndTermsCard
+                    activeTab={activeNotesTab}
+                    onTabChange={setActiveNotesTab}
+                    notes={notes}
+                    onNotesChange={setNotes}
+                    terms={termsAndConditions}
+                    onTermsChange={setTermsAndConditions}
+                  />
+
+                  <DocumentAdditionalInfoCard
+                    transportMode={transportMode}
+                    onTransportModeChange={setTransportMode}
+                    vehicleNo={vehicleNo}
+                    onVehicleNoChange={setVehicleNo}
+                    ewayBillNo={ewayBillNo}
+                    onEwayBillNoChange={setEwayBillNo}
+                    dispatchDate={dispatchDate}
+                    onDispatchDateChange={setDispatchDate}
+                  />
+                </div>
+              </div>
+
+              {/* Right Column (4 cols): Summary Card */}
+              <div className="lg:col-span-4 space-y-5">
+                <DocumentSummaryCard
+                  title="Quotation Summary"
+                  subtotal={itemsSubtotal}
+                  discount={Number(overallDiscountAmount) > 0 ? Number(overallDiscountAmount) : undefined}
+                  cgst={!isInterState ? totalCgst : undefined}
+                  sgst={!isInterState ? totalSgst : undefined}
+                  igst={isInterState ? totalIgst : undefined}
+                  roundOff={roundOff}
+                  grandTotal={grandTotal}
                 />
-                <span>Auto Round Off</span>
-              </label>
-              <span className="font-mono text-slate-600 font-bold">
-                {roundOff >= 0 ? `+${formatInr(roundOff)}` : formatInr(roundOff)}
-              </span>
+              </div>
             </div>
 
-            {/* Total Amount Display */}
-            <div className="pt-3 border-t-2 border-slate-200 flex items-center justify-between">
-              <span className="text-sm font-black text-slate-900 uppercase tracking-wider">
-                Total Amount:
-              </span>
-              <span className="text-2xl font-black text-slate-900 font-mono tracking-tight">
-                {formatInr(grandTotal)}
-              </span>
-            </div>
-
-            {/* Balance Amount Indicator (Bright Green matching myBillBook) */}
-            <div className="flex items-center justify-between pt-1 text-xs">
-              <span className="font-bold text-slate-700">Balance Amount:</span>
-              <span className="font-mono font-black text-base text-[#16A34A]">
-                {formatInr(grandTotal)}
-              </span>
-            </div>
-
-            {/* Signature Box */}
-            <div className="pt-2">
-              {signatureData ? (
-                <div className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-2xs">
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                      Authorized Signature
-                    </span>
-                    <img src={signatureData} alt="Signature" className="h-12 object-contain" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setIsSignatureModalOpen(true)}
-                      className="text-xs font-bold text-blue-600 hover:underline cursor-pointer"
-                    >
-                      Change
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSignatureData(null)}
-                      className="text-xs font-bold text-rose-500 hover:underline cursor-pointer"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div
-                  onClick={() => setIsSignatureModalOpen(true)}
-                  className="w-full h-20 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50/50 hover:bg-slate-50 flex flex-col items-center justify-center text-xs text-slate-500 cursor-pointer transition-colors shadow-2xs"
-                >
-                  <span className="font-bold text-blue-600 flex items-center gap-1.5">
-                    <span>✍️</span>
-                    <span>+ Add Signature</span>
-                  </span>
-                  <span className="text-[10px] text-slate-400 mt-0.5">
-                    Click to draw, upload or type signature
-                  </span>
-                </div>
-              )}
-            </div>
-
-
+            {/* STICKY BOTTOM ACTION BAR */}
+            <DocumentBottomBar
+              totalItems={rows.length}
+              totalAmount={grandTotal}
+              onSaveAsDraft={() => handleSave(true, false)}
+              onSave={() => handleSave(false, false)}
+              isSaving={isSubmitting}
+              saveButtonLabel="Save Quotation"
+              backHref="/sales/quotations"
+            />
           </div>
-        </div>
+
+        )}
       </main>
 
       {/* ========================================================================= */}
@@ -1806,8 +1301,10 @@ export default function NewQuotationPage() {
         onClose={() => setIsPreviewModalOpen(false)}
         customization={customization}
         lang={lang}
+        companyId={currentCompany?.id}
+        settings={activeInvoiceTheme}
         invoiceData={{
-          category: "PROFORMA_INVOICE",
+          category: "QUOTATION",
           invoiceNumber: quotationNumber,
           invoiceDate: quotationDate,
           paymentMode: "ESTIMATE",

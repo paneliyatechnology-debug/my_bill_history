@@ -496,7 +496,7 @@ export default function SharedLedgerPage() {
 
           <div className="flex items-center gap-2">
             {/* How it Works Button */}
-            <button
+            {/* <button
               type="button"
               onClick={() => setShowHowItWorksModal(true)}
               className="flex items-center gap-1.5 rounded-full border border-blue-500 bg-blue-50/60 px-2.5 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-100/70 transition-colors shadow-2xs cursor-pointer"
@@ -505,7 +505,7 @@ export default function SharedLedgerPage() {
                 <path d="M8 5v14l11-7z" />
               </svg>
               <span>How it Works?</span>
-            </button>
+            </button> */}
 
             {/* Settings Gear Button */}
             <button

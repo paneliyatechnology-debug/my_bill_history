@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/auth-context";
@@ -10,6 +10,8 @@ import { ExportDropdown } from "../../../components/ui/export-dropdown";
 import { ExportColumn } from "../../../lib/export/export-types";
 import { QuickSettingsModal, DEFAULT_QUICK_SETTINGS, QuickSettingsConfig } from "@/components/invoice/quick-settings-modal";
 import { ShortcutsModal } from "@/components/invoice/shortcuts-modal";
+import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/scorecard-ribbon";
+import { formatInr } from "@/components/design-system/tokens";
 
 interface ProformaInvoiceItem {
   id: string;
@@ -70,13 +72,10 @@ export default function ProformaInvoiceListingPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filters - Exact myBillBook layout
+  // Filters
   const [searchQuery, setSearchQuery] = useState("");
   const [dateRangePreset, setDateRangePreset] = useState<DateRangePreset>("LAST_365_DAYS");
-  const [statusFilter, setStatusFilter] = useState<"OPEN" | "ALL" | "CLOSED">("OPEN");
-
-  // Sorting
-  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "OPEN" | "CLOSED" | "CANCELLED">("ALL");
 
   // Actions dropdown
   const [activeActionMenuId, setActiveActionMenuId] = useState<string | null>(null);
@@ -92,6 +91,7 @@ export default function ProformaInvoiceListingPage() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [quickSettings, setQuickSettings] = useState<QuickSettingsConfig>(DEFAULT_QUICK_SETTINGS);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Keyboard shortcut F2: New Proforma Invoice
   useEffect(() => {
@@ -105,26 +105,27 @@ export default function ProformaInvoiceListingPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [router]);
 
-  // Close menus on outside click
+  // Click outside listener for action menus
   useEffect(() => {
-    const handleClickOutside = () => {
+    function handleClickOutside() {
       setActiveActionMenuId(null);
-    };
+    }
     window.addEventListener("click", handleClickOutside);
     return () => window.removeEventListener("click", handleClickOutside);
   }, []);
 
-  const fetchData = useCallback(async () => {
+  const fetchInvoices = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const res: any = await apiClient.get("/sales/invoices", {
+      const res: any = await apiClient.get("/invoices/sales", {
         category: "PROFORMA_INVOICE",
-        limit: 200,
+        limit: 150,
       });
-      setInvoices(extractList(res));
+      const list = extractList<ProformaInvoice>(res);
+      setInvoices(list);
     } catch (err: any) {
-      setError(err?.message || "Failed to load proforma invoices.");
+      setError(err.message || "Failed to load proforma invoices.");
     } finally {
       setIsLoading(false);
     }
@@ -132,537 +133,558 @@ export default function ProformaInvoiceListingPage() {
 
   useEffect(() => {
     if (tenantContext.companyId) {
-      fetchData();
-    } else {
-      setIsLoading(false);
+      fetchInvoices();
     }
-  }, [tenantContext.companyId, fetchData]);
+  }, [tenantContext.companyId, fetchInvoices]);
 
-  // Date Filtering & Search
-  const filteredInvoices = useMemo(() => {
-    let result = [...invoices];
+  // KPI Calculations
+  const kpis = useMemo(() => {
+    let totalValue = 0;
+    let openCount = 0;
+    let openValue = 0;
+    let closedCount = 0;
+    let closedValue = 0;
+    let cancelledCount = 0;
 
-    // 1. Status Filter (Show Open Invoices vs All vs Closed)
-    if (statusFilter === "OPEN") {
-      result = result.filter(
-        (inv) => inv.status !== "CANCELLED" && inv.status !== "CLOSED" && inv.status !== "PAID"
-      );
-    } else if (statusFilter === "CLOSED") {
-      result = result.filter(
-        (inv) => inv.status === "CANCELLED" || inv.status === "CLOSED" || inv.status === "PAID"
-      );
-    }
+    invoices.forEach((inv) => {
+      const amt = Number(inv.grandTotal !== undefined ? inv.grandTotal : inv.totalAmount || 0);
+      totalValue += amt;
 
-    // 2. Date Filter
-    if (dateRangePreset !== "ALL") {
-      const now = new Date();
-      let start: Date | null = null;
-      const end: Date | null = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-
-      if (dateRangePreset === "TODAY") {
-        start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-      } else if (dateRangePreset === "YESTERDAY") {
-        const y = new Date(now);
-        y.setDate(y.getDate() - 1);
-        start = new Date(y.getFullYear(), y.getMonth(), y.getDate(), 0, 0, 0);
-      } else if (dateRangePreset === "THIS_WEEK") {
-        const d = new Date(now);
-        const day = d.getDay() || 7;
-        d.setDate(d.getDate() - day + 1);
-        start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
-      } else if (dateRangePreset === "THIS_MONTH") {
-        start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
-      } else if (dateRangePreset === "LAST_30_DAYS") {
-        const d = new Date(now);
-        d.setDate(d.getDate() - 30);
-        start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
-      } else if (dateRangePreset === "LAST_365_DAYS") {
-        const d = new Date(now);
-        d.setDate(d.getDate() - 365);
-        start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
-      } else if (dateRangePreset === "CURRENT_FY") {
-        const yr = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
-        start = new Date(yr, 3, 1, 0, 0, 0);
-      } else if (dateRangePreset === "PREVIOUS_FY") {
-        const yr = now.getMonth() >= 3 ? now.getFullYear() - 1 : now.getFullYear() - 2;
-        start = new Date(yr, 3, 1, 0, 0, 0);
+      const isClosed = inv.status === "CLOSED" || inv.status === "PAID" || inv.category === "TAX_INVOICE";
+      if (inv.status === "CANCELLED") {
+        cancelledCount += 1;
+      } else if (isClosed) {
+        closedCount += 1;
+        closedValue += amt;
+      } else {
+        openCount += 1;
+        openValue += amt;
       }
-
-      if (start) {
-        result = result.filter((inv) => {
-          const invDate = new Date(inv.invoiceDate);
-          return invDate >= start! && (!end || invDate <= end);
-        });
-      }
-    }
-
-    // 3. Search Query
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      result = result.filter(
-        (inv) =>
-          inv.invoiceNumber.toLowerCase().includes(q) ||
-          (inv.party?.name && inv.party.name.toLowerCase().includes(q)) ||
-          (inv.partyName && inv.partyName.toLowerCase().includes(q))
-      );
-    }
-
-    // Sort by Date
-    result.sort((a, b) => {
-      const timeA = new Date(a.invoiceDate).getTime();
-      const timeB = new Date(b.invoiceDate).getTime();
-      return sortOrder === "desc" ? timeB - timeA : timeA - timeB;
     });
 
-    return result;
-  }, [invoices, statusFilter, dateRangePreset, searchQuery, sortOrder]);
+    return {
+      totalCount: invoices.length,
+      totalValue,
+      openCount,
+      openValue,
+      closedCount,
+      closedValue,
+      cancelledCount,
+    };
+  }, [invoices]);
 
-  // Convert Proforma Invoice to Tax Invoice
+  // Filtered List
+  const filteredInvoices = useMemo(() => {
+    return invoices.filter((inv) => {
+      const isClosed = inv.status === "CLOSED" || inv.status === "PAID" || inv.category === "TAX_INVOICE";
+
+      // Status filter
+      if (statusFilter === "OPEN" && (isClosed || inv.status === "CANCELLED")) return false;
+      if (statusFilter === "CLOSED" && !isClosed) return false;
+      if (statusFilter === "CANCELLED" && inv.status !== "CANCELLED") return false;
+
+      // Date filter
+      if (dateRangePreset === "THIS_MONTH") {
+        const curMonth = new Date().toISOString().substring(0, 7);
+        if (!inv.invoiceDate?.startsWith(curMonth)) return false;
+      }
+
+      // Search
+      if (searchQuery.trim()) {
+        const s = searchQuery.toLowerCase();
+        const matchesNo = inv.invoiceNumber?.toLowerCase().includes(s);
+        const matchesParty = (inv.party?.name || inv.partyName || "").toLowerCase().includes(s);
+        const matchesPhone = inv.party?.phone?.includes(s);
+        const matchesGstin = inv.party?.gstin?.toLowerCase().includes(s);
+        if (!matchesNo && !matchesParty && !matchesPhone && !matchesGstin) return false;
+      }
+
+      return true;
+    });
+  }, [invoices, statusFilter, dateRangePreset, searchQuery]);
+
+  // Scorecard segments for ribbon
+  const scorecardSegments: ScorecardSegment[] = [
+    {
+      id: "all",
+      label: "Total Proforma Recorded",
+      labelGujarati: "કુલ પ્રોફોર્મા બિલ",
+      value: kpis.totalValue,
+      isCurrency: true,
+      subtext: `${invoices.length} Proforma Invoices`,
+      subtextGujarati: `${invoices.length} પ્રોફોર્મા બિલ`,
+      badge: DATE_PRESET_LABELS[dateRangePreset],
+      variant: "primary",
+      isActive: statusFilter === "ALL",
+      onClick: () => setStatusFilter("ALL"),
+    },
+    {
+      id: "closed",
+      label: "Converted to Tax Invoices",
+      labelGujarati: "પાકા બિલમાં બદલાયેલ",
+      value: kpis.closedValue,
+      isCurrency: true,
+      subtext: `${kpis.closedCount} Invoices Finalized`,
+      subtextGujarati: `${kpis.closedCount} પાકા બિલ બનેલ`,
+      variant: "success",
+      isActive: statusFilter === "CLOSED",
+      onClick: () => setStatusFilter("CLOSED"),
+    },
+    {
+      id: "open",
+      label: "Open / Pending Proforma",
+      labelGujarati: "બાકી પ્રોફોર્મા બિલ",
+      value: kpis.openValue,
+      isCurrency: true,
+      subtext: `${kpis.openCount} Awaiting Finalization`,
+      subtextGujarati: `${kpis.openCount} પેન્ડિંગ બિલ`,
+      variant: "warning",
+      isActive: statusFilter === "OPEN",
+      onClick: () => setStatusFilter("OPEN"),
+    },
+    {
+      id: "cancelled",
+      label: "Cancelled / Void",
+      labelGujarati: "રદ થયેલ પ્રોફોર્મા",
+      value: kpis.cancelledCount,
+      isCurrency: false,
+      subtext: "Voided Proforma",
+      subtextGujarati: "રદ થયેલ",
+      variant: "neutral",
+      isActive: statusFilter === "CANCELLED",
+      onClick: () => setStatusFilter("CANCELLED"),
+    },
+  ];
+
+  // Convert to Tax Invoice handler
   const handleConvertToTaxInvoice = async (inv: ProformaInvoice) => {
     setActiveActionMenuId(null);
     try {
-      await apiClient.post(`/sales/invoices/${inv.id}/convert-to-tax-invoice`, {});
-      await fetchData();
-      router.push(`/sales/invoices/${inv.id}`);
+      const res: any = await apiClient.post(
+        `/invoices/sales/${inv.id}/issue`,
+        { allowNegativeStock: true },
+        undefined,
+        `issue_proforma_${Date.now()}`,
+      );
+      setToastMessage(`Proforma #${inv.invoiceNumber} successfully converted to Tax Invoice #${res?.invoiceNumber || ""}!`);
+      setTimeout(() => setToastMessage(null), 5000);
+      await fetchInvoices();
     } catch (err: any) {
-      setError(err?.message || "Failed to convert proforma invoice.");
+      setToastMessage(err.message || "Failed to convert proforma invoice.");
+      setTimeout(() => setToastMessage(null), 4000);
     }
   };
 
-  // Cancel Proforma Invoice
+  // Cancel Submit
   const handleCancelSubmit = async () => {
     if (!selectedInvoice) return;
     try {
-      await apiClient.post(`/sales/invoices/${selectedInvoice.id}/cancel`, {
-        reason: cancelReason || "Cancelled by user",
+      await apiClient.post(`/invoices/sales/${selectedInvoice.id}/cancel`, {
+        cancellationReason: cancelReason || "Customer cancelled proforma",
       });
       setIsCancelModalOpen(false);
       setSelectedInvoice(null);
-      await fetchData();
+      setCancelReason("");
+      setToastMessage("Proforma invoice cancelled.");
+      setTimeout(() => setToastMessage(null), 3000);
+      await fetchInvoices();
     } catch (err: any) {
-      setError(err?.message || "Failed to cancel proforma invoice.");
+      alert(err.message || "Failed to cancel proforma invoice.");
     }
   };
 
-  // Delete Proforma Invoice
+  // Delete Invoice
   const handleDeleteInvoice = async () => {
     if (!invoiceToDelete) return;
     setIsDeleting(true);
     try {
-      await apiClient.delete(`/sales/invoices/${invoiceToDelete.id}`);
+      await apiClient.delete(`/invoices/sales/${invoiceToDelete.id}`);
       setInvoiceToDelete(null);
-      await fetchData();
+      setToastMessage("Proforma invoice deleted successfully.");
+      setTimeout(() => setToastMessage(null), 3000);
+      await fetchInvoices();
     } catch (err: any) {
-      setError(err?.message || "Failed to delete proforma invoice.");
+      alert(err.message || "Failed to delete proforma invoice.");
     } finally {
       setIsDeleting(false);
     }
   };
 
-  // Calculate Due In string
-  const formatDueIn = (dueDate?: string) => {
-    if (!dueDate) return "-";
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    const due = new Date(dueDate);
-    due.setHours(0, 0, 0, 0);
-    const diffDays = Math.round((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    if (diffDays === 0) return "Due today";
-    if (diffDays > 0) return `Due in ${diffDays} days`;
-    return `Overdue by ${Math.abs(diffDays)} days`;
-  };
-
   // Export Columns definition
-  const exportColumns: ExportColumn[] = useMemo(
-    () => [
-      { key: "invoiceNumber", header: "Performa Invoice Number" },
-      { key: "invoiceDate", header: "Date" },
-      { key: "partyName", header: "Party Name" },
-      { key: "dueIn", header: "Due In" },
-      { key: "totalAmount", header: "Amount (₹)" },
-      { key: "status", header: "Status" },
-    ],
-    []
-  );
+  const exportColumns: ExportColumn[] = [
+    { key: "invoiceDate", header: "Date", width: 12 },
+    { key: "invoiceNumber", header: "Proforma #", width: 15 },
+    { key: "partyName", header: "Customer", width: 25 },
+    { key: "amount", header: "Amount", width: 15, align: "right" },
+    { key: "status", header: "Status", width: 15 },
+  ];
 
   const exportData = useMemo(() => {
     return filteredInvoices.map((inv) => ({
+      invoiceDate: inv.invoiceDate ? new Date(inv.invoiceDate).toLocaleDateString("en-GB") : "",
       invoiceNumber: inv.invoiceNumber,
-      invoiceDate: new Date(inv.invoiceDate).toLocaleDateString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }),
-      partyName: inv.party?.name || inv.partyName || "Direct / Cash Customer",
-      dueIn: formatDueIn(inv.dueDate),
-      totalAmount: Number(inv.grandTotal ?? inv.totalAmount ?? 0).toFixed(2),
+      partyName: inv.party?.name || inv.partyName || "Cash Customer",
+      amount: formatInr(inv.grandTotal !== undefined ? inv.grandTotal : inv.totalAmount || 0),
       status: inv.status,
     }));
   }, [filteredInvoices]);
 
   return (
-    <div className="w-full flex-1 flex flex-col min-h-[calc(100vh-5.5rem)]">
-      {/* Unified Canvas Card matching exact myBillBook UI */}
-      <div className="bg-white rounded-lg border border-slate-200/90 shadow-2xs overflow-hidden flex-1 flex flex-col w-full">
-        {/* 1. TOP HEADER: Proforma Invoice title on left, settings & shortcuts on right */}
-        <div className="px-5 pt-4 pb-3 flex items-center justify-between border-b border-transparent">
-          <h1 className="text-lg font-bold text-slate-800 tracking-tight">
-            Proforma Invoice
-          </h1>
+    <div className="space-y-4 max-w-7xl mx-auto min-w-0 pb-16 font-sans">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-medium text-white shadow-xl animate-in slide-in-from-bottom-2 duration-150 border border-slate-800">
+          <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+          <span>{toastMessage}</span>
+        </div>
+      )}
 
-          <div className="flex items-center gap-2">
-            {/* Settings button with red notification dot */}
+      {/* 1. TOP UNIFIED COMMAND STRIP */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:px-6 sm:py-3.5 rounded-2xl border border-[#E2E8E5] shadow-xs">
+        <div>
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#26A58A]">
+              {lang === "gu" ? "વેચાણ અને પ્રોફોર્મા" : "SALES & PROFORMA"}
+            </span>
+            <span className="text-slate-300">•</span>
+            <span className="text-[10px] font-bold text-slate-500 font-mono">
+              {filteredInvoices.length} {lang === "gu" ? "પ્રોફોર્મા બિલ" : "Proforma Invoices"}
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl sm:text-2xl font-black text-[#1A2E2B] tracking-tight">
+              {lang === "gu" ? "પ્રોફોર્મા ઇનવોઇસ રજિસ્ટર" : "Proforma Invoices"}
+            </h1>
             <button
               type="button"
-              onClick={() => setIsSettingsOpen(true)}
-              className="relative p-2 rounded-md border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
-              title="Settings"
+              onClick={fetchInvoices}
+              title="Refresh Proforma Invoices"
+              className="p-1 text-slate-400 hover:text-[#174B43] rounded-md transition-colors"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="3"></circle>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-              </svg>
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-rose-500 rounded-full" />
-            </button>
-
-            {/* Keyboard shortcut button */}
-            <button
-              type="button"
-              onClick={() => setIsShortcutsOpen(true)}
-              className="p-2 rounded-md border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
-              title="Keyboard Shortcuts"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
-                <line x1="6" y1="8" x2="6.01" y2="8"></line>
-                <line x1="10" y1="8" x2="10.01" y2="8"></line>
-                <line x1="14" y1="8" x2="14.01" y2="8"></line>
-                <line x1="18" y1="8" x2="18.01" y2="8"></line>
-                <line x1="6" y1="12" x2="6.01" y2="12"></line>
-                <line x1="18" y1="12" x2="18.01" y2="12"></line>
-                <line x1="8" y1="16" x2="16" y2="16"></line>
+              <svg className={`w-4 h-4 ${isLoading ? "animate-spin text-[#26A58A]" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </button>
           </div>
         </div>
 
-        {/* 2. FILTER TOOLBAR (Search icon, Date filter, Show Open Invoices dropdown, and Create button) */}
-        <div className="px-5 py-2.5 flex flex-wrap items-center justify-between gap-3">
-          {/* Left filters */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Search Input Box */}
-            <div className="relative flex items-center">
-              <span className="absolute left-3 text-slate-400 pointer-events-none">
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-              </span>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search..."
-                className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-md text-xs text-slate-800 bg-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 w-44 sm:w-56"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-2 text-slate-400 hover:text-slate-600 text-xs"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
+        {/* Right Action Controls */}
+        <div className="flex flex-wrap items-center gap-2">
+          <ExportDropdown
+            columns={exportColumns}
+            data={exportData}
+            metadata={{
+              title: "Proforma Invoices Register",
+              fileName: "proforma_invoices_register",
+              companyName: currentCompany?.tradeName || currentCompany?.legalName || "My Business",
+              filterDescription: DATE_PRESET_LABELS[dateRangePreset],
+              totalCount: filteredInvoices.length,
+            }}
+            lang={lang}
+            themeColor="purple"
+            buttonVariant="compact"
+          />
 
-            {/* Date Range Dropdown with Calendar Icon */}
-            <div className="relative flex items-center">
-              <span className="absolute left-2.5 text-slate-500 pointer-events-none">
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-              </span>
-              <select
-                value={dateRangePreset}
-                onChange={(e) => setDateRangePreset(e.target.value as DateRangePreset)}
-                className="pl-8 pr-8 py-1.5 border border-slate-200 rounded-md text-xs font-medium text-slate-700 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer appearance-none"
-              >
-                {Object.entries(DATE_PRESET_LABELS).map(([key, label]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              <span className="absolute right-2.5 text-slate-400 pointer-events-none">
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-              </span>
-            </div>
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8E5] bg-white text-xs font-semibold text-[#1A2E2B] hover:bg-[#F2FAF7] hover:border-[#85D5C2] transition-colors shadow-2xs cursor-pointer"
+            title="Print Register"
+          >
+            <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            <span>Print</span>
+          </button>
 
-            {/* Status Dropdown: Show Open Invoices */}
-            <div className="relative flex items-center">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="pl-3 pr-7 py-1.5 border border-slate-200 rounded-md text-xs font-medium text-slate-700 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer appearance-none"
-              >
-                <option value="ALL">Show All Invoices</option>
-                <option value="OPEN">Show Open Invoices</option>
-                <option value="CLOSED">Show Closed Invoices</option>
-              </select>
-              <span className="absolute right-2 text-slate-400 pointer-events-none text-[10px]">
-                ▼
-              </span>
-            </div>
-
-            {/* Export Dropdown */}
-            <ExportDropdown
-              columns={exportColumns}
-              data={exportData}
-              metadata={{
-                title: "Proforma Invoices Register",
-                fileName: "proforma_invoices_register",
-                companyName: currentCompany?.tradeName || currentCompany?.legalName || "My Business",
-                filterDescription: DATE_PRESET_LABELS[dateRangePreset],
-                totalCount: filteredInvoices.length,
-              }}
-              lang={lang}
-              themeColor="purple"
-              buttonVariant="compact"
-            />
-          </div>
-
-          {/* Right: Create Proforma Invoice button */}
           <Link
             href="/sales/proforma/create"
-            className="inline-flex items-center justify-center px-4 py-2 bg-[#4338CA] hover:bg-[#3730A3] active:bg-[#312E81] text-white rounded-md text-xs sm:text-sm font-medium shadow-xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold shadow-md shadow-[#174B43]/20 hover:shadow-lg hover:shadow-[#174B43]/30 transition-all cursor-pointer"
           >
-            Create Proforma Invoice
+            <svg className="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>{lang === "gu" ? "+ નવું પ્રોફોર્મા બિલ" : "+ Create Proforma"}</span>
           </Link>
         </div>
+      </div>
 
-        {/* Error Alert if any */}
-        {error && (
-          <div className="mx-5 my-2 p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-800 font-medium flex items-center justify-between">
-            <span>{error}</span>
-            <button onClick={fetchData} className="text-rose-700 underline font-bold ml-2">
-              Retry
-            </button>
+      {/* 2. SCORECARD RIBBON */}
+      <ScorecardRibbon segments={scorecardSegments} lang={lang} />
+
+      {/* 3. CONTROLS BAR: SEARCH, DATE SELECTOR & STATUS SEGMENTS */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-[#E2E8E5] shadow-xs">
+        <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
+          {/* Omni Search Box */}
+          <div className="relative w-full sm:w-72">
+            <span className="absolute left-3 top-2.5 text-slate-400">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <circle cx="11" cy="11" r="8" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" />
+              </svg>
+            </span>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={lang === "gu" ? "શોધો: પ્રોફોર્મા નં, ગ્રાહક..." : "Search proforma #, customer..."}
+              className="w-full rounded-xl border border-[#E2E8E5] bg-[#F6F7F1] py-2 pl-9 pr-8 text-xs text-[#1A2E2B] placeholder-slate-400 focus:bg-white focus:border-[#26A58A] focus:ring-1 focus:ring-[#26A58A] focus:outline-none transition-colors"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-2.5 text-xs text-slate-400 hover:text-slate-700"
+              >
+                ✕
+              </button>
+            )}
           </div>
-        )}
 
-        {/* 3. TABLE: Date ⇅ | Performa Invoice Number | Party Name | Due In | Amount | Status */}
-        <div className="flex-1 overflow-x-auto mt-2">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="bg-[#EDF2F7] border-y border-slate-200 text-slate-700 font-semibold text-xs">
-                <th
-                  onClick={() => setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"))}
-                  className="py-3 px-5 whitespace-nowrap cursor-pointer select-none hover:text-slate-900 w-36"
-                >
-                  <span className="inline-flex items-center gap-1.5">
-                    <span>Date</span>
-                    <span className="text-slate-400 font-normal">⇅</span>
-                  </span>
-                </th>
-                <th className="py-3 px-5 whitespace-nowrap">
-                  Performa Invoice Number
-                </th>
-                <th className="py-3 px-5">Party Name</th>
-                <th className="py-3 px-5 whitespace-nowrap">Due In</th>
-                <th className="py-3 px-5 whitespace-nowrap">Amount</th>
-                <th className="py-3 px-5 whitespace-nowrap">Status</th>
-                <th className="py-3 px-5 text-right w-12"></th>
+          {/* Date Range Selector */}
+          <select
+            value={dateRangePreset}
+            onChange={(e) => setDateRangePreset(e.target.value as DateRangePreset)}
+            className="pl-3 pr-8 py-2 border border-[#E2E8E5] rounded-xl text-xs font-medium text-[#1A2E2B] bg-white focus:outline-none focus:border-[#26A58A] cursor-pointer"
+          >
+            {Object.entries(DATE_PRESET_LABELS).map(([key, label]) => (
+              <option key={key} value={key}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Status segment pills switcher */}
+        <div className="flex items-center gap-1 bg-[#F6F7F1] p-1 rounded-xl border border-[#E2E8E5] self-start sm:self-auto">
+          {(
+            [
+              { key: "ALL", label: "All" },
+              { key: "OPEN", label: "Open" },
+              { key: "CLOSED", label: "Converted" },
+              { key: "CANCELLED", label: "Void" },
+            ] as const
+          ).map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setStatusFilter(tab.key)}
+              className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+                statusFilter === tab.key
+                  ? "bg-white text-[#174B43] shadow-xs font-bold"
+                  : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {error && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700 flex items-center justify-between shadow-2xs">
+          <span>{error}</span>
+          <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700">✕</button>
+        </div>
+      )}
+
+      {/* 4. ENTERPRISE DATA GRID */}
+      <div className="overflow-visible rounded-2xl border border-[#E2E8E5] bg-white shadow-xs">
+        <div className="overflow-x-auto overflow-y-visible">
+          <table className="min-w-full text-left text-xs border-collapse">
+            <thead className="bg-[#F8FAF9] border-b border-[#E2E8E5] text-[#5A6B66] font-semibold uppercase tracking-wider text-[11px]">
+              <tr>
+                <th className="px-4 py-3.5 whitespace-nowrap font-bold">Date & Validity</th>
+                <th className="px-4 py-3.5 whitespace-nowrap font-bold">Proforma #</th>
+                <th className="px-4 py-3.5 whitespace-nowrap font-bold">Customer / Party</th>
+                <th className="px-4 py-3.5 text-right whitespace-nowrap font-bold">Amount</th>
+                <th className="px-4 py-3.5 text-center whitespace-nowrap font-bold">Status</th>
+                <th className="px-4 py-3.5 text-right whitespace-nowrap font-bold">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {isLoading ? (
+            <tbody className="divide-y divide-[#E2E8E5]">
+              {isLoading && (
                 <tr>
-                  <td colSpan={7} className="py-20 text-center text-slate-400">
-                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-indigo-600 border-t-transparent" />
-                    <p className="mt-2 text-xs font-medium text-slate-500">Loading proforma invoices...</p>
-                  </td>
-                </tr>
-              ) : filteredInvoices.length === 0 ? (
-                /* Empty state matching exact myBillBook screenshot */
-                <tr>
-                  <td colSpan={7} className="py-28 text-center">
-                    <div className="inline-flex items-center justify-center mb-3">
-                      {/* Signature myBillBook Voucher Empty State SVG */}
-                      <svg
-                        className="w-14 h-14 text-slate-400"
-                        viewBox="0 0 48 48"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        {/* Document sheet */}
-                        <path d="M12 6h24a2 2 0 0 1 2 2v32a2 2 0 0 1-2 2H12a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" />
-                        {/* 3 lines on left */}
-                        <line x1="16" y1="17" x2="22" y2="17" />
-                        <line x1="16" y1="23" x2="22" y2="23" />
-                        <line x1="16" y1="29" x2="22" y2="29" />
-                        {/* Rupee icon with crossed out mark */}
-                        <path d="M26 17h6M26 21h6M26 17v12M26 25h4a3 3 0 0 0 0-6h-4M26 25l5 6" />
-                        <line x1="31" y1="12" x2="37" y2="18" strokeWidth="2.5" />
-                        <line x1="37" y1="12" x2="31" y2="18" strokeWidth="2.5" />
-                      </svg>
+                  <td colSpan={6} className="px-4 py-16 text-center text-xs text-[#5A6B66]">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#26A58A] border-t-transparent" />
+                      <span>{lang === "gu" ? "લોડ થઈ રહ્યું છે..." : "Loading proforma invoices..."}</span>
                     </div>
-                    <p className="text-xs sm:text-sm font-normal text-slate-500">
-                      No Transactions Matching the current filter
-                    </p>
                   </td>
                 </tr>
-              ) : (
-                filteredInvoices.map((inv) => {
-                  const isClosed = inv.status === "CLOSED" || inv.status === "CANCELLED" || inv.status === "PAID";
-                  const total = Number(inv.grandTotal ?? inv.totalAmount ?? 0);
+              )}
 
+              {!isLoading && filteredInvoices.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-4 py-20 text-center text-[#5A6B66]">
+                    <div className="flex flex-col items-center justify-center max-w-md mx-auto">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-[#174B43] mb-3 shadow-inner">
+                        <svg className="w-7 h-7 text-[#26A58A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                      <p className="text-base font-bold text-[#1A2E2B]">
+                        {lang === "gu" ? "કોઈ પ્રોફોર્મા બિલ મળ્યા નથી." : "No proforma invoices found"}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {searchQuery
+                          ? "No transactions match your current search filters."
+                          : "Create proforma invoices for customers and convert them to GST Tax Invoices in 1-click."}
+                      </p>
+                      <Link
+                        href="/sales/proforma/create"
+                        className="mt-4 rounded-xl bg-[#174B43] px-4 py-2 text-xs font-bold text-white shadow-jade hover:bg-[#123B35] transition-colors"
+                      >
+                        {lang === "gu" ? "+ નવું પ્રોફોર્મા બિલ" : "+ Create Proforma"}
+                      </Link>
+                    </div>
+                  </td>
+                </tr>
+              )}
+
+              {!isLoading &&
+                filteredInvoices.map((inv) => {
+                  const isClosed = inv.status === "CLOSED" || inv.status === "PAID" || inv.category === "TAX_INVOICE";
+                  const amt = inv.grandTotal !== undefined ? inv.grandTotal : inv.totalAmount || 0;
                   return (
                     <tr
                       key={inv.id}
-                      onClick={() => router.push(`/sales/invoices/${inv.id}`)}
-                      className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
+                      className={`hover:bg-[#F2FAF7]/70 transition-colors group ${
+                        inv.status === "CANCELLED" ? "opacity-60 bg-slate-50/50" : ""
+                      }`}
                     >
-                      {/* Date */}
-                      <td className="py-3.5 px-5 whitespace-nowrap text-slate-700 font-medium">
-                        {new Date(inv.invoiceDate).toLocaleDateString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
+                      {/* Date & Validity */}
+                      <td className="px-4 py-3 whitespace-nowrap text-xs text-[#1A2E2B]">
+                        <div>
+                          {inv.invoiceDate
+                            ? new Date(inv.invoiceDate).toLocaleDateString("en-GB", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              })
+                            : "—"}
+                        </div>
+                        {inv.dueDate && (
+                          <div className="text-[10px] text-slate-400 font-medium mt-0.5">
+                            Due: {new Date(inv.dueDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}
+                          </div>
+                        )}
                       </td>
 
                       {/* Proforma Number */}
-                      <td className="py-3.5 px-5 whitespace-nowrap">
-                        <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
-                          {inv.invoiceNumber}
-                        </span>
-                      </td>
-
-                      {/* Party Name */}
-                      <td className="py-3.5 px-5">
-                        <div className="font-semibold text-slate-900">
-                          {inv.party?.name || inv.partyName || "Direct / Cash Customer"}
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/sales/invoices/${inv.id}`}
+                            className="font-mono font-bold text-[#174B43] hover:text-[#26A58A] hover:underline transition-colors text-xs"
+                          >
+                            {inv.invoiceNumber}
+                          </Link>
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200/60">
+                            Proforma
+                          </span>
                         </div>
-                        {inv.party?.gstin && (
-                          <div className="text-[10px] text-indigo-600 font-mono">
-                            GST: {inv.party.gstin}
-                          </div>
-                        )}
                       </td>
 
-                      {/* Due In */}
-                      <td className="py-3.5 px-5 whitespace-nowrap text-slate-600">
-                        {formatDueIn(inv.dueDate)}
+                      {/* Customer / Party */}
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="font-semibold text-[#1A2E2B] text-xs">
+                          {inv.party?.name || inv.partyName || "Cash Customer"}
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono mt-0.5">
+                          {inv.party?.phone && <span>📞 {inv.party.phone}</span>}
+                          {inv.party?.gstin && <span>GST: {inv.party.gstin}</span>}
+                        </div>
                       </td>
 
                       {/* Amount */}
-                      <td className="py-3.5 px-5 whitespace-nowrap font-medium text-slate-900">
-                        ₹ {total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                      <td className="px-4 py-3 text-right font-bold text-[#1A2E2B] whitespace-nowrap font-mono text-[13px]">
+                        {formatInr(amt)}
                       </td>
 
                       {/* Status */}
-                      <td className="py-3.5 px-5 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase ${
-                            isClosed
-                              ? "bg-slate-100 text-slate-600 border border-slate-200"
-                              : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                          }`}
-                        >
-                          {isClosed ? inv.status : "OPEN"}
-                        </span>
+                      <td className="px-4 py-3 text-center whitespace-nowrap">
+                        {isClosed ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <svg className="w-3 h-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Converted</span>
+                          </span>
+                        ) : inv.status === "CANCELLED" ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
+                            Void
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                            <span>Open</span>
+                          </span>
+                        )}
                       </td>
 
-                      {/* 3-dots action menu */}
-                      <td
-                        className="py-3.5 px-5 text-right whitespace-nowrap relative"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setActiveActionMenuId(activeActionMenuId === inv.id ? null : inv.id)
-                          }
-                          className="p-1.5 hover:bg-slate-200 rounded text-slate-500 hover:text-slate-800 transition-colors cursor-pointer text-sm font-bold"
-                          title="Actions"
-                        >
-                          ⋮
-                        </button>
-
-                        {activeActionMenuId === inv.id && (
-                          <div
-                            className="absolute right-5 top-10 z-50 w-52 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-xs text-left"
-                            onClick={(e) => e.stopPropagation()}
-                          >
+                      {/* Actions */}
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {!isClosed && inv.status !== "CANCELLED" && (
                             <button
                               type="button"
                               onClick={() => handleConvertToTaxInvoice(inv)}
-                              className="w-full text-left flex items-center gap-2 px-3 py-2 text-indigo-700 hover:bg-indigo-50 font-semibold transition-colors cursor-pointer"
+                              className="px-2.5 py-1 text-xs font-bold text-white bg-[#174B43] hover:bg-[#123B35] rounded-lg shadow-xs transition-colors flex items-center gap-1 cursor-pointer"
+                              title="Convert this proforma to legal Tax Invoice"
                             >
-                              <span>🚀</span>
-                              <span>Convert to Tax Invoice</span>
+                              <svg className="w-3.5 h-3.5 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                              </svg>
+                              <span>Convert</span>
                             </button>
+                          )}
 
-                            <Link
-                              href={`/sales/invoices/${inv.id}`}
-                              className="w-full text-left flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50 transition-colors"
-                            >
-                              <span>👁️</span>
-                              <span>View / Print Proforma</span>
-                            </Link>
+                          <Link
+                            href={`/sales/invoices/${inv.id}`}
+                            className="p-1.5 text-xs text-[#174B43] hover:bg-[#F2FAF7] rounded-lg font-semibold transition-colors border border-[#E2E8E5]"
+                            title="View / Print PDF"
+                          >
+                            View
+                          </Link>
 
-                            {!isClosed && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setActiveActionMenuId(null);
-                                  setSelectedInvoice(inv);
-                                  setIsCancelModalOpen(true);
-                                }}
-                                className="w-full text-left flex items-center gap-2 px-3 py-2 text-amber-700 hover:bg-amber-50 transition-colors cursor-pointer"
-                              >
-                                <span>✕</span>
-                                <span>Cancel Proforma</span>
-                              </button>
-                            )}
-
+                          {!isClosed && inv.status !== "CANCELLED" && (
                             <button
                               type="button"
                               onClick={() => {
-                                setActiveActionMenuId(null);
-                                setInvoiceToDelete(inv);
+                                setSelectedInvoice(inv);
+                                setIsCancelModalOpen(true);
                               }}
-                              className="w-full text-left flex items-center gap-2 px-3 py-2 text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer border-t border-slate-100"
+                              className="p-1.5 text-xs text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                              title="Cancel Proforma"
                             >
-                              <span>🗑️</span>
-                              <span>Delete Proforma</span>
+                              ✕
                             </button>
-                          </div>
-                        )}
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => setInvoiceToDelete(inv)}
+                            className="p-1.5 text-xs text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            title="Delete Proforma"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
-                })
-              )}
+                })}
             </tbody>
           </table>
         </div>
       </div>
 
       {/* MODALS */}
-      {/* Quick Settings Modal */}
       <QuickSettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
@@ -671,7 +693,6 @@ export default function ProformaInvoiceListingPage() {
         initialTab="invoice"
       />
 
-      {/* Keyboard Shortcuts Modal */}
       <ShortcutsModal isOpen={isShortcutsOpen} onClose={() => setIsShortcutsOpen(false)} />
 
       {/* Cancel Proforma Modal */}
@@ -693,21 +714,21 @@ export default function ProformaInvoiceListingPage() {
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               placeholder="e.g. Quotation rejected or deal cancelled"
-              className="w-full p-2 border border-slate-300 rounded-lg text-xs"
+              className="w-full p-2.5 border border-[#E2E8E5] rounded-xl text-xs bg-[#F6F7F1] focus:bg-white focus:border-[#26A58A] focus:outline-none"
             />
           </div>
           <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
             <button
               type="button"
               onClick={() => setIsCancelModalOpen(false)}
-              className="px-3.5 py-1.5 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 cursor-pointer"
+              className="px-3.5 py-1.5 border border-[#E2E8E5] rounded-xl text-slate-600 hover:bg-slate-50 cursor-pointer"
             >
               Close
             </button>
             <button
               type="button"
               onClick={handleCancelSubmit}
-              className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold shadow-xs cursor-pointer"
+              className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold shadow-xs cursor-pointer"
             >
               Cancel Proforma
             </button>
@@ -731,7 +752,7 @@ export default function ProformaInvoiceListingPage() {
             <button
               type="button"
               onClick={() => setInvoiceToDelete(null)}
-              className="px-3.5 py-1.5 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 cursor-pointer"
+              className="px-3.5 py-1.5 border border-[#E2E8E5] rounded-xl text-slate-600 hover:bg-slate-50 cursor-pointer"
             >
               Cancel
             </button>
@@ -739,7 +760,7 @@ export default function ProformaInvoiceListingPage() {
               type="button"
               disabled={isDeleting}
               onClick={handleDeleteInvoice}
-              className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold shadow-xs cursor-pointer disabled:opacity-50"
+              className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold shadow-xs cursor-pointer disabled:opacity-50"
             >
               {isDeleting ? "Deleting..." : "Delete"}
             </button>

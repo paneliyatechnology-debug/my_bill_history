@@ -77,6 +77,8 @@ export interface LiveInvoiceData {
   isInterState?: boolean;
 }
 
+import { InvoiceStudioState } from "@/components/invoice/invoice-settings-studio";
+
 export interface InvoiceLivePreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -84,6 +86,8 @@ export interface InvoiceLivePreviewModalProps {
   lang?: string;
   invoiceData?: LiveInvoiceData;
   data?: LiveInvoiceData;
+  companyId?: string;
+  settings?: InvoiceStudioState;
 }
 
 export function InvoiceLivePreviewModal({
@@ -93,9 +97,12 @@ export function InvoiceLivePreviewModal({
   lang = "en",
   invoiceData: propInvoiceData,
   data,
+  companyId,
+  settings: propSettings,
 }: InvoiceLivePreviewModalProps) {
   const [mounted, setMounted] = useState(false);
-  const { state: activeThemeState } = useActiveInvoiceTheme();
+  const { state: activeThemeState } = useActiveInvoiceTheme(companyId);
+  const activeSettings = propSettings || activeThemeState;
   const [activeCustomization, setActiveCustomization] = useState<InvoiceCustomization>(
     propCustomization || DEFAULT_INVOICE_CUSTOMIZATION
   );
@@ -211,22 +218,22 @@ export function InvoiceLivePreviewModal({
           <div className="flex items-center gap-2.5">
             <span
               className="w-3.5 h-3.5 rounded-full"
-              style={{ backgroundColor: primaryColor }}
+              style={{ backgroundColor: activeSettings.accentColor || primaryColor }}
             />
             <div>
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <span>{lang === "gu" ? "લાઇવ બિલ પ્રિવ્યૂ" : "Live Invoice Preview"}</span>
                 <span
                   className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-                  style={{ backgroundColor: primaryColor }}
+                  style={{ backgroundColor: activeSettings.accentColor || primaryColor }}
                 >
-                  {preset.name}
+                  {activeSettings.uniqueThemeKey || activeSettings.themeId || preset.name}
                 </span>
               </h3>
               <p className="text-[11px] text-slate-500">
                 {lang === "gu"
-                  ? "પસંદ કરેલી થીમ અને કસ્ટમાઇઝેશન મુજબ બિલનું પ્રિન્ટ સ્વરૂપ"
-                  : "Preview how this invoice renders with your selected theme & custom layout"}
+                  ? "સેટિંગ્સમાંથી પસંદ કરેલી થીમ મુજબ લાઇવ પ્રિવ્યૂ"
+                  : "Live preview rendered with your saved settings theme"}
               </p>
             </div>
           </div>
@@ -286,7 +293,7 @@ export function InvoiceLivePreviewModal({
                 item: { name: it.name },
               })),
             }}
-            settings={activeThemeState}
+            settings={activeSettings}
             company={{
               tradeName: invoiceData.companyName,
               gstin: invoiceData.companyGstin,

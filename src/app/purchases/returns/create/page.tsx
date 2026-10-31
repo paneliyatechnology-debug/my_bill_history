@@ -3,7 +3,20 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useActiveInvoiceTheme } from "@/lib/use-active-invoice-theme";
+import { DynamicThemedInvoice } from "@/components/invoice/dynamic-themed-invoice";
 import { useAuth } from "../../../../context/auth-context";
+import {
+  DocumentHeaderCard,
+  DocumentInfoStrip,
+  DocumentItemsCard,
+  DocumentNotesAndTermsCard,
+  DocumentAdditionalInfoCard,
+  DocumentSummaryCard,
+  DocumentPaymentCard,
+  DocumentBottomBar,
+  PartySelectorCompact,
+} from "@/components/document-studio";
 import { apiClient, extractList } from "../../../../lib/api-client";
 import { SignatureModal } from "../../../../components/invoice/signature-modal";
 import { Modal } from "../../../../components/ui/modal";
@@ -73,6 +86,7 @@ export default function CreatePurchaseReturnPage() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { lang, currentCompany } = useAuth();
+  const { state: activeInvoiceTheme } = useActiveInvoiceTheme(currentCompany?.id);
 
   const isDebitMemo = useMemo(() => {
     return pathname?.includes("debit-memo") || searchParams?.get("type") === "debit-memo";
@@ -137,7 +151,12 @@ export default function CreatePurchaseReturnPage() {
 
   // Notes & Terms
   const [showNotesInput, setShowNotesInput] = useState(false);
-  const [notes, setNotes] = useState<string>("");
+    const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
+  const [transportMode, setTransportMode] = useState("Road");
+  const [vehicleNo, setVehicleNo] = useState("");
+  const [ewayBillNo, setEwayBillNo] = useState("");
+  const [dispatchDate, setDispatchDate] = useState("");
+const [notes, setNotes] = useState<string>("");
   const [showTerms, setShowTerms] = useState(true);
   const [terms, setTerms] = useState<string>(
     "1. Goods once sold will not be taken back or exchanged\n2. All disputes are subject to [ENTER_YOUR_CITY_NAME] jurisdiction only",
@@ -1037,1415 +1056,432 @@ export default function CreatePurchaseReturnPage() {
           </div>
         )}
 
-        {/* 1. TOP NAVBAR */}
-        <div className="flex items-center justify-between bg-white px-4 py-2.5 rounded-lg border border-slate-200/90 shadow-xs">
-          <div className="flex items-center gap-4">
-            <Link
-              href={isDebitMemo ? "/purchases/debit-memo" : isDebitNote ? "/purchases/debit-note" : "/purchases/returns"}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded hover:bg-slate-50 transition-colors shadow-2xs"
-            >
-              <span>← Exit</span>
-            </Link>
-
-            <h1 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
-              {isEditMode ? `Edit ${voucherLabel}` : `Create ${voucherLabel}`}
-            </h1>
-
-            {/* Mode Toggle Pills (Edit Mode vs Preview Mode) */}
-            <div className="hidden sm:inline-flex items-center bg-[#F1F5F9] p-0.5 rounded-lg text-xs font-medium text-slate-600">
-              <button
-                type="button"
-                onClick={() => setViewMode("edit")}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-all ${
-                  viewMode === "edit"
-                    ? "bg-white text-[#174B43] font-semibold shadow-xs"
-                    : "hover:text-slate-900"
-                }`}
-              >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                </svg>
-                <span>Edit Mode</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("preview")}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-all ${
-                  viewMode === "preview"
-                    ? "bg-white text-[#174B43] font-semibold shadow-xs"
-                    : "hover:text-slate-900"
-                }`}
-              >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-                <span>Preview Mode</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Right section: Settings, Save & New, Save, Shortcuts */}
-          <div className="flex items-center gap-2">
-            {viewMode === "preview" ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded hover:bg-slate-50 transition-colors shadow-2xs flex items-center gap-1.5"
-                >
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="6 9 6 2 18 2 18 9" />
-                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-                    <rect x="6" y="14" width="12" height="8" />
-                  </svg>
-                  <span>Print</span>
-                </button>
+        {/* Top header replaced by unified DocumentHeaderCard */}
+        {/* 2. DYNAMIC CONTENT: PREVIEW MODE vs EDIT MODE */}
+        {viewMode === "preview" ? (
+          <div className="space-y-4 animate-fadeIn">
+            {/* Preview Top Control Bar */}
+            <div className="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-xs">
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setViewMode("edit")}
-                  className="px-4 py-1.5 text-xs font-semibold text-white bg-[#174B43] rounded hover:bg-[#123B35] transition-colors shadow-2xs"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
-                  Back to Edit
+                  <span>← {lang === "gu" ? "એડિટ મોડ પર પાછા જાઓ" : "Back to Edit Mode"}</span>
                 </button>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => openSettings("invoice")}
-                  title="Debit Memo Settings"
-                  className="flex h-8 w-8 items-center justify-center rounded border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 shadow-2xs cursor-pointer transition-colors"
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="3" />
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                  </svg>
-                </button>
-
-                <button
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={() => handleSubmit(true)}
-                  className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded hover:bg-slate-50 transition-colors shadow-2xs"
-                >
-                  Save & New
-                </button>
-
-                <button
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={() => handleSubmit(false)}
-                  className="flex items-center gap-1.5 px-5 py-1.5 text-xs font-semibold text-white bg-[#174B43] rounded hover:bg-[#123B35] transition-colors shadow-2xs"
-                >
-                  {isSubmitting && <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />}
-                  <span>{isEditMode ? "Update" : "Save"}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => showToast("Shortcuts: Ctrl+S (Save), Alt+I (Add Item)")}
-                  className="flex h-8 w-8 items-center justify-center rounded border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 shadow-2xs"
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="2" y="4" width="20" height="16" rx="2" />
-                    <line x1="6" y1="8" x2="6.01" y2="8" />
-                    <line x1="10" y1="8" x2="10.01" y2="8" />
-                    <line x1="14" y1="8" x2="14.01" y2="8" />
-                    <line x1="18" y1="8" x2="18.01" y2="8" />
-                    <line x1="6" y1="12" x2="6.01" y2="12" />
-                    <line x1="10" y1="12" x2="10.01" y2="12" />
-                    <line x1="14" y1="12" x2="14.01" y2="12" />
-                    <line x1="18" y1="12" x2="18.01" y2="12" />
-                    <line x1="8" y1="16" x2="16" y2="16" />
-                  </svg>
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
-        {errorMessage && (
-          <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-semibold text-rose-700 flex items-center justify-between">
-            <span>{errorMessage}</span>
-            <button type="button" onClick={() => setErrorMessage(null)} className="text-rose-500 hover:text-rose-700">✕</button>
-          </div>
-        )}
-
-        {/* 2. DYNAMIC CONTENT: PREVIEW MODE vs EDIT MODE */}
-        {viewMode === "preview" ? (
-          /* PREVIEW MODE DOCUMENT MATCHING MYBILLBOOK */
-          <div className="flex justify-center p-4 bg-slate-200 rounded-xl">
-            <div className="w-full max-w-4xl bg-white p-8 rounded border-4 border-[#C8A26A] shadow-2xl text-slate-800 space-y-6">
-              {/* Header */}
-              <div className="flex items-start justify-between border-b-2 border-[#C8A26A] pb-4">
                 <div>
-                  <h2 className="text-2xl font-serif font-bold text-[#1E3A8A] uppercase tracking-wide">
-                    {currentCompany?.tradeName || currentCompany?.legalName || "MODI CHAI"}
-                  </h2>
-                  <p className="text-xs text-slate-600 mt-1">📞 {(currentCompany as any)?.phone || "9510442798"}</p>
-                  <p className="text-xs text-slate-600">📍 {(currentCompany as any)?.address || currentCompany?.city || "Gujarat, India"}</p>
-                  {currentCompany?.gstin && (
-                    <p className="text-xs font-mono font-bold text-slate-700 mt-0.5">GSTIN: {currentCompany.gstin}</p>
-                  )}
-                </div>
-
-                <div className="text-right">
-                  <h3 className="text-xl font-serif font-bold text-[#1E3A8A] tracking-wider uppercase">
-                    {isDebitMemo ? "DEBIT MEMO" : isDebitNote ? "DEBIT NOTE" : "PURCHASE RETURN"}
-                  </h3>
-                  <p className="text-xs text-slate-500 font-mono mt-0.5">
-                    {isDebitMemo ? "(PURCHASE RETURN)" : isDebitNote ? "(PURCHASE RETURN)" : "(DEBIT NOTE)"}
-                  </p>
-                  <div className="text-xs text-slate-700 mt-2 space-y-0.5">
-                    <p>{voucherLabel} No: <strong>#{returnNumber}</strong></p>
-                    <p>{voucherLabel} Date: <strong>{new Date(returnDate).toLocaleDateString("en-GB")}</strong></p>
-                    {selectedInvoiceId && <p>Orig. Bill: <strong>#{invoiceSearchQuery.replace(/^#+/, "")}</strong></p>}
-                  </div>
-                </div>
-              </div>
-
-              {/* Bill To */}
-              <div className="bg-[#FAF8F5] p-4 rounded border border-[#EBE4D8] text-xs">
-                <p className="font-bold text-[#1E3A8A] uppercase tracking-wider text-[11px] mb-1">
-                  Bill To
-                </p>
-                <p className="text-sm font-bold text-slate-900">{selectedParty?.name || "Cash Customer / Vendor"}</p>
-                {selectedParty?.phone && <p className="text-slate-600 mt-0.5">Mobile: {selectedParty.phone}</p>}
-                {selectedParty?.gstin && <p className="text-slate-600">GSTIN: {selectedParty.gstin}</p>}
-                {selectedParty?.billingAddress && <p className="text-slate-500 mt-0.5">{selectedParty.billingAddress}</p>}
-              </div>
-
-              {/* Items Table */}
-              <div className="border border-slate-200 overflow-hidden">
-                <table className="min-w-full text-left text-xs border-collapse">
-                  <thead className="bg-[#F5EFE6] border-b border-slate-300 font-semibold text-slate-800">
-                    <tr>
-                      <th className="px-3 py-2 w-10 text-center">No</th>
-                      <th className="px-3 py-2">Items</th>
-                      <th className="px-3 py-2">HSN</th>
-                      <th className="px-3 py-2 text-right">Qty.</th>
-                      <th className="px-3 py-2 text-right">Rate</th>
-                      <th className="px-3 py-2 text-right">Discount</th>
-                      <th className="px-3 py-2 text-right">Tax</th>
-                      <th className="px-3 py-2 text-right">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {items.map((line, idx) => (
-                      <tr key={line.id}>
-                        <td className="px-3 py-2.5 text-center text-slate-500">{idx + 1}</td>
-                        <td className="px-3 py-2.5 font-semibold text-slate-900">{line.name || `Item #${idx + 1}`}</td>
-                        <td className="px-3 py-2.5 text-slate-600">{line.hsn || "—"}</td>
-                        <td className="px-3 py-2.5 text-right font-medium">{line.quantity}</td>
-                        <td className="px-3 py-2.5 text-right">₹ {line.unitPrice.toFixed(2)}</td>
-                        <td className="px-3 py-2.5 text-right text-slate-600">
-                          {line.discount > 0 ? `₹ ${line.discount} (${line.discountType})` : "₹ 0.00"}
-                        </td>
-                        <td className="px-3 py-2.5 text-right text-slate-600">
-                          ₹ {line.taxAmount.toFixed(2)} ({line.taxRate}%)
-                        </td>
-                        <td className="px-3 py-2.5 text-right font-bold text-slate-900">
-                          ₹ {line.totalAmount.toFixed(2)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Totals Summary */}
-              <div className="flex justify-end pt-2">
-                <div className="w-72 space-y-2 text-xs">
-                  <div className="flex justify-between text-slate-600">
-                    <span>Taxable Amount:</span>
-                    <span>₹ {calculations.totalTaxable.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-600">
-                    <span>GST / Tax Amount:</span>
-                    <span>₹ {calculations.totalTax.toFixed(2)}</span>
-                  </div>
-                  {additionalCharges > 0 && (
-                    <div className="flex justify-between text-slate-600">
-                      <span>Additional Charges:</span>
-                      <span>₹ {additionalCharges.toFixed(2)}</span>
-                    </div>
-                  )}
-                  {overallDiscount > 0 && (
-                    <div className="flex justify-between text-slate-600">
-                      <span>Overall Discount:</span>
-                      <span>- ₹ {overallDiscount.toFixed(2)}</span>
-                    </div>
-                  )}
-                  {calculations.roundOffDiff !== 0 && (
-                    <div className="flex justify-between text-slate-500">
-                      <span>Round Off:</span>
-                      <span>{calculations.roundOffDiff >= 0 ? `+ ₹${calculations.roundOffDiff}` : `- ₹${Math.abs(calculations.roundOffDiff)}`}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between border-t-2 border-slate-900 pt-2 text-sm font-bold text-slate-900">
-                    <span>Grand Total:</span>
-                    <span className="text-[#1E3A8A]">₹ {calculations.finalTotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-xs text-slate-700">
-                    <span>Amount Paid / Refunded:</span>
-                    <span>₹ {calculations.paid.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-xs font-bold text-[#16A34A]">
-                    <span>Balance Amount:</span>
-                    <span>₹ {calculations.balance.toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bank Details & Payment QR Section */}
-              {(bankAdded || qrAdded) && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-200 pt-4 pb-1 text-xs">
-                  {bankAdded && (
-                    <div className="rounded-lg border border-[#EBE4D8] bg-[#FAF8F5] p-3 text-slate-700">
-                      <p className="font-bold text-[#1E3A8A] uppercase tracking-wider text-[11px] mb-1.5 flex items-center gap-1.5">
-                        <span>🏛️</span> Bank Details
-                      </p>
-                      <div className="space-y-0.5 text-xs">
-                        <p>
-                          <span className="text-slate-500">Bank Name:</span>{" "}
-                          <strong>{effectiveBankName}</strong>
-                        </p>
-                        <p>
-                          <span className="text-slate-500">A/c No:</span>{" "}
-                          <strong className="font-mono">{bankForm.accountNumber}</strong>
-                        </p>
-                        <p>
-                          <span className="text-slate-500">IFSC Code:</span>{" "}
-                          <strong className="font-mono">{bankForm.ifscCode}</strong>
-                        </p>
-                        {bankForm.branchName && (
-                          <p>
-                            <span className="text-slate-500">Branch:</span>{" "}
-                            <strong>{bankForm.branchName}</strong>
-                          </p>
-                        )}
-                        {bankForm.accountHolderName && (
-                          <p>
-                            <span className="text-slate-500">Account Holder:</span>{" "}
-                            <strong>{bankForm.accountHolderName}</strong>
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {qrAdded && upiUri && (
-                    <div className="rounded-lg border border-teal-200 bg-white p-3 text-slate-700 flex items-center justify-between gap-3 shadow-2xs">
-                      <div>
-                        <p className="font-bold text-slate-900 text-xs mb-1 flex items-center gap-1">
-                          <span>📱</span> Scan &amp; Pay via UPI
-                        </p>
-                        <p className="text-[11px] text-slate-500 mb-1">
-                          Scan with GPay, PhonePe, Paytm or any UPI App
-                        </p>
-                        <p className="text-xs font-mono font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded inline-block border border-teal-100">
-                          {qrForm.upiId}
-                        </p>
-                      </div>
-                      <div className="p-1.5 bg-white border border-slate-200 rounded-lg shadow-2xs shrink-0">
-                        <InvoiceQrCode value={upiUri} size={72} label="UPI QR" showTooltip={false} />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Terms & Signature */}
-              <div className="grid grid-cols-2 gap-4 border-t border-slate-200 pt-6 text-xs text-slate-500">
-                <div>
-                  <p className="font-semibold text-slate-700 mb-1">Terms & Conditions:</p>
-                  <p className="text-[11px] leading-relaxed whitespace-pre-line">{terms}</p>
-                </div>
-                <div className="text-right flex flex-col justify-end items-end">
-                  <p className="text-slate-700 font-semibold mb-1">For {currentCompany?.tradeName || currentCompany?.legalName || "MODI CHAI"}</p>
-                  {signatureData ? (
-                    <div className="group relative cursor-pointer" onClick={() => setIsSignatureModalOpen(true)}>
-                      <img src={signatureData} alt="Signature" className="h-14 object-contain my-1" />
-                      <span className="hidden group-hover:inline text-[9px] text-blue-600 underline absolute -top-3 right-0">Change</span>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setIsSignatureModalOpen(true)}
-                      className="h-12 border border-dashed border-slate-300 rounded px-3 py-1 text-[11px] font-medium text-blue-600 hover:bg-slate-50 flex items-center justify-center my-1"
+                  <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <span>{voucherLabel} {lang === "gu" ? "પ્રિવ્યૂ" : "Preview"}</span>
+                    <span
+                      className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
+                      style={{ backgroundColor: activeInvoiceTheme.accentColor || "#174B43" }}
                     >
-                      + Add Signature
-                    </button>
-                  )}
-                  <p className="text-[11px] text-slate-500 border-t border-slate-300 pt-1 w-44 text-center">Authorized Signatory</p>
+                      {activeInvoiceTheme.uniqueThemeKey || activeInvoiceTheme.themeId}
+                    </span>
+                  </h2>
+                  <p className="text-[11px] text-slate-500">
+                    {lang === "gu" ? "સેટિંગ્સમાંથી પસંદ કરેલી થીમ મુજબ લાઇવ પ્રિવ્યૂ" : "Live preview rendered with your saved settings theme"}
+                  </p>
                 </div>
               </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>🖨️ {lang === "gu" ? "પ્રિન્ટ" : "Print Voucher"}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Themed Document using DynamicThemedInvoice */}
+            <div className="bg-slate-100/70 p-4 sm:p-8 rounded-2xl border border-slate-200 overflow-x-auto flex justify-center">
+              <DynamicThemedInvoice
+                invoice={{
+                  category: isDebitMemo ? "DEBIT_MEMO" : "PURCHASE_RETURN",
+                  invoiceNumber: returnNumber || "PR-001",
+                  invoiceDate: returnDate,
+                  paymentMode: paymentMode,
+                  placeOfSupply: "24 (Gujarat)",
+                  taxableAmount: calculations.totalTaxable,
+                  cgstAmount: calculations.totalTax > 0 ? Number((calculations.totalTax / 2).toFixed(2)) : 0,
+                  sgstAmount: calculations.totalTax > 0 ? Number((calculations.totalTax / 2).toFixed(2)) : 0,
+                  igstAmount: 0,
+                  roundOff: calculations.roundOffDiff,
+                  grandTotal: calculations.finalTotal,
+                  paidAmount: isFullyPaid ? calculations.finalTotal : Number(amountReceived) || 0,
+                  balanceAmount: calculations.balance,
+                  notes: notes,
+                  party: {
+                    name: selectedParty?.name || "Supplier Name",
+                    gstin: selectedParty?.gstin,
+                    phone: selectedParty?.phone,
+                    billingAddress: selectedParty?.billingAddress,
+                  },
+                  items: items.map((r, idx) => {
+                    const gross = Number(r.quantity || 0) * Number(r.unitPrice || 0);
+                    const disc = Number(r.discount || 0);
+                    const discVal = r.discountType === "₹" ? disc : (gross * disc) / 100;
+                    const taxable = Math.max(0, gross - discVal);
+                    const taxRate = Number(r.taxRate || 0);
+                    const taxAmt = (taxable * taxRate) / 100;
+                    return {
+                      id: r.id || `row-${idx}`,
+                      description: r.name || "Item",
+                      hsnCode: r.hsn,
+                      quantity: Number(r.quantity || 0),
+                      unitPrice: Number(r.unitPrice || 0),
+                      discountPercent: r.discountType === "%" ? disc : gross > 0 ? (disc / gross) * 100 : 0,
+                      taxRate: taxRate,
+                      taxableAmount: taxable,
+                      cgstAmount: taxAmt / 2,
+                      sgstAmount: taxAmt / 2,
+                      totalAmount: taxable + taxAmt,
+                      item: { name: r.name },
+                    };
+                  }),
+                  eWayBillRecord: {
+                    originalInvoiceNumber: invoices.find((i) => i.id === selectedInvoiceId)?.vendorInvoiceNumber || selectedInvoiceId,
+                    vehicleNo: vehicleNo,
+                    ewayBillNo: ewayBillNo,
+                    dispatchDate: dispatchDate,
+                    transportMode: transportMode,
+                  },
+                }}
+                settings={{
+                  ...activeInvoiceTheme,
+                  termsAndConditions: {
+                    ...activeInvoiceTheme.termsAndConditions,
+                    sales: terms,
+                  },
+                }}
+                company={{
+                  tradeName: currentCompany?.tradeName || currentCompany?.legalName || "My Company",
+                  legalName: currentCompany?.legalName,
+                  addressLine1: (currentCompany as any)?.address || currentCompany?.city || "Gujarat, India",
+                  city: currentCompany?.city,
+                  gstin: currentCompany?.gstin,
+                  phone: (currentCompany as any)?.phone,
+                  stateCode: currentCompany?.stateCode || "24",
+                }}
+                printableId="printable-purchase-return"
+              />
             </div>
           </div>
         ) : (
-          /* EDIT MODE */
-          <>
-            {/* Top Section: Bill From, Ship From, Invoice Details */}
-            <div className={`grid grid-cols-1 ${selectedParty ? "lg:grid-cols-3" : "lg:grid-cols-2"} gap-3`}>
-              {/* Bill From Card */}
-              <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-2xs relative">
-                <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-2">
-                  <span>Bill From</span>
-                  {selectedParty && (
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={handleOpenEditParty}
-                        className="flex items-center gap-1 text-slate-600 hover:text-[#2563EB] font-medium"
-                      >
-                        <span>✎ Edit Party</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setPartySearchTerm("");
-                          setIsPartySearchOpen(true);
-                        }}
-                        className="flex items-center gap-1 text-[#2563EB] hover:underline font-semibold"
-                      >
-                        <span>🔄 Change Party</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
+          <div className="space-y-4">
+            {/* DOCUMENT HEADER CARD */}
+            <DocumentHeaderCard
+              title={voucherLabel}
+              subtitle={isDebitMemo ? "Create and manage your supplier debit memos" : "Create and manage your purchase return debit notes"}
+              status="Draft"
+              onPreview={() => setViewMode("preview")}
+              onPrint={() => window.print()}
+              onSave={() => handleSubmit(false)}
+              onSaveAsDraft={() => handleSubmit(false)}
+              isSaving={isSubmitting}
+              saveButtonLabel={isDebitMemo ? "Save Debit Memo" : "Save Purchase Return"}
+              moreMenuItems={[
+                { label: "Voucher Settings", onClick: () => openSettings("invoice") },
+                { label: "Keyboard Shortcuts", onClick: () => showToast("Shortcuts: Ctrl+S (Save), Alt+I (Add Item)") },
+              ]}
+            />
 
-                {/* If party search dropdown is open */}
-                {isPartySearchOpen ? (
-                  <div className="space-y-2 relative z-30">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        autoFocus
-                        value={partySearchTerm}
-                        onChange={(e) => setPartySearchTerm(e.target.value)}
-                        placeholder="Search party by name or number"
-                        className="w-full rounded border border-[#2563EB] px-3 py-1.5 text-xs text-slate-800 focus:outline-hidden"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setIsPartySearchOpen(false)}
-                        className="absolute right-2.5 top-1.5 text-slate-400 hover:text-slate-600 text-xs"
-                      >
-                        ✕
-                      </button>
-                    </div>
-
-                    <div className="rounded border border-slate-200 max-h-52 overflow-y-auto divide-y divide-slate-100 text-xs bg-white shadow-xl">
-                      <div className="flex justify-between px-3 py-1.5 bg-[#F8FAFC] font-semibold text-[11px] text-slate-500 sticky top-0 z-10">
-                        <span>Party Name</span>
-                        <span>Balance</span>
-                      </div>
-                      {parties
-                        .filter(
-                          (p) =>
-                            p.name.toLowerCase().includes(partySearchTerm.toLowerCase()) ||
-                            (p.phone && p.phone.includes(partySearchTerm)),
-                        )
-                        .map((p) => (
-                          <div
-                            key={p.id}
-                            onClick={() => handleSelectParty(p)}
-                            className="px-3 py-2 flex items-center justify-between hover:bg-teal-50/60 cursor-pointer transition-colors"
-                          >
-                            <div>
-                              <div className="font-semibold text-slate-900">{p.name}</div>
-                              {p.phone && <div className="text-[11px] text-slate-500">{p.phone}</div>}
-                            </div>
-                            <div className="text-right font-medium text-slate-700">
-                              ₹ {p.currentBalance ? Number(p.currentBalance).toLocaleString("en-IN") : "0"}
-                            </div>
-                          </div>
-                        ))}
-                      <div
-                        onClick={() => {
-                          setCreatePartyForm({
-                            name: partySearchTerm,
-                            phone: "",
-                            gstin: "",
-                            billingAddress: "",
-                          });
-                          setIsCreatePartyModalOpen(true);
-                        }}
-                        className="p-2.5 text-center font-bold text-[#2563EB] hover:bg-teal-50 cursor-pointer border-t border-dashed border-teal-200 sticky bottom-0 bg-white"
-                      >
-                        + Create Party
-                      </div>
-                    </div>
-                  </div>
-                ) : selectedParty ? (
-                  <div className="space-y-1">
-                    <h4 className="text-base font-bold text-slate-900">{selectedParty.name}</h4>
-                    <p className="text-xs text-slate-600">
-                      Phone Number: <span className="font-medium text-slate-800">{selectedParty.phone || "9510442798"}</span>
-                    </p>
-                    {selectedParty.gstin && (
-                      <p className="text-xs text-slate-500 font-mono">GSTIN: {selectedParty.gstin}</p>
-                    )}
-                    {selectedParty.billingAddress && (
-                      <p className="text-xs text-slate-500">
-                        {typeof selectedParty.billingAddress === "string"
-                          ? selectedParty.billingAddress
-                          : (selectedParty.billingAddress as any)?.line1 || ""}
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <div
-                    onClick={() => {
-                      setPartySearchTerm("");
-                      setIsPartySearchOpen(true);
-                    }}
-                    className="w-full h-28 rounded-lg border-2 border-dashed border-[#93C5FD] bg-[#F0F7FF] flex flex-col items-center justify-center cursor-pointer hover:bg-[#E5F0FF] transition-all"
-                  >
-                    <span className="text-sm font-semibold text-[#2563EB]">+ Add Party</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Ship From Card */}
-              {selectedParty && (
-                <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-2xs">
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-2">
-                    <span>Ship From</span>
-                    <button type="button" onClick={() => showToast("Shipping address updated")} className="text-slate-600 hover:text-[#2563EB]">
-                      🔄 Change Shipping Address
-                    </button>
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="text-base font-bold text-slate-900">
-                      {currentCompany?.tradeName || currentCompany?.legalName || "Business Name"}
-                    </h4>
-                    <p className="text-xs text-slate-600">
-                      Phone Number: <span className="font-medium text-slate-800">{(currentCompany as any)?.phone || "9510442798"}</span>
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Invoice Details Card */}
-              <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-2xs space-y-3">
-                <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
-                  <span>Invoice Details</span>
-                  <button
-                    type="button"
-                    onClick={() => openSettings("invoice")}
-                    title="Customize Voucher Details"
-                    className="text-slate-400 hover:text-slate-700 cursor-pointer p-0.5 rounded hover:bg-slate-100 transition-colors"
-                  >
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="3" />
-                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                    </svg>
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs text-slate-600 mb-1">{voucherLabel} No.</label>
-                    <input
-                      type="text"
-                      value={returnNumber}
-                      onChange={(e) => setReturnNumber(e.target.value)}
-                      className="w-full rounded border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-hidden focus:border-[#2563EB]"
+            {/* 5-COLUMN DOCUMENT INFO STRIP */}
+            <DocumentInfoStrip
+              fields={[
+                {
+                  id: "vendor",
+                  label: "Supplier / Vendor",
+                  required: true,
+                  type: "custom",
+                  customRender: (
+                    <PartySelectorCompact
+                      selectedParty={selectedParty ? {
+                        id: selectedParty.id,
+                        name: selectedParty.name,
+                        phone: selectedParty.phone,
+                        gstin: selectedParty.gstin,
+                        address: selectedParty.billingAddress,
+                      } : null}
+                      searchTerm={partySearchTerm}
+                      onSearchChange={setPartySearchTerm}
+                      isOpen={isPartySearchOpen}
+                      onOpenChange={setIsPartySearchOpen}
+                      filteredParties={parties
+                        .filter((p) => p.name.toLowerCase().includes(partySearchTerm.toLowerCase()))
+                        .map((p) => ({
+                          id: p.id,
+                          name: p.name,
+                          phone: p.phone,
+                          gstin: p.gstin,
+                          outstandingBalance: p.currentBalance,
+                        }))}
+                      onSelectParty={(id) => {
+                        const p = parties.find((party) => party.id === id);
+                        if (p) {
+                          setSelectedParty(p);
+                          setIsPartySearchOpen(false);
+                        }
+                      }}
+                      onClearParty={() => {
+                        setSelectedParty(null);
+                        setPartySearchTerm("");
+                      }}
+                      onAddNew={() => setIsCreatePartyModalOpen(true)}
+                      placeholder="Search vendor..."
                     />
-                  </div>
+                  ),
+                },
+                {
+                  id: "returnNumber",
+                  label: isDebitMemo ? "Debit Memo No." : "Return No.",
+                  type: "text",
+                  value: returnNumber,
+                  onChange: setReturnNumber,
+                  placeholder: "PR-001",
+                },
+                {
+                  id: "returnDate",
+                  label: isDebitMemo ? "Debit Memo Date" : "Return Date",
+                  type: "date",
+                  value: returnDate,
+                  onChange: setReturnDate,
+                },
+                {
+                  id: "originalInvoice",
+                  label: "Original Bill Ref",
+                  type: "select",
+                  value: selectedInvoiceId,
+                  onChange: (val) => {
+                    const inv = invoices.find((i) => i.id === val);
+                    if (inv) handleSelectInvoice(inv);
+                    else setSelectedInvoiceId(val);
+                  },
+                  options: [
+                    { label: "Direct Return (No Ref)", value: "" },
+                    ...invoices.map((inv) => ({
+                      label: `${inv.vendorInvoiceNumber || inv.invoiceNumber || inv.id.slice(0, 8)} (${new Date(inv.invoiceDate || inv.createdAt).toLocaleDateString("en-IN")})`,
+                      value: inv.id,
+                    })),
+                  ],
+                },
+                {
+                  id: "placeOfSupply",
+                  label: "Place of Supply",
+                  type: "text",
+                  value: "Gujarat (24)",
+                },
+              ]}
+            />
 
-                  <div>
-                    <label className="block text-xs text-slate-600 mb-1">{voucherLabel} Date</label>
-                    <input
-                      type="date"
-                      value={returnDate}
-                      onChange={(e) => setReturnDate(e.target.value)}
-                      className="w-full rounded border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-hidden focus:border-[#2563EB]"
-                    />
-                  </div>
-                </div>
-
-                {/* Link to Purchase Invoice */}
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs text-slate-600 font-medium">Link to Purchase Invoice :</label>
-                    <span className="rounded bg-teal-50 text-teal-700 text-[10px] font-bold px-1.5 py-0.5 border border-teal-200">
-                      Auto-fill
-                    </span>
-                  </div>
-
-                  {selectedInvoiceId ? (
-                    <div className="flex items-center justify-between rounded-lg border border-indigo-300 bg-teal-50/70 p-2.5 text-xs transition-all shadow-2xs">
-                      <div className="flex items-center gap-2">
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-600 text-[11px] text-white">✓</span>
-                        <div>
-                          <p className="font-bold text-indigo-950">Linked: #{invoiceSearchQuery.replace(/^#+/, "")}</p>
-                          <p className="text-[10px] text-teal-700">Vendor &amp; items auto-filled from purchase bill</p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleUnlinkInvoice}
-                        className="rounded border border-teal-200 bg-white px-2 py-1 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 shadow-2xs transition-colors"
-                      >
-                        ✕ Unlink / Change
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="relative">
-                      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="11" cy="11" r="8" />
-                          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                        </svg>
-                      </div>
-                      <input
-                        type="text"
-                        value={invoiceSearchQuery}
-                        onFocus={() => setIsInvoiceDropdownOpen(true)}
-                        onChange={(e) => {
-                          setInvoiceSearchQuery(e.target.value);
-                          setIsInvoiceDropdownOpen(true);
-                        }}
-                        placeholder={selectedParty ? `Search purchase bills for ${selectedParty.name}...` : "Search all purchase bills to auto-fill..."}
-                        className="w-full rounded border border-slate-300 bg-white py-1.5 pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-hidden focus:border-[#2563EB]"
-                      />
-                    </div>
-                  )}
-
-                  {!selectedInvoiceId && isInvoiceDropdownOpen && (
-                    <div className="absolute left-0 right-0 top-14 z-50 rounded-lg border border-slate-200 bg-white py-1 shadow-xl max-h-56 overflow-y-auto text-xs divide-y divide-slate-100">
-                      {isLoadingInvoices ? (
-                        <div className="p-4 text-center text-slate-400">Loading purchase invoices...</div>
-                      ) : invoices.length === 0 ? (
-                        <div className="p-4 text-center text-slate-400">
-                          {selectedParty ? `No purchase bills for ${selectedParty.name}` : "No purchase bills found."}
-                        </div>
-                      ) : (
-                        invoices
-                          .filter((inv) => {
-                            const q = invoiceSearchQuery.toLowerCase();
-                            const num = (inv.vendorInvoiceNumber || inv.invoiceNumber || "").toLowerCase();
-                            const party = (inv.party?.name || "").toLowerCase();
-                            return num.includes(q) || party.includes(q);
-                          })
-                          .map((inv) => (
-                            <div
-                              key={inv.id}
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                handleSelectInvoice(inv);
-                              }}
-                              className="px-3 py-2 hover:bg-teal-50/60 cursor-pointer flex items-center justify-between transition-colors"
-                            >
-                              <div>
-                                <div className="flex items-center gap-1.5">
-                                  <span className="font-bold text-slate-900">
-                                    Bill #{inv.vendorInvoiceNumber || inv.invoiceNumber || inv.id.slice(0, 8)}
-                                  </span>
-                                  {inv.party?.name && (
-                                    <span className="text-[11px] font-medium text-slate-600 bg-slate-100 px-1.5 py-0.2 rounded">
-                                      {inv.party.name}
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="text-[10px] text-slate-400 mt-0.5">
-                                  {inv.invoiceDate ? new Date(inv.invoiceDate).toLocaleDateString("en-GB") : ""}
-                                  {Array.isArray(inv.items) && ` • ${inv.items.length} items`}
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <span className="font-bold text-slate-900 block">
-                                  ₹ {Number(inv.grandTotal || inv.totalAmount || 0).toLocaleString("en-IN")}
-                                </span>
-                                <span className="text-[10px] text-teal-600 font-semibold hover:underline">
-                                  Auto-fill ➜
-                                </span>
-                              </div>
-                            </div>
-                          ))
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Items Table */}
-            <div className="bg-white rounded-lg border border-slate-200 shadow-2xs overflow-visible">
-              <div className="overflow-x-auto lg:overflow-visible">
-                <table className="min-w-full text-left text-xs border-collapse">
-                  <thead className="bg-[#F8FAFC] border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[11px]">
-                    <tr>
-                      <th className="px-3 py-2.5 w-12 text-center">NO</th>
-                      <th className="px-3 py-2.5 min-w-[260px]">ITEMS</th>
-                      {quickSettings.showHsnColumn !== false && <th className="px-3 py-2.5 w-24">HSN</th>}
-                      <th className="px-3 py-2.5 w-20 text-right">QTY</th>
-                      <th className="px-3 py-2.5 w-28 text-right">PRICE/ITEM (₹)</th>
-                      {quickSettings.showDiscountColumn !== false && <th className="px-3 py-2.5 w-32 text-right">DISCOUNT</th>}
-                      {quickSettings.showTaxColumn !== false && <th className="px-3 py-2.5 w-28 text-right">TAX</th>}
-                      <th className="px-3 py-2.5 w-28 text-right">AMOUNT (₹)</th>
-                      <th className="px-2 py-2.5 w-8 text-center">
-                        <button
-                          type="button"
-                          onClick={() => openSettings("items")}
-                          title="Customize Item Columns"
-                          className="p-1 hover:bg-slate-200 rounded text-slate-400 hover:text-slate-700 cursor-pointer transition-colors inline-flex items-center justify-center"
-                        >
-                          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="12" cy="12" r="3" />
-                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                          </svg>
-                        </button>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {items.map((line, idx) => (
-                      <tr key={line.id} className={`hover:bg-slate-50/50 relative ${activeItemAutocompleteIdx === idx ? "z-40" : "z-10"}`}>
-                        <td className="px-3 py-2 text-center text-slate-400 font-medium">{idx + 1}</td>
-                        
-                        {/* ITEM NAME */}
-                        <td className="px-3 py-2 relative item-autocomplete-container">
-                          {selectedInvoiceId ? (
-                            <div className="py-1">
-                              <p className="font-bold text-slate-900 text-xs">{line.name}</p>
-                              {line.purchaseItemId && (
-                                <span className="inline-flex items-center text-[10px] font-semibold text-teal-600 bg-teal-50 border border-teal-100 px-1.5 py-0.2 rounded mt-0.5">
-                                  From Bill
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="relative w-full">
-                              <input
-                                type="text"
-                                value={line.name}
-                                onFocus={() => setActiveItemAutocompleteIdx(idx)}
-                                onChange={(e) => {
-                                  updateItemLine(idx, "name", e.target.value);
-                                  setActiveItemAutocompleteIdx(idx);
-                                }}
-                                placeholder={lang === "gu" ? "આઇટમનું નામ દાખલ કરો..." : "Enter item name..."}
-                                className="w-full rounded-md border border-slate-200 hover:border-slate-300 focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-800 transition-colors focus:outline-hidden"
-                              />
-
-                              {/* Autocomplete for Item */}
-                              {activeItemAutocompleteIdx === idx && (
-                                <div
-                                  className="absolute left-0 top-[calc(100%+4px)] z-50 w-full min-w-[520px] max-w-[680px] rounded-xl border border-slate-200 bg-white shadow-2xl overflow-hidden text-xs flex flex-col"
-                                  style={{
-                                    boxShadow: "0 18px 40px -4px rgba(0, 0, 0, 0.16), 0 8px 16px -4px rgba(0, 0, 0, 0.08)",
-                                  }}
-                                  onMouseDown={(e) => e.preventDefault()}
-                                >
-                                  {/* Table Header */}
-                                  <div className="flex justify-between items-center px-4 py-2.5 bg-[#F8FAFC] text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200 shrink-0 select-none">
-                                    <span>{lang === "gu" ? "આઇટમ વિગત (ITEM DESCRIPTION)" : "ITEM DESCRIPTION"}</span>
-                                    <span>{lang === "gu" ? "ભાવ / સ્ટોક (RATE / STOCK)" : "RATE / STOCK"}</span>
-                                  </div>
-
-                                  {/* Items List */}
-                                  <div className="overflow-y-auto max-h-72 divide-y divide-slate-100 flex-1">
-                                    {inventoryItems
-                                      .filter((itm) => {
-                                        const q = line.name.trim().toLowerCase();
-                                        if (!q) return true;
-                                        return (
-                                          itm.name.toLowerCase().includes(q) ||
-                                          (itm.nameGujarati && itm.nameGujarati.toLowerCase().includes(q)) ||
-                                          (itm.hsnCode && itm.hsnCode.includes(q))
-                                        );
-                                      })
-                                      .slice(0, 50)
-                                      .map((itm) => (
-                                        <div
-                                          key={itm.id}
-                                          onClick={() => handlePickInventoryItem(idx, itm)}
-                                          className="px-4 py-2.5 hover:bg-teal-50/70 cursor-pointer flex items-center justify-between transition-colors group"
-                                        >
-                                          <div className="pr-3">
-                                            <div className="font-bold text-slate-900 group-hover:text-teal-600 transition-colors flex items-center gap-1.5">
-                                              <span>{itm.name}</span>
-                                              {lang === "gu" && itm.nameGujarati && (
-                                                <span className="text-[11px] font-normal text-slate-500">
-                                                  ({itm.nameGujarati})
-                                                </span>
-                                              )}
-                                            </div>
-                                            <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-0.5">
-                                              {itm.hsnCode && (
-                                                <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono text-[9px] font-medium border border-slate-200/60">
-                                                  HSN: {itm.hsnCode}
-                                                </span>
-                                              )}
-                                              <span className="text-slate-300">•</span>
-                                              <span className="font-medium text-slate-600">GST: {itm.taxRate || 18}%</span>
-                                            </div>
-                                          </div>
-                                          <div className="text-right shrink-0">
-                                            <div className="font-extrabold text-slate-900 text-xs">
-                                              ₹ {Number(itm.purchasePrice || itm.salePrice || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                            </div>
-                                            <div className="text-[10px] font-semibold text-emerald-600 mt-0.5">
-                                              Stock: {itm.currentStock || 0}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      ))}
-
-                                    {inventoryItems.filter((itm) => {
-                                      const q = line.name.trim().toLowerCase();
-                                      if (!q) return true;
-                                      return (
-                                        itm.name.toLowerCase().includes(q) ||
-                                        (itm.nameGujarati && itm.nameGujarati.toLowerCase().includes(q)) ||
-                                        (itm.hsnCode && itm.hsnCode.includes(q))
-                                      );
-                                    }).length === 0 && (
-                                      <div className="p-5 text-center text-slate-400">
-                                        <p className="font-semibold text-xs text-slate-500">
-                                          {lang === "gu" ? "કોઈ મેળ ખાતી આઇટમ મળી નથી" : "No matching items found"}
-                                        </p>
-                                        <p className="text-[11px] text-slate-400 mt-1">
-                                          {lang === "gu"
-                                            ? "નીચે આપેલ બટનથી નવી આઇટમ ઉમેરો"
-                                            : "Create a new item using the button below"}
-                                        </p>
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  {/* Add New Item Button */}
-                                  <div
-                                    onClick={() => {
-                                      setActiveRowForNewItem(idx);
-                                      setCreateItemForm({
-                                        name: line.name || "",
-                                        hsn: "",
-                                        price: 0,
-                                        taxRate: 18,
-                                      });
-                                      setIsCreateItemModalOpen(true);
-                                      setActiveItemAutocompleteIdx(null);
-                                    }}
-                                    className="p-2.5 text-center font-bold text-teal-600 hover:text-teal-700 hover:bg-teal-50/80 cursor-pointer border-t border-dashed border-teal-200 bg-white shrink-0 transition-colors flex items-center justify-center gap-1.5 select-none"
-                                  >
-                                    <span className="text-base leading-none font-bold">+</span>
-                                    <span>{lang === "gu" ? "નવી આઇટમ ઉમેરો (Add New Item)" : "Add New Item"}</span>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </td>
-
-                        {/* HSN */}
-                        {quickSettings.showHsnColumn !== false && (
-                          <td className="px-3 py-2">
-                            {selectedInvoiceId ? (
-                              <span className="text-xs text-slate-600 font-medium px-2 py-1 block">
-                                {line.hsn || "—"}
-                              </span>
-                            ) : (
-                              <input
-                                type="text"
-                                value={line.hsn || ""}
-                                onChange={(e) => updateItemLine(idx, "hsn", e.target.value)}
-                                placeholder="HSN"
-                                className="w-full rounded border border-transparent hover:border-slate-300 focus:border-[#2563EB] bg-transparent px-2 py-1 text-xs text-slate-600"
-                              />
-                            )}
+            {/* MAIN 2-COLUMN WORKSPACE MATCHING REFERENCE IMAGE */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              {/* Left Column (8 cols): Items Table + Notes & Additional Info */}
+              <div className="lg:col-span-8 space-y-5">
+                <DocumentItemsCard
+                  title="Return Items & Services"
+                  itemsCount={items.length}
+                  totalQty={calculations.totalQty}
+                  itemsTotal={calculations.finalTotal}
+                  onImportItems={handleAddItem}
+                  onAddItem={handleAddItem}
+                  onAddBlankRow={handleAddItem}
+                  addItemLabel="+ Add Item"
+                >
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 font-bold text-[11px] uppercase tracking-wider">
+                      <tr>
+                        <th className="py-3 px-3.5 text-center w-12">#</th>
+                        <th className="py-3 px-3.5">Item / Description</th>
+                        <th className="py-3 px-3 text-center w-28">HSN/SAC</th>
+                        <th className="py-3 px-3 text-right w-24">Qty</th>
+                        <th className="py-3 px-3 text-right w-28">Rate (₹)</th>
+                        <th className="py-3 px-3 text-right w-24">Discount</th>
+                        <th className="py-3 px-3 text-right w-24">Tax (%)</th>
+                        <th className="py-3 px-3 text-right w-28">Amount (₹)</th>
+                        <th className="py-3 px-3 text-center w-16">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {items.map((row, idx) => (
+                        <tr key={row.id || idx} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="py-3 px-3 text-center text-slate-400 font-mono text-[11px]">
+                            {idx + 1}
                           </td>
-                        )}
 
-                        {/* QTY (Editable return quantity with max limit) */}
-                        <td className="px-3 py-2 text-right">
-                          <input
-                            type="number"
-                            min="1"
-                            max={line.originalQuantity}
-                            value={line.quantity}
-                            onChange={(e) => updateItemLine(idx, "quantity", Number(e.target.value))}
-                            className="w-16 rounded border border-slate-200 bg-white px-2 py-1 text-xs text-right font-bold text-slate-800 focus:outline-hidden focus:border-[#2563EB]"
-                          />
-                          {line.originalQuantity !== undefined && (
-                            <span className="block text-[9px] text-slate-400 mt-0.5">
-                              Max: {line.originalQuantity}
-                            </span>
-                          )}
-                        </td>
+                          <td className="py-3 px-3">
+                            <div className="space-y-1">
+                              <input
+                                type="text"
+                                value={row.name}
+                                onChange={(e) => updateItemLine(idx, "name", e.target.value)}
+                                placeholder="Type item name..."
+                                className="w-full text-xs py-1.5 px-2.5 font-bold text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-[#26A58A]"
+                              />
+                              {inventoryItems.length > 0 && !row.name && (
+                                <select
+                                  onChange={(e) => {
+                                    const itm = inventoryItems.find((it) => it.id === e.target.value);
+                                    if (itm) handlePickInventoryItem(idx, itm);
+                                  }}
+                                  defaultValue=""
+                                  className="w-full text-[11px] py-1 px-2 text-slate-500 bg-white border border-dashed border-slate-200 rounded-lg"
+                                >
+                                  <option value="" disabled>Choose from Catalog...</option>
+                                  {inventoryItems.map((it) => (
+                                    <option key={it.id} value={it.id}>{it.name} (₹{it.purchaseRate || it.purchasePrice || 0})</option>
+                                  ))}
+                                </select>
+                              )}
+                            </div>
+                          </td>
 
-                        {/* PRICE / ITEM (Locked when invoice selected) */}
-                        <td className="px-3 py-2 text-right">
-                          {selectedInvoiceId ? (
-                            <span className="font-bold text-slate-800 text-xs block px-2 py-1">
-                              {line.unitPrice.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </span>
-                          ) : (
+                          <td className="py-3 px-3">
+                            <input
+                              type="text"
+                              value={row.hsn || ""}
+                              onChange={(e) => updateItemLine(idx, "hsn", e.target.value)}
+                              placeholder="HSN"
+                              className="w-full text-xs py-1.5 px-2 text-center font-mono bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white"
+                            />
+                          </td>
+
+                          <td className="py-3 px-3">
+                            <input
+                              type="number"
+                              min="1"
+                              value={row.quantity}
+                              onChange={(e) => updateItemLine(idx, "quantity", Number(e.target.value) || 0)}
+                              className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white"
+                            />
+                          </td>
+
+                          <td className="py-3 px-3">
                             <input
                               type="number"
                               min="0"
-                              value={line.unitPrice}
-                              onChange={(e) => updateItemLine(idx, "unitPrice", Number(e.target.value))}
-                              className="w-20 rounded border border-slate-200 px-2 py-1 text-xs text-right font-bold text-slate-800 focus:outline-hidden focus:border-[#2563EB]"
+                              step="any"
+                              value={row.unitPrice}
+                              onChange={(e) => updateItemLine(idx, "unitPrice", Number(e.target.value) || 0)}
+                              className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white"
                             />
-                          )}
-                        </td>
-
-                        {/* DISCOUNT (Locked when invoice selected) */}
-                        {quickSettings.showDiscountColumn !== false && (
-                          <td className="px-3 py-2 text-right">
-                            {selectedInvoiceId ? (
-                              <span className="text-xs text-slate-600 font-medium block px-1.5 py-1">
-                                {line.discount ? `${line.discount} ${line.discountType}` : "0"}
-                              </span>
-                            ) : (
-                              <div className="inline-flex items-center gap-1">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  value={line.discount}
-                                  onChange={(e) => updateItemLine(idx, "discount", Number(e.target.value))}
-                                  className="w-14 rounded border border-slate-200 px-1.5 py-1 text-xs text-right text-slate-600 focus:outline-hidden focus:border-[#2563EB]"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => updateItemLine(idx, "discountType", line.discountType === "%" ? "₹" : "%")}
-                                  className="rounded bg-slate-100 hover:bg-slate-200 px-1 py-1 text-[11px] font-bold text-slate-700"
-                                >
-                                  {line.discountType}
-                                </button>
-                              </div>
-                            )}
                           </td>
-                        )}
 
-                        {/* TAX (Locked when invoice selected) */}
-                        {quickSettings.showTaxColumn !== false && (
-                          <td className="px-3 py-2 text-right">
-                            {selectedInvoiceId ? (
-                              <span className="inline-block rounded bg-slate-100 text-slate-700 px-2 py-1 text-[11px] font-semibold">
-                                GST @ {line.taxRate}%
-                              </span>
-                            ) : (
-                              <div className="relative flex items-center min-w-[70px]">
-                                <input
-                                  type="number"
-                                  step="any"
-                                  min="0"
-                                  max="100"
-                                  list="gst-rates-return"
-                                  value={line.taxRate}
-                                  onChange={(e) => updateItemLine(idx, "taxRate", Number(e.target.value) || 0)}
-                                  placeholder="0"
-                                  className="w-22 rounded border border-slate-200 px-1.5 pr-4 py-1 text-xs text-right text-slate-700 font-mono focus:outline-hidden focus:border-[#2563EB]"
-                                />
-                                <span className="absolute right-1 text-[11px] font-bold text-slate-400 pointer-events-none">%</span>
-                              </div>
-                            )}
+                          <td className="py-3 px-3">
+                            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
+                              <input
+                                type="number"
+                                min="0"
+                                value={row.discount}
+                                onChange={(e) => updateItemLine(idx, "discount", Number(e.target.value) || 0)}
+                                className="w-full text-xs text-right font-mono bg-transparent focus:outline-none"
+                              />
+                              <span className="text-[10px] text-slate-400 font-bold ml-1">{row.discountType}</span>
+                            </div>
                           </td>
-                        )}
-                        {/* AMOUNT (₹) */}
-                        <td className="px-3 py-2 text-right font-bold text-slate-900">
-                          ₹ {line.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </td>
 
-                        {/* REMOVE / EXCLUDE LINE */}
-                        <td className="px-2 py-2 text-center">
-                          <button
-                            type="button"
-                            onClick={() => removeItemLine(idx)}
-                            title="Remove this item from return"
-                            className="text-slate-300 hover:text-rose-500 font-bold p-1 rounded hover:bg-rose-50 transition-colors"
-                          >
-                            ✕
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                          <td className="py-3 px-3">
+                            <input
+                              type="number"
+                              value={row.taxRate}
+                              onChange={(e) => updateItemLine(idx, "taxRate", Number(e.target.value) || 0)}
+                              className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white"
+                            />
+                          </td>
 
-                    {/* + Add Item Row or Lock Notice when linked to invoice */}
-                    {!selectedInvoiceId ? (
-                      <tr>
-                        <td colSpan={4 + (quickSettings.showHsnColumn !== false ? 1 : 0) + (quickSettings.showDiscountColumn !== false ? 1 : 0) + (quickSettings.showTaxColumn !== false ? 1 : 0)} className="p-3">
-                          <div className="flex items-center gap-3">
+                          <td className="py-3 px-3 text-right font-mono font-black text-slate-900 text-xs">
+                            ₹ {row.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </td>
+
+                          <td className="py-3 px-3 text-center">
                             <button
                               type="button"
-                              onClick={handleAddItem}
-                              className="flex-1 rounded-lg border-2 border-dashed border-[#93C5FD] bg-[#F0F7FF] py-2 text-center text-xs font-semibold text-[#2563EB] hover:bg-[#E5F0FF] transition-colors"
+                              onClick={() => removeItemLine(idx)}
+                              className="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
+                              title="Delete row"
                             >
-                              + Add Item
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => showToast("Barcode scanner active")}
-                              className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
-                            >
-                              <svg className="w-4 h-4 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M3 5h2v14H3zM7 5h1v14H7zM10 5h2v14h-2zM14 5h1v14h-1zM17 5h3v14h-3z" />
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
-                              <span>Scan Barcode</span>
                             </button>
-                          </div>
-                        </td>
-                        <td />
-                      </tr>
-                    ) : (
-                      <tr>
-                        <td colSpan={5 + (quickSettings.showHsnColumn !== false ? 1 : 0) + (quickSettings.showDiscountColumn !== false ? 1 : 0) + (quickSettings.showTaxColumn !== false ? 1 : 0)} className="py-2.5 px-4 bg-slate-50/80 text-center text-xs text-slate-500 border-t border-dashed border-slate-200">
-                          <div className="flex items-center justify-center gap-2">
-                            <span>🔒</span>
-                            <span>Items are locked to Purchase Bill #{invoiceSearchQuery.replace(/^#+/, "")}. Only return quantity can be adjusted.</span>
-                            <button
-                              type="button"
-                              onClick={handleUnlinkInvoice}
-                              className="text-teal-600 font-semibold hover:underline ml-1"
-                            >
-                              Unlink to add custom items
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </DocumentItemsCard>
 
-                    {/* Subtotal row */}
-                    <tr className="bg-[#F8FAFC] border-t border-slate-200 font-semibold text-slate-700 text-xs">
-                      <td colSpan={quickSettings.showHsnColumn !== false ? 3 : 2} className="px-4 py-2.5 text-right font-bold text-slate-600">
-                        Subtotal
-                      </td>
-                      <td className="px-3 py-2.5 text-right font-bold text-slate-900">
-                        {calculations.totalQty}
-                      </td>
-                      <td />
-                      {quickSettings.showDiscountColumn !== false && (
-                        <td className="px-3 py-2.5 text-right font-medium text-slate-700">
-                          ₹ {calculations.totalDiscount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </td>
-                      )}
-                      {quickSettings.showTaxColumn !== false && (
-                        <td className="px-3 py-2.5 text-right font-medium text-slate-700">
-                          ₹ {calculations.totalTax.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </td>
-                      )}
-                      <td className="px-3 py-2.5 text-right font-bold text-slate-900">
-                        ₹ {calculations.subtotal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
-                      <td />
-                    </tr>
-                  </tbody>
-                </table>
+                {/* Side-by-side: Notes & Terms + Additional Information */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <DocumentNotesAndTermsCard
+                    activeTab={activeNotesTab}
+                    onTabChange={setActiveNotesTab}
+                    notes={notes}
+                    onNotesChange={setNotes}
+                    terms={terms}
+                    onTermsChange={setTerms}
+                  />
+
+                  <DocumentAdditionalInfoCard
+                    transportMode={transportMode}
+                    onTransportModeChange={setTransportMode}
+                    vehicleNo={vehicleNo}
+                    onVehicleNoChange={setVehicleNo}
+                    ewayBillNo={ewayBillNo}
+                    onEwayBillNoChange={setEwayBillNo}
+                    dispatchDate={dispatchDate}
+                    onDispatchDateChange={setDispatchDate}
+                  />
+                </div>
+              </div>
+
+              {/* Right Column (4 cols): Summary Card + Payment Adjustment Card */}
+              <div className="lg:col-span-4 space-y-5">
+                <DocumentSummaryCard
+                  title={isDebitMemo ? "Debit Memo Summary" : "Return Summary"}
+                  subtotal={calculations.totalTaxable}
+                  discount={calculations.totalDiscount > 0 ? calculations.totalDiscount : undefined}
+                  cgst={calculations.totalTax > 0 ? Number((calculations.totalTax / 2).toFixed(2)) : undefined}
+                  sgst={calculations.totalTax > 0 ? Number((calculations.totalTax / 2).toFixed(2)) : undefined}
+                  roundOff={calculations.roundOffDiff !== 0 ? calculations.roundOffDiff : undefined}
+                  grandTotal={calculations.finalTotal}
+                />
+
+                <DocumentPaymentCard
+                  amountReceived={isFullyPaid ? calculations.finalTotal : (Number(amountReceived) || 0)}
+                  onAmountReceivedChange={(val) => {
+                    setIsFullyPaid(false);
+                    setAmountReceived(val === "" ? 0 : val);
+                  }}
+                  paymentMode={paymentMode}
+                  onPaymentModeChange={setPaymentMode}
+                  balanceDue={calculations.balance}
+                  onPaidInFull={() => {
+                    setIsFullyPaid(true);
+                    setAmountReceived(calculations.finalTotal);
+                  }}
+                />
               </div>
             </div>
 
-            {/* Bottom section: Left (Notes, Terms, Bank, QR) + Right (Charges, Payments, Signature) */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
-              {/* Left Column */}
-              <div className="space-y-3">
-                {/* Add Notes */}
-                <div className="bg-white rounded-lg border border-slate-200 p-3.5 shadow-2xs">
-                  {!showNotesInput ? (
-                    <button
-                      type="button"
-                      onClick={() => setShowNotesInput(true)}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-[#2563EB] hover:underline"
-                    >
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M12 5v14M5 12h14" />
-                      </svg>
-                      <span>Add Notes</span>
-                    </button>
-                  ) : (
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
-                        <span>Notes</span>
-                        <button type="button" onClick={() => setShowNotesInput(false)} className="text-slate-400 hover:text-slate-600">✕</button>
-                      </div>
-                      <textarea
-                        rows={2}
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Enter notes or return reasons..."
-                        className="w-full rounded border border-slate-300 p-2 text-xs text-slate-800 focus:outline-hidden focus:border-[#2563EB]"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Terms & Conditions */}
-                {showTerms && (
-                  <div className="bg-white rounded-lg border border-slate-200 p-3.5 shadow-2xs space-y-2">
-                    <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
-                      <span>Terms & Conditions</span>
-                      <button type="button" onClick={() => setShowTerms(false)} className="text-slate-400 hover:text-slate-600">
-                        ✕
-                      </button>
-                    </div>
-                    <textarea
-                      rows={3}
-                      value={terms}
-                      onChange={(e) => setTerms(e.target.value)}
-                      className="w-full rounded border border-slate-200 p-2 text-xs text-slate-600 focus:outline-hidden focus:border-[#2563EB] font-sans"
-                    />
-                  </div>
-                )}
-
-                {/* Bank Account & Payment QR Sections */}
-                <div className="space-y-2.5 pt-1">
-                  {/* BANK ACCOUNT */}
-                  {!bankAdded ? (
-                    <button
-                      type="button"
-                      onClick={() => setIsBankModalOpen(true)}
-                      className="flex items-center gap-2 text-xs font-semibold text-[#2563EB] hover:text-blue-700 hover:underline transition-colors"
-                    >
-                      <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M8 10v11M12 10v11M16 10v11M20 10v11" />
-                      </svg>
-                      <span>+ Add Bank Account</span>
-                    </button>
-                  ) : (
-                    <div className="rounded-lg border border-blue-200 bg-blue-50/60 p-2.5 text-xs text-slate-700 space-y-1.5 transition-all shadow-2xs">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 font-bold text-blue-950">
-                          <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M8 10v11M12 10v11M16 10v11M20 10v11" />
-                          </svg>
-                          <span>Bank Account Added ✓</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setIsBankModalOpen(true)}
-                            className="text-[11px] font-semibold text-blue-600 hover:underline cursor-pointer"
-                          >
-                            ✎ Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setBankAdded(false);
-                              showToast("Bank account removed from voucher");
-                            }}
-                            className="text-slate-400 hover:text-rose-600 text-xs font-bold cursor-pointer"
-                            title="Remove Bank Account"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-slate-600 pt-0.5">
-                        <p>
-                          <span className="text-slate-400">Bank:</span>{" "}
-                          <strong>{effectiveBankName}</strong>
-                        </p>
-                        <p>
-                          <span className="text-slate-400">A/c:</span>{" "}
-                          <strong className="font-mono">{bankForm.accountNumber}</strong>
-                        </p>
-                        <p>
-                          <span className="text-slate-400">IFSC:</span>{" "}
-                          <strong className="font-mono">{bankForm.ifscCode}</strong>
-                        </p>
-                        {bankForm.branchName && (
-                          <p>
-                            <span className="text-slate-400">Branch:</span>{" "}
-                            <strong>{bankForm.branchName}</strong>
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* PAYMENT QR */}
-                  {!qrAdded ? (
-                    <button
-                      type="button"
-                      onClick={() => setIsQrModalOpen(true)}
-                      className="flex items-center gap-2 text-xs font-semibold text-[#2563EB] hover:text-blue-700 hover:underline transition-colors"
-                    >
-                      <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="3" y="3" width="7" height="7" />
-                        <rect x="14" y="3" width="7" height="7" />
-                        <rect x="14" y="14" width="7" height="7" />
-                        <rect x="3" y="14" width="7" height="7" />
-                      </svg>
-                      <span>+ Add Payment QR</span>
-                    </button>
-                  ) : (
-                    <div className="rounded-lg border border-teal-200 bg-teal-50/60 p-2.5 text-xs text-slate-700 space-y-1.5 transition-all shadow-2xs">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 font-bold text-indigo-950">
-                          <svg className="w-4 h-4 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <rect x="3" y="3" width="7" height="7" />
-                            <rect x="14" y="3" width="7" height="7" />
-                            <rect x="14" y="14" width="7" height="7" />
-                            <rect x="3" y="14" width="7" height="7" />
-                          </svg>
-                          <span>Payment QR Attached ✓</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setIsQrModalOpen(true)}
-                            className="text-[11px] font-semibold text-teal-600 hover:underline cursor-pointer"
-                          >
-                            ✎ Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setQrAdded(false);
-                              showToast("Payment QR removed from voucher");
-                            }}
-                            className="text-slate-400 hover:text-rose-600 text-xs font-bold cursor-pointer"
-                            title="Remove Payment QR"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between gap-2 pt-0.5">
-                        <div className="text-[11px]">
-                          <p className="text-slate-400">UPI ID / VPA:</p>
-                          <p className="font-mono font-bold text-indigo-900">{qrForm.upiId}</p>
-                          {qrForm.payeeName && (
-                            <p className="text-[10px] text-slate-500 mt-0.5">Payee: {qrForm.payeeName}</p>
-                          )}
-                        </div>
-                        {upiUri && (
-                          <div className="p-1 bg-white border border-slate-200 rounded shadow-2xs shrink-0">
-                            <InvoiceQrCode value={upiUri} size={44} showTooltip={false} />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Right Column: Charges, Totals, Payments & Signature Box */}
-              <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-2xs space-y-3.5">
-                {/* Add Additional Charges */}
-                <div className="flex items-center justify-between text-xs">
-                  {!showChargesInput ? (
-                    <button
-                      type="button"
-                      onClick={() => setShowChargesInput(true)}
-                      className="flex items-center gap-1.5 font-semibold text-[#2563EB] hover:underline"
-                    >
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="9" />
-                        <path d="M12 8v8M8 12h8" />
-                      </svg>
-                      <span>Add Additional Charges</span>
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span className="text-slate-600 font-medium">Charges:</span>
-                      <input
-                        type="number"
-                        value={additionalCharges}
-                        onChange={(e) => setAdditionalCharges(Number(e.target.value))}
-                        className="w-20 rounded border border-slate-300 px-2 py-0.5 text-xs text-right"
-                      />
-                      <button type="button" onClick={() => setShowChargesInput(false)} className="text-slate-400">✕</button>
-                    </div>
-                  )}
-                  <span className="font-semibold text-slate-800">
-                    ₹ {additionalCharges.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                </div>
-
-                {/* Taxable Amount */}
-                <div className="flex items-center justify-between text-xs text-slate-700">
-                  <span className="font-medium">Taxable Amount</span>
-                  <span className="font-semibold text-slate-900">
-                    ₹ {calculations.totalTaxable.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                </div>
-
-                {/* Add Discount */}
-                <div className="flex items-center justify-between text-xs">
-                  {!showDiscountInput ? (
-                    <button
-                      type="button"
-                      onClick={() => setShowDiscountInput(true)}
-                      className="flex items-center gap-1.5 font-semibold text-[#2563EB] hover:underline"
-                    >
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="9" />
-                        <line x1="9" y1="15" x2="15" y2="9" />
-                      </svg>
-                      <span>Add Discount</span>
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span className="text-slate-600 font-medium">Discount:</span>
-                      <input
-                        type="number"
-                        value={overallDiscount}
-                        onChange={(e) => setOverallDiscount(Number(e.target.value))}
-                        className="w-18 rounded border border-slate-300 px-2 py-0.5 text-xs text-right"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setOverallDiscountType(overallDiscountType === "%" ? "₹" : "%")}
-                        className="rounded bg-slate-100 hover:bg-slate-200 px-1 py-0.5 text-[11px] font-bold text-slate-700"
-                      >
-                        {overallDiscountType}
-                      </button>
-                      <button type="button" onClick={() => setShowDiscountInput(false)} className="text-slate-400">✕</button>
-                    </div>
-                  )}
-                  <span className="font-semibold text-slate-800">
-                    ₹ {overallDiscount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                </div>
-
-                {/* Auto Round Off */}
-                <div className="flex items-center justify-between text-xs border-t border-slate-100 pt-2">
-                  <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-700">
-                    <input
-                      type="checkbox"
-                      checked={autoRoundOff}
-                      onChange={(e) => setAutoRoundOff(e.target.checked)}
-                      className="rounded border-slate-300 text-[#174B43] focus:ring-0"
-                    />
-                    <span>Auto Round Off</span>
-                  </label>
-
-                  <div className="flex items-center gap-1">
-                    <select
-                      disabled={autoRoundOff}
-                      value={roundOffType}
-                      onChange={(e) => setRoundOffType(e.target.value as any)}
-                      className="rounded border border-slate-200 px-1 py-0.5 text-[11px] bg-slate-50 disabled:opacity-75"
-                    >
-                      <option>+ Add</option>
-                      <option>- Reduce</option>
-                    </select>
-                    <input
-                      type="number"
-                      disabled={autoRoundOff}
-                      value={autoRoundOff ? calculations.roundOffDiff : manualRoundOff}
-                      onChange={(e) => setManualRoundOff(Number(e.target.value))}
-                      className="w-16 rounded border border-slate-200 px-1.5 py-0.5 text-xs text-right disabled:bg-slate-50"
-                    />
-                  </div>
-                </div>
-
-                {/* Total Amount Row */}
-                <div className="flex items-center justify-between bg-[#F8FAFC] p-3 rounded-lg border border-slate-200">
-                  <span className="text-sm font-bold text-slate-900">Total Amount:</span>
-                  <div className="text-right">
-                    <span className="text-base font-extrabold text-slate-900">
-                      ₹ {calculations.finalTotal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Total Amount Received (Refund) */}
-                <div className="space-y-2 pt-1">
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
-                    <span>Total Amount Received</span>
-                    <span className="font-bold text-slate-900">
-                      ₹ {calculations.paid.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div className="relative flex-1">
-                      <span className="absolute inset-y-0 left-0 pl-2.5 flex items-center text-slate-400 text-xs">₹</span>
-                      <input
-                        type="number"
-                        min="0"
-                        disabled={isFullyPaid}
-                        value={amountReceived}
-                        onChange={(e) => setAmountReceived(Number(e.target.value))}
-                        placeholder="0"
-                        className="w-full rounded border border-slate-300 bg-white py-1.5 pl-6 pr-2.5 text-xs font-bold text-slate-800 focus:outline-hidden focus:border-[#2563EB] disabled:bg-slate-50"
-                      />
-                    </div>
-
-                    <select
-                      value={paymentMode}
-                      onChange={(e) => setPaymentMode(e.target.value)}
-                      className="rounded border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 focus:outline-hidden focus:border-[#2563EB]"
-                    >
-                      <option value="Cash">Cash</option>
-                      <option value="Bank">Bank Transfer</option>
-                      <option value="Cheque">Cheque</option>
-                      <option value="UPI">UPI</option>
-                    </select>
-                  </div>
-
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
-                    <input
-                      type="checkbox"
-                      checked={isFullyPaid}
-                      onChange={(e) => handleToggleFullyPaid(e.target.checked)}
-                      className="rounded border-slate-300 text-[#174B43] focus:ring-0"
-                    />
-                    <span>Mark as fully paid</span>
-                  </label>
-                </div>
-
-                {/* Balance Amount in Green */}
-                <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100 font-bold text-[#16A34A]">
-                  <span>Balance Amount</span>
-                  <span>
-                    ₹ {calculations.balance.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                </div>
-
-                {/* + Add Signature Box with Canvas/Upload Integration */}
-                <div className="pt-2 flex justify-end">
-                  {!signatureData ? (
-                    <div
-                      onClick={() => setIsSignatureModalOpen(true)}
-                      className="w-48 h-20 rounded-lg border-2 border-dashed border-[#93C5FD] bg-[#F0F7FF] flex flex-col items-center justify-center cursor-pointer hover:bg-[#E5F0FF] transition-colors"
-                    >
-                      <span className="text-xs font-semibold text-[#2563EB]">+ Add Signature</span>
-                      <span className="text-[10px] text-slate-400 mt-0.5">Draw or upload sign</span>
-                    </div>
-                  ) : (
-                    <div className="w-48 p-2 rounded-lg border border-slate-200 bg-white shadow-2xs relative group text-center">
-                      <img src={signatureData} alt="Authorized Signature" className="h-12 mx-auto object-contain" />
-                      <p className="text-[10px] font-semibold text-slate-600 mt-1 border-t border-slate-100 pt-0.5">
-                        Authorized Signatory
-                      </p>
-                      <div className="flex justify-center gap-2 mt-1">
-                        <button
-                          type="button"
-                          onClick={() => setIsSignatureModalOpen(true)}
-                          className="text-[10px] text-teal-600 hover:underline font-semibold"
-                        >
-                          Change
-                        </button>
-                        <span className="text-slate-300">•</span>
-                        <button
-                          type="button"
-                          onClick={() => handleUpdateSignature(null)}
-                          className="text-[10px] text-rose-600 hover:underline font-semibold"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </>
+            {/* STICKY BOTTOM ACTION BAR */}
+            <DocumentBottomBar
+              totalItems={items.length}
+              totalAmount={calculations.finalTotal}
+              onSaveAsDraft={() => handleSubmit(false)}
+              onSave={() => handleSubmit(false)}
+              isSaving={isSubmitting}
+              saveButtonLabel={isDebitMemo ? "Save Debit Memo" : "Save Purchase Return"}
+              backHref={isDebitMemo ? "/purchases/debit-memo" : isDebitNote ? "/purchases/debit-note" : "/purchases/returns"}
+            />
+          </div>
         )}
       </div>
 
-      {/* Edit Party Modal */}
+
       <Modal
         isOpen={isEditPartyModalOpen}
         onClose={() => setIsEditPartyModalOpen(false)}

@@ -16,6 +16,8 @@ import {
 } from "../../components/invoice/quick-settings-modal";
 import { ImportWizardModal } from "../../components/imports/import-wizard-modal";
 import { ImportModuleType } from "@billing/shared-types";
+import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/scorecard-ribbon";
+import { formatInr } from "@/components/design-system/tokens";
 
 interface PurchaseInvoice {
   id: string;
@@ -67,21 +69,21 @@ type DateRangePreset =
   | "LAST_365_DAYS"
   | "CUSTOM";
 
-const DATE_PRESET_LABELS: Record<DateRangePreset, string> = {
-  LAST_365_DAYS: "Last 365 Days",
-  TODAY: "Today",
-  YESTERDAY: "Yesterday",
-  THIS_WEEK: "This Week",
-  LAST_WEEK: "Last Week",
-  THIS_MONTH: "This Month",
-  PREV_MONTH: "Previous Month",
-  THIS_QUARTER: "This Quarter",
-  PREV_QUARTER: "Previous Quarter",
-  CURRENT_FY: "Current Fiscal Year",
-  PREV_FY: "Previous Fiscal Year",
-  LAST_30_DAYS: "Last 30 Days",
-  ALL: "All Time",
-  CUSTOM: "Custom Date Range",
+const DATE_PRESET_LABELS: Record<DateRangePreset, { en: string; gu: string }> = {
+  LAST_365_DAYS: { en: "Last 365 Days", gu: "છેલ્લા 365 દિવસ" },
+  TODAY: { en: "Today", gu: "આજે" },
+  YESTERDAY: { en: "Yesterday", gu: "ગઈકાલે" },
+  THIS_WEEK: { en: "This Week", gu: "આ અઠવાડિયે" },
+  LAST_WEEK: { en: "Last Week", gu: "ગયા અઠવાડિયે" },
+  THIS_MONTH: { en: "This Month", gu: "આ મહિને" },
+  PREV_MONTH: { en: "Previous Month", gu: "ગયા મહિને" },
+  THIS_QUARTER: { en: "This Quarter", gu: "આ ત્રિમાસિક" },
+  PREV_QUARTER: { en: "Previous Quarter", gu: "પાછલું ત્રિમાસિક" },
+  CURRENT_FY: { en: "Current FY", gu: "ચાલુ નાણાકીય વર્ષ" },
+  PREV_FY: { en: "Previous FY", gu: "પાછલું નાણાકીય વર્ષ" },
+  LAST_30_DAYS: { en: "Last 30 Days", gu: "છેલ્લા 30 દિવસ" },
+  ALL: { en: "All Time", gu: "બધો સમય" },
+  CUSTOM: { en: "Custom Range", gu: "કસ્ટમ તારીખ" },
 };
 
 function formatDisplayDate(dateStr: string): string {
@@ -98,18 +100,10 @@ function formatDisplayDate(dateStr: string): string {
   }
 }
 
-function formatDisplayAmount(val: number | string): string {
-  const num = Number(val) || 0;
-  return "₹ " + num.toLocaleString("en-IN", {
-    minimumFractionDigits: num % 1 !== 0 ? (Number.isInteger(num * 10) ? 1 : 2) : 0,
-    maximumFractionDigits: 2,
-  });
-}
-
-function calculateDueIn(dueDateStr?: string, invoiceDateStr?: string, isPaid?: boolean): string {
-  if (isPaid) return "-";
+function calculateDueIn(dueDateStr?: string, invoiceDateStr?: string, isPaid?: boolean): { text: string; isOverdue: boolean; isDueToday: boolean } {
+  if (isPaid) return { text: "-", isOverdue: false, isDueToday: false };
   if (!dueDateStr) {
-    if (!invoiceDateStr) return "-";
+    if (!invoiceDateStr) return { text: "-", isOverdue: false, isDueToday: false };
     const inv = new Date(invoiceDateStr);
     inv.setDate(inv.getDate() + 30);
     dueDateStr = inv.toISOString();
@@ -121,11 +115,11 @@ function calculateDueIn(dueDateStr?: string, invoiceDateStr?: string, isPaid?: b
   const diffTime = due.getTime() - now.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   if (diffDays > 0) {
-    return `Due in ${diffDays} Days`;
+    return { text: `In ${diffDays}d`, isOverdue: false, isDueToday: false };
   } else if (diffDays === 0) {
-    return "Due Today";
+    return { text: "Due Today", isOverdue: false, isDueToday: true };
   } else {
-    return `Overdue by ${Math.abs(diffDays)} Days`;
+    return { text: `Overdue ${Math.abs(diffDays)}d`, isOverdue: true, isDueToday: false };
   }
 }
 
@@ -155,12 +149,12 @@ export default function PurchasesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "PAID" | "UNPAID">("ALL");
   const [dateRangePreset, setDateRangePreset] = useState<DateRangePreset>("LAST_365_DAYS");
-  const [isDateMenuOpen, setIsDateMenuOpen] = useState(false);
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
 
   // Dropdowns & Modals
   const [activeActionMenuId, setActiveActionMenuId] = useState<string | null>(null);
+  const [actionMenuOpenUp, setActionMenuOpenUp] = useState(false);
   const [isReportsMenuOpen, setIsReportsMenuOpen] = useState(false);
   const [isScannerModalOpen, setIsScannerModalOpen] = useState(false);
   const [isQuickSettingsOpen, setIsQuickSettingsOpen] = useState(false);
@@ -212,7 +206,6 @@ export default function PurchasesPage() {
   useEffect(() => {
     const handleClickOutside = () => {
       setIsReportsMenuOpen(false);
-      setIsDateMenuOpen(false);
       setActiveActionMenuId(null);
     };
     window.addEventListener("click", handleClickOutside);
@@ -229,6 +222,7 @@ export default function PurchasesPage() {
       setInvoices(
         Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [],
       );
+      setLastRefreshedTime("Just now");
     } catch (err: any) {
       setError(err.message || "Failed to load purchase invoices.");
     } finally {
@@ -258,7 +252,7 @@ export default function PurchasesPage() {
     }
   }, [tenantContext.companyId, fetchPurchases]);
 
-  // 1. Date Filtered Invoices (Used for KPI Cards)
+  // 1. Date Filtered Invoices
   const dateFilteredInvoices = useMemo(() => {
     let result = invoices;
 
@@ -330,6 +324,8 @@ export default function PurchasesPage() {
     let totalPurchases = 0;
     let totalPaid = 0;
     let totalUnpaid = 0;
+    let paidCount = 0;
+    let unpaidCount = 0;
 
     for (const inv of dateFilteredInvoices) {
       const total = Number(inv.grandTotal || 0);
@@ -338,7 +334,12 @@ export default function PurchasesPage() {
 
       totalPurchases += total;
       totalPaid += paid;
-      totalUnpaid += Math.max(0, balance);
+      if (balance > 0.01) {
+        totalUnpaid += balance;
+        unpaidCount += 1;
+      } else {
+        paidCount += 1;
+      }
     }
 
     return {
@@ -346,10 +347,12 @@ export default function PurchasesPage() {
       totalPaid,
       totalUnpaid,
       count: dateFilteredInvoices.length,
+      paidCount,
+      unpaidCount,
     };
   }, [dateFilteredInvoices]);
 
-  // 2. Filtered Invoices (Filtered by Status and Search)
+  // 2. Filtered Invoices
   const filteredInvoices = useMemo(() => {
     let result = dateFilteredInvoices;
 
@@ -372,6 +375,7 @@ export default function PurchasesPage() {
           inv.party?.name?.toLowerCase().includes(q) ||
           inv.party?.nameGujarati?.toLowerCase().includes(q) ||
           inv.party?.gstin?.toLowerCase().includes(q) ||
+          inv.party?.phone?.includes(q) ||
           inv.itcEligibility?.toLowerCase().includes(q)
       );
     }
@@ -502,21 +506,95 @@ export default function PurchasesPage() {
     }));
   }, [filteredInvoices]);
 
-  return (
-    <div className="w-full px-4 sm:px-6 py-4 space-y-4 max-w-[1600px] mx-auto text-slate-800">
-      {/* 1. TOP HEADER (Exact myBillBook Layout) */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        {/* Left: Title */}
-        <h1 className="text-xl font-bold text-slate-800 tracking-tight">
-          Purchase Invoices
-        </h1>
+  // Scorecard segments for Purchases
+  const scorecardSegments: ScorecardSegment[] = [
+    {
+      id: "all",
+      label: "Total Purchases",
+      labelGujarati: "કુલ ખરીદી",
+      value: metrics.totalPurchases,
+      isCurrency: true,
+      subtext: `${metrics.count} Purchase Bills`,
+      subtextGujarati: `${metrics.count} બિલ`,
+      badge: DATE_PRESET_LABELS[dateRangePreset][lang === "gu" ? "gu" : "en"],
+      variant: "primary",
+      isActive: statusFilter === "ALL",
+      onClick: () => setStatusFilter("ALL"),
+    },
+    {
+      id: "paid",
+      label: "Settled & Paid",
+      labelGujarati: "ચૂકવાયેલ રકમ",
+      value: metrics.totalPaid,
+      isCurrency: true,
+      subtext: `${metrics.paidCount} Fully Paid`,
+      subtextGujarati: `${metrics.paidCount} પૂર્ણ ચૂકવાયેલ`,
+      variant: "success",
+      isActive: statusFilter === "PAID",
+      onClick: () => setStatusFilter("PAID"),
+    },
+    {
+      id: "unpaid",
+      label: "Accounts Payable",
+      labelGujarati: "બાકી દેવાની રકમ",
+      value: metrics.totalUnpaid,
+      isCurrency: true,
+      subtext: `${metrics.unpaidCount} Pending Payment`,
+      subtextGujarati: `${metrics.unpaidCount} બાકી ચુકવણીઓ`,
+      variant: "warning",
+      isActive: statusFilter === "UNPAID",
+      onClick: () => setStatusFilter("UNPAID"),
+    },
+    {
+      id: "itc",
+      label: "Vendor Network",
+      labelGujarati: "વેન્ડર નેટવર્ક",
+      value: parties.length || filteredInvoices.length,
+      isCurrency: false,
+      subtext: "Active Suppliers",
+      subtextGujarati: "સક્રિય સપ્લાયર્સ",
+      variant: "neutral",
+    },
+  ];
 
-        {/* Center: Segmented Tabs (All Invoices | Incomplete Scans) */}
-        <div className="inline-flex items-center bg-[#F2FAF7] p-1 rounded-xl border border-[#BCEADF]">
+  return (
+    <div className="space-y-4 max-w-7xl mx-auto min-w-0 pb-16 font-sans">
+      {/* 1. TOP UNIFIED COMMAND STRIP */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:px-6 sm:py-3.5 rounded-2xl border border-[#E2E8E5] shadow-xs">
+        {/* Left: Identity, Title, and Segmented Tabs */}
+        <div>
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#26A58A]">
+              {lang === "gu" ? "ખરીદી અને સ્ટોક ઈનવર્ડ" : "PURCHASES & EXPENSES"}
+            </span>
+            <span className="text-slate-300">•</span>
+            <span className="text-[10px] font-bold text-slate-500 font-mono">
+              {filteredInvoices.length} {lang === "gu" ? "બિલ" : "Bills"}
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl sm:text-2xl font-black text-[#1A2E2B] tracking-tight">
+              {lang === "gu" ? "ખરીદી બિલ (Purchase Bills)" : "Purchase Invoices"}
+            </h1>
+            <button
+              type="button"
+              onClick={fetchPurchases}
+              title="Refresh Purchases"
+              className="p-1 text-slate-400 hover:text-[#174B43] rounded-md transition-colors"
+            >
+              <svg className={`w-3.5 h-3.5 ${isLoading ? "animate-spin text-[#26A58A]" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Center: Segmented View Switcher */}
+        <div className="inline-flex items-center bg-[#F2FAF7] p-1 rounded-xl border border-[#BCEADF] self-start sm:self-center">
           <button
             type="button"
             onClick={() => setActiveTab("ALL")}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
               activeTab === "ALL"
                 ? "bg-white text-[#174B43] shadow-xs border border-[#85D5C2]/50 font-bold"
                 : "text-[#5A6B66] hover:text-[#174B43]"
@@ -527,41 +605,32 @@ export default function PurchasesPage() {
               <polyline points="14 2 14 8 20 8" />
               <line x1="16" y1="13" x2="8" y2="13" />
               <line x1="16" y1="17" x2="8" y2="17" />
-              <polyline points="10 9 9 9 8 9" />
             </svg>
-            <span>All Invoices</span>
+            <span>{lang === "gu" ? "બધા બિલ" : "All Bills"}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("INCOMPLETE_SCANS")}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
               activeTab === "INCOMPLETE_SCANS"
-                ? "bg-white text-amber-700 shadow-xs border border-amber-300 font-bold"
-                : "text-[#5A6B66] hover:text-[#174B43] font-medium"
+                ? "bg-white text-amber-800 shadow-xs border border-amber-300 font-bold"
+                : "text-[#5A6B66] hover:text-[#174B43]"
             }`}
           >
-            <svg
-              className={`w-3.5 h-3.5 ${
-                activeTab === "INCOMPLETE_SCANS" ? "text-amber-600" : "text-[#8E9F9A]"
-              }`}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
+            <svg className="w-3.5 h-3.5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M4 7V4h3" />
               <path d="M20 7V4h-3" />
               <path d="M4 17v3h3" />
               <path d="M20 17v3h-3" />
               <line x1="4" y1="12" x2="20" y2="12" />
             </svg>
-            <span>Incomplete Scans</span>
+            <span>{lang === "gu" ? "અધૂરા સ્કેન (AI)" : "Incomplete Scans"}</span>
           </button>
         </div>
 
-        {/* Right: Actions (Reports, Settings Gear with Red Dot, Fullscreen) */}
-        <div className="flex items-center gap-2">
+        {/* Right: Quick Action Suite */}
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
           {/* Reports Dropdown */}
           <div className="relative">
             <button
@@ -569,25 +638,26 @@ export default function PurchasesPage() {
               onClick={(e) => {
                 e.stopPropagation();
                 setIsReportsMenuOpen(!isReportsMenuOpen);
+                setActiveActionMenuId(null);
               }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-[#F2FAF7] border border-[#E2E8E5] hover:border-[#85D5C2] text-[#174B43] text-xs font-semibold rounded-xl shadow-2xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 border border-[#E2E8E5] bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-[#174B43] text-xs font-semibold rounded-xl transition-colors cursor-pointer shadow-2xs"
             >
               <svg className="w-3.5 h-3.5 text-[#26A58A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="18" y1="20" x2="18" y2="10" />
                 <line x1="12" y1="20" x2="12" y2="4" />
                 <line x1="6" y1="20" x2="6" y2="14" />
               </svg>
-              <span>Reports</span>
-              <span className="text-[10px] text-slate-400">▼</span>
+              <span>{lang === "gu" ? "રિપોર્ટ્સ" : "Reports"}</span>
+              <span className="text-[10px] text-slate-400">▾</span>
             </button>
 
             {isReportsMenuOpen && (
               <div
-                className="absolute right-0 top-9 z-50 w-52 bg-white border border-[#E2E8E5] rounded-xl shadow-xl py-1 text-xs animate-in fade-in zoom-in-95 duration-100"
+                className="absolute right-0 top-11 z-50 w-52 bg-white border border-[#E2E8E5] rounded-xl shadow-xl py-1 text-xs animate-in fade-in zoom-in-95 duration-100"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="px-3 py-1.5 text-[10px] font-bold text-[#8E9F9A] uppercase tracking-wider border-b border-slate-100">
-                  Purchase Reports
+                  {lang === "gu" ? "ખરીદી અહેવાલ" : "Purchase Reports"}
                 </div>
                 <Link
                   href="/reports?tab=purchase-summary"
@@ -620,44 +690,78 @@ export default function PurchasesPage() {
             )}
           </div>
 
-          {/* Quick Settings Gear with Red Dot Badge */}
+          {/* AI Bill Scanner trigger */}
+          <button
+            type="button"
+            onClick={() => setIsScannerModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold rounded-xl shadow-2xs transition-all cursor-pointer"
+            title="Scan Bills with AI OCR"
+          >
+            <svg className="w-3.5 h-3.5 text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+            <span>{lang === "gu" ? "સ્કેનર" : "Scan Bill"}</span>
+          </button>
+
+          {/* Export Dropdown */}
+          <ExportDropdown
+            columns={exportColumns}
+            data={exportData}
+            metadata={{
+              title: "Purchase Invoices Register",
+              fileName: "purchase_invoices_register",
+              companyName: currentCompany?.tradeName || currentCompany?.legalName || "My Business",
+              filterDescription: DATE_PRESET_LABELS[dateRangePreset][lang === "gu" ? "gu" : "en"],
+              totalCount: filteredInvoices.length,
+            }}
+            lang={lang}
+            themeColor="purple"
+            buttonVariant="compact"
+          />
+
+          {/* Import Excel */}
+          <button
+            type="button"
+            onClick={() => setIsImportModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#F2FAF7] hover:bg-[#E6F7F2] text-[#174B43] border border-[#85D5C2] text-xs font-bold rounded-xl shadow-2xs transition-all cursor-pointer"
+          >
+            <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            <span>{lang === "gu" ? "આયાત" : "Import"}</span>
+          </button>
+
+          {/* Settings Gear */}
           <button
             type="button"
             onClick={() => setIsQuickSettingsOpen(true)}
-            className="p-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:text-slate-900 transition-colors relative cursor-pointer shadow-2xs"
-            title="Purchase Quick Settings"
+            className="p-2 border border-[#E2E8E5] bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-[#5A6B66] hover:text-[#174B43] rounded-xl transition-colors cursor-pointer shadow-2xs relative"
+            title="Purchase Settings"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-rose-500 rounded-full border border-white" />
           </button>
 
-          {/* Keyboard / Shortcuts Icon Button */}
-          <button
-            type="button"
-            onClick={() => setIsScannerModalOpen(true)}
-            className="p-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:text-slate-900 transition-colors cursor-pointer shadow-2xs"
-            title="Scan Bills (Camera / OCR)"
+          {/* Primary CTA */}
+          <Link
+            href="/purchases/new"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#174B43] hover:bg-[#123B35] active:bg-[#0D2A26] text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="2" y="4" width="20" height="16" rx="2" />
-              <line x1="6" y1="8" x2="6.01" y2="8" />
-              <line x1="10" y1="8" x2="10.01" y2="8" />
-              <line x1="14" y1="8" x2="14.01" y2="8" />
-              <line x1="18" y1="8" x2="18.01" y2="8" />
-              <line x1="6" y1="12" x2="6.01" y2="12" />
-              <line x1="18" y1="12" x2="18.01" y2="12" />
-              <line x1="8" y1="16" x2="16" y2="16" />
+            <svg className="w-3.5 h-3.5 text-[#85D5C2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-          </button>
+            <span>{lang === "gu" ? "+ નવું ખરીદી બિલ" : "+ New Purchase Bill"}</span>
+          </Link>
         </div>
       </div>
 
       {/* Success / Error Banners */}
       {successBanner && (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg flex items-center justify-between text-xs font-medium shadow-2xs animate-in fade-in">
+        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex items-center justify-between text-xs font-medium shadow-xs">
           <div className="flex items-center gap-2">
             <span>✓</span>
             <span>{successBanner}</span>
@@ -668,7 +772,7 @@ export default function PurchasesPage() {
         </div>
       )}
       {error && (
-        <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg flex items-center justify-between text-xs font-medium shadow-2xs">
+        <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl flex items-center justify-between text-xs font-medium shadow-xs">
           <span>{error}</span>
           <button onClick={fetchPurchases} className="text-rose-700 font-bold underline ml-2 cursor-pointer">
             Retry
@@ -678,459 +782,437 @@ export default function PurchasesPage() {
 
       {activeTab === "ALL" ? (
         <>
-          {/* 2. THREE SUMMARY CARDS (Total Purchases, Paid, Unpaid) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Card 1: Total Purchases */}
-        <div
-          onClick={() => setStatusFilter("ALL")}
-          className={`bg-white p-4 rounded-2xl border transition-all cursor-pointer shadow-2xs ${
-            statusFilter === "ALL"
-              ? "border-[#26A58A] ring-1 ring-[#26A58A]/30 bg-[#E6F7F2]/30"
-              : "border-[#E2E8E5] hover:border-[#85D5C2]"
-          }`}
-        >
-          <div className="flex items-center gap-2 text-xs font-bold text-[#174B43]">
-            <svg className="w-3.5 h-3.5 text-[#26A58A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <path d="M16 10a4 4 0 0 1-8 0" />
-            </svg>
-            <span>Total Purchases</span>
-          </div>
-          <div className="text-xl sm:text-2xl font-black text-[#1A2E2B] font-mono mt-2 tracking-tight">
-            {formatDisplayAmount(metrics.totalPurchases)}
-          </div>
-        </div>
+          {/* 2. FINANCIAL SCORECARD RIBBON */}
+          <ScorecardRibbon segments={scorecardSegments} lang={lang} />
 
-        {/* Card 2: Paid */}
-        <div
-          onClick={() => setStatusFilter("PAID")}
-          className={`bg-white p-4 rounded-lg border transition-all cursor-pointer shadow-2xs ${
-            statusFilter === "PAID"
-              ? "border-emerald-500/40 ring-1 ring-emerald-500/30 bg-emerald-50/10"
-              : "border-slate-200 hover:border-slate-300"
-          }`}
-        >
-          <div className="flex items-center gap-2 text-xs font-medium text-[#16a34a]">
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="2" y="6" width="20" height="12" rx="2" />
-              <circle cx="12" cy="12" r="2" />
-              <path d="M6 12h.01M18 12h.01" />
-            </svg>
-            <span>Paid</span>
-          </div>
-          <div className="text-xl sm:text-2xl font-bold text-slate-800 mt-2 tracking-tight">
-            {formatDisplayAmount(metrics.totalPaid)}
-          </div>
-        </div>
-
-        {/* Card 3: Unpaid */}
-        <div
-          onClick={() => setStatusFilter("UNPAID")}
-          className={`bg-white p-4 rounded-lg border transition-all cursor-pointer shadow-2xs ${
-            statusFilter === "UNPAID"
-              ? "border-rose-500/40 ring-1 ring-rose-500/30 bg-rose-50/10"
-              : "border-slate-200 hover:border-slate-300"
-          }`}
-        >
-          <div className="flex items-center gap-2 text-xs font-medium text-[#dc2626]">
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-            <span>Unpaid</span>
-          </div>
-          <div className="text-xl sm:text-2xl font-bold text-slate-800 mt-2 tracking-tight">
-            {formatDisplayAmount(metrics.totalUnpaid)}
-          </div>
-        </div>
-      </div>
-
-      {/* 3. SEARCH & DATE FILTER & CREATE ACTION ROW */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-        {/* Left: Search input and Date Filter Button */}
-        <div className="flex items-center gap-3 flex-wrap">
-          {/* Search Box with Magnifying Glass */}
-          <div className="relative w-56 sm:w-64">
-            <span className="absolute inset-y-0 left-2.5 flex items-center text-slate-400 pointer-events-none text-xs">
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-            </span>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search..."
-              className="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 transition-all placeholder:text-slate-400 shadow-2xs"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="absolute inset-y-0 right-2 flex items-center text-slate-400 hover:text-slate-600 text-xs"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-
-          {/* Date Range Picker (Calendar Icon | Last 365 Days | Calendar Icon) */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsDateMenuOpen(!isDateMenuOpen);
-              }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-300 rounded-lg text-xs font-medium text-slate-700 shadow-2xs transition-colors cursor-pointer"
-            >
-              <svg className="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
-              </svg>
-              <span>{DATE_PRESET_LABELS[dateRangePreset]}</span>
-              <svg className="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
-              </svg>
-            </button>
-
-            {/* Date Preset Dropdown Menu */}
-            {isDateMenuOpen && (
-              <div
-                className="absolute left-0 top-9 z-50 w-56 bg-white border border-slate-200 rounded-xl shadow-xl py-1 text-xs animate-in fade-in zoom-in-95 duration-100"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
-                  Select Date Range
+          {/* 3. OMNI-SEARCH & SMART FILTER BAR */}
+          <div className="bg-white p-3 sm:p-3.5 border border-[#E2E8E5] rounded-2xl shadow-xs space-y-2.5">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5">
+              <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
+                {/* Search Box */}
+                <div className="relative flex-1 min-w-[220px] sm:max-w-sm">
+                  <span className="absolute left-3 top-2.5 text-[#8E9F9A] pointer-events-none">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </span>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={lang === "gu" ? "વેન્ડર, બિલ #, GSTIN કે ફોન શોધો..." : "Search vendor, bill #, GSTIN, phone..."}
+                    className="w-full pl-8 pr-7 py-2 bg-[#F8FAFC] border border-[#E2E8E5] rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#26A58A] transition-colors"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-2.5 top-2.5 text-xs text-slate-400 hover:text-slate-600"
+                    >
+                      ✕
+                    </button>
+                  )}
                 </div>
-                {Object.entries(DATE_PRESET_LABELS).map(([key, label]) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => {
-                      setDateRangePreset(key as DateRangePreset);
-                      if (key !== "CUSTOM") setIsDateMenuOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-1.5 transition-colors flex items-center justify-between cursor-pointer ${
-                      dateRangePreset === key
-                        ? "bg-teal-50 text-[#4f46e5] font-semibold"
-                        : "text-slate-700 hover:bg-slate-50"
-                    }`}
-                  >
-                    <span>{label}</span>
-                    {dateRangePreset === key && <span>✓</span>}
-                  </button>
-                ))}
+
+                {/* Date Range Dropdown */}
+                <select
+                  value={dateRangePreset}
+                  onChange={(e) => setDateRangePreset(e.target.value as DateRangePreset)}
+                  className="px-3 py-2 bg-[#F8FAFC] border border-[#E2E8E5] text-xs font-semibold rounded-xl text-slate-800 focus:bg-white focus:outline-none focus:border-[#26A58A] cursor-pointer"
+                >
+                  {Object.entries(DATE_PRESET_LABELS).map(([key, labelObj]) => (
+                    <option key={key} value={key}>
+                      {lang === "gu" ? labelObj.gu : labelObj.en}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Status Quick Filter Buttons */}
+                <div className="hidden lg:flex items-center gap-1 bg-[#F8FAFC] p-1 border border-[#E2E8E5] rounded-xl">
+                  {(["ALL", "PAID", "UNPAID"] as const).map((st) => (
+                    <button
+                      key={st}
+                      type="button"
+                      onClick={() => setStatusFilter(st)}
+                      className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                        statusFilter === st
+                          ? "bg-white text-[#174B43] shadow-xs border border-[#85D5C2]"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      {st === "ALL" && (lang === "gu" ? "બધા" : "All Bills")}
+                      {st === "PAID" && (lang === "gu" ? "ચૂકવાયેલ" : "Paid")}
+                      {st === "UNPAID" && (lang === "gu" ? "બાકી (Payable)" : "Unpaid")}
+                    </button>
+                  ))}
+                </div>
 
                 {/* Custom Date Pickers */}
                 {dateRangePreset === "CUSTOM" && (
-                  <div className="p-2 border-t border-slate-100 space-y-2">
-                    <div>
-                      <span className="text-[10px] text-slate-500">From Date:</span>
-                      <input
-                        type="date"
-                        value={customStartDate}
-                        onChange={(e) => setCustomStartDate(e.target.value)}
-                        className="w-full mt-0.5 px-2 py-1 border border-slate-200 text-xs rounded-lg"
-                      />
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-slate-500">To Date:</span>
-                      <input
-                        type="date"
-                        value={customEndDate}
-                        onChange={(e) => setCustomEndDate(e.target.value)}
-                        className="w-full mt-0.5 px-2 py-1 border border-slate-200 text-xs rounded-lg"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setIsDateMenuOpen(false)}
-                      className="w-full py-1 bg-[#4f46e5] text-white rounded-lg text-xs font-semibold cursor-pointer"
-                    >
-                      Apply Filter
-                    </button>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <input
+                      type="date"
+                      value={customStartDate}
+                      onChange={(e) => setCustomStartDate(e.target.value)}
+                      className="px-2 py-1.5 bg-[#F8FAFC] border border-[#E2E8E5] rounded-lg text-xs font-mono"
+                    />
+                    <span className="text-xs text-slate-400">to</span>
+                    <input
+                      type="date"
+                      value={customEndDate}
+                      onChange={(e) => setCustomEndDate(e.target.value)}
+                      className="px-2 py-1.5 bg-[#F8FAFC] border border-[#E2E8E5] rounded-lg text-xs font-mono"
+                    />
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* Active Filters Summary line */}
+            {(statusFilter !== "ALL" || dateRangePreset !== "LAST_365_DAYS" || searchQuery) && (
+              <div className="flex items-center gap-2 pt-1 border-t border-slate-100 text-xs text-slate-500">
+                <span className="text-[11px] font-bold text-[#5A6B66] uppercase tracking-wider">
+                  {lang === "gu" ? "સક્રિય ફિલ્ટર્સ:" : "Active Filters:"}
+                </span>
+                {statusFilter !== "ALL" && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium text-[11px]">
+                    Status: {statusFilter}
+                    <button type="button" onClick={() => setStatusFilter("ALL")} className="text-slate-400 hover:text-slate-600">✕</button>
+                  </span>
+                )}
+                {dateRangePreset !== "LAST_365_DAYS" && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium text-[11px]">
+                    Range: {DATE_PRESET_LABELS[dateRangePreset][lang === "gu" ? "gu" : "en"]}
+                    <button type="button" onClick={() => setDateRangePreset("LAST_365_DAYS")} className="text-slate-400 hover:text-slate-600">✕</button>
+                  </span>
+                )}
+                {searchQuery && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium text-[11px]">
+                    Query: &quot;{searchQuery}&quot;
+                    <button type="button" onClick={() => setSearchQuery("")} className="text-slate-400 hover:text-slate-600">✕</button>
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStatusFilter("ALL");
+                    setDateRangePreset("LAST_365_DAYS");
+                    setSearchQuery("");
+                  }}
+                  className="text-[11px] font-bold text-rose-600 hover:underline ml-auto cursor-pointer"
+                >
+                  {lang === "gu" ? "બધા સાફ કરો" : "Reset All"}
+                </button>
               </div>
             )}
           </div>
 
-          {/* Export Dropdown */}
-          <ExportDropdown
-            columns={exportColumns}
-            data={exportData}
-            metadata={{
-              title: "Purchase Invoices Register",
-              fileName: "purchase_invoices_register",
-              companyName: currentCompany?.tradeName || currentCompany?.legalName || "My Business",
-              filterDescription: DATE_PRESET_LABELS[dateRangePreset],
-              totalCount: filteredInvoices.length,
-            }}
-            lang={lang}
-            themeColor="purple"
-            buttonVariant="compact"
-          />
-        </div>
+          {/* 4. ENTERPRISE DATA GRID */}
+          <div className="bg-white border border-[#E2E8E5] rounded-2xl shadow-xs overflow-hidden">
+            <div className="overflow-x-auto min-h-[400px]">
+              <table className="w-full text-left text-xs border-collapse min-w-[800px]">
+                <thead className="bg-[#FAFBFD] text-[#5A6B66] uppercase tracking-wider font-extrabold border-b border-[#E2E8E5] text-[11px]">
+                  <tr>
+                    <th className="py-3 px-4 min-w-[110px]">{lang === "gu" ? "તારીખ" : "DATE"}</th>
+                    <th className="py-3 px-4 min-w-[140px]">{lang === "gu" ? "વેન્ડર બિલ #" : "PURCHASE BILL #"}</th>
+                    <th className="py-3 px-4 min-w-[220px]">{lang === "gu" ? "સપ્લાયર / પાર્ટી" : "SUPPLIER / PARTY"}</th>
+                    <th className="py-3 px-4 min-w-[100px]">{lang === "gu" ? "મુદત" : "DUE IN"}</th>
+                    <th className="py-3 px-4 text-right min-w-[140px]">{lang === "gu" ? "રકમ (₹)" : "AMOUNT (₹)"}</th>
+                    <th className="py-3 px-4 text-center min-w-[110px]">{lang === "gu" ? "સ્થિતિ" : "STATUS"}</th>
+                    <th className="py-3 px-4 w-16 text-center">{lang === "gu" ? "ક્રિયાઓ" : "ACTIONS"}</th>
+                  </tr>
+                </thead>
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setIsImportModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-lg shadow-2xs transition-all cursor-pointer"
-          >
-            <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
-            <span>{lang === "gu" ? "એક્સેલ ઈમ્પોર્ટ" : "Import Excel"}</span>
-          </button>
-
-          <Link
-            href="/purchases/new"
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#26A58A] hover:bg-[#208E76] active:bg-[#1B7864] text-white text-xs font-bold rounded-xl shadow-jade transition-colors cursor-pointer"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Create Purchase Invoice</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* 4. PURCHASES DATA TABLE (Exact myBillBook Columns & Design) */}
-      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden shadow-2xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="bg-[#f8fafc] border-b border-slate-200 text-slate-600 font-medium text-xs">
-                <th className="py-3 px-4 whitespace-nowrap">
-                  <div className="flex items-center gap-1">
-                    <span>Date</span>
-                    <span className="text-slate-400 text-[10px]">⇅</span>
-                  </div>
-                </th>
-                <th className="py-3 px-4 whitespace-nowrap">Purchase Invoice Number</th>
-                <th className="py-3 px-4">Party Name</th>
-                <th className="py-3 px-4 whitespace-nowrap">Due In</th>
-                <th className="py-3 px-4 whitespace-nowrap">Amount</th>
-                <th className="py-3 px-4 whitespace-nowrap">Status</th>
-                <th className="py-3 px-4 text-right w-12"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <div className="inline-block animate-spin rounded-full h-7 w-7 border-2 border-teal-600 border-t-transparent" />
-                    <p className="mt-2 text-xs font-semibold text-slate-500">
-                      Loading purchase bills...
-                    </p>
-                  </td>
-                </tr>
-              ) : filteredInvoices.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center">
-                    <div className="text-3xl mb-2">🧾</div>
-                    <p className="text-sm font-bold text-slate-800">
-                      No Purchase Invoices Found
-                    </p>
-                    <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-                      Record vendor purchases manually or use Smart OCR Scanner for automatic bill reading.
-                    </p>
-                    <div className="mt-4 flex items-center justify-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setIsScannerModalOpen(true)}
-                        className="px-3.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-semibold rounded-lg cursor-pointer"
-                      >
-                        📷 Scan Bill
-                      </button>
-                      <Link
-                        href="/purchases/new"
-                        className="px-4 py-1.5 bg-[#4c35de] hover:bg-[#4338ca] text-white text-xs font-semibold rounded-lg shadow-xs cursor-pointer"
-                      >
-                        Create Purchase Invoice
-                      </Link>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                filteredInvoices.map((inv) => {
-                  const status = getPurchaseStatus(inv);
-                  const total = Number(inv.grandTotal || 0);
-                  const paid = Number(inv.paidAmount || 0);
-                  const balance = Number(
-                    inv.balanceAmount !== undefined ? inv.balanceAmount : total - paid
-                  );
-
-                  return (
-                    <tr
-                      key={inv.id}
-                      onClick={() => router.push(`/purchases/invoices/${inv.id}`)}
-                      className="hover:bg-slate-50/70 transition-colors cursor-pointer"
-                    >
-                      {/* Date */}
-                      <td className="py-3.5 px-4 whitespace-nowrap text-slate-700 font-normal">
-                        {formatDisplayDate(inv.invoiceDate)}
-                      </td>
-
-                      {/* Purchase Invoice Number */}
-                      <td className="py-3.5 px-4 whitespace-nowrap text-slate-800 font-normal">
-                        {inv.vendorInvoiceNumber}
-                      </td>
-
-                      {/* Party Name */}
-                      <td className="py-3.5 px-4 text-slate-800 font-medium uppercase">
-                        {inv.party?.name || "DIRECT VENDOR"}
-                      </td>
-
-                      {/* Due In */}
-                      <td className="py-3.5 px-4 whitespace-nowrap text-slate-500">
-                        {calculateDueIn(inv.dueDate, inv.invoiceDate, status === "PAID")}
-                      </td>
-
-                      {/* Amount */}
-                      <td className="py-3.5 px-4 whitespace-nowrap text-slate-900">
-                        <div className="font-medium text-slate-800">
-                          {formatDisplayAmount(total)}
-                        </div>
-                        {balance > 0.01 && (
-                          <div className="text-[11px] text-slate-500 mt-0.5">
-                            ({formatDisplayAmount(balance)} unpaid)
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Status */}
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        {status === "PAID" ? (
-                          <span className="inline-block px-2.5 py-0.5 rounded text-xs font-medium bg-[#dcfce7] text-[#16a34a]">
-                            Paid
-                          </span>
-                        ) : (
-                          <span className="inline-block px-2.5 py-0.5 rounded text-xs font-medium bg-[#fee2e2] text-[#dc2626]">
-                            Unpaid
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Action Menu (3-dots ⋮) */}
-                      <td
-                        className="py-3.5 px-4 text-right whitespace-nowrap relative"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setActiveActionMenuId(activeActionMenuId === inv.id ? null : inv.id)
-                          }
-                          className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-700 transition-colors cursor-pointer text-sm font-bold"
-                          title="Options"
-                        >
-                          ⋮
-                        </button>
-
-                        {/* 3-dots Dropdown Menu */}
-                        {activeActionMenuId === inv.id && (
-                          <div
-                            className="absolute right-3 top-9 z-50 w-44 bg-white border border-slate-200 rounded-xl shadow-xl py-1 text-xs text-left animate-in fade-in zoom-in-95 duration-100"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Link
-                              href={`/purchases/invoices/${inv.id}`}
-                              className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-teal-50 hover:text-teal-600 transition-colors"
-                            >
-                              <span>👁️</span>
-                              <span>View Bill</span>
-                            </Link>
-
-                            {canPay && balance > 0.01 && (
-                              <button
-                                type="button"
-                                onClick={() => openPayment(inv)}
-                                className="w-full text-left flex items-center gap-2 px-3 py-2 text-emerald-700 hover:bg-emerald-50 transition-colors cursor-pointer font-semibold"
-                              >
-                                <span>💳</span>
-                                <span>Record Payment</span>
-                              </button>
-                            )}
-
-                            <Link
-                              href={`/purchases/invoices/${inv.id}`}
-                              className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-teal-50 hover:text-teal-600 transition-colors"
-                            >
-                              <span>✏️</span>
-                              <span>Edit Details</span>
-                            </Link>
-
-                            <button
-                              type="button"
-                              onClick={() => handleDuplicatePurchase(inv)}
-                              className="w-full text-left flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-teal-50 hover:text-teal-600 transition-colors cursor-pointer"
-                            >
-                              <span>📋</span>
-                              <span>Duplicate Bill</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setActiveActionMenuId(null);
-                                setPurchaseToDelete(inv);
-                              }}
-                              className="w-full text-left flex items-center gap-2 px-3 py-2 text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer border-t border-slate-100"
-                            >
-                              <span>🗑️</span>
-                              <span>Delete Bill</span>
-                            </button>
-                          </div>
-                        )}
+                <tbody className="divide-y divide-[#F1F5F9]">
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan={7} className="py-20 text-center text-slate-400">
+                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-[#26A58A] border-t-transparent mb-2" />
+                        <p className="text-xs font-bold text-[#174B43]">
+                          {lang === "gu" ? "ખરીદી બિલ લોડ થઈ રહ્યાં છે..." : "Loading purchase bills..."}
+                        </p>
                       </td>
                     </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </>
-  ) : (
-        /* INCOMPLETE SCANS VIEW (Exact myBillBook Layout) */
+                  ) : filteredInvoices.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-20 px-4 text-center">
+                        <div className="max-w-sm mx-auto space-y-3">
+                          <div className="w-14 h-14 mx-auto bg-[#E6F7F2] border border-[#85D5C2] rounded-2xl flex items-center justify-center text-[#26A58A] shadow-inner">
+                            <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            </svg>
+                          </div>
+                          <h3 className="text-sm font-bold text-[#1A2E2B]">
+                            {lang === "gu" ? "કોઈ ખરીદી બિલ મળ્યા નથી" : "No Purchase Invoices Found"}
+                          </h3>
+                          <p className="text-xs text-[#5A6B66]">
+                            Record vendor purchases manually or use Smart OCR Scanner for automatic bill reading.
+                          </p>
+                          <div className="pt-2 flex items-center justify-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setIsScannerModalOpen(true)}
+                              className="px-3.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-semibold rounded-xl cursor-pointer"
+                            >
+                              📷 Scan Bill
+                            </button>
+                            <Link
+                              href="/purchases/new"
+                              className="px-4 py-1.5 bg-[#174B43] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                            >
+                              {lang === "gu" ? "+ નવું ખરીદી બિલ" : "+ Create Purchase"}
+                            </Link>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredInvoices.map((inv) => {
+                      const status = getPurchaseStatus(inv);
+                      const total = Number(inv.grandTotal || 0);
+                      const paid = Number(inv.paidAmount || 0);
+                      const balance = Number(
+                        inv.balanceAmount !== undefined ? inv.balanceAmount : total - paid
+                      );
+                      const dueInfo = calculateDueIn(inv.dueDate, inv.invoiceDate, status === "PAID");
+
+                      return (
+                        <tr
+                          key={inv.id}
+                          className="hover:bg-[#F8FAF9] transition-colors group"
+                        >
+                          {/* Date */}
+                          <td className="py-3 px-4 text-slate-700 font-medium whitespace-nowrap">
+                            {formatDisplayDate(inv.invoiceDate)}
+                          </td>
+
+                          {/* Purchase Invoice Number */}
+                          <td className="py-3 px-4 whitespace-nowrap">
+                            <Link
+                              href={`/purchases/invoices/${inv.id}`}
+                              className="font-bold text-[#174B43] hover:text-[#26A58A] transition-colors font-mono"
+                            >
+                              {inv.vendorInvoiceNumber}
+                            </Link>
+                          </td>
+
+                          {/* Party Name with avatar chip */}
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-lg bg-[#E6F7F2] text-[#174B43] border border-[#BCEADF] flex items-center justify-center font-bold text-xs shrink-0">
+                                {(inv.party?.name || "V")[0].toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-[#1A2E2B] leading-tight truncate">
+                                  {inv.party?.name || "Direct Vendor"}
+                                </p>
+                                <div className="flex items-center gap-1.5 text-[10px] text-[#8E9F9A] font-mono mt-0.5">
+                                  {inv.party?.gstin && (
+                                    <span className="text-slate-600 font-semibold">
+                                      GSTIN: {inv.party.gstin}
+                                    </span>
+                                  )}
+                                  {inv.party?.phone && (
+                                    <span>• 📞 {inv.party.phone}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Due In */}
+                          <td className="py-3 px-4 whitespace-nowrap">
+                            <span
+                              className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                                dueInfo.isOverdue
+                                  ? "bg-rose-50 text-rose-700 border border-rose-200"
+                                  : dueInfo.isDueToday
+                                  ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                  : "text-slate-600 bg-slate-100"
+                              }`}
+                            >
+                              {dueInfo.text}
+                            </span>
+                          </td>
+
+                          {/* Amount */}
+                          <td className="py-3 px-4 text-right whitespace-nowrap font-mono">
+                            <div className="font-black text-[#1A2E2B] text-xs">
+                              {formatInr(total)}
+                            </div>
+                            {balance > 0.01 ? (
+                              <div className="text-[10px] text-amber-700 font-semibold">
+                                {formatInr(balance)} due
+                              </div>
+                            ) : (
+                              <div className="text-[10px] text-emerald-600 font-semibold">
+                                Fully Paid
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Status */}
+                          <td className="py-3 px-4 text-center whitespace-nowrap">
+                            {status === "PAID" ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                {lang === "gu" ? "ચૂકવાયેલ" : "Paid"}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                {lang === "gu" ? "બાકી" : "Unpaid"}
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Actions */}
+                          <td className="py-3 px-4 text-center relative">
+                            <div className="flex items-center justify-center gap-1">
+                              {/* Quick View */}
+                              <Link
+                                href={`/purchases/invoices/${inv.id}`}
+                                className="p-1 text-slate-400 hover:text-[#174B43] hover:bg-slate-100 rounded-md transition-colors"
+                                title="View Details"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                              </Link>
+
+                              {/* Quick Pay */}
+                              {canPay && balance > 0.01 && (
+                                <button
+                                  type="button"
+                                  onClick={() => openPayment(inv)}
+                                  className="p-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-md transition-colors"
+                                  title="Record Payment"
+                                >
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                  </svg>
+                                </button>
+                              )}
+
+                              {/* More Options */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (activeActionMenuId === inv.id) {
+                                    setActiveActionMenuId(null);
+                                  } else {
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    const spaceBelowViewport = window.innerHeight - rect.bottom;
+                                    const spaceAboveViewport = rect.top;
+                                    const table = e.currentTarget.closest("table");
+                                    const tableRect = table?.getBoundingClientRect();
+                                    const spaceBelowTable = tableRect ? tableRect.bottom - rect.bottom : 999;
+                                    const spaceAboveTable = tableRect ? rect.top - tableRect.top : 999;
+                                    const shouldOpenUp =
+                                      (spaceBelowViewport < 240 || spaceBelowTable < 220) &&
+                                      (spaceAboveTable >= 180 || spaceAboveViewport >= 240);
+                                    setActionMenuOpenUp(shouldOpenUp);
+                                    setActiveActionMenuId(inv.id);
+                                  }
+                                  setIsReportsMenuOpen(false);
+                                }}
+                                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-800 cursor-pointer font-bold transition-colors"
+                              >
+                                ⋮
+                              </button>
+                            </div>
+
+                            {activeActionMenuId === inv.id && (
+                              <div
+                                className={`absolute right-4 ${
+                                  actionMenuOpenUp
+                                    ? "bottom-8 origin-bottom-right"
+                                    : "top-10 origin-top-right"
+                                } z-50 w-48 bg-white border border-[#E2E8E5] rounded-xl shadow-xl py-1 text-xs text-left animate-in fade-in zoom-in-95 duration-100`}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Link
+                                  href={`/purchases/invoices/${inv.id}`}
+                                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors"
+                                >
+                                  <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                  </svg>
+                                  <span>View Bill</span>
+                                </Link>
+
+                                {canPay && balance > 0.01 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => openPayment(inv)}
+                                    className="w-full text-left flex items-center gap-2 px-3 py-2 text-emerald-700 hover:bg-emerald-50 transition-colors cursor-pointer"
+                                  >
+                                    <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                    <span>Record Payment</span>
+                                  </button>
+                                )}
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleDuplicatePurchase(inv)}
+                                  className="w-full text-left flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors cursor-pointer"
+                                >
+                                  <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                  </svg>
+                                  <span>Duplicate Bill</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveActionMenuId(null);
+                                    setPurchaseToDelete(inv);
+                                  }}
+                                  className="w-full text-left flex items-center gap-2 px-3 py-2 text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer border-t border-slate-100"
+                                >
+                                  <svg className="w-3.5 h-3.5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                  <span>Delete Bill</span>
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      ) : (
+        /* INCOMPLETE SCANS VIEW (Modernized OCR Hub) */
         <div className="space-y-4">
-          {/* Information Alert Banner */}
           {showIncompleteNotice && (
-            <div className="bg-[#fffbeb] border border-[#fef3c7] rounded-lg px-4 py-2.5 flex items-center justify-between text-xs text-[#92400e] shadow-2xs">
+            <div className="bg-amber-50/80 border border-amber-200 rounded-2xl px-4 py-3 flex items-center justify-between text-xs text-amber-900 shadow-xs">
               <div className="flex items-center gap-2">
-                <svg
-                  className="w-4 h-4 text-[#b45309] shrink-0"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
+                <svg className="w-4 h-4 text-amber-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="10" />
                   <line x1="12" y1="16" x2="12" y2="12" />
                   <line x1="12" y1="8" x2="12.01" y2="8" />
                 </svg>
                 <span>
-                  The bills here are in incomplete status. Once reviewed and saved, they&apos;ll appear in{" "}
-                  <strong className="font-bold text-slate-900">All Invoices</strong>.
+                  The bills here are in incomplete status. Once reviewed and saved, they&apos;ll automatically sync to{" "}
+                  <strong className="font-bold text-slate-900">All Bills & Stock</strong>.
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setShowIncompleteNotice(false)}
-                className="text-[#92400e] hover:text-slate-900 font-bold ml-3 cursor-pointer text-xs p-1"
+                className="text-amber-800 hover:text-slate-900 font-bold ml-3 cursor-pointer text-xs p-1"
                 title="Dismiss"
               >
                 ✕
@@ -1138,7 +1220,6 @@ export default function PurchasesPage() {
             </div>
           )}
 
-          {/* Sub-header: Last updated + Upload a Bill button */}
           <div className="flex items-center justify-end gap-3 pt-1">
             <div className="flex items-center gap-1.5 text-xs text-slate-400">
               <span>Last updated: {lastRefreshedTime}</span>
@@ -1148,16 +1229,10 @@ export default function PurchasesPage() {
                   setLastRefreshedTime("Just now");
                   fetchPurchases();
                 }}
-                className="text-blue-500 hover:text-blue-600 transition-colors p-0.5 cursor-pointer"
+                className="text-[#26A58A] hover:text-[#174B43] transition-colors p-0.5 cursor-pointer"
                 title="Refresh"
               >
-                <svg
-                  className="w-3.5 h-3.5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M23 4v6h-6" />
                   <path d="M1 20v-6h6" />
                   <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
@@ -1168,127 +1243,42 @@ export default function PurchasesPage() {
             <button
               type="button"
               onClick={() => setIsScannerModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
             >
-              <svg
-                className="w-3.5 h-3.5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="17 8 12 3 7 8" />
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
-              <span>Upload a Bill</span>
+              <span>Upload Bill Document</span>
             </button>
           </div>
 
-          {/* Empty State Illustration & CTA */}
-          <div className="flex flex-col items-center justify-center py-20 px-4 min-h-[460px]">
-            {/* The Two Documents Transformation Illustration */}
-            <div className="relative w-72 h-44 flex items-center justify-center">
-              {/* Left Bill Sheet (Sketch style) */}
-              <div className="absolute left-6 w-32 h-40 bg-[#f8fafc] border-2 border-slate-200 rounded-lg shadow-2xs -rotate-6 p-3 flex flex-col justify-between">
-                <div>
-                  <div className="text-[11px] font-bold text-slate-400 font-mono tracking-wider">
-                    BILL
-                  </div>
-                  <div className="mt-2.5 space-y-1.5">
-                    <div className="h-1 bg-slate-200 rounded w-full"></div>
-                    <div className="h-1 bg-slate-200 rounded w-5/6"></div>
-                    <div className="h-1 bg-slate-200 rounded w-4/6"></div>
-                  </div>
-                  <div className="mt-3.5 border-t border-slate-200 pt-1.5 space-y-1.5">
-                    <div className="h-1 bg-slate-200 rounded w-full"></div>
-                    <div className="h-1 bg-slate-200 rounded w-3/4"></div>
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <svg
-                    className="w-8 h-4 text-slate-300"
-                    viewBox="0 0 50 20"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M2 15 Q 15 2, 25 10 T 48 5" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Center Sparkle and Dashed Arrow */}
-              <div className="absolute z-10 flex flex-col items-center">
-                <div className="text-[#ea580c] mb-1">
-                  <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
-                  </svg>
-                </div>
-                <svg
-                  className="w-20 h-9 text-slate-300"
-                  viewBox="0 0 60 30"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeDasharray="3 3"
-                >
-                  <path d="M5 25 Q 30 5, 55 20" />
-                  <polygon points="53,16 57,21 51,23" fill="currentColor" stroke="none" />
-                </svg>
-              </div>
-
-              {/* Right Invoice Sheet (Clean with Orange Border) */}
-              <div className="absolute right-6 w-32 h-40 bg-white border-2 border-[#ea580c] rounded-lg shadow-sm rotate-6 p-3 flex flex-col justify-between">
-                <div>
-                  <div className="text-[11px] font-bold text-slate-600 tracking-wider">
-                    INVOICE
-                  </div>
-                  {/* Clean table grid */}
-                  <div className="mt-2.5 border border-slate-200 rounded overflow-hidden">
-                    <div className="h-2.5 bg-slate-100 border-b border-slate-200"></div>
-                    <div className="h-2.5 border-b border-slate-100"></div>
-                    <div className="h-2.5 border-b border-slate-100"></div>
-                    <div className="h-2.5"></div>
-                  </div>
-                  <div className="mt-2.5 space-y-1.5">
-                    <div className="h-1 bg-slate-200 rounded w-full"></div>
-                    <div className="h-1 bg-slate-200 rounded w-2/3"></div>
-                  </div>
-                </div>
-                <div className="border-t border-slate-100 pt-1 flex justify-between items-center text-[9px] text-slate-400 font-mono">
-                  <span>TOTAL</span>
-                  <span className="font-bold text-slate-700">₹ ...</span>
-                </div>
-              </div>
+          <div className="flex flex-col items-center justify-center py-20 px-4 min-h-[460px] bg-white border border-[#E2E8E5] rounded-2xl shadow-xs">
+            <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shadow-inner mb-4">
+              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
             </div>
 
-            {/* Heading and Subtitle */}
-            <h2 className="text-lg font-bold text-slate-800 mt-5">
-              No Incomplete Scans yet!
+            <h2 className="text-lg font-bold text-slate-800">
+              No Incomplete Scans in Queue
             </h2>
-            <p className="text-xs text-slate-500 mt-1">
-              Let &ldquo;Mira AI&rdquo; do it for you
+            <p className="text-xs text-slate-500 mt-1 max-w-sm text-center">
+              Upload vendor bills, PDFs, or photos. Our AI OCR engine will extract line items, taxes, and vendor details automatically.
             </p>
 
-            {/* Upload Button */}
             <button
               type="button"
               onClick={() => setIsScannerModalOpen(true)}
-              className="mt-5 inline-flex items-center gap-2 px-6 py-2.5 bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer"
+              className="mt-5 inline-flex items-center gap-2 px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-all cursor-pointer"
             >
-              <svg
-                className="w-3.5 h-3.5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="17 8 12 3 7 8" />
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
-              <span>Upload a Bill</span>
+              <span>Scan Bill with AI</span>
             </button>
           </div>
         </div>
@@ -1296,7 +1286,7 @@ export default function PurchasesPage() {
 
       {/* 5. MODALS */}
 
-      {/* Quick Settings Modal (Wired from top gear icon) */}
+      {/* Quick Settings Modal */}
       <QuickSettingsModal
         isOpen={isQuickSettingsOpen}
         onClose={() => setIsQuickSettingsOpen(false)}
@@ -1316,27 +1306,27 @@ export default function PurchasesPage() {
       <Modal
         isOpen={Boolean(payBill)}
         onClose={() => setPayBill(null)}
-        title="Pay Supplier"
+        title="Record Supplier Payment"
       >
         {payBill ? (
           <form onSubmit={submitPayment} className="space-y-3.5">
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
+            <div className="bg-[#E6F7F2]/50 p-3 rounded-xl border border-[#85D5C2] text-xs text-slate-600 space-y-1">
               <div className="flex justify-between">
                 <span>Vendor Bill #:</span>
                 <strong className="text-slate-900 font-mono">{payBill.vendorInvoiceNumber}</strong>
               </div>
               <div className="flex justify-between">
                 <span>Original Total:</span>
-                <span className="font-mono">₹{Number(payBill.grandTotal).toFixed(2)}</span>
+                <span className="font-mono">{formatInr(payBill.grandTotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Already Paid:</span>
-                <span className="font-mono text-emerald-700">₹{Number(payBill.paidAmount || 0).toFixed(2)}</span>
+                <span className="font-mono text-emerald-700">{formatInr(payBill.paidAmount || 0)}</span>
               </div>
-              <div className="flex justify-between border-t border-slate-200 pt-1 font-bold text-slate-900">
+              <div className="flex justify-between border-t border-[#85D5C2] pt-1 font-bold text-slate-900">
                 <span>Remaining Due:</span>
                 <span className="font-mono text-rose-700">
-                  ₹{Number(payBill.balanceAmount ?? payBill.grandTotal).toFixed(2)}
+                  {formatInr(payBill.balanceAmount ?? payBill.grandTotal)}
                 </span>
               </div>
             </div>
@@ -1354,7 +1344,7 @@ export default function PurchasesPage() {
                   type="number"
                   step="0.01"
                   required
-                  className="mt-1 w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm font-mono font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                  className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm font-mono font-bold focus:ring-2 focus:ring-[#26A58A] focus:outline-none"
                   value={payAmount}
                   onChange={(e) => setPayAmount(e.target.value)}
                 />
@@ -1365,7 +1355,7 @@ export default function PurchasesPage() {
                 <input
                   type="date"
                   required
-                  className="mt-1 w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                  className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm focus:ring-2 focus:ring-[#26A58A] focus:outline-none"
                   value={payDate}
                   onChange={(e) => setPayDate(e.target.value)}
                 />
@@ -1374,13 +1364,13 @@ export default function PurchasesPage() {
               <label className="text-slate-600 font-semibold">
                 Payment Mode
                 <select
-                  className="mt-1 w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                  className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm focus:ring-2 focus:ring-[#26A58A] focus:outline-none"
                   value={payMode}
                   onChange={(e) => setPayMode(e.target.value)}
                 >
                   <option value="CASH">Cash</option>
-                  <option value="BANK_TRANSFER">Bank Transfer</option>
-                  <option value="UPI_QR">UPI</option>
+                  <option value="BANK_TRANSFER">Bank Transfer / NEFT</option>
+                  <option value="UPI_QR">UPI / QR</option>
                   <option value="CHEQUE">Cheque</option>
                 </select>
               </label>
@@ -1388,7 +1378,7 @@ export default function PurchasesPage() {
               <label className="text-slate-600 font-semibold">
                 Paid From Account
                 <select
-                  className="mt-1 w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                  className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm focus:ring-2 focus:ring-[#26A58A] focus:outline-none"
                   value={payAccountId}
                   onChange={(e) => setPayAccountId(e.target.value)}
                 >
@@ -1405,7 +1395,7 @@ export default function PurchasesPage() {
             <label className="block text-xs text-slate-600 font-semibold">
               Reference / UTR / Cheque No.
               <input
-                className="mt-1 w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm focus:ring-2 focus:ring-[#26A58A] focus:outline-none"
                 value={payReference}
                 onChange={(e) => setPayReference(e.target.value)}
                 placeholder="e.g. UTR-9928120"
@@ -1415,7 +1405,7 @@ export default function PurchasesPage() {
             <label className="block text-xs text-slate-600 font-semibold">
               Notes
               <input
-                className="mt-1 w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm focus:ring-2 focus:ring-[#26A58A] focus:outline-none"
                 value={payNotes}
                 onChange={(e) => setPayNotes(e.target.value)}
                 placeholder="e.g. Paid in full against supplier voucher"
@@ -1426,14 +1416,14 @@ export default function PurchasesPage() {
               <button
                 type="button"
                 onClick={() => setPayBill(null)}
-                className="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
+                className="px-4 py-2 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={paySubmitting}
-                className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50"
+                className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50"
               >
                 {paySubmitting ? "Saving..." : "Record Payment"}
               </button>
@@ -1476,7 +1466,7 @@ export default function PurchasesPage() {
             <button
               type="button"
               onClick={() => setPurchaseToDelete(null)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
+              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
             >
               Cancel
             </button>
@@ -1484,7 +1474,7 @@ export default function PurchasesPage() {
               type="button"
               onClick={handleDeleteSinglePurchase}
               disabled={isDeletingSingle}
-              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm cursor-pointer"
+              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-xl shadow-xs cursor-pointer"
             >
               {isDeletingSingle ? "Deleting..." : "Confirm Delete"}
             </button>

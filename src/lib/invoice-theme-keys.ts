@@ -163,6 +163,30 @@ export const ALL_THEME_KEYS: ThemeDefinition[] = [
     displayNameGu: "એડવાન્સ્ડ GST (ટેલી)",
     isFestive: false,
   },
+  {
+    uniqueKey: "modern",
+    baseTheme: "modern",
+    variant: 1,
+    displayName: "Modern Accent",
+    displayNameGu: "મોડર્ન એક્સેન્ટ",
+    isFestive: false,
+  },
+  {
+    uniqueKey: "simple",
+    baseTheme: "simple",
+    variant: 1,
+    displayName: "Classic Simple",
+    displayNameGu: "ક્લાસિક સિમ્પલ",
+    isFestive: false,
+  },
+  {
+    uniqueKey: "billbook",
+    baseTheme: "billbook",
+    variant: 1,
+    displayName: "Billbook Logo",
+    displayNameGu: "બિલબુક લોગો",
+    isFestive: false,
+  },
 ];
 
 export function resolveThemeDefinition(

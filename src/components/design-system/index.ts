@@ -5,3 +5,4 @@ export * from "./document-payment-card";
 export * from "./list-page-header";
 export * from "./metric-cards";
 export * from "./filter-toolbar";
+export * from "./scorecard-ribbon";

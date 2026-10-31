@@ -8,6 +8,8 @@ import { useAuth } from "../context/auth-context";
 import { apiClient, extractList } from "../lib/api-client";
 import { IntroductionPage } from "../components/landing/introduction-page";
 import { BillScannerModal } from "./purchases/components/bill-scanner-modal";
+import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/scorecard-ribbon";
+import { formatInr } from "@/components/design-system/tokens";
 
 interface TransactionRow {
   id: string;
@@ -27,18 +29,9 @@ interface DailySalesPoint {
   sales: number;
 }
 
-function formatInr(val: number | string): string {
-  const num = typeof val === "string" ? parseFloat(val) : val;
-  if (isNaN(num)) return "0";
-  return new Intl.NumberFormat("en-IN", {
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 0,
-  }).format(num);
-}
-
 function DashboardContent() {
   const router = useRouter();
-  const { lang, tenantContext, user } = useAuth();
+  const { lang, tenantContext, user, currentCompany } = useAuth();
 
   // Metrics State
   const [toCollect, setToCollect] = useState<number>(0);
@@ -52,7 +45,6 @@ function DashboardContent() {
   const [lastUpdate, setLastUpdate] = useState<string>("");
 
   // Scan & Record Bills Tab state
-  const [scanType, setScanType] = useState<"sales" | "purchase">("purchase");
   const [isScannerModalOpen, setIsScannerModalOpen] = useState<boolean>(false);
   const [parties, setParties] = useState<any[]>([]);
   const [itemsList, setItemsList] = useState<any[]>([]);
@@ -93,10 +85,9 @@ function DashboardContent() {
     updateTimestamp();
 
     try {
-      // Clean, single-purpose Dashboard APIs (unified all-transactions with limit: 5, sortBy: "date", sortOrder: "desc")
       const [finRes, txnsRes, chartRes]: any = await Promise.all([
         apiClient.get("/dashboard/summary").catch(() => null),
-        apiClient.get("/dashboard/all-transactions", { page: 1, limit: 5, sortBy: "date", sortOrder: "desc" }).catch(() => null),
+        apiClient.get("/dashboard/all-transactions", { page: 1, limit: 6, sortBy: "date", sortOrder: "desc" }).catch(() => null),
         apiClient.get("/dashboard/sales-overview", { days: 7 }).catch(() => null),
       ]);
 
@@ -121,11 +112,11 @@ function DashboardContent() {
       setToPay(pay);
       setCashBankBalance(cb);
 
-      // 2. Process Transactions (from unified /dashboard/all-transactions endpoint)
+      // 2. Process Transactions
       const txnList = txnsRes?.items || txnsRes?.transactions || [];
       if (Array.isArray(txnList) && txnList.length > 0) {
         setTransactions(
-          txnList.slice(0, 5).map((t: any, idx: number) => {
+          txnList.slice(0, 6).map((t: any, idx: number) => {
             const d = new Date(t.date || t.rawDate);
             return {
               id: t.id || `txn-${idx}`,
@@ -147,7 +138,7 @@ function DashboardContent() {
         setTransactions([]);
       }
 
-      // 3. Process 7-day Sales Report chart (from /dashboard/sales-overview)
+      // 3. Process 7-day Sales Report chart
       if (chartRes?.chartDays) {
         setChartDays(chartRes.chartDays);
         setSevenDaysSales(Number(chartRes.sevenDaysSales || 0));
@@ -252,360 +243,204 @@ function DashboardContent() {
     }
   };
 
+  // Executive Scorecard segments for horizontal financial ribbon
+  const executiveSegments: ScorecardSegment[] = [
+    {
+      id: "collect",
+      label: "To Collect (Receivables)",
+      labelGujarati: "ઉઘરાણી (લેવાના બાકી)",
+      value: toCollect,
+      isCurrency: true,
+      subtext: "Open customer balances",
+      subtextGujarati: "ગ્રાહક પાસેથી લેવાના બાકી",
+      badge: "Receivable",
+      variant: "success",
+      onClick: () => router.push("/masters/parties?filter=receivable"),
+    },
+    {
+      id: "pay",
+      label: "To Pay (Payables)",
+      labelGujarati: "ચૂકવવાના બાકી (દેવાના)",
+      value: toPay,
+      isCurrency: true,
+      subtext: "Pending supplier bills",
+      subtextGujarati: "સપ્લાયરને ચૂકવવાના બાકી",
+      badge: "Payable",
+      variant: "warning",
+      onClick: () => router.push("/masters/parties?filter=payable"),
+    },
+    {
+      id: "cash-bank",
+      label: "Cash & Bank Balance",
+      labelGujarati: "રોકડ અને બેંક સિલક",
+      value: cashBankBalance,
+      isCurrency: true,
+      subtext: "Liquid Treasury Funds",
+      subtextGujarati: "કુલ ઉપલબ્ધ બેંક ફંડ",
+      variant: "primary",
+      onClick: () => router.push("/finance/cash-bank"),
+    },
+    {
+      id: "sales-7d",
+      label: "Sales (Last 7 Days)",
+      labelGujarati: "વેચાણ (છેલ્લા 7 દિવસ)",
+      value: sevenDaysSales,
+      isCurrency: true,
+      subtext: `${invoicesCount} Invoices Created`,
+      subtextGujarati: `${invoicesCount} બિલ બનાવ્યા`,
+      badge: "+12% Growth",
+      variant: "neutral",
+      onClick: () => router.push("/sales/invoices"),
+    },
+  ];
+
   return (
-    <div className="space-y-4 sm:space-y-5 pb-8 min-w-0 max-w-full">
-      {/* ─────────────────────────────────────────────────────────────
-          1. DASHBOARD TOP HEADER BAR
-      ───────────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between pt-1 gap-2">
-        <h1 className="text-base sm:text-lg md:text-xl font-bold text-slate-800 tracking-tight shrink-0">
-          Dashboard
-        </h1>
-
-        {/* Action Icons Matching MyBillBook Topbar */}
-        <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 text-slate-500">
-          {/* Desktop App (hidden on small mobile screens since it's an .exe installer) */}
-          <button
-            type="button"
-            onClick={() => setActiveModal("desktop")}
-            className="hidden sm:inline-flex p-1.5 sm:p-2 rounded-lg hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
-            title="Desktop App"
-          >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-          </button>
-
-          {/* Announcements / Megaphone */}
-          <button
-            type="button"
-            onClick={() => setActiveModal("announcements")}
-            className="p-1.5 sm:p-2 rounded-lg hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
-            title="Announcements & Updates"
-          >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-            </svg>
-          </button>
-
-          {/* Gift Box / Rewards */}
-          <button
-            type="button"
-            onClick={() => setActiveModal("gift")}
-            className="p-1.5 sm:p-2 rounded-lg hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
-            title="Refer & Earn"
-          >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V6a2 2 0 10-2 2h2zm0 0h8.4a.6.6 0 01.6.6v3.8a.6.6 0 01-.6.6H3.6a.6.6 0 01-.6-.6V8.6a.6.6 0 01.6-.6H12zm-8.4 5H20.4M5 13v7.4a.6.6 0 00.6.6h12.8a.6.6 0 00.6-.6V13" />
-            </svg>
-          </button>
-
-          {/* Headset / Support */}
-          <button
-            type="button"
-            onClick={() => setActiveModal("support")}
-            className="p-1.5 sm:p-2 rounded-lg hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
-            title="Help & Support"
-          >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-          </button>
-
-          {/* WhatsApp Support */}
-          <a
-            href="https://wa.me/919510442798?text=Hello%20Support%20myownbillbook"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-1.5 sm:p-2 rounded-lg hover:text-emerald-600 hover:bg-slate-100 transition-colors"
-            title="WhatsApp Support"
-          >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12.031 2C6.494 2 2 6.494 2 12.031c0 1.808.48 3.518 1.319 5.008L2 22l5.12-1.309c1.442.793 3.096 1.24 4.911 1.24 5.538 0 10.031-4.494 10.031-10.031S17.569 2 12.031 2zm5.82 14.28c-.244.686-1.42 1.314-1.956 1.37-.506.052-1.15.074-3.321-.822-2.775-1.144-4.54-3.957-4.678-4.143-.138-.186-1.12-1.492-1.12-2.846s.707-2.02.959-2.296c.244-.268.532-.336.71-.336.177 0 .355.002.51.01.164.009.384-.062.6.457.222.533.754 1.84.82 1.974.066.134.11.29.022.468-.088.177-.132.288-.266.443-.133.155-.28.347-.399.466-.134.133-.273.278-.118.544.155.266.69 1.137 1.48 1.84 1.016.906 1.874 1.186 2.14 1.319.266.133.422.11.577-.067.155-.177.666-.776.844-1.042.177-.266.355-.222.6-.133.244.089 1.554.733 1.82 1.022.266.289.444.422.51.533.067.11.067.644-.177 1.33z" />
-            </svg>
-          </a>
-        </div>
-      </div>
-
-      {/* ─────────────────────────────────────────────────────────────
-          2. BUSINESS OVERVIEW SECTION & 4 METRIC SUMMARY CARDS
-      ───────────────────────────────────────────────────────────── */}
-      <div className="space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-0">
-          <h2 className="text-sm font-bold text-[#1A2E2B] tracking-tight">
-            Business Overview
-          </h2>
-          <div className="flex items-center gap-2 text-xs text-[#5A6B66]">
-            <span>Last Update: {lastUpdate || "23 Oct 2026 | 05:42 PM"}</span>
+    <div className="space-y-4 sm:space-y-5 pb-16 min-w-0 max-w-7xl mx-auto font-sans">
+      {/* 1. TOP EXECUTIVE COMMAND STRIP */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:px-6 sm:py-3.5 rounded-2xl border border-[#E2E8E5] shadow-xs">
+        <div>
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#26A58A]">
+              {lang === "gu" ? "નાણાકીય કમાન્ડ સેન્ટર" : "EXECUTIVE COMMAND CENTER"}
+            </span>
+            <span className="text-slate-300">•</span>
+            <span className="text-[10px] font-bold text-slate-500 font-mono">
+              {currentCompany?.tradeName || currentCompany?.legalName || "My Company"}
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl sm:text-2xl font-black text-[#1A2E2B] tracking-tight">
+              {lang === "gu" ? "ડેશબોર્ડ (Dashboard)" : "Dashboard Overview"}
+            </h1>
             <button
               type="button"
               onClick={fetchDashboardData}
               disabled={isRefreshing}
-              className="p-1 hover:text-[#174B43] transition-colors cursor-pointer"
-              title="Refresh Dashboard"
+              title="Refresh Accounting Feeds"
+              className="p-1 text-slate-400 hover:text-[#174B43] rounded-md transition-colors cursor-pointer"
             >
-              <svg
-                className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin text-[#26A58A]" : ""}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
+              <svg className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin text-[#26A58A]" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </button>
           </div>
         </div>
 
-        {/* 4 Metric Summary Cards matching reference design */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {/* Card 1: To Collect */}
-          <Link
-            href="/masters/parties?filter=receivable"
-            className="bg-white border border-[#E2E8E5] rounded-2xl p-4 sm:p-5 hover:border-[#26A58A]/60 hover:shadow-xs transition-all block group relative overflow-hidden"
+        {/* Action Suite & Quick Links */}
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
+          {/* Announcements */}
+          <button
+            type="button"
+            onClick={() => setActiveModal("announcements")}
+            className="p-2 border border-[#E2E8E5] bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-[#5A6B66] hover:text-[#174B43] rounded-xl transition-colors cursor-pointer shadow-2xs"
+            title="Announcements & Product Updates"
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#E6F7F2] text-[#174B43] flex items-center justify-center font-bold text-xs shrink-0">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                  </svg>
-                </div>
-                <span className="text-xs font-semibold text-[#5A6B66]">To Collect</span>
-              </div>
-              <span className="text-[#8E9F9A] group-hover:text-[#174B43] transition-colors">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7m0 0H7m10 0v10" />
-                </svg>
-              </span>
-            </div>
-            {isLoading ? (
-              <div className="h-7 w-28 bg-[#E2E8E5] animate-pulse rounded-md mt-2.5" />
-            ) : (
-              <div className="text-xl sm:text-2xl font-black text-[#1A2E2B] mt-2.5 tracking-tight font-mono">
-                ₹ {formatInr(toCollect)}
-              </div>
-            )}
-            <div className="mt-2 text-[11px] text-[#5A6B66] font-medium flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#26A58A]"></span>
-              <span>Open receivables</span>
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#26A58A] opacity-80" />
-          </Link>
+            <svg className="w-4 h-4 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+            </svg>
+          </button>
 
-          {/* Card 2: To Pay */}
-          <Link
-            href="/masters/parties?filter=payable"
-            className="bg-white border border-[#E2E8E5] rounded-2xl p-4 sm:p-5 hover:border-amber-400/60 hover:shadow-xs transition-all block group relative overflow-hidden"
+          {/* AI Bill Scanner */}
+          <button
+            type="button"
+            onClick={() => setIsScannerModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold rounded-xl shadow-2xs transition-all cursor-pointer"
+            title="Scan Bills with AI OCR"
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#FEF3C7] text-[#D97706] flex items-center justify-center font-bold text-xs shrink-0">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                  </svg>
-                </div>
-                <span className="text-xs font-semibold text-[#5A6B66]">To Pay</span>
-              </div>
-              <span className="text-[#8E9F9A] group-hover:text-amber-600 transition-colors">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7m0 0H7m10 0v10" />
-                </svg>
-              </span>
-            </div>
-            {isLoading ? (
-              <div className="h-7 w-28 bg-[#E2E8E5] animate-pulse rounded-md mt-2.5" />
-            ) : (
-              <div className="text-xl sm:text-2xl font-black text-[#1A2E2B] mt-2.5 tracking-tight font-mono">
-                ₹ {formatInr(toPay)}
-              </div>
-            )}
-            <div className="mt-2 text-[11px] text-[#5A6B66] font-medium flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-              <span>Pending payables</span>
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-amber-400 opacity-80" />
-          </Link>
+            <svg className="w-3.5 h-3.5 text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+            <span>{lang === "gu" ? "બિલ સ્કેનર" : "Scan Bill"}</span>
+          </button>
 
-          {/* Card 3: Total Cash + Bank Balance */}
-          <Link
-            href="/finance/cash-bank"
-            className="bg-white border border-[#E2E8E5] rounded-2xl p-4 sm:p-5 hover:border-[#174B43]/50 hover:shadow-xs transition-all block group relative overflow-hidden"
+          {/* Desktop App */}
+          <button
+            type="button"
+            onClick={() => setActiveModal("desktop")}
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 border border-[#E2E8E5] bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-[#174B43] text-xs font-semibold rounded-xl transition-colors cursor-pointer shadow-2xs"
+            title="Download Offline Desktop App"
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#E6F7F2] text-[#174B43] flex items-center justify-center font-bold text-xs shrink-0">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                </div>
-                <span className="text-xs font-semibold text-[#5A6B66] truncate">Cash + Bank Balance</span>
-              </div>
-              <span className="text-[#8E9F9A] group-hover:text-[#174B43] transition-colors">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7m0 0H7m10 0v10" />
-                </svg>
-              </span>
-            </div>
-            {isLoading ? (
-              <div className="h-7 w-28 bg-[#E2E8E5] animate-pulse rounded-md mt-2.5" />
-            ) : (
-              <div className="text-xl sm:text-2xl font-black text-[#1A2E2B] mt-2.5 tracking-tight font-mono">
-                ₹ {formatInr(cashBankBalance)}
-              </div>
-            )}
-            <div className="mt-2 text-[11px] text-[#174B43] font-semibold flex items-center gap-1 group-hover:underline">
-              <span>View details</span>
-              <span>→</span>
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#174B43] opacity-80" />
-          </Link>
+            <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <span>Desktop</span>
+          </button>
 
-          {/* Card 4: Total Sales (7 Days) */}
-          <div className="bg-white border border-[#E2E8E5] rounded-2xl p-4 sm:p-5 hover:border-[#26A58A]/60 hover:shadow-xs transition-all block group relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#E6F7F2] text-[#26A58A] flex items-center justify-center font-bold text-xs shrink-0">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                  </svg>
-                </div>
-                <span className="text-xs font-semibold text-[#5A6B66] truncate">Total Sales (7 Days)</span>
-              </div>
-              {/* Mini Sparkline SVG */}
-              <svg className="w-14 h-5 text-[#26A58A]" viewBox="0 0 56 20" fill="none">
-                <path d="M 2 16 Q 14 14, 24 8 T 40 10 T 54 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </div>
-            {isLoading ? (
-              <div className="h-7 w-28 bg-[#E2E8E5] animate-pulse rounded-md mt-2.5" />
-            ) : (
-              <div className="text-xl sm:text-2xl font-black text-[#1A2E2B] mt-2.5 tracking-tight font-mono">
-                ₹ {formatInr(sevenDaysSales)}
-              </div>
-            )}
-            <div className="mt-2 text-[11px] text-[#26A58A] font-semibold flex items-center gap-1">
-              <span>↑ +12% from last week</span>
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#26A58A] opacity-80" />
-          </div>
+          {/* Create Sales Invoice CTA */}
+          <Link
+            href="/sales/invoices/new"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#174B43] hover:bg-[#123B35] active:bg-[#0D2A26] text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer"
+          >
+            <svg className="w-3.5 h-3.5 text-[#85D5C2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>{lang === "gu" ? "+ નવું બિલ" : "+ Create Sales Bill"}</span>
+          </Link>
         </div>
       </div>
 
-      {/* ─────────────────────────────────────────────────────────────
-          3. MIDDLE SECTION: LATEST TRANSACTIONS & SCAN & RECORD BILLS
-      ───────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4.5 items-start">
-        {/* Left Column: Latest Transactions (col-span-8) */}
+      {/* 2. EXECUTIVE TREASURY & FINANCIAL SCORECARD RIBBON */}
+      <ScorecardRibbon segments={executiveSegments} lang={lang} />
+
+      {/* 3. MIDDLE SECTION: LIVE TRANSACTION STREAM & QUICK ACTION HUB */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+        {/* Left Column (8-col): Latest Transactions */}
         <div className="lg:col-span-8 bg-white border border-[#E2E8E5] rounded-2xl shadow-xs overflow-hidden flex flex-col justify-between">
           <div>
-            <div className="px-4 sm:px-5 py-3 sm:py-3.5 border-b border-[#E2E8E5] flex items-center justify-between">
-              <h3 className="text-sm font-bold text-[#1A2E2B]">Latest Transactions</h3>
+            <div className="px-5 py-3.5 border-b border-[#E2E8E5] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#26A58A]" />
+                <h3 className="text-sm font-extrabold text-[#1A2E2B]">
+                  {lang === "gu" ? "તાજેતરના વ્યવહારો (Live Stream)" : "Recent Transaction Stream"}
+                </h3>
+              </div>
               <Link
                 href="/app/home/vouchers/all_transactions"
-                className="text-xs font-semibold text-[#174B43] hover:text-[#26A58A] transition-colors flex items-center gap-1"
+                className="text-xs font-bold text-[#174B43] hover:text-[#26A58A] transition-colors flex items-center gap-1"
               >
-                <span>View All</span>
+                <span>{lang === "gu" ? "બધા જુઓ" : "View All"}</span>
                 <span>→</span>
               </Link>
             </div>
 
-            {/* Mobile View (< sm): Clean Touch-friendly Card List */}
-            <div className="divide-y divide-[#E2E8E5] sm:hidden">
-              {isLoading ? (
-                Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="p-3.5 flex items-center justify-between gap-3 animate-pulse">
-                    <div className="space-y-2 flex-1">
-                      <div className="h-4 w-32 bg-[#E2E8E5] rounded" />
-                      <div className="h-3 w-20 bg-[#EBF0EE] rounded" />
-                    </div>
-                    <div className="h-4 w-16 bg-[#E2E8E5] rounded" />
-                  </div>
-                ))
-              ) : transactions.length === 0 ? (
-                <div className="p-8 text-center text-xs text-[#5A6B66] space-y-2">
-                  <div className="w-10 h-10 rounded-full bg-[#E6F7F2] text-[#174B43] flex items-center justify-center mx-auto">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <p className="font-semibold text-[#1A2E2B]">No transactions recorded yet</p>
-                  <Link href="/sales/invoices/new" className="inline-block text-xs font-bold text-[#26A58A] hover:underline">
-                    + Create First Sales Invoice
-                  </Link>
-                </div>
-              ) : (
-                transactions.slice(0, 5).map((tx) => (
-                  <div
-                    key={tx.id}
-                    onClick={() => tx.link && router.push(tx.link)}
-                    className="p-3.5 active:bg-[#F6F7F1] transition-colors flex items-center justify-between gap-3 cursor-pointer"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <span className="text-xs font-bold text-[#1A2E2B] truncate">
-                          {tx.partyName}
-                        </span>
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[#E6F7F2] text-[#174B43] whitespace-nowrap">
-                          {tx.type}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-[11px] text-[#5A6B66] font-mono">
-                        <span>{tx.txnNo}</span>
-                        <span>•</span>
-                        <span>{tx.date}</span>
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <span className="text-xs font-bold font-mono text-[#1A2E2B] block">
-                        ₹ {formatInr(tx.amount)}
-                      </span>
-                      <span className="inline-block mt-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-[#E6F7F2] text-[#15805E]">
-                        Paid
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-
-            {/* Desktop View (>= sm): Full Data Table */}
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full text-left text-xs">
+            {/* Desktop Table View */}
+            <div className="overflow-x-auto min-h-[280px]">
+              <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-[#E2E8E5] bg-[#F8FAF9] text-[11px] font-bold text-[#5A6B66] uppercase tracking-wider">
-                    <th className="px-5 py-3 font-bold">DATE</th>
-                    <th className="px-5 py-3 font-bold">TYPE</th>
-                    <th className="px-5 py-3 font-bold">TXN NO</th>
-                    <th className="px-5 py-3 font-bold">PARTY NAME</th>
-                    <th className="px-5 py-3 font-bold text-right">AMOUNT</th>
-                    <th className="px-5 py-3 font-bold text-center">STATUS</th>
+                  <tr className="border-b border-[#E2E8E5] bg-[#FAFBFD] text-[11px] font-extrabold text-[#5A6B66] uppercase tracking-wider">
+                    <th className="px-5 py-3">{lang === "gu" ? "તારીખ" : "DATE"}</th>
+                    <th className="px-4 py-3">{lang === "gu" ? "પ્રકાર" : "TYPE"}</th>
+                    <th className="px-4 py-3">{lang === "gu" ? "નંબર" : "VOUCHER #"}</th>
+                    <th className="px-5 py-3">{lang === "gu" ? "પાર્ટી" : "PARTY"}</th>
+                    <th className="px-5 py-3 text-right">{lang === "gu" ? "રકમ" : "AMOUNT"}</th>
+                    <th className="px-4 py-3 text-center">{lang === "gu" ? "સ્થિતિ" : "STATUS"}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E2E8E5] text-[#1A2E2B]">
+                <tbody className="divide-y divide-[#F1F5F9] text-[#1A2E2B]">
                   {isLoading ? (
-                    Array.from({ length: 4 }).map((_, i) => (
+                    Array.from({ length: 5 }).map((_, i) => (
                       <tr key={i} className="animate-pulse">
-                        <td className="px-5 py-3"><div className="h-4 w-20 bg-[#E2E8E5] rounded" /></td>
-                        <td className="px-5 py-3"><div className="h-4 w-14 bg-[#EBF0EE] rounded-md" /></td>
-                        <td className="px-5 py-3"><div className="h-4 w-16 bg-[#E2E8E5] rounded" /></td>
-                        <td className="px-5 py-3"><div className="h-4 w-36 bg-[#E2E8E5] rounded" /></td>
-                        <td className="px-5 py-3 text-right"><div className="h-4 w-20 bg-[#E2E8E5] rounded ml-auto" /></td>
-                        <td className="px-5 py-3 text-center"><div className="h-4 w-12 bg-[#EBF0EE] rounded-full mx-auto" /></td>
+                        <td className="px-5 py-3.5"><div className="h-4 w-20 bg-slate-100 rounded" /></td>
+                        <td className="px-4 py-3.5"><div className="h-4 w-14 bg-slate-100 rounded-md" /></td>
+                        <td className="px-4 py-3.5"><div className="h-4 w-16 bg-slate-100 rounded" /></td>
+                        <td className="px-5 py-3.5"><div className="h-4 w-32 bg-slate-100 rounded" /></td>
+                        <td className="px-5 py-3.5 text-right"><div className="h-4 w-20 bg-slate-100 rounded ml-auto" /></td>
+                        <td className="px-4 py-3.5 text-center"><div className="h-4 w-12 bg-slate-100 rounded-full mx-auto" /></td>
                       </tr>
                     ))
                   ) : transactions.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-5 py-10 text-center text-xs text-[#5A6B66]">
-                        <div className="w-10 h-10 rounded-full bg-[#E6F7F2] text-[#174B43] flex items-center justify-center mx-auto mb-2">
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      <td colSpan={6} className="px-5 py-12 text-center text-xs text-[#5A6B66]">
+                        <div className="w-12 h-12 rounded-2xl bg-[#E6F7F2] text-[#26A58A] flex items-center justify-center mx-auto mb-2 shadow-inner">
+                          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                           </svg>
                         </div>
-                        <p className="font-semibold text-[#1A2E2B]">No transactions recorded yet</p>
-                        <p className="text-[11px] text-[#8E9F9A] mt-0.5">Start billing your customers to see live transaction feeds here.</p>
-                        <Link href="/sales/invoices/new" className="inline-block mt-3 px-3.5 py-1.5 rounded-lg bg-[#26A58A] hover:bg-[#208E76] text-white font-bold text-xs shadow-xs transition-colors">
-                          + Create Sales Invoice
+                        <p className="font-bold text-[#1A2E2B]">No transactions recorded yet</p>
+                        <p className="text-[11px] text-[#8E9F9A] mt-0.5">Start billing your clients to see live entries here.</p>
+                        <Link href="/sales/invoices/new" className="inline-block mt-3 px-4 py-1.5 rounded-xl bg-[#174B43] hover:bg-[#123B35] text-white font-bold text-xs shadow-xs transition-colors">
+                          + Create First Sales Invoice
                         </Link>
                       </td>
                     </tr>
@@ -614,27 +449,28 @@ function DashboardContent() {
                       <tr
                         key={tx.id}
                         onClick={() => tx.link && router.push(tx.link)}
-                        className="hover:bg-[#F6F7F1]/80 transition-colors cursor-pointer"
+                        className="hover:bg-[#F8FAF9] transition-colors cursor-pointer group"
                       >
-                        <td className="px-5 py-3 whitespace-nowrap text-[#1A2E2B] font-medium">
+                        <td className="px-5 py-3 whitespace-nowrap text-slate-700 font-medium">
                           {tx.date}
                         </td>
-                        <td className="px-5 py-3 whitespace-nowrap">
-                          <span className="inline-flex items-center gap-1 font-bold text-[10px] px-2 py-0.5 rounded-md bg-[#E6F7F2] text-[#174B43]">
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1 font-bold text-[10px] px-2 py-0.5 rounded-md bg-[#E6F7F2] text-[#174B43] border border-[#BCEADF]">
                             {tx.type}
                           </span>
                         </td>
-                        <td className="px-5 py-3 whitespace-nowrap font-mono text-[#5A6B66]">
+                        <td className="px-4 py-3 whitespace-nowrap font-mono text-[#174B43] font-bold group-hover:text-[#26A58A]">
                           {tx.txnNo}
                         </td>
-                        <td className="px-5 py-3 whitespace-nowrap text-[#1A2E2B] font-semibold truncate max-w-[180px]">
+                        <td className="px-5 py-3 whitespace-nowrap text-[#1A2E2B] font-bold truncate max-w-[200px]">
                           {tx.partyName}
                         </td>
-                        <td className="px-5 py-3 whitespace-nowrap text-right font-mono font-bold text-[#1A2E2B]">
-                          ₹ {formatInr(tx.amount)}
+                        <td className="px-5 py-3 whitespace-nowrap text-right font-mono font-black text-[#1A2E2B]">
+                          {formatInr(tx.amount)}
                         </td>
-                        <td className="px-5 py-3 whitespace-nowrap text-center">
-                          <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E6F7F2] text-[#15805E] border border-[#85D5C2]/40">
+                        <td className="px-4 py-3 whitespace-nowrap text-center">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                             Paid
                           </span>
                         </td>
@@ -646,46 +482,126 @@ function DashboardContent() {
             </div>
           </div>
 
-          <div className="border-t border-[#E2E8E5] p-2.5 text-center hidden sm:block">
+          <div className="border-t border-[#E2E8E5] p-3 text-center bg-[#FAFBFD]">
             <Link
               href="/app/home/vouchers/all_transactions"
-              className="text-xs font-semibold text-[#174B43] hover:text-[#26A58A] transition-colors inline-block py-1"
+              className="text-xs font-bold text-[#174B43] hover:text-[#26A58A] transition-colors inline-block"
             >
-              See All Transactions →
+              See All Detailed Transactions →
             </Link>
           </div>
         </div>
 
-        {/* Right Column: Scan & Record Bills + Promo Card (col-span-4) */}
-      
+        {/* Right Column (4-col): Quick Launchers & OCR Dropzone */}
+        <div className="lg:col-span-4 space-y-4">
+          {/* Quick Launcher Card */}
+          <div className="bg-white border border-[#E2E8E5] rounded-2xl shadow-xs p-4 sm:p-5 space-y-3">
+            <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#5A6B66]">
+              {lang === "gu" ? "ઝડપી શોર્ટકટ્સ" : "Quick Actions"}
+            </h3>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              <Link
+                href="/sales/invoices/new"
+                className="p-3 rounded-xl bg-[#F2FAF7] hover:bg-[#E6F7F2] border border-[#BCEADF] text-left transition-all group block"
+              >
+                <div className="w-7 h-7 rounded-lg bg-[#26A58A] text-white flex items-center justify-center font-bold text-xs mb-1.5 shadow-2xs">
+                  +
+                </div>
+                <div className="text-xs font-bold text-[#174B43] group-hover:text-[#123B35]">
+                  Sales Bill
+                </div>
+                <div className="text-[10px] text-[#5A6B66]">Tax Invoice</div>
+              </Link>
+
+              <Link
+                href="/purchases/new"
+                className="p-3 rounded-xl bg-[#F8FAFC] hover:bg-slate-100 border border-[#E2E8E5] text-left transition-all group block"
+              >
+                <div className="w-7 h-7 rounded-lg bg-slate-800 text-white flex items-center justify-center font-bold text-xs mb-1.5 shadow-2xs">
+                  📦
+                </div>
+                <div className="text-xs font-bold text-slate-800">
+                  Purchase Bill
+                </div>
+                <div className="text-[10px] text-slate-500">Inward Stock</div>
+              </Link>
+
+              <Link
+                href="/sales/payment-in/new"
+                className="p-3 rounded-xl bg-emerald-50/60 hover:bg-emerald-100/60 border border-emerald-200 text-left transition-all group block"
+              >
+                <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs mb-1.5 shadow-2xs">
+                  ₹
+                </div>
+                <div className="text-xs font-bold text-emerald-800">
+                  Payment In
+                </div>
+                <div className="text-[10px] text-emerald-600">Receipt Voucher</div>
+              </Link>
+
+              <Link
+                href="/sales/quotations/new"
+                className="p-3 rounded-xl bg-amber-50/60 hover:bg-amber-100/60 border border-amber-200 text-left transition-all group block"
+              >
+                <div className="w-7 h-7 rounded-lg bg-amber-600 text-white flex items-center justify-center font-bold text-xs mb-1.5 shadow-2xs">
+                  📄
+                </div>
+                <div className="text-xs font-bold text-amber-800">
+                  Quotation
+                </div>
+                <div className="text-[10px] text-amber-600">Estimate & Proforma</div>
+              </Link>
+            </div>
+          </div>
+
+          {/* AI Bill Scanner Dropzone */}
+          <div
+            onClick={() => setIsScannerModalOpen(true)}
+            className="bg-gradient-to-br from-amber-50/80 via-white to-amber-50/40 border border-amber-200 rounded-2xl p-5 text-center cursor-pointer hover:border-amber-400 transition-all shadow-xs group"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto text-xl shadow-inner mb-3 group-hover:scale-105 transition-transform">
+              📷
+            </div>
+            <h4 className="text-xs font-bold text-slate-900">
+              AI Vendor Bill Scanner
+            </h4>
+            <p className="text-[11px] text-slate-500 mt-1 max-w-[220px] mx-auto">
+              Snap a paper bill or drop a PDF invoice. Our AI automatically extracts line items and taxes.
+            </p>
+            <span className="inline-block mt-3 px-3.5 py-1 bg-amber-600 text-white rounded-lg text-[11px] font-bold shadow-2xs group-hover:bg-amber-700 transition-colors">
+              Scan Document
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* ─────────────────────────────────────────────────────────────
-          4. BOTTOM SECTION: SALES REPORT (AREA CHART & METRICS)
-      ───────────────────────────────────────────────────────────── */}
+      {/* 4. SALES REPORT & REVENUE TRENDS (AREA CHART & METRICS) */}
       <div className="bg-white border border-[#E2E8E5] rounded-2xl shadow-xs p-4 sm:p-5 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-xs sm:text-sm font-bold text-[#1A2E2B] truncate">
-            Sales Report (Last 7 Days)
-          </h3>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#26A58A]" />
+            <h3 className="text-xs sm:text-sm font-extrabold text-[#1A2E2B]">
+              {lang === "gu" ? "વેચાણ અહેવાલ અને પ્રવાહ (Sales Trend)" : "Sales Performance Matrix (Last 7 Days)"}
+            </h3>
+          </div>
 
           <select
             value={chartPeriod}
             onChange={(e) => setChartPeriod(e.target.value as any)}
-            className="text-xs bg-[#F6F7F1] border border-[#E2E8E5] rounded-lg px-2.5 py-1 font-semibold text-[#174B43] cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#26A58A] shrink-0"
+            className="text-xs bg-[#F8FAFC] border border-[#E2E8E5] rounded-xl px-3 py-1 font-bold text-[#174B43] cursor-pointer focus:outline-none focus:border-[#26A58A] shrink-0"
           >
-            <option value="Daily">Daily</option>
-            <option value="Weekly">Weekly</option>
-            <option value="Monthly">Monthly</option>
+            <option value="Daily">Daily Breakdown</option>
+            <option value="Weekly">Weekly Summary</option>
+            <option value="Monthly">Monthly Rollup</option>
           </select>
         </div>
 
         {/* Content: 75% Area Chart + 25% Stats */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-center">
-          {/* Chart Left Column (lg:col-span-9) */}
+          {/* Chart Left Column (9-col) */}
           <div className="lg:col-span-9 relative w-full overflow-hidden">
-            {/* SVG Chart */}
             <div className="relative w-full h-[180px] sm:h-[220px]">
               <svg
                 viewBox="0 0 660 220"
@@ -710,7 +626,7 @@ function DashboardContent() {
                         y1={y}
                         x2="650"
                         y2={y}
-                        stroke="#EBF0EE"
+                        stroke="#F1F5F9"
                         strokeWidth="1"
                         strokeDasharray={val === 0 ? "none" : "3 3"}
                       />
@@ -720,7 +636,7 @@ function DashboardContent() {
                         textAnchor="end"
                         className="text-[10px] fill-[#8E9F9A] font-mono"
                       >
-                        ₹ {formatInr(val)}
+                        ₹{val.toLocaleString("en-IN")}
                       </text>
                     </g>
                   );
@@ -756,7 +672,6 @@ function DashboardContent() {
                       onMouseLeave={() => setHoveredPoint(null)}
                       onTouchStart={() => setHoveredPoint(pt.data)}
                     />
-                    {/* X-axis Day Label */}
                     <text
                       x={pt.x}
                       y="216"
@@ -769,78 +684,66 @@ function DashboardContent() {
                 ))}
               </svg>
 
-              {/* Tooltip on Hover / Touch */}
+              {/* Tooltip on Hover */}
               {hoveredPoint && (
                 <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-[#174B43] text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-lg pointer-events-none z-10 flex items-center gap-2">
                   <span>{hoveredPoint.dayLabel} ({hoveredPoint.dateIso}):</span>
-                  <span className="text-[#85D5C2] font-mono">₹ {formatInr(hoveredPoint.sales)}</span>
+                  <span className="text-[#85D5C2] font-mono">{formatInr(hoveredPoint.sales)}</span>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Stats Right Column (lg:col-span-3) - Responsive 2-col on mobile */}
+          {/* Stats Right Column (3-col) */}
           <div className="lg:col-span-3 grid grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4 border-t lg:border-t-0 lg:border-l border-[#E2E8E5] pt-3.5 lg:pt-0 lg:pl-6">
-            <div className="bg-[#F6F7F1] lg:bg-transparent p-3 lg:p-0 rounded-xl border border-[#E2E8E5] lg:border-0">
-              <p className="text-xs text-[#5A6B66] font-medium">Last 7 days sales</p>
-              <div className="text-lg sm:text-2xl lg:text-3xl font-black text-[#1A2E2B] tracking-tight mt-0.5 sm:mt-1 font-mono">
-                ₹ {formatInr(sevenDaysSales)}
+            <div className="bg-[#F8FAF9] p-3.5 rounded-xl border border-[#E2E8E5]">
+              <p className="text-xs text-[#5A6B66] font-bold">7-Day Sales Volume</p>
+              <div className="text-xl sm:text-2xl font-black text-[#1A2E2B] tracking-tight mt-1 font-mono">
+                {formatInr(sevenDaysSales)}
               </div>
             </div>
 
-            <div className="bg-[#F6F7F1] lg:bg-transparent p-3 lg:p-0 rounded-xl border border-[#E2E8E5] lg:border-0">
-              <p className="text-xs text-[#5A6B66] font-medium">Invoices Made</p>
-              <div className="text-lg sm:text-2xl lg:text-3xl font-black text-[#1A2E2B] tracking-tight mt-0.5 sm:mt-1 font-mono">
-                {invoicesCount}
+            <div className="bg-[#F8FAF9] p-3.5 rounded-xl border border-[#E2E8E5]">
+              <p className="text-xs text-[#5A6B66] font-bold">Invoices Generated</p>
+              <div className="text-xl sm:text-2xl font-black text-[#174B43] tracking-tight mt-1 font-mono">
+                {invoicesCount} Bills
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ─────────────────────────────────────────────────────────────
-          5. BOTTOM TRUST & RELIABILITY STRIP (Reference Design Footer)
-      ───────────────────────────────────────────────────────────── */}
+      {/* 5. BOTTOM RELIABILITY BANNER */}
       <div className="pt-2 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-[#5A6B66] border-t border-[#E2E8E5]">
         <div className="flex flex-wrap items-center gap-4 sm:gap-6">
           <div className="flex items-center gap-1.5">
             <svg className="w-4 h-4 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
-            <span className="font-semibold">Secure & Reliable</span>
+            <span className="font-semibold">Secure Cloud Ledgers</span>
           </div>
 
           <div className="flex items-center gap-1.5">
             <svg className="w-4 h-4 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="font-semibold">GST Compliant</span>
+            <span className="font-semibold">GST & E-Way Compliant</span>
           </div>
 
           <div className="flex items-center gap-1.5">
             <svg className="w-4 h-4 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            <span className="font-semibold">Fast & Responsive</span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <svg className="w-4 h-4 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-            <span className="font-semibold">Works on All Devices</span>
+            <span className="font-semibold">Realtime Analytics</span>
           </div>
         </div>
 
-        <div className="text-[13px] font-serif italic text-[#174B43] tracking-wide">
-          Your Business, Our Priority
+        <div className="text-[12px] font-bold text-[#174B43]">
+          MyOwnBillBook Enterprise Suite
         </div>
       </div>
 
-      {/* ─────────────────────────────────────────────────────────────
-          6. MODALS INTEGRATION
-      ───────────────────────────────────────────────────────────── */}
-      {/* Bill Scanner Modal */}
+      {/* 6. MODALS INTEGRATION */}
       <BillScannerModal
         isOpen={isScannerModalOpen}
         onClose={() => setIsScannerModalOpen(false)}
@@ -856,7 +759,7 @@ function DashboardContent() {
 
       {/* Desktop App Modal */}
       {activeModal === "desktop" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-2xs p-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-base text-slate-900">myownbillbook Desktop App</h3>
@@ -873,7 +776,7 @@ function DashboardContent() {
             <div className="pt-2 flex gap-3">
               <button
                 onClick={() => setActiveModal(null)}
-                className="flex-1 py-2.5 bg-[#26A58A] text-white text-xs font-bold rounded-xl hover:bg-[#208E76] transition-colors"
+                className="flex-1 py-2.5 bg-[#174B43] text-white text-xs font-bold rounded-xl hover:bg-[#123B35] transition-colors"
               >
                 Download for Windows (x64)
               </button>
@@ -890,7 +793,7 @@ function DashboardContent() {
 
       {/* Announcements Modal */}
       {activeModal === "announcements" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-2xs p-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-base text-slate-900">What&apos;s New in myownbillbook</h3>
@@ -923,7 +826,7 @@ function DashboardContent() {
 
       {/* Refer & Earn Modal */}
       {activeModal === "gift" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-2xs p-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-center space-y-4">
             <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-2xl">
               🎁
@@ -937,7 +840,7 @@ function DashboardContent() {
             </div>
             <button
               onClick={() => setActiveModal(null)}
-              className="w-full py-2.5 bg-[#26A58A] text-white text-xs font-bold rounded-xl hover:bg-[#208E76] transition-colors"
+              className="w-full py-2.5 bg-[#174B43] text-white text-xs font-bold rounded-xl hover:bg-[#123B35] transition-colors"
             >
               Copy Referral Link
             </button>
@@ -947,7 +850,7 @@ function DashboardContent() {
 
       {/* Support Modal */}
       {activeModal === "support" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-2xs p-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-base text-slate-900">Priority Support & Assistance</h3>
@@ -964,7 +867,7 @@ function DashboardContent() {
             <div className="space-y-2 text-xs">
               <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
                 <div>
-                  <span className="font-bold text-slate-900 block">Toll-Free Customer Care</span>
+                  <span className="font-bold text-slate-900 block">Customer Care Hotline</span>
                   <span className="text-slate-500 font-mono">+91 9510442798</span>
                 </div>
                 <a
@@ -995,7 +898,7 @@ function DashboardContent() {
 
       {/* Talk to Sales Modal */}
       {activeModal === "sales" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-2xs p-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-base text-slate-900">Upgrade to Annual Plan (Save 65%)</h3>
@@ -1021,7 +924,7 @@ function DashboardContent() {
                 href="https://wa.me/919510442798?text=I%20want%20to%20upgrade%20to%20Annual%20Plan%20with%2065%25%20discount"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 py-2.5 bg-[#26A58A] text-white text-center text-xs font-bold rounded-xl hover:bg-[#208E76] transition-colors"
+                className="flex-1 py-2.5 bg-[#174B43] text-white text-center text-xs font-bold rounded-xl hover:bg-[#123B35] transition-colors"
               >
                 Connect with Sales
               </a>
@@ -1097,6 +1000,6 @@ export default function Home() {
     return <IntroductionPage />;
   }
 
-  // If authenticated, render standard business operational dashboard
+  // If authenticated, render executive business operational dashboard
   return <DashboardContent />;
 }

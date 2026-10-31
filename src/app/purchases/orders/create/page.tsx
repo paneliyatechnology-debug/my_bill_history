@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useActiveInvoiceTheme } from "@/lib/use-active-invoice-theme";
+import { DynamicThemedInvoice } from "@/components/invoice/dynamic-themed-invoice";
 import { useAuth } from "@/context/auth-context";
 import { apiClient, extractList } from "@/lib/api-client";
 import { SignatureModal } from "@/components/invoice/signature-modal";
@@ -14,6 +16,17 @@ import {
   DEFAULT_PURCHASE_QUICK_SETTINGS,
 } from "@/components/invoice/quick-settings-modal";
 import { ShortcutsModal } from "@/components/invoice/shortcuts-modal";
+import {
+  DocumentHeaderCard,
+  DocumentInfoStrip,
+  DocumentItemsCard,
+  DocumentNotesAndTermsCard,
+  DocumentAdditionalInfoCard,
+  DocumentSummaryCard,
+  DocumentPaymentCard,
+  DocumentBottomBar,
+  PartySelectorCompact,
+} from "@/components/document-studio";
 
 interface Party {
   id: string;
@@ -68,6 +81,7 @@ export default function CreatePurchaseOrderPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { lang, currentCompany } = useAuth();
+  const { state: activeInvoiceTheme } = useActiveInvoiceTheme(currentCompany?.id);
 
   const editId = searchParams?.get("edit") || searchParams?.get("id");
   const [isEditMode, setIsEditMode] = useState(Boolean(editId));
@@ -129,7 +143,13 @@ export default function CreatePurchaseOrderPage() {
   ]);
 
   // Bottom Section State
-  const [notes, setNotes] = useState("");
+    const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
+  const [transportMode, setTransportMode] = useState("Road");
+  const [vehicleNo, setVehicleNo] = useState("");
+  const [ewayBillNo, setEwayBillNo] = useState("");
+  const [dispatchDate, setDispatchDate] = useState("");
+  const [paymentMode, setPaymentMode] = useState("Cash");
+const [notes, setNotes] = useState("");
   const [showNotesInput, setShowNotesInput] = useState(false);
   const [terms, setTerms] = useState(
     "1. Goods once sold will not be taken back or exchanged\n2. All disputes are subject to [ENTER_YOUR_CITY_NAME] jurisdiction only",
@@ -552,952 +572,404 @@ export default function CreatePurchaseOrderPage() {
       )}
 
       <div className="max-w-[1550px] mx-auto space-y-3">
-        {/* Top Action Header Bar */}
-        <div className="flex items-center justify-between bg-white px-4 py-2.5 rounded-lg border border-slate-200/90 shadow-xs">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/purchases/orders"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded hover:bg-slate-50 transition-colors shadow-2xs px-3 py-1.5"
-            >
-              <span>← Exit</span>
-            </Link>
-            <h1 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
-              {lang === "gu" ? "ખરીદી ઓર્ડર બનાવો (Create Purchase Order)" : "Create Purchase Order"}
-            </h1>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* View Mode Toggle */}
-            <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs font-semibold">
-              <button
-                type="button"
-                onClick={() => setViewMode("edit")}
-                className={`px-3 py-1 rounded-md transition-all ${
-                  viewMode === "edit"
-                    ? "bg-white text-blue-600 shadow-2xs font-bold"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                📝 Edit Mode
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("preview")}
-                className={`px-3 py-1 rounded-md transition-all ${
-                  viewMode === "preview"
-                    ? "bg-white text-blue-600 shadow-2xs font-bold"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                👁 Preview Mode
-              </button>
-            </div>
-
-            {/* Quick Settings */}
-            <button
-              type="button"
-              onClick={() => setIsSettingsOpen(true)}
-              title="Column and Quick Settings"
-              className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg border border-slate-200 transition-colors"
-            >
-              ⚙
-            </button>
-
-            {/* Shortcuts */}
-            <button
-              type="button"
-              onClick={() => setIsShortcutsOpen(true)}
-              title="Keyboard Shortcuts"
-              className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg border border-slate-200 transition-colors"
-            >
-              ⌨
-            </button>
-
-            {/* Save & New */}
-            <button
-              type="button"
-              onClick={() => handleSaveOrder(true)}
-              disabled={isSaving}
-              className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors shadow-2xs"
-            >
-              Save & New
-            </button>
-
-            {/* Save Primary Button */}
-            <button
-              type="button"
-              onClick={() => handleSaveOrder(false)}
-              disabled={isSaving}
-              className="px-5 py-1.5 text-xs font-bold text-white bg-[#174B43] hover:bg-[#123B35] active:bg-[#0F322C] rounded-lg transition-colors shadow-sm inline-flex items-center gap-1.5"
-            >
-              {isSaving ? "Saving..." : "Save"}
-            </button>
-          </div>
-        </div>
-
+        {/* Top header replaced by unified DocumentHeaderCard */}
         {/* Main Form Area */}
         <div className="space-y-3">
         {viewMode === "edit" ? (
-          <>
-            {/* Top Cards: Bill From, Ship From, Invoice Details */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-              {/* Card 1: Bill From (Supplier) */}
-              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs relative party-autocomplete-container">
-                <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Bill From</span>
-                  {selectedParty && (
-                    <div className="flex items-center gap-2 text-xs">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setNewPartyForm({
-                            name: selectedParty.name,
-                            phone: selectedParty.phone || "",
-                            gstin: selectedParty.gstin || "",
-                            address: selectedParty.billingAddress?.line1 || "",
-                          });
-                          setIsCreatePartyModalOpen(true);
-                        }}
-                        className="text-blue-600 hover:underline font-semibold flex items-center gap-0.5"
-                      >
-                        ✎ Edit Party
-                      </button>
-                      <span className="text-slate-300">•</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedParty(null);
-                          setIsPartySearchOpen(true);
-                        }}
-                        className="text-slate-600 hover:text-slate-900 font-semibold"
-                      >
-                        Change Party
-                      </button>
-                    </div>
-                  )}
-                </div>
+          <div className="space-y-4">
+            {/* DOCUMENT HEADER CARD */}
+            <DocumentHeaderCard
+              title={lang === "gu" ? "ખરીદી ઓર્ડર (Purchase Order)" : "Purchase Order"}
+              subtitle={lang === "gu" ? "તમારો સપ્લાયર ઓર્ડર બનાવો અને મેનેજ કરો" : "Create and manage your supplier purchase orders"}
+              status="Draft"
+              onPreview={() => setViewMode("preview")}
+              onPrint={() => window.print()}
+              onSave={() => handleSaveOrder(false)}
+              onSaveAsDraft={() => handleSaveOrder(false)}
+              isSaving={isSaving}
+              saveButtonLabel="Save Purchase Order"
+              moreMenuItems={[
+                { label: "Quick Settings", onClick: () => setIsSettingsOpen(true) },
+                { label: "Keyboard Shortcuts", onClick: () => setIsShortcutsOpen(true) },
+              ]}
+            />
 
-                {selectedParty ? (
-                  <div className="space-y-1">
-                    <p className="font-bold text-slate-900 text-sm">{selectedParty.name}</p>
-                    <p className="text-xs text-slate-600">
-                      Phone Number: <span className="font-medium text-slate-900">{selectedParty.phone || "—"}</span>
-                    </p>
-                    {selectedParty.gstin && (
-                      <p className="text-xs text-slate-600">
-                        GSTIN: <span className="font-medium text-slate-800 font-mono">{selectedParty.gstin}</span>
-                      </p>
-                    )}
-                    {(selectedParty.billingAddress?.line1 || selectedParty.billingAddress) && (
-                      <p className="text-xs text-slate-500 line-clamp-1">
-                        {typeof selectedParty.billingAddress === "string"
-                          ? selectedParty.billingAddress
-                          : `${selectedParty.billingAddress?.line1 || ""} ${selectedParty.billingAddress?.city || ""}`}
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <div
-                      onClick={() => setIsPartySearchOpen(true)}
-                      className="border-2 border-dashed border-blue-200 bg-blue-50/50 hover:bg-blue-50 rounded-xl p-5 text-center cursor-pointer transition-colors"
-                    >
-                      <span className="text-sm font-bold text-blue-600">+ Add Party (Supplier)</span>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Search or create a new vendor</p>
-                    </div>
-
-                    {isPartySearchOpen && (
-                      <div className="absolute left-0 right-0 top-0 z-50 bg-white rounded-xl border border-slate-200 shadow-2xl p-2 text-xs flex flex-col max-h-72">
-                        <input
-                          type="text"
-                          autoFocus
-                          value={partySearchQuery}
-                          onChange={(e) => setPartySearchQuery(e.target.value)}
-                          placeholder="Search vendor by name, phone, GSTIN..."
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold focus:outline-hidden focus:border-blue-500 mb-1"
-                        />
-                        <div className="overflow-y-auto max-h-48 divide-y divide-slate-100">
-                          {parties
-                            .filter(
-                              (p) =>
-                                !partySearchQuery.trim() ||
-                                p.name.toLowerCase().includes(partySearchQuery.toLowerCase()) ||
-                                (p.phone && p.phone.includes(partySearchQuery)) ||
-                                (p.gstin && p.gstin.toLowerCase().includes(partySearchQuery.toLowerCase())),
-                            )
-                            .map((p) => (
-                              <div
-                                key={p.id}
-                                onClick={() => {
-                                  setSelectedParty(p);
-                                  setIsPartySearchOpen(false);
-                                  setPartySearchQuery("");
-                                }}
-                                className="p-2 hover:bg-blue-50/70 cursor-pointer rounded-lg flex items-center justify-between"
-                              >
-                                <div>
-                                  <div className="font-bold text-slate-900">{p.name}</div>
-                                  <div className="text-[11px] text-slate-500">
-                                    {p.phone || "No phone"} {p.gstin ? `• GST: ${p.gstin}` : ""}
-                                  </div>
-                                </div>
-                                <span className="text-blue-600 font-semibold text-[11px]">Select</span>
-                              </div>
-                            ))}
-                        </div>
-                        <div
-                          onClick={() => {
-                            setIsPartySearchOpen(false);
-                            setNewPartyForm({
-                              name: partySearchQuery,
-                              phone: "",
-                              gstin: "",
-                              address: "",
-                            });
-                            setIsCreatePartyModalOpen(true);
-                          }}
-                          className="p-2 text-center text-blue-600 font-bold border-t border-dashed border-blue-200 hover:bg-blue-50 cursor-pointer mt-1"
-                        >
-                          + Create New Party &quot;{partySearchQuery || "Vendor"}&quot;
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Card 2: Ship From */}
-              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs">
-                <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ship From</span>
-                  <button
-                    type="button"
-                    onClick={() => setIsEditShippingOpen(true)}
-                    className="text-xs text-blue-600 hover:underline font-semibold"
-                  >
-                    Change Shipping Address
-                  </button>
-                </div>
-
-                <div className="space-y-1 text-xs">
-                  <p className="font-bold text-slate-900">{selectedParty ? selectedParty.name : "—"}</p>
-                  <p className="text-slate-600">
-                    Phone Number: <span className="font-medium text-slate-900">{selectedParty?.phone || "—"}</span>
-                  </p>
-                  <p className="text-slate-500 line-clamp-2">
-                    {customShippingAddress ||
-                      (selectedParty?.shippingAddress
-                        ? typeof selectedParty.shippingAddress === "string"
-                          ? selectedParty.shippingAddress
-                          : selectedParty.shippingAddress?.line1
-                        : selectedParty?.billingAddress
-                        ? typeof selectedParty.billingAddress === "string"
-                          ? selectedParty.billingAddress
-                          : selectedParty.billingAddress?.line1
-                        : "Same as billing address")}
-                  </p>
-                </div>
-              </div>
-
-              {/* Card 3: Invoice / Order Details */}
-              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Invoice Details</span>
-                  <button type="button" onClick={() => setIsSettingsOpen(true)} className="text-slate-400 hover:text-slate-700">
-                    ⚙
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">PO No.</label>
-                    <input
-                      type="text"
-                      value={orderNumber}
-                      onChange={(e) => setOrderNumber(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-900 focus:outline-hidden focus:border-blue-500 bg-white"
+            {/* 5-COLUMN DOCUMENT INFO STRIP */}
+            <DocumentInfoStrip
+              fields={[
+                {
+                  id: "vendor",
+                  label: "Supplier / Vendor",
+                  required: true,
+                  type: "custom",
+                  customRender: (
+                    <PartySelectorCompact
+                      selectedParty={selectedParty ? {
+                        id: selectedParty.id,
+                        name: selectedParty.name,
+                        phone: selectedParty.phone,
+                        gstin: selectedParty.gstin,
+                        address: typeof selectedParty.billingAddress === "string" ? selectedParty.billingAddress : selectedParty.billingAddress?.line1,
+                      } : null}
+                      searchTerm={partySearchQuery}
+                      onSearchChange={setPartySearchQuery}
+                      isOpen={isPartySearchOpen}
+                      onOpenChange={setIsPartySearchOpen}
+                      filteredParties={parties
+                        .filter((p) => p.name.toLowerCase().includes(partySearchQuery.toLowerCase()))
+                        .map((p) => ({
+                          id: p.id,
+                          name: p.name,
+                          phone: p.phone,
+                          gstin: p.gstin,
+                          outstandingBalance: p.currentBalance,
+                        }))}
+                      onSelectParty={(id) => {
+                        const p = parties.find((party) => party.id === id);
+                        if (p) setSelectedParty(p);
+                      }}
+                      onClearParty={() => {
+                        setSelectedParty(null);
+                        setPartySearchQuery("");
+                      }}
+                      onAddNew={() => setIsCreatePartyModalOpen(true)}
+                      placeholder="Search vendor..."
                     />
-                  </div>
+                  ),
+                },
+                {
+                  id: "orderNumber",
+                  label: "PO Number",
+                  type: "text",
+                  value: orderNumber,
+                  onChange: setOrderNumber,
+                  placeholder: "PO-001",
+                },
+                {
+                  id: "orderDate",
+                  label: "PO Date",
+                  type: "date",
+                  value: orderDate,
+                  onChange: setOrderDate,
+                },
+                {
+                  id: "validTill",
+                  label: "Expected Delivery",
+                  type: "date",
+                  value: validTill,
+                  onChange: setValidTill,
+                },
+                {
+                  id: "placeOfSupply",
+                  label: "Place of Supply",
+                  type: "text",
+                  value: selectedParty?.stateCode ? `State Code: ${selectedParty.stateCode}` : "Gujarat (24)",
+                },
+              ]}
+            />
 
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">PO Date</label>
-                    <input
-                      type="date"
-                      value={orderDate}
-                      onChange={(e) => setOrderDate(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-900 focus:outline-hidden focus:border-blue-500 bg-white"
-                    />
-                  </div>
-                </div>
+            {/* MAIN 2-COLUMN WORKSPACE MATCHING REFERENCE IMAGE */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              {/* Left Column (8 cols): Items Table + Notes & Additional Info */}
+              <div className="lg:col-span-8 space-y-5">
+                <DocumentItemsCard
+                  title="Items & Services"
+                  itemsCount={items.length}
+                  totalQty={calculations.totalQty}
+                  itemsTotal={calculations.finalGrandTotal}
+                  onImportItems={handleAddItem}
+                  onAddItem={handleAddItem}
+                  onAddBlankRow={handleAddItem}
+                  addItemLabel="+ Add Item"
+                >
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 font-bold text-[11px] uppercase tracking-wider">
+                      <tr>
+                        <th className="py-3 px-3.5 text-center w-12">#</th>
+                        <th className="py-3 px-3.5">Item / Description</th>
+                        <th className="py-3 px-3 text-center w-28">HSN/SAC</th>
+                        <th className="py-3 px-3 text-right w-24">Qty</th>
+                        <th className="py-3 px-3 text-right w-28">Rate (₹)</th>
+                        <th className="py-3 px-3 text-right w-24">Discount</th>
+                        <th className="py-3 px-3 text-right w-24">Tax (%)</th>
+                        <th className="py-3 px-3 text-right w-28">Amount (₹)</th>
+                        <th className="py-3 px-3 text-center w-16">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {items.map((row, idx) => (
+                        <tr key={row.id || idx} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="py-3 px-3 text-center text-slate-400 font-mono text-[11px]">
+                            {idx + 1}
+                          </td>
 
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-500 mb-1">Valid Till</label>
-                  <input
-                    type="date"
-                    value={validTill}
-                    onChange={(e) => setValidTill(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-900 focus:outline-hidden focus:border-blue-500 bg-white"
-                  />
-                </div>
-              </div>
-            </div>
+                          <td className="py-3 px-3">
+                            <div className="space-y-1">
+                              <input
+                                type="text"
+                                value={row.name}
+                                onChange={(e) => updateItemLine(idx, "name", e.target.value)}
+                                placeholder="Type item name..."
+                                className="w-full text-xs py-1.5 px-2.5 font-bold text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-[#26A58A]"
+                              />
+                              {inventoryItems.length > 0 && !row.name && (
+                                <select
+                                  onChange={(e) => {
+                                    const itm = inventoryItems.find((it) => it.id === e.target.value);
+                                    if (itm) handlePickInventoryItem(idx, itm);
+                                  }}
+                                  defaultValue=""
+                                  className="w-full text-[11px] py-1 px-2 text-slate-500 bg-white border border-dashed border-slate-200 rounded-lg"
+                                >
+                                  <option value="" disabled>Choose from Catalog...</option>
+                                  {inventoryItems.map((it) => (
+                                    <option key={it.id} value={it.id}>{it.name} (₹{it.purchaseRate || it.purchasePrice || 0})</option>
+                                  ))}
+                                </select>
+                              )}
+                            </div>
+                          </td>
 
-            {/* Items Table */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-visible">
-              <div className="overflow-x-auto lg:overflow-visible">
-                <table className="min-w-full text-left text-xs border-collapse">
-                  <thead className="bg-[#F8FAFC] border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[11px]">
-                    <tr>
-                      <th className="px-3 py-2.5 w-12 text-center">NO</th>
-                      <th className="px-3 py-2.5 min-w-[280px]">ITEMS</th>
-                      <th className="px-3 py-2.5 w-24">HSN</th>
-                      <th className="px-3 py-2.5 w-28 text-right">QTY</th>
-                      <th className="px-3 py-2.5 w-28 text-right">PRICE/ITEM (₹)</th>
-                      <th className="px-3 py-2.5 w-28 text-right">DISCOUNT</th>
-                      <th className="px-3 py-2.5 w-28 text-right">TAX</th>
-                      <th className="px-3 py-2.5 w-28 text-right">AMOUNT (₹)</th>
-                      <th className="px-2 py-2.5 w-8 text-center">
-                        <button
-                          type="button"
-                          onClick={() => setIsSettingsOpen(true)}
-                          title="Customize columns"
-                          className="p-1 hover:bg-slate-200 rounded text-slate-400 hover:text-slate-700"
-                        >
-                          ⚙
-                        </button>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {items.map((line, idx) => (
-                      <tr key={line.id} className={`hover:bg-slate-50/50 relative ${activeItemAutocompleteIdx === idx ? "z-40" : "z-10"}`}>
-                        <td className="px-3 py-2.5 text-center text-slate-400 font-medium">{idx + 1}</td>
-
-                        {/* ITEMS Column */}
-                        <td className="px-3 py-2 relative item-autocomplete-container">
-                          <div className="relative w-full">
+                          <td className="py-3 px-3">
                             <input
                               type="text"
-                              value={line.name}
-                              onFocus={() => setActiveItemAutocompleteIdx(idx)}
-                              onChange={(e) => {
-                                updateItemLine(idx, "name", e.target.value);
-                                setActiveItemAutocompleteIdx(idx);
-                              }}
-                              placeholder={lang === "gu" ? "આઇટમનું નામ દાખલ કરો..." : "Enter item name..."}
-                              className="w-full rounded-md border border-slate-200 hover:border-slate-300 focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-800 transition-colors focus:outline-hidden"
+                              value={row.hsn}
+                              onChange={(e) => updateItemLine(idx, "hsn", e.target.value)}
+                              placeholder="HSN"
+                              className="w-full text-xs py-1.5 px-2 text-center font-mono bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white"
                             />
+                          </td>
 
-                            {/* Optional Item Description */}
-                            {line.showDescriptionInput ? (
-                              <div className="mt-1 flex items-start gap-1">
-                                <textarea
-                                  rows={1}
-                                  value={line.description || ""}
-                                  onChange={(e) => updateItemLine(idx, "description", e.target.value)}
-                                  placeholder="Enter Description (optional)"
-                                  className="w-full rounded border border-slate-200 p-1.5 text-[11px] text-slate-700 focus:outline-hidden focus:border-blue-500"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => updateItemLine(idx, "showDescriptionInput", false)}
-                                  className="text-slate-400 hover:text-slate-600 text-xs p-1"
-                                >
-                                  ✕
-                                </button>
-                              </div>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => updateItemLine(idx, "showDescriptionInput", true)}
-                                className="text-[10px] text-blue-600 hover:underline mt-0.5 block font-medium"
-                              >
-                                + Add Description
-                              </button>
-                            )}
-
-                            {/* Proper Size Item Autocomplete Dropdown */}
-                            {activeItemAutocompleteIdx === idx && (
-                              <div
-                                className="absolute left-0 top-[calc(100%+4px)] z-50 w-full min-w-[520px] max-w-[680px] rounded-xl border border-slate-200 bg-white shadow-2xl overflow-hidden text-xs flex flex-col"
-                                style={{
-                                  boxShadow: "0 18px 40px -4px rgba(0, 0, 0, 0.16), 0 8px 16px -4px rgba(0, 0, 0, 0.08)",
-                                }}
-                                onMouseDown={(e) => e.preventDefault()}
-                              >
-                                <div className="flex justify-between items-center px-4 py-2.5 bg-[#F8FAFC] text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200 shrink-0 select-none">
-                                  <span>{lang === "gu" ? "આઇટમ વિગત (ITEM DESCRIPTION)" : "ITEM DESCRIPTION"}</span>
-                                  <span>{lang === "gu" ? "ભાવ / સ્ટોક (RATE / STOCK)" : "RATE / STOCK"}</span>
-                                </div>
-
-                                <div className="overflow-y-auto max-h-72 divide-y divide-slate-100 flex-1">
-                                  {inventoryItems
-                                    .filter((itm) => {
-                                      const q = line.name.trim().toLowerCase();
-                                      if (!q) return true;
-                                      return (
-                                        itm.name.toLowerCase().includes(q) ||
-                                        (itm.nameGujarati && itm.nameGujarati.toLowerCase().includes(q)) ||
-                                        (itm.hsnCode && itm.hsnCode.includes(q))
-                                      );
-                                    })
-                                    .slice(0, 50)
-                                    .map((itm) => (
-                                      <div
-                                        key={itm.id}
-                                        onClick={() => handlePickInventoryItem(idx, itm)}
-                                        className="px-4 py-2.5 hover:bg-teal-50/70 cursor-pointer flex items-center justify-between transition-colors group"
-                                      >
-                                        <div className="pr-3">
-                                          <div className="font-bold text-slate-900 group-hover:text-teal-600 transition-colors flex items-center gap-1.5">
-                                            <span>{itm.name}</span>
-                                            {lang === "gu" && itm.nameGujarati && (
-                                              <span className="text-[11px] font-normal text-slate-500">
-                                                ({itm.nameGujarati})
-                                              </span>
-                                            )}
-                                          </div>
-                                          <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-0.5">
-                                            {itm.hsnCode && (
-                                              <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono text-[9px] font-medium border border-slate-200/60">
-                                                HSN: {itm.hsnCode}
-                                              </span>
-                                            )}
-                                            <span className="text-slate-300">•</span>
-                                            <span className="font-medium text-slate-600">GST: {itm.taxRate || 18}%</span>
-                                          </div>
-                                        </div>
-                                        <div className="text-right shrink-0">
-                                          <div className="font-extrabold text-slate-900 text-xs">
-                                            ₹ {Number(itm.purchasePrice || itm.salePrice || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                          </div>
-                                          <div className="text-[10px] font-semibold text-emerald-600 mt-0.5">
-                                            Stock: {itm.currentStock || 0}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    ))}
-
-                                  {inventoryItems.filter((itm) => {
-                                    const q = line.name.trim().toLowerCase();
-                                    if (!q) return true;
-                                    return (
-                                      itm.name.toLowerCase().includes(q) ||
-                                      (itm.nameGujarati && itm.nameGujarati.toLowerCase().includes(q)) ||
-                                      (itm.hsnCode && itm.hsnCode.includes(q))
-                                    );
-                                  }).length === 0 && (
-                                    <div className="p-5 text-center text-slate-400">
-                                      <p className="font-semibold text-xs text-slate-500">
-                                        {lang === "gu" ? "કોઈ મેળ ખાતી આઇટમ મળી નથી" : "No matching items found"}
-                                      </p>
-                                    </div>
-                                  )}
-                                </div>
-
-                                <div
-                                  onClick={() => {
-                                    setActiveRowForNewItem(idx);
-                                    setCreateItemForm({
-                                      name: line.name || "",
-                                      hsn: "",
-                                      price: 0,
-                                      taxRate: 18,
-                                      unit: "BOX",
-                                    });
-                                    setIsCreateItemModalOpen(true);
-                                    setActiveItemAutocompleteIdx(null);
-                                  }}
-                                  className="p-2.5 text-center font-bold text-teal-600 hover:text-teal-700 hover:bg-teal-50/80 cursor-pointer border-t border-dashed border-teal-200 bg-white shrink-0 transition-colors flex items-center justify-center gap-1.5 select-none"
-                                >
-                                  <span className="text-base leading-none font-bold">+</span>
-                                  <span>{lang === "gu" ? "નવી આઇટમ ઉમેરો (Add New Item)" : "Add New Item"}</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </td>
-
-                        {/* HSN */}
-                        <td className="px-3 py-2">
-                          <input
-                            type="text"
-                            value={line.hsn || ""}
-                            onChange={(e) => updateItemLine(idx, "hsn", e.target.value)}
-                            placeholder="HSN"
-                            className="w-full rounded border border-slate-200 px-2 py-1 text-xs text-slate-700 focus:outline-hidden focus:border-blue-500 font-mono"
-                          />
-                        </td>
-
-                        {/* QTY & Unit */}
-                        <td className="px-3 py-2 text-right">
-                          <div className="inline-flex items-center gap-1">
+                          <td className="py-3 px-3">
                             <input
                               type="number"
                               min="1"
-                              value={line.quantity}
+                              value={row.quantity}
                               onChange={(e) => updateItemLine(idx, "quantity", e.target.value === "" ? "" : Number(e.target.value))}
-                              className="w-16 rounded border border-slate-200 px-2 py-1 text-xs text-right text-slate-900 font-bold focus:outline-hidden focus:border-blue-500"
+                              className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white"
                             />
-                            <select
-                              value={line.unit}
-                              onChange={(e) => updateItemLine(idx, "unit", e.target.value)}
-                              className="w-16 rounded border border-slate-200 px-1 py-1 text-[11px] font-semibold text-slate-600 bg-white"
-                            >
-                              {COMMON_UNITS.map((u) => (
-                                <option key={u} value={u}>
-                                  {u}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </td>
+                          </td>
 
-                        {/* PRICE/ITEM */}
-                        <td className="px-3 py-2 text-right">
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={line.unitPrice}
-                            onChange={(e) => updateItemLine(idx, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))}
-                            className="w-24 rounded border border-slate-200 px-2 py-1 text-xs text-right text-slate-900 font-semibold focus:outline-hidden focus:border-blue-500"
-                          />
-                        </td>
-
-                        {/* DISCOUNT */}
-                        <td className="px-3 py-2 text-right">
-                          <div className="inline-flex items-center gap-1">
+                          <td className="py-3 px-3">
                             <input
                               type="number"
                               min="0"
-                              value={line.discount}
-                              onChange={(e) => updateItemLine(idx, "discount", Number(e.target.value))}
-                              className="w-16 rounded border border-slate-200 px-1.5 py-1 text-xs text-right text-slate-600 focus:outline-hidden focus:border-blue-500"
+                              step="any"
+                              value={row.unitPrice}
+                              onChange={(e) => updateItemLine(idx, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))}
+                              className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white"
                             />
+                          </td>
+
+                          <td className="py-3 px-3">
+                            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
+                              <input
+                                type="number"
+                                min="0"
+                                value={row.discount}
+                                onChange={(e) => updateItemLine(idx, "discount", Number(e.target.value) || 0)}
+                                className="w-full text-xs text-right font-mono bg-transparent focus:outline-none"
+                              />
+                              <span className="text-[10px] text-slate-400 font-bold ml-1">{row.discountType}</span>
+                            </div>
+                          </td>
+
+                          <td className="py-3 px-3">
+                            <input
+                              type="number"
+                              value={row.taxRate}
+                              onChange={(e) => updateItemLine(idx, "taxRate", Number(e.target.value) || 0)}
+                              className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white"
+                            />
+                          </td>
+
+                          <td className="py-3 px-3 text-right font-mono font-black text-slate-900 text-xs">
+                            ₹ {row.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </td>
+
+                          <td className="py-3 px-3 text-center">
                             <button
                               type="button"
-                              onClick={() => updateItemLine(idx, "discountType", line.discountType === "%" ? "₹" : "%")}
-                              className="rounded bg-slate-100 hover:bg-slate-200 px-1.5 py-1 text-[11px] font-bold text-slate-700"
+                              onClick={() => handleRemoveItem(idx)}
+                              className="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
+                              title="Delete row"
                             >
-                              {line.discountType}
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
                             </button>
-                          </div>
-                        </td>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </DocumentItemsCard>
 
-                        {/* TAX */}
-                        <td className="px-3 py-2 text-right">
-                          <div className="relative flex items-center min-w-[70px]">
-                            <input
-                              type="number"
-                              step="any"
-                              min="0"
-                              max="100"
-                              list="gst-rates-po"
-                              value={line.taxRate}
-                              onChange={(e) => updateItemLine(idx, "taxRate", Number(e.target.value) || 0)}
-                              placeholder="0"
-                              className="w-22 rounded border border-slate-200 px-1.5 pr-4 py-1 text-xs text-right text-slate-700 font-mono font-medium focus:outline-hidden focus:border-blue-500 bg-white"
-                            />
-                            <span className="absolute right-1 text-[11px] font-bold text-slate-400 pointer-events-none">%</span>
-                          </div>
-                          <span className="text-[10px] text-slate-400 block mt-0.5">
-                            (₹ {line.taxAmount.toFixed(1)})
-                          </span>
-                        </td>
+                {/* Side-by-side: Notes & Terms + Additional Information */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <DocumentNotesAndTermsCard
+                    activeTab={activeNotesTab}
+                    onTabChange={setActiveNotesTab}
+                    notes={notes}
+                    onNotesChange={setNotes}
+                    terms={terms}
+                    onTermsChange={setTerms}
+                  />
 
-                        {/* AMOUNT */}
-                        <td className="px-3 py-2 text-right font-bold text-slate-900">
-                          ₹ {line.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </td>
-
-                        {/* Actions */}
-                        <td className="px-2 py-2 text-center">
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveItem(idx)}
-                            className="text-slate-400 hover:text-red-500 transition-colors p-1"
-                            title="Remove line"
-                          >
-                            ✕
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-
-                    {/* Add Item Button Row */}
-                    <tr>
-                      <td colSpan={8} className="p-3">
-                        <div className="flex items-center gap-3">
-                          <button
-                            type="button"
-                            onClick={handleAddItem}
-                            className="flex-1 rounded-lg border-2 border-dashed border-[#93C5FD] bg-[#F0F7FF] py-2 text-center text-xs font-semibold text-[#2563EB] hover:bg-[#E5F0FF] transition-colors"
-                          >
-                            + Add Item
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => showToast("Barcode scanner active")}
-                            className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
-                          >
-                            <span>📷</span>
-                            <span>Scan Barcode</span>
-                          </button>
-                        </div>
-                      </td>
-                      <td />
-                    </tr>
-
-                    {/* Subtotal Row */}
-                    <tr className="bg-[#F8FAFC] border-t border-slate-200 font-semibold text-slate-700 text-xs">
-                      <td colSpan={3} className="px-4 py-2.5 text-right font-bold text-slate-600">
-                        Subtotal
-                      </td>
-                      <td className="px-3 py-2.5 text-right font-bold text-slate-900">{calculations.totalQty}</td>
-                      <td />
-                      <td className="px-3 py-2.5 text-right font-medium text-slate-700">₹ {calculations.totalDiscount.toFixed(2)}</td>
-                      <td className="px-3 py-2.5 text-right font-medium text-slate-700">₹ {calculations.totalTax.toFixed(2)}</td>
-                      <td className="px-3 py-2.5 text-right font-bold text-slate-900">
-                        ₹ {calculations.finalGrandTotal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
-                      <td />
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Bottom Section: Notes & Terms (Left) + Totals & Calculations (Right) */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-              {/* Left Column: Notes, Terms, Bank, QR */}
-              <div className="space-y-3">
-                {/* Notes */}
-                <div className="bg-white rounded-xl border border-slate-200 p-3.5 shadow-2xs">
-                  {!showNotesInput ? (
-                    <button
-                      type="button"
-                      onClick={() => setShowNotesInput(true)}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-[#2563EB] hover:underline"
-                    >
-                      <span>+</span>
-                      <span>Add Notes</span>
-                    </button>
-                  ) : (
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
-                        <span>Notes</span>
-                        <button type="button" onClick={() => setShowNotesInput(false)} className="text-slate-400 hover:text-slate-600">
-                          ✕
-                        </button>
-                      </div>
-                      <textarea
-                        rows={2}
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Enter purchase order notes or delivery instructions..."
-                        className="w-full rounded border border-slate-300 p-2 text-xs text-slate-800 focus:outline-hidden focus:border-[#2563EB]"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Terms & Conditions */}
-                {showTerms && (
-                  <div className="bg-white rounded-xl border border-slate-200 p-3.5 shadow-2xs space-y-2">
-                    <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
-                      <span>Terms & Conditions</span>
-                      <button type="button" onClick={() => setShowTerms(false)} className="text-slate-400 hover:text-slate-600">
-                        ✕
-                      </button>
-                    </div>
-                    <textarea
-                      rows={3}
-                      value={terms}
-                      onChange={(e) => setTerms(e.target.value)}
-                      className="w-full rounded border border-slate-200 p-2 text-xs text-slate-600 focus:outline-hidden focus:border-[#2563EB] font-sans"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Right Column: Charges, Taxes, Grand Total, Signature */}
-              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs space-y-3 text-xs">
-                {/* Additional Charges */}
-                <div className="flex items-center justify-between">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddChargeModal(true)}
-                    className="text-blue-600 hover:underline font-semibold flex items-center gap-1"
-                  >
-                    <span>+</span>
-                    <span>Add Additional Charges</span>
-                  </button>
-                  {additionalCharges.length > 0 && (
-                    <span className="font-bold text-slate-900">₹ {calculations.addChargesSum.toFixed(2)}</span>
-                  )}
-                </div>
-
-                {/* Additional Charges List */}
-                {additionalCharges.map((chg, i) => (
-                  <div key={i} className="flex items-center justify-between pl-3 text-slate-600">
-                    <span>{chg.name}</span>
-                    <div className="flex items-center gap-2">
-                      <span>₹ {chg.amount.toFixed(2)}</span>
-                      <button
-                        type="button"
-                        onClick={() => setAdditionalCharges((prev) => prev.filter((_, idx) => idx !== i))}
-                        className="text-red-400 hover:text-red-600"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                {/* Taxable Amount */}
-                <div className="flex items-center justify-between text-slate-600 pt-1 border-t border-slate-100">
-                  <span>Taxable Amount</span>
-                  <span className="font-semibold text-slate-900">₹ {calculations.totalTaxable.toFixed(2)}</span>
-                </div>
-
-                {/* GST Split */}
-                {calculations.igst > 0 ? (
-                  <div className="flex items-center justify-between text-slate-600">
-                    <span>IGST</span>
-                    <span className="font-semibold text-slate-900">₹ {calculations.igst.toFixed(2)}</span>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex items-center justify-between text-slate-600">
-                      <span>SGST</span>
-                      <span className="font-semibold text-slate-900">₹ {calculations.sgst.toFixed(2)}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-slate-600">
-                      <span>CGST</span>
-                      <span className="font-semibold text-slate-900">₹ {calculations.cgst.toFixed(2)}</span>
-                    </div>
-                  </>
-                )}
-
-                {/* Overall Discount */}
-                <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-                  {!showOverallDiscount ? (
-                    <button
-                      type="button"
-                      onClick={() => setShowOverallDiscount(true)}
-                      className="text-blue-600 hover:underline font-semibold"
-                    >
-                      + Add Discount
-                    </button>
-                  ) : (
-                    <div className="flex items-center justify-between w-full">
-                      <span className="text-slate-600">Overall Discount (₹)</span>
-                      <div className="flex items-center gap-1">
-                        <input
-                          type="number"
-                          min="0"
-                          value={overallDiscount}
-                          onChange={(e) => setOverallDiscount(e.target.value === "" ? "" : Number(e.target.value))}
-                          className="w-20 rounded border border-slate-200 px-2 py-0.5 text-right font-semibold"
-                        />
-                        <button type="button" onClick={() => { setOverallDiscount(""); setShowOverallDiscount(false); }} className="text-slate-400 hover:text-slate-600">
-                          ✕
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Auto Round Off */}
-                <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-                  <label className="flex items-center gap-2 cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={autoRoundOff}
-                      onChange={(e) => setAutoRoundOff(e.target.checked)}
-                      className="rounded border-slate-300 text-blue-600"
-                    />
-                    <span className="font-semibold text-slate-700">Auto Round Off</span>
-                  </label>
-                  <span className="font-mono text-slate-500">
-                    {calculations.roundOffDelta > 0 ? `+₹ ${calculations.roundOffDelta}` : calculations.roundOffDelta < 0 ? `-₹ ${Math.abs(calculations.roundOffDelta)}` : "₹ 0.00"}
-                  </span>
-                </div>
-
-                {/* Total Amount */}
-                <div className="flex items-center justify-between pt-2 border-t-2 border-slate-200">
-                  <span className="text-sm font-bold text-slate-900">Total Amount:</span>
-                  <span className="text-base font-extrabold text-slate-900">
-                    ₹ {calculations.finalGrandTotal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                </div>
-
-                {/* Advance Amount */}
-                <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                  <span className="text-slate-600">Advance Paid (optional)</span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={advancePaid}
-                    onChange={(e) => setAdvancePaid(e.target.value === "" ? "" : Number(e.target.value))}
-                    placeholder="₹ 0.00"
-                    className="w-24 rounded border border-slate-200 px-2 py-1 text-right font-semibold text-slate-900 focus:outline-hidden focus:border-blue-500"
+                  <DocumentAdditionalInfoCard
+                    transportMode={transportMode}
+                    onTransportModeChange={setTransportMode}
+                    vehicleNo={vehicleNo}
+                    onVehicleNoChange={setVehicleNo}
+                    ewayBillNo={ewayBillNo}
+                    onEwayBillNoChange={setEwayBillNo}
+                    dispatchDate={dispatchDate}
+                    onDispatchDateChange={setDispatchDate}
                   />
                 </div>
+              </div>
 
-                {/* Balance Amount */}
-                <div className="flex items-center justify-between pt-1 text-emerald-600 font-bold">
-                  <span>Balance Amount</span>
-                  <span>₹ {calculations.balance.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                </div>
+              {/* Right Column (4 cols): Summary Card + Advance Payment Card */}
+              <div className="lg:col-span-4 space-y-5">
+                <DocumentSummaryCard
+                  title="Order Summary"
+                  subtotal={calculations.totalTaxable}
+                  discount={calculations.totalDiscount > 0 ? calculations.totalDiscount : undefined}
+                  cgst={calculations.cgst > 0 ? calculations.cgst : undefined}
+                  sgst={calculations.sgst > 0 ? calculations.sgst : undefined}
+                  igst={calculations.igst > 0 ? calculations.igst : undefined}
+                  roundOff={calculations.roundOffDelta !== 0 ? calculations.roundOffDelta : undefined}
+                  grandTotal={calculations.finalGrandTotal}
+                />
 
-
-
-                {/* Signature Box */}
-                <div className="pt-3 border-t border-slate-100 flex flex-col items-end">
-                  {signatureUrl ? (
-                    <div className="relative border border-slate-200 rounded-lg p-2 bg-slate-50/50">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={signatureUrl} alt="Signature" className="h-14 object-contain" />
-                      <button
-                        type="button"
-                        onClick={() => setSignatureUrl(null)}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px]"
-                      >
-                        ✕
-                      </button>
-                      <p className="text-[10px] text-center text-slate-500 mt-1 font-semibold">Authorized Signatory</p>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setIsSignatureModalOpen(true)}
-                      className="border border-dashed border-slate-300 rounded-lg px-4 py-2.5 text-center text-slate-500 hover:border-blue-500 hover:text-blue-600 transition-colors"
-                    >
-                      <span>✍️ Add Signature</span>
-                      <span className="block text-[10px] text-slate-400 mt-0.5">Authorized Signatory</span>
-                    </button>
-                  )}
-                </div>
+                <DocumentPaymentCard
+                  amountReceived={Number(advancePaid) || 0}
+                  onAmountReceivedChange={(val) => setAdvancePaid(val)}
+                  paymentMode={paymentMode}
+                  onPaymentModeChange={setPaymentMode}
+                  balanceDue={calculations.balance}
+                  onPaidInFull={() => setAdvancePaid(calculations.finalGrandTotal)}
+                />
               </div>
             </div>
-          </>
+
+            {/* STICKY BOTTOM ACTION BAR */}
+            <DocumentBottomBar
+              totalItems={items.length}
+              totalAmount={calculations.finalGrandTotal}
+              onSaveAsDraft={() => handleSaveOrder(false)}
+              onSave={() => handleSaveOrder(false)}
+              isSaving={isSaving}
+              saveButtonLabel="Save Purchase Order"
+              backHref="/purchases/orders"
+            />
+          </div>
+
         ) : (
-          /* Live Printable A4 Preview Mode */
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-8 max-w-4xl mx-auto text-slate-900 space-y-6">
-            <div className="flex items-start justify-between border-b border-slate-200 pb-5">
-              <div>
-                <h2 className="text-xl font-black text-slate-900 tracking-tight">
-                  {currentCompany?.tradeName || currentCompany?.legalName || "MY COMPANY"}
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  GSTIN: {currentCompany?.gstin || "24AABCU9603R1ZM"} • State: 24 (Gujarat)
-                </p>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  {currentCompany?.city ? `${currentCompany.city}, Gujarat` : "Main Market Road, Ahmedabad - 380001"}
-                </p>
-              </div>
-              <div className="text-right">
-                <span className="inline-block px-3 py-1 bg-teal-50 border border-teal-200 text-teal-700 font-extrabold text-xs uppercase tracking-wider rounded-md">
-                  PURCHASE ORDER
-                </span>
-                <p className="text-xs font-bold text-slate-800 mt-2">PO #{orderNumber}</p>
-                <p className="text-xs text-slate-500">Date: {orderDate}</p>
-                <p className="text-xs text-slate-500">Valid Till: {validTill}</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 text-xs">
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <p className="font-bold text-slate-500 uppercase text-[10px]">Vendor / Bill From:</p>
-                <p className="font-bold text-slate-900 text-sm mt-1">{selectedParty?.name || "No Vendor Selected"}</p>
-                <p className="text-slate-600 mt-0.5">Phone: {selectedParty?.phone || "—"}</p>
-                {selectedParty?.gstin && <p className="text-slate-600">GSTIN: {selectedParty.gstin}</p>}
-              </div>
-
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <p className="font-bold text-slate-500 uppercase text-[10px]">Ship From / Dispatch:</p>
-                <p className="font-bold text-slate-900 mt-1">{selectedParty?.name || "—"}</p>
-                <p className="text-slate-600 mt-0.5">
-                  {customShippingAddress || "Same as vendor billing address"}
-                </p>
-              </div>
-            </div>
-
-            {/* Table */}
-            <table className="w-full text-left text-xs border border-slate-200 rounded-lg overflow-hidden">
-              <thead className="bg-slate-50 text-slate-600 font-bold uppercase text-[10px] border-b border-slate-200">
-                <tr>
-                  <th className="p-2.5 w-10 text-center">#</th>
-                  <th className="p-2.5">Item Description</th>
-                  <th className="p-2.5">HSN</th>
-                  <th className="p-2.5 text-right">Qty</th>
-                  <th className="p-2.5 text-right">Rate</th>
-                  <th className="p-2.5 text-right">Taxable</th>
-                  <th className="p-2.5 text-right">Tax</th>
-                  <th className="p-2.5 text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {items.map((line, idx) => (
-                  <tr key={line.id}>
-                    <td className="p-2.5 text-center text-slate-400">{idx + 1}</td>
-                    <td className="p-2.5">
-                      <div className="font-bold text-slate-900">{line.name || "Untitled Item"}</div>
-                      {line.description && <p className="text-[10px] text-slate-500 mt-0.5">{line.description}</p>}
-                    </td>
-                    <td className="p-2.5 text-slate-600 font-mono">{line.hsn || "—"}</td>
-                    <td className="p-2.5 text-right font-semibold">
-                      {line.quantity} {line.unit}
-                    </td>
-                    <td className="p-2.5 text-right">₹ {Number(line.unitPrice).toFixed(2)}</td>
-                    <td className="p-2.5 text-right">₹ {line.taxableAmount.toFixed(2)}</td>
-                    <td className="p-2.5 text-right">
-                      ₹ {line.taxAmount.toFixed(2)} ({line.taxRate}%)
-                    </td>
-                    <td className="p-2.5 text-right font-bold text-slate-900">₹ {line.totalAmount.toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot className="bg-slate-50 font-bold border-t border-slate-200">
-                <tr>
-                  <td colSpan={3} className="p-2.5 text-right">Total:</td>
-                  <td className="p-2.5 text-right">{calculations.totalQty}</td>
-                  <td colSpan={3} className="p-2.5 text-right">Grand Total:</td>
-                  <td className="p-2.5 text-right text-teal-700 font-extrabold">
-                    ₹ {calculations.finalGrandTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-
-            {/* Bottom info in preview */}
-            <div className="flex justify-between items-end pt-4 border-t border-slate-200 text-xs">
-              <div className="max-w-md space-y-2">
-                {notes && (
-                  <div>
-                    <span className="font-bold text-slate-700">Notes: </span>
-                    <span className="text-slate-600">{notes}</span>
-                  </div>
-                )}
-                {terms && (
-                  <div>
-                    <span className="font-bold text-slate-700">Terms & Conditions: </span>
-                    <pre className="text-slate-600 font-sans whitespace-pre-line text-[11px] mt-0.5">{terms}</pre>
-                  </div>
-                )}
-              </div>
-              <div className="text-center">
-                {signatureUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={signatureUrl} alt="Signature" className="h-12 mx-auto object-contain" />
-                )}
-                <div className="border-t border-slate-300 pt-1 mt-2 w-44 font-semibold text-slate-700">
-                  Authorized Signatory
+          <div className="space-y-4 animate-fadeIn">
+            {/* Preview Top Control Bar */}
+            <div className="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-xs">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("edit")}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>← {lang === "gu" ? "એડિટ મોડ પર પાછા જાઓ" : "Back to Edit Mode"}</span>
+                </button>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <span>{lang === "gu" ? "ખરીદી ઓર્ડર પ્રિવ્યૂ" : "Purchase Order Preview"}</span>
+                    <span
+                      className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
+                      style={{ backgroundColor: activeInvoiceTheme.accentColor || "#174B43" }}
+                    >
+                      {activeInvoiceTheme.uniqueThemeKey || activeInvoiceTheme.themeId}
+                    </span>
+                  </h2>
+                  <p className="text-[11px] text-slate-500">
+                    {lang === "gu" ? "સેટિંગ્સમાંથી પસંદ કરેલી થીમ મુજબ લાઇવ પ્રિવ્યૂ" : "Live preview rendered with your saved settings theme"}
+                  </p>
                 </div>
               </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>🖨️ {lang === "gu" ? "પ્રિન્ટ" : "Print PO"}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Themed Document using DynamicThemedInvoice */}
+            <div className="bg-slate-100/70 p-4 sm:p-8 rounded-2xl border border-slate-200 overflow-x-auto flex justify-center">
+              <DynamicThemedInvoice
+                invoice={{
+                  category: "PURCHASE_ORDER",
+                  invoiceNumber: orderNumber || "PO-001",
+                  invoiceDate: orderDate,
+                  dueDate: validTill,
+                  paymentMode: paymentMode,
+                  placeOfSupply: selectedParty?.stateCode ? `State Code (${selectedParty.stateCode})` : "Gujarat (24)",
+                  taxableAmount: calculations.totalTaxable,
+                  cgstAmount: calculations.cgst,
+                  sgstAmount: calculations.sgst,
+                  igstAmount: calculations.igst,
+                  roundOff: calculations.roundOffDelta,
+                  grandTotal: calculations.finalGrandTotal,
+                  paidAmount: Number(advancePaid) || 0,
+                  balanceAmount: calculations.balance,
+                  notes: notes,
+                  party: {
+                    name: selectedParty?.name || "Supplier Name",
+                    gstin: selectedParty?.gstin,
+                    phone: selectedParty?.phone,
+                    billingAddress: typeof selectedParty?.billingAddress === "string" ? selectedParty.billingAddress : selectedParty?.billingAddress?.line1,
+                  },
+                  items: items.map((r, idx) => ({
+                    id: r.id || `row-${idx}`,
+                    description: r.name || "Item",
+                    hsnCode: r.hsn,
+                    quantity: typeof r.quantity === "number" ? r.quantity : Number(r.quantity) || 0,
+                    unit: r.unit || "PCS",
+                    unitPrice: typeof r.unitPrice === "number" ? r.unitPrice : Number(r.unitPrice) || 0,
+                    discountPercent: r.discountType === "%" ? Number(r.discount) || 0 : 0,
+                    taxRate: Number(r.taxRate) || 0,
+                    taxableAmount: r.taxableAmount,
+                    cgstAmount: calculations.cgst > 0 ? r.taxAmount / 2 : 0,
+                    sgstAmount: calculations.sgst > 0 ? r.taxAmount / 2 : 0,
+                    igstAmount: calculations.igst > 0 ? r.taxAmount : 0,
+                    totalAmount: r.totalAmount,
+                    item: { name: r.name },
+                  })),
+                  eWayBillRecord: {
+                    poNumber: orderNumber,
+                    vehicleNo: vehicleNo,
+                    ewayBillNo: ewayBillNo,
+                    dispatchDate: dispatchDate,
+                    transportMode: transportMode,
+                  },
+                }}
+                settings={{
+                  ...activeInvoiceTheme,
+                  termsAndConditions: {
+                    ...activeInvoiceTheme.termsAndConditions,
+                    sales: terms,
+                  },
+                }}
+                company={{
+                  tradeName: currentCompany?.tradeName || currentCompany?.legalName || "My Company",
+                  legalName: currentCompany?.legalName,
+                  addressLine1: (currentCompany as any)?.address || currentCompany?.city || "Gujarat, India",
+                  city: currentCompany?.city,
+                  gstin: currentCompany?.gstin,
+                  phone: (currentCompany as any)?.phone,
+                  stateCode: currentCompany?.stateCode || "24",
+                }}
+                printableId="printable-purchase-order"
+              />
             </div>
           </div>
         )}

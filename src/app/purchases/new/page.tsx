@@ -16,7 +16,20 @@ import {
 } from "@/components/invoice/quick-settings-modal";
 import { ShortcutsModal } from "@/components/invoice/shortcuts-modal";
 import { AddItemsModal, CatalogItem } from "@/components/invoice/add-items-modal";
+import { useActiveInvoiceTheme } from "@/lib/use-active-invoice-theme";
+import { DynamicThemedInvoice } from "@/components/invoice/dynamic-themed-invoice";
 import { INDIAN_STATES } from "@billing/shared-types";
+import {
+  DocumentHeaderCard,
+  DocumentInfoStrip,
+  DocumentItemsCard,
+  DocumentNotesAndTermsCard,
+  DocumentAdditionalInfoCard,
+  DocumentSummaryCard,
+  DocumentPaymentCard,
+  DocumentBottomBar,
+  PartySelectorCompact,
+} from "@/components/document-studio";
 
 interface SupplierOption {
   id: string;
@@ -117,6 +130,7 @@ function NewPurchaseInvoiceContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { lang, tenantContext, currentCompany, user } = useAuth();
+  const { state: activeInvoiceTheme } = useActiveInvoiceTheme(currentCompany?.id);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const initialRowFilled = useRef(false);
 
@@ -293,7 +307,12 @@ function NewPurchaseInvoiceContent() {
   );
   const [itcEligibility, setITC] = useState("INPUT");
   const [showNotes, setShowNotes] = useState(false);
-  const [notes, setNotes] = useState("");
+    const [activeNotesTab, setActiveNotesTab] = useState<"notes" | "terms">("notes");
+  const [transportMode, setTransportMode] = useState("Road");
+  const [vehicleNo, setVehicleNo] = useState("");
+  const [ewayBillNo, setEwayBillNo] = useState("");
+  const [dispatchDate, setDispatchDate] = useState("");
+const [notes, setNotes] = useState("");
   const [showTerms, setShowTerms] = useState(false);
   const [terms, setTerms] = useState("");
 
@@ -1680,259 +1699,7 @@ function NewPurchaseInvoiceContent() {
       {/* ─────────────────────────────────────────────────────────────
           1. TOP APP BAR & MODE CONTROLS (Full Width Fluid)
          ───────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-30 bg-white border-b border-[#E5E7EB] shadow-xs px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 w-full">
-        {/* ── MOBILE HEADER (Screens < 768px) ── */}
-        <div className="md:hidden space-y-2">
-          {/* Row 1: Exit, Title, Save */}
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <button
-                type="button"
-                onClick={handleExit}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-[#D1D5DB] text-xs font-bold text-[#374151] hover:bg-[#F3F4F6] transition-all active:scale-95 shadow-xs shrink-0"
-              >
-                <span>←</span>
-                <span>{lang === "gu" ? "પાછા" : "Exit"}</span>
-              </button>
-
-              <div className="min-w-0">
-                <h1 className="text-sm font-bold text-[#111827] truncate">
-                  {lang === "gu" ? "ખરીદી બિલ બનાવો" : "Create Purchase"}
-                </h1>
-                <span
-                  className={`inline-block px-1.5 py-0.2 rounded-full text-[9px] font-bold border ${isInterState
-                      ? "bg-purple-50 text-purple-700 border-purple-200"
-                      : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                    }`}
-                >
-                  {isInterState ? "IGST" : "CGST+SGST"}
-                </span>
-              </div>
-            </div>
-
-            {/* Top Save button on mobile */}
-            <button
-              type="button"
-              disabled={isSubmitting || isLoading}
-              onClick={() => handleSubmit(false)}
-              className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#174B43] hover:bg-[#123B35] active:bg-[#C2410C] text-white text-xs font-bold rounded-xl shadow-xs transition-all disabled:opacity-50 active:scale-95 shrink-0"
-            >
-              {isSubmitting ? (
-                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                </svg>
-              )}
-              <span>{lang === "gu" ? "સાચવો" : "Save"}</span>
-            </button>
-          </div>
-
-          {/* Row 2: Mode Switcher & Quick Action Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none text-xs">
-            {/* Mode Switcher */}
-            <div className="inline-flex p-0.5 bg-[#F1F3F5] rounded-xl border border-[#E5E7EB] shrink-0">
-              <button
-                type="button"
-                onClick={() => setActiveMode("EDIT")}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${activeMode === "EDIT"
-                    ? "bg-white text-[#174B43] shadow-2xs border border-[#BCEADF]"
-                    : "text-[#6B7280]"
-                  }`}
-              >
-                {lang === "gu" ? "એડિટ" : "Edit"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveMode("PREVIEW")}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${activeMode === "PREVIEW"
-                    ? "bg-white text-[#174B43] shadow-2xs border border-[#BCEADF]"
-                    : "text-[#6B7280]"
-                  }`}
-              >
-                {lang === "gu" ? "પ્રિવ્યુ" : "Preview"}
-              </button>
-            </div>
-
-            {/* Single Unified AI Drawer / Scanner toggle (matching Laptop layout) */}
-            <button
-              type="button"
-              onClick={() => setIsAutofillDrawerOpen((p) => !p)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all shrink-0 active:scale-95 ${isAutofillDrawerOpen
-                  ? "bg-[#F2FAF7] text-[#174B43] border-[#BCEADF] shadow-2xs"
-                  : "bg-white text-[#374151] border-[#D1D5DB] hover:bg-[#F9FAFB] shadow-2xs"
-                }`}
-              title="Toggle AI Autofill Drawer"
-            >
-              <span>⚡</span>
-              <span>
-                {isAutofillDrawerOpen
-                  ? (lang === "gu" ? "ઓટોફિલ છુપાવો" : "Hide AI")
-                  : (lang === "gu" ? "AI ડ્રોઅર" : "AI Drawer")}
-              </span>
-            </button>
-
-            {/* Upload phone */}
-            <button
-              type="button"
-              onClick={() => setShowPhoneUploadModal(true)}
-              className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-[#D1D5DB] text-[#374151] rounded-xl text-[11px] font-bold shadow-xs shrink-0"
-            >
-              <span>📱</span>
-              <span>Phone</span>
-            </button>
-          </div>
-        </div>
-
-        {/* ── DESKTOP HEADER (Screens >= 768px) ── */}
-        <div className="hidden md:flex w-full items-center justify-between gap-3">
-          {/* Left Title & Exit */}
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={handleExit}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#D1D5DB] text-xs font-bold text-[#374151] hover:bg-[#F3F4F6] transition-all active:scale-95 shadow-xs"
-            >
-              <span>←</span>
-              <span>{lang === "gu" ? "બહાર નીકળો (Exit)" : "Exit"}</span>
-            </button>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg sm:text-xl font-bold text-[#111827] tracking-tight">
-                  {lang === "gu" ? "ખરીદી બિલ બનાવો (Purchase Invoice)" : "Create Purchase Invoice"}
-                </h1>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${isInterState
-                      ? "bg-purple-50 text-purple-700 border-purple-200"
-                      : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                    }`}
-                >
-                  {isInterState ? "IGST (100%)" : "CGST+SGST (50/50)"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Center Mode Switcher: Edit Mode vs Preview Mode */}
-          <div className="inline-flex items-center p-1 bg-[#F1F3F5] rounded-xl border border-[#E5E7EB]">
-            <button
-              type="button"
-              onClick={() => setActiveMode("EDIT")}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${activeMode === "EDIT"
-                  ? "bg-white text-[#174B43] shadow-xs border border-[#BCEADF]"
-                  : "text-[#6B7280] hover:text-[#111827]"
-                }`}
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              <span>{lang === "gu" ? "એડિટ મોડ" : "Edit Mode"}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveMode("PREVIEW")}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${activeMode === "PREVIEW"
-                  ? "bg-white text-[#174B43] shadow-xs border border-[#BCEADF]"
-                  : "text-[#6B7280] hover:text-[#111827]"
-                }`}
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              <span>{lang === "gu" ? "પ્રિવ્યુ મોડ" : "Preview Mode"}</span>
-            </button>
-          </div>
-
-          {/* Right Action Cluster */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Toggle AI Autofill Drawer Button */}
-            <button
-              type="button"
-              onClick={() => setIsAutofillDrawerOpen((prev) => !prev)}
-              className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all ${isAutofillDrawerOpen
-                  ? "bg-[#F2FAF7] text-[#174B43] border-[#BCEADF] shadow-xs"
-                  : "bg-white text-[#4B5563] border-[#D1D5DB] hover:bg-[#F9FAFB]"
-                }`}
-              title="Toggle AI Autofill Left Drawer"
-            >
-              <span>⚡</span>
-              <span>{isAutofillDrawerOpen ? (lang === "gu" ? "ઓટોફિલ છુપાવો" : "Hide AI") : (lang === "gu" ? "ઓટોફિલ પેનલ" : "Show AI")}</span>
-            </button>
-
-            {/* Upload using Phone button */}
-            <button
-              type="button"
-              onClick={() => setShowPhoneUploadModal(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-[#F9FAFB] text-[#374151] border border-[#D1D5DB] rounded-xl text-xs font-bold shadow-xs transition-all active:scale-95"
-            >
-              <svg className="w-4 h-4 text-[#174B43]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
-              <span>{lang === "gu" ? "મોબાઈલથી અપલોડ" : "Upload using Phone"}</span>
-            </button>
-
-            {/* Quick Settings Icon Button */}
-            <button
-              type="button"
-              onClick={() => {
-                setQuickSettingsTab("invoice");
-                setIsQuickSettingsOpen(true);
-              }}
-              className="p-2 bg-white hover:bg-[#F9FAFB] text-[#4B5563] border border-[#D1D5DB] rounded-xl text-xs font-bold shadow-xs transition-all active:scale-95"
-              title="Quick Settings"
-            >
-              <svg className="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </button>
-
-            {/* Save & New */}
-            <button
-              type="button"
-              disabled={isSubmitting || isLoading}
-              onClick={() => handleSubmit(true)}
-              className="px-3.5 py-2 bg-white hover:bg-[#F3F4F6] text-[#202124] border border-[#D1D5DB] text-xs font-bold rounded-xl shadow-xs transition-all disabled:opacity-50 active:scale-95"
-            >
-              {lang === "gu" ? "સાચવો અને નવું" : "Save & New"}
-            </button>
-
-            {/* Save (Primary) */}
-            <button
-              type="button"
-              disabled={isSubmitting || isLoading}
-              onClick={() => handleSubmit(false)}
-              className="inline-flex items-center gap-1.5 px-5 py-2 bg-[#174B43] hover:bg-[#123B35] active:bg-[#C2410C] text-white text-sm font-bold rounded-xl shadow-sm transition-all disabled:opacity-50 active:scale-95"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>{lang === "gu" ? "સાચવી રહ્યા છીએ..." : "Saving..."}</span>
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>{lang === "gu" ? "સાચવો (Save)" : "Save"}</span>
-                </>
-              )}
-            </button>
-
-            {/* Shortcuts Modal Button */}
-            <button
-              type="button"
-              onClick={() => setIsShortcutsOpen(true)}
-              className="p-2 bg-white hover:bg-[#F9FAFB] text-[#4B5563] border border-[#D1D5DB] rounded-xl text-xs font-bold shadow-xs transition-all active:scale-95"
-              title="Keyboard Shortcuts"
-            >
-              ⌨️
-            </button>
-          </div>
-        </div>
-      </header>
+      {/* Top header replaced by unified DocumentHeaderCard */}
 
       {/* ─────────────────────────────────────────────────────────────
           2. NOTIFICATION ALERTS
@@ -1968,8 +1735,26 @@ function NewPurchaseInvoiceContent() {
          ───────────────────────────────────────────────────────────── */}
       <div className="w-full px-3 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-5 items-start">
         {/* ── LEFT DRAWER: AUTOFILL THIS BILL (GEMINI AI) ── */}
+        {!isAutofillDrawerOpen && (
+          <div className="w-full lg:w-auto shrink-0 mb-3 lg:mb-0 lg:sticky lg:top-20 z-20">
+            <button
+              type="button"
+              onClick={() => setIsAutofillDrawerOpen(true)}
+              aria-expanded={false}
+              aria-controls="ai-autofill-panel"
+              className="inline-flex items-center gap-2 px-3.5 py-2.5 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 border border-[#85D5C2] text-[#174B43] rounded-xl text-xs font-bold shadow-2xs transition-all hover:shadow-xs cursor-pointer group"
+              title="Show AI Assistant to scan bills and auto-fill line items"
+            >
+              <span className="text-base group-hover:scale-110 transition-transform">✨</span>
+              <span>{lang === "gu" ? "AI સહાયક બતાવો" : "Show AI Assistant"}</span>
+              <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-[#174B43] text-white font-extrabold uppercase tracking-wide">
+                Scan Bill
+              </span>
+            </button>
+          </div>
+        )}
         {isAutofillDrawerOpen && (
-          <aside className="w-full lg:w-[320px] xl:w-[340px] shrink-0 bg-white rounded-2xl border border-[#E5E7EB] shadow-xs overflow-hidden flex flex-col lg:sticky lg:top-20 max-h-none lg:max-h-[calc(100vh-6rem)]">
+          <aside id="ai-autofill-panel" className="w-full lg:w-[320px] xl:w-[340px] shrink-0 bg-white rounded-2xl border border-[#E5E7EB] shadow-xs overflow-hidden flex flex-col lg:sticky lg:top-20 max-h-none lg:max-h-[calc(100vh-6rem)]">
             {/* Drawer Header */}
             <div className="p-4 border-b border-[#F3F4F6] flex items-center justify-between bg-gradient-to-r from-orange-50/50 to-amber-50/30">
               <div className="flex items-center gap-2.5">
@@ -1994,10 +1779,15 @@ function NewPurchaseInvoiceContent() {
               <button
                 type="button"
                 onClick={() => setIsAutofillDrawerOpen(false)}
-                className="p-1 rounded-lg text-[#9CA3AF] hover:text-[#111827] hover:bg-slate-100 transition-colors"
-                title="Collapse Drawer"
+                aria-expanded={isAutofillDrawerOpen}
+                aria-controls="ai-autofill-panel"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-white border border-transparent hover:border-slate-200 transition-colors text-xs font-semibold cursor-pointer shadow-2xs"
+                title="Hide AI Assistant (reclaim workspace width)"
               >
-                ✕
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                </svg>
+                <span className="text-[11px] font-bold">{lang === "gu" ? "છુપાવો" : "Hide AI"}</span>
               </button>
             </div>
 
@@ -2396,764 +2186,374 @@ function NewPurchaseInvoiceContent() {
         {/* ── RIGHT MAIN PANEL (FORM OR PREVIEW - TAKES 100% REMAINING SPACE) ── */}
         <main className="flex-1 min-w-0 space-y-6">
           {activeMode === "PREVIEW" ? (
-            /* ─────────────────────────────────────────────────────────────
-                PREVIEW MODE: REALISTIC DYNAMIC INDIAN GST INVOICE DOCUMENT
-               ───────────────────────────────────────────────────────────── */
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-md p-6 sm:p-10 max-w-5xl mx-auto space-y-6 animate-fadeIn">
-              <div className="flex justify-between items-start border-b border-slate-200 pb-6">
-                <div className="flex items-start gap-4">
-                  {/* Real Scannable Invoice QR Code */}
-                  <div className="shrink-0">
-                    <InvoiceQrCode
-                      value={typeof window !== "undefined" ? `${window.location.origin}/purchases` : "/purchases"}
-                      size={80}
-                      label="SCAN"
-                    />
-                  </div>
+            <div className="space-y-4 animate-fadeIn">
+              {/* Preview Top Control Bar */}
+              <div className="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-xs">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setActiveMode("EDIT")}
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>← {lang === "gu" ? "એડિટ મોડ પર પાછા જાઓ" : "Back to Edit Mode"}</span>
+                  </button>
                   <div>
-                    <h2 className="text-xl font-black text-slate-900 uppercase">
-                      {companyProfile?.tradeName || companyProfile?.legalName || currentCompany?.tradeName || "My Company"}
+                    <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <span>{lang === "gu" ? "ખરીદી બિલ પ્રિવ્યૂ" : "Purchase Bill Preview"}</span>
+                      <span
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
+                        style={{ backgroundColor: activeInvoiceTheme.accentColor || "#174B43" }}
+                      >
+                        {activeInvoiceTheme.uniqueThemeKey || activeInvoiceTheme.themeId}
+                      </span>
                     </h2>
-                    <p className="text-xs text-slate-500 font-medium">Billed & Accounted Voucher</p>
-                    <p className="text-xs text-slate-600 mt-1">
-                      {companyProfile?.addressLine1 || (companyProfile?.city ? `${companyProfile.city}, India` : "Head Office")}
-                    </p>
-                    <p className="text-xs font-mono font-bold text-slate-800">
-                      GSTIN: {companyProfile?.gstin || currentCompany?.gstin || "Unregistered"}
+                    <p className="text-[11px] text-slate-500">
+                      {lang === "gu" ? "સેટિંગ્સમાંથી પસંદ કરેલી થીમ મુજબ લાઇવ પ્રિવ્યૂ" : "Live preview rendered with your saved settings theme"}
                     </p>
                   </div>
                 </div>
-
-                <div className="text-right">
-                  <span className="inline-block px-3 py-1 bg-[#E6F7F2] border border-[#BCEADF] text-[#174B43] rounded text-xs font-bold uppercase tracking-wider mb-2">
-                    PURCHASE INVOICE
-                  </span>
-                  <div className="text-xs text-slate-600 space-y-0.5">
-                    <div>Purchase No: <strong className="font-mono text-slate-900">{purchaseInvoiceNumber}</strong></div>
-                    <div>Original Bill No: <strong className="font-mono text-slate-900">{vendorInvoiceNumber || "—"}</strong></div>
-                    <div>Date: <strong className="font-mono text-slate-900">{invoiceDate}</strong></div>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>🖨️ {lang === "gu" ? "પ્રિન્ટ" : "Print Voucher"}</span>
+                  </button>
                 </div>
               </div>
 
-              {/* Bill From Party Box */}
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-2 gap-4 text-xs">
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">BILL FROM (SUPPLIER)</span>
-                  <div className="font-bold text-sm text-slate-900">{selectedSupplier?.name || "Supplier Name"}</div>
-                  <div className="text-slate-600">{selectedSupplier?.billingAddress?.line1 || "Supplier Address"}</div>
-                  <div className="font-mono text-slate-700 mt-1">GSTIN: {selectedSupplier?.gstin || "Unregistered"}</div>
-                  <div className="text-slate-600">Phone: {selectedSupplier?.phone || "—"}</div>
-                </div>
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">PLACE OF SUPPLY & WAREHOUSE</span>
-                  <div className="text-slate-700">State: <strong>{INDIAN_STATES[placeOfSupply]?.name || placeOfSupply} ({placeOfSupply})</strong></div>
-                  <div className="text-slate-700">Destination: <strong>{warehouses.find(w => w.id === warehouseId)?.name || "Main Godown"}</strong></div>
-                  <div className="text-slate-700 mt-1">ITC Eligibility: <span className="font-bold text-emerald-700">{itcEligibility}</span></div>
-                </div>
-              </div>
-
-              {/* Printable Table */}
-              <table className="w-full text-xs text-left border-collapse border border-slate-200">
-                <thead>
-                  <tr className="bg-slate-100 text-slate-700 font-bold uppercase text-[10px]">
-                    <th className="p-2.5 border border-slate-200 text-center w-8">#</th>
-                    <th className="p-2.5 border border-slate-200">Items / Services</th>
-                    <th className="p-2.5 border border-slate-200 text-center w-20">HSN</th>
-                    <th className="p-2.5 border border-slate-200 text-right w-16">Qty</th>
-                    <th className="p-2.5 border border-slate-200 text-right w-24">Rate (₹)</th>
-                    <th className="p-2.5 border border-slate-200 text-right w-24">Tax</th>
-                    <th className="p-2.5 border border-slate-200 text-right w-28">Amount (₹)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row, idx) => {
-                    const itm = items.find(i => i.id === row.itemId);
-                    const qty = Number(row.quantity) || 0;
-                    const rate = Number(row.unitPrice) || 0;
-                    const gross = qty * rate;
-                    const disc = Number(row.discountValue) || 0;
-                    const discVal = row.discountType === "₹" ? disc : (gross * disc) / 100;
-                    const taxable = Math.max(0, gross - discVal);
-                    const taxRate = Number(row.taxRate) || 0;
-                    const taxAmt = (taxable * taxRate) / 100;
-                    const lineTot = taxable + taxAmt;
-
-                    return (
-                      <tr key={idx} className="border-b border-slate-200">
-                        <td className="p-2.5 border border-slate-200 text-center font-mono">{idx + 1}</td>
-                        <td className="p-2.5 border border-slate-200 font-medium">
-                          {row.itemName || itm?.name || "Item"}
-                          {row.description && <div className="text-[10px] text-slate-500">{row.description}</div>}
-                        </td>
-                        <td className="p-2.5 border border-slate-200 text-center font-mono">{row.hsnCode}</td>
-                        <td className="p-2.5 border border-slate-200 text-right font-mono">{qty} {row.unit}</td>
-                        <td className="p-2.5 border border-slate-200 text-right font-mono">{rate.toFixed(2)}</td>
-                        <td className="p-2.5 border border-slate-200 text-right font-mono">
-                          ₹{taxAmt.toFixed(2)} <span className="text-[10px] text-slate-400">({taxRate}%)</span>
-                        </td>
-                        <td className="p-2.5 border border-slate-200 text-right font-mono font-bold text-slate-900">
-                          ₹{lineTot.toFixed(2)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-
-              {/* Totals Summary */}
-              <div className="flex justify-between items-start pt-2">
-                <div className="text-xs text-slate-500 max-w-sm">
-                  <div className="font-bold text-slate-700 mb-1">Terms & Conditions:</div>
-                  <pre className="font-sans whitespace-pre-wrap text-[11px] leading-relaxed text-slate-600">{terms}</pre>
-                </div>
-
-                <div className="w-64 space-y-1.5 text-xs">
-                  <div className="flex justify-between text-slate-600">
-                    <span>Taxable Amount:</span>
-                    <span className="font-mono font-semibold">₹{totals.totalTaxable.toFixed(2)}</span>
-                  </div>
-                  {isInterState ? (
-                    <div className="flex justify-between text-slate-600">
-                      <span>IGST:</span>
-                      <span className="font-mono">₹{totals.totalIgst.toFixed(2)}</span>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex justify-between text-slate-600">
-                        <span>CGST:</span>
-                        <span className="font-mono">₹{totals.totalCgst.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between text-slate-600">
-                        <span>SGST:</span>
-                        <span className="font-mono">₹{totals.totalSgst.toFixed(2)}</span>
-                      </div>
-                    </>
-                  )}
-                  {totals.roundOff !== 0 && (
-                    <div className="flex justify-between text-slate-500">
-                      <span>Round Off:</span>
-                      <span className="font-mono">{totals.roundOff.toFixed(2)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-sm font-black text-slate-900 border-t border-slate-300 pt-2">
-                    <span>Grand Total:</span>
-                    <span className="font-mono text-[#174B43]">₹{totals.grandTotal.toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Back to Edit Button */}
-              <div className="pt-6 border-t border-slate-200 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setActiveMode("EDIT")}
-                  className="px-5 py-2 bg-[#174B43] text-white rounded-xl text-xs font-bold shadow-xs hover:bg-[#123B35]"
-                >
-                  {lang === "gu" ? "ફેરફાર ચાલુ રાખવા માટે એડિટ મોડ પર પાછા જાઓ" : "Return to Edit Mode"}
-                </button>
+              {/* Themed Document using DynamicThemedInvoice */}
+              <div className="bg-slate-100/70 p-4 sm:p-8 rounded-2xl border border-slate-200 overflow-x-auto flex justify-center">
+                <DynamicThemedInvoice
+                  invoice={{
+                    category: "PURCHASE_INVOICE",
+                    invoiceNumber: purchaseInvoiceNumber || "PB-001",
+                    invoiceDate: invoiceDate,
+                    dueDate: dueDate,
+                    paymentMode: paymentMode,
+                    placeOfSupply: INDIAN_STATES[placeOfSupply]?.name ? `${INDIAN_STATES[placeOfSupply].name} (${placeOfSupply})` : placeOfSupply,
+                    taxableAmount: totals.totalTaxable,
+                    cgstAmount: totals.totalCgst,
+                    sgstAmount: totals.totalSgst,
+                    igstAmount: totals.totalIgst,
+                    roundOff: totals.roundOff,
+                    grandTotal: totals.grandTotal,
+                    paidAmount: paymentStatus === "PAID_FULL" ? totals.grandTotal : Number(paidAmount) || 0,
+                    balanceAmount: balanceDue,
+                    notes: notes,
+                    party: {
+                      name: selectedSupplier?.name || "Supplier Name",
+                      gstin: selectedSupplier?.gstin,
+                      phone: selectedSupplier?.phone,
+                      billingAddress: selectedSupplier?.billingAddress?.line1,
+                    },
+                    items: rows.map((r, idx) => {
+                      const itm = items.find((i) => i.id === r.itemId);
+                      const qty = Number(r.quantity) || 0;
+                      const rate = Number(r.unitPrice) || 0;
+                      const gross = qty * rate;
+                      const disc = Number(r.discountValue) || 0;
+                      const discVal = r.discountType === "₹" ? disc : (gross * disc) / 100;
+                      const taxable = Math.max(0, gross - discVal);
+                      const taxRate = Number(r.taxRate) || 0;
+                      const taxAmt = (taxable * taxRate) / 100;
+                      return {
+                        id: (r as any).id || `row-${idx}`,
+                        description: r.description || r.itemName || itm?.name || "Item",
+                        hsnCode: r.hsnCode,
+                        quantity: qty,
+                        unit: r.unit || "PCS",
+                        unitPrice: rate,
+                        discountPercent: r.discountType === "%" ? disc : gross > 0 ? (disc / gross) * 100 : 0,
+                        taxRate: taxRate,
+                        taxableAmount: taxable,
+                        cgstAmount: !isInterState ? taxAmt / 2 : 0,
+                        sgstAmount: !isInterState ? taxAmt / 2 : 0,
+                        igstAmount: isInterState ? taxAmt : 0,
+                        totalAmount: taxable + taxAmt,
+                        item: { name: r.itemName || itm?.name },
+                      };
+                    }),
+                    eWayBillRecord: {
+                      vendorInvoiceNumber: vendorInvoiceNumber,
+                      ewayBillNo: ewayBillNo,
+                      vehicleNo: vehicleNo,
+                      dispatchDate: dispatchDate,
+                      transportMode: transportMode,
+                    },
+                  }}
+                  settings={{
+                    ...activeInvoiceTheme,
+                    termsAndConditions: {
+                      ...activeInvoiceTheme.termsAndConditions,
+                      sales: terms,
+                    },
+                  }}
+                  company={{
+                    tradeName: currentCompany?.tradeName || companyProfile?.tradeName || "My Company",
+                    legalName: currentCompany?.legalName || companyProfile?.legalName,
+                    addressLine1: (currentCompany as any)?.address || companyProfile?.addressLine1,
+                    city: currentCompany?.city || companyProfile?.city,
+                    gstin: currentCompany?.gstin || companyProfile?.gstin,
+                    phone: (currentCompany as any)?.phone || companyProfile?.phone,
+                    stateCode: companyState,
+                  }}
+                  printableId="printable-purchase-bill"
+                />
               </div>
             </div>
-          ) : (
-            /* ─────────────────────────────────────────────────────────────
-          /* =======================================================================
-          /* =======================================================================
-              VIEW MODE: EDIT MODE (Integrated Enterprise Purchase Studio Workspace)
-              ======================================================================= */
-          <div className="max-w-6xl mx-auto space-y-6 pb-20">
-            {/* MASTER DOCUMENT CANVAS */}
-            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
-              
-              {/* ZONE 1: DOCUMENT HEADER & METADATA MASTHEAD */}
-              <div className="p-6 border-b border-slate-200/80 bg-[#FAFBF7]">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                  
-                  {/* Left: Organization / Buyer Identity */}
-                  <div className="lg:col-span-5 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#26A58A]" />
-                      <span className="text-[11px] font-bold tracking-wider uppercase text-[#174B43]">
-                        Purchase Bill Studio
-                      </span>
-                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white text-slate-600 border border-slate-200 shadow-2xs">
-                        {isInterState ? "Inter-state IGST" : "Intra-state CGST+SGST"}
-                      </span>
-                    </div>
+        ) : (
+          <div className="space-y-4">
+            {/* DOCUMENT HEADER CARD */}
+            <DocumentHeaderCard
+              title={lang === "gu" ? "ખરીદી બિલ" : "Purchase Bill"}
+              subtitle={lang === "gu" ? "તમારું ખરીદી બિલ બનાવો અને સ્ટોક અપડેટ કરો" : "Create and manage your purchase bill"}
+              status="Draft"
+              onPreview={() => setActiveMode("PREVIEW")}
+              onPrint={() => window.print()}
+              onSave={() => handleSubmit(false)}
+              onSaveAsDraft={() => handleSubmit(true)}
+              isSaving={isSubmitting}
+              saveButtonLabel="Save Purchase Bill"
+              moreMenuItems={[
+                { label: "Quick Settings", onClick: () => { setQuickSettingsTab("items"); setIsQuickSettingsOpen(true); } },
+                { label: "Keyboard Shortcuts", onClick: () => setIsShortcutsOpen(true) },
+              ]}
+            />
 
-                    <div className="space-y-1">
-                      <h2 className="text-base font-extrabold text-[#1A2E2B] tracking-tight">
-                        {companyProfile?.tradeName || companyProfile?.legalName || currentCompany?.tradeName || currentCompany?.legalName || "My Business"}
-                      </h2>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
-                        {(companyProfile?.gstin || currentCompany?.gstin) && (
-                          <span className="font-mono font-medium text-slate-700 bg-white border border-slate-200 px-1.5 py-0.5 rounded shadow-2xs">
-                            GSTIN: {companyProfile?.gstin || currentCompany?.gstin}
-                          </span>
-                        )}
-                        <span>
-                          Place of Supply:{" "}
-                          <strong className="text-slate-800">
-                            {INDIAN_STATES[placeOfSupply]?.name || placeOfSupply} ({placeOfSupply})
-                          </strong>
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Document Type Indicator */}
-                    <div className="pt-1 flex items-center gap-2">
-                      <span className="text-[11px] font-semibold text-slate-500">Document:</span>
-                      <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-xs font-bold text-slate-800">
-                        Purchase Tax Invoice (Inward Supply)
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Right: Document Controls (Bill #, Bill Date, Due Date, State) */}
-                  <div className="lg:col-span-7">
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
-                      
-                      {/* Bill / Invoice Number */}
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                          Bill / Inv No.
-                        </label>
-                        <div className="flex items-center gap-1">
-                          <span className="text-xs font-mono font-bold text-slate-400">#</span>
-                          <input
-                            type="text"
-                            value={purchaseInvoiceNumber}
-                            onChange={(e) => setPurchaseInvoiceNumber(e.target.value)}
-                            placeholder="BILL-001"
-                            className="w-full text-xs font-mono font-bold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg p-1.5 focus:bg-white focus:outline-none focus:border-[#26A58A]"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Bill Date */}
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                          Bill Date
-                        </label>
-                        <input
-                          type="date"
-                          value={invoiceDate}
-                          onChange={(e) => setInvoiceDate(e.target.value)}
-                          className="w-full text-xs font-mono text-slate-900 bg-slate-50 border border-slate-200 rounded-lg p-1.5 focus:bg-white focus:outline-none focus:border-[#26A58A]"
-                        />
-                      </div>
-
-                      {/* Due Date */}
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                          Due Date
-                        </label>
-                        <input
-                          type="date"
-                          value={dueDate}
-                          onChange={(e) => setDueDate(e.target.value)}
-                          className="w-full text-xs font-mono text-slate-900 bg-slate-50 border border-slate-200 rounded-lg p-1.5 focus:bg-white focus:outline-none focus:border-[#26A58A]"
-                        />
-                      </div>
-
-                      {/* Place of Supply */}
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                          Place of Supply
-                        </label>
-                        <select
-                          value={placeOfSupply}
-                          onChange={(e) => setPlaceOfSupply(e.target.value)}
-                          className="w-full text-xs text-slate-900 bg-slate-50 border border-slate-200 rounded-lg p-1.5 focus:bg-white focus:outline-none focus:border-[#26A58A]"
-                        >
-                          {Object.entries(INDIAN_STATES).map(([code, st]) => (
-                            <option key={code} value={code}>
-                              {code} - {st.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Secondary Options Strip */}
-                    <div className="mt-2.5 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 px-1">
-                      <div className="flex items-center gap-3">
-                        {quickSettings.enablePoDetails && (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[11px] font-medium text-slate-600">PO Ref:</span>
-                            <input
-                              type="text"
-                              value={poNumber}
-                              onChange={(e) => setPoNumber(e.target.value)}
-                              placeholder="PO-001"
-                              className="text-xs p-1 bg-slate-50 border border-slate-200 rounded font-mono w-24 text-slate-800"
-                            />
-                            {poNumber && (
-                              <input
-                                type="date"
-                                value={poDate}
-                                onChange={(e) => setPoDate(e.target.value)}
-                                className="text-xs p-1 bg-slate-50 border border-slate-200 rounded font-mono text-slate-800"
-                              />
-                            )}
-                          </div>
-                        )}
-
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[11px] font-medium text-slate-600">Orig Bill No:</span>
-                          <input
-                            type="text"
-                            value={vendorInvoiceNumber}
-                            onChange={(e) => setVendorInvoiceNumber(e.target.value)}
-                            placeholder="Supplier Inv #"
-                            className="text-xs p-1 bg-slate-50 border border-slate-200 rounded font-mono w-28 text-slate-800"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3 ml-auto">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setQuickSettingsTab("invoice");
-                            setIsQuickSettingsOpen(true);
-                          }}
-                          className="p-1 text-slate-400 hover:text-slate-700 rounded transition-colors"
-                          title="Document Settings"
-                        >
-                          ⚙️
-                        </button>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-              </div>
-
-              {/* ZONE 2: VENDOR / SUPPLIER DOSSIER STRIP */}
-              <div className="px-6 py-4 border-b border-slate-200/80 bg-white">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                      Bill From (Supplier / Vendor)
-                    </span>
-                    {selectedSupplier && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-                        Verified Supplier
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    {selectedSupplier && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setPartyId("");
-                          setPartySearchTerm("");
-                          setShowPartyDropdown(true);
-                        }}
-                        className="text-xs font-bold text-[#174B43] hover:text-[#26A58A] transition-colors cursor-pointer"
-                      >
-                        Change Supplier
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setQuickSettingsTab("party");
-                        setIsQuickSettingsOpen(true);
+            {/* 5-COLUMN DOCUMENT INFO STRIP */}
+            <DocumentInfoStrip
+              fields={[
+                {
+                  id: "supplier",
+                  label: "Supplier / Vendor",
+                  required: true,
+                  type: "custom",
+                  customRender: (
+                    <PartySelectorCompact
+                      selectedParty={selectedSupplier ? {
+                        id: selectedSupplier.id,
+                        name: selectedSupplier.name,
+                        phone: selectedSupplier.phone,
+                        gstin: selectedSupplier.gstin,
+                        address: selectedSupplier.billingAddress?.line1,
+                      } : null}
+                      searchTerm={partySearchTerm}
+                      onSearchChange={setPartySearchTerm}
+                      isOpen={showPartyDropdown}
+                      onOpenChange={setShowPartyDropdown}
+                      filteredParties={filteredSuppliers.map((s) => ({
+                        id: s.id,
+                        name: s.name,
+                        phone: s.phone,
+                        gstin: s.gstin,
+                        outstandingBalance: s.currentBalance,
+                      }))}
+                      onSelectParty={(id) => {
+                        handleSupplierChange(id);
                       }}
-                      className="p-1 text-slate-400 hover:text-slate-700"
-                      title="Supplier Settings"
-                    >
-                      ⚙️
-                    </button>
-                  </div>
-                </div>
-
-                {selectedSupplier ? (
-                  /* Selected Supplier Dossier */
-                  <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/90 flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 text-[#174B43] flex items-center justify-center font-black text-sm shadow-2xs">
-                        {selectedSupplier.name.slice(0, 2).toUpperCase()}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-extrabold text-slate-900">{selectedSupplier.name}</h3>
-                          {selectedSupplier.gstin && (
-                            <span className="px-2 py-0.5 bg-[#E6F7F2] text-[#174B43] border border-[#85D5C2]/60 rounded-full font-mono text-[10px] font-bold">
-                              GSTIN: {selectedSupplier.gstin}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-slate-500 flex items-center gap-3 mt-0.5">
-                          {selectedSupplier.phone && <span>📞 {selectedSupplier.phone}</span>}
-                          {selectedSupplier.billingAddress?.line1 && (
-                            <span className="truncate max-w-md">📍 {selectedSupplier.billingAddress.line1}</span>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 text-xs">
-                      {quickSettings.showPartyBalance && (
-                        <div className="text-right">
-                          <span className="text-[10px] text-slate-400 block font-semibold uppercase">Current Balance</span>
-                          <span className={`font-mono font-bold ${
-                            (selectedSupplier.currentBalance ?? 0) > 0 ? "text-rose-600" : "text-emerald-700"
-                          }`}>
-                            {formatInr(selectedSupplier.currentBalance ?? 0)}
-                          </span>
-                        </div>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setIsEditSupplierModalOpen(true)}
-                        className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs"
-                      >
-                        Edit Details
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  /* Supplier Search Autocomplete */
-                  <div className="relative">
-                    <div className="flex items-center gap-2">
-                      <div className="relative flex-1">
-                        <input
-                          type="text"
-                          value={partySearchTerm}
-                          onChange={(e) => {
-                            setPartySearchTerm(e.target.value);
-                            setShowPartyDropdown(true);
-                          }}
-                          onFocus={() => setShowPartyDropdown(true)}
-                          placeholder="Search supplier by name, mobile, or GSTIN (or click + New Supplier)..."
-                          className="w-full text-xs p-2.5 pl-9 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl text-slate-900 focus:outline-none transition-all shadow-2xs"
-                        />
-                        <span className="absolute left-3 top-2.5 text-slate-400 text-xs">🔍</span>
-                        {partySearchTerm && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPartySearchTerm("");
-                              setShowPartyDropdown(false);
-                            }}
-                            className="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-slate-600"
-                          >
-                            ✕
-                          </button>
-                        )}
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => setIsAddSupplierModalOpen(true)}
-                        className="px-3 py-2.5 bg-gradient-to-r from-[#174B43] to-[#26A58A] hover:from-[#133E37] hover:to-[#208E76] text-white font-bold text-xs rounded-xl shadow-xs transition-colors shrink-0 flex items-center gap-1 cursor-pointer"
-                      >
-                        <span>+ New Supplier</span>
-                      </button>
-                    </div>
-
-                    {/* Dropdown Menu */}
-                    {showPartyDropdown && (
-                      <div className="absolute left-0 right-0 top-12 z-50 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden max-h-72 flex flex-col animate-in fade-in slide-in-from-top-1">
-                        <div className="flex items-center justify-between px-3.5 py-2 bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                          <span>Supplier / Vendor Name</span>
-                          {quickSettings.showPartyBalance && <span>Current Balance</span>}
-                        </div>
-                        <div className="overflow-y-auto divide-y divide-slate-100 flex-1">
-                          {filteredSuppliers.length === 0 ? (
-                            <div className="p-4 text-center text-xs text-slate-500 space-y-1">
-                              <p>No suppliers found matching &quot;{partySearchTerm}&quot;</p>
-                              <p className="text-[11px] text-slate-400">Click below to create a new supplier instantly</p>
-                            </div>
-                          ) : (
-                            filteredSuppliers.map((s) => {
-                              const bal = s.currentBalance ?? 0;
-                              return (
-                                <div
-                                  key={s.id}
-                                  onClick={() => handleSupplierChange(s.id)}
-                                  className="flex items-center justify-between px-3.5 py-2.5 hover:bg-[#F2FAF7] cursor-pointer transition-colors text-xs"
-                                >
-                                  <div>
-                                    <p className="font-bold text-slate-900">{s.name}</p>
-                                    <p className="text-[10px] text-slate-500">
-                                      {s.phone || s.gstin || "Regular Supplier"}
-                                    </p>
-                                  </div>
-                                  {quickSettings.showPartyBalance && (
-                                    <div className="text-right font-mono font-bold">
-                                      {bal > 0 ? (
-                                        <span className="text-rose-600">{formatInr(bal)} ↑</span>
-                                      ) : bal < 0 ? (
-                                        <span className="text-emerald-700">{formatInr(Math.abs(bal))} ↓</span>
-                                      ) : (
-                                        <span className="text-slate-400">₹ 0</span>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })
-                          )}
-                        </div>
-                        <div className="p-2 border-t border-slate-100 bg-slate-50/50">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowPartyDropdown(false);
-                              setIsAddSupplierModalOpen(true);
-                            }}
-                            className="w-full py-2 bg-white hover:bg-[#F2FAF7] border border-[#85D5C2] rounded-xl text-xs font-bold text-[#174B43] flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
-                          >
-                            <span>+ Create New Supplier</span>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* ZONE 3: INTEGRATED LEDGER DATA GRID (PURCHASE ITEMS) */}
-              <div className="p-0 border-b border-slate-200/80">
-                {/* Table Top Controls Strip */}
-                <div className="px-6 py-3 bg-[#FAFBF7] border-b border-slate-200/80 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-extrabold text-[#1A2E2B] tracking-tight">
-                      Purchase Line Items
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white text-slate-700 border border-slate-200 shadow-2xs">
-                      {rows.length} {rows.length === 1 ? "Item" : "Items"}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setIsAddItemModalOpen(true)}
-                      className="px-3 py-1.5 bg-[#26A58A] hover:bg-[#208E76] text-white font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <span>+ Add from Catalog</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleAddRow}
-                      className="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center gap-1 cursor-pointer"
-                    >
-                      <span>+ Add Blank Row</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setQuickSettingsTab("items");
-                        setIsQuickSettingsOpen(true);
+                      onClearParty={() => {
+                        setPartyId("");
+                        setPartySearchTerm("");
                       }}
-                      className="p-1.5 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg text-slate-500 hover:text-slate-700 shadow-2xs"
-                      title="Table Columns & Tax Settings"
-                    >
-                      ⚙️
-                    </button>
-                  </div>
-                </div>
+                      onAddNew={() => setIsAddSupplierModalOpen(true)}
+                      placeholder="Search supplier..."
+                    />
+                  ),
+                },
+                {
+                  id: "vendorInvoiceNumber",
+                  label: "Supplier Bill No.",
+                  type: "text",
+                  value: vendorInvoiceNumber,
+                  onChange: setVendorInvoiceNumber,
+                  placeholder: "e.g. BILL-9821",
+                },
+                {
+                  id: "invoiceDate",
+                  label: "Purchase Date",
+                  type: "date",
+                  value: invoiceDate,
+                  onChange: setInvoiceDate,
+                },
+                {
+                  id: "dueDate",
+                  label: "Due Date",
+                  type: "date",
+                  value: dueDate,
+                  onChange: setDueDate,
+                },
+                {
+                  id: "placeOfSupply",
+                  label: "Place of Supply",
+                  type: "select",
+                  value: placeOfSupply,
+                  onChange: setPlaceOfSupply,
+                  options: Object.entries(INDIAN_STATES).map(([code, st]) => ({
+                    label: `${st.name} (${code})`,
+                    value: code,
+                  })),
+                },
+              ]}
+            />
 
-                {/* The Ledger Table */}
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse min-w-[750px]">
-                    <thead className="bg-[#FAFBF7] text-[#5A6B66] uppercase tracking-wider font-extrabold border-b border-[#E2E8E5] text-[10px]">
+            {/* MAIN 2-COLUMN WORKSPACE MATCHING REFERENCE IMAGE */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              {/* Left Column (8 cols): Items & Services Table + Notes & Additional Info */}
+              <div className="lg:col-span-8 space-y-5">
+                <DocumentItemsCard
+                  title="Items & Services"
+                  itemsCount={rows.length}
+                  totalQty={totals.totalQuantity}
+                  itemsTotal={totals.grandTotal}
+                  onImportItems={() => setIsAddItemModalOpen(true)}
+                  onAddItem={() => setIsAddItemModalOpen(true)}
+                  onAddBlankRow={handleAddRow}
+                  addItemLabel="+ Add Item"
+                >
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 font-bold text-[11px] uppercase tracking-wider">
                       <tr>
-                        <th className="py-3 px-3.5 w-10 text-center">#</th>
-                        <th className="py-3 px-3.5 min-w-[260px]">ITEM & DESCRIPTION</th>
-                        {quickSettings.showHsnColumn && (
-                          <th className="py-3 px-3 w-24 text-center">HSN/SAC</th>
-                        )}
-                        <th className="py-3 px-3 w-20 text-right">QTY</th>
-                        <th className="py-3 px-3 w-32 text-right">PRICE (₹)</th>
-                        {quickSettings.showDiscountColumn && (
-                          <th className="py-3 px-3 w-24 text-right">DISCOUNT</th>
-                        )}
-                        {quickSettings.showTaxColumn && (
-                          <th className="py-3 px-3 w-24 text-right">TAX (GST)</th>
-                        )}
-                        <th className="py-3 px-4 w-32 text-right">AMOUNT (₹)</th>
-                        <th className="py-3 px-2 w-10 text-center"></th>
+                        <th className="py-3 px-3.5 text-center w-12">#</th>
+                        <th className="py-3 px-3.5">Item / Description</th>
+                        <th className="py-3 px-3 text-center w-28">HSN/SAC</th>
+                        <th className="py-3 px-3 text-right w-24">Qty</th>
+                        <th className="py-3 px-3 text-right w-28">Rate (₹)</th>
+                        <th className="py-3 px-3 text-right w-24">Discount</th>
+                        <th className="py-3 px-3 text-right w-24">Tax (%)</th>
+                        <th className="py-3 px-3 text-right w-28">Amount (₹)</th>
+                        <th className="py-3 px-3 text-center w-16">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {rows.length === 0 ? (
-                        /* Clean Empty State */
                         <tr>
-                          <td
-                            colSpan={
-                              5 +
-                              (quickSettings.showHsnColumn ? 1 : 0) +
-                              (quickSettings.showDiscountColumn ? 1 : 0) +
-                              (quickSettings.showTaxColumn ? 1 : 0)
-                            }
-                            className="py-12 px-4 text-center"
-                          >
-                            <div className="max-w-sm mx-auto space-y-3">
-                              <div className="w-14 h-14 mx-auto rounded-2xl bg-[#E6F7F2] text-[#174B43] flex items-center justify-center text-2xl shadow-inner">
-                                📦
-                              </div>
-                              <div>
-                                <h3 className="text-sm font-extrabold text-[#1A2E2B]">
-                                  No items in this purchase bill yet
-                                </h3>
-                                <p className="text-xs text-slate-500 mt-1">
-                                  Add products or services from your catalog or create a custom entry.
-                                </p>
-                              </div>
-                              <div className="flex items-center justify-center gap-2 pt-2">
-                                <button
-                                  type="button"
-                                  onClick={() => setIsAddItemModalOpen(true)}
-                                  className="px-4 py-2 bg-[#174B43] hover:bg-[#133E37] text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
-                                >
-                                  + Browse Catalog
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={handleAddRow}
-                                  className="px-4 py-2 bg-white border border-[#E2E8E5] hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer"
-                                >
-                                  + Add Blank Row
-                                </button>
-                              </div>
+                          <td colSpan={9} className="py-12 text-center text-slate-400">
+                            <div className="max-w-xs mx-auto space-y-2">
+                              <span className="text-2xl">📦</span>
+                              <p className="font-bold text-slate-700">No items added to purchase bill yet</p>
+                              <p className="text-[11px] text-slate-400">Add an item from catalog or enter details below</p>
+                              <button
+                                type="button"
+                                onClick={() => setIsAddItemModalOpen(true)}
+                                className="px-3.5 py-1.5 bg-[#174B43] text-white rounded-xl text-xs font-bold shadow-2xs cursor-pointer"
+                              >
+                                + Add From Catalog
+                              </button>
                             </div>
                           </td>
                         </tr>
                       ) : (
-                        /* Rows Mapping */
                         rows.map((row, idx) => {
+                          const itm = items.find((i) => i.id === row.itemId);
                           const qty = Number(row.quantity) || 0;
                           const rate = Number(row.unitPrice) || 0;
-                          const discVal = Number(row.discountValue) || 0;
                           const gross = qty * rate;
-                          let discountVal = 0;
-                          if (quickSettings.showDiscountColumn) {
-                            if (row.discountType === "₹") {
-                              discountVal = discVal;
-                            } else {
-                              discountVal = (gross * discVal) / 100;
-                            }
-                          }
-                          const taxable = Math.max(0, gross - discountVal);
-                          const taxRate = quickSettings.showTaxColumn ? (Number(row.taxRate) || 0) : 0;
-                          const lineTotal = quickSettings.isTaxInclusive
-                            ? taxable
-                            : taxable + (taxable * taxRate) / 100;
+                          const disc = Number(row.discountValue) || 0;
+                          const discVal = row.discountType === "₹" ? disc : (gross * disc) / 100;
+                          const taxable = Math.max(0, gross - discVal);
+                          const taxRate = Number(row.taxRate) || 0;
+                          const taxAmt = (taxable * taxRate) / 100;
+                          const lineTot = taxable + taxAmt;
 
                           return (
-                            <tr key={`row-${idx}`} className="hover:bg-slate-50/80 transition-colors group">
-                              {/* Line Number */}
-                              <td className="py-2.5 px-3.5 text-center text-slate-400 font-mono text-[11px]">
+                            <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
+                              <td className="py-3 px-3 text-center text-slate-400 font-mono text-[11px]">
                                 {idx + 1}
                               </td>
 
-                              {/* Item Selector */}
-                              <td className="py-2.5 px-3.5">
-                                <select
-                                  value={row.itemId}
-                                  onChange={(e) => handleItemSelect(idx, e.target.value)}
-                                  className="w-full text-xs p-2 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl font-medium text-slate-900 focus:outline-none transition-colors"
-                                >
-                                  <option value="">-- Select Product / Service --</option>
-                                  {items.map((it) => (
-                                    <option key={it.id} value={it.id}>
-                                      {it.name} (Stock: {it.stockQuantity ?? 0})
-                                    </option>
-                                  ))}
-                                </select>
+                              <td className="py-3 px-3">
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <select
+                                      value={row.itemId}
+                                      onChange={(e) => handleItemSelect(idx, e.target.value)}
+                                      className="w-full text-xs py-1.5 px-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl font-bold text-slate-800"
+                                    >
+                                      {items.map((it) => (
+                                        <option key={it.id} value={it.id}>
+                                          {it.name} (Stock: {it.stockQuantity ?? 0})
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </div>
                               </td>
 
-                              {/* HSN */}
-                              {quickSettings.showHsnColumn && (
-                                <td className="py-2.5 px-3">
-                                  <input
-                                    type="text"
-                                    value={row.hsnCode}
-                                    onChange={(e) => handleRowChange(idx, "hsnCode", e.target.value)}
-                                    className="w-full text-xs p-2 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl text-center font-mono text-slate-800 focus:outline-none"
-                                  />
-                                </td>
-                              )}
-
-                              {/* QTY */}
-                              <td className="py-2.5 px-3">
+                              <td className="py-3 px-3">
                                 <input
-                                  type="number"
-                                  min="0.001"
-                                  step="any"
-                                  value={row.quantity}
-                                  onChange={(e) => handleRowChange(idx, "quantity", e.target.value)}
-                                  className="w-full text-xs p-2 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl text-right font-mono font-bold text-slate-900 focus:outline-none"
+                                  type="text"
+                                  value={row.hsnCode}
+                                  onChange={(e) => handleRowChange(idx, "hsnCode", e.target.value)}
+                                  className="w-full text-xs py-1.5 px-2 text-center font-mono bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white"
+                                  placeholder="1001"
                                 />
                               </td>
 
-                              {/* PURCHASE PRICE / ITEM */}
-                              <td className="py-2.5 px-3">
+                              <td className="py-3 px-3">
+                                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
+                                  <input
+                                    type="number"
+                                    min="0.001"
+                                    step="any"
+                                    value={row.quantity}
+                                    onChange={(e) => handleRowChange(idx, "quantity", e.target.value === "" ? "" : Number(e.target.value))}
+                                    className="w-full text-xs text-right font-mono font-bold text-slate-800 bg-transparent focus:outline-none"
+                                  />
+                                </div>
+                              </td>
+
+                              <td className="py-3 px-3">
                                 <input
                                   type="number"
                                   min="0"
                                   step="any"
                                   value={row.unitPrice}
-                                  onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value)}
-                                  className="w-full text-xs p-2 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl text-right font-mono font-bold text-slate-900 focus:outline-none"
+                                  onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))}
+                                  className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white"
                                 />
                               </td>
 
-                              {/* DISCOUNT */}
-                              {quickSettings.showDiscountColumn && (
-                                <td className="py-2.5 px-3">
+                              <td className="py-3 px-3">
+                                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
                                   <input
                                     type="number"
                                     min="0"
                                     value={row.discountValue}
-                                    onChange={(e) => handleRowChange(idx, "discountValue", e.target.value)}
+                                    onChange={(e) => handleRowChange(idx, "discountValue", e.target.value === "" ? "" : Number(e.target.value))}
                                     placeholder="0"
-                                    className="w-full text-xs p-2 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl text-right font-mono text-slate-700 focus:outline-none"
+                                    className="w-full text-xs text-right font-mono bg-transparent focus:outline-none"
                                   />
-                                </td>
-                              )}
-
-                              {/* TAX (GST) */}
-                              {quickSettings.showTaxColumn && (
-                                <td className="py-2.5 px-3">
-                                  <div className="relative flex items-center min-w-[70px]">
-                                    <input
-                                      type="number"
-                                      step="any"
-                                      min="0"
-                                      max="100"
-                                      list="gst-rates-table"
-                                      value={row.taxRate}
-                                      onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value) || 0)}
-                                      placeholder="0"
-                                      className="w-full text-xs p-2 pr-4 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl text-right font-mono font-bold text-slate-800 focus:outline-none"
-                                    />
-                                    <span className="absolute right-1 text-[11px] font-bold text-slate-400 pointer-events-none">%</span>
-                                  </div>
-                                </td>
-                              )}
-
-                              {/* AMOUNT */}
-                              <td className="py-2.5 px-4 text-right font-mono font-black text-slate-900 text-xs">
-                                {formatInr(lineTotal)}
+                                  <span className="text-[10px] text-slate-400">{row.discountType}</span>
+                                </div>
                               </td>
 
-                              {/* DELETE ACTION */}
-                              <td className="py-2.5 px-2 text-center">
+                              <td className="py-3 px-3">
+                                <input
+                                  type="number"
+                                  step="any"
+                                  value={row.taxRate}
+                                  onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value) || 0)}
+                                  placeholder="18"
+                                  className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white"
+                                />
+                              </td>
+
+                              <td className="py-3 px-3 text-right font-mono font-black text-slate-900 text-xs">
+                                ₹ {lineTot.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </td>
+
+                              <td className="py-3 px-3 text-center">
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveRow(idx)}
-                                  className="w-7 h-7 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors flex items-center justify-center cursor-pointer"
-                                  title="Remove item"
+                                  className="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
+                                  title="Delete row"
                                 >
-                                  ✕
+                                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
                                 </button>
                               </td>
                             </tr>
@@ -3162,330 +2562,75 @@ function NewPurchaseInvoiceContent() {
                       )}
                     </tbody>
                   </table>
-                </div>
+                </DocumentItemsCard>
 
-                {/* Items Quick Metric Strip */}
-                <div className="bg-[#FAFBF7] border-t border-[#E2E8E5] px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-600 font-medium">
-                  <div className="flex items-center gap-3">
-                    <span className="font-extrabold text-[#1A2E2B] text-xs uppercase tracking-wider">Subtotal Summary</span>
-                    <span className="text-slate-400">•</span>
-                    <span>Total Qty: <strong className="font-mono text-slate-900">{totals.totalQuantity}</strong></span>
-                  </div>
-                  
-                  <div className="flex flex-wrap items-center gap-4 sm:gap-6 font-mono text-slate-700">
-                    {totals.totalDiscount > 0 && (
-                      <span>Discount: <strong className="text-rose-600">-{formatInr(totals.totalDiscount)}</strong></span>
-                    )}
-                    <span>GST Tax: <strong className="text-slate-900">{formatInr(totals.totalTax)}</strong></span>
-                    <div className="flex items-center gap-1.5 font-bold text-slate-900 text-sm">
-                      <span className="text-xs uppercase text-slate-400">Items Total:</span>
-                      <span className="text-[#174B43] font-black">{formatInr(totals.grossSubtotal)}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                {/* Side-by-side: Notes & Terms + Additional Information */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <DocumentNotesAndTermsCard
+                    activeTab={activeNotesTab}
+                    onTabChange={setActiveNotesTab}
+                    notes={notes}
+                    onNotesChange={setNotes}
+                    terms={terms}
+                    onTermsChange={setTerms}
+                  />
 
-              {/* ZONE 4: BILATERAL FINANCIAL RECKONING & COMMERCIAL DETAILS */}
-              <div className="p-6 bg-slate-50/40 border-b border-slate-200/80">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                  
-                  {/* Left Column: Terms, Notes & Payment Account (6 cols) */}
-                  <div className="lg:col-span-6 space-y-4">
-                    
-                    {/* Terms & Conditions */}
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-800">
-                          Terms & Conditions
-                        </span>
-                        <span className="text-[10px] text-slate-400">Internal & Print</span>
-                      </div>
-                      <textarea
-                        rows={2}
-                        value={terms}
-                        onChange={(e) => setTerms(e.target.value)}
-                        placeholder="Enter terms and conditions..."
-                        className="w-full text-xs p-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-[#26A58A] shadow-2xs"
-                      />
-                    </div>
-
-                    {/* Supplier Remarks */}
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-800">
-                          Supplier Remarks / Notes
-                        </span>
-                      </div>
-                      <input
-                        type="text"
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Notes regarding this purchase bill..."
-                        className="w-full text-xs p-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-[#26A58A] shadow-2xs"
-                      />
-                    </div>
-
-                    {/* Settlement Account Selector */}
-                    {cashBankAccounts.length > 0 && (
-                      <div className="p-3 bg-white border border-slate-200 rounded-xl shadow-2xs space-y-1.5">
-                        <span className="text-xs font-bold text-slate-800 block">Payment Account</span>
-                        <select
-                          value={payAccountId || ""}
-                          onChange={(e) => setPayAccountId(e.target.value || "")}
-                          className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-[#26A58A]"
-                        >
-                          <option value="">-- Default Cash/Bank Account --</option>
-                          {cashBankAccounts.map((a) => (
-                            <option key={a.id} value={a.id}>
-                              {a.name} ({a.type})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-
-                  </div>
-
-                  {/* Right Column: Financial Ledger Reckoning (6 cols) */}
-                  <div className="lg:col-span-6 space-y-3.5 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                    
-                    {/* Additional Charges & Discounts Action Links */}
-                    <div className="flex items-center justify-between text-xs font-bold text-[#174B43]">
-                      <button
-                        type="button"
-                        onClick={() => setShowAdditionalCharges((prev) => !prev)}
-                        className="hover:text-[#26A58A] cursor-pointer"
-                      >
-                        {showAdditionalCharges ? "✕ Hide Additional Charges" : "+ Add Additional Charges"}
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setShowOverallDiscount((prev) => !prev)}
-                        className="hover:text-[#26A58A] cursor-pointer"
-                      >
-                        {showOverallDiscount ? "✕ Remove Discount" : "+ Overall Discount"}
-                      </button>
-                    </div>
-
-                    {/* Additional Charges Input Box */}
-                    {showAdditionalCharges && (
-                      <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-2 text-xs">
-                        <input
-                          type="text"
-                          placeholder="Charge (e.g. Freight)"
-                          value={additionalChargeType}
-                          onChange={(e) => setAdditionalChargeType(e.target.value)}
-                          className="flex-1 text-xs p-1.5 bg-white border border-slate-200 rounded-lg"
-                        />
-                        <div className="flex items-center bg-white border border-slate-200 rounded-lg px-2 py-1 w-24">
-                          <span className="text-slate-400 font-bold">₹</span>
-                          <input
-                            type="number"
-                            min="0"
-                            value={additionalChargeAmount}
-                            onChange={(e) => setAdditionalChargeAmount(Number(e.target.value) || "")}
-                            className="w-full text-xs text-right bg-transparent font-mono font-bold focus:outline-none"
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Overall Discount Input Box */}
-                    {showOverallDiscount && (
-                      <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-3 text-xs">
-                        <span className="font-semibold text-slate-700">Overall Discount</span>
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center bg-white border border-slate-200 rounded-lg px-2 py-1 w-24">
-                            <span className="text-slate-400 text-xs mr-1">{overallDiscountType}</span>
-                            <input
-                              type="number"
-                              min="0"
-                              value={overallDiscountAmount}
-                              onChange={(e) => setOverallDiscountAmount(Number(e.target.value) || "")}
-                              placeholder="0"
-                              className="w-full text-xs text-right font-mono font-bold focus:outline-none"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Line Items Subtotal & Tax Breakdown Ledger */}
-                    <div className="pt-2 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
-                      <div className="flex justify-between items-center">
-                        <span>Gross Subtotal</span>
-                        <span className="font-mono font-semibold text-slate-800">{formatInr(totals.grossSubtotal)}</span>
-                      </div>
-
-                      {totals.totalDiscount > 0 && (
-                        <div className="flex justify-between items-center text-rose-600 font-medium">
-                          <span>Total Discount</span>
-                          <span className="font-mono">-{formatInr(totals.totalDiscount)}</span>
-                        </div>
-                      )}
-
-                      {/* GST Tax Breakdown */}
-                      <div className="pt-1 border-t border-slate-100">
-                        {!isInterState ? (
-                          <div className="space-y-1">
-                            <div className="flex justify-between items-center text-slate-500 text-[11px]">
-                              <span>CGST (Central Tax)</span>
-                              <span className="font-mono font-medium">{formatInr(totals.totalCgst)}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-slate-500 text-[11px]">
-                              <span>SGST (State Tax)</span>
-                              <span className="font-mono font-medium">{formatInr(totals.totalSgst)}</span>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex justify-between items-center text-slate-500 text-[11px]">
-                            <span>IGST (Integrated Tax)</span>
-                            <span className="font-mono font-medium">{formatInr(totals.totalIgst)}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {totals.roundOff !== 0 && (
-                        <div className="flex justify-between items-center text-[11px] text-slate-400 pt-1">
-                          <span>Round Off</span>
-                          <span className="font-mono">{totals.roundOff > 0 ? `+${totals.roundOff.toFixed(2)}` : totals.roundOff.toFixed(2)}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Grand Total Hero Banner */}
-                    <div className="p-4 rounded-xl bg-gradient-to-r from-[#174B43] to-[#26A58A] text-white flex items-center justify-between shadow-md">
-                      <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-200 block">
-                          Grand Total (INR)
-                        </span>
-                        <span className="text-xl sm:text-2xl font-black font-mono tracking-tight">
-                          {formatInr(totals.grandTotal)}
-                        </span>
-                      </div>
-                      <div className="text-right text-[11px] text-emerald-100">
-                        <span>All Taxes Included</span>
-                      </div>
-                    </div>
-
-                  </div>
-
+                  <DocumentAdditionalInfoCard
+                    transportMode={transportMode}
+                    onTransportModeChange={setTransportMode}
+                    vehicleNo={vehicleNo}
+                    onVehicleNoChange={setVehicleNo}
+                    ewayBillNo={ewayBillNo}
+                    onEwayBillNoChange={setEwayBillNo}
+                    dispatchDate={dispatchDate}
+                    onDispatchDateChange={setDispatchDate}
+                  />
                 </div>
               </div>
 
-              {/* ZONE 5: INTEGRATED SETTLEMENT STRIP */}
-              <div className="px-6 py-4 bg-[#FAFBF7] flex flex-wrap items-center justify-between gap-4">
-                <div className="flex flex-wrap items-center gap-4">
-                  {/* Amount Paid Input */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-700">Amount Paid:</span>
-                    <div className="flex items-center bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 w-32 shadow-2xs">
-                      <span className="text-slate-400 font-bold text-xs mr-1">₹</span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="any"
-                        value={paidAmount}
-                        onChange={(e) => setPaidAmount(Number(e.target.value) || 0)}
-                        className="w-full text-xs font-mono font-bold text-slate-900 focus:outline-none"
-                      />
-                    </div>
-                  </div>
+              {/* Right Column (4 cols): Summary Card + Payment Card */}
+              <div className="lg:col-span-4 space-y-5">
+                <DocumentSummaryCard
+                  title="Purchase Summary"
+                  subtotal={totals.totalTaxable}
+                  discount={totals.totalDiscount > 0 ? totals.totalDiscount : undefined}
+                  cgst={!isInterState ? totals.totalCgst : undefined}
+                  sgst={!isInterState ? totals.totalSgst : undefined}
+                  igst={isInterState ? totals.totalIgst : undefined}
+                  roundOff={totals.roundOff !== 0 ? totals.roundOff : undefined}
+                  grandTotal={totals.grandTotal}
+                />
 
-                  {/* Mark Paid in Full button */}
-                  <button
-                    type="button"
-                    onClick={() => setPaidAmount(totals.grandTotal)}
-                    className="px-2.5 py-1.5 bg-white border border-slate-200 hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-xs font-semibold text-[#174B43] rounded-lg transition-colors shadow-2xs cursor-pointer"
-                  >
-                    Paid in Full
-                  </button>
-
-                  {/* Payment Mode Pills */}
-                  <div className="flex items-center bg-slate-200/70 p-0.5 rounded-lg text-xs">
-                    {(["CASH", "BANK", "UPI", "CHEQUE"]).map((mode) => (
-                      <button
-                        key={mode}
-                        type="button"
-                        onClick={() => setPaymentMode(mode as any)}
-                        className={`px-2.5 py-1 rounded-md text-[11px] font-bold capitalize transition-all cursor-pointer ${
-                          paymentMode === mode
-                            ? "bg-white text-[#174B43] shadow-xs"
-                            : "text-slate-600 hover:text-slate-900"
-                        }`}
-                      >
-                        {mode.replace("_", " ")}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Balance Due Status Badge */}
-                <div className="flex items-center gap-3">
-                  <div className={`px-3 py-1.5 rounded-xl border flex items-center gap-2 text-xs font-bold ${
-                    balanceDue === 0
-                      ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-                      : "bg-amber-50 border-amber-200 text-amber-900"
-                  }`}>
-                    <span>{balanceDue === 0 ? "✓ Settled in Full" : "⏳ Balance Due:"}</span>
-                    <span className="font-mono font-black">{formatInr(balanceDue)}</span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            {/* FLOATING ACTION DOCK (Persistent at Bottom of Screen) */}
-            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 w-full max-w-4xl px-4">
-              <div className="bg-slate-900/95 backdrop-blur-md text-white rounded-2xl p-3 px-5 shadow-2xl border border-slate-800 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-4 text-xs">
-                  <span className="text-slate-400">
-                    Items: <strong className="text-white font-mono">{rows.length}</strong>
-                  </span>
-                  <span className="text-slate-600">|</span>
-                  <span>
-                    Total: <strong className="text-emerald-400 font-mono text-sm">{formatInr(totals.grandTotal)}</strong>
-                  </span>
-                  <span className="text-slate-600">|</span>
-                  <span className={balanceDue === 0 ? "text-emerald-400 font-semibold" : "text-amber-400 font-semibold"}>
-                    {balanceDue === 0 ? "✓ Paid in Full" : `Due: ${formatInr(balanceDue)}`}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleSubmit(true)}
-                    disabled={isSubmitting || isLoading}
-                    className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl transition-all cursor-pointer disabled:opacity-50"
-                  >
-                    Save & New
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleSubmit(false)}
-                    disabled={isSubmitting || isLoading}
-                    className="px-5 py-1.5 bg-gradient-to-r from-[#174B43] to-[#26A58A] hover:from-[#133E37] hover:to-[#208E76] text-white font-bold text-xs rounded-xl shadow-lg transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>Saving...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>✓ Save Purchase Bill</span>
-                        <span className="text-[10px] text-emerald-200 font-normal hidden sm:inline">(Ctrl+S)</span>
-                      </>
-                    )}
-                  </button>
-                </div>
+                <DocumentPaymentCard
+                  amountReceived={paymentStatus === "PAID_FULL" ? totals.grandTotal : (Number(paidAmount) || 0)}
+                  onAmountReceivedChange={(val) => {
+                    setPaymentStatus("PARTIAL_PAID");
+                    setPaidAmount(val === "" ? 0 : val);
+                  }}
+                  paymentMode={paymentMode}
+                  onPaymentModeChange={setPaymentMode}
+                  balanceDue={balanceDue}
+                  onPaidInFull={() => {
+                    setPaymentStatus("PAID_FULL");
+                    setPaidAmount(totals.grandTotal);
+                  }}
+                />
               </div>
             </div>
+
+            {/* STICKY BOTTOM ACTION BAR */}
+            <DocumentBottomBar
+              totalItems={rows.length}
+              totalAmount={totals.grandTotal}
+              onSaveAsDraft={() => handleSubmit(true)}
+              onSave={() => handleSubmit(false)}
+              isSaving={isSubmitting}
+              saveButtonLabel="Save Purchase Bill"
+              backHref="/purchases"
+            />
           </div>
 
-          )}
+        )}
         </main>
       </div>
 
