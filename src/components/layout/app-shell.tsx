@@ -1139,16 +1139,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         type="button"
                         onClick={() => toggleSection(section.id)}
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${hasActiveChild
-                            ? "text-white font-bold shadow-xs bg-[#26A58A]"
+                            ? "text-white font-semibold bg-white/10 border-l-2 border-[#26A58A]"
                             : "text-[#C4DBD6] hover:text-white hover:bg-white/10"
                           }`}
-                        style={{ backgroundColor: hasActiveChild ? ACTIVE_MENU_BG : undefined, color: hasActiveChild ? TEXT_COLOR : undefined }}
                         title={section.name}
                       >
                         <div className="flex items-center gap-3 truncate">
                           <span
                             className={
-                              hasActiveChild ? "text-white" : "text-slate-400"
+                              hasActiveChild ? "text-[#85D5C2]" : "text-slate-400"
                             }
                           >
                             {section.icon}
@@ -1331,7 +1330,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
           </header>
         ) : (
-          <header className="shrink-0 h-16 sm:h-18 bg-white border-b border-[#E5E7EB] px-3 sm:px-6 flex items-center justify-between z-20 shadow-xs max-w-full min-w-0 print:hidden">
+          <header className="shrink-0 h-14 sm:h-15 bg-white border-b border-[#E2E8E5] px-3 sm:px-6 flex items-center justify-between z-20 shadow-xs max-w-full min-w-0 print:hidden">
             {/* Left: Active Company/Branch Context & Brand Logo */}
             <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
               {/* Menu Drawer Toggle Button (Visible on mobile, and on desktop when sidebar is hidden) */}
@@ -1382,20 +1381,41 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 )}
 
                 {/* Financial Year Tag */}
-                <span className="text-xs sm:text-[13px] font-mono font-bold text-[#4B5563] bg-[#F3F4F6] px-2.5 py-1 rounded-md border border-[#E5E7EB] hidden lg:inline whitespace-nowrap">
+                <span className="text-xs sm:text-[12px] font-mono font-bold text-[#3B4D47] bg-[#EDF3F1] px-2.5 py-1 rounded-md border border-[#D5E4DF] hidden lg:inline whitespace-nowrap">
                   {currentFY?.name || "FY 2026-27"}
                 </span>
+
+                {/* Dynamic Breadcrumbs for clear situational context */}
+                <div className="hidden xl:flex items-center gap-1.5 text-xs text-slate-400 pl-3 border-l border-slate-200">
+                  <span className="hover:text-slate-600 transition-colors">App</span>
+                  <span>/</span>
+                  <span className="font-bold text-[#174B43] capitalize">
+                    {pathname === "/"
+                      ? "Dashboard"
+                      : pathname
+                          .split("/")
+                          .filter(Boolean)
+                          .slice(-2)
+                          .join(" / ")
+                          .replace(/-/g, " ")}
+                  </span>
+                </div>
               </div>
             </div>
 
             {/* Right: Quick Action, Language Toggle & User/Logout */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto pl-1 sm:pl-2">
 
-              {/* Primary Action Button: Create Bill (hidden if already on new bill page) */}
-              {pathname !== "/sales/invoices/new" && (
+              {/* Quick Create Bill (shown only when NOT already on pages that have their own prominent creation CTAs) */}
+              {!pathname.startsWith("/sales/invoices") &&
+                !pathname.startsWith("/purchases") &&
+                !pathname.startsWith("/sales/quotations") &&
+                !pathname.startsWith("/sales/pos") &&
+                !pathname.includes("/new") &&
+                !pathname.includes("/edit") && (
                 <Link
                   href="/sales/invoices/new"
-                  className="flex items-center gap-1.5 sm:gap-2 py-2 px-3 sm:px-4.5 text-white rounded-xl text-xs sm:text-[14px] font-bold shadow-xs transition-all shrink-0 whitespace-nowrap active:scale-95 bg-[#26A58A] hover:bg-[#208E76]"
+                  className="flex items-center gap-1.5 sm:gap-2 py-1.5 px-3 sm:px-4 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs transition-all shrink-0 whitespace-nowrap active:scale-95 bg-[#26A58A] hover:bg-[#208E76]"
                   title={
                     lang === "gu" ? "નવું વેચાણ બિલ (F2)" : "Create New Bill (F2)"
                   }
@@ -1418,9 +1438,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       d="M12 4v16m8-8H4"
                     />
                   </svg>
-                  {/* Short label on mobile screens, full label on tablets and desktop */}
                   <span className="hidden sm:inline font-bold">
-                    {lang === "gu" ? "નવું બિલ બનાવો" : "Create New Bill"}
+                    {lang === "gu" ? "નવું બિલ" : "Create Bill"}
                   </span>
                   <span className="inline sm:hidden font-bold">
                     {lang === "gu" ? "બિલ" : "Bill"}
