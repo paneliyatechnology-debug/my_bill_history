@@ -514,7 +514,7 @@ export function ReportsDashboard({
                     onClick={() => onSelectReport(report.tabId)}
                     className="group flex items-center justify-between px-5 py-2.5 hover:bg-[#F8FAFC] transition-colors cursor-pointer"
                   >
-                    <span className="text-[13px] font-normal text-[#1E293B] group-hover:text-[#4F46E5] transition-colors truncate pr-2">
+                    <span className="text-[13px] font-normal text-[#1E293B] group-hover:text-[#174B43] transition-colors truncate pr-2">
                       {report.name}
                     </span>
 
@@ -566,7 +566,7 @@ export function ReportsDashboard({
             <button
               type="button"
               onClick={() => toggleSection(sectionKey)}
-              className="text-xs font-semibold text-[#4F46E5] hover:text-[#4338CA] flex items-center gap-1 cursor-pointer"
+              className="text-xs font-semibold text-[#174B43] hover:text-[#123B35] flex items-center gap-1 cursor-pointer"
             >
               <span>{isExpanded ? "See less" : "See more"}</span>
               <span>{isExpanded ? "^" : "v"}</span>
@@ -588,7 +588,7 @@ export function ReportsDashboard({
         <button
           type="button"
           onClick={onOpenCaSharing}
-          className="px-4 py-2 bg-[#4338CA] hover:bg-[#3730A3] text-white text-xs sm:text-sm font-semibold rounded-md shadow-2xs transition-colors flex items-center gap-2 active:scale-95 cursor-pointer"
+          className="px-4 py-2 bg-[#123B35] hover:bg-[#0F322C] text-white text-xs sm:text-sm font-semibold rounded-md shadow-2xs transition-colors flex items-center gap-2 active:scale-95 cursor-pointer"
         >
           <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
@@ -630,7 +630,7 @@ export function ReportsDashboard({
           <button
             type="button"
             onClick={() => setActiveFilter(null)}
-            className="text-xs text-[#4F46E5] hover:underline ml-1 font-medium cursor-pointer"
+            className="text-xs text-[#174B43] hover:underline ml-1 font-medium cursor-pointer"
           >
             Clear Filter
           </button>
@@ -776,10 +776,10 @@ export function ReportsDashboard({
                       setSearchModalOpen(false);
                       onSelectReport(r.tabId);
                     }}
-                    className="flex items-center justify-between px-3 py-2.5 hover:bg-indigo-50/60 rounded-xl cursor-pointer group transition-colors"
+                    className="flex items-center justify-between px-3 py-2.5 hover:bg-teal-50/60 rounded-xl cursor-pointer group transition-colors"
                   >
                     <div>
-                      <p className="text-xs font-semibold text-slate-800 group-hover:text-indigo-600">
+                      <p className="text-xs font-semibold text-slate-800 group-hover:text-teal-600">
                         {r.name}
                       </p>
                       <p className="text-[10px] text-slate-400 truncate max-w-sm">

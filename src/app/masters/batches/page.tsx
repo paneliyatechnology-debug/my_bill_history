@@ -487,7 +487,7 @@ export default function BatchesPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-[#F47721] hover:bg-[#D95F12] disabled:bg-[#F47721]/50 rounded-lg shadow-sm transition-colors"
+              className="px-5 py-2 text-xs font-semibold text-white bg-[#174B43] hover:bg-[#123B35] disabled:bg-[#174B43]/50 rounded-lg shadow-sm transition-colors"
             >
               {isSubmitting
                 ? lang === "gu"

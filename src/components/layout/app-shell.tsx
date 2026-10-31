@@ -9,6 +9,7 @@ import { CompanySwitcher } from "../tenants/company-switcher";
 import { WaveBackground } from "../ui/wave-background";
 import { BrandLogo } from "../ui/brand-logo";
 import { SettingsSidebar } from "../settings/settings-sidebar";
+import { WorkspaceErrorState } from "../ui/workspace-error-state";
 const SIDEBAR_BG = "#174B43";
 const ACTIVE_MENU_BG = "#26A58A";
 const TEXT_COLOR = "#FFFFFF";
@@ -242,61 +243,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     companies.length === 0
   ) {
     return (
-      <div
-        className="h-full min-h-[100dvh] w-full bg-[#F6F7F1] flex flex-col items-center justify-center p-6 text-center"
-        style={{
-          minHeight: "100vh",
-          backgroundColor: "#F6F7F1",
-          fontFamily: "var(--font-inter), sans-serif",
-        }}
-      >
-        <div
-          className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 font-bold text-2xl mb-4 shadow-sm"
-          style={{
-            width: "4rem",
-            height: "4rem",
-            borderRadius: "1rem",
-            backgroundColor: "#FFFBEB",
-          }}
-        >
-          ⚠️
-        </div>
-        <h2 className="text-xl font-bold text-[#202124] tracking-tight">
-          {lang === "gu"
-            ? "વર્કસ્પેસ લોડ કરવામાં સમસ્યા"
-            : "Unable to Load Workspace"}
-        </h2>
-        <p className="text-xs text-[#667085] mt-1.5 max-w-md">
-          {workspaceError}
-        </p>
-        <div className="flex items-center gap-3 mt-6">
-          <button
-            onClick={() => retryWorkspace()}
-            className="py-2.5 px-5 bg-[#C24E1D] hover:bg-[#D95F12] active:bg-[#B94B0A] text-white rounded-xl text-xs font-bold transition-all shadow-saffron"
-            style={{
-              backgroundColor: "#C24E1D",
-              color: "#FFFFFF",
-              padding: "10px 20px",
-              borderRadius: "12px",
-              fontWeight: "bold",
-            }}
-          >
-            {lang === "gu" ? "પુનઃ પ્રયાસ કરો (Retry)" : "Retry Connection"}
-          </button>
-          <button
-            onClick={() => logout()}
-            className="py-2.5 px-5 bg-white border border-[#E5E7EB] hover:bg-slate-50 text-[#344054] rounded-xl text-xs font-semibold transition-all"
-            style={{
-              backgroundColor: "#FFFFFF",
-              border: "1px solid #E5E7EB",
-              padding: "10px 20px",
-              borderRadius: "12px",
-            }}
-          >
-            {lang === "gu" ? "લોગિન પર પાછા જાઓ" : "Return to Login"}
-          </button>
-        </div>
-      </div>
+      <WorkspaceErrorState
+        errorMessage={workspaceError}
+        onRetry={() => retryWorkspace()}
+        onLogout={() => logout()}
+        lang={lang}
+        onToggleLang={setLang}
+      />
     );
   }
 

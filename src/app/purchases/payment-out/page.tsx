@@ -392,7 +392,7 @@ export default function PaymentOutDashboardPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={lang === "gu" ? "શોધો પાર્ટી અથવા નંબર..." : "Search party or voucher #..."}
-              className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none transition-colors"
+              className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-teal-500 focus:outline-none transition-colors"
             />
             {searchQuery && (
               <button
@@ -442,7 +442,7 @@ export default function PaymentOutDashboardPage() {
                         if (key !== "CUSTOM") setIsDatePickerOpen(false);
                       }}
                       className={`flex w-full items-center justify-between px-3 py-2 text-left hover:bg-slate-50 ${
-                        dateRangePreset === key ? "font-semibold text-[#4F46E5] bg-indigo-50/50" : "text-slate-700"
+                        dateRangePreset === key ? "font-semibold text-[#174B43] bg-teal-50/50" : "text-slate-700"
                       }`}
                     >
                       <span>{label}</span>
@@ -474,7 +474,7 @@ export default function PaymentOutDashboardPage() {
                     <button
                       type="button"
                       onClick={() => setIsDatePickerOpen(false)}
-                      className="w-full mt-1 rounded bg-[#4F46E5] py-1 text-center font-semibold text-white"
+                      className="w-full mt-1 rounded bg-[#174B43] py-1 text-center font-semibold text-white"
                     >
                       Apply
                     </button>

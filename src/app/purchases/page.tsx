@@ -764,7 +764,7 @@ export default function PurchasesPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search..."
-              className="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all placeholder:text-slate-400 shadow-2xs"
+              className="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 transition-all placeholder:text-slate-400 shadow-2xs"
             />
             {searchQuery && (
               <button
@@ -821,7 +821,7 @@ export default function PurchasesPage() {
                     }}
                     className={`w-full text-left px-3 py-1.5 transition-colors flex items-center justify-between cursor-pointer ${
                       dateRangePreset === key
-                        ? "bg-indigo-50 text-[#4f46e5] font-semibold"
+                        ? "bg-teal-50 text-[#4f46e5] font-semibold"
                         : "text-slate-700 hover:bg-slate-50"
                     }`}
                   >
@@ -930,7 +930,7 @@ export default function PurchasesPage() {
               {isLoading ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <div className="inline-block animate-spin rounded-full h-7 w-7 border-2 border-indigo-600 border-t-transparent" />
+                    <div className="inline-block animate-spin rounded-full h-7 w-7 border-2 border-teal-600 border-t-transparent" />
                     <p className="mt-2 text-xs font-semibold text-slate-500">
                       Loading purchase bills...
                     </p>
@@ -1047,7 +1047,7 @@ export default function PurchasesPage() {
                           >
                             <Link
                               href={`/purchases/invoices/${inv.id}`}
-                              className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                              className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-teal-50 hover:text-teal-600 transition-colors"
                             >
                               <span>👁️</span>
                               <span>View Bill</span>
@@ -1066,7 +1066,7 @@ export default function PurchasesPage() {
 
                             <Link
                               href={`/purchases/invoices/${inv.id}`}
-                              className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                              className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-teal-50 hover:text-teal-600 transition-colors"
                             >
                               <span>✏️</span>
                               <span>Edit Details</span>
@@ -1075,7 +1075,7 @@ export default function PurchasesPage() {
                             <button
                               type="button"
                               onClick={() => handleDuplicatePurchase(inv)}
-                              className="w-full text-left flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors cursor-pointer"
+                              className="w-full text-left flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-teal-50 hover:text-teal-600 transition-colors cursor-pointer"
                             >
                               <span>📋</span>
                               <span>Duplicate Bill</span>
@@ -1354,7 +1354,7 @@ export default function PurchasesPage() {
                   type="number"
                   step="0.01"
                   required
-                  className="mt-1 w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm font-mono font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="mt-1 w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm font-mono font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none"
                   value={payAmount}
                   onChange={(e) => setPayAmount(e.target.value)}
                 />
@@ -1365,7 +1365,7 @@ export default function PurchasesPage() {
                 <input
                   type="date"
                   required
-                  className="mt-1 w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="mt-1 w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none"
                   value={payDate}
                   onChange={(e) => setPayDate(e.target.value)}
                 />
@@ -1374,7 +1374,7 @@ export default function PurchasesPage() {
               <label className="text-slate-600 font-semibold">
                 Payment Mode
                 <select
-                  className="mt-1 w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="mt-1 w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none"
                   value={payMode}
                   onChange={(e) => setPayMode(e.target.value)}
                 >
@@ -1388,7 +1388,7 @@ export default function PurchasesPage() {
               <label className="text-slate-600 font-semibold">
                 Paid From Account
                 <select
-                  className="mt-1 w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="mt-1 w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none"
                   value={payAccountId}
                   onChange={(e) => setPayAccountId(e.target.value)}
                 >
@@ -1405,7 +1405,7 @@ export default function PurchasesPage() {
             <label className="block text-xs text-slate-600 font-semibold">
               Reference / UTR / Cheque No.
               <input
-                className="mt-1 w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                className="mt-1 w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none"
                 value={payReference}
                 onChange={(e) => setPayReference(e.target.value)}
                 placeholder="e.g. UTR-9928120"
@@ -1415,7 +1415,7 @@ export default function PurchasesPage() {
             <label className="block text-xs text-slate-600 font-semibold">
               Notes
               <input
-                className="mt-1 w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                className="mt-1 w-full border border-slate-300 rounded-lg px-2.5 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none"
                 value={payNotes}
                 onChange={(e) => setPayNotes(e.target.value)}
                 placeholder="e.g. Paid in full against supplier voucher"

@@ -637,9 +637,9 @@ export default function ExpensesPage() {
           <div className="relative" ref={reportsMenuRef}>
             <button
               onClick={() => setIsReportsMenuOpen(!isReportsMenuOpen)}
-              className="px-3.5 py-2 bg-white hover:bg-slate-50 text-indigo-600 font-semibold text-xs rounded-lg border border-indigo-200 shadow-sm flex items-center gap-1.5 transition-all"
+              className="px-3.5 py-2 bg-white hover:bg-slate-50 text-teal-600 font-semibold text-xs rounded-lg border border-teal-200 shadow-sm flex items-center gap-1.5 transition-all"
             >
-              <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               <span>Reports</span>
@@ -722,8 +722,8 @@ export default function ExpensesPage() {
           {/* Primary Create Expense Button */}
           <Link
             href="/finance/expenses/create"
-            className="px-5 py-2.5 bg-[#4F46E5] hover:bg-[#4338CA] active:bg-[#3730A3] text-white font-bold text-xs rounded-lg shadow-md transition-all flex items-center gap-1.5"
-            style={{ backgroundColor: "#4F46E5" }}
+            className="px-5 py-2.5 bg-[#174B43] hover:bg-[#123B35] active:bg-[#0F322C] text-white font-bold text-xs rounded-lg shadow-md transition-all flex items-center gap-1.5"
+            style={{ backgroundColor: "#174B43" }}
           >
             <span>Create Expense</span>
           </Link>
@@ -748,7 +748,7 @@ export default function ExpensesPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by Party or Expense No..."
-              className="w-full pl-10 pr-4 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all"
+              className="w-full pl-10 pr-4 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-teal-100 focus:border-teal-500 outline-none transition-all"
             />
           </div>
 
@@ -757,7 +757,7 @@ export default function ExpensesPage() {
             <select
               value={dateRangeFilter}
               onChange={(e: any) => setDateRangeFilter(e.target.value)}
-              className="w-full sm:w-auto text-xs py-2 pl-8 pr-8 bg-white border border-slate-200 rounded-lg font-semibold text-slate-700 outline-none hover:border-slate-300 focus:ring-2 focus:ring-indigo-100 cursor-pointer appearance-none"
+              className="w-full sm:w-auto text-xs py-2 pl-8 pr-8 bg-white border border-slate-200 rounded-lg font-semibold text-slate-700 outline-none hover:border-slate-300 focus:ring-2 focus:ring-teal-100 cursor-pointer appearance-none"
             >
               <option value="LAST_365">Last 365 Days</option>
               <option value="TODAY">Today</option>
@@ -781,7 +781,7 @@ export default function ExpensesPage() {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full sm:w-auto text-xs py-2 px-3 pr-8 bg-white border border-slate-200 rounded-lg font-semibold text-slate-700 outline-none hover:border-slate-300 focus:ring-2 focus:ring-indigo-100 cursor-pointer appearance-none"
+              className="w-full sm:w-auto text-xs py-2 px-3 pr-8 bg-white border border-slate-200 rounded-lg font-semibold text-slate-700 outline-none hover:border-slate-300 focus:ring-2 focus:ring-teal-100 cursor-pointer appearance-none"
             >
               <option value="ALL">All Expenses Categories</option>
               {allCategories.map((cat) => (
@@ -800,8 +800,8 @@ export default function ExpensesPage() {
         {/* <div className="w-full md:w-auto hidden sm:block">
           <Link
             href="/finance/expenses/create"
-            className="px-5 py-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white font-bold text-xs rounded-lg shadow-sm transition-all flex items-center justify-center gap-1.5"
-            style={{ backgroundColor: "#4F46E5" }}
+            className="px-5 py-2 bg-[#174B43] hover:bg-[#123B35] text-white font-bold text-xs rounded-lg shadow-sm transition-all flex items-center justify-center gap-1.5"
+            style={{ backgroundColor: "#174B43" }}
           >
             Create Expense
           </Link>
@@ -812,7 +812,7 @@ export default function ExpensesPage() {
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden min-h-[460px] flex flex-col justify-between">
         {isLoading ? (
           <div className="py-24 text-center">
-            <div className="inline-block animate-spin w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full mb-3"></div>
+            <div className="inline-block animate-spin w-8 h-8 border-3 border-teal-600 border-t-transparent rounded-full mb-3"></div>
             <p className="text-xs font-semibold text-slate-500">Loading expenses...</p>
           </div>
         ) : error ? (
@@ -856,8 +856,8 @@ export default function ExpensesPage() {
 
             <Link
               href="/finance/expenses/create"
-              className="px-5 py-2.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white font-bold text-xs rounded-lg shadow-sm transition-all"
-              style={{ backgroundColor: "#4F46E5" }}
+              className="px-5 py-2.5 bg-[#174B43] hover:bg-[#123B35] text-white font-bold text-xs rounded-lg shadow-sm transition-all"
+              style={{ backgroundColor: "#174B43" }}
             >
               + Create Expense
             </Link>
@@ -878,7 +878,7 @@ export default function ExpensesPage() {
                           setSortAsc(false);
                         }
                       }}
-                      className="py-3 px-4 cursor-pointer hover:text-indigo-600 select-none w-36"
+                      className="py-3 px-4 cursor-pointer hover:text-teal-600 select-none w-36"
                     >
                       <div className="flex items-center gap-1">
                         <span>Date</span>
@@ -896,7 +896,7 @@ export default function ExpensesPage() {
                           setSortAsc(false);
                         }
                       }}
-                      className="py-3 px-4 text-right cursor-pointer hover:text-indigo-600 select-none w-36"
+                      className="py-3 px-4 text-right cursor-pointer hover:text-teal-600 select-none w-36"
                     >
                       <div className="flex items-center justify-end gap-1">
                         <span>Amount</span>
@@ -1120,8 +1120,8 @@ export default function ExpensesPage() {
       <div className="fixed bottom-6 right-6 block md:hidden z-30">
         <Link
           href="/finance/expenses/create"
-          className="w-14 h-14 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-full shadow-2xl flex items-center justify-center text-2xl font-bold"
-          style={{ backgroundColor: "#4F46E5" }}
+          className="w-14 h-14 bg-[#174B43] hover:bg-[#123B35] text-white rounded-full shadow-2xl flex items-center justify-center text-2xl font-bold"
+          style={{ backgroundColor: "#174B43" }}
         >
           +
         </Link>
@@ -1174,7 +1174,7 @@ export default function ExpensesPage() {
                       setCategoryModalMode("add");
                       setNewCategoryNameInput("");
                     }}
-                    className="w-full py-2.5 border border-dashed border-[#4F46E5] text-[#4F46E5] hover:bg-indigo-50/60 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+                    className="w-full py-2.5 border border-dashed border-[#174B43] text-[#174B43] hover:bg-teal-50/60 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
                   >
                     <span>+</span>
                     <span>New Expense Category</span>
@@ -1241,7 +1241,7 @@ export default function ExpensesPage() {
                       value={newCategoryNameInput}
                       onChange={(e) => setNewCategoryNameInput(e.target.value)}
                       placeholder="e.g. Courier & Postage"
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:bg-white focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
                     />
                   </div>
 
@@ -1256,7 +1256,7 @@ export default function ExpensesPage() {
                     <button
                       type="button"
                       onClick={handleSaveCategoryModal}
-                      className="px-5 py-2 text-xs font-bold text-white bg-[#4F46E5] hover:bg-[#4338CA] rounded-xl shadow-md transition-all"
+                      className="px-5 py-2 text-xs font-bold text-white bg-[#174B43] hover:bg-[#123B35] rounded-xl shadow-md transition-all"
                     >
                       {categoryModalMode === "add" ? "Add Category" : "Update Category"}
                     </button>
@@ -1291,7 +1291,7 @@ export default function ExpensesPage() {
                   </div>
                   <div>
                     <span className="text-[10px] text-slate-400 font-bold block uppercase">Category</span>
-                    <span className="font-bold text-indigo-700">{d.categoryName}</span>
+                    <span className="font-bold text-teal-700">{d.categoryName}</span>
                   </div>
                   <div>
                     <span className="text-[10px] text-slate-400 font-bold block uppercase">Party</span>
@@ -1306,7 +1306,7 @@ export default function ExpensesPage() {
                 </div>
 
                 {selectedVoucher.referenceNo && (
-                  <div className="p-3 bg-indigo-50/50 border border-indigo-100 rounded-lg">
+                  <div className="p-3 bg-teal-50/50 border border-teal-100 rounded-lg">
                     <span className="font-semibold text-indigo-900">Original Invoice / Ref No:</span>{" "}
                     <span className="font-mono">{selectedVoucher.referenceNo}</span>
                   </div>
@@ -1362,7 +1362,7 @@ export default function ExpensesPage() {
                 <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
                   <button
                     onClick={() => handleDownloadVoucherReceipt(selectedVoucher)}
-                    className="px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold rounded-lg transition-colors flex items-center gap-1.5"
+                    className="px-4 py-2 bg-teal-50 text-teal-700 hover:bg-teal-100 font-semibold rounded-lg transition-colors flex items-center gap-1.5"
                   >
                     <span>📄</span>
                     <span>Download PDF Receipt</span>

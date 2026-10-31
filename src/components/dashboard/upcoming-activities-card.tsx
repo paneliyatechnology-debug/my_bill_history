@@ -51,7 +51,7 @@ export function UpcomingActivitiesCard({
 
         <Link
           href="/reports?tab=outstanding"
-          className="text-xs font-semibold text-[#F47721] hover:text-[#D95F12] flex items-center gap-1 hover:underline shrink-0"
+          className="text-xs font-semibold text-[#174B43] hover:text-[#123B35] flex items-center gap-1 hover:underline shrink-0"
         >
           <span>{lang === "gu" ? "બધા જુઓ" : "View All"}</span>
           <span aria-hidden="true">&rarr;</span>
@@ -79,7 +79,7 @@ export function UpcomingActivitiesCard({
                 </svg>
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-xs font-semibold text-[#111827] truncate group-hover:text-[#F47721] transition-colors">
+                <div className="text-xs font-semibold text-[#111827] truncate group-hover:text-[#174B43] transition-colors">
                   {lang === "gu" ? "ઓછો સ્ટોક ચેતવણી" : "Low Stock Alert"}
                 </div>
                 <div className="text-[11px] text-[#6B7280] truncate">
@@ -116,7 +116,7 @@ export function UpcomingActivitiesCard({
                 </svg>
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-xs font-semibold text-[#111827] truncate group-hover:text-[#F47721] transition-colors">
+                <div className="text-xs font-semibold text-[#111827] truncate group-hover:text-[#174B43] transition-colors">
                   {lang === "gu" ? "ચુકવણી બાકી (Due)" : "Payment Due"}
                 </div>
                 <div className="text-[11px] text-[#6B7280] truncate">
@@ -153,7 +153,7 @@ export function UpcomingActivitiesCard({
                 </svg>
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-xs font-semibold text-[#111827] truncate group-hover:text-[#F47721] transition-colors">
+                <div className="text-xs font-semibold text-[#111827] truncate group-hover:text-[#174B43] transition-colors">
                   {lang === "gu" ? "ખરીદી ઓર્ડર બાકી" : "Purchase Order Pending"}
                 </div>
                 <div className="text-[11px] text-[#6B7280] truncate">

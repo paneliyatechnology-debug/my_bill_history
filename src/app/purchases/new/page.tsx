@@ -1715,7 +1715,7 @@ function NewPurchaseInvoiceContent() {
               type="button"
               disabled={isSubmitting || isLoading}
               onClick={() => handleSubmit(false)}
-              className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#F47721] hover:bg-[#E06410] active:bg-[#C2410C] text-white text-xs font-bold rounded-xl shadow-xs transition-all disabled:opacity-50 active:scale-95 shrink-0"
+              className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#174B43] hover:bg-[#123B35] active:bg-[#C2410C] text-white text-xs font-bold rounded-xl shadow-xs transition-all disabled:opacity-50 active:scale-95 shrink-0"
             >
               {isSubmitting ? (
                 <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -1736,7 +1736,7 @@ function NewPurchaseInvoiceContent() {
                 type="button"
                 onClick={() => setActiveMode("EDIT")}
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${activeMode === "EDIT"
-                    ? "bg-white text-[#F47721] shadow-2xs border border-[#FED7AA]"
+                    ? "bg-white text-[#174B43] shadow-2xs border border-[#BCEADF]"
                     : "text-[#6B7280]"
                   }`}
               >
@@ -1746,7 +1746,7 @@ function NewPurchaseInvoiceContent() {
                 type="button"
                 onClick={() => setActiveMode("PREVIEW")}
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${activeMode === "PREVIEW"
-                    ? "bg-white text-[#F47721] shadow-2xs border border-[#FED7AA]"
+                    ? "bg-white text-[#174B43] shadow-2xs border border-[#BCEADF]"
                     : "text-[#6B7280]"
                   }`}
               >
@@ -1759,7 +1759,7 @@ function NewPurchaseInvoiceContent() {
               type="button"
               onClick={() => setIsAutofillDrawerOpen((p) => !p)}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all shrink-0 active:scale-95 ${isAutofillDrawerOpen
-                  ? "bg-[#FFF8F3] text-[#F47721] border-[#FED7AA] shadow-2xs"
+                  ? "bg-[#F2FAF7] text-[#174B43] border-[#BCEADF] shadow-2xs"
                   : "bg-white text-[#374151] border-[#D1D5DB] hover:bg-[#F9FAFB] shadow-2xs"
                 }`}
               title="Toggle AI Autofill Drawer"
@@ -1820,7 +1820,7 @@ function NewPurchaseInvoiceContent() {
               type="button"
               onClick={() => setActiveMode("EDIT")}
               className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${activeMode === "EDIT"
-                  ? "bg-white text-[#F47721] shadow-xs border border-[#FED7AA]"
+                  ? "bg-white text-[#174B43] shadow-xs border border-[#BCEADF]"
                   : "text-[#6B7280] hover:text-[#111827]"
                 }`}
             >
@@ -1833,7 +1833,7 @@ function NewPurchaseInvoiceContent() {
               type="button"
               onClick={() => setActiveMode("PREVIEW")}
               className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${activeMode === "PREVIEW"
-                  ? "bg-white text-[#F47721] shadow-xs border border-[#FED7AA]"
+                  ? "bg-white text-[#174B43] shadow-xs border border-[#BCEADF]"
                   : "text-[#6B7280] hover:text-[#111827]"
                 }`}
             >
@@ -1852,7 +1852,7 @@ function NewPurchaseInvoiceContent() {
               type="button"
               onClick={() => setIsAutofillDrawerOpen((prev) => !prev)}
               className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all ${isAutofillDrawerOpen
-                  ? "bg-[#FFF8F3] text-[#F47721] border-[#FED7AA] shadow-xs"
+                  ? "bg-[#F2FAF7] text-[#174B43] border-[#BCEADF] shadow-xs"
                   : "bg-white text-[#4B5563] border-[#D1D5DB] hover:bg-[#F9FAFB]"
                 }`}
               title="Toggle AI Autofill Left Drawer"
@@ -1867,7 +1867,7 @@ function NewPurchaseInvoiceContent() {
               onClick={() => setShowPhoneUploadModal(true)}
               className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-[#F9FAFB] text-[#374151] border border-[#D1D5DB] rounded-xl text-xs font-bold shadow-xs transition-all active:scale-95"
             >
-              <svg className="w-4 h-4 text-[#F47721]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 text-[#174B43]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
               </svg>
               <span>{lang === "gu" ? "મોબાઈલથી અપલોડ" : "Upload using Phone"}</span>
@@ -1904,7 +1904,7 @@ function NewPurchaseInvoiceContent() {
               type="button"
               disabled={isSubmitting || isLoading}
               onClick={() => handleSubmit(false)}
-              className="inline-flex items-center gap-1.5 px-5 py-2 bg-[#F47721] hover:bg-[#E06410] active:bg-[#C2410C] text-white text-sm font-bold rounded-xl shadow-sm transition-all disabled:opacity-50 active:scale-95"
+              className="inline-flex items-center gap-1.5 px-5 py-2 bg-[#174B43] hover:bg-[#123B35] active:bg-[#C2410C] text-white text-sm font-bold rounded-xl shadow-sm transition-all disabled:opacity-50 active:scale-95"
             >
               {isSubmitting ? (
                 <>
@@ -1973,7 +1973,7 @@ function NewPurchaseInvoiceContent() {
             {/* Drawer Header */}
             <div className="p-4 border-b border-[#F3F4F6] flex items-center justify-between bg-gradient-to-r from-orange-50/50 to-amber-50/30">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#FFF3E8] text-[#F47721] flex items-center justify-center font-bold text-sm shadow-xs border border-[#FED7AA]">
+                <div className="w-8 h-8 rounded-lg bg-[#E6F7F2] text-[#174B43] flex items-center justify-center font-bold text-sm shadow-xs border border-[#BCEADF]">
                   ✨
                 </div>
                 <div>
@@ -1986,7 +1986,7 @@ function NewPurchaseInvoiceContent() {
                     </span>
                   </div>
                   <p className="text-[10px] text-[#6B7280]">
-                    Powered by <strong className="text-[#F47721]">Mira AI</strong>
+                    Powered by <strong className="text-[#174B43]">Mira AI</strong>
                   </p>
                 </div>
               </div>
@@ -2006,7 +2006,7 @@ function NewPurchaseInvoiceContent() {
               <span className="flex items-center gap-1 font-medium">
                 <span>📄</span> {totalBillsRecorded || 2} bills scanned
               </span>
-              <span className="flex items-center gap-1 font-medium text-[#F47721]">
+              <span className="flex items-center gap-1 font-medium text-[#174B43]">
                 <span>⏳</span> ~{Math.max(10, Math.round((totalBillsRecorded || 2) * 5))} mins saved
               </span>
             </div>
@@ -2024,7 +2024,7 @@ function NewPurchaseInvoiceContent() {
                       handleFileUpload(e.dataTransfer.files[0]);
                     }
                   }}
-                  className="border-2 border-dashed border-[#FDBA74] hover:border-[#F47721] bg-[#FFFBF8] hover:bg-[#FFF6EF] rounded-2xl p-6 text-center cursor-pointer transition-all group flex flex-col items-center justify-center min-h-[200px]"
+                  className="border-2 border-dashed border-[#85D5C2] hover:border-[#174B43] bg-[#FFFBF8] hover:bg-[#FFF6EF] rounded-2xl p-6 text-center cursor-pointer transition-all group flex flex-col items-center justify-center min-h-[200px]"
                 >
                   <input
                     ref={fileInputRef}
@@ -2037,7 +2037,7 @@ function NewPurchaseInvoiceContent() {
                       }
                     }}
                   />
-                  <div className="w-12 h-12 rounded-full bg-[#FFF3E8] text-[#F47721] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 rounded-full bg-[#E6F7F2] text-[#174B43] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
@@ -2055,7 +2055,7 @@ function NewPurchaseInvoiceContent() {
                         e.stopPropagation();
                         fileInputRef.current?.click();
                       }}
-                      className="px-5 py-1.5 bg-[#F47721] hover:bg-[#E06410] text-white rounded-lg text-xs font-bold shadow-xs transition-all active:scale-95"
+                      className="px-5 py-1.5 bg-[#174B43] hover:bg-[#123B35] text-white rounded-lg text-xs font-bold shadow-xs transition-all active:scale-95"
                     >
                       {lang === "gu" ? "આગળ વધો (Proceed)" : "Proceed"}
                     </button>
@@ -2102,24 +2102,24 @@ function NewPurchaseInvoiceContent() {
                       {isAnalyzingDoc && (
                         <div className="absolute inset-0 z-20 pointer-events-none flex flex-col justify-between">
                           {/* High-tech Corner Crosshairs */}
-                          <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-[#F47721]" />
-                          <div className="absolute top-2 right-12 w-4 h-4 border-t-2 border-r-2 border-[#F47721]" />
-                          <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-[#F47721]" />
-                          <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-[#F47721]" />
+                          <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-[#174B43]" />
+                          <div className="absolute top-2 right-12 w-4 h-4 border-t-2 border-r-2 border-[#174B43]" />
+                          <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-[#174B43]" />
+                          <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-[#174B43]" />
 
                           {/* Scanner grid pattern */}
                           <div className="scanner-grid-pattern absolute inset-0 opacity-40" />
 
                           {/* Moving Laser Beam with Light Cone */}
                           <div className="absolute inset-x-0 animate-laser-sweep pointer-events-none z-30">
-                            <div className="h-[3px] w-full bg-gradient-to-r from-transparent via-[#F47721] via-amber-400 to-transparent shadow-[0_0_20px_6px_rgba(244,119,33,0.95)]" />
-                            <div className="h-10 w-full bg-gradient-to-b from-[#F47721]/30 to-transparent blur-[1px]" />
+                            <div className="h-[3px] w-full bg-gradient-to-r from-transparent via-[#174B43] via-amber-400 to-transparent shadow-[0_0_20px_6px_rgba(244,119,33,0.95)]" />
+                            <div className="h-10 w-full bg-gradient-to-b from-[#174B43]/30 to-transparent blur-[1px]" />
                           </div>
 
                           {/* Center Animated Scanner Status */}
                           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[1px] p-3 text-center z-40">
-                            <div className="px-3.5 py-1.5 rounded-full bg-slate-900/95 border border-[#F47721] shadow-xl flex items-center gap-2 mb-2 animate-scan-tag">
-                              <span className="w-2.5 h-2.5 rounded-full bg-[#F47721] animate-ping" />
+                            <div className="px-3.5 py-1.5 rounded-full bg-slate-900/95 border border-[#174B43] shadow-xl flex items-center gap-2 mb-2 animate-scan-tag">
+                              <span className="w-2.5 h-2.5 rounded-full bg-[#174B43] animate-ping" />
                               <span className="text-xs font-bold text-white tracking-wide">
                                 {analysisProgress || (lang === "gu" ? "AI બિલ સ્કેન કરી રહ્યું છે..." : "AI Gemini Vision Scanning...")}
                               </span>
@@ -2143,7 +2143,7 @@ function NewPurchaseInvoiceContent() {
                     {/* File bottom info strip */}
                     <div className="p-2.5 bg-white border-t border-[#E5E7EB] flex items-center justify-between text-xs relative z-10">
                       <div className="flex items-center gap-1.5 truncate max-w-[180px]">
-                        <span className="px-1.5 py-0.5 rounded bg-orange-100 text-[#F47721] font-bold text-[9px]">
+                        <span className="px-1.5 py-0.5 rounded bg-orange-100 text-[#174B43] font-bold text-[9px]">
                           {uploadedDocType?.includes("pdf") ? "PDF" : "IMG"}
                         </span>
                         <span className="text-[11px] font-semibold text-slate-700 truncate" title={uploadedDocName || ""}>
@@ -2155,7 +2155,7 @@ function NewPurchaseInvoiceContent() {
                         <button
                           type="button"
                           onClick={() => setZoomPreviewModal(true)}
-                          className="p-1 text-slate-500 hover:text-[#F47721] rounded"
+                          className="p-1 text-slate-500 hover:text-[#174B43] rounded"
                           title="Zoom"
                         >
                           🔍
@@ -2179,13 +2179,13 @@ function NewPurchaseInvoiceContent() {
 
                   {/* Scanning Status Bar or Review Buttons */}
                   {isAnalyzingDoc ? (
-                    <div className="p-3 bg-[#FFF8F3] border border-[#FED7AA] rounded-xl space-y-2">
+                    <div className="p-3 bg-[#F2FAF7] border border-[#BCEADF] rounded-xl space-y-2">
                       <div className="flex items-center justify-between text-xs text-[#C2410C] font-bold">
                         <span className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-[#F47721] animate-ping" />
+                          <span className="w-2 h-2 rounded-full bg-[#174B43] animate-ping" />
                           {lang === "gu" ? "AI બિલ વાંચી રહ્યું છે" : "AI Gemini Vision Analyzing"}
                         </span>
-                        <span className="text-[11px] font-mono text-[#F47721]">
+                        <span className="text-[11px] font-mono text-[#174B43]">
                           {scanStepIndex === 0
                             ? "20%"
                             : scanStepIndex === 1
@@ -2199,7 +2199,7 @@ function NewPurchaseInvoiceContent() {
                       </div>
                       <div className="w-full h-1.5 bg-orange-100 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-[#F47721] to-amber-500 rounded-full transition-all duration-500"
+                          className="h-full bg-gradient-to-r from-[#174B43] to-amber-500 rounded-full transition-all duration-500"
                           style={{
                             width:
                               scanStepIndex === 0
@@ -2293,7 +2293,7 @@ function NewPurchaseInvoiceContent() {
                             handleOpenSmartScanner();
                           }
                         }}
-                        className="w-full py-2.5 bg-gradient-to-r from-[#F47721] to-[#E06410] hover:from-[#E06410] hover:to-[#B94B0A] text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                        className="w-full py-2.5 bg-gradient-to-r from-[#174B43] to-[#123B35] hover:from-[#123B35] hover:to-[#B94B0A] text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5 active:scale-95"
                       >
                         <span>✨</span>
                         <span>
@@ -2379,7 +2379,7 @@ function NewPurchaseInvoiceContent() {
                         key={i}
                         type="button"
                         onClick={() => setTipIndex(i)}
-                        className={`h-1.5 rounded-full transition-all ${tipIndex === i ? "bg-[#F47721] w-3" : "bg-slate-300 w-1.5"
+                        className={`h-1.5 rounded-full transition-all ${tipIndex === i ? "bg-[#174B43] w-3" : "bg-slate-300 w-1.5"
                           }`}
                       />
                     ))}
@@ -2425,7 +2425,7 @@ function NewPurchaseInvoiceContent() {
                 </div>
 
                 <div className="text-right">
-                  <span className="inline-block px-3 py-1 bg-[#FFF3E8] border border-[#FED7AA] text-[#F47721] rounded text-xs font-bold uppercase tracking-wider mb-2">
+                  <span className="inline-block px-3 py-1 bg-[#E6F7F2] border border-[#BCEADF] text-[#174B43] rounded text-xs font-bold uppercase tracking-wider mb-2">
                     PURCHASE INVOICE
                   </span>
                   <div className="text-xs text-slate-600 space-y-0.5">
@@ -2538,7 +2538,7 @@ function NewPurchaseInvoiceContent() {
                   )}
                   <div className="flex justify-between text-sm font-black text-slate-900 border-t border-slate-300 pt-2">
                     <span>Grand Total:</span>
-                    <span className="font-mono text-[#F47721]">₹{totals.grandTotal.toFixed(2)}</span>
+                    <span className="font-mono text-[#174B43]">₹{totals.grandTotal.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -2548,7 +2548,7 @@ function NewPurchaseInvoiceContent() {
                 <button
                   type="button"
                   onClick={() => setActiveMode("EDIT")}
-                  className="px-5 py-2 bg-[#F47721] text-white rounded-xl text-xs font-bold shadow-xs hover:bg-[#E06410]"
+                  className="px-5 py-2 bg-[#174B43] text-white rounded-xl text-xs font-bold shadow-xs hover:bg-[#123B35]"
                 >
                   {lang === "gu" ? "ફેરફાર ચાલુ રાખવા માટે એડિટ મોડ પર પાછા જાઓ" : "Return to Edit Mode"}
                 </button>
@@ -2562,7 +2562,7 @@ function NewPurchaseInvoiceContent() {
               {/* 2 TOP CARDS: BILL FROM & INVOICE DETAILS (MATCHING MYBILLBOOK) */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
                 {/* 1. BILL FROM CARD */}
-                <div className={`bg-white rounded-2xl border border-[#E5E7EB] shadow-xs p-4 flex flex-col justify-between relative transition-all duration-700 ${autofilledFieldsHighlight ? "ring-2 ring-[#F47721] bg-orange-50/15" : ""}`}>
+                <div className={`bg-white rounded-2xl border border-[#E5E7EB] shadow-xs p-4 flex flex-col justify-between relative transition-all duration-700 ${autofilledFieldsHighlight ? "ring-2 ring-[#174B43] bg-orange-50/15" : ""}`}>
                   <div>
                     <div className="flex items-center justify-between mb-3 border-b border-[#F3F4F6] pb-2">
                       <span className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">
@@ -2593,7 +2593,7 @@ function NewPurchaseInvoiceContent() {
                             <button
                               type="button"
                               onClick={() => setShowPartyDropdown((p) => !p)}
-                              className="inline-flex items-center gap-1 text-[11px] font-bold text-[#F47721] hover:underline"
+                              className="inline-flex items-center gap-1 text-[11px] font-bold text-[#174B43] hover:underline"
                             >
                               <span>🔄</span>
                               <span>{lang === "gu" ? "પાર્ટી બદલો" : "Change Party"}</span>
@@ -2624,7 +2624,7 @@ function NewPurchaseInvoiceContent() {
                           )}
                           {selectedSupplier.gstin && (
                             <div className="text-[#4B5563]">
-                              GSTIN: <strong className="font-mono text-[#F47721]">{selectedSupplier.gstin}</strong>
+                              GSTIN: <strong className="font-mono text-[#174B43]">{selectedSupplier.gstin}</strong>
                             </div>
                           )}
                         </div>
@@ -2649,7 +2649,7 @@ function NewPurchaseInvoiceContent() {
                               value={shippingAddress}
                               onChange={(e) => setShippingAddress(e.target.value)}
                               placeholder="Enter ship-to address if different from billing..."
-                              className="w-full text-xs p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                              className="w-full text-xs p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                             />
                           </div>
                         )}
@@ -2666,7 +2666,7 @@ function NewPurchaseInvoiceContent() {
                                 value={contactPersonName}
                                 onChange={(e) => setContactPersonName(e.target.value)}
                                 placeholder="Contact Name"
-                                className="w-full text-xs p-1.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                                className="w-full text-xs p-1.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                               />
                             </div>
                             <div>
@@ -2678,7 +2678,7 @@ function NewPurchaseInvoiceContent() {
                                 value={contactPersonPhone}
                                 onChange={(e) => setContactPersonPhone(e.target.value)}
                                 placeholder="Contact Phone"
-                                className="w-full text-xs p-1.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                                className="w-full text-xs p-1.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                               />
                             </div>
                           </div>
@@ -2702,7 +2702,7 @@ function NewPurchaseInvoiceContent() {
                                     }))
                                   }
                                   placeholder={`Enter ${field.label}`}
-                                  className="w-full text-xs p-1.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                                  className="w-full text-xs p-1.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                                 />
                               </div>
                             ))}
@@ -2738,7 +2738,7 @@ function NewPurchaseInvoiceContent() {
                           value={partySearchTerm}
                           onChange={(e) => setPartySearchTerm(e.target.value)}
                           placeholder={lang === "gu" ? "નામ અથવા નંબરથી વેપારી શોધો..." : "Search party by name or number"}
-                          className="w-full p-2 pl-8 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-xs font-medium focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                          className="w-full p-2 pl-8 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-xs font-medium focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                         />
                         <span className="absolute left-2.5 top-2.5 text-xs text-slate-400">🔍</span>
                       </div>
@@ -2752,7 +2752,7 @@ function NewPurchaseInvoiceContent() {
                           <div
                             key={s.id}
                             onClick={() => handleSupplierChange(s.id)}
-                            className="p-2 hover:bg-[#FFF8F3] cursor-pointer rounded-lg flex items-center justify-between transition-colors"
+                            className="p-2 hover:bg-[#F2FAF7] cursor-pointer rounded-lg flex items-center justify-between transition-colors"
                           >
                             <div>
                               <div className="font-bold text-[#111827]">{s.name}</div>
@@ -2774,7 +2774,7 @@ function NewPurchaseInvoiceContent() {
                           setShowPartyDropdown(false);
                           setIsAddSupplierModalOpen(true);
                         }}
-                        className="w-full py-2 border-2 border-dashed border-[#F47721] text-[#F47721] bg-[#FFF8F3] hover:bg-[#FFE6D0] rounded-lg text-xs font-bold transition-all"
+                        className="w-full py-2 border-2 border-dashed border-[#174B43] text-[#174B43] bg-[#F2FAF7] hover:bg-[#FFE6D0] rounded-lg text-xs font-bold transition-all"
                       >
                         + {lang === "gu" ? "નવી પાર્ટી બનાવો (Create Party)" : "Create Party"}
                       </button>
@@ -2783,7 +2783,7 @@ function NewPurchaseInvoiceContent() {
                 </div>
 
                 {/* 2. INVOICE DETAILS CARD */}
-                <div className={`bg-white rounded-2xl border border-[#E5E7EB] shadow-xs p-4 flex flex-col justify-between transition-all duration-700 ${autofilledFieldsHighlight ? "ring-2 ring-[#F47721] bg-orange-50/15" : ""}`}>
+                <div className={`bg-white rounded-2xl border border-[#E5E7EB] shadow-xs p-4 flex flex-col justify-between transition-all duration-700 ${autofilledFieldsHighlight ? "ring-2 ring-[#174B43] bg-orange-50/15" : ""}`}>
                   <div>
                     <div className="flex items-center justify-between mb-3 border-b border-[#F3F4F6] pb-2">
                       <span className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">
@@ -2813,7 +2813,7 @@ function NewPurchaseInvoiceContent() {
                             type="text"
                             value={purchaseInvoiceNumber}
                             onChange={(e) => setPurchaseInvoiceNumber(e.target.value)}
-                            className="w-full p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-xs font-mono font-bold text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                            className="w-full p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-xs font-mono font-bold text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                           />
                         </div>
 
@@ -2828,7 +2828,7 @@ function NewPurchaseInvoiceContent() {
                               setInvoiceDate(e.target.value);
                               setIsDirty(true);
                             }}
-                            className="w-full p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-xs font-mono text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                            className="w-full p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-xs font-mono text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                           />
                         </div>
 
@@ -2845,7 +2845,7 @@ function NewPurchaseInvoiceContent() {
                               setIsDirty(true);
                             }}
                             placeholder="e.g. INV-001"
-                            className="w-full p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-xs font-mono font-bold text-[#F47721] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                            className="w-full p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-xs font-mono font-bold text-[#174B43] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                           />
                         </div>
                       </div>
@@ -2876,7 +2876,7 @@ function NewPurchaseInvoiceContent() {
                               setDueDate(e.target.value);
                               setIsDirty(true);
                             }}
-                            className="w-full p-2 bg-white border border-[#E5E7EB] rounded-lg text-xs font-mono text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                            className="w-full p-2 bg-white border border-[#E5E7EB] rounded-lg text-xs font-mono text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                           />
                           <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
                             <span className="text-[10px] text-slate-400 font-medium">Terms:</span>
@@ -2886,8 +2886,8 @@ function NewPurchaseInvoiceContent() {
                                 type="button"
                                 onClick={() => handleSetPaymentTerms(d)}
                                 className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors ${paymentTermsDays === d
-                                    ? "bg-[#FFF8F3] border-[#F47721] text-[#F47721]"
-                                    : "bg-white border-[#E5E7EB] text-slate-600 hover:border-[#F47721]"
+                                    ? "bg-[#F2FAF7] border-[#174B43] text-[#174B43]"
+                                    : "bg-white border-[#E5E7EB] text-slate-600 hover:border-[#174B43]"
                                   }`}
                               >
                                 {d} Days
@@ -2899,7 +2899,7 @@ function NewPurchaseInvoiceContent() {
                         <button
                           type="button"
                           onClick={() => setShowDueDateField(true)}
-                          className="w-full py-2.5 border border-dashed border-[#F47721]/50 bg-[#FFF8F3] hover:bg-[#FFE6D0] text-[#F47721] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+                          className="w-full py-2.5 border border-dashed border-[#174B43]/50 bg-[#F2FAF7] hover:bg-[#FFE6D0] text-[#174B43] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
                         >
                           <span>+ Add Due Date</span>
                         </button>
@@ -2917,7 +2917,7 @@ function NewPurchaseInvoiceContent() {
                               value={poNumber}
                               onChange={(e) => setPoNumber(e.target.value)}
                               placeholder="e.g. PO-2026-001"
-                              className="w-full text-xs p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg font-mono text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                              className="w-full text-xs p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg font-mono text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                             />
                           </div>
                           <div>
@@ -2928,7 +2928,7 @@ function NewPurchaseInvoiceContent() {
                               type="date"
                               value={poDate}
                               onChange={(e) => setPoDate(e.target.value)}
-                              className="w-full text-xs p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg font-mono text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                              className="w-full text-xs p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg font-mono text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                             />
                           </div>
                         </div>
@@ -2947,7 +2947,7 @@ function NewPurchaseInvoiceContent() {
                                 value={vehicleNumber}
                                 onChange={(e) => setVehicleNumber(e.target.value)}
                                 placeholder="e.g. GJ-01-AB-1234"
-                                className="w-full text-xs p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg font-mono uppercase text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                                className="w-full text-xs p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg font-mono uppercase text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                               />
                             </div>
                           )}
@@ -2962,7 +2962,7 @@ function NewPurchaseInvoiceContent() {
                                 onChange={(e) => setEwayBillNumber(e.target.value)}
                                 placeholder="12-digit number"
                                 maxLength={12}
-                                className="w-full text-xs p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg font-mono text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                                className="w-full text-xs p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg font-mono text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                               />
                             </div>
                           )}
@@ -2988,7 +2988,7 @@ function NewPurchaseInvoiceContent() {
                                     }))
                                   }
                                   placeholder={`Enter ${field.label}`}
-                                  className="w-full text-xs p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg font-mono text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                                  className="w-full text-xs p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg font-mono text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                                 />
                               </div>
                             ))}
@@ -3030,7 +3030,7 @@ function NewPurchaseInvoiceContent() {
               {/* ─────────────────────────────────────────────────────────────
                   4. LINE ITEMS TABLE (WIDE & COMFORTABLE WITH ALL COLUMNS)
                  ───────────────────────────────────────────────────────────── */}
-              <div className={`bg-white rounded-2xl border border-[#E5E7EB] shadow-xs overflow-hidden w-full transition-all duration-700 ${autofilledFieldsHighlight ? "ring-2 ring-[#F47721] bg-orange-50/10" : ""}`}>
+              <div className={`bg-white rounded-2xl border border-[#E5E7EB] shadow-xs overflow-hidden w-full transition-all duration-700 ${autofilledFieldsHighlight ? "ring-2 ring-[#174B43] bg-orange-50/10" : ""}`}>
                 {/* ── MOBILE ITEM CARDS VIEW (Visible on screens < 768px) ── */}
                 <div className="md:hidden divide-y divide-[#F1F3F5] p-3 space-y-3">
                   {rows.map((row, idx) => {
@@ -3052,7 +3052,7 @@ function NewPurchaseInvoiceContent() {
                         {/* Card Header: Item No & Delete */}
                         <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-2">
                           <div className="flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-lg bg-orange-100 text-[#F47721] font-mono text-xs font-bold flex items-center justify-center">
+                            <span className="w-6 h-6 rounded-lg bg-orange-100 text-[#174B43] font-mono text-xs font-bold flex items-center justify-center">
                               #{idx + 1}
                             </span>
                             <span className="text-xs font-bold text-slate-800">
@@ -3083,7 +3083,7 @@ function NewPurchaseInvoiceContent() {
                                 setActiveItemRowIdx(idx);
                                 setIsAddItemModalOpen(true);
                               }}
-                              className="text-[10px] font-bold text-[#F47721] hover:underline"
+                              className="text-[10px] font-bold text-[#174B43] hover:underline"
                             >
                               + {lang === "gu" ? "નવી વસ્તુ" : "New Item"}
                             </button>
@@ -3091,7 +3091,7 @@ function NewPurchaseInvoiceContent() {
                           <select
                             value={row.itemId}
                             onChange={(e) => handleItemSelect(idx, e.target.value)}
-                            className="w-full p-2.5 bg-white border border-[#D1D5DB] rounded-xl text-xs font-bold text-[#111827] focus:ring-1 focus:ring-[#F47721] focus:outline-none"
+                            className="w-full p-2.5 bg-white border border-[#D1D5DB] rounded-xl text-xs font-bold text-[#111827] focus:ring-1 focus:ring-[#174B43] focus:outline-none"
                           >
                             <option value="">
                               {row.itemName
@@ -3113,7 +3113,7 @@ function NewPurchaseInvoiceContent() {
                             value={row.description || ""}
                             onChange={(e) => handleRowChange(idx, "description", e.target.value)}
                             placeholder={lang === "gu" ? "વર્ણન (ઓપ્શનલ)" : "Description (optional)"}
-                            className="w-full p-2 bg-white border border-[#E5E7EB] rounded-lg text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                            className="w-full p-2 bg-white border border-[#E5E7EB] rounded-lg text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                           />
                         </div>
 
@@ -3134,7 +3134,7 @@ function NewPurchaseInvoiceContent() {
                                   handleRowChange(idx, "quantity", e.target.value === "" ? "" : Number(e.target.value))
                                 }
                                 placeholder="1"
-                                className="w-full p-2 bg-white border border-[#D1D5DB] rounded-lg text-xs font-mono font-bold text-slate-900 text-right focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                                className="w-full p-2 bg-white border border-[#D1D5DB] rounded-lg text-xs font-mono font-bold text-slate-900 text-right focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                               />
                               <select
                                 value={row.unit}
@@ -3168,7 +3168,7 @@ function NewPurchaseInvoiceContent() {
                                   handleRowChange(idx, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))
                                 }
                                 placeholder="0.00"
-                                className="w-full p-2 pl-6 bg-white border border-[#D1D5DB] rounded-lg text-xs font-mono font-bold text-slate-900 text-right focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                                className="w-full p-2 pl-6 bg-white border border-[#D1D5DB] rounded-lg text-xs font-mono font-bold text-slate-900 text-right focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                               />
                             </div>
                           </div>
@@ -3181,7 +3181,7 @@ function NewPurchaseInvoiceContent() {
                             <select
                               value={row.taxRate}
                               onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value))}
-                              className="w-full p-2 bg-white border border-[#D1D5DB] rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                              className="w-full p-2 bg-white border border-[#D1D5DB] rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                             >
                               <option value="0">None (0%)</option>
                               <option value="5">5% GST</option>
@@ -3206,7 +3206,7 @@ function NewPurchaseInvoiceContent() {
                                   handleRowChange(idx, "discountValue", e.target.value === "" ? "" : Number(e.target.value))
                                 }
                                 placeholder="0"
-                                className="w-full p-2 bg-white border border-[#D1D5DB] rounded-lg text-xs font-mono text-slate-700 text-right focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                                className="w-full p-2 bg-white border border-[#D1D5DB] rounded-lg text-xs font-mono text-slate-700 text-right focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                               />
                               <button
                                 type="button"
@@ -3247,12 +3247,12 @@ function NewPurchaseInvoiceContent() {
                         </div>
 
                         {/* Card Footer: Line Total */}
-                        <div className="bg-orange-50/70 border border-[#FED7AA] rounded-xl p-2.5 flex items-center justify-between text-xs">
+                        <div className="bg-orange-50/70 border border-[#BCEADF] rounded-xl p-2.5 flex items-center justify-between text-xs">
                           <span className="font-bold text-[#C2410C]">
                             {lang === "gu" ? "આઇટમ રકમ (Amount):" : "Item Total:"}
                           </span>
                           <div className="text-right">
-                            <span className="font-mono font-black text-sm text-[#F47721]">
+                            <span className="font-mono font-black text-sm text-[#174B43]">
                               ₹{lineTotal.toFixed(2)}
                             </span>
                             {taxAmount > 0 && (
@@ -3330,7 +3330,7 @@ function NewPurchaseInvoiceContent() {
                               <select
                                 value={row.itemId}
                                 onChange={(e) => handleItemSelect(idx, e.target.value)}
-                                className="w-full p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-xs font-bold text-[#111827] focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
+                                className="w-full p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-xs font-bold text-[#111827] focus:bg-white focus:ring-1 focus:ring-[#174B43] focus:outline-none"
                               >
                                 <option value="">
                                   {row.itemName
@@ -3349,7 +3349,7 @@ function NewPurchaseInvoiceContent() {
                                 value={row.description || ""}
                                 onChange={(e) => handleRowChange(idx, "description", e.target.value)}
                                 placeholder="Enter Description (optional)"
-                                className="w-full p-1.5 bg-[#FAFBFD] border border-dashed border-[#E5E7EB] rounded text-[11px] text-slate-600 focus:bg-white focus:border-solid focus:border-[#F47721] focus:outline-none resize-y min-h-[28px]"
+                                className="w-full p-1.5 bg-[#FAFBFD] border border-dashed border-[#E5E7EB] rounded text-[11px] text-slate-600 focus:bg-white focus:border-solid focus:border-[#174B43] focus:outline-none resize-y min-h-[28px]"
                               />
                             </td>
 
@@ -3362,7 +3362,7 @@ function NewPurchaseInvoiceContent() {
                                     value={row.hsnCode}
                                     onChange={(e) => handleRowChange(idx, "hsnCode", e.target.value)}
                                     placeholder="HSN"
-                                    className="w-full p-2 pr-7 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-xs font-mono text-slate-700 text-center focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
+                                    className="w-full p-2 pr-7 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-xs font-mono text-slate-700 text-center focus:bg-white focus:ring-1 focus:ring-[#174B43] focus:outline-none"
                                   />
                                   <span className="absolute right-2 top-2.5 text-xs text-slate-400 pointer-events-none">🔍</span>
                                 </div>
@@ -3377,7 +3377,7 @@ function NewPurchaseInvoiceContent() {
                                 value={row.mrp}
                                 onChange={(e) => handleRowChange(idx, "mrp", e.target.value === "" ? "" : Number(e.target.value))}
                                 placeholder="0"
-                                className="w-full p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-xs font-mono text-slate-700 text-right focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
+                                className="w-full p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-xs font-mono text-slate-700 text-right focus:bg-white focus:ring-1 focus:ring-[#174B43] focus:outline-none"
                               />
                             </td>
 
@@ -3393,7 +3393,7 @@ function NewPurchaseInvoiceContent() {
                                     handleRowChange(idx, "quantity", e.target.value === "" ? "" : Number(e.target.value))
                                   }
                                   placeholder="1"
-                                  className="w-20 p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-xs font-mono font-bold text-slate-900 text-right focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
+                                  className="w-20 p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-xs font-mono font-bold text-slate-900 text-right focus:bg-white focus:ring-1 focus:ring-[#174B43] focus:outline-none"
                                 />
                                 <select
                                   value={row.unit}
@@ -3426,7 +3426,7 @@ function NewPurchaseInvoiceContent() {
                                 <button
                                   type="button"
                                   onClick={() => handleRowChange(idx, "showFreeQty", true)}
-                                  className="text-[10px] font-bold text-[#F47721] hover:underline block"
+                                  className="text-[10px] font-bold text-[#174B43] hover:underline block"
                                 >
                                   + Free Qty
                                 </button>
@@ -3444,7 +3444,7 @@ function NewPurchaseInvoiceContent() {
                                   handleRowChange(idx, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))
                                 }
                                 placeholder="0.00"
-                                className="w-full p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-xs font-mono font-bold text-slate-900 text-right focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
+                                className="w-full p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-xs font-mono font-bold text-slate-900 text-right focus:bg-white focus:ring-1 focus:ring-[#174B43] focus:outline-none"
                               />
                             </td>
 
@@ -3461,7 +3461,7 @@ function NewPurchaseInvoiceContent() {
                                       handleRowChange(idx, "discountValue", e.target.value === "" ? "" : Number(e.target.value))
                                     }
                                     placeholder="0"
-                                    className="w-20 p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-xs font-mono text-slate-700 text-right focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
+                                    className="w-20 p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-xs font-mono text-slate-700 text-right focus:bg-white focus:ring-1 focus:ring-[#174B43] focus:outline-none"
                                   />
                                   <button
                                     type="button"
@@ -3483,7 +3483,7 @@ function NewPurchaseInvoiceContent() {
                                 <select
                                   value={row.taxRate}
                                   onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value))}
-                                  className="w-full p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-xs font-bold text-slate-800 text-center focus:bg-white focus:ring-1 focus:ring-[#F47721] focus:outline-none"
+                                  className="w-full p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg text-xs font-bold text-slate-800 text-center focus:bg-white focus:ring-1 focus:ring-[#174B43] focus:outline-none"
                                 >
                                   <option value="0">None (0%)</option>
                                   <option value="5">5%</option>
@@ -3498,7 +3498,7 @@ function NewPurchaseInvoiceContent() {
                             )}
 
                             {/* AMOUNT (₹) */}
-                            <td className="py-2.5 px-3 text-right font-mono font-bold text-[#F47721] text-sm">
+                            <td className="py-2.5 px-3 text-right font-mono font-bold text-[#174B43] text-sm">
                               ₹{lineTotal.toFixed(2)}
                             </td>
 
@@ -3533,7 +3533,7 @@ function NewPurchaseInvoiceContent() {
                     <button
                       type="button"
                       onClick={() => setIsAddItemsCatalogOpen(true)}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#F47721] hover:bg-[#E06410] text-white text-xs font-bold rounded-xl shadow-xs transition-all active:scale-95"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-xl shadow-xs transition-all active:scale-95"
                     >
                       <span>+</span>
                       <span>{lang === "gu" ? "વસ્તુ ઉમેરો (Add Item)" : "Add Item"}</span>
@@ -3573,7 +3573,7 @@ function NewPurchaseInvoiceContent() {
                       Tax: <strong className="font-mono text-slate-900">₹{totals.totalTax.toFixed(2)}</strong>
                     </div>
                     <div>
-                      Subtotal: <strong className="font-mono text-sm font-bold text-[#F47721]">₹{totals.grandTotal.toFixed(2)}</strong>
+                      Subtotal: <strong className="font-mono text-sm font-bold text-[#174B43]">₹{totals.grandTotal.toFixed(2)}</strong>
                     </div>
                   </div>
                 </div>
@@ -3620,14 +3620,14 @@ function NewPurchaseInvoiceContent() {
                               setIsDirty(true);
                             }}
                             placeholder={lang === "gu" ? "આ બિલ માટે નોંધ..." : "Enter internal remarks for this bill..."}
-                            className="w-full text-xs p-2.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                            className="w-full text-xs p-2.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                           />
                         </div>
                       ) : (
                         <button
                           type="button"
                           onClick={() => setShowNotes(true)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-[#D1D5DB] text-xs font-bold text-[#4B5563] hover:border-[#F47721] hover:text-[#F47721] transition-colors"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-[#D1D5DB] text-xs font-bold text-[#4B5563] hover:border-[#174B43] hover:text-[#174B43] transition-colors"
                         >
                           <span>📝</span>
                           <span>+ {lang === "gu" ? "નોંધ ઉમેરો" : "Add Notes"}</span>
@@ -3660,7 +3660,7 @@ function NewPurchaseInvoiceContent() {
                               setIsDirty(true);
                             }}
                             placeholder="Terms & Conditions for this purchase..."
-                            className="w-full text-xs p-2.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#F47721]"
+                            className="w-full text-xs p-2.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#174B43]"
                           />
                         </div>
                       ) : (
@@ -3668,7 +3668,7 @@ function NewPurchaseInvoiceContent() {
                           <button
                             type="button"
                             onClick={() => setShowTerms(true)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-[#D1D5DB] text-xs font-bold text-[#4B5563] hover:border-[#F47721] hover:text-[#F47721] transition-colors"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-[#D1D5DB] text-xs font-bold text-[#4B5563] hover:border-[#174B43] hover:text-[#174B43] transition-colors"
                           >
                             <span>📋</span>
                             <span>+ {lang === "gu" ? "શરતો ઉમેરો" : "Add Terms & Conditions"}</span>
@@ -3688,7 +3688,7 @@ function NewPurchaseInvoiceContent() {
                     <button
                       type="button"
                       onClick={() => setShowAdditionalCharges((prev) => !prev)}
-                      className="text-xs font-bold text-[#F47721] hover:underline"
+                      className="text-xs font-bold text-[#174B43] hover:underline"
                     >
                       + Add Additional Charges
                     </button>
@@ -3696,7 +3696,7 @@ function NewPurchaseInvoiceContent() {
 
                   {/* Additional Charges Input Box */}
                   {showAdditionalCharges && (
-                    <div className="p-3 bg-[#FFF8F3] border border-[#FED7AA] rounded-xl text-xs space-y-2 animate-fadeIn">
+                    <div className="p-3 bg-[#F2FAF7] border border-[#BCEADF] rounded-xl text-xs space-y-2 animate-fadeIn">
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-[#C2410C]">Additional Charge</span>
                         <button
@@ -3779,7 +3779,7 @@ function NewPurchaseInvoiceContent() {
                         <button
                           type="button"
                           onClick={() => setShowOverallDiscount(true)}
-                          className="text-xs font-bold text-[#F47721] hover:underline"
+                          className="text-xs font-bold text-[#174B43] hover:underline"
                         >
                           + Add Discount
                         </button>
@@ -3818,7 +3818,7 @@ function NewPurchaseInvoiceContent() {
                           type="checkbox"
                           checked={autoRoundOff}
                           onChange={(e) => setAutoRoundOff(e.target.checked)}
-                          className="rounded text-[#F47721] focus:ring-[#F47721]"
+                          className="rounded text-[#174B43] focus:ring-[#174B43]"
                         />
                         <span>Auto Round Off</span>
                       </label>
@@ -3828,14 +3828,14 @@ function NewPurchaseInvoiceContent() {
                     </div>
 
                     {/* Total Amount / Grand Total */}
-                    <div className="p-4 bg-[#FFF8F3] border border-[#FED7AA] rounded-xl flex items-center justify-between">
+                    <div className="p-4 bg-[#F2FAF7] border border-[#BCEADF] rounded-xl flex items-center justify-between">
                       <div>
                         <span className="block text-xs font-bold text-[#C2410C] uppercase tracking-wider">
                           Total Amount:
                         </span>
                         <span className="text-[10px] text-slate-500">Inclusive of GST</span>
                       </div>
-                      <span className="text-xl sm:text-2xl font-black text-[#F47721] font-mono tracking-tight">
+                      <span className="text-xl sm:text-2xl font-black text-[#174B43] font-mono tracking-tight">
                         {formatInr(totals.grandTotal)}
                       </span>
                     </div>
@@ -3863,7 +3863,7 @@ function NewPurchaseInvoiceContent() {
                               setIsDirty(true);
                             }}
                             placeholder="0.00"
-                            className="w-28 p-1.5 bg-white border border-[#D1D5DB] rounded-lg font-mono font-bold text-slate-900 text-right focus:ring-1 focus:ring-[#F47721] focus:outline-none"
+                            className="w-28 p-1.5 bg-white border border-[#D1D5DB] rounded-lg font-mono font-bold text-slate-900 text-right focus:ring-1 focus:ring-[#174B43] focus:outline-none"
                           />
                           <select
                             value={paymentMode}
@@ -3898,7 +3898,7 @@ function NewPurchaseInvoiceContent() {
                               }
                               setIsDirty(true);
                             }}
-                            className="rounded text-[#F47721] focus:ring-[#F47721]"
+                            className="rounded text-[#174B43] focus:ring-[#174B43]"
                           />
                           <span>Mark as fully paid</span>
                         </label>
@@ -3920,7 +3920,7 @@ function NewPurchaseInvoiceContent() {
                       type="button"
                       disabled={isSubmitting || isLoading}
                       onClick={() => handleSubmit(false)}
-                      className="w-full py-3 bg-[#F47721] hover:bg-[#E06410] active:bg-[#C2410C] text-white text-sm font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95"
+                      className="w-full py-3 bg-[#174B43] hover:bg-[#123B35] active:bg-[#C2410C] text-white text-sm font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95"
                     >
                       {isSubmitting ? (
                         <>
@@ -3961,7 +3961,7 @@ function NewPurchaseInvoiceContent() {
           <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
             {lang === "gu" ? "કુલ રકમ (Total)" : "Grand Total"}
           </span>
-          <span className="text-base font-black font-mono text-[#F47721] truncate block">
+          <span className="text-base font-black font-mono text-[#174B43] truncate block">
             {formatInr(totals.grandTotal)}
           </span>
         </div>
@@ -3981,7 +3981,7 @@ function NewPurchaseInvoiceContent() {
             type="button"
             disabled={isSubmitting || isLoading}
             onClick={() => handleSubmit(false)}
-            className="px-4 py-2.5 bg-gradient-to-r from-[#F47721] to-[#E06410] active:bg-[#C2410C] text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
+            className="px-4 py-2.5 bg-gradient-to-r from-[#174B43] to-[#123B35] active:bg-[#C2410C] text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
           >
             {isSubmitting ? (
               <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -4113,7 +4113,7 @@ function NewPurchaseInvoiceContent() {
               <button
                 type="submit"
                 disabled={isSavingSupplier}
-                className="px-5 py-2 bg-[#F47721] text-white font-bold rounded-lg"
+                className="px-5 py-2 bg-[#174B43] text-white font-bold rounded-lg"
               >
                 {isSavingSupplier ? "Saving..." : "Save Supplier"}
               </button>
@@ -4362,7 +4362,7 @@ function NewPurchaseInvoiceContent() {
               <button
                 type="button"
                 onClick={() => setIsEditSupplierModalOpen(false)}
-                className="px-4 py-2 bg-[#F47721] text-white font-bold rounded-lg"
+                className="px-4 py-2 bg-[#174B43] text-white font-bold rounded-lg"
               >
                 Done
               </button>
@@ -4380,7 +4380,7 @@ export default function NewPurchaseInvoicePage() {
       fallback={
         <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center p-8">
           <div className="text-center space-y-3">
-            <div className="w-8 h-8 border-3 border-[#F47721] border-t-transparent rounded-full animate-spin mx-auto" />
+            <div className="w-8 h-8 border-3 border-[#174B43] border-t-transparent rounded-full animate-spin mx-auto" />
             <p className="text-xs font-semibold text-slate-500">Loading purchase bill editor...</p>
           </div>
         </div>

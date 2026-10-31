@@ -755,9 +755,9 @@ export default function PartiesPage() {
             className="cursor-pointer group flex items-center gap-1.5"
           >
             <div>
-              <div className="font-bold text-slate-900 group-hover:text-[#4F46E5] transition-colors flex items-center gap-1">
+              <div className="font-bold text-slate-900 group-hover:text-[#174B43] transition-colors flex items-center gap-1">
                 <span>{p.name}</span>
-                <span className="text-[10px] text-slate-400 group-hover:text-[#4F46E5]">↗</span>
+                <span className="text-[10px] text-slate-400 group-hover:text-[#174B43]">↗</span>
               </div>
               {lang === "gu" && p.nameGujarati && (
                 <div className="text-[11px] font-normal text-slate-500">
@@ -848,7 +848,7 @@ export default function PartiesPage() {
             <button
               type="button"
               onClick={() => setSelectedParty(p)}
-              className="px-2.5 py-1 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors cursor-pointer"
+              className="px-2.5 py-1 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-lg transition-colors cursor-pointer"
               title="View Master Details"
             >
               Details →
@@ -920,7 +920,7 @@ export default function PartiesPage() {
             <div className="flex items-center gap-2">
               <Link
                 href={`/sales/invoices/new?partyId=${selectedParty.id}`}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-bold rounded-xl shadow-sm transition-all"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-xl shadow-sm transition-all"
               >
                 <span>+</span>
                 <span>{lang === "gu" ? "વેચાણ બિલ બનાવો" : "Create Invoice"}</span>
@@ -959,7 +959,7 @@ export default function PartiesPage() {
                     placeholder={lang === "gu" ? "નામ અથવા ફોન શોધો..." : "Search party..."}
                     value={detailSearch}
                     onChange={(e) => setDetailSearch(e.target.value)}
-                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium"
+                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-teal-500 font-medium"
                   />
                   <svg className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -974,7 +974,7 @@ export default function PartiesPage() {
                       onClick={() => setTypeFilter(t)}
                       className={`flex-1 py-1 text-[11px] font-bold rounded-lg transition-colors cursor-pointer ${
                         typeFilter === t
-                          ? "bg-white text-indigo-700 shadow-xs"
+                          ? "bg-white text-teal-700 shadow-xs"
                           : "text-slate-600 hover:text-slate-900"
                       }`}
                     >
@@ -1004,7 +1004,7 @@ export default function PartiesPage() {
                         onClick={() => setSelectedParty(p)}
                         className={`p-3 cursor-pointer transition-colors flex items-center justify-between gap-3 ${
                           isSelected
-                            ? "bg-indigo-50/70 border-l-4 border-indigo-600"
+                            ? "bg-teal-50/70 border-l-4 border-teal-600"
                             : "hover:bg-slate-50 border-l-4 border-transparent"
                         }`}
                       >
@@ -1051,7 +1051,7 @@ export default function PartiesPage() {
               <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/40">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white font-bold text-lg flex items-center justify-center shrink-0 shadow-sm">
+                    <div className="w-12 h-12 rounded-2xl bg-teal-600 text-white font-bold text-lg flex items-center justify-center shrink-0 shadow-sm">
                       {selectedParty.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -1094,7 +1094,7 @@ export default function PartiesPage() {
                   <div className="flex items-center gap-2">
                     <Link
                       href="/app/home/shared-ledger"
-                      className="p-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition-colors inline-flex items-center gap-1"
+                      className="p-2 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 text-xs font-bold transition-colors inline-flex items-center gap-1"
                       title="Open Shared Ledger"
                     >
                       🔗 Shared Ledger
@@ -1181,7 +1181,7 @@ export default function PartiesPage() {
                   onClick={() => setPartyDetailTab("transactions")}
                   className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
                     partyDetailTab === "transactions"
-                      ? "border-indigo-600 text-indigo-600"
+                      ? "border-teal-600 text-teal-600"
                       : "border-transparent text-slate-500 hover:text-slate-800"
                   }`}
                 >
@@ -1196,7 +1196,7 @@ export default function PartiesPage() {
                   onClick={() => setPartyDetailTab("profile")}
                   className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
                     partyDetailTab === "profile"
-                      ? "border-indigo-600 text-indigo-600"
+                      ? "border-teal-600 text-teal-600"
                       : "border-transparent text-slate-500 hover:text-slate-800"
                   }`}
                 >
@@ -1208,7 +1208,7 @@ export default function PartiesPage() {
                   onClick={() => setPartyDetailTab("notes")}
                   className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
                     partyDetailTab === "notes"
-                      ? "border-indigo-600 text-indigo-600"
+                      ? "border-teal-600 text-teal-600"
                       : "border-transparent text-slate-500 hover:text-slate-800"
                   }`}
                 >
@@ -1223,7 +1223,7 @@ export default function PartiesPage() {
                   onClick={() => setPartyDetailTab("appointments")}
                   className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
                     partyDetailTab === "appointments"
-                      ? "border-indigo-600 text-indigo-600"
+                      ? "border-teal-600 text-teal-600"
                       : "border-transparent text-slate-500 hover:text-slate-800"
                   }`}
                 >
@@ -1238,7 +1238,7 @@ export default function PartiesPage() {
                   onClick={() => setPartyDetailTab("ledger")}
                   className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
                     partyDetailTab === "ledger"
-                      ? "border-indigo-600 text-indigo-600"
+                      ? "border-teal-600 text-teal-600"
                       : "border-transparent text-slate-500 hover:text-slate-800"
                   }`}
                 >
@@ -1250,7 +1250,7 @@ export default function PartiesPage() {
                   onClick={() => setPartyDetailTab("items")}
                   className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
                     partyDetailTab === "items"
-                      ? "border-indigo-600 text-indigo-600"
+                      ? "border-teal-600 text-teal-600"
                       : "border-transparent text-slate-500 hover:text-slate-800"
                   }`}
                 >
@@ -1280,7 +1280,7 @@ export default function PartiesPage() {
                         </p>
                         <Link
                           href={`/sales/invoices/new?partyId=${selectedParty.id}`}
-                          className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all"
+                          className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all"
                         >
                           + Create Sales Invoice
                         </Link>
@@ -1304,7 +1304,7 @@ export default function PartiesPage() {
                                 <td className="p-3 font-semibold text-slate-700">
                                   {txn.type}
                                 </td>
-                                <td className="p-3 font-mono font-bold text-indigo-700">
+                                <td className="p-3 font-mono font-bold text-teal-700">
                                   {txn.number || "—"}
                                 </td>
                                 <td className="p-3 text-slate-600 font-mono">
@@ -1323,7 +1323,7 @@ export default function PartiesPage() {
                                 <td className="p-3 text-right">
                                   <Link
                                     href={`/sales/invoices/${txn.id}`}
-                                    className="px-2.5 py-1 text-[11px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors inline-block"
+                                    className="px-2.5 py-1 text-[11px] font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-lg transition-colors inline-block"
                                   >
                                     View →
                                   </Link>
@@ -1363,7 +1363,7 @@ export default function PartiesPage() {
                           </div>
                           <div className="flex justify-between">
                             <span className="text-slate-500">GSTIN:</span>
-                            <span className="font-mono font-bold text-indigo-700">
+                            <span className="font-mono font-bold text-teal-700">
                               {selectedParty.gstin || "Unregistered / Regular"}
                             </span>
                           </div>
@@ -1416,7 +1416,7 @@ export default function PartiesPage() {
                       <button
                         type="button"
                         onClick={() => handleOpenEditModal(selectedParty)}
-                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
+                        className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
                       >
                         Edit Party Profile
                       </button>
@@ -1427,11 +1427,11 @@ export default function PartiesPage() {
                 {/* NOTES TAB */}
                 {partyDetailTab === "notes" && (
                   <div className="space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-indigo-50/60 p-4 rounded-xl border border-indigo-100">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-teal-50/60 p-4 rounded-xl border border-teal-100">
                       <div>
                         <div className="text-sm font-bold text-slate-900 flex items-center gap-2">
                           <span>📝 Notes & Remarks</span>
-                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-teal-100 text-teal-700">
                             {partyNotes.length}
                           </span>
                         </div>
@@ -1442,7 +1442,7 @@ export default function PartiesPage() {
                       <button
                         type="button"
                         onClick={() => setIsAddNoteModalOpen(true)}
-                        className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
+                        className="px-3.5 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
                       >
                         + Add Note
                       </button>
@@ -1460,7 +1460,7 @@ export default function PartiesPage() {
                         <button
                           type="button"
                           onClick={() => setIsAddNoteModalOpen(true)}
-                          className="mt-2 inline-flex items-center gap-1 px-3.5 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-xl shadow-sm"
+                          className="mt-2 inline-flex items-center gap-1 px-3.5 py-1.5 bg-teal-600 text-white text-xs font-bold rounded-xl shadow-sm"
                         >
                           + Add First Note
                         </button>
@@ -1470,7 +1470,7 @@ export default function PartiesPage() {
                         {partyNotes.map((n: any) => (
                           <div
                             key={n.id}
-                            className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm hover:border-indigo-200 transition-all space-y-2 relative group"
+                            className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm hover:border-teal-200 transition-all space-y-2 relative group"
                           >
                             <div className="flex items-start justify-between gap-2">
                               <h4 className="font-bold text-sm text-slate-900">{n.title}</h4>
@@ -1653,7 +1653,7 @@ export default function PartiesPage() {
                                 <td className="p-3 font-sans text-slate-800 font-medium">
                                   {txn.type}
                                 </td>
-                                <td className="p-3 font-bold text-indigo-700">
+                                <td className="p-3 font-bold text-teal-700">
                                   {txn.number || "—"}
                                 </td>
                                 <td className="p-3 text-right font-bold text-slate-900">
@@ -1708,7 +1708,7 @@ export default function PartiesPage() {
                               <td className="p-3 text-right font-mono font-semibold">
                                 {partyTransactions.length * 10} PCS
                               </td>
-                              <td className="p-3 text-right font-mono font-bold text-indigo-700">
+                              <td className="p-3 text-right font-mono font-bold text-teal-700">
                                 ₹ {partyTransactions.reduce((acc, t) => acc + t.amount, 0).toLocaleString("en-IN")}
                               </td>
                             </tr>
@@ -1733,7 +1733,7 @@ export default function PartiesPage() {
         <div className="space-y-6">
           {/* SharedLedger Announcement Banner */}
           {/* {showSharedLedgerBanner && (
-            <div className="relative overflow-hidden bg-gradient-to-r from-indigo-700 via-indigo-800 to-purple-800 text-white rounded-2xl p-4 sm:p-5 shadow-subtle">
+            <div className="relative overflow-hidden bg-gradient-to-r from-teal-700 via-indigo-800 to-purple-800 text-white rounded-2xl p-4 sm:p-5 shadow-subtle">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3.5">
                   <div className="w-11 h-11 rounded-2xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center text-xl shrink-0">
@@ -1744,7 +1744,7 @@ export default function PartiesPage() {
                       <span className="font-bold text-sm tracking-wide">SharedLedger™ by myownbillbook</span>
                       <span className="text-[10px] uppercase font-bold bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full">New</span>
                     </div>
-                    <p className="text-xs text-indigo-100 mt-0.5">
+                    <p className="text-xs text-teal-100 mt-0.5">
                       Invite your parties to SharedLedger and stay updated with live sync of bills & payments. Real-time balance reconciliation without follow-ups.
                     </p>
                   </div>
@@ -1752,7 +1752,7 @@ export default function PartiesPage() {
                 <div className="flex items-center gap-2 shrink-0">
                   <Link
                     href="/app/home/shared-ledger"
-                    className="px-4 py-2 bg-white text-indigo-900 hover:bg-indigo-50 text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer inline-flex items-center gap-1.5"
+                    className="px-4 py-2 bg-white text-indigo-900 hover:bg-teal-50 text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer inline-flex items-center gap-1.5"
                   >
                     Open Shared Ledger →
                   </Link>
@@ -1796,7 +1796,7 @@ export default function PartiesPage() {
 
               <button
                 onClick={handleOpenCreateModal}
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F47721] hover:bg-[#D95F12] active:bg-[#B94B0A] text-white text-xs sm:text-sm font-bold rounded-xl shadow-saffron transition-all w-full sm:w-auto shrink-0 cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#174B43] hover:bg-[#123B35] active:bg-[#B94B0A] text-white text-xs sm:text-sm font-bold rounded-xl shadow-saffron transition-all w-full sm:w-auto shrink-0 cursor-pointer"
               >
                 <svg
                   className="w-4 h-4"
@@ -1986,7 +1986,7 @@ export default function PartiesPage() {
                   <button
                     type="button"
                     onClick={() => setSelectedParty(p)}
-                    className="px-2.5 py-1 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded transition-colors inline-flex items-center gap-1 cursor-pointer"
+                    className="px-2.5 py-1 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded transition-colors inline-flex items-center gap-1 cursor-pointer"
                   >
                     <span>{lang === "gu" ? "વિગતો" : "Details"} →</span>
                   </button>
@@ -2027,7 +2027,7 @@ export default function PartiesPage() {
             <button
               type="button"
               onClick={() => alert("Upload party Excel sheet format (.xlsx or .csv) supported.")}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all shrink-0 cursor-pointer"
+              className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all shrink-0 cursor-pointer"
             >
               Upload Excel Sheet ⤓
             </button>
@@ -2961,7 +2961,7 @@ export default function PartiesPage() {
               value={noteTitle}
               onChange={(e) => setNoteTitle(e.target.value)}
               placeholder="e.g. Payment Reminder, Order Requirement, Delivery Notice"
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none"
+              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 outline-none"
             />
           </div>
 
@@ -2974,7 +2974,7 @@ export default function PartiesPage() {
               value={noteDescription}
               onChange={(e) => setNoteDescription(e.target.value)}
               placeholder="Write detailed notes, instructions, or follow-up details..."
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none resize-none"
+              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 outline-none resize-none"
             />
           </div>
 
@@ -2989,7 +2989,7 @@ export default function PartiesPage() {
             <button
               type="submit"
               disabled={isSavingNote || !noteTitle.trim()}
-              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50"
+              className="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50"
             >
               {isSavingNote ? "Saving..." : "Save Note"}
             </button>

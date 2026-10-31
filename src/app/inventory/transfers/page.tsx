@@ -441,7 +441,7 @@ export default function StockTransfersPage() {
         <div className="flex items-center justify-end gap-1.5">
           <button
             onClick={() => handleOpenRecon(tr)}
-            className="text-xs text-slate-600 hover:text-[#F47721] font-medium px-2 py-1 rounded hover:bg-slate-100"
+            className="text-xs text-slate-600 hover:text-[#174B43] font-medium px-2 py-1 rounded hover:bg-slate-100"
           >
             {lang === "gu" ? "મેળવણી" : "Audit / Recon"}
           </button>
@@ -449,7 +449,7 @@ export default function StockTransfersPage() {
           {tr.status === "DRAFT" && (
             <button
               onClick={() => handleOpenDispatch(tr)}
-              className="text-xs bg-[#FFF3E8] text-[#F47721] hover:bg-[#F47721] hover:text-white font-semibold px-2.5 py-1 rounded transition-colors"
+              className="text-xs bg-[#E6F7F2] text-[#174B43] hover:bg-[#174B43] hover:text-white font-semibold px-2.5 py-1 rounded transition-colors"
             >
               {lang === "gu" ? "રવાના કરો" : "Dispatch"}
             </button>
@@ -496,7 +496,7 @@ export default function StockTransfersPage() {
 
         <button
           onClick={handleOpenCreate}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F47721] hover:bg-[#D95F12] active:bg-[#B94B0A] text-white text-xs sm:text-sm font-bold rounded-xl shadow-saffron transition-all w-full sm:w-auto shrink-0"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#174B43] hover:bg-[#123B35] active:bg-[#B94B0A] text-white text-xs sm:text-sm font-bold rounded-xl shadow-saffron transition-all w-full sm:w-auto shrink-0"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -543,7 +543,7 @@ export default function StockTransfersPage() {
                 onClick={() => setStatusFilter(st)}
                 className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
                   statusFilter === st
-                    ? "bg-[#F47721] text-white"
+                    ? "bg-[#174B43] text-white"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
@@ -591,7 +591,7 @@ export default function StockTransfersPage() {
                 {tr.status === "DRAFT" && (
                   <button
                     onClick={() => handleOpenDispatch(tr)}
-                    className="text-xs text-[#F47721] font-semibold"
+                    className="text-xs text-[#174B43] font-semibold"
                   >
                     Dispatch
                   </button>
@@ -637,7 +637,7 @@ export default function StockTransfersPage() {
               type="submit"
               form="create-transfer-form"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-lg text-sm font-semibold shadow-sm disabled:opacity-50 transition-colors"
+              className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-lg text-sm font-semibold shadow-sm disabled:opacity-50 transition-colors"
             >
               {isSubmitting ? "..." : lang === "gu" ? "ડ્રાફ્ટ સેવ કરો" : "Save Transfer Draft"}
             </button>
@@ -793,7 +793,7 @@ export default function StockTransfersPage() {
               type="submit"
               form="dispatch-form"
               disabled={isSubmitting}
-              className="px-3 py-1.5 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-lg text-xs font-semibold shadow-sm transition-colors"
+              className="px-3 py-1.5 bg-[#174B43] hover:bg-[#123B35] text-white rounded-lg text-xs font-semibold shadow-sm transition-colors"
             >
               {isSubmitting ? "..." : lang === "gu" ? "રવાના કરો" : "Confirm Dispatch"}
             </button>
@@ -844,7 +844,7 @@ export default function StockTransfersPage() {
               type="submit"
               form="receive-form"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] disabled:bg-[#F47721]/50 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors"
+              className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] disabled:bg-[#174B43]/50 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors"
             >
               {isSubmitting ? "..." : lang === "gu" ? "સ્વીકાર પૂર્ણ કરો" : "Confirm Receipt"}
             </button>

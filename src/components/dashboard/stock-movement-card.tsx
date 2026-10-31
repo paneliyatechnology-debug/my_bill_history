@@ -44,7 +44,7 @@ export function StockMovementCard({ movements = [], isLoading = false }: StockMo
 
         <Link
           href="/inventory/stock"
-          className="text-xs font-semibold text-[#F47721] hover:text-[#D95F12] flex items-center gap-1 hover:underline shrink-0"
+          className="text-xs font-semibold text-[#174B43] hover:text-[#123B35] flex items-center gap-1 hover:underline shrink-0"
         >
           <span>{lang === "gu" ? "બધા જુઓ" : "View All"}</span>
           <span aria-hidden="true">&rarr;</span>

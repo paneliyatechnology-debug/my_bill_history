@@ -1311,7 +1311,7 @@ export default function CashAndBankPage() {
               setBankError(null);
               setIsAddBankModalOpen(true);
             }}
-            className="px-2 sm:px-4 py-2 sm:py-1.5 text-[11px] sm:text-xs font-semibold text-white bg-[#5850EC] hover:bg-[#4338CA] active:bg-[#3730A3] rounded-lg sm:rounded-md transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer shadow-xs"
+            className="px-2 sm:px-4 py-2 sm:py-1.5 text-[11px] sm:text-xs font-semibold text-white bg-[#5850EC] hover:bg-[#123B35] active:bg-[#0F322C] rounded-lg sm:rounded-md transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer shadow-xs"
           >
             <svg className="w-3.5 h-3.5 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -1342,7 +1342,7 @@ export default function CashAndBankPage() {
               onClick={() => setSelectedAccountId("cash_in_hand")}
               className={`shrink-0 px-3 py-1.5 rounded-lg border text-xs flex items-center gap-2 transition-all cursor-pointer ${
                 selectedAccountId === "cash_in_hand"
-                  ? "bg-[#EEF0FF] border-[#4F46E5] text-[#4F46E5] font-semibold shadow-2xs"
+                  ? "bg-[#EEF0FF] border-[#174B43] text-[#174B43] font-semibold shadow-2xs"
                   : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
               }`}
             >
@@ -1369,7 +1369,7 @@ export default function CashAndBankPage() {
                   onClick={() => setSelectedAccountId(b.id)}
                   className={`shrink-0 px-3 py-1.5 rounded-lg border text-xs flex items-center gap-2 transition-all cursor-pointer ${
                     isSelected
-                      ? "bg-[#EEF0FF] border-[#4F46E5] text-[#4F46E5] font-semibold shadow-2xs"
+                      ? "bg-[#EEF0FF] border-[#174B43] text-[#174B43] font-semibold shadow-2xs"
                       : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
                   }`}
                 >
@@ -1387,7 +1387,7 @@ export default function CashAndBankPage() {
               onClick={() => setSelectedAccountId("unlinked")}
               className={`shrink-0 px-3 py-1.5 rounded-lg border text-xs flex items-center gap-2 transition-all cursor-pointer ${
                 selectedAccountId === "unlinked"
-                  ? "bg-[#EEF0FF] border-[#4F46E5] text-[#4F46E5] font-semibold shadow-2xs"
+                  ? "bg-[#EEF0FF] border-[#174B43] text-[#174B43] font-semibold shadow-2xs"
                   : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
               }`}
             >
@@ -1414,7 +1414,7 @@ export default function CashAndBankPage() {
                 setBankError(null);
                 setIsAddBankModalOpen(true);
               }}
-              className="shrink-0 px-2.5 py-1.5 rounded-lg border border-dashed border-[#4F46E5] text-[#4F46E5] hover:bg-[#EEF0FF] text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+              className="shrink-0 px-2.5 py-1.5 rounded-lg border border-dashed border-[#174B43] text-[#174B43] hover:bg-[#EEF0FF] text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
             >
               <span>+</span>
               <span>{lang === "gu" ? "નવી બેંક" : "Add Bank"}</span>
@@ -1444,7 +1444,7 @@ export default function CashAndBankPage() {
                 onClick={() => setSelectedAccountId("cash_in_hand")}
                 className={`w-full px-3 py-2.5 rounded-lg flex items-center justify-between transition-all text-left cursor-pointer ${
                   selectedAccountId === "cash_in_hand"
-                    ? "bg-[#EEF0FF] text-[#4F46E5] font-semibold"
+                    ? "bg-[#EEF0FF] text-[#174B43] font-semibold"
                     : "hover:bg-slate-50 text-slate-800 font-medium"
                 }`}
               >
@@ -1483,7 +1483,7 @@ export default function CashAndBankPage() {
                     setBankError(null);
                     setIsAddBankModalOpen(true);
                   }}
-                  className="text-xs font-semibold text-[#4F46E5] hover:text-[#3730A3] hover:underline cursor-pointer"
+                  className="text-xs font-semibold text-[#174B43] hover:text-[#0F322C] hover:underline cursor-pointer"
                 >
                   {lang === "gu" ? "+ નવી બેંક ઉમેરો" : "+ Add New Bank"}
                 </button>
@@ -1496,7 +1496,7 @@ export default function CashAndBankPage() {
                   onClick={() => setSelectedAccountId("unlinked")}
                   className={`w-full px-3 py-2.5 rounded-lg flex items-center justify-between transition-all text-left cursor-pointer ${
                     selectedAccountId === "unlinked"
-                      ? "bg-[#EEF0FF] text-[#4F46E5] font-semibold"
+                      ? "bg-[#EEF0FF] text-[#174B43] font-semibold"
                       : "hover:bg-slate-50 text-slate-800 font-medium"
                   }`}
                 >
@@ -1530,7 +1530,7 @@ export default function CashAndBankPage() {
                       onClick={() => setSelectedAccountId(b.id)}
                       className={`w-full px-3 py-2.5 rounded-lg flex items-center justify-between transition-all text-left cursor-pointer ${
                         isSelected
-                          ? "bg-[#EEF0FF] text-[#4F46E5] font-semibold"
+                          ? "bg-[#EEF0FF] text-[#174B43] font-semibold"
                           : "hover:bg-slate-50 text-slate-800 font-medium"
                       }`}
                     >
@@ -1583,7 +1583,7 @@ export default function CashAndBankPage() {
           {/* Top Tab Bar: Matching MyBillBook Screenshot ('Transactions' Tab) */}
           <div className="flex items-center justify-between border-b border-[#E2E8F0] bg-white px-2 pt-2">
             <div className="flex items-center gap-1">
-              <button className="px-5 py-2.5 text-xs font-semibold text-[#4F46E5] bg-[#EEF0FF] border-b-2 border-[#4F46E5] rounded-t-lg transition-colors cursor-pointer">
+              <button className="px-5 py-2.5 text-xs font-semibold text-[#174B43] bg-[#EEF0FF] border-b-2 border-[#174B43] rounded-t-lg transition-colors cursor-pointer">
                 {lang === "gu" ? "વ્યવહારો (Transactions)" : "Transactions"}
               </button>
             </div>
@@ -1698,7 +1698,7 @@ export default function CashAndBankPage() {
                 <select
                   value={dateFilter}
                   onChange={(e) => setDateFilter(e.target.value as any)}
-                  className="w-full appearance-none pl-7 sm:pl-8 pr-6 sm:pr-7 py-1.5 bg-white border border-[#CBD5E1] rounded-md text-[11px] sm:text-xs font-medium text-slate-700 hover:border-slate-400 focus:outline-none focus:ring-1 focus:ring-[#4F46E5] cursor-pointer"
+                  className="w-full appearance-none pl-7 sm:pl-8 pr-6 sm:pr-7 py-1.5 bg-white border border-[#CBD5E1] rounded-md text-[11px] sm:text-xs font-medium text-slate-700 hover:border-slate-400 focus:outline-none focus:ring-1 focus:ring-[#174B43] cursor-pointer"
                 >
                   <option value="LAST_30_DAYS">{lang === "gu" ? "છેલ્લા ૩૦ દિવસ" : "Last 30 Days"}</option>
                   <option value="TODAY">{lang === "gu" ? "આજે" : "Today"}</option>
@@ -1720,7 +1720,7 @@ export default function CashAndBankPage() {
                 <select
                   value={txnTypeFilter}
                   onChange={(e) => setTxnTypeFilter(e.target.value)}
-                  className="w-full py-1.5 px-2.5 sm:px-3 text-[11px] sm:text-xs bg-white border border-[#CBD5E1] rounded-md font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#4F46E5] cursor-pointer"
+                  className="w-full py-1.5 px-2.5 sm:px-3 text-[11px] sm:text-xs bg-white border border-[#CBD5E1] rounded-md font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#174B43] cursor-pointer"
                 >
                   <option value="ALL">All Types</option>
                   <option value="Payment In">Payment In (Receipt)</option>
@@ -1738,7 +1738,7 @@ export default function CashAndBankPage() {
                   placeholder={lang === "gu" ? "શોધો (પાર્ટી, વાઉચર, વર્ણન)..." : "Search party, txn no, narration..."}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-7 pr-3 py-1.5 text-[11px] sm:text-xs bg-white border border-[#CBD5E1] rounded-md focus:outline-none focus:ring-1 focus:ring-[#4F46E5] text-slate-800 placeholder-slate-400"
+                  className="w-full pl-7 pr-3 py-1.5 text-[11px] sm:text-xs bg-white border border-[#CBD5E1] rounded-md focus:outline-none focus:ring-1 focus:ring-[#174B43] text-slate-800 placeholder-slate-400"
                 />
                 <svg className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -1771,7 +1771,7 @@ export default function CashAndBankPage() {
           <div className="flex-1 flex flex-col justify-between">
             {isLoadingTxns ? (
               <div className="py-24 text-center text-xs text-slate-400">
-                <div className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-slate-300 border-t-[#4F46E5] mb-2" />
+                <div className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-slate-300 border-t-[#174B43] mb-2" />
                 <p>{lang === "gu" ? "વ્યવહારો લોડ થઈ રહ્યા છે..." : "Loading transactions..."}</p>
               </div>
             ) : filteredTransactions.length === 0 ? (
@@ -1839,7 +1839,7 @@ export default function CashAndBankPage() {
                             <span
                               className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold ${
                                 isTransfer
-                                  ? "bg-indigo-50 text-indigo-700"
+                                  ? "bg-teal-50 text-teal-700"
                                   : isPaymentIn
                                   ? "bg-emerald-50 text-emerald-700"
                                   : "bg-rose-50 text-rose-700"
@@ -1909,7 +1909,7 @@ export default function CashAndBankPage() {
                               <span
                                 className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium ${
                                   isTransfer
-                                    ? "bg-indigo-50 text-indigo-700"
+                                    ? "bg-teal-50 text-teal-700"
                                     : isPaymentIn
                                     ? "bg-emerald-50 text-emerald-700"
                                     : "bg-rose-50 text-rose-700"
@@ -2228,7 +2228,7 @@ export default function CashAndBankPage() {
             <button
               type="submit"
               disabled={isSubmittingBank}
-              className="px-5 py-2 text-xs font-semibold text-white bg-[#5850EC] hover:bg-[#4338CA] active:bg-[#3730A3] rounded-md shadow-xs cursor-pointer transition-colors disabled:opacity-50"
+              className="px-5 py-2 text-xs font-semibold text-white bg-[#5850EC] hover:bg-[#123B35] active:bg-[#0F322C] rounded-md shadow-xs cursor-pointer transition-colors disabled:opacity-50"
             >
               {isSubmittingBank ? "Submitting..." : "Submit"}
             </button>
@@ -2373,7 +2373,7 @@ export default function CashAndBankPage() {
             <button
               type="submit"
               disabled={isSubmittingAddReduce}
-              className="px-6 py-2 text-xs font-semibold text-white bg-[#5850EC] hover:bg-[#4338CA] active:bg-[#3730A3] rounded-md shadow-xs cursor-pointer transition-colors disabled:opacity-50"
+              className="px-6 py-2 text-xs font-semibold text-white bg-[#5850EC] hover:bg-[#123B35] active:bg-[#0F322C] rounded-md shadow-xs cursor-pointer transition-colors disabled:opacity-50"
             >
               {isSubmittingAddReduce ? "Saving..." : "Save"}
             </button>
@@ -2499,7 +2499,7 @@ export default function CashAndBankPage() {
             <button
               type="submit"
               disabled={isSubmittingTransfer}
-              className="px-6 py-2 text-xs font-semibold text-white bg-[#5850EC] hover:bg-[#4338CA] active:bg-[#3730A3] rounded-md shadow-xs cursor-pointer transition-colors disabled:opacity-50"
+              className="px-6 py-2 text-xs font-semibold text-white bg-[#5850EC] hover:bg-[#123B35] active:bg-[#0F322C] rounded-md shadow-xs cursor-pointer transition-colors disabled:opacity-50"
             >
               {isSubmittingTransfer ? "Saving..." : "Save"}
             </button>
@@ -2612,7 +2612,7 @@ export default function CashAndBankPage() {
             <button
               type="submit"
               disabled={isSubmittingUpdateBank}
-              className="px-5 py-2 text-xs font-semibold text-white bg-[#5850EC] hover:bg-[#4338CA] rounded-md shadow-xs cursor-pointer transition-colors"
+              className="px-5 py-2 text-xs font-semibold text-white bg-[#5850EC] hover:bg-[#123B35] rounded-md shadow-xs cursor-pointer transition-colors"
             >
               {isSubmittingUpdateBank ? "Updating..." : "Update Details"}
             </button>
@@ -2783,7 +2783,7 @@ export default function CashAndBankPage() {
               <button
                 type="button"
                 onClick={handleNativeShare}
-                className="flex-1 sm:flex-initial px-5 py-2 text-xs font-semibold text-white bg-[#5850EC] hover:bg-[#4338CA] rounded-md shadow-xs cursor-pointer transition-colors flex items-center justify-center gap-1.5 text-center"
+                className="flex-1 sm:flex-initial px-5 py-2 text-xs font-semibold text-white bg-[#5850EC] hover:bg-[#123B35] rounded-md shadow-xs cursor-pointer transition-colors flex items-center justify-center gap-1.5 text-center"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />

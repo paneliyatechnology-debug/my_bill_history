@@ -692,7 +692,7 @@ export default function NewQuotationPage() {
             onClick={() => setMode("edit")}
             className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${
               mode === "edit"
-                ? "bg-white text-[#4F46E5] shadow-2xs"
+                ? "bg-white text-[#174B43] shadow-2xs"
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
@@ -703,7 +703,7 @@ export default function NewQuotationPage() {
             onClick={() => setIsPreviewModalOpen(true)}
             className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${
               mode === "preview"
-                ? "bg-white text-[#4F46E5] shadow-2xs"
+                ? "bg-white text-[#174B43] shadow-2xs"
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
@@ -742,7 +742,7 @@ export default function NewQuotationPage() {
             type="button"
             disabled={isSubmitting}
             onClick={() => handleSave(false, false)}
-            className="px-6 py-1.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg text-xs font-bold shadow-xs transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+            className="px-6 py-1.5 bg-[#174B43] hover:bg-[#123B35] text-white rounded-lg text-xs font-bold shadow-xs transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
           >
             {isSubmitting ? (
               <span className="animate-spin text-sm">⏳</span>

@@ -1410,7 +1410,7 @@ function FestivalInvoice(props: {
   const { state } = props;
 
   return (
-    <div className="relative w-full max-w-[794px] mx-auto p-6 sm:p-8 text-[11px] bg-white rounded-sm shadow-md border border-slate-300 overflow-hidden min-h-[1123px] flex flex-col justify-between">
+    <div className="relative w-full max-w-[794px] mx-auto p-4 sm:p-6 text-[11px] bg-white rounded-sm shadow-md border border-slate-300 overflow-hidden min-h-[1123px] flex flex-col justify-between">
       {/* Full Sheet Festive Background Artwork */}
       <FestiveBackgroundSvg
         skinId={def.uniqueKey}
@@ -1561,8 +1561,8 @@ function FestivalInvoice(props: {
                   ))}
 
                   {/* Empty filler rows to stretch table across full A4 */}
-                  {Array.from({ length: Math.max(0, 10 - props.items.length) }).map((_, i) => (
-                    <tr key={`filler-${i}`} className="h-9">
+                  {Array.from({ length: Math.max(0, (state.showTax ? 15 : 17) - props.items.length) }).map((_, i) => (
+                    <tr key={`filler-${i}`} className="h-7 sm:h-8">
                       <td className="py-2 px-2.5 border-r border-black">&nbsp;</td>
                       <td className="py-2 px-2.5 border-r border-black">&nbsp;</td>
                       {state.showHsn && <td className="py-2 px-2 border-r border-black">&nbsp;</td>}

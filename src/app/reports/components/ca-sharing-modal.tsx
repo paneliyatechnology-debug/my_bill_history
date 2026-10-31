@@ -175,7 +175,7 @@ export function CaSharingModal({
                 <text x="30" y="24" textAnchor="middle" fontSize="7" fontWeight="bold" fill="#4338CA">
                   myBillBook
                 </text>
-                <polygon points="12,20 18,20 15,25" fill="#F47721" />
+                <polygon points="12,20 18,20 15,25" fill="#174B43" />
               </g>
 
               {/* Flying Report badges: GSTR 1 & GSTR 2 */}

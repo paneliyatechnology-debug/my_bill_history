@@ -308,7 +308,7 @@ export function DynamicThemedInvoice({
     return (
       <div
         id={printableId}
-        className={`relative w-full ${dim.className} mx-auto p-5 sm:p-8 text-[11px] bg-white rounded-sm shadow-md border border-slate-300 overflow-hidden flex flex-col justify-between transition-all printable-invoice print:shadow-none print:border-none print:p-0 print:m-0 print:w-full print:max-w-none print:min-w-0 print:rounded-none print:min-h-screen`}
+        className={`relative w-full ${dim.className} mx-auto p-4 sm:p-6 text-[11px] bg-white rounded-sm shadow-md border border-slate-300 overflow-hidden flex flex-col justify-between transition-all printable-invoice print:shadow-none print:border-none print:p-0 print:m-0 print:w-full print:max-w-none print:min-w-0 print:rounded-none print:min-h-screen`}
         style={{ fontFamily: settings.fontFamily || "Inter, sans-serif" }}
       >
         {/* Contained Festive Background Artwork - soft watermark without jarring white boxes */}
@@ -589,8 +589,8 @@ export function DynamicThemedInvoice({
                     })}
 
                     {/* Empty spacer rows so the grid reaches down and covers the whole template */}
-                    {Array.from({ length: Math.max(0, 10 - (invoice.items || []).length) }).map((_, i) => (
-                      <tr key={`filler-${i}`} className="h-9">
+                    {Array.from({ length: Math.max(0, (settings.showTax && hsnList.length > 0 ? 15 : 17) - (invoice.items || []).length) }).map((_, i) => (
+                      <tr key={`filler-${i}`} className="h-7 sm:h-8">
                         <td className="py-2 px-2.5 border-r border-black">&nbsp;</td>
                         <td className="py-2 px-2.5 border-r border-black">&nbsp;</td>
                         {settings.showHsn && <td className="py-2 px-2 border-r border-black">&nbsp;</td>}

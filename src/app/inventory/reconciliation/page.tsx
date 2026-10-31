@@ -327,7 +327,7 @@ export default function InventoryReconciliationPage() {
               onClick={() => setActiveTab("stock-gl")}
               className={`pb-3 px-1 border-b-2 font-semibold transition-colors ${
                 activeTab === "stock-gl"
-                  ? "border-[#F47721] text-[#F47721]"
+                  ? "border-[#174B43] text-[#174B43]"
                   : "border-transparent text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -339,7 +339,7 @@ export default function InventoryReconciliationPage() {
               onClick={() => setActiveTab("in-transit")}
               className={`pb-3 px-1 border-b-2 font-semibold transition-colors ${
                 activeTab === "in-transit"
-                  ? "border-[#F47721] text-[#F47721]"
+                  ? "border-[#174B43] text-[#174B43]"
                   : "border-transparent text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -351,7 +351,7 @@ export default function InventoryReconciliationPage() {
               onClick={() => setActiveTab("manufacturing")}
               className={`pb-3 px-1 border-b-2 font-semibold transition-colors ${
                 activeTab === "manufacturing"
-                  ? "border-[#F47721] text-[#F47721]"
+                  ? "border-[#174B43] text-[#174B43]"
                   : "border-transparent text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -364,7 +364,7 @@ export default function InventoryReconciliationPage() {
           {/* Tab Content */}
           {isLoading ? (
             <div className="p-12 text-center text-slate-400 bg-white rounded-xl border border-slate-200">
-              <svg className="w-8 h-8 animate-spin mx-auto text-[#F47721] mb-2" fill="none" viewBox="0 0 24 24">
+              <svg className="w-8 h-8 animate-spin mx-auto text-[#174B43] mb-2" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>

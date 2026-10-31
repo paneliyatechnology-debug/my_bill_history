@@ -486,7 +486,7 @@ export default function ProductionOrdersPage() {
             </p>
             <button
               onClick={handleOpenCreate}
-              className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-[#FFF3E8] text-[#F47721] rounded-lg text-xs font-semibold hover:bg-[#F47721] hover:text-white transition-colors"
+              className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-[#E6F7F2] text-[#174B43] rounded-lg text-xs font-semibold hover:bg-[#174B43] hover:text-white transition-colors"
             >
               + {lang === "gu" ? "પ્રથમ ઓર્ડર બનાવો" : "Create First Order"}
             </button>
@@ -500,7 +500,7 @@ export default function ProductionOrdersPage() {
                 onClick={() => setStatusFilter(st)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
                   statusFilter === st
-                    ? "bg-[#F47721] text-white"
+                    ? "bg-[#174B43] text-white"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
@@ -597,7 +597,7 @@ export default function ProductionOrdersPage() {
               type="submit"
               form="create-order-form"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50"
             >
               {isSubmitting
                 ? lang === "gu"
@@ -697,7 +697,7 @@ export default function ProductionOrdersPage() {
               type="submit"
               form="start-order-form"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50"
             >
               {isSubmitting
                 ? lang === "gu"

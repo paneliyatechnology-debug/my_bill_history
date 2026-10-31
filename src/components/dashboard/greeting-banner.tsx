@@ -187,7 +187,7 @@ export function GreetingBanner({
   return (
     <div className="relative z-30 overflow-visible bg-gradient-to-r from-white via-[#FFF9F5] to-[#F0F7FF] border border-[#E5E7EB] rounded-2xl p-3.5 sm:p-5 lg:p-6 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 sm:gap-4">
       {/* Subtle background glow */}
-      <div className="absolute -top-12 -right-12 w-48 h-48 bg-[#F47721]/5 rounded-full blur-2xl pointer-events-none" />
+      <div className="absolute -top-12 -right-12 w-48 h-48 bg-[#174B43]/5 rounded-full blur-2xl pointer-events-none" />
       <div className="absolute -bottom-10 right-48 w-40 h-40 bg-sky-400/5 rounded-full blur-2xl pointer-events-none" />
 
       {/* Left Greeting & Titles */}
@@ -222,7 +222,7 @@ export function GreetingBanner({
             {/* Growth Graph Card */}
             <rect x="52" y="26" width="46" height="38" rx="6" fill="url(#chartGrad)" />
             <path d="M58 54 L66 46 L74 50 L88 34" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx="88" cy="34" r="2.5" fill="#F47721" stroke="#FFFFFF" strokeWidth="1" />
+            <circle cx="88" cy="34" r="2.5" fill="#174B43" stroke="#FFFFFF" strokeWidth="1" />
 
             {/* Golden Coins */}
             <ellipse cx="44" cy="58" rx="10" ry="10" fill="#F59E0B" />
@@ -251,7 +251,7 @@ export function GreetingBanner({
               e.stopPropagation();
               setIsOpen((prev) => !prev);
             }}
-            className="w-full sm:w-auto inline-flex items-center justify-between sm:justify-start gap-2.5 px-3 sm:px-3.5 py-2.5 bg-white hover:bg-slate-50 active:bg-slate-100 border border-[#E5E7EB] hover:border-[#D1D5DB] rounded-xl text-xs sm:text-sm font-semibold text-[#374151] shadow-xs transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#F47721]/30 select-none"
+            className="w-full sm:w-auto inline-flex items-center justify-between sm:justify-start gap-2.5 px-3 sm:px-3.5 py-2.5 bg-white hover:bg-slate-50 active:bg-slate-100 border border-[#E5E7EB] hover:border-[#D1D5DB] rounded-xl text-xs sm:text-sm font-semibold text-[#374151] shadow-xs transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 select-none"
             title={lang === "gu" ? "તારીખ ફિલ્ટર બદલવા ક્લિક કરો" : "Click to select date range"}
           >
             <div className="flex items-center gap-2 min-w-0 truncate">
@@ -293,12 +293,12 @@ export function GreetingBanner({
                       onClick={() => handleSelectPreset(p.key)}
                       className={`px-2.5 sm:px-3 py-2 text-xs font-semibold rounded-xl text-left transition-colors flex items-center justify-between ${
                         isActive
-                          ? "bg-[#FFF3E8] text-[#F47721] font-bold"
+                          ? "bg-[#E6F7F2] text-[#174B43] font-bold"
                           : "text-[#374151] hover:bg-slate-50 active:bg-slate-100"
                       }`}
                     >
                       <span className="truncate">{lang === "gu" ? p.gu : p.en}</span>
-                      {isActive && <span className="text-[#F47721] shrink-0">&bull;</span>}
+                      {isActive && <span className="text-[#174B43] shrink-0">&bull;</span>}
                     </button>
                   );
                 })}
@@ -318,7 +318,7 @@ export function GreetingBanner({
                       type="date"
                       value={customStart}
                       onChange={(e) => setCustomStart(e.target.value)}
-                      className="w-full text-xs font-mono p-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg focus:outline-none focus:border-[#F47721]"
+                      className="w-full text-xs font-mono p-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg focus:outline-none focus:border-[#174B43]"
                     />
                   </div>
                   <div>
@@ -329,7 +329,7 @@ export function GreetingBanner({
                       type="date"
                       value={customEnd}
                       onChange={(e) => setCustomEnd(e.target.value)}
-                      className="w-full text-xs font-mono p-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg focus:outline-none focus:border-[#F47721]"
+                      className="w-full text-xs font-mono p-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg focus:outline-none focus:border-[#174B43]"
                     />
                   </div>
                 </div> 
@@ -345,7 +345,7 @@ export function GreetingBanner({
                   <button
                     type="button"
                     onClick={handleApplyCustom}
-                    className="px-4 py-1.5 bg-[#F47721] hover:bg-[#D95F12] text-white text-xs font-bold rounded-lg shadow-xs transition-colors active:scale-95"
+                    className="px-4 py-1.5 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-lg shadow-xs transition-colors active:scale-95"
                   >
                     {lang === "gu" ? "લાગુ કરો" : "Apply"}
                   </button>

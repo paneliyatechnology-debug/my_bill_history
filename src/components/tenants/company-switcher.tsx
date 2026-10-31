@@ -263,7 +263,7 @@ export function CompanySwitcher() {
                   }
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full text-xs pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F47721]/30 focus:border-[#F47721] text-slate-800 placeholder:text-slate-400 transition-all shadow-2xs"
+                  className="w-full text-xs pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 focus:border-[#174B43] text-slate-800 placeholder:text-slate-400 transition-all shadow-2xs"
                 />
                 {searchQuery && (
                   <button
@@ -321,7 +321,7 @@ export function CompanySwitcher() {
                   <button
                     type="button"
                     onClick={() => setSearchQuery("")}
-                    className="mt-2.5 text-xs text-[#F47721] font-semibold hover:underline"
+                    className="mt-2.5 text-xs text-[#174B43] font-semibold hover:underline"
                   >
                     {lang === "gu" ? "શોધ સાફ કરો" : "Clear search"}
                   </button>
@@ -400,8 +400,8 @@ export function CompanySwitcher() {
                     {/* Right Action / State */}
                     <div className="shrink-0 flex items-center self-center pl-1">
                       {isLoadingThis ? (
-                        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#F47721]">
-                          <svg className="w-4 h-4 animate-spin text-[#F47721]" fill="none" viewBox="0 0 24 24">
+                        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#174B43]">
+                          <svg className="w-4 h-4 animate-spin text-[#174B43]" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                           </svg>
@@ -413,7 +413,7 @@ export function CompanySwitcher() {
                           </svg>
                         </div>
                       ) : (
-                        <div className="w-6 h-6 rounded-full text-slate-300 group-hover:text-[#F47721] group-hover:bg-orange-50 flex items-center justify-center transition-all">
+                        <div className="w-6 h-6 rounded-full text-slate-300 group-hover:text-[#174B43] group-hover:bg-orange-50 flex items-center justify-center transition-all">
                           <svg className="w-4 h-4 transform group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                           </svg>

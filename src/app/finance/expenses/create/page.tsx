@@ -770,8 +770,8 @@ function CreateExpenseForm() {
             type="button"
             onClick={handleSaveExpense}
             disabled={isSaving}
-            className="px-6 py-2 text-xs font-bold text-white bg-[#4F46E5] hover:bg-[#4338CA] active:bg-[#3730A3] disabled:opacity-60 rounded-lg shadow-md transition-all flex items-center gap-1.5"
-            style={{ backgroundColor: "#4F46E5" }}
+            className="px-6 py-2 text-xs font-bold text-white bg-[#174B43] hover:bg-[#123B35] active:bg-[#0F322C] disabled:opacity-60 rounded-lg shadow-md transition-all flex items-center gap-1.5"
+            style={{ backgroundColor: "#174B43" }}
           >
             {isSaving ? (
               <>
@@ -812,7 +812,7 @@ function CreateExpenseForm() {
                 type="button"
                 onClick={handleToggleGst}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                  expenseWithGst ? "bg-[#4F46E5]" : "bg-slate-300"
+                  expenseWithGst ? "bg-[#174B43]" : "bg-slate-300"
                 }`}
               >
                 <span
@@ -831,7 +831,7 @@ function CreateExpenseForm() {
                 </label>
                 <div
                   onClick={() => setIsPartyDropdownOpen(!isPartyDropdownOpen)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 flex items-center justify-between cursor-pointer hover:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 flex items-center justify-between cursor-pointer hover:border-indigo-400 focus-within:ring-2 focus-within:ring-teal-100"
                 >
                   <div className="flex items-center gap-2 text-slate-600 truncate">
                     <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -874,7 +874,7 @@ function CreateExpenseForm() {
                         value={partySearchTerm}
                         onChange={(e) => setPartySearchTerm(e.target.value)}
                         placeholder="Type to search party name or mobile..."
-                        className="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none focus:bg-white focus:border-indigo-500"
+                        className="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none focus:bg-white focus:border-teal-500"
                       />
                     </div>
                     <div className="py-1">
@@ -910,7 +910,7 @@ function CreateExpenseForm() {
                           setIsPartyDropdownOpen(false);
                           setIsAddPartyModalOpen(true);
                         }}
-                        className="w-full py-1.5 text-xs font-bold text-[#4F46E5] hover:bg-indigo-50 rounded-lg transition-colors flex items-center justify-center gap-1"
+                        className="w-full py-1.5 text-xs font-bold text-[#174B43] hover:bg-teal-50 rounded-lg transition-colors flex items-center justify-center gap-1"
                       >
                         <span>+</span>
                         <span>Add New Party</span>
@@ -962,11 +962,11 @@ function CreateExpenseForm() {
                           setIsCategoryDropdownOpen(false);
                         }}
                         className={`px-4 py-2 text-xs cursor-pointer flex items-center justify-between hover:bg-slate-50 ${
-                          selectedCategory === cat ? "bg-indigo-50/70 text-[#4F46E5] font-bold" : "text-slate-700"
+                          selectedCategory === cat ? "bg-teal-50/70 text-[#174B43] font-bold" : "text-slate-700"
                         }`}
                       >
                         <span>{cat}</span>
-                        {selectedCategory === cat && <span className="text-[#4F46E5]">✓</span>}
+                        {selectedCategory === cat && <span className="text-[#174B43]">✓</span>}
                       </div>
                     ))}
                   </div>
@@ -980,7 +980,7 @@ function CreateExpenseForm() {
                         setCategoryModalMode("list");
                         setIsManageCategoryModalOpen(true);
                       }}
-                      className="w-full py-2 border border-dashed border-[#4F46E5] text-[#4F46E5] hover:bg-indigo-50 font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-1"
+                      className="w-full py-2 border border-dashed border-[#174B43] text-[#174B43] hover:bg-teal-50 font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-1"
                     >
                       <span>Add/Manage Category</span>
                     </button>
@@ -999,7 +999,7 @@ function CreateExpenseForm() {
                 value={expenseNumber}
                 onChange={(e) => setExpenseNumber(e.target.value)}
                 placeholder="1"
-                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
               />
             </div>
           </div>
@@ -1017,7 +1017,7 @@ function CreateExpenseForm() {
                   value={originalInvoiceNumber}
                   onChange={(e) => setOriginalInvoiceNumber(e.target.value)}
                   placeholder="e.g. INV-9021"
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
                 />
               </div>
 
@@ -1031,7 +1031,7 @@ function CreateExpenseForm() {
                     type="date"
                     value={voucherDate}
                     onChange={(e) => setVoucherDate(e.target.value)}
-                    className="w-full pl-3.5 pr-8 py-2.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                    className="w-full pl-3.5 pr-8 py-2.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
                   />
                   <span className="absolute right-3 top-2.5 pointer-events-none text-slate-400 text-xs">
                     📅
@@ -1049,7 +1049,7 @@ function CreateExpenseForm() {
                 <select
                   value={paymentMode}
                   onChange={(e) => setPaymentMode(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100 cursor-pointer"
                 >
                   <option value="Cash">Cash</option>
                   <option value="Bank Transfer">Bank Transfer</option>
@@ -1067,7 +1067,7 @@ function CreateExpenseForm() {
                 <select
                   value={paidFromAccountId}
                   onChange={(e) => setPaidFromAccountId(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100 cursor-pointer"
                 >
                   {paymentMode === "Cash" ? (
                     cashAccounts.length > 0 ? (
@@ -1102,7 +1102,7 @@ function CreateExpenseForm() {
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Enter Notes"
-                className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 resize-y"
+                className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100 resize-y"
               />
             </div>
           </div>
@@ -1140,7 +1140,7 @@ function CreateExpenseForm() {
                         value={item.name}
                         onChange={(e) => handleUpdateItem(item.id, { name: e.target.value })}
                         placeholder="e.g. Daily Office Expense"
-                        className="w-full px-2.5 py-1.5 bg-slate-50/60 focus:bg-white border border-slate-200 rounded-md text-xs font-medium text-slate-800 outline-none focus:border-indigo-500"
+                        className="w-full px-2.5 py-1.5 bg-slate-50/60 focus:bg-white border border-slate-200 rounded-md text-xs font-medium text-slate-800 outline-none focus:border-teal-500"
                       />
                     </td>
 
@@ -1152,7 +1152,7 @@ function CreateExpenseForm() {
                           value={item.hsn}
                           onChange={(e) => handleUpdateItem(item.id, { hsn: e.target.value })}
                           placeholder="HSN/SAC"
-                          className="w-full px-2 py-1.5 bg-slate-50/60 focus:bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 outline-none focus:border-indigo-500"
+                          className="w-full px-2 py-1.5 bg-slate-50/60 focus:bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 outline-none focus:border-teal-500"
                         />
                       </td>
                     )}
@@ -1185,7 +1185,7 @@ function CreateExpenseForm() {
                           handleUpdateItem(item.id, { price: parseFloat(e.target.value) || 0 })
                         }
                         placeholder="0"
-                        className="w-full px-2.5 py-1.5 bg-slate-50/60 focus:bg-white border border-slate-200 rounded-md text-xs font-mono font-semibold text-slate-800 outline-none focus:border-indigo-500 text-right"
+                        className="w-full px-2.5 py-1.5 bg-slate-50/60 focus:bg-white border border-slate-200 rounded-md text-xs font-mono font-semibold text-slate-800 outline-none focus:border-teal-500 text-right"
                       />
                     </td>
 
@@ -1304,7 +1304,7 @@ function CreateExpenseForm() {
             <button
               type="button"
               onClick={handleAddItem}
-              className="w-full py-2.5 border border-dashed border-[#4F46E5] text-[#4F46E5] hover:bg-indigo-50/60 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+              className="w-full py-2.5 border border-dashed border-[#174B43] text-[#174B43] hover:bg-teal-50/60 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
             >
               <span>+</span>
               <span>Add Item</span>
@@ -1345,7 +1345,7 @@ function CreateExpenseForm() {
                       const val = prompt("Enter additional charges amount:", String(additionalCharges));
                       if (val !== null) setAdditionalCharges(parseFloat(val) || 0);
                     }}
-                    className="text-[#4F46E5] hover:underline"
+                    className="text-[#174B43] hover:underline"
                   >
                     + Add Additional Charges
                   </button>
@@ -1374,7 +1374,7 @@ function CreateExpenseForm() {
                       const val = prompt("Enter overall discount amount:", String(overallDiscount));
                       if (val !== null) setOverallDiscount(parseFloat(val) || 0);
                     }}
-                    className="text-[#4F46E5] hover:underline"
+                    className="text-[#174B43] hover:underline"
                   >
                     + Add Discount
                   </button>
@@ -1447,7 +1447,7 @@ function CreateExpenseForm() {
                       setCategoryModalMode("add");
                       setNewCategoryNameInput("");
                     }}
-                    className="w-full py-2.5 border border-dashed border-[#4F46E5] text-[#4F46E5] hover:bg-indigo-50/60 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+                    className="w-full py-2.5 border border-dashed border-[#174B43] text-[#174B43] hover:bg-teal-50/60 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
                   >
                     <span>+</span>
                     <span>New Expense Category</span>
@@ -1514,7 +1514,7 @@ function CreateExpenseForm() {
                       value={newCategoryNameInput}
                       onChange={(e) => setNewCategoryNameInput(e.target.value)}
                       placeholder="e.g. Courier & Postage"
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:bg-white focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
                     />
                   </div>
 
@@ -1529,7 +1529,7 @@ function CreateExpenseForm() {
                     <button
                       type="button"
                       onClick={handleSaveCategoryModal}
-                      className="px-5 py-2 text-xs font-bold text-white bg-[#4F46E5] hover:bg-[#4338CA] rounded-xl shadow-md transition-all"
+                      className="px-5 py-2 text-xs font-bold text-white bg-[#174B43] hover:bg-[#123B35] rounded-xl shadow-md transition-all"
                     >
                       {categoryModalMode === "add" ? "Add Category" : "Update Category"}
                     </button>
@@ -1567,7 +1567,7 @@ function CreateExpenseForm() {
                   value={newPartyName}
                   onChange={(e) => setNewPartyName(e.target.value)}
                   placeholder="e.g. Ramesh Stationery Mart"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:bg-white focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:bg-white focus:border-teal-500"
                 />
               </div>
 
@@ -1580,7 +1580,7 @@ function CreateExpenseForm() {
                   value={newPartyMobile}
                   onChange={(e) => setNewPartyMobile(e.target.value)}
                   placeholder="e.g. 9876543210"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:bg-white focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:bg-white focus:border-teal-500"
                 />
               </div>
 
@@ -1593,7 +1593,7 @@ function CreateExpenseForm() {
                   value={newPartyGstin}
                   onChange={(e) => setNewPartyGstin(e.target.value.toUpperCase())}
                   placeholder="e.g. 24AAAPA1234A1Z5"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono uppercase text-slate-900 outline-none focus:bg-white focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono uppercase text-slate-900 outline-none focus:bg-white focus:border-teal-500"
                 />
               </div>
 
@@ -1608,7 +1608,7 @@ function CreateExpenseForm() {
                 <button
                   type="submit"
                   disabled={isSavingParty}
-                  className="px-5 py-2 text-xs font-bold text-white bg-[#4F46E5] hover:bg-[#4338CA] rounded-xl shadow-md transition-all"
+                  className="px-5 py-2 text-xs font-bold text-white bg-[#174B43] hover:bg-[#123B35] rounded-xl shadow-md transition-all"
                 >
                   {isSavingParty ? "Saving..." : "Save Party"}
                 </button>
@@ -1627,7 +1627,7 @@ export default function CreateExpensePage() {
       fallback={
         <div className="min-h-screen bg-[#F4F6F9] flex items-center justify-center p-8">
           <div className="text-center">
-            <div className="inline-block animate-spin w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full mb-3"></div>
+            <div className="inline-block animate-spin w-8 h-8 border-3 border-teal-600 border-t-transparent rounded-full mb-3"></div>
             <p className="text-xs font-semibold text-slate-500">Loading expense form...</p>
           </div>
         </div>

@@ -123,7 +123,7 @@ export function TopCustomersCard({
 
                 {/* Middle: Name + Progress Bar */}
                 <div className="flex-1 min-w-0 space-y-1">
-                  <div className="text-xs font-semibold text-[#111827] truncate group-hover:text-[#F47721] transition-colors">
+                  <div className="text-xs font-semibold text-[#111827] truncate group-hover:text-[#174B43] transition-colors">
                     {cust.name}
                   </div>
                   {/* Horizontal Progress Bar */}

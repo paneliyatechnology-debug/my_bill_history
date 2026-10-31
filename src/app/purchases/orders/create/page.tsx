@@ -628,7 +628,7 @@ export default function CreatePurchaseOrderPage() {
               type="button"
               onClick={() => handleSaveOrder(false)}
               disabled={isSaving}
-              className="px-5 py-1.5 text-xs font-bold text-white bg-[#4F46E5] hover:bg-[#4338CA] active:bg-[#3730A3] rounded-lg transition-colors shadow-sm inline-flex items-center gap-1.5"
+              className="px-5 py-1.5 text-xs font-bold text-white bg-[#174B43] hover:bg-[#123B35] active:bg-[#0F322C] rounded-lg transition-colors shadow-sm inline-flex items-center gap-1.5"
             >
               {isSaving ? "Saving..." : "Save"}
             </button>
@@ -946,10 +946,10 @@ export default function CreatePurchaseOrderPage() {
                                       <div
                                         key={itm.id}
                                         onClick={() => handlePickInventoryItem(idx, itm)}
-                                        className="px-4 py-2.5 hover:bg-indigo-50/70 cursor-pointer flex items-center justify-between transition-colors group"
+                                        className="px-4 py-2.5 hover:bg-teal-50/70 cursor-pointer flex items-center justify-between transition-colors group"
                                       >
                                         <div className="pr-3">
-                                          <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors flex items-center gap-1.5">
+                                          <div className="font-bold text-slate-900 group-hover:text-teal-600 transition-colors flex items-center gap-1.5">
                                             <span>{itm.name}</span>
                                             {lang === "gu" && itm.nameGujarati && (
                                               <span className="text-[11px] font-normal text-slate-500">
@@ -1008,7 +1008,7 @@ export default function CreatePurchaseOrderPage() {
                                     setIsCreateItemModalOpen(true);
                                     setActiveItemAutocompleteIdx(null);
                                   }}
-                                  className="p-2.5 text-center font-bold text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50/80 cursor-pointer border-t border-dashed border-indigo-200 bg-white shrink-0 transition-colors flex items-center justify-center gap-1.5 select-none"
+                                  className="p-2.5 text-center font-bold text-teal-600 hover:text-teal-700 hover:bg-teal-50/80 cursor-pointer border-t border-dashed border-teal-200 bg-white shrink-0 transition-colors flex items-center justify-center gap-1.5 select-none"
                                 >
                                   <span className="text-base leading-none font-bold">+</span>
                                   <span>{lang === "gu" ? "નવી આઇટમ ઉમેરો (Add New Item)" : "Add New Item"}</span>
@@ -1400,7 +1400,7 @@ export default function CreatePurchaseOrderPage() {
                 </p>
               </div>
               <div className="text-right">
-                <span className="inline-block px-3 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 font-extrabold text-xs uppercase tracking-wider rounded-md">
+                <span className="inline-block px-3 py-1 bg-teal-50 border border-teal-200 text-teal-700 font-extrabold text-xs uppercase tracking-wider rounded-md">
                   PURCHASE ORDER
                 </span>
                 <p className="text-xs font-bold text-slate-800 mt-2">PO #{orderNumber}</p>
@@ -1466,7 +1466,7 @@ export default function CreatePurchaseOrderPage() {
                   <td colSpan={3} className="p-2.5 text-right">Total:</td>
                   <td className="p-2.5 text-right">{calculations.totalQty}</td>
                   <td colSpan={3} className="p-2.5 text-right">Grand Total:</td>
-                  <td className="p-2.5 text-right text-indigo-700 font-extrabold">
+                  <td className="p-2.5 text-right text-teal-700 font-extrabold">
                     ₹ {calculations.finalGrandTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                   </td>
                 </tr>

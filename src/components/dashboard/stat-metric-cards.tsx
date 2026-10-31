@@ -73,13 +73,13 @@ export function StatMetricCards({
       {/* 1. TOTAL SALES */}
       <Link
         href="/reports?tab=sales"
-        className="group relative bg-white hover:bg-slate-50/60 border border-[#E5E7EB] hover:border-[#F47721]/60 rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col justify-between min-h-[125px] sm:min-h-[135px]"
+        className="group relative bg-white hover:bg-slate-50/60 border border-[#E5E7EB] hover:border-[#174B43]/60 rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col justify-between min-h-[125px] sm:min-h-[135px]"
       >
         <div className="flex items-start justify-between gap-3 z-10">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#FFF3E8] text-[#F47721] flex items-center justify-center shrink-0 shadow-xs">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#E6F7F2] text-[#174B43] flex items-center justify-center shrink-0 shadow-xs">
             <span className="font-bold text-base sm:text-lg">₹</span>
           </div>
-          <span className="text-xs text-[#9CA3AF] group-hover:text-[#F47721] transition-colors">↗</span>
+          <span className="text-xs text-[#9CA3AF] group-hover:text-[#174B43] transition-colors">↗</span>
         </div>
 
         <div className="mt-2 z-10">
@@ -95,10 +95,10 @@ export function StatMetricCards({
         </div>
 
         <WaveSparkline
-          strokeColor="#F47721"
+          strokeColor="#174B43"
           gradientId="salesWave"
-          startColor="#F47721"
-          stopColor="#FED7AA"
+          startColor="#174B43"
+          stopColor="#BCEADF"
         />
       </Link>
 

@@ -100,12 +100,13 @@ export default function InvoiceDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   // MyBillBook UI & Drawer States
-  const [showPaymentHistory, setShowPaymentHistory] = useState(true);
+  const [showPaymentHistory, setShowPaymentHistory] = useState(false);
   const [isProfitModalOpen, setIsProfitModalOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [isShareDropdownOpen, setIsShareDropdownOpen] = useState(false);
   const [isDownloadDropdownOpen, setIsDownloadDropdownOpen] = useState(false);
   const [isPrintDropdownOpen, setIsPrintDropdownOpen] = useState(false);
+  const [isFormatMenuOpen, setIsFormatMenuOpen] = useState(false);
 
   // Modals
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -417,7 +418,7 @@ export default function InvoiceDetailPage() {
   if (isLoading) {
     return (
       <div className="py-20 text-center text-slate-400">
-        <div className="inline-block w-8 h-8 border-2 border-[#F47721] border-t-transparent rounded-full animate-spin mb-3" />
+        <div className="inline-block w-8 h-8 border-2 border-[#174B43] border-t-transparent rounded-full animate-spin mb-3" />
         <p className="text-xs">Loading tax invoice...</p>
       </div>
     );
@@ -461,268 +462,191 @@ export default function InvoiceDetailPage() {
   const initialReceived = Math.max(0, Number(invoice.paidAmount || 0) - totalAllocations);
 
   return (
-    <div className="space-y-5 max-w-[1440px] mx-auto print:space-y-0 print:max-w-none print:w-full print:m-0 print:p-0">
-      {/* Top Action Bar (Hidden on Print) */}
-      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3 print:hidden">
-        {/* Row 1: Invoice Identity, Status & Primary Actions */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-          {/* Left: Back Arrow, Title, Status Badge */}
-          <div className="flex items-center gap-2.5 flex-wrap">
+    <div className="space-y-5 max-w-[1440px] mx-auto print:space-y-0 print:max-w-none print:w-full print:m-0 print:p-0 font-sans">
+      {/* Top Action Bar (Single Sleek Forest Teal Header & Workspace Toolbar) */}
+      <div className="bg-white px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-3 print:hidden">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          {/* Left: Back Link, Document Title, Status Pill, Financial Summary */}
+          <div className="flex items-center gap-3 flex-wrap min-w-0">
             <Link
               href="/sales/invoices"
-              className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-[#174B43] hover:bg-[#F2FAF7] rounded-xl border border-slate-200 transition-colors shadow-2xs"
               title="Back to Sales Invoices"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
+              <span>{lang === "gu" ? "પાછા જાઓ" : "Invoices"}</span>
             </Link>
-            <h1 className="font-bold text-slate-900 text-base sm:text-lg tracking-tight">
-              {invoice.category === "PROFORMA_INVOICE"
-                ? `Quotation #${invoice.invoiceNumber}`
-                : invoice.category === "DELIVERY_CHALLAN"
-                  ? `Delivery Challan #${invoice.invoiceNumber}`
-                  : `Sales Invoice #${invoice.invoiceNumber}`}
-            </h1>
-            <span
-              className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                invoice.status === "PAID"
-                  ? "bg-emerald-100 text-emerald-800"
-                  : invoice.status === "PARTIALLY_PAID"
-                    ? "bg-amber-100 text-amber-800"
-                    : invoice.status === "DRAFT"
-                      ? "bg-slate-100 text-slate-700"
-                      : invoice.status === "CANCELLED"
-                        ? "bg-rose-100 text-rose-700 line-through"
-                        : "bg-rose-100 text-rose-800"
-              }`}
-            >
-              {invoice.status === "PARTIALLY_PAID"
-                ? (lang === "gu" ? "અંશતઃ ચૂકવેલ (Partially Paid)" : "Partially Paid")
-                : invoice.status === "PAID"
-                  ? (lang === "gu" ? "સંપૂર્ણ ચૂકવેલ (Paid)" : "Paid")
-                  : invoice.status === "DRAFT"
-                    ? (lang === "gu" ? "કાચું બિલ (Draft)" : "Draft")
-                    : invoice.status === "CANCELLED"
-                      ? (lang === "gu" ? "રદ કરેલ (Cancelled)" : "Cancelled")
-                      : (lang === "gu" ? "બાકી (Unpaid)" : "Unpaid")}
-            </span>
-          </div>
 
-          {/* Right: Primary MyBillBook Action Buttons */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Profit Details Button */}
-            <button
-              onClick={() => setIsProfitModalOpen(true)}
-              className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
-              title="View gross margin and bill profit"
-            >
-              <span>💼</span>
-              <span>{lang === "gu" ? "નફો વિગતો" : "Profit Details"}</span>
-            </button>
+            <div className="h-5 w-px bg-slate-200 hidden sm:block" />
 
-            {/* Toggle Payment History Drawer */}
-            <button
-              onClick={() => setShowPaymentHistory(!showPaymentHistory)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-xl border flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer ${
-                showPaymentHistory
-                  ? "bg-indigo-50 border-indigo-200 text-indigo-700 font-bold"
-                  : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
-              }`}
-              title="Toggle Payment History Drawer"
-            >
-              <span>📋</span>
-              <span className="hidden sm:inline">{lang === "gu" ? "ચુકવણી ઇતિહાસ" : "Payment History"}</span>
-            </button>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="font-extrabold text-slate-900 text-base sm:text-lg tracking-tight truncate">
+                  {invoice.category === "PROFORMA_INVOICE"
+                    ? `Quotation #${invoice.invoiceNumber}`
+                    : invoice.category === "DELIVERY_CHALLAN"
+                      ? `Delivery Challan #${invoice.invoiceNumber}`
+                      : `Invoice #${invoice.invoiceNumber}`}
+                </h1>
 
-            {/* More options menu */}
-            <div className="relative">
-              <button
-                onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
-                className="p-1.5 px-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-xl text-xs font-bold transition-colors cursor-pointer"
-                title="More Options"
-              >
-                •••
-              </button>
-              {isMoreMenuOpen && (
-                <div
-                  className="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-30 text-xs"
-                  onMouseLeave={() => setIsMoreMenuOpen(false)}
+                {/* Status Badge */}
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase ${
+                    invoice.status === "PAID"
+                      ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                      : invoice.status === "PARTIALLY_PAID"
+                        ? "bg-amber-50 text-amber-800 border border-amber-200"
+                        : invoice.status === "DRAFT"
+                          ? "bg-slate-100 text-slate-700 border border-slate-200"
+                          : invoice.status === "CANCELLED"
+                            ? "bg-rose-50 text-rose-700 line-through border border-rose-200"
+                            : "bg-rose-50 text-rose-800 border border-rose-200"
+                  }`}
                 >
-                  {invoice.status !== "CANCELLED" && (
-                    <Link
-                      href={`/sales/invoices/${invoice.id}/edit`}
-                      className="px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 font-medium"
-                    >
-                      <span>✏️</span>
-                      <span>{lang === "gu" ? "બિલમાં ફેરફાર કરો" : "Edit Invoice"}</span>
-                    </Link>
-                  )}
-                  {!["CANCELLED", "DRAFT"].includes(invoice.status) && (
-                    <Link
-                      href={`/sales/returns?invoiceId=${invoice.id}`}
-                      className="px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-amber-700 font-medium"
-                    >
-                      <span>↩</span>
-                      <span>{lang === "gu" ? "ક્રેડિટ નોટ બનાવો" : "Credit Note"}</span>
-                    </Link>
-                  )}
-                  {!["CANCELLED", "DRAFT"].includes(invoice.status) && (
-                    <button
-                      onClick={() => {
-                        setIsMoreMenuOpen(false);
-                        setCancelReason("");
-                        setCancelError(null);
-                        setIsCancelModalOpen(true);
-                      }}
-                      className="w-full text-left px-3 py-2 hover:bg-rose-50 flex items-center gap-2 text-rose-600 font-medium cursor-pointer"
-                    >
-                      <span>✕</span>
-                      <span>{lang === "gu" ? "બિલ રદ કરો" : "Cancel Invoice"}</span>
-                    </button>
-                  )}
-                </div>
-              )}
+                  <span className={`w-1.5 h-1.5 rounded-full ${
+                    invoice.status === "PAID" ? "bg-emerald-500" : invoice.status === "PARTIALLY_PAID" ? "bg-amber-500" : invoice.status === "DRAFT" ? "bg-slate-400" : "bg-rose-500"
+                  }`} />
+                  {invoice.status === "PARTIALLY_PAID"
+                    ? (lang === "gu" ? "અંશતઃ ચૂકવેલ" : "Partially Paid")
+                    : invoice.status === "PAID"
+                      ? (lang === "gu" ? "સંપૂર્ણ ચૂકવેલ" : "Paid")
+                      : invoice.status === "DRAFT"
+                        ? (lang === "gu" ? "કાચું બિલ" : "Draft")
+                        : invoice.status === "CANCELLED"
+                          ? (lang === "gu" ? "રદ કરેલ" : "Cancelled")
+                          : (lang === "gu" ? "બાકી" : "Unpaid")}
+                </span>
+              </div>
             </div>
 
-            {/* Draft Issue Button */}
-            {invoice.status === "DRAFT" && (
-              <button
-                onClick={() => handleIssueInvoice(false)}
-                disabled={isIssuing}
-                className="px-3.5 py-1.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
-              >
-                {isIssuing && (
-                  <svg className="animate-spin h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                  </svg>
-                )}
-                <span>
-                  {isIssuing
-                    ? "Processing..."
-                    : invoice.category === "PROFORMA_INVOICE"
-                      ? (lang === "gu" ? "પાકું બિલ બનાવો" : "Convert to Tax Invoice")
-                      : "Issue Tax Invoice"}
-                </span>
-              </button>
-            )}
-
-            {/* E-Way Bill Button */}
-            {invoice.status !== "DRAFT" && invoice.status !== "CANCELLED" && (
-              invoice.eWayBillRecord?.ewbNumber && invoice.eWayBillRecord.status === "ACT" ? (
-                <button
-                  onClick={() => setViewEwbSlipNumber(invoice.eWayBillRecord!.ewbNumber)}
-                  className="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
-                  title="View & Print Official Form GST EWB-01 Slip"
-                >
-                  <svg className="w-3.5 h-3.5 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                  </svg>
-                  <span>EWB: {invoice.eWayBillRecord.ewbNumber}</span>
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    setEwbTab("GENERATE");
-                    setLinkEwbNumber("");
-                    setEwbSuccessResult(null);
-                    setEwbError(null);
-                    setEwbForm({
-                      transporterId: "",
-                      transporterName: "",
-                      vehicleNumber: "",
-                      distanceKm: 50,
-                    });
-                    setIsEwbModalOpen(true);
-                  }}
-                  className="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
-                  title="Generate or Link E-Way Bill"
-                >
-                  <svg className="w-3.5 h-3.5 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-                  </svg>
-                  <span>{lang === "gu" ? "જનરેટ ઈ-વે બિલ" : "Generate E-way Bill"}</span>
-                </button>
-              )
-            )}
-
-            {/* E-Invoice Button */}
-            {invoice.status !== "DRAFT" && invoice.status !== "CANCELLED" && (
-              <button
-                onClick={() => {
-                  alert(lang === "gu" ? "આ ઇન્વોઇસ માટે e-Invoice IRN સફળતાપૂર્વક જોડી દેવામાં આવ્યું છે." : "e-Invoice IRN successfully validated under Rule 48(4).");
-                }}
-                className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
-                title="Generate Government e-Invoice IRN"
-              >
-                <svg className="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <span>{lang === "gu" ? "જનરેટ e-Invoice" : "Generate e-Invoice"}</span>
-              </button>
-            )}
-
-            {/* Record Payment In Button */}
-            {["ISSUED", "PARTIALLY_PAID"].includes(invoice.status) && (
-              <button
-                onClick={() => {
-                  setPaymentAmount(bal);
-                  setPaymentError(null);
-                  setIsPaymentModalOpen(true);
-                }}
-                className="px-4 py-2 bg-[#4338CA] hover:bg-[#3730A3] text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-              >
-                <span>💳</span>
-                <span>{lang === "gu" ? "ચુકવણી નોંધો (Payment In)" : "Record Payment In"}</span>
-              </button>
-            )}
+            {/* Financial Summary Pill */}
+            <div className="hidden md:flex items-center gap-2 bg-[#F6F8F7] px-3 py-1 rounded-xl border border-slate-200 text-xs shadow-2xs">
+              <span className="text-slate-500 font-medium">{lang === "gu" ? "કુલ:" : "Total:"}</span>
+              <span className="font-mono font-bold text-slate-900">₹{Number(invoice.grandTotal).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
+              <span className="text-slate-300">•</span>
+              <span className="text-slate-500 font-medium">{lang === "gu" ? "બાકી:" : "Due:"}</span>
+              <span className={`font-mono font-bold ${bal > 0 ? "text-rose-600" : "text-emerald-700"}`}>
+                ₹{bal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+              </span>
+            </div>
           </div>
-        </div>
 
-        {/* Row 2: Sub-toolbar: Download, Print, Customize, Share */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-0.5">
-          {/* Left Toolbar Actions */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Download PDF Dropdown */}
+          {/* Right: Consolidated Action Toolbar */}
+          <div className="flex items-center gap-2 flex-wrap shrink-0">
+            {/* Payment History Toggle Pill */}
+            <button
+              id="btn-payment-history"
+              onClick={() => setShowPaymentHistory(!showPaymentHistory)}
+              className={`px-3 py-2 text-xs font-semibold rounded-xl border flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs ${
+                showPaymentHistory
+                  ? "bg-[#174B43] text-white border-[#174B43]"
+                  : "bg-white text-slate-700 border-slate-200 hover:bg-[#F2FAF7] hover:text-[#174B43] hover:border-[#85D5C2]"
+              }`}
+              title="View Payment History Drawer"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+              <span>{lang === "gu" ? "ચુકવણી ઇતિહાસ" : "Payment History"}</span>
+              <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+                showPaymentHistory ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+              }`}>
+                {allocations.length || (invoice.paidAmount > 0 ? 1 : 0)}
+              </span>
+            </button>
+
+            {/* Format & Theme Dropdown Menu */}
             <div className="relative">
               <button
-                onClick={() => setIsDownloadDropdownOpen(!isDownloadDropdownOpen)}
-                disabled={isGeneratingPdf}
-                className="px-3.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+                id="btn-format-theme"
+                type="button"
+                onClick={() => {
+                  setIsFormatMenuOpen(!isFormatMenuOpen);
+                  setIsShareDropdownOpen(false);
+                  setIsDownloadDropdownOpen(false);
+                  setIsPrintDropdownOpen(false);
+                  setIsMoreMenuOpen(false);
+                }}
+                className="px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                title="Theme and Paper Size"
               >
-                <svg className="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                <span>{isGeneratingPdf ? "Generating..." : "Download PDF"}</span>
-                <span className="text-[10px] text-slate-400">▼</span>
+                <span
+                  className="w-3 h-3 rounded-full shrink-0 border border-black/15 shadow-2xs"
+                  style={{ backgroundColor: invoiceThemeState.accentColor || primaryColor }}
+                />
+                <span>{lang === "gu" ? "થીમ & ફોર્મેટ" : "Theme & Paper"}</span>
+                <span className="text-[10px] text-slate-400">▾</span>
               </button>
-              {isDownloadDropdownOpen && (
+
+              {isFormatMenuOpen && (
                 <div
-                  className="absolute left-0 mt-1 w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-30 text-xs"
-                  onMouseLeave={() => setIsDownloadDropdownOpen(false)}
+                  className="absolute right-0 mt-1.5 w-64 bg-white border border-slate-200 rounded-xl shadow-xl p-3 z-40 text-xs space-y-3 animate-in fade-in zoom-in-95 duration-100"
+                  onMouseLeave={() => setIsFormatMenuOpen(false)}
                 >
-                  <button
-                    onClick={() => {
-                      setIsDownloadDropdownOpen(false);
-                      handleDownloadPdf();
-                    }}
-                    className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700"
-                  >
-                    <span>📄</span>
-                    <span>Regular A4 Tax PDF</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsDownloadDropdownOpen(false);
-                      handleDownloadPdf();
-                    }}
-                    className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700"
-                  >
-                    <span>🧾</span>
-                    <span>Thermal Slip (80mm)</span>
-                  </button>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                      {lang === "gu" ? "ઇન્વોઇસ થીમ" : "Invoice Theme"}
+                    </label>
+                    <select
+                      value={
+                        resolveThemeDefinition(
+                          invoiceThemeState.uniqueThemeKey || invoiceThemeState.festiveTheme || invoiceThemeState.themeId,
+                          invoiceThemeState.festiveVariant
+                        ).uniqueKey
+                      }
+                      onChange={(e) => {
+                        updateThemeFast(e.target.value);
+                      }}
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg font-semibold text-slate-800 text-xs focus:outline-none focus:border-[#26A58A] cursor-pointer"
+                    >
+                      <optgroup label={lang === "gu" ? "તહેવાર થીમ્સ (Festive Themes)" : "Festive Themes"}>
+                        {ALL_THEME_KEYS.filter((t) => t.isFestive).map((t) => (
+                          <option key={t.uniqueKey} value={t.uniqueKey}>
+                            {lang === "gu" ? t.displayNameGu : t.displayName}
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label={lang === "gu" ? "સ્ટાન્ડર્ડ થીમ્સ (Standard)" : "Standard Themes"}>
+                        {ALL_THEME_KEYS.filter((t) => !t.isFestive).map((t) => (
+                          <option key={t.uniqueKey} value={t.uniqueKey}>
+                            {lang === "gu" ? t.displayNameGu : t.displayName}
+                          </option>
+                        ))}
+                      </optgroup>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                      {lang === "gu" ? "કાગળનું માપ" : "Paper Size"}
+                    </label>
+                    <select
+                      value={selectedPaperSize}
+                      onChange={(e) => setSelectedPaperSize(e.target.value as any)}
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg font-semibold text-slate-800 text-xs focus:outline-none focus:border-[#26A58A] cursor-pointer"
+                    >
+                      <option value="A4">A4 (210 × 297 mm)</option>
+                      <option value="A5">A5 (148 × 210 mm)</option>
+                      <option value="US_LETTER">Letter (8.5 × 11 in)</option>
+                      <option value="LEGAL">Legal (8.5 × 14 in)</option>
+                      <option value="THERMAL_80">Thermal 80mm (3 inch)</option>
+                      <option value="DL">DL (99 × 210 mm)</option>
+                    </select>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-[11px] text-slate-500">Need deep styling?</span>
+                    <Link
+                      href="/settings/invoice"
+                      className="text-xs font-bold text-[#174B43] hover:text-[#26A58A] hover:underline flex items-center gap-1"
+                      title="Open Invoice Settings Studio"
+                    >
+                      <span>⚙️ Studio</span>
+                      <span>→</span>
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>
@@ -730,18 +654,26 @@ export default function InvoiceDetailPage() {
             {/* Print PDF Dropdown */}
             <div className="relative">
               <button
-                onClick={() => setIsPrintDropdownOpen(!isPrintDropdownOpen)}
-                className="px-3.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+                type="button"
+                onClick={() => {
+                  setIsPrintDropdownOpen(!isPrintDropdownOpen);
+                  setIsFormatMenuOpen(false);
+                  setIsShareDropdownOpen(false);
+                  setIsDownloadDropdownOpen(false);
+                  setIsMoreMenuOpen(false);
+                }}
+                className="px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                title="Print Invoice"
               >
                 <svg className="w-3.5 h-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
-                <span>Print PDF</span>
-                <span className="text-[10px] text-slate-400">▼</span>
+                <span>{lang === "gu" ? "પ્રિન્ટ" : "Print"}</span>
+                <span className="text-[10px] text-slate-400">▾</span>
               </button>
               {isPrintDropdownOpen && (
                 <div
-                  className="absolute left-0 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-30 text-xs"
+                  className="absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-40 text-xs animate-in fade-in zoom-in-95 duration-100"
                   onMouseLeave={() => setIsPrintDropdownOpen(false)}
                 >
                   <button
@@ -749,7 +681,7 @@ export default function InvoiceDetailPage() {
                       setIsPrintDropdownOpen(false);
                       window.print();
                     }}
-                    className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700"
+                    className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
                   >
                     <span>🖨️</span>
                     <span>Print Standard A4</span>
@@ -759,7 +691,7 @@ export default function InvoiceDetailPage() {
                       setIsPrintDropdownOpen(false);
                       window.print();
                     }}
-                    className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700"
+                    className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
                   >
                     <span>🧾</span>
                     <span>Thermal Printer (3 inch)</span>
@@ -768,81 +700,79 @@ export default function InvoiceDetailPage() {
               )}
             </div>
 
-            {/* Theme / Customization Trigger */}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs hover:border-slate-300 transition-colors shadow-2xs">
-              <span
-                className="w-3.5 h-3.5 rounded-full shrink-0 border border-black/15 shadow-xs"
-                style={{ backgroundColor: invoiceThemeState.accentColor || primaryColor }}
-              />
-              <span className="font-semibold text-slate-600">Theme:</span>
-              <select
-                value={
-                  resolveThemeDefinition(
-                    invoiceThemeState.uniqueThemeKey || invoiceThemeState.festiveTheme || invoiceThemeState.themeId,
-                    invoiceThemeState.festiveVariant
-                  ).uniqueKey
-                }
-                onChange={(e) => {
-                  updateThemeFast(e.target.value);
+            {/* Download PDF Dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDownloadDropdownOpen(!isDownloadDropdownOpen);
+                  setIsFormatMenuOpen(false);
+                  setIsShareDropdownOpen(false);
+                  setIsPrintDropdownOpen(false);
+                  setIsMoreMenuOpen(false);
                 }}
-                className="bg-transparent font-bold text-slate-800 text-xs focus:outline-none cursor-pointer max-w-[210px]"
+                disabled={isGeneratingPdf}
+                className="px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                title="Download PDF Document"
               >
-                <optgroup label={lang === "gu" ? "તહેવાર થીમ્સ (Festive Themes)" : "Festive Themes"}>
-                  {ALL_THEME_KEYS.filter((t) => t.isFestive).map((t) => (
-                    <option key={t.uniqueKey} value={t.uniqueKey}>
-                      {lang === "gu" ? t.displayNameGu : t.displayName}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label={lang === "gu" ? "સ્ટાન્ડર્ડ થીમ્સ (Standard)" : "Standard Themes"}>
-                  {ALL_THEME_KEYS.filter((t) => !t.isFestive).map((t) => (
-                    <option key={t.uniqueKey} value={t.uniqueKey}>
-                      {lang === "gu" ? t.displayNameGu : t.displayName}
-                    </option>
-                  ))}
-                </optgroup>
-              </select>
-              <Link
-                href="/settings/invoice"
-                className="ml-1 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 underline decoration-dotted whitespace-nowrap"
-                title="Open Invoice Settings Studio"
-              >
-                ⚙️ Studio
-              </Link>
-            </div>
-
-            {/* Paper Size Selector */}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs hover:border-slate-300 transition-colors shadow-2xs">
-              <span className="font-semibold text-slate-600">Paper:</span>
-              <select
-                value={selectedPaperSize}
-                onChange={(e) => setSelectedPaperSize(e.target.value as any)}
-                className="bg-transparent font-bold text-slate-800 text-xs focus:outline-none cursor-pointer"
-              >
-                <option value="A4">A4 (210 × 297 mm)</option>
-                <option value="A5">A5 (148 × 210 mm)</option>
-                <option value="US_LETTER">Letter (8.5 × 11 in)</option>
-                <option value="LEGAL">Legal (8.5 × 14 in)</option>
-                <option value="THERMAL_80">Thermal 80mm</option>
-                <option value="DL">DL (99 × 210 mm)</option>
-              </select>
+                <svg className="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>{isGeneratingPdf ? "Generating..." : (lang === "gu" ? "ડાઉનલોડ" : "PDF")}</span>
+                <span className="text-[10px] text-slate-400">▾</span>
+              </button>
+              {isDownloadDropdownOpen && (
+                <div
+                  className="absolute right-0 mt-1.5 w-48 bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-40 text-xs animate-in fade-in zoom-in-95 duration-100"
+                  onMouseLeave={() => setIsDownloadDropdownOpen(false)}
+                >
+                  <button
+                    onClick={() => {
+                      setIsDownloadDropdownOpen(false);
+                      handleDownloadPdf();
+                    }}
+                    className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
+                  >
+                    <span>📄</span>
+                    <span>Regular A4 Tax PDF</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsDownloadDropdownOpen(false);
+                      handleDownloadPdf();
+                    }}
+                    className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
+                  >
+                    <span>🧾</span>
+                    <span>Thermal Slip (80mm)</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Share Dropdown */}
             <div className="relative">
               <button
-                onClick={() => setIsShareDropdownOpen(!isShareDropdownOpen)}
-                className="px-3.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+                type="button"
+                onClick={() => {
+                  setIsShareDropdownOpen(!isShareDropdownOpen);
+                  setIsFormatMenuOpen(false);
+                  setIsDownloadDropdownOpen(false);
+                  setIsPrintDropdownOpen(false);
+                  setIsMoreMenuOpen(false);
+                }}
+                className="px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                title="Share Invoice"
               >
-                <svg className="w-3.5 h-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                 </svg>
-                <span>Share</span>
-                <span className="text-[10px] text-slate-400">▼</span>
+                <span>{lang === "gu" ? "શેર કરો" : "Share"}</span>
+                <span className="text-[10px] text-slate-400">▾</span>
               </button>
               {isShareDropdownOpen && (
                 <div
-                  className="absolute left-0 mt-1 w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-30 text-xs"
+                  className="absolute right-0 mt-1.5 w-52 bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-40 text-xs animate-in fade-in zoom-in-95 duration-100"
                   onMouseLeave={() => setIsShareDropdownOpen(false)}
                 >
                   <button
@@ -856,7 +786,7 @@ export default function InvoiceDetailPage() {
                         : `https://wa.me/?text=${encodeURIComponent(text)}`;
                       window.open(waUrl, "_blank");
                     }}
-                    className="w-full text-left px-3 py-2 hover:bg-emerald-50 flex items-center gap-2 text-emerald-800 font-semibold"
+                    className="w-full text-left px-3.5 py-2 hover:bg-emerald-50 flex items-center gap-2 text-emerald-800 font-semibold cursor-pointer"
                   >
                     <span>💬</span>
                     <span>Share on WhatsApp</span>
@@ -867,7 +797,7 @@ export default function InvoiceDetailPage() {
                       navigator.clipboard.writeText(window.location.href);
                       setActionSuccess("Invoice link copied to clipboard!");
                     }}
-                    className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700"
+                    className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
                   >
                     <span>🔗</span>
                     <span>Copy Invoice Link</span>
@@ -878,7 +808,7 @@ export default function InvoiceDetailPage() {
                       setEmailShareTo(invoice.party?.email || "");
                       setEmailShareOpen(true);
                     }}
-                    className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 border-t border-slate-100"
+                    className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 border-t border-slate-100 cursor-pointer"
                   >
                     <span>✉️</span>
                     <span>Email Invoice</span>
@@ -886,32 +816,181 @@ export default function InvoiceDetailPage() {
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Right Summary Badges */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-mono font-bold px-3 py-1 bg-slate-100 text-slate-800 rounded-lg border border-slate-200">
-              Total: ₹{Number(invoice.grandTotal).toFixed(2)}
-            </span>
-            <span className={`text-xs font-mono font-bold px-3 py-1 rounded-lg border ${
-              bal > 0 ? "bg-rose-50 text-rose-800 border-rose-200" : "bg-emerald-50 text-emerald-800 border-emerald-200"
-            }`}>
-              Balance: ₹{bal.toFixed(2)}
-            </span>
+            {/* Primary Action Button (State Dependent) */}
+            {invoice.status === "DRAFT" ? (
+              <button
+                onClick={() => handleIssueInvoice(false)}
+                disabled={isIssuing}
+                className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                {isIssuing && (
+                  <svg className="animate-spin h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                  </svg>
+                )}
+                <span>
+                  {isIssuing
+                    ? "Processing..."
+                    : invoice.category === "PROFORMA_INVOICE"
+                      ? (lang === "gu" ? "પાકું બિલ બનાવો" : "Convert to Tax Invoice")
+                      : (lang === "gu" ? "ટેક્સ બિલ બનાવો" : "Issue Tax Invoice")}
+                </span>
+              </button>
+            ) : ["ISSUED", "PARTIALLY_PAID"].includes(invoice.status) && bal > 0 ? (
+              <button
+                onClick={() => {
+                  setPaymentAmount(bal);
+                  setPaymentError(null);
+                  setIsPaymentModalOpen(true);
+                }}
+                className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>💳</span>
+                <span>{lang === "gu" ? "ચુકવણી નોંધો" : "Record Payment In"}</span>
+              </button>
+            ) : null}
+
+            {/* More Options Dropdown (Consolidated Infrequent Actions) */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMoreMenuOpen(!isMoreMenuOpen);
+                  setIsFormatMenuOpen(false);
+                  setIsShareDropdownOpen(false);
+                  setIsDownloadDropdownOpen(false);
+                  setIsPrintDropdownOpen(false);
+                }}
+                className="p-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-2xs"
+                title="More Actions"
+              >
+                •••
+              </button>
+
+              {isMoreMenuOpen && (
+                <div
+                  className="absolute right-0 mt-1.5 w-52 bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-40 text-xs animate-in fade-in zoom-in-95 duration-100"
+                  onMouseLeave={() => setIsMoreMenuOpen(false)}
+                >
+                  {/* Profit Details */}
+                  <button
+                    onClick={() => {
+                      setIsMoreMenuOpen(false);
+                      setIsProfitModalOpen(true);
+                    }}
+                    className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer font-medium"
+                  >
+                    <span>💼</span>
+                    <span>{lang === "gu" ? "નફો વિગતો" : "Profit Details"}</span>
+                  </button>
+
+                  {/* Edit Invoice */}
+                  {invoice.status !== "CANCELLED" && (
+                    <Link
+                      href={`/sales/invoices/${invoice.id}/edit`}
+                      className="px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 font-medium"
+                    >
+                      <span>✏️</span>
+                      <span>{lang === "gu" ? "બિલમાં ફેરફાર કરો" : "Edit Invoice"}</span>
+                    </Link>
+                  )}
+
+                  {/* E-Way Bill */}
+                  {invoice.status !== "DRAFT" && invoice.status !== "CANCELLED" && (
+                    invoice.eWayBillRecord?.ewbNumber && invoice.eWayBillRecord.status === "ACT" ? (
+                      <button
+                        onClick={() => {
+                          setIsMoreMenuOpen(false);
+                          setViewEwbSlipNumber(invoice.eWayBillRecord!.ewbNumber);
+                        }}
+                        className="w-full text-left px-3.5 py-2 hover:bg-sky-50 flex items-center gap-2 text-sky-800 font-medium cursor-pointer"
+                      >
+                        <span>🚚</span>
+                        <span>View EWB Slip ({invoice.eWayBillRecord.ewbNumber})</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setIsMoreMenuOpen(false);
+                          setEwbTab("GENERATE");
+                          setLinkEwbNumber("");
+                          setEwbSuccessResult(null);
+                          setEwbError(null);
+                          setEwbForm({
+                            transporterId: "",
+                            transporterName: "",
+                            vehicleNumber: "",
+                            distanceKm: 50,
+                          });
+                          setIsEwbModalOpen(true);
+                        }}
+                        className="w-full text-left px-3.5 py-2 hover:bg-sky-50 flex items-center gap-2 text-sky-800 font-medium cursor-pointer"
+                      >
+                        <span>🚚</span>
+                        <span>{lang === "gu" ? "જનરેટ ઈ-વે બિલ" : "Generate E-way Bill"}</span>
+                      </button>
+                    )
+                  )}
+
+                  {/* E-Invoice */}
+                  {invoice.status !== "DRAFT" && invoice.status !== "CANCELLED" && (
+                    <button
+                      onClick={() => {
+                        setIsMoreMenuOpen(false);
+                        alert(lang === "gu" ? "આ ઇન્વોઇસ માટે e-Invoice IRN સફળતાપૂર્વક જોડી દેવામાં આવ્યું છે." : "e-Invoice IRN successfully validated under Rule 48(4).");
+                      }}
+                      className="w-full text-left px-3.5 py-2 hover:bg-blue-50 flex items-center gap-2 text-blue-800 font-medium cursor-pointer"
+                    >
+                      <span>🏛️</span>
+                      <span>{lang === "gu" ? "જનરેટ e-Invoice" : "Generate e-Invoice"}</span>
+                    </button>
+                  )}
+
+                  {/* Credit Note */}
+                  {!["CANCELLED", "DRAFT"].includes(invoice.status) && (
+                    <Link
+                      href={`/sales/returns?invoiceId=${invoice.id}`}
+                      className="px-3.5 py-2 hover:bg-amber-50 flex items-center gap-2 text-amber-800 font-medium"
+                    >
+                      <span>↩</span>
+                      <span>{lang === "gu" ? "ક્રેડિટ નોટ બનાવો" : "Create Credit Note"}</span>
+                    </Link>
+                  )}
+
+                  {/* Cancel Invoice */}
+                  {!["CANCELLED", "DRAFT"].includes(invoice.status) && (
+                    <button
+                      onClick={() => {
+                        setIsMoreMenuOpen(false);
+                        setCancelReason("");
+                        setCancelError(null);
+                        setIsCancelModalOpen(true);
+                      }}
+                      className="w-full text-left px-3.5 py-2 hover:bg-rose-50 flex items-center gap-2 text-rose-600 font-medium border-t border-slate-100 cursor-pointer"
+                    >
+                      <span>✕</span>
+                      <span>{lang === "gu" ? "બિલ રદ કરો" : "Cancel Invoice"}</span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Action Feedback Messages */}
       {actionError && (
-        <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center justify-between shadow-sm print:hidden">
+        <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center justify-between shadow-2xs print:hidden animate-in fade-in duration-150">
           <div className="flex items-center gap-2">
             <span className="text-base">⚠️</span>
             <span>{actionError}</span>
           </div>
           <button
             onClick={() => setActionError(null)}
-            className="text-rose-500 hover:text-rose-700 font-bold px-2 py-0.5 rounded"
+            className="text-rose-500 hover:text-rose-700 font-bold px-2 py-0.5 rounded cursor-pointer"
           >
             ✕
           </button>
@@ -919,14 +998,14 @@ export default function InvoiceDetailPage() {
       )}
 
       {actionSuccess && (
-        <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between shadow-sm print:hidden">
+        <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between shadow-2xs print:hidden animate-in fade-in duration-150">
           <div className="flex items-center gap-2">
             <span className="text-base">✓</span>
             <span className="font-semibold">{actionSuccess}</span>
           </div>
           <button
             onClick={() => setActionSuccess(null)}
-            className="text-emerald-500 hover:text-emerald-700 font-bold px-2 py-0.5 rounded"
+            className="text-emerald-500 hover:text-emerald-700 font-bold px-2 py-0.5 rounded cursor-pointer"
           >
             ✕
           </button>
@@ -935,7 +1014,7 @@ export default function InvoiceDetailPage() {
 
       {emailShareOpen && invoice && (
         <form
-          className="print:hidden p-3 bg-white border border-slate-200 rounded-xl flex flex-col sm:flex-row gap-2 items-stretch sm:items-center"
+          className="print:hidden p-3.5 bg-white border border-slate-200 rounded-xl flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center shadow-2xs"
           onSubmit={async (e) => {
             e.preventDefault();
             setEmailShareBusy(true);
@@ -971,147 +1050,171 @@ export default function InvoiceDetailPage() {
             value={emailShareTo}
             onChange={(e) => setEmailShareTo(e.target.value)}
             placeholder="customer@email.com"
-            className="flex-1 px-3 py-2 text-xs border border-slate-200 rounded-lg"
+            className="flex-1 px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-[#26A58A]"
           />
-          <button type="submit" disabled={emailShareBusy} className="px-3 py-2 text-xs font-bold text-white bg-[#F47721] rounded-lg disabled:opacity-60">
-            {emailShareBusy ? "Sending..." : "Send email"}
+          <button type="submit" disabled={emailShareBusy} className="px-4 py-2 text-xs font-bold text-white bg-[#174B43] hover:bg-[#123B35] rounded-lg disabled:opacity-60 transition-colors cursor-pointer">
+            {emailShareBusy ? "Sending..." : "Send Email"}
           </button>
-          <button type="button" onClick={() => setEmailShareOpen(false)} className="px-3 py-2 text-xs font-semibold text-slate-600">
+          <button type="button" onClick={() => setEmailShareOpen(false)} className="px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer">
             Cancel
           </button>
         </form>
       )}
 
-      {/* Tax Invoice Document Viewport (Clean, Authentic Responsive A4 Format for Mobile & Desktop) */}
-      {/* 
-        Mobile Strategy: Render the invoice at full desktop width (800px) and use CSS transform: scale() 
-        to fit it into the mobile viewport. This gives mobile users the EXACT same authentic A4 paper 
-        look as desktop - like a PDF preview. The container height is adjusted to match the scaled content.
-      */}
-      <div className="flex flex-col xl:flex-row items-start justify-center gap-6 print:block">
-        <div className="flex-1 w-full max-w-4xl min-w-0 invoice-viewport-wrapper">
-          {/* The Dynamic Themed GST Tax Invoice Container */}
-          <DynamicThemedInvoice
-            invoice={invoice as any}
-            settings={{ ...invoiceThemeState, paperSize: selectedPaperSize }}
-            company={activeComp || (currentCompany as any)}
-            printableId="printable-invoice"
-          />
-        </div>
+      {/* Tax Invoice Document Viewport (Clean, Authentic Responsive Workspace - Centered without Permanent Side-Panels) */}
+      <div className="w-full max-w-4xl mx-auto min-w-0 invoice-viewport-wrapper print:block print:max-w-none print:w-full">
+        {/* The Dynamic Themed GST Tax Invoice Container */}
+        <DynamicThemedInvoice
+          invoice={invoice as any}
+          settings={{ ...invoiceThemeState, paperSize: selectedPaperSize }}
+          company={activeComp || (currentCompany as any)}
+          printableId="printable-invoice"
+        />
+      </div>
 
-          {/* Right: MyBillBook Authentic Payment History Drawer */}
-          {showPaymentHistory && (
-            <div className="w-full xl:w-80 shrink-0 sticky top-4 print:hidden bg-white border border-slate-200 rounded-2xl shadow-sm p-4 space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                  <span>{lang === "gu" ? "ચુકવણી ઇતિહાસ" : "Payment History"}</span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 bg-slate-100 text-slate-700 rounded-full font-semibold">
-                    {allocations.length || (invoice.paidAmount > 0 ? 1 : 0)}
-                  </span>
-                </h3>
+      {/* Payment History Slide-Over Drawer with Backdrop (On-Demand) */}
+      {showPaymentHistory && (
+        <div className="fixed inset-0 top-[64px] sm:top-[72px] z-50 overflow-hidden print:hidden" aria-labelledby="payment-drawer-title" role="dialog" aria-modal="true">
+          {/* Backdrop overlay */}
+          <div
+            className="fixed inset-0 top-[64px] sm:top-[72px] bg-slate-900/40 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+            onClick={() => setShowPaymentHistory(false)}
+          />
+
+          <div className="fixed top-[64px] sm:top-[72px] bottom-0 right-0 max-w-full flex pl-10 z-10">
+            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-200 border-l border-slate-200">
+              {/* Drawer Header */}
+              <div className="px-5 py-4 border-b border-slate-100 bg-[#F6F8F7] flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-[#174B43]/10 text-[#174B43] flex items-center justify-center font-bold text-sm">
+                    📋
+                  </div>
+                  <div>
+                    <h3 id="payment-drawer-title" className="font-bold text-slate-900 text-sm">
+                      {lang === "gu" ? "ચુકવણી ઇતિહાસ" : "Payment History"}
+                    </h3>
+                    <p className="text-[11px] text-slate-500 font-mono">
+                      Invoice #{invoice.invoiceNumber}
+                    </p>
+                  </div>
+                </div>
                 <button
+                  id="btn-close-payment-drawer"
+                  type="button"
                   onClick={() => setShowPaymentHistory(false)}
-                  className="text-slate-400 hover:text-slate-700 p-1 rounded-md transition-colors text-sm"
+                  className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 flex items-center justify-center transition-colors cursor-pointer text-base"
                   title="Close Drawer"
                 >
                   ✕
                 </button>
               </div>
 
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between items-center text-slate-600">
-                  <span>{lang === "gu" ? "ઇન્વોઇસ રકમ" : "Invoice Amount"}</span>
-                  <span className="font-mono font-bold text-slate-900">
-                    ₹{Number(invoice.grandTotal).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                  </span>
+              {/* Drawer Body */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-5">
+                {/* Financial Summary Card */}
+                <div className="bg-[#F6F8F7] rounded-xl p-4 border border-slate-200 space-y-2.5 text-xs">
+                  <div className="flex justify-between items-center text-slate-600">
+                    <span>{lang === "gu" ? "ઇન્વોઇસ રકમ" : "Invoice Amount"}</span>
+                    <span className="font-mono font-bold text-slate-900 text-sm">
+                      ₹{Number(invoice.grandTotal).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-600">
+                    <span>{lang === "gu" ? "શરૂઆતમાં મળેલ રકમ" : "Initial Amount Received"}</span>
+                    <span className="font-mono font-medium text-slate-700">
+                      ₹{initialReceived.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-600">
+                    <span>{lang === "gu" ? "કુલ મળેલી રકમ" : "Total Amount Received"}</span>
+                    <span className="font-mono font-bold text-emerald-700">
+                      ₹{Number(invoice.paidAmount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="pt-2.5 border-t border-slate-200 flex justify-between items-center">
+                    <span className="font-bold text-slate-800">{lang === "gu" ? "બાકી રકમ" : "Outstanding Balance"}</span>
+                    <span className={`font-mono text-base font-extrabold ${bal > 0 ? "text-rose-600" : "text-emerald-700"}`}>
+                      ₹{Number(bal).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center text-slate-600">
-                  <span>{lang === "gu" ? "શરૂઆતમાં મળેલ રકમ" : "Initial Amount Received"}</span>
-                  <span className="font-mono font-medium text-slate-700">
-                    ₹{initialReceived.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-              </div>
 
-              <div className="pt-2 border-t border-slate-100">
-                <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                  {lang === "gu" ? "ચુકવણીઓ" : "Payments"}
-                </div>
-                {allocations.length > 0 ? (
-                  <div className="space-y-2 max-h-[320px] overflow-y-auto pr-0.5">
-                    {allocations.map((a, i) => (
-                      <div key={i} className="p-3 bg-slate-50 border border-slate-200/90 rounded-xl space-y-1 hover:bg-slate-100/60 transition-colors">
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-blue-600 text-xs">
-                            Payment In #{i + 1}
-                          </span>
-                          <span className="font-mono font-bold text-slate-900 text-xs">
-                            ₹{Number(a.allocatedAmount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                          </span>
+                {/* Payments Log */}
+                <div>
+                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center justify-between">
+                    <span>{lang === "gu" ? "ચુકવણીઓ" : "Payment Records"}</span>
+                    <span className="text-[11px] font-mono px-2 py-0.5 bg-slate-100 text-slate-700 rounded-full font-semibold">
+                      {allocations.length || (invoice.paidAmount > 0 ? 1 : 0)}
+                    </span>
+                  </div>
+
+                  {allocations.length > 0 ? (
+                    <div className="space-y-2.5">
+                      {allocations.map((a, i) => (
+                        <div key={i} className="p-3.5 bg-white border border-slate-200 rounded-xl space-y-1.5 shadow-2xs hover:border-[#26A58A]/50 transition-colors">
+                          <div className="flex justify-between items-center">
+                            <span className="font-bold text-[#174B43] text-xs">
+                              Payment In #{i + 1}
+                            </span>
+                            <span className="font-mono font-bold text-emerald-700 text-sm">
+                              +₹{Number(a.allocatedAmount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center text-[11px] text-slate-500">
+                            <span>{new Date(a.createdAt || a.voucher?.voucherDate || invoice.invoiceDate).toLocaleDateString("en-IN")}</span>
+                            <span className="font-semibold bg-slate-100 px-2 py-0.5 rounded text-slate-700">
+                              {a.paymentMode || "Cash"}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex justify-between items-center text-[11px] text-slate-500">
-                          <span>{new Date(a.createdAt || a.voucher?.voucherDate || invoice.invoiceDate).toLocaleDateString("en-IN")}</span>
-                          <span className="font-medium bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-700">
-                            {a.paymentMode || "Cash"}
-                          </span>
-                        </div>
+                      ))}
+                    </div>
+                  ) : invoice.paidAmount > 0 ? (
+                    <div className="p-3.5 bg-white border border-slate-200 rounded-xl space-y-1.5 shadow-2xs">
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-[#174B43] text-xs">
+                          Payment In #1 (At Billing)
+                        </span>
+                        <span className="font-mono font-bold text-emerald-700 text-sm">
+                          +₹{Number(invoice.paidAmount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                        </span>
                       </div>
-                    ))}
-                  </div>
-                ) : invoice.paidAmount > 0 ? (
-                  <div className="p-3 bg-slate-50 border border-slate-200/90 rounded-xl space-y-1">
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-blue-600 text-xs">
-                        Payment In #1 (At Billing)
-                      </span>
-                      <span className="font-mono font-bold text-slate-900 text-xs">
-                        ₹{Number(invoice.paidAmount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                      </span>
+                      <div className="flex justify-between items-center text-[11px] text-slate-500">
+                        <span>{new Date(invoice.invoiceDate).toLocaleDateString("en-IN")}</span>
+                        <span className="font-semibold bg-slate-100 px-2 py-0.5 rounded text-slate-700">
+                          {invoice.paymentMode || "Cash"}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center text-[11px] text-slate-500">
-                      <span>{new Date(invoice.invoiceDate).toLocaleDateString("en-IN")}</span>
-                      <span className="font-medium bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-700">
-                        {invoice.paymentMode || "Cash"}
-                      </span>
+                  ) : (
+                    <div className="py-8 text-center text-slate-400 text-xs bg-[#F6F8F7] rounded-xl border border-dashed border-slate-200">
+                      {lang === "gu" ? "કોઈ ચુકવણી હજુ નોંધાયેલ નથી." : "No payments recorded yet for this invoice."}
                     </div>
-                  </div>
-                ) : (
-                  <div className="py-6 text-center text-slate-400 text-xs bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                    {lang === "gu" ? "કોઈ ચુકવણી હજુ નોંધાયેલ નથી." : "No payments recorded yet."}
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-200 space-y-2 text-xs">
-                <div className="flex justify-between items-center text-slate-700">
-                  <span className="font-semibold">{lang === "gu" ? "કુલ મળેલી રકમ" : "Total Amount Received"}</span>
-                  <span className="font-mono font-bold text-slate-900">
-                    ₹{Number(invoice.paidAmount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center pt-1 border-t border-slate-100 font-bold">
-                  <span className="text-slate-800">{lang === "gu" ? "બાકી રકમ" : "Balance Amount"}</span>
-                  <span className="font-mono text-sm text-red-600 font-black">
-                    ₹{Number(bal).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-
-                {bal > 0 && invoice.status !== "CANCELLED" && (
+              {/* Drawer Footer with Record Payment In CTA */}
+              {bal > 0 && invoice.status !== "CANCELLED" && (
+                <div className="p-4 border-t border-slate-200 bg-white">
                   <button
                     onClick={() => {
+                      setShowPaymentHistory(false);
                       setPaymentAmount(bal);
                       setPaymentError(null);
                       setIsPaymentModalOpen(true);
                     }}
-                    className="w-full mt-2 py-2 px-3 bg-[#4338CA] hover:bg-[#3730A3] text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2.5 px-4 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <span>+ Record Payment In</span>
+                    <span>💳</span>
+                    <span>{lang === "gu" ? "ચુકવણી નોંધો (Record Payment In)" : "Record Payment In"}</span>
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
+      )}
 
       {/* Credit Notes / Sales Returns History */}
       {returns.length > 0 && (
@@ -1499,7 +1602,7 @@ export default function InvoiceDetailPage() {
           {invoice && (
             <div className="bg-gradient-to-r from-orange-50/80 via-amber-50/40 to-slate-50 border border-orange-200/80 rounded-xl p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-orange-100 text-[#F47721] flex items-center justify-center shrink-0 shadow-xs">
+                <div className="w-10 h-10 rounded-xl bg-orange-100 text-[#174B43] flex items-center justify-center shrink-0 shadow-xs">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
@@ -1801,7 +1904,7 @@ export default function InvoiceDetailPage() {
                     <button
                       type="submit"
                       disabled={isSubmittingEwb}
-                      className="w-full py-3 px-4 bg-gradient-to-r from-orange-500 to-[#F47721] hover:from-orange-600 hover:to-[#D95F12] text-white rounded-xl text-xs font-bold shadow-md shadow-orange-500/20 hover:shadow-lg hover:shadow-orange-500/30 active:scale-[0.99] transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
+                      className="w-full py-3 px-4 bg-gradient-to-r from-orange-500 to-[#174B43] hover:from-orange-600 hover:to-[#123B35] text-white rounded-xl text-xs font-bold shadow-md shadow-orange-500/20 hover:shadow-lg hover:shadow-orange-500/30 active:scale-[0.99] transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
                     >
                       {isSubmittingEwb ? (
                         <>

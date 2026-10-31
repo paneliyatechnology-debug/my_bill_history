@@ -1058,7 +1058,7 @@ export default function CreatePurchaseReturnPage() {
                 onClick={() => setViewMode("edit")}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-all ${
                   viewMode === "edit"
-                    ? "bg-white text-[#4F46E5] font-semibold shadow-xs"
+                    ? "bg-white text-[#174B43] font-semibold shadow-xs"
                     : "hover:text-slate-900"
                 }`}
               >
@@ -1073,7 +1073,7 @@ export default function CreatePurchaseReturnPage() {
                 onClick={() => setViewMode("preview")}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-all ${
                   viewMode === "preview"
-                    ? "bg-white text-[#4F46E5] font-semibold shadow-xs"
+                    ? "bg-white text-[#174B43] font-semibold shadow-xs"
                     : "hover:text-slate-900"
                 }`}
               >
@@ -1105,7 +1105,7 @@ export default function CreatePurchaseReturnPage() {
                 <button
                   type="button"
                   onClick={() => setViewMode("edit")}
-                  className="px-4 py-1.5 text-xs font-semibold text-white bg-[#4F46E5] rounded hover:bg-[#4338CA] transition-colors shadow-2xs"
+                  className="px-4 py-1.5 text-xs font-semibold text-white bg-[#174B43] rounded hover:bg-[#123B35] transition-colors shadow-2xs"
                 >
                   Back to Edit
                 </button>
@@ -1137,7 +1137,7 @@ export default function CreatePurchaseReturnPage() {
                   type="button"
                   disabled={isSubmitting}
                   onClick={() => handleSubmit(false)}
-                  className="flex items-center gap-1.5 px-5 py-1.5 text-xs font-semibold text-white bg-[#4F46E5] rounded hover:bg-[#4338CA] transition-colors shadow-2xs"
+                  className="flex items-center gap-1.5 px-5 py-1.5 text-xs font-semibold text-white bg-[#174B43] rounded hover:bg-[#123B35] transition-colors shadow-2xs"
                 >
                   {isSubmitting && <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />}
                   <span>{isEditMode ? "Update" : "Save"}</span>
@@ -1337,7 +1337,7 @@ export default function CreatePurchaseReturnPage() {
                   )}
 
                   {qrAdded && upiUri && (
-                    <div className="rounded-lg border border-indigo-200 bg-white p-3 text-slate-700 flex items-center justify-between gap-3 shadow-2xs">
+                    <div className="rounded-lg border border-teal-200 bg-white p-3 text-slate-700 flex items-center justify-between gap-3 shadow-2xs">
                       <div>
                         <p className="font-bold text-slate-900 text-xs mb-1 flex items-center gap-1">
                           <span>📱</span> Scan &amp; Pay via UPI
@@ -1345,7 +1345,7 @@ export default function CreatePurchaseReturnPage() {
                         <p className="text-[11px] text-slate-500 mb-1">
                           Scan with GPay, PhonePe, Paytm or any UPI App
                         </p>
-                        <p className="text-xs font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded inline-block border border-indigo-100">
+                        <p className="text-xs font-mono font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded inline-block border border-teal-100">
                           {qrForm.upiId}
                         </p>
                       </div>
@@ -1452,7 +1452,7 @@ export default function CreatePurchaseReturnPage() {
                           <div
                             key={p.id}
                             onClick={() => handleSelectParty(p)}
-                            className="px-3 py-2 flex items-center justify-between hover:bg-indigo-50/60 cursor-pointer transition-colors"
+                            className="px-3 py-2 flex items-center justify-between hover:bg-teal-50/60 cursor-pointer transition-colors"
                           >
                             <div>
                               <div className="font-semibold text-slate-900">{p.name}</div>
@@ -1473,7 +1473,7 @@ export default function CreatePurchaseReturnPage() {
                           });
                           setIsCreatePartyModalOpen(true);
                         }}
-                        className="p-2.5 text-center font-bold text-[#2563EB] hover:bg-indigo-50 cursor-pointer border-t border-dashed border-indigo-200 sticky bottom-0 bg-white"
+                        className="p-2.5 text-center font-bold text-[#2563EB] hover:bg-teal-50 cursor-pointer border-t border-dashed border-teal-200 sticky bottom-0 bg-white"
                       >
                         + Create Party
                       </div>
@@ -1572,24 +1572,24 @@ export default function CreatePurchaseReturnPage() {
                 <div className="relative">
                   <div className="flex items-center justify-between mb-1">
                     <label className="text-xs text-slate-600 font-medium">Link to Purchase Invoice :</label>
-                    <span className="rounded bg-indigo-50 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 border border-indigo-200">
+                    <span className="rounded bg-teal-50 text-teal-700 text-[10px] font-bold px-1.5 py-0.5 border border-teal-200">
                       Auto-fill
                     </span>
                   </div>
 
                   {selectedInvoiceId ? (
-                    <div className="flex items-center justify-between rounded-lg border border-indigo-300 bg-indigo-50/70 p-2.5 text-xs transition-all shadow-2xs">
+                    <div className="flex items-center justify-between rounded-lg border border-indigo-300 bg-teal-50/70 p-2.5 text-xs transition-all shadow-2xs">
                       <div className="flex items-center gap-2">
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-[11px] text-white">✓</span>
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-600 text-[11px] text-white">✓</span>
                         <div>
                           <p className="font-bold text-indigo-950">Linked: #{invoiceSearchQuery.replace(/^#+/, "")}</p>
-                          <p className="text-[10px] text-indigo-700">Vendor &amp; items auto-filled from purchase bill</p>
+                          <p className="text-[10px] text-teal-700">Vendor &amp; items auto-filled from purchase bill</p>
                         </div>
                       </div>
                       <button
                         type="button"
                         onClick={handleUnlinkInvoice}
-                        className="rounded border border-indigo-200 bg-white px-2 py-1 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 shadow-2xs transition-colors"
+                        className="rounded border border-teal-200 bg-white px-2 py-1 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 shadow-2xs transition-colors"
                       >
                         ✕ Unlink / Change
                       </button>
@@ -1639,7 +1639,7 @@ export default function CreatePurchaseReturnPage() {
                                 e.preventDefault();
                                 handleSelectInvoice(inv);
                               }}
-                              className="px-3 py-2 hover:bg-indigo-50/60 cursor-pointer flex items-center justify-between transition-colors"
+                              className="px-3 py-2 hover:bg-teal-50/60 cursor-pointer flex items-center justify-between transition-colors"
                             >
                               <div>
                                 <div className="flex items-center gap-1.5">
@@ -1661,7 +1661,7 @@ export default function CreatePurchaseReturnPage() {
                                 <span className="font-bold text-slate-900 block">
                                   ₹ {Number(inv.grandTotal || inv.totalAmount || 0).toLocaleString("en-IN")}
                                 </span>
-                                <span className="text-[10px] text-indigo-600 font-semibold hover:underline">
+                                <span className="text-[10px] text-teal-600 font-semibold hover:underline">
                                   Auto-fill ➜
                                 </span>
                               </div>
@@ -1714,7 +1714,7 @@ export default function CreatePurchaseReturnPage() {
                             <div className="py-1">
                               <p className="font-bold text-slate-900 text-xs">{line.name}</p>
                               {line.purchaseItemId && (
-                                <span className="inline-flex items-center text-[10px] font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-1.5 py-0.2 rounded mt-0.5">
+                                <span className="inline-flex items-center text-[10px] font-semibold text-teal-600 bg-teal-50 border border-teal-100 px-1.5 py-0.2 rounded mt-0.5">
                                   From Bill
                                 </span>
                               )}
@@ -1765,10 +1765,10 @@ export default function CreatePurchaseReturnPage() {
                                         <div
                                           key={itm.id}
                                           onClick={() => handlePickInventoryItem(idx, itm)}
-                                          className="px-4 py-2.5 hover:bg-indigo-50/70 cursor-pointer flex items-center justify-between transition-colors group"
+                                          className="px-4 py-2.5 hover:bg-teal-50/70 cursor-pointer flex items-center justify-between transition-colors group"
                                         >
                                           <div className="pr-3">
-                                            <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors flex items-center gap-1.5">
+                                            <div className="font-bold text-slate-900 group-hover:text-teal-600 transition-colors flex items-center gap-1.5">
                                               <span>{itm.name}</span>
                                               {lang === "gu" && itm.nameGujarati && (
                                                 <span className="text-[11px] font-normal text-slate-500">
@@ -1832,7 +1832,7 @@ export default function CreatePurchaseReturnPage() {
                                       setIsCreateItemModalOpen(true);
                                       setActiveItemAutocompleteIdx(null);
                                     }}
-                                    className="p-2.5 text-center font-bold text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50/80 cursor-pointer border-t border-dashed border-indigo-200 bg-white shrink-0 transition-colors flex items-center justify-center gap-1.5 select-none"
+                                    className="p-2.5 text-center font-bold text-teal-600 hover:text-teal-700 hover:bg-teal-50/80 cursor-pointer border-t border-dashed border-teal-200 bg-white shrink-0 transition-colors flex items-center justify-center gap-1.5 select-none"
                                   >
                                     <span className="text-base leading-none font-bold">+</span>
                                     <span>{lang === "gu" ? "નવી આઇટમ ઉમેરો (Add New Item)" : "Add New Item"}</span>
@@ -2004,7 +2004,7 @@ export default function CreatePurchaseReturnPage() {
                             <button
                               type="button"
                               onClick={handleUnlinkInvoice}
-                              className="text-indigo-600 font-semibold hover:underline ml-1"
+                              className="text-teal-600 font-semibold hover:underline ml-1"
                             >
                               Unlink to add custom items
                             </button>
@@ -2177,10 +2177,10 @@ export default function CreatePurchaseReturnPage() {
                       <span>+ Add Payment QR</span>
                     </button>
                   ) : (
-                    <div className="rounded-lg border border-indigo-200 bg-indigo-50/60 p-2.5 text-xs text-slate-700 space-y-1.5 transition-all shadow-2xs">
+                    <div className="rounded-lg border border-teal-200 bg-teal-50/60 p-2.5 text-xs text-slate-700 space-y-1.5 transition-all shadow-2xs">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 font-bold text-indigo-950">
-                          <svg className="w-4 h-4 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <svg className="w-4 h-4 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <rect x="3" y="3" width="7" height="7" />
                             <rect x="14" y="3" width="7" height="7" />
                             <rect x="14" y="14" width="7" height="7" />
@@ -2192,7 +2192,7 @@ export default function CreatePurchaseReturnPage() {
                           <button
                             type="button"
                             onClick={() => setIsQrModalOpen(true)}
-                            className="text-[11px] font-semibold text-indigo-600 hover:underline cursor-pointer"
+                            className="text-[11px] font-semibold text-teal-600 hover:underline cursor-pointer"
                           >
                             ✎ Edit
                           </button>
@@ -2314,7 +2314,7 @@ export default function CreatePurchaseReturnPage() {
                       type="checkbox"
                       checked={autoRoundOff}
                       onChange={(e) => setAutoRoundOff(e.target.checked)}
-                      className="rounded border-slate-300 text-[#4F46E5] focus:ring-0"
+                      className="rounded border-slate-300 text-[#174B43] focus:ring-0"
                     />
                     <span>Auto Round Off</span>
                   </label>
@@ -2389,7 +2389,7 @@ export default function CreatePurchaseReturnPage() {
                       type="checkbox"
                       checked={isFullyPaid}
                       onChange={(e) => handleToggleFullyPaid(e.target.checked)}
-                      className="rounded border-slate-300 text-[#4F46E5] focus:ring-0"
+                      className="rounded border-slate-300 text-[#174B43] focus:ring-0"
                     />
                     <span>Mark as fully paid</span>
                   </label>
@@ -2423,7 +2423,7 @@ export default function CreatePurchaseReturnPage() {
                         <button
                           type="button"
                           onClick={() => setIsSignatureModalOpen(true)}
-                          className="text-[10px] text-indigo-600 hover:underline font-semibold"
+                          className="text-[10px] text-teal-600 hover:underline font-semibold"
                         >
                           Change
                         </button>
@@ -2504,7 +2504,7 @@ export default function CreatePurchaseReturnPage() {
             <button
               type="button"
               onClick={handleSaveEditParty}
-              className="px-5 py-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white font-bold rounded-lg transition-colors shadow-2xs"
+              className="px-5 py-2 bg-[#174B43] hover:bg-[#123B35] text-white font-bold rounded-lg transition-colors shadow-2xs"
             >
               Save Changes
             </button>
@@ -2573,7 +2573,7 @@ export default function CreatePurchaseReturnPage() {
             <button
               type="button"
               onClick={handleCreateParty}
-              className="px-5 py-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white font-bold rounded-lg transition-colors shadow-2xs"
+              className="px-5 py-2 bg-[#174B43] hover:bg-[#123B35] text-white font-bold rounded-lg transition-colors shadow-2xs"
             >
               Create & Select
             </button>
@@ -2660,7 +2660,7 @@ export default function CreatePurchaseReturnPage() {
             <button
               type="button"
               onClick={handleCreateItem}
-              className="px-5 py-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white font-bold rounded-lg transition-colors shadow-2xs"
+              className="px-5 py-2 bg-[#174B43] hover:bg-[#123B35] text-white font-bold rounded-lg transition-colors shadow-2xs"
             >
               Save Item
             </button>
@@ -2806,7 +2806,7 @@ export default function CreatePurchaseReturnPage() {
               <div className="space-y-1 text-[11px] text-slate-600">
                 <p className="font-bold text-slate-900">Live Scannable QR Preview</p>
                 <p>Accepts payments via GPay, PhonePe, Paytm, BHIM, and banking apps.</p>
-                <p className="font-mono text-indigo-700 font-bold">{qrForm.upiId}</p>
+                <p className="font-mono text-teal-700 font-bold">{qrForm.upiId}</p>
               </div>
             </div>
           ) : (

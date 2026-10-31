@@ -331,7 +331,7 @@ export default function SalesReturnsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={lang === "gu" ? "શોધો" : "Search"}
-              className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none transition-colors"
+              className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-teal-500 focus:outline-none transition-colors"
             />
             {searchQuery && (
               <button
@@ -384,7 +384,7 @@ export default function SalesReturnsPage() {
                         if (key !== "CUSTOM") setIsDatePickerOpen(false);
                       }}
                       className={`flex w-full items-center justify-between px-3 py-2 text-left hover:bg-slate-50 ${
-                        dateRangePreset === key ? "font-semibold text-[#4F46E5] bg-indigo-50/50" : "text-slate-700"
+                        dateRangePreset === key ? "font-semibold text-[#174B43] bg-teal-50/50" : "text-slate-700"
                       }`}
                     >
                       <span>{label}</span>
@@ -416,7 +416,7 @@ export default function SalesReturnsPage() {
                     <button
                       type="button"
                       onClick={() => setIsDatePickerOpen(false)}
-                      className="w-full mt-1 rounded bg-[#4F46E5] py-1 text-center font-semibold text-white"
+                      className="w-full mt-1 rounded bg-[#174B43] py-1 text-center font-semibold text-white"
                     >
                       Apply
                     </button>
@@ -430,7 +430,7 @@ export default function SalesReturnsPage() {
         {/* Create Sales Return / Credit Note Purple Button */}
         <Link
           href={pathname.includes("/debit-note") ? "/sales/debit-note/create" : "/sales/credit-note/create"}
-          className="inline-flex items-center justify-center rounded-lg bg-[#4F46E5] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#4338CA] transition-colors"
+          className="inline-flex items-center justify-center rounded-lg bg-[#174B43] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#123B35] transition-colors"
         >
           {pathname.includes("/debit-note")
             ? lang === "gu"
@@ -496,7 +496,7 @@ export default function SalesReturnsPage() {
                 <tr>
                   <td colSpan={7} className="px-4 py-16 text-center text-xs text-slate-500">
                     <div className="flex items-center justify-center gap-2">
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-teal-600 border-t-transparent" />
                       <span>{lang === "gu" ? "લોડ થઈ રહ્યું છે..." : "Loading sales returns..."}</span>
                     </div>
                   </td>
@@ -532,7 +532,7 @@ export default function SalesReturnsPage() {
                       </p>
                       <Link
                         href="/sales/credit-note/create"
-                        className="mt-4 rounded-lg bg-[#4F46E5] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#4338CA]"
+                        className="mt-4 rounded-lg bg-[#174B43] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#123B35]"
                       >
                         {isCreditNote
                           ? lang === "gu"
@@ -559,7 +559,7 @@ export default function SalesReturnsPage() {
                     <td className="px-4 py-3 font-medium text-slate-900 whitespace-nowrap">
                       <Link
                         href={`/sales/credit-note/view/${row.id}`}
-                        className="hover:text-[#4F46E5] hover:underline transition-colors font-semibold"
+                        className="hover:text-[#174B43] hover:underline transition-colors font-semibold"
                       >
                         {row.returnNumber}
                       </Link>
@@ -720,7 +720,7 @@ export default function SalesReturnsPage() {
               <button
                 type="button"
                 onClick={() => setSelectedReturnForView(null)}
-                className="rounded-lg bg-[#4F46E5] px-4 py-2 text-xs font-semibold text-white hover:bg-[#4338CA]"
+                className="rounded-lg bg-[#174B43] px-4 py-2 text-xs font-semibold text-white hover:bg-[#123B35]"
               >
                 Close
               </button>
@@ -778,7 +778,7 @@ export default function SalesReturnsPage() {
           <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <svg className="w-4 h-4 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg className="w-4 h-4 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span>Edit History — #{historyTarget.returnNumber}</span>

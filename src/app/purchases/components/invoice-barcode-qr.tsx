@@ -222,7 +222,7 @@ export function InvoiceBarcodeStickerModal({
         {/* Modal Header */}
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100 bg-slate-50/80">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-orange-100 text-[#F47721] flex items-center justify-center text-lg font-bold shadow-xs">
+            <div className="w-9 h-9 rounded-xl bg-orange-100 text-[#174B43] flex items-center justify-center text-lg font-bold shadow-xs">
               🏷️
             </div>
             <div>
@@ -297,7 +297,7 @@ export function InvoiceBarcodeStickerModal({
                   <p className="text-[10px] font-mono text-slate-500">GSTIN: {company.gstin}</p>
                 )}
               </div>
-              <span className="px-2 py-0.5 bg-orange-50 text-[#F47721] border border-orange-200 text-[10px] font-bold rounded uppercase">
+              <span className="px-2 py-0.5 bg-orange-50 text-[#174B43] border border-orange-200 text-[10px] font-bold rounded uppercase">
                 PURCHASE INVOICE
               </span>
             </div>
@@ -337,7 +337,7 @@ export function InvoiceBarcodeStickerModal({
                   </div>
                   <div className="text-right">
                     <span className="text-[10px] text-slate-400 block">TOTAL</span>
-                    <strong className="font-bold text-[#F47721] text-xs">{formattedTotal}</strong>
+                    <strong className="font-bold text-[#174B43] text-xs">{formattedTotal}</strong>
                   </div>
                 </div>
               </div>

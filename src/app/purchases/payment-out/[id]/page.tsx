@@ -231,7 +231,7 @@ export default function PaymentOutViewPage() {
       const phone = user?.phone || "";
 
       // 1. Top Brand Accent Line
-      doc.setFillColor(79, 70, 229); // #4F46E5 indigo
+      doc.setFillColor(79, 70, 229); // #174B43 indigo
       doc.rect(margin, 10, pageWidth - margin * 2, 2.5, "F");
 
       // 2. Company Information (Left)
@@ -906,7 +906,7 @@ export default function PaymentOutViewPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[11px] text-slate-500 mb-1">Left</label>
-                    <div className="flex items-center rounded-lg border border-slate-300 bg-white overflow-hidden focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
+                    <div className="flex items-center rounded-lg border border-slate-300 bg-white overflow-hidden focus-within:border-teal-500 focus-within:ring-1 focus-within:ring-teal-500">
                       <input
                         type="number"
                         min="0"
@@ -923,7 +923,7 @@ export default function PaymentOutViewPage() {
 
                   <div>
                     <label className="block text-[11px] text-slate-500 mb-1">Right</label>
-                    <div className="flex items-center rounded-lg border border-slate-300 bg-white overflow-hidden focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
+                    <div className="flex items-center rounded-lg border border-slate-300 bg-white overflow-hidden focus-within:border-teal-500 focus-within:ring-1 focus-within:ring-teal-500">
                       <input
                         type="number"
                         min="0"
@@ -953,7 +953,7 @@ export default function PaymentOutViewPage() {
               <button
                 type="button"
                 onClick={handleSaveThermalMargins}
-                className="rounded-lg bg-[#4F46E5] px-5 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors shadow-2xs cursor-pointer"
+                className="rounded-lg bg-[#174B43] px-5 py-1.5 text-xs font-semibold text-white hover:bg-teal-700 transition-colors shadow-2xs cursor-pointer"
               >
                 Save
               </button>

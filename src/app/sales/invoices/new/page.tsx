@@ -44,9 +44,11 @@ interface ItemOption {
 }
 
 interface InvoiceItemRow {
+  rowId?: string;
   itemId: string;
   hsnCode: string;
   quantity: number | "";
+  unit?: string;
   unitPrice: number | "";
   discountPercent: number | "";
   taxRate: number;
@@ -108,8 +110,8 @@ export default function NewInvoicePage() {
   // View Mode: Edit Mode vs Preview Mode (Exact myBillBook Header Switcher)
   const [viewMode, setViewMode] = useState<"edit" | "preview">("edit");
 
-  // Left AI Panel State
-  const [showAiPanel, setShowAiPanel] = useState(true);
+  // Left AI Panel State (Drawer)
+  const [showAiPanel, setShowAiPanel] = useState(false);
   const [showHowItWorks, setShowHowItWorks] = useState(true);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isAiProcessing, setIsAiProcessing] = useState(false);
@@ -495,20 +497,22 @@ export default function NewInvoicePage() {
     setRows(updated);
   };
 
-  const handleAddRow = () => {
-    const firstItem = items[0];
+  const handleAddRow = (specificItemId?: string) => {
+    const firstItem = specificItemId ? items.find((it) => it.id === specificItemId) : items[0];
     const partyPrice =
       partyId && firstItem?.id
         ? getPartyItemPrice(partyId, firstItem.id, selectedParty?.name, firstItem.name)
         : null;
     const effectiveUnitPrice = partyPrice !== null ? partyPrice : (firstItem?.retailPrice || 100);
 
-    setRows([
-      ...rows,
+    setRows((prev) => [
+      ...prev,
       {
+        rowId: `row-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
         itemId: firstItem?.id || "",
         hsnCode: firstItem?.hsnCode || "1001",
         quantity: 1,
+        unit: "PCS",
         unitPrice: effectiveUnitPrice,
         discountPercent: 0,
         taxRate: firstItem?.taxRate ?? quickSettings.defaultTaxRate ?? 5,
@@ -516,9 +520,24 @@ export default function NewInvoicePage() {
     ]);
   };
 
+  const handleAddBlankRow = () => {
+    setRows((prev) => [
+      ...prev,
+      {
+        rowId: `row-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
+        itemId: items[0]?.id || "",
+        hsnCode: items[0]?.hsnCode || "1001",
+        quantity: 1,
+        unit: "PCS",
+        unitPrice: 0,
+        discountPercent: 0,
+        taxRate: quickSettings.defaultTaxRate ?? 5,
+      },
+    ]);
+  };
+
   const handleRemoveRow = (idx: number) => {
-    if (rows.length <= 1) return;
-    setRows(rows.filter((_, i) => i !== idx));
+    setRows((prev) => prev.filter((_, i) => i !== idx));
   };
 
   // Additional Charges Handlers
@@ -1344,16 +1363,18 @@ export default function NewInvoicePage() {
   }, [handleSubmit]);
 
   return (
-    <div className="min-h-screen bg-[#F6F7F1] pb-24 text-slate-800">
-      {/* TOP BAR: Forest Teal Signature Enterprise Layout */}
-      <header className="sticky top-0 z-30 bg-white border-b border-[#E2E8E5] shadow-xs px-3 sm:px-6 py-2.5">
-        <div className="w-full flex items-center justify-between gap-2 sm:gap-4 min-w-0">
+    <div className="min-h-screen bg-[#F6F8F7] pb-24 text-slate-800">
+      {/* =========================================================================
+          TOP BAR: Compact Forest Teal Signature Enterprise Toolbar (Full-Width)
+          ========================================================================= */}
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs px-4 sm:px-6 lg:px-8 py-2.5">
+        <div className="w-full max-w-[1720px] mx-auto flex items-center justify-between gap-3 min-w-0">
           
-          {/* Left: Exit & Title */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          {/* Left: Exit, Title & Category Badge */}
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 shrink-0">
             <Link
               href="/sales/invoices"
-              className="flex items-center gap-1.5 px-3 py-1.5 border border-[#E2E8E5] hover:bg-[#F2FAF7] hover:border-[#85D5C2] rounded-xl text-xs font-bold text-[#174B43] shadow-2xs transition-colors shrink-0"
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 hover:bg-[#F2FAF7] hover:border-[#85D5C2] rounded-lg text-xs font-bold text-[#174B43] shadow-2xs transition-colors shrink-0"
               title="Return to Sales Invoices list"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
@@ -1361,46 +1382,94 @@ export default function NewInvoicePage() {
               </svg>
               <span>Exit</span>
             </Link>
-            <h1 className="text-sm sm:text-base font-bold text-[#1A2E2B] tracking-tight truncate">
-              Create Sales Invoice
-            </h1>
+
+            <div className="h-5 w-px bg-slate-200 hidden sm:block" />
+
+            <div className="flex items-center gap-2 min-w-0">
+              <h1 className="text-sm sm:text-base font-extrabold text-[#1A2E2B] tracking-tight truncate">
+                {lang === "gu" ? "વેચાણ ઇન્વોઇસ બનાવો" : "Create Sales Invoice"}
+              </h1>
+              <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#E6F7F2] text-[#174B43] border border-[#85D5C2]/50 shrink-0">
+                {category.replace("_", " ")}
+              </span>
+              <span className="hidden xl:inline-block font-mono text-[11px] text-slate-500 font-semibold px-2 py-0.5 bg-slate-100 rounded-md">
+                #{invoiceNumber || "DRAFT"}
+              </span>
+            </div>
           </div>
 
-          {/* Center: Edit Mode / Preview Mode Switcher (Hidden on small mobile) */}
-          <div className="hidden md:flex items-center bg-[#F2FAF7] p-0.5 rounded-xl border border-[#BCEADF] shrink-0">
-            <button
-              type="button"
-              onClick={() => setViewMode("edit")}
-              className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                viewMode === "edit"
-                  ? "bg-white text-[#174B43] shadow-xs border border-[#85D5C2]/40"
-                  : "text-[#5A6B66] hover:text-[#174B43]"
-              }`}
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              <span>Edit Mode</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("preview")}
-              className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                viewMode === "preview"
-                  ? "bg-white text-[#174B43] shadow-xs border border-[#85D5C2]/40"
-                  : "text-[#5A6B66] hover:text-[#174B43]"
-              }`}
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              <span>Preview Mode</span>
-            </button>
+          {/* Center: Edit Mode / Preview Mode Switcher & Visual Workflow Breadcrumb */}
+          <div className="hidden lg:flex items-center gap-4 shrink-0">
+            {/* Visual Workflow Steps (Non-blocking contextual guide) */}
+            <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-400">
+              <span className="flex items-center gap-1 text-[#174B43] font-bold">
+                <span className="w-4 h-4 rounded-full bg-[#E6F7F2] text-[#174B43] border border-[#85D5C2] flex items-center justify-center text-[10px]">1</span>
+                <span>Customer</span>
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1 text-[#174B43] font-bold">
+                <span className="w-4 h-4 rounded-full bg-[#E6F7F2] text-[#174B43] border border-[#85D5C2] flex items-center justify-center text-[10px]">2</span>
+                <span>Items ({rows.length})</span>
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1 text-slate-500 font-medium">
+                <span className="w-4 h-4 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px]">3</span>
+                <span>Settlement</span>
+              </span>
+            </div>
+
+            {/* Segmented Mode Switcher */}
+            <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setViewMode("edit")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === "edit"
+                    ? "bg-white text-[#174B43] shadow-xs border border-[#85D5C2]/40"
+                    : "text-[#5A6B66] hover:text-[#174B43]"
+                }`}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span>Edit</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("preview")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === "preview"
+                    ? "bg-white text-[#174B43] shadow-xs border border-[#85D5C2]/40"
+                    : "text-[#5A6B66] hover:text-[#174B43]"
+                }`}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span>Preview</span>
+              </button>
+            </div>
           </div>
 
-          {/* Right: Actions */}
+          {/* Right: Actions, AI Scan trigger & Primary Save CTA */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            {/* AI Scan Trigger Button */}
+            <button
+              id="btn-show-ai-panel"
+              type="button"
+              onClick={() => setShowAiPanel(true)}
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl border border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 hover:from-amber-100 hover:to-orange-100 text-amber-900 font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+              title="Open Mira AI Autofill Scanner"
+            >
+              <span className="text-sm">⚡</span>
+              <span className="hidden sm:inline">AI Scan</span>
+              <span className="px-1.5 py-0.2 bg-amber-200 text-amber-900 text-[9px] font-black rounded-full">
+                {remainingScans}
+              </span>
+            </button>
+
+            {/* Quick Settings Icon */}
             <button
               type="button"
               onClick={() => {
@@ -1416,20 +1485,22 @@ export default function NewInvoicePage() {
               </svg>
             </button>
 
+            {/* Save & New Secondary Action */}
             <button
               type="button"
               onClick={() => handleSubmit(false, true)}
               disabled={isSubmitting}
-              className="hidden sm:inline-flex px-3.5 sm:px-4 py-2 border border-[#E2E8E5] hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-[#174B43] font-bold text-xs rounded-xl shadow-2xs transition-colors disabled:opacity-50"
+              className="hidden sm:inline-flex px-3.5 py-2 border border-[#E2E8E5] hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-[#174B43] font-bold text-xs rounded-xl shadow-2xs transition-colors disabled:opacity-50 cursor-pointer"
             >
               Save & New
             </button>
 
+            {/* Save Invoice Primary CTA */}
             <button
               type="button"
               onClick={() => handleSubmit(false, false)}
               disabled={isSubmitting}
-              className="px-4 sm:px-6 py-2 bg-[#26A58A] hover:bg-[#208E76] active:bg-[#1B7864] text-white font-bold text-xs rounded-xl shadow-jade transition-colors disabled:opacity-50 flex items-center gap-1.5"
+              className="px-4 sm:px-6 py-2 bg-gradient-to-r from-[#174B43] to-[#26A58A] hover:from-[#133E37] hover:to-[#208E76] active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-950/15 transition-all disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
             >
               {isSubmitting ? (
                 <>
@@ -1438,15 +1509,21 @@ export default function NewInvoicePage() {
                   <span className="sm:hidden">...</span>
                 </>
               ) : (
-                <span>Save Invoice</span>
+                <>
+                  <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Save Invoice</span>
+                </>
               )}
             </button>
 
+            {/* Keyboard Shortcuts Icon */}
             <button
               type="button"
               onClick={() => setIsShortcutsOpen(true)}
               className="hidden md:inline-flex p-2 border border-[#E2E8E5] hover:bg-[#F2FAF7] hover:border-[#85D5C2] rounded-xl text-[#5A6B66] hover:text-[#174B43] transition-colors cursor-pointer"
-              title="Keyboard Shortcuts (Shift+S, Shift+N, Shift+I, etc.)"
+              title="Keyboard Shortcuts (Ctrl+S, Shift+N, Shift+I, etc.)"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7zM7 9h.01M11 9h.01M15 9h.01M7 12h.01M11 12h.01M15 12h.01M7 15h10" />
@@ -1456,34 +1533,308 @@ export default function NewInvoicePage() {
         </div>
       </header>
 
-      {/* MAIN CONTAINER: FULL SCREEN WIDE LAYOUT */}
-      <div className="w-full px-4 sm:px-6 py-4">
+      {/* =========================================================================
+          SLIDE-OVER DRAWER: Mira AI Document Scanner & Autofill Utility
+          (Clean slide-over drawer that frees up 100% of the invoice canvas)
+          ========================================================================= */}
+      {showAiPanel && (
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          {/* Backdrop blur */}
+          <div
+            onClick={() => setShowAiPanel(false)}
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
+          />
+
+          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col border-l border-slate-200">
+              
+              {/* Drawer Header */}
+              <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-orange-50/60 to-amber-50/60 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#174B43] to-[#E65F12] text-white flex items-center justify-center shadow-xs">
+                    <span className="text-base">⚡</span>
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-extrabold text-slate-900">
+                      Mira AI Bill Scanner
+                    </h2>
+                    <p className="text-[11px] text-slate-500">
+                      Extract items, GST & totals automatically
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 bg-rose-100 text-rose-800 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                    FREE • {remainingScans} LEFT
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowAiPanel(false)}
+                    className="w-8 h-8 rounded-lg hover:bg-slate-200/60 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                    title="Close scanner drawer"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              {/* Drawer Body */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                {/* Stats Summary Strip */}
+                <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                  <div className="flex items-center gap-1.5 font-medium text-slate-700">
+                    <span>📋</span>
+                    <span><strong>{scannedBillsCount}</strong> bills scanned</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 font-medium text-orange-700 justify-end">
+                    <span>⏰</span>
+                    <span><strong>~{timeSavedMinutes} mins</strong> saved</span>
+                  </div>
+                </div>
+
+                {/* Live Processing Card */}
+                {isAiProcessing ? (
+                  <div className="border-2 border-dashed border-orange-400 bg-orange-50/90 rounded-2xl p-6 text-center space-y-3">
+                    <div className="w-14 h-14 mx-auto rounded-full bg-orange-100 flex items-center justify-center text-3xl animate-spin">
+                      🔍
+                    </div>
+                    <div>
+                      <p className="text-sm font-extrabold text-orange-950">
+                        Analyzing Document...
+                      </p>
+                      <p className="text-xl font-black font-mono text-orange-600 mt-0.5">
+                        {scanDurationSeconds}s
+                      </p>
+                    </div>
+                    <div className="w-full bg-orange-200 rounded-full h-2 overflow-hidden">
+                      <div className="bg-gradient-to-r from-orange-500 via-amber-400 to-orange-600 h-2 w-full animate-pulse" />
+                    </div>
+                    <p className="text-xs font-semibold text-orange-800">
+                      {scanProgressText || "AI Gemini Vision is extracting fields..."}
+                    </p>
+                    <p className="text-[10px] text-amber-900 bg-amber-100/80 p-2 rounded-lg border border-amber-300">
+                      ⚠️ Please check extracted details actively before saving.
+                    </p>
+                  </div>
+                ) : uploadedFile ? (
+                  /* Scanned / Uploaded Thumbnail Card */
+                  <div className="border-2 border-emerald-400 bg-emerald-50/70 rounded-2xl p-4 text-left space-y-3 shadow-xs">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-3xl">📄</span>
+                        <div className="truncate max-w-[200px]">
+                          <p className="text-xs font-bold text-slate-900 truncate">
+                            {uploadedFile.name}
+                          </p>
+                          <p className="text-[10px] text-slate-500">
+                            {(uploadedFile.size / 1024).toFixed(1)} KB
+                          </p>
+                        </div>
+                      </div>
+                      <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">
+                        ✓ Ready
+                      </span>
+                    </div>
+
+                    {scannedSummaryTime && (
+                      <div className="p-2.5 bg-white rounded-xl border border-emerald-200 text-xs text-emerald-800 flex items-center justify-between font-medium">
+                        <span>Scanned in {scannedSummaryTime}s!</span>
+                        <span className="text-emerald-700 font-bold">✓ Autofilled into form</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => executeAiScan()}
+                        className="flex-1 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition-colors shadow-2xs cursor-pointer"
+                      >
+                        ↻ Re-scan Document
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUploadedFile(null);
+                          setScannedSummaryTime(null);
+                          setScanSuccessBanner(null);
+                          setScanError(null);
+                        }}
+                        className="py-2 px-3 bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-xl text-xs font-bold transition-colors shadow-2xs cursor-pointer"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* Drag & Drop Upload Zone */
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
+                      isDragOver
+                        ? "border-orange-500 bg-orange-100/70 scale-[1.01]"
+                        : "border-orange-300 bg-orange-50/40 hover:bg-orange-50/80 hover:border-orange-400"
+                    }`}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf,.png,.jpg,.jpeg"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                    <div className="w-12 h-12 mx-auto rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center text-2xl mb-3 shadow-inner">
+                      📄
+                    </div>
+                    <p className="text-xs font-bold text-orange-950">
+                      {isDragOver ? "Drop file to scan immediately" : "Click or Drag & Drop invoice here"}
+                    </p>
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      Supports PDF, JPG, JPEG & PNG (max 5MB)
+                    </p>
+                  </div>
+                )}
+
+                {/* Proceed Button */}
+                {!scannedSummaryTime && (
+                  <button
+                    type="button"
+                    disabled={!uploadedFile || isAiProcessing}
+                    onClick={() => executeAiScan()}
+                    className={`w-full py-2.5 font-bold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 ${
+                      !uploadedFile || isAiProcessing
+                        ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                        : "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-orange-500/20 active:scale-95 cursor-pointer"
+                    }`}
+                  >
+                    {isAiProcessing ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>{scanProgressText || "Extracting Data..."}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>✨</span>
+                        <span>{uploadedFile ? "Proceed & Autofill Invoice" : "Upload File to Proceed"}</span>
+                      </>
+                    )}
+                  </button>
+                )}
+
+                {/* How it works card */}
+                {showHowItWorks && (
+                  <div className="bg-slate-50 rounded-2xl border border-slate-200 p-4 space-y-2.5 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                        <span className="text-blue-500">ℹ️</span> How AI Scanning Works
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowHowItWorks(false)}
+                        className="text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <ul className="text-[11px] text-slate-600 space-y-2">
+                      <li className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-[10px]">1</span>
+                        <span>Upload any customer invoice or challan document</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-[10px]">2</span>
+                        <span>AI extracts customer, GSTIN, line items & taxes</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">3</span>
+                        <span>Form is filled instantly with zero manual typing</span>
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MAIN APPLICATION CANVAS
+          ========================================================================= */}
+      <main className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
+        
+        {/* Validation or API Error Banner */}
         {error && (
-          <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-medium text-rose-800 flex items-center justify-between">
-            <span>{error}</span>
+          <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs font-semibold text-rose-800 flex items-center justify-between shadow-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-base">⚠️</span>
+              <span>{error}</span>
+            </div>
             <button
               onClick={() => setError(null)}
-              className="text-rose-500 hover:text-rose-700 font-bold"
+              className="text-rose-500 hover:text-rose-800 font-bold p-1 cursor-pointer"
             >
               ✕
             </button>
           </div>
         )}
 
+        {/* AI Scan Success / Error Notifications */}
+        {scanSuccessBanner && (
+          <div className="flex items-center justify-between p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 text-xs font-medium shadow-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-base">🎉</span>
+              <span>{scanSuccessBanner}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setScanSuccessBanner(null)}
+              className="text-emerald-500 hover:text-emerald-700 font-bold ml-3 cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {scanError && (
+          <div className="flex items-center justify-between p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-medium shadow-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-base">⚠️</span>
+              <span>{scanError}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setScanError(null)}
+              className="text-rose-500 hover:text-rose-700 font-bold ml-3 cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {/* =======================================================================
+            VIEW MODE: PREVIEW MODE (A4 Tax Invoice Document Sheet)
+            ======================================================================= */}
         {viewMode === "preview" ? (
-          /* PREVIEW MODE CANVAS */
           <div className="space-y-4 max-w-4xl mx-auto">
             {/* Top Toolbar */}
-            <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+            <div className="flex items-center justify-between bg-white p-3 rounded-2xl border border-[#E2E8E5] shadow-xs">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-800">Preview Mode • Standard Tax Invoice (A4)</span>
-                <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded">Ready to Print</span>
+                <span className="text-xs font-bold text-slate-800">
+                  Preview Mode • Standard Tax Invoice (A4 Format)
+                </span>
+                <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full border border-emerald-200">
+                  Ready to Print
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+                  className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
                 >
                   <span>🖨️</span>
                   <span>Print Invoice</span>
@@ -1491,30 +1842,30 @@ export default function NewInvoicePage() {
                 <button
                   type="button"
                   onClick={() => setViewMode("edit")}
-                  className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-colors shadow-2xs cursor-pointer"
+                  className="px-4 py-1.5 bg-[#174B43] hover:bg-[#133E37] text-white text-xs font-bold rounded-xl transition-colors shadow-2xs cursor-pointer"
                 >
-                  ✏️ Back to Edit
+                  ✏️ Return to Edit
                 </button>
               </div>
             </div>
 
-            {/* A4 Tax Invoice Document Sheet */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 space-y-6">
+            {/* A4 Document Sheet */}
+            <div className="bg-white rounded-3xl border border-[#E2E8E5] shadow-sm p-8 space-y-6">
               <div className="flex justify-between items-start border-b border-slate-200 pb-6">
                 <div>
                   <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-                    {currentCompany?.tradeName || currentCompany?.legalName || "MODI CHAI"}
+                    {currentCompany?.tradeName || currentCompany?.legalName || "MY BILL BOOK"}
                   </h2>
                   <p className="text-xs text-slate-600 mt-1">
                     GSTIN: <span className="font-mono font-bold">{currentCompany?.gstin || "24AAAAA0000A1Z5"}</span>
                   </p>
                   <p className="text-xs text-slate-600">
-                    State: Gujarat (24) • Phone: 9510442798
+                    State: {currentCompany?.stateCode || "Gujarat (24)"} • {(currentCompany as any)?.phone ? `Phone: ${(currentCompany as any).phone}` : (currentCompany?.city ? `City: ${currentCompany.city}` : "GST Registered")}
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className="inline-block px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 font-black text-xs uppercase tracking-wider rounded-md mb-2">
-                    TAX INVOICE
+                  <span className="inline-block px-3 py-1 bg-[#E6F7F2] text-[#174B43] border border-[#85D5C2] font-black text-xs uppercase tracking-wider rounded-md mb-2">
+                    {category.replace("_", " ")}
                   </span>
                   <p className="text-xs font-bold text-slate-900">
                     Invoice #: <span className="font-mono">{invoiceNumber}</span>
@@ -1526,7 +1877,7 @@ export default function NewInvoicePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-6 bg-slate-50/70 p-4 rounded-xl border border-slate-200">
+              <div className="grid grid-cols-2 gap-6 bg-slate-50/70 p-4 rounded-2xl border border-slate-200">
                 <div>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
                     Billed To
@@ -1559,9 +1910,9 @@ export default function NewInvoicePage() {
                 </div>
               </div>
 
-              {/* Preview Items Table */}
-              <table className="w-full text-xs border border-slate-200 rounded-lg overflow-hidden">
-                <thead className="bg-[#0E1726] text-white">
+              {/* Preview Table */}
+              <table className="w-full text-xs border border-slate-200 rounded-xl overflow-hidden">
+                <thead className="bg-[#174B43] text-white">
                   <tr>
                     <th className="py-2.5 px-3 text-left">#</th>
                     <th className="py-2.5 px-3 text-left">Item Name</th>
@@ -1602,9 +1953,9 @@ export default function NewInvoicePage() {
                 </tbody>
               </table>
 
-              {/* Amount in words and Totals */}
+              {/* Totals Breakdown */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start pt-2">
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                     Total Amount In Words:
                   </span>
@@ -1613,7 +1964,7 @@ export default function NewInvoicePage() {
                   </p>
                 </div>
 
-                <div className="space-y-1.5 text-xs bg-slate-50/60 p-3.5 rounded-xl border border-slate-200">
+                <div className="space-y-1.5 text-xs bg-slate-50/60 p-4 rounded-2xl border border-slate-200">
                   <div className="flex justify-between text-slate-600">
                     <span>Taxable Amount:</span>
                     <span className="font-mono">{formatInr(totalTaxable)}</span>
@@ -1642,12 +1993,12 @@ export default function NewInvoicePage() {
                   )}
                   <div className="flex justify-between text-base font-bold text-slate-900 border-t border-slate-200 pt-2">
                     <span>Grand Total:</span>
-                    <span className="font-mono font-black text-blue-700">{formatInr(roundedGrandTotal)}</span>
+                    <span className="font-mono font-black text-[#174B43]">{formatInr(roundedGrandTotal)}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Bank Details & Terms & Signature */}
+              {/* Bank Details & Terms */}
               <div className="grid grid-cols-2 gap-6 pt-4 border-t border-slate-200">
                 <div className="space-y-3 text-xs text-slate-600">
                   {showBankAccount && (
@@ -1665,7 +2016,7 @@ export default function NewInvoicePage() {
 
                 <div className="text-right flex flex-col justify-between items-end">
                   <p className="text-xs font-bold text-slate-800">
-                    For {currentCompany?.tradeName || currentCompany?.legalName || "MODI CHAI"}
+                    For {currentCompany?.tradeName || currentCompany?.legalName || "MY BILL BOOK"}
                   </p>
                   <div className="pt-4 text-center inline-block min-w-[170px]">
                     {signatureData ? (
@@ -1688,1228 +2039,1044 @@ export default function NewInvoicePage() {
             </div>
           </div>
         ) : (
-          /* EDIT MODE (EXACT 2-COLUMN LAYOUT WITH COLLAPSIBLE AI PANEL) */
-          <div className="flex flex-col lg:flex-row items-start gap-4 w-full">
+          /* =======================================================================
+              VIEW MODE: EDIT MODE (Modern Enterprise Full-Width Layout)
+              ======================================================================= */
+          <div className="space-y-5">
             
-            {/* COLLAPSED AI REOPEN BUTTON (Exact MyBillBook style when AI panel is closed) */}
-            {!showAiPanel && (
-              <div className="shrink-0 pt-0.5">
-                <button
-                  id="btn-show-ai-panel"
-                  type="button"
-                  onClick={() => setShowAiPanel(true)}
-                  className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#F47721] to-[#E65F12] text-white flex items-center justify-center shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all cursor-pointer group"
-                  title="Open AI Autofill (Mira AI)"
-                  aria-label="Open AI Autofill"
-                >
-                  <svg
-                    className="w-5 h-5 text-white group-hover:rotate-12 transition-transform"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M3 7V5a2 2 0 0 1 2-2h2" />
-                    <path d="M17 3h2a2 2 0 0 1 2 2v2" />
-                    <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
-                    <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
-                    <path d="M7 12h10" />
-                    <path d="M12 9v6" />
-                  </svg>
-                </button>
-              </div>
-            )}
-
-            {/* LEFT COLUMN: AUTOFILL THIS BILL (MIRA AI) */}
-            {showAiPanel && (
-              <div className="w-full lg:w-[320px] shrink-0 space-y-3.5 transition-all">
-                <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs relative">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#F47721] to-[#E65F12] text-white flex items-center justify-center shadow-xs shrink-0">
-                        <svg
-                          className="w-4 h-4 text-white"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M3 7V5a2 2 0 0 1 2-2h2" />
-                          <path d="M17 3h2a2 2 0 0 1 2 2v2" />
-                          <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
-                          <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
-                          <path d="M7 12h10" />
-                        </svg>
+            {/* ===================================================================
+                SECTION 1: UNIFIED MASTER CARD — CUSTOMER & INVOICE DETAILS
+                (Clean, balanced two-column presentation with zero bulky dashed outlines)
+                =================================================================== */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#E2E8E5] shadow-xs p-5 sm:p-6 transition-all">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                {/* Column A: Customer Selection & Details (6 cols) */}
+                <div className="lg:col-span-6 space-y-3.5 lg:border-r lg:border-slate-100 lg:pr-6">
+                  {/* Header */}
+                  <div className="flex items-center justify-between pb-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-[#E6F7F2] text-[#174B43] flex items-center justify-center font-bold text-xs">
+                        👤
                       </div>
                       <div>
-                        <h2 className="text-xs font-bold text-slate-900 leading-tight">
-                          Autofill this bill
-                        </h2>
+                        <span className="text-xs font-extrabold text-[#1A2E2B] tracking-tight block">
+                          Bill To / Customer
+                        </span>
+                        <span className="text-[10px] text-slate-400">
+                          Select existing party or create new
+                        </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="px-2 py-0.5 bg-[#DC2626] text-white text-[10px] font-bold rounded-full uppercase tracking-wider flex items-center gap-1 shadow-2xs">
-                        <span>🕒</span>
-                        <span>FREE • {remainingScans} LEFT</span>
-                      </span>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuickSettingsTab("party");
+                        setIsQuickSettingsOpen(true);
+                      }}
+                      className="p-1 rounded-lg text-slate-400 hover:text-[#174B43] hover:bg-slate-50 transition-colors"
+                      title="Customize Customer Fields"
+                    >
+                      ⚙️
+                    </button>
+                  </div>
+
+                  {/* Customer Selector / Selected Info Card */}
+                  <div className="relative">
+                    {selectedParty ? (
+                      /* Selected Customer Rich Card */
+                      <div className="p-3.5 rounded-2xl bg-gradient-to-br from-slate-50 to-[#F2FAF7]/60 border border-[#BCEADF] space-y-2.5 relative shadow-2xs">
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-extrabold text-slate-900 leading-tight">
+                                {selectedParty.name}
+                              </p>
+                              {isPartyNewlyScanned && (
+                                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-black rounded-full uppercase tracking-wider animate-pulse">
+                                  NEW
+                                </span>
+                              )}
+                            </div>
+                            {quickSettings.showPartyBalance && (
+                              <p className="text-[11px] font-mono">
+                                Balance:{" "}
+                                <span
+                                  className={
+                                    (selectedParty.outstandingBalance ?? 0) > 0
+                                      ? "text-rose-600 font-bold"
+                                      : "text-emerald-700 font-bold"
+                                  }
+                                >
+                                  {formatInr(selectedParty.outstandingBalance ?? 0)}
+                                </span>
+                              </p>
+                            )}
+                          </div>
+                          
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsPartyDropdownOpen(true);
+                              setPartySearchTerm("");
+                            }}
+                            className="text-xs font-bold text-[#174B43] hover:text-[#26A58A] underline cursor-pointer shrink-0"
+                          >
+                            Change
+                          </button>
+                        </div>
+
+                        {/* Contact details pills */}
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
+                          {selectedParty.phone && (
+                            <span className="flex items-center gap-1 font-mono">
+                              <span>📞</span> {selectedParty.phone}
+                            </span>
+                          )}
+                          {selectedParty.gstin && (
+                            <span className="flex items-center gap-1 font-mono">
+                              <span className="px-1 py-0.2 bg-slate-200 text-slate-700 text-[9px] font-bold rounded">GSTIN</span>
+                              <span>{selectedParty.gstin}</span>
+                            </span>
+                          )}
+                        </div>
+
+                        {selectedParty.address && (
+                          <p className="text-[11px] text-slate-500 truncate">
+                            📍 {selectedParty.address}
+                          </p>
+                        )}
+
+                        {/* Expandable Shipping & Contact Person Details */}
+                        {quickSettings.showShippingAddress && (
+                          <div className="pt-2 border-t border-slate-200/80">
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                              Shipping Address (Ship-To)
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={shippingAddress}
+                              onChange={(e) => setShippingAddress(e.target.value)}
+                              placeholder="Enter shipping address if different from billing..."
+                              className="w-full text-xs p-2 bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#26A58A]"
+                            />
+                          </div>
+                        )}
+
+                        {quickSettings.showContactPerson && (
+                          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/80">
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                                Contact Person
+                              </label>
+                              <input
+                                type="text"
+                                value={contactPersonName}
+                                onChange={(e) => setContactPersonName(e.target.value)}
+                                placeholder="Contact Name"
+                                className="w-full text-xs p-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-[#26A58A]"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                                Contact Phone
+                              </label>
+                              <input
+                                type="text"
+                                value={contactPersonPhone}
+                                onChange={(e) => setContactPersonPhone(e.target.value)}
+                                placeholder="Phone"
+                                className="w-full text-xs p-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-[#26A58A]"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      /* Clean Customer Search Combobox */
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={partySearchTerm}
+                            onChange={(e) => {
+                              setPartySearchTerm(e.target.value);
+                              setIsPartyDropdownOpen(true);
+                            }}
+                            onFocus={() => setIsPartyDropdownOpen(true)}
+                            placeholder="Type to search customer by name, mobile, or GSTIN..."
+                            className="w-full text-xs p-3 pl-9 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl text-slate-900 focus:outline-none transition-all shadow-2xs"
+                          />
+                          <span className="absolute left-3 top-3 text-slate-400 text-sm">
+                            🔍
+                          </span>
+                          {partySearchTerm && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPartySearchTerm("");
+                                setIsPartyDropdownOpen(false);
+                              }}
+                              className="absolute right-3 top-3 text-xs text-slate-400 hover:text-slate-600"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Dropdown Menu when searching / focused */}
+                        {isPartyDropdownOpen && (
+                          <div className="absolute left-0 right-0 top-12 z-50 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden max-h-72 flex flex-col animate-in fade-in slide-in-from-top-1">
+                            {/* Header row */}
+                            <div className="flex items-center justify-between px-3.5 py-2 bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                              <span>Customer / Business Name</span>
+                              {quickSettings.showPartyBalance && <span>Current Balance</span>}
+                            </div>
+
+                            {/* Party List */}
+                            <div className="overflow-y-auto divide-y divide-slate-100 flex-1">
+                              {filteredParties.length === 0 ? (
+                                <div className="p-4 text-center text-xs text-slate-500 space-y-1">
+                                  <p>No customers found matching &quot;{partySearchTerm}&quot;</p>
+                                  <p className="text-[11px] text-slate-400">You can create a new party directly below</p>
+                                </div>
+                              ) : (
+                                filteredParties.map((p) => {
+                                  const bal = p.outstandingBalance ?? 0;
+                                  return (
+                                    <div
+                                      key={p.id}
+                                      onClick={() => handlePartyChange(p.id)}
+                                      className="flex items-center justify-between px-3.5 py-2.5 hover:bg-[#F2FAF7] cursor-pointer transition-colors text-xs"
+                                    >
+                                      <div>
+                                        <p className="font-bold text-slate-900">{p.name}</p>
+                                        <p className="text-[10px] text-slate-500">
+                                          {p.phone || p.gstin || "Walk-in Cash Customer"}
+                                        </p>
+                                      </div>
+                                      {quickSettings.showPartyBalance && (
+                                        <div className="text-right font-mono font-bold">
+                                          {bal > 0 ? (
+                                            <span className="text-rose-600 flex items-center gap-1 justify-end">
+                                              <span>{formatInr(bal)}</span>
+                                              <span>↑</span>
+                                            </span>
+                                          ) : bal < 0 ? (
+                                            <span className="text-emerald-700 flex items-center gap-1 justify-end">
+                                              <span>{formatInr(Math.abs(bal))}</span>
+                                              <span>↓</span>
+                                            </span>
+                                          ) : (
+                                            <span className="text-slate-400">₹ 0</span>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })
+                              )}
+                            </div>
+
+                            {/* Bottom: + Create Party Action */}
+                            <div className="p-2 border-t border-slate-100 bg-slate-50/50">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setIsPartyDropdownOpen(false);
+                                  setIsCreatePartyModalOpen(true);
+                                }}
+                                className="w-full py-2 bg-white hover:bg-[#F2FAF7] border border-[#85D5C2] rounded-xl text-xs font-bold text-[#174B43] flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                              >
+                                <span>+ Create New Customer</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Quick action strip if dropdown is closed */}
+                        {!isPartyDropdownOpen && (
+                          <div className="flex items-center justify-between text-xs px-1">
+                            <span className="text-[11px] text-slate-500">
+                              {parties.length} customers registered
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setIsCreatePartyModalOpen(true)}
+                              className="text-[11px] font-bold text-[#174B43] hover:text-[#26A58A] transition-colors"
+                            >
+                              + New Customer
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Column B: Invoice Metadata & Settings (6 cols) */}
+                <div className="lg:col-span-6 space-y-3.5">
+                  {/* Header */}
+                  <div className="flex items-center justify-between pb-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-[#E6F7F2] text-[#174B43] flex items-center justify-center font-bold text-xs">
+                        📄
+                      </div>
+                      <div>
+                        <span className="text-xs font-extrabold text-[#1A2E2B] tracking-tight block">
+                          Invoice Information
+                        </span>
+                        <span className="text-[10px] text-slate-400">
+                          Date, numbering and statutory terms
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={repeatInvoice}
+                          onChange={(e) => setRepeatInvoice(e.target.checked)}
+                          className="rounded text-[#174B43] focus:ring-0"
+                        />
+                        <span className="text-[11px] font-semibold">Recurring</span>
+                      </label>
                       <button
-                        id="btn-hide-ai-panel"
                         type="button"
-                        onClick={() => setShowAiPanel(false)}
-                        className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
-                        title="Hide AI panel"
-                        aria-label="Hide AI panel"
+                        onClick={() => {
+                          setQuickSettingsTab("invoice");
+                          setIsQuickSettingsOpen(true);
+                        }}
+                        className="p-1 rounded-lg text-slate-400 hover:text-[#174B43] hover:bg-slate-50 transition-colors"
+                        title="Customize Invoice Fields"
                       >
-                        <span className="text-base font-bold leading-none">✕</span>
+                        ⚙️
                       </button>
                     </div>
                   </div>
 
-                  {/* Dynamic Stats row matching MyBillBook reference */}
-                  <div className="grid grid-cols-2 gap-2 mt-2.5 pt-2 border-t border-slate-100 text-[10px] text-slate-600">
-                    <div className="flex items-center gap-1 font-medium">
-                      <span>📋</span>
-                      <span><strong>{scannedBillsCount}</strong> bills scanned</span>
+                  {/* Primary Fields Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Invoice Number */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                        Invoice Number *
+                      </label>
+                      <input
+                        type="text"
+                        value={invoiceNumber}
+                        onChange={(e) => setInvoiceNumber(e.target.value)}
+                        className="w-full text-xs p-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl font-mono font-bold text-slate-900 focus:outline-none transition-colors"
+                      />
                     </div>
-                    <div className="flex items-center gap-1 font-medium justify-end text-orange-600">
-                      <span>⏰</span>
-                      <span><strong>~{timeSavedMinutes} mins</strong> saved</span>
+
+                    {/* Invoice Date */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                        Invoice Date *
+                      </label>
+                      <input
+                        type="date"
+                        value={invoiceDate}
+                        onChange={(e) => setInvoiceDate(e.target.value)}
+                        className="w-full text-xs p-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl font-mono text-slate-900 focus:outline-none transition-colors"
+                      />
                     </div>
                   </div>
 
-                  {/* Live Processing Card */}
-                  {isAiProcessing ? (
-                    <div className="mt-3.5 border-2 border-dashed border-orange-400 bg-orange-50/90 rounded-xl p-5 text-center">
-                      <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-orange-100 flex items-center justify-center text-2xl animate-spin">
-                        🔍
-                      </div>
-                      <p className="text-xs font-bold text-orange-950">
-                        Scanning Document...
-                      </p>
-                      <p className="text-lg font-black font-mono text-orange-600 mt-1">
-                        {scanDurationSeconds}s
-                      </p>
-                      <div className="w-full bg-orange-200 rounded-full h-1.5 overflow-hidden my-2">
-                        <div className="bg-gradient-to-r from-orange-500 via-amber-400 to-orange-600 h-1.5 w-full animate-pulse" />
-                      </div>
-                      <p className="text-[11px] font-medium text-orange-800">
-                        {scanProgressText || "AI Gemini Vision is extracting fields..."}
-                      </p>
-                      <div className="mt-3 p-2 bg-amber-100/80 border border-amber-300 rounded-lg text-[10px] text-amber-900 font-medium">
-                        ⚠️ Please check the details actively. AI can make mistakes.
-                      </div>
+                  {/* Secondary Fields: Place of Supply & Due Date */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    {/* Place of Supply */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                        Place of Supply (State)
+                      </label>
+                      <select
+                        value={placeOfSupply}
+                        onChange={(e) => setPlaceOfSupply(e.target.value)}
+                        className="w-full text-xs p-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl text-slate-800 focus:outline-none transition-colors"
+                      >
+                        <option value="24">Gujarat (24) - Intra State (CGST+SGST)</option>
+                        <option value="27">Maharashtra (27) - Inter State (IGST)</option>
+                        <option value="08">Rajasthan (08) - Inter State (IGST)</option>
+                        <option value="23">Madhya Pradesh (23) - Inter State (IGST)</option>
+                        <option value="07">Delhi (07) - Inter State (IGST)</option>
+                        <option value="29">Karnataka (29) - Inter State (IGST)</option>
+                        <option value="33">Tamil Nadu (33) - Inter State (IGST)</option>
+                        <option value="09">Uttar Pradesh (09) - Inter State (IGST)</option>
+                        <option value="19">West Bengal (19) - Inter State (IGST)</option>
+                        <option value="36">Telangana (36) - Inter State (IGST)</option>
+                      </select>
                     </div>
-                  ) : uploadedFile ? (
-                    /* Scanned / Uploaded Thumbnail Card */
-                    <div className="mt-3.5 border-2 border-emerald-400 bg-emerald-50/70 rounded-xl p-4 text-left space-y-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-2.5">
-                          <span className="text-2xl">📄</span>
-                          <div className="truncate max-w-[150px]">
-                            <p className="text-xs font-bold text-slate-900 truncate">
-                              {uploadedFile.name}
-                            </p>
-                            <p className="text-[10px] text-slate-500">
-                              {(uploadedFile.size / 1024).toFixed(1)} KB
-                            </p>
-                          </div>
-                        </div>
-                        <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">
-                          ✓ 1/1 scanned
-                        </span>
-                      </div>
 
-                      {scannedSummaryTime && (
-                        <div className="p-2 bg-white rounded-lg border border-emerald-200 text-[11px] text-emerald-800 flex items-center justify-between">
-                          <span className="font-semibold">Scanned in {scannedSummaryTime}s!</span>
-                          <span className="text-emerald-600 font-bold">✓ Autofilled</span>
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-2 pt-1">
+                    {/* Due Date & Terms */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                        Payment Due Date
+                      </label>
+                      {!showDueDate ? (
                         <button
                           type="button"
-                          onClick={() => executeAiScan()}
-                          className="flex-1 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-colors shadow-2xs"
+                          onClick={() => setShowDueDate(true)}
+                          className="w-full py-2.5 px-3 border border-dashed border-[#85D5C2] bg-[#F2FAF7]/60 hover:bg-[#E6F7F2] rounded-xl text-xs font-bold text-[#174B43] flex items-center justify-center gap-1 transition-colors cursor-pointer"
                         >
-                          ↻ Re-scan
+                          <span>+ Add Payment Terms / Due Date</span>
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={paymentTermsDays}
+                            onChange={(e) => {
+                              const days = Number(e.target.value) || 0;
+                              setPaymentTermsDays(days);
+                              const d = new Date(invoiceDate || new Date());
+                              d.setDate(d.getDate() + days);
+                              setDueDate(d.toISOString().split("T")[0]);
+                            }}
+                            className="w-16 text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-center font-mono font-bold"
+                            title="Net payment days"
+                          />
+                          <input
+                            type="date"
+                            value={dueDate}
+                            onChange={(e) => setDueDate(e.target.value)}
+                            className="flex-1 text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowDueDate(false)}
+                            className="text-slate-400 hover:text-slate-600 p-1 text-xs"
+                            title="Remove due date"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Tax Inclusive Switch */}
+                  <div className="flex items-center justify-between pt-1">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={isTaxInclusive}
+                        onChange={(e) => setIsTaxInclusive(e.target.checked)}
+                        className="rounded text-[#174B43] focus:ring-0"
+                      />
+                      <span>Item prices are tax-inclusive (GST Included in Rate)</span>
+                    </label>
+                  </div>
+
+                  {/* Optional PO Details (when enabled) */}
+                  {quickSettings.enablePoDetails && (
+                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                          PO Number
+                        </label>
+                        <input
+                          type="text"
+                          value={poNumber}
+                          onChange={(e) => setPoNumber(e.target.value)}
+                          placeholder="PO-2026-01"
+                          className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                          PO Date
+                        </label>
+                        <input
+                          type="date"
+                          value={poDate}
+                          onChange={(e) => setPoDate(e.target.value)}
+                          className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Optional Vehicle & E-Way Bill (when enabled) */}
+                  {(quickSettings.enableVehicleDetails || quickSettings.enableEwayBill) && (
+                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+                      {quickSettings.enableVehicleDetails && (
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                            Vehicle Number
+                          </label>
+                          <input
+                            type="text"
+                            value={vehicleNumber}
+                            onChange={(e) => setVehicleNumber(e.target.value)}
+                            placeholder="GJ-01-AB-1234"
+                            className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-xl font-mono uppercase text-slate-900"
+                          />
+                        </div>
+                      )}
+                      {quickSettings.enableEwayBill && (
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                            E-Way Bill Number
+                          </label>
+                          <input
+                            type="text"
+                            value={ewayBillNumber}
+                            onChange={(e) => setEwayBillNumber(e.target.value)}
+                            placeholder="12-digit number"
+                            maxLength={12}
+                            className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* ===================================================================
+                SECTION 2: INVOICE ITEMS WORKSPACE (THE HERO CENTERPIECE)
+                (Document-grade table layout, clean empty state, rapid data-entry)
+                =================================================================== */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#E2E8E5] shadow-xs overflow-hidden transition-all">
+              
+              {/* Items Section Header Toolbar */}
+              <div className="px-5 py-4 border-b border-[#E2E8E5] bg-gradient-to-r from-slate-50/80 via-white to-slate-50/80 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-[#E6F7F2] text-[#174B43] flex items-center justify-center font-bold text-xs shadow-2xs">
+                    📦
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-extrabold text-[#1A2E2B] tracking-tight flex items-center gap-2">
+                      <span>Line Items & Inventory</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                        {rows.length} {rows.length === 1 ? "Item" : "Items"}
+                      </span>
+                    </h2>
+                    <p className="text-[10px] text-slate-400">
+                      Add products or services from catalog with tax and rates
+                    </p>
+                  </div>
+                </div>
+
+                {/* Table Actions Strip */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddItemsModalOpen(true)}
+                    className="px-3.5 py-1.5 bg-[#26A58A] hover:bg-[#208E76] text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>+ Add from Catalog</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleAddBlankRow()}
+                    className="px-3 py-1.5 bg-white border border-[#E2E8E5] hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl shadow-2xs transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>+ Add Blank Row</span>
+                  </button>
+
+                  <button
+                    id="btn-scan-barcode"
+                    type="button"
+                    onClick={() => setIsAddItemsModalOpen(true)}
+                    className="hidden sm:inline-flex px-3 py-1.5 bg-white border border-[#E2E8E5] hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl shadow-2xs transition-colors items-center gap-1 cursor-pointer"
+                    title="Scan product barcode"
+                  >
+                    <span>📷</span>
+                    <span>Scan</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuickSettingsTab("items");
+                      setIsQuickSettingsOpen(true);
+                    }}
+                    className="p-1.5 border border-[#E2E8E5] hover:bg-slate-50 rounded-xl text-slate-400 hover:text-slate-700 cursor-pointer"
+                    title="Table Columns & GST Settings"
+                  >
+                    ⚙️
+                  </button>
+                </div>
+              </div>
+
+              {/* Document-Grade Items Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse min-w-[750px]">
+                  <thead className="bg-[#FAFBF7] text-[#5A6B66] uppercase tracking-wider font-extrabold border-b border-[#E2E8E5] text-[10px]">
+                    <tr>
+                      <th className="py-3 px-3.5 w-10 text-center">#</th>
+                      <th className="py-3 px-3.5 min-w-[260px]">ITEM & DESCRIPTION</th>
+                      {quickSettings.showHsnColumn && (
+                        <th className="py-3 px-3 w-24 text-center">HSN/SAC</th>
+                      )}
+                      <th className="py-3 px-3 w-20 text-right">QTY</th>
+                      <th className="py-3 px-3 w-32 text-right">PRICE (₹)</th>
+                      {quickSettings.showDiscountColumn && (
+                        <th className="py-3 px-3 w-24 text-right">DISCOUNT</th>
+                      )}
+                      {quickSettings.showTaxColumn && (
+                        <th className="py-3 px-3 w-24 text-right">TAX (GST)</th>
+                      )}
+                      <th className="py-3 px-4 w-32 text-right">AMOUNT (₹)</th>
+                      <th className="py-3 px-2 w-10 text-center"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {rows.length === 0 ? (
+                      /* Clean Empty State */
+                      <tr>
+                        <td
+                          colSpan={
+                            5 +
+                            (quickSettings.showHsnColumn ? 1 : 0) +
+                            (quickSettings.showDiscountColumn ? 1 : 0) +
+                            (quickSettings.showTaxColumn ? 1 : 0)
+                          }
+                          className="py-12 px-4 text-center"
+                        >
+                          <div className="max-w-sm mx-auto space-y-3">
+                            <div className="w-14 h-14 mx-auto rounded-2xl bg-[#E6F7F2] text-[#174B43] flex items-center justify-center text-2xl shadow-inner">
+                              📦
+                            </div>
+                            <div>
+                              <h3 className="text-sm font-extrabold text-[#1A2E2B]">
+                                No items in this invoice yet
+                              </h3>
+                              <p className="text-xs text-slate-500 mt-1">
+                                Add products or services from your catalog or create a custom entry.
+                              </p>
+                            </div>
+                            <div className="flex items-center justify-center gap-2 pt-2">
+                              <button
+                                type="button"
+                                onClick={() => setIsAddItemsModalOpen(true)}
+                                className="px-4 py-2 bg-[#174B43] hover:bg-[#133E37] text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+                              >
+                                + Browse Catalog
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleAddBlankRow}
+                                className="px-4 py-2 bg-white border border-[#E2E8E5] hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                              >
+                                + Add Blank Row
+                              </button>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      /* Rows Mapping */
+                      rows.map((row, idx) => {
+                        const qty = Number(row.quantity) || 0;
+                        const rate = Number(row.unitPrice) || 0;
+                        const disc = quickSettings.showDiscountColumn
+                          ? Number(row.discountPercent) || 0
+                          : 0;
+                        const gross = qty * rate;
+                        const grossAfterDisc = gross - (gross * disc) / 100;
+                        const effectiveTaxRate = quickSettings.showTaxColumn ? row.taxRate : 0;
+                        const lineTotal = isTaxInclusive
+                          ? grossAfterDisc
+                          : grossAfterDisc + (grossAfterDisc * effectiveTaxRate) / 100;
+
+                        return (
+                          <tr key={row.rowId || `row-${idx}`} className="hover:bg-slate-50/80 transition-colors group">
+                            {/* Line Number */}
+                            <td className="py-2.5 px-3.5 text-center text-slate-400 font-mono text-[11px]">
+                              {idx + 1}
+                            </td>
+
+                            {/* Item Selector */}
+                            <td className="py-2.5 px-3.5">
+                              <div className="flex items-center gap-2">
+                                <select
+                                  value={row.itemId}
+                                  onChange={(e) => handleItemSelect(idx, e.target.value)}
+                                  className="w-full text-xs p-2 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl font-medium text-slate-900 focus:outline-none transition-colors"
+                                >
+                                  {items.map((it) => (
+                                    <option key={it.id} value={it.id}>
+                                      {it.name} (Stock: {it.stockQuantity ?? 0})
+                                    </option>
+                                  ))}
+                                </select>
+                                {newlyScannedItemIndices.includes(idx) && (
+                                  <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-black rounded-full uppercase tracking-wider shrink-0 animate-pulse">
+                                    NEW
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+
+                            {/* HSN */}
+                            {quickSettings.showHsnColumn && (
+                              <td className="py-2.5 px-3">
+                                <input
+                                  type="text"
+                                  value={row.hsnCode}
+                                  onChange={(e) => handleRowChange(idx, "hsnCode", e.target.value)}
+                                  className="w-full text-xs p-2 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl text-center font-mono text-slate-800 focus:outline-none"
+                                />
+                              </td>
+                            )}
+
+                            {/* QTY */}
+                            <td className="py-2.5 px-3">
+                              <input
+                                type="number"
+                                min="0.001"
+                                step="any"
+                                value={row.quantity}
+                                onChange={(e) => handleRowChange(idx, "quantity", e.target.value)}
+                                className="w-full text-xs p-2 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl text-right font-mono font-bold text-slate-900 focus:outline-none"
+                              />
+                            </td>
+
+                            {/* PRICE / ITEM */}
+                            <td className="py-2.5 px-3">
+                              <input
+                                type="number"
+                                min="0"
+                                step="any"
+                                value={row.unitPrice}
+                                onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value)}
+                                className="w-full text-xs p-2 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl text-right font-mono font-bold text-slate-900 focus:outline-none"
+                              />
+                              {partyId && row.itemId && getPartyItemPrice(partyId, row.itemId, selectedParty?.name) !== null && (
+                                <div className="flex justify-end mt-1">
+                                  <span
+                                    title={`Party specific price active for ${selectedParty?.name || "this party"}`}
+                                    className="inline-flex items-center gap-0.5 text-[9px] font-semibold text-purple-700 bg-purple-50 border border-purple-200 px-1 py-0.2 rounded"
+                                  >
+                                    <span>🏷️</span>
+                                    <span>Party Rate</span>
+                                  </span>
+                                </div>
+                              )}
+                            </td>
+
+                            {/* DISCOUNT */}
+                            {quickSettings.showDiscountColumn && (
+                              <td className="py-2.5 px-3">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  value={row.discountPercent}
+                                  onChange={(e) => handleRowChange(idx, "discountPercent", e.target.value)}
+                                  placeholder="0 %"
+                                  className="w-full text-xs p-2 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl text-right font-mono text-slate-700 focus:outline-none"
+                                />
+                              </td>
+                            )}
+
+                            {/* TAX (GST) */}
+                            {quickSettings.showTaxColumn && (
+                              <td className="py-2.5 px-3">
+                                <div className="relative flex items-center min-w-[70px]">
+                                  <input
+                                    type="number"
+                                    step="any"
+                                    min="0"
+                                    max="100"
+                                    list="gst-rates-table"
+                                    value={row.taxRate}
+                                    onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value) || 0)}
+                                    placeholder="0"
+                                    className="w-full text-xs p-2 pr-4 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl text-right font-mono font-bold text-slate-800 focus:outline-none"
+                                  />
+                                  <span className="absolute right-1 text-[11px] font-bold text-slate-400 pointer-events-none">%</span>
+                                </div>
+                              </td>
+                            )}
+
+                            {/* AMOUNT */}
+                            <td className="py-2.5 px-4 text-right font-mono font-black text-slate-900 text-xs">
+                              {formatInr(lineTotal)}
+                            </td>
+
+                            {/* DELETE ACTION - UNCONDITIONALLY ACTIVE ON EVERY ROW */}
+                            <td className="py-2.5 px-2 text-center">
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveRow(idx)}
+                                className="w-7 h-7 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors flex items-center justify-center cursor-pointer"
+                                title="Remove item"
+                              >
+                                ✕
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Subtotal Summary Strip */}
+              <div className="bg-[#FAFBF7] border-t border-[#E2E8E5] px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-600 font-medium">
+                <div className="flex items-center gap-3">
+                  <span className="font-extrabold text-[#1A2E2B] text-xs uppercase tracking-wider">Subtotal Summary</span>
+                  <span className="text-slate-400">•</span>
+                  <span>Total Qty: <strong className="font-mono text-slate-900">{totalQty}</strong></span>
+                </div>
+                
+                <div className="flex flex-wrap items-center gap-4 sm:gap-6 font-mono text-slate-700">
+                  {discValue > 0 || totalDiscountAmt > 0 ? (
+                    <span>Discount: <strong className="text-rose-600">-{formatInr(totalDiscountAmt)}</strong></span>
+                  ) : null}
+                  <span>GST Tax: <strong className="text-slate-900">{formatInr(totalTax)}</strong></span>
+                  <div className="flex items-center gap-1.5 font-bold text-slate-900 text-sm">
+                    <span className="text-xs uppercase text-slate-400">Items Total:</span>
+                    <span className="text-[#174B43] font-black">{formatInr(itemsSubtotal)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ===================================================================
+                SECTION 3: BOTTOM SETTLEMENT & COMMERCIAL TERMS (2-COLUMN GRID)
+                (Left: Terms, Bank, QR, Signature. Right: Calculations & Payments)
+                =================================================================== */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              
+              {/* Left Pane (6 cols): Terms, Notes, Bank & Signature */}
+              <div className="lg:col-span-6 space-y-4">
+                
+                {/* Terms and Conditions Card */}
+                <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#E2E8E5] p-5 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-extrabold text-[#1A2E2B] tracking-tight">
+                      Terms & Conditions
+                    </span>
+                    <span className="text-[10px] text-slate-400">Included on print</span>
+                  </div>
+                  <textarea
+                    rows={3}
+                    value={termsAndConditions}
+                    onChange={(e) => setTermsAndConditions(e.target.value)}
+                    className="w-full text-xs p-3 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl text-slate-700 focus:outline-none transition-colors"
+                  />
+
+                  {/* Customer Notes */}
+                  <div className="pt-2 border-t border-slate-100">
+                    {!showNotes ? (
+                      <button
+                        type="button"
+                        onClick={() => setShowNotes(true)}
+                        className="text-xs font-bold text-[#174B43] hover:text-[#26A58A] flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <span>📝</span>
+                        <span>+ Add Customer Notes / Remarks</span>
+                      </button>
+                    ) : (
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold text-slate-700">Notes / Remarks</label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowNotes(false);
+                              setNotes("");
+                            }}
+                            className="text-[11px] text-slate-400 hover:text-slate-600"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                        <textarea
+                          rows={2}
+                          value={notes}
+                          onChange={(e) => setNotes(e.target.value)}
+                          placeholder="Special instructions or delivery notes for customer..."
+                          className="w-full text-xs p-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Bank Account & Payment QR */}
+                <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#E2E8E5] p-5 shadow-xs space-y-3">
+                  <span className="text-xs font-extrabold text-[#1A2E2B] tracking-tight block">
+                    Payment Options on Invoice
+                  </span>
+
+                  <div className="flex flex-wrap items-center gap-4 text-xs font-bold">
+                    <button
+                      type="button"
+                      onClick={() => setShowBankAccount(!showBankAccount)}
+                      className={`px-3 py-1.5 rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
+                        showBankAccount
+                          ? "bg-[#E6F7F2] text-[#174B43] border-[#85D5C2]"
+                          : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                      }`}
+                    >
+                      <span>🏛️</span>
+                      <span>Bank Account {showBankAccount ? "✓" : "+"}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowPaymentQr(!showPaymentQr)}
+                      className={`px-3 py-1.5 rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
+                        showPaymentQr
+                          ? "bg-[#E6F7F2] text-[#174B43] border-[#85D5C2]"
+                          : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                      }`}
+                    >
+                      <span>📱</span>
+                      <span>UPI QR Code {showPaymentQr ? "✓" : "+"}</span>
+                    </button>
+                  </div>
+
+                  {showBankAccount && (
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700 space-y-0.5">
+                      <p className="font-bold text-slate-900">Bank Details Included on Invoice:</p>
+                      <p>Bank: <strong>HDFC Bank</strong> • A/c: <strong>50200012345678</strong></p>
+                      <p>IFSC: <strong>HDFC0000123</strong> • Branch: Ahmedabad Main</p>
+                    </div>
+                  )}
+
+                  {showPaymentQr && (
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700 space-y-0.5">
+                      <p className="font-bold text-slate-900">Dynamic UPI QR Code Active:</p>
+                      <p>QR code with payment link will be printed directly on this invoice for instant customer scan-to-pay.</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Authorized Signature Card */}
+                <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#E2E8E5] p-5 shadow-xs">
+                  {signatureData ? (
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                          Authorized Signature
+                        </span>
+                        <img
+                          src={signatureData}
+                          alt="Signature"
+                          className="h-12 object-contain"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsSignatureModalOpen(true)}
+                          className="text-xs font-bold text-[#174B43] hover:underline cursor-pointer"
+                        >
+                          Change
                         </button>
                         <button
                           type="button"
-                          onClick={() => {
-                            setUploadedFile(null);
-                            setScannedSummaryTime(null);
-                            setScanSuccessBanner(null);
-                            setScanError(null);
-                          }}
-                          className="py-1.5 px-3 bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-lg text-xs font-bold transition-colors shadow-2xs"
+                          onClick={() => setSignatureData(null)}
+                          className="text-xs font-bold text-rose-500 hover:underline cursor-pointer"
                         >
                           Remove
                         </button>
                       </div>
                     </div>
                   ) : (
-                    /* Drag & Drop Upload Zone */
                     <div
-                      onClick={() => fileInputRef.current?.click()}
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                      onDrop={handleDrop}
-                      className={`mt-3.5 border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all ${
-                        isDragOver
-                          ? "border-orange-500 bg-orange-100/70 scale-[1.02]"
-                          : "border-[#F38A71] bg-[#FFF5F2] hover:bg-[#FFEAE4]"
-                      }`}
+                      onClick={() => setIsSignatureModalOpen(true)}
+                      className="w-full py-4 border-2 border-dashed border-[#85D5C2] rounded-2xl bg-[#F2FAF7]/40 hover:bg-[#E6F7F2]/60 flex flex-col items-center justify-center text-xs text-slate-500 cursor-pointer transition-colors"
                     >
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".pdf,.png,.jpg,.jpeg"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                      />
-                      <div className="text-2xl mb-1.5 animate-bounce">📄</div>
-                      <p className="text-xs font-bold text-[#E05335]">
-                        {isDragOver ? "Drop file here to scan" : "Drag & Drop or Upload file"}
-                      </p>
-                      <p className="text-[10px] text-slate-500 mt-1">
-                        (PDF, JPG, JPEG & PNG file supported, max 5MB)
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Proceed Button */}
-                  {!scannedSummaryTime && (
-                    <button
-                      type="button"
-                      disabled={!uploadedFile || isAiProcessing}
-                      onClick={() => executeAiScan()}
-                      className={`w-full mt-3 py-2.5 font-bold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 ${
-                        !uploadedFile || isAiProcessing
-                          ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                          : "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-orange-500/20 active:scale-95 cursor-pointer"
-                      }`}
-                    >
-                      {isAiProcessing ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          <span>{scanProgressText || "Extracting Data..."}</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>✨</span>
-                          <span>{uploadedFile ? "Proceed & Autofill Bill" : "Proceed"}</span>
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
-
-                {/* How it works card */}
-                {showHowItWorks && (
-                  <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                        <span className="text-blue-500">ℹ️</span> How it works?
+                      <span className="font-bold text-[#174B43] flex items-center gap-1.5">
+                        <span>✍️</span>
+                        <span>+ Add Authorized Signature</span>
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => setShowHowItWorks(false)}
-                        className="text-slate-400 hover:text-slate-600 text-xs p-0.5 rounded cursor-pointer"
-                        title="Dismiss"
-                      >
-                        ✕
-                      </button>
+                      <span className="text-[10px] text-slate-400 mt-0.5">
+                        Click to draw, upload or type signature
+                      </span>
                     </div>
-                    <ul className="text-[11px] text-slate-600 space-y-2">
-                      <li className="flex items-center gap-2">
-                        <span className="text-orange-500 font-bold">1.</span>
-                        <span>Upload invoice document</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-orange-500 font-bold">2.</span>
-                        <span>AI scans & extracts items & GST</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <span className="text-emerald-500 font-bold">3.</span>
-                        <span>Fields auto-filled instantly</span>
-                      </li>
-                    </ul>
-                  </div>
-                )}
-
-                {/* Quick Tips */}
-                <div className="bg-[#FFFDF9] rounded-2xl border border-amber-200 p-3.5 shadow-2xs space-y-1.5">
-                  <div className="flex items-center gap-1 text-[11px] font-bold text-amber-900">
-                    <span>💡</span> Quick Tips
-                  </div>
-                  <p className="text-[11px] text-amber-800 leading-relaxed">
-                    PDF uploads give more accurate results than camera captured photos - try it next time.
-                  </p>
-                  <div className="flex items-center justify-center gap-1 pt-1 text-[8px] text-amber-400">
-                    <span className="text-amber-600 font-bold">●</span>
-                    <span>○</span>
-                    <span>○</span>
-                  </div>
+                  )}
                 </div>
               </div>
-            )}
 
-            {/* RIGHT MAIN INVOICE CANVAS (Matching MyBillBook) */}
-            <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="p-5 space-y-5">
-
-                {/* AI Shimmering Skeleton during Scanning */}
-                {isAiProcessing && (
-                  <div className="space-y-4 animate-pulse pb-2">
-                    <div className="p-4 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 rounded-xl text-white flex items-center justify-between shadow-md">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center animate-spin text-base">
-                          🔍
-                        </div>
-                        <div>
-                          <p className="font-bold text-xs">
-                            Mira AI Scanning in progress • <span className="font-mono text-sm underline">{scanDurationSeconds}s</span>
-                          </p>
-                          <p className="text-[11px] text-white/90">
-                            {scanProgressText || "Extracting customer name, GSTIN, invoice date and line items..."}
-                          </p>
-                        </div>
-                      </div>
-                      <span className="px-2.5 py-1 bg-white/20 rounded-full text-[10px] font-black uppercase tracking-wider">
-                        AI Processing
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                        <div className="h-3 bg-slate-200 rounded w-1/4" />
-                        <div className="h-5 bg-slate-200 rounded w-3/4" />
-                        <div className="h-3 bg-slate-200 rounded w-1/2" />
-                        <div className="h-3 bg-slate-200 rounded w-2/3" />
-                      </div>
-                      <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                        <div className="h-3 bg-slate-200 rounded w-1/3" />
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="h-8 bg-slate-200 rounded" />
-                          <div className="h-8 bg-slate-200 rounded" />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 p-4 space-y-3">
-                      <div className="h-3 bg-slate-200 rounded w-1/6" />
-                      <div className="space-y-2">
-                        <div className="h-8 bg-slate-200 rounded w-full" />
-                        <div className="h-8 bg-slate-200 rounded w-full" />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* AI Scan Success / Error Notifications */}
-                {scanSuccessBanner && (
-                  <div className="flex items-center justify-between p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-medium shadow-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">🎉</span>
-                      <span>{scanSuccessBanner}</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setScanSuccessBanner(null)}
-                      className="text-emerald-500 hover:text-emerald-700 font-bold ml-3 cursor-pointer"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                )}
-
-                {scanError && (
-                  <div className="flex items-center justify-between p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs font-medium shadow-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">⚠️</span>
-                      <span>{scanError}</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setScanError(null)}
-                      className="text-rose-500 hover:text-rose-700 font-bold ml-3 cursor-pointer"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                )}
+              {/* Right Pane (6 cols): Financial Calculations, Grand Total & Payments */}
+              <div className="lg:col-span-6 space-y-4">
                 
-                {/* ROW 1: BILL TO & INVOICE DETAILS CARDS */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* Financial Summary & Grand Total Card */}
+                <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#E2E8E5] p-5 sm:p-6 shadow-xs space-y-4">
                   
-                  {/* Left Box: Bill To */}
-                  <div className="p-3.5 bg-white rounded-xl border border-slate-200 space-y-2.5 relative">
-                    <div className="flex items-center justify-between pb-1">
-                      <span className="text-xs font-bold text-slate-800">Bill To</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setQuickSettingsTab("party");
-                          setIsQuickSettingsOpen(true);
-                        }}
-                        className="text-xs text-slate-400 hover:text-slate-700 cursor-pointer p-0.5"
-                        title="Customize Party Fields & Balance"
-                      >
-                        ⚙️
-                      </button>
-                    </div>
-
-                    {/* Party Input trigger / Dropdown exactly matching MyBillBook */}
-                    <div className="relative">
-                      {!isPartyDropdownOpen && selectedParty ? (
-                        <div className="p-3 border border-slate-200 rounded-xl bg-slate-50/60 space-y-2 relative">
-                          <div className="flex items-start justify-between">
-                            <div className="space-y-0.5">
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm font-bold text-slate-900 leading-tight">
-                                  {selectedParty.name}
-                                </p>
-                                {isPartyNewlyScanned && (
-                                  <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded uppercase tracking-wider animate-pulse">
-                                    NEW
-                                  </span>
-                                )}
-                              </div>
-                              {quickSettings.showPartyBalance && (
-                                <p className="text-[11px] font-mono">
-                                  Balance:{" "}
-                                  <span
-                                    className={
-                                      (selectedParty.outstandingBalance ?? 0) > 0
-                                        ? "text-rose-600 font-bold"
-                                        : "text-emerald-600 font-bold"
-                                    }
-                                  >
-                                    {formatInr(selectedParty.outstandingBalance ?? 0)}
-                                  </span>
-                                </p>
-                              )}
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsPartyDropdownOpen(true);
-                                setPartySearchTerm("");
-                              }}
-                              className="text-[11px] font-bold text-blue-600 hover:underline cursor-pointer"
-                            >
-                              Change
-                            </button>
-                          </div>
-                          {selectedParty.phone && (
-                            <p className="text-xs text-slate-600">Phone: {selectedParty.phone}</p>
-                          )}
-                          {selectedParty.gstin && (
-                            <p className="text-xs text-slate-600 font-mono">
-                              GSTIN: {selectedParty.gstin}
-                            </p>
-                          )}
-                          {selectedParty.address && (
-                            <p className="text-xs text-slate-500 truncate">{selectedParty.address}</p>
-                          )}
-
-                          {/* Separate Shipping Address */}
-                          {quickSettings.showShippingAddress && (
-                            <div className="pt-2 border-t border-slate-200/60">
-                              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                                Shipping Address (Ship-To)
-                              </label>
-                              <textarea
-                                rows={2}
-                                value={shippingAddress}
-                                onChange={(e) => setShippingAddress(e.target.value)}
-                                placeholder="Enter shipping address if different from billing..."
-                                className="w-full text-xs p-2 bg-white border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500"
-                              />
-                            </div>
-                          )}
-
-                          {/* Contact Person Details */}
-                          {quickSettings.showContactPerson && (
-                            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/60">
-                              <div>
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                                  Contact Person
-                                </label>
-                                <input
-                                  type="text"
-                                  value={contactPersonName}
-                                  onChange={(e) => setContactPersonName(e.target.value)}
-                                  placeholder="Name"
-                                  className="w-full text-xs p-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                                  Contact Phone
-                                </label>
-                                <input
-                                  type="text"
-                                  value={contactPersonPhone}
-                                  onChange={(e) => setContactPersonPhone(e.target.value)}
-                                  placeholder="Phone"
-                                  className="w-full text-xs p-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500"
-                                />
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Custom Party Fields */}
-                          {quickSettings.customPartyFields && quickSettings.customPartyFields.length > 0 && (
-                            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/60">
-                              {quickSettings.customPartyFields.map((field) => (
-                                <div key={field.id}>
-                                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                                    {field.label}
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={customFieldValues[field.id] || ""}
-                                    onChange={(e) =>
-                                      setCustomFieldValues({
-                                        ...customFieldValues,
-                                        [field.id]: e.target.value,
-                                      })
-                                    }
-                                    placeholder={`Enter ${field.label}`}
-                                    className="w-full text-xs p-1.5 bg-white border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500"
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ) : !isPartyDropdownOpen && !selectedParty ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsPartyDropdownOpen(true);
-                            setPartySearchTerm("");
-                          }}
-                          className="w-full py-7 border-2 border-dashed border-blue-400 bg-blue-50/30 hover:bg-blue-50/70 transition-colors rounded-xl flex items-center justify-center cursor-pointer min-h-[96px] shadow-2xs"
-                        >
-                          <span className="text-blue-600 font-bold text-xs flex items-center gap-1.5">
-                            <span className="text-base font-black">+</span>
-                            <span>Add Party</span>
-                          </span>
-                        </button>
-                      ) : (
-                        <div>
-                          {/* Search party input */}
-                          <div className="relative">
-                            <input
-                              type="text"
-                              autoFocus
-                              value={partySearchTerm}
-                              onChange={(e) => {
-                                setPartySearchTerm(e.target.value);
-                                setIsPartyDropdownOpen(true);
-                              }}
-                              placeholder="Search party by name or number"
-                              className="w-full text-xs p-2.5 bg-slate-50 border-2 border-blue-400 rounded-xl text-slate-900 focus:bg-white focus:outline-none"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setIsPartyDropdownOpen(false)}
-                              className="absolute right-3 top-3 text-xs text-slate-400 hover:text-slate-600"
-                            >
-                              ✕
-                            </button>
-                          </div>
-
-                          {/* Dropdown Menu with Party Name and Balance columns */}
-                          {isPartyDropdownOpen && (
-                            <div className="absolute left-0 right-0 top-12 z-50 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-72 flex flex-col">
-                              {/* Header row */}
-                              <div className="flex items-center justify-between px-3 py-2 bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                                <span>Party Name</span>
-                                {quickSettings.showPartyBalance && <span>Balance</span>}
-                              </div>
-
-                              {/* Rows list */}
-                              <div className="overflow-y-auto divide-y divide-slate-100 flex-1">
-                                {filteredParties.length === 0 ? (
-                                  <div className="p-3 text-center text-xs text-slate-500">
-                                    No parties found matching &quot;{partySearchTerm}&quot;
-                                  </div>
-                                ) : (
-                                  filteredParties.map((p) => {
-                                    const bal = p.outstandingBalance ?? 0;
-                                    return (
-                                      <div
-                                        key={p.id}
-                                        onClick={() => handlePartyChange(p.id)}
-                                        className="flex items-center justify-between px-3 py-2.5 hover:bg-blue-50/60 cursor-pointer transition-colors text-xs"
-                                      >
-                                        <div>
-                                          <p className="font-bold text-slate-900">{p.name}</p>
-                                          <p className="text-[10px] text-slate-500">
-                                            {p.phone || p.gstin || "Cash Customer"}
-                                          </p>
-                                        </div>
-                                        {quickSettings.showPartyBalance && (
-                                          <div className="text-right font-mono font-bold">
-                                            {bal > 0 ? (
-                                              <span className="text-rose-600 flex items-center gap-1 justify-end">
-                                                <span>{formatInr(bal)}</span>
-                                                <span>↑</span>
-                                              </span>
-                                            ) : bal < 0 ? (
-                                              <span className="text-emerald-600 flex items-center gap-1 justify-end">
-                                                <span>{formatInr(Math.abs(bal))}</span>
-                                                <span>↓</span>
-                                              </span>
-                                            ) : (
-                                              <span className="text-slate-500">₹ 0</span>
-                                            )}
-                                          </div>
-                                        )}
-                                      </div>
-                                    );
-                                  })
-                                )}
-                              </div>
-
-                              {/* Bottom: + Create Party dashed button */}
-                              <div className="p-2 border-t border-slate-100 bg-white">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setIsPartyDropdownOpen(false);
-                                    setIsCreatePartyModalOpen(true);
-                                  }}
-                                  className="w-full py-2 border-2 border-dashed border-blue-400 rounded-lg text-xs font-bold text-blue-600 hover:bg-blue-50/50 transition-colors"
-                                >
-                                  + Create Party
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Right Box: Invoice Details */}
-                  <div className="p-3.5 bg-white rounded-xl border border-slate-200 space-y-3">
-                    <div className="flex items-center justify-between pb-1">
-                      <span className="text-xs font-bold text-slate-800">Invoice Details</span>
-                      <div className="flex items-center gap-2">
-                        <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={repeatInvoice}
-                            onChange={(e) => setRepeatInvoice(e.target.checked)}
-                            className="rounded text-blue-600 focus:ring-0"
-                          />
-                          <span>Repeat this Invoice</span>
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setQuickSettingsTab("invoice");
-                            setIsQuickSettingsOpen(true);
-                          }}
-                          className="text-xs text-slate-400 hover:text-slate-700 cursor-pointer p-0.5"
-                          title="Customize Invoice Fields"
-                        >
-                          ⚙️
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                          Sales Invoice No.
-                        </label>
+                  {/* Additional Charges - Clean Inline Rows */}
+                  <div className="space-y-2 text-xs">
+                    {additionalCharges.map((chg) => (
+                      <div key={chg.id} className="flex items-center gap-2">
                         <input
                           type="text"
-                          value={invoiceNumber}
-                          onChange={(e) => setInvoiceNumber(e.target.value)}
-                          className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-slate-900 focus:bg-white focus:outline-none"
+                          placeholder="Charge description (e.g. Delivery, Packing)"
+                          value={chg.name}
+                          onChange={(e) => handleUpdateCharge(chg.id, "name", e.target.value)}
+                          className="flex-1 text-xs p-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-[#26A58A]"
                         />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                          Sales Invoice Date
-                        </label>
-                        <input
-                          type="date"
-                          value={invoiceDate}
-                          onChange={(e) => setInvoiceDate(e.target.value)}
-                          className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-slate-900 focus:bg-white focus:outline-none"
-                        />
-                      </div>
-                    </div>
-
-                    {/* PO Details when enabled */}
-                    {quickSettings.enablePoDetails && (
-                      <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
-                        <div>
-                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                            PO Number
-                          </label>
+                        <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 w-24">
+                          <span className="text-slate-400 font-bold">₹</span>
                           <input
-                            type="text"
-                            value={poNumber}
-                            onChange={(e) => setPoNumber(e.target.value)}
-                            placeholder="e.g. PO-2026-01"
-                            className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-slate-900 focus:bg-white focus:outline-none"
+                            type="number"
+                            min="0"
+                            value={chg.amount}
+                            onChange={(e) =>
+                              handleUpdateCharge(chg.id, "amount", Number(e.target.value) || 0)
+                            }
+                            className="w-full text-xs text-right bg-transparent font-mono font-bold focus:outline-none"
                           />
                         </div>
-                        <div>
-                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                            PO Date
-                          </label>
+                        <div className="relative flex items-center min-w-[70px]">
                           <input
-                            type="date"
-                            value={poDate}
-                            onChange={(e) => setPoDate(e.target.value)}
-                            className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-slate-900 focus:bg-white focus:outline-none"
+                            type="number"
+                            step="any"
+                            min="0"
+                            max="100"
+                            list="gst-rates-table"
+                            value={chg.taxRate}
+                            onChange={(e) =>
+                              handleUpdateCharge(chg.id, "taxRate", Number(e.target.value) || 0)
+                            }
+                            placeholder="0"
+                            className="w-full text-xs p-1.5 pr-4 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-700 text-right focus:outline-none"
                           />
+                          <span className="absolute right-1 text-[11px] font-bold text-slate-400 pointer-events-none">%</span>
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveCharge(chg.id)}
+                          className="text-slate-400 hover:text-rose-600 p-1"
+                        >
+                          ✕
+                        </button>
                       </div>
-                    )}
+                    ))}
 
-                    {/* Vehicle & E-Way Bill when enabled */}
-                    {(quickSettings.enableVehicleDetails || quickSettings.enableEwayBill) && (
-                      <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
-                        {quickSettings.enableVehicleDetails && (
-                          <div>
-                            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                              Vehicle Number
-                            </label>
-                            <input
-                              type="text"
-                              value={vehicleNumber}
-                              onChange={(e) => setVehicleNumber(e.target.value)}
-                              placeholder="e.g. GJ-01-AB-1234"
-                              className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg font-mono uppercase text-slate-900 focus:bg-white focus:outline-none"
-                            />
-                          </div>
-                        )}
-                        {quickSettings.enableEwayBill && (
-                          <div>
-                            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                              E-Way Bill Number
-                            </label>
-                            <input
-                              type="text"
-                              value={ewayBillNumber}
-                              onChange={(e) => setEwayBillNumber(e.target.value)}
-                              placeholder="12-digit number"
-                              maxLength={12}
-                              className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-slate-900 focus:bg-white focus:outline-none"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    <datalist id="gst-rates-table">
+                      <option value="0">0% (Nil)</option>
+                      <option value="5">5% (Essential)</option>
+                      <option value="12">12% (Standard)</option>
+                      <option value="18">18% (Standard Services/Goods)</option>
+                      <option value="28">28% (Luxury / Sin)</option>
+                    </datalist>
 
-                    {/* Custom Invoice Fields */}
-                    {quickSettings.customInvoiceFields && quickSettings.customInvoiceFields.length > 0 && (
-                      <div className="space-y-2 pt-2 border-t border-slate-100">
-                        <div className="grid grid-cols-2 gap-3">
-                          {quickSettings.customInvoiceFields.map((field) => (
-                            <div key={field.id}>
-                              <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                                {field.label}
-                              </label>
-                              <input
-                                type="text"
-                                value={customFieldValues[field.id] || ""}
-                                onChange={(e) =>
-                                  setCustomFieldValues({
-                                    ...customFieldValues,
-                                    [field.id]: e.target.value,
-                                  })
-                                }
-                                placeholder={`Enter ${field.label}`}
-                                className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-slate-900 focus:bg-white focus:outline-none"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Date Change Warning Alert */}
-                    {isInvoiceDateChanged && (
-                      <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-1.5 leading-snug">
-                        <span className="text-sm">⚠️</span>
-                        <span>
-                          Changing the invoice date can cause invoice numbering and GSTR-1 mismatches with prior filings.
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Expandable: + Add Due Date */}
-                    {!showDueDate ? (
-                      <button
-                        type="button"
-                        onClick={() => setShowDueDate(true)}
-                        className="w-full py-2 border-2 border-dashed border-blue-400 rounded-xl text-xs font-bold text-blue-600 hover:bg-blue-50/40 transition-colors"
-                      >
-                        + Add Due Date
-                      </button>
-                    ) : (
-                      <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-2 gap-3 relative">
-                        <div>
-                          <label className="block text-[10px] font-semibold text-slate-500 mb-1">
-                            Payment Terms
-                          </label>
-                          <div className="flex items-center gap-1">
-                            <input
-                              type="number"
-                              value={paymentTermsDays}
-                              onChange={(e) => {
-                                const days = Number(e.target.value) || 0;
-                                setPaymentTermsDays(days);
-                                const d = new Date(invoiceDate || new Date());
-                                d.setDate(d.getDate() + days);
-                                setDueDate(d.toISOString().split("T")[0]);
-                              }}
-                              className="w-16 text-xs p-1.5 bg-white border border-slate-200 rounded-md text-right font-mono"
-                            />
-                            <span className="text-xs text-slate-500">Days</span>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-semibold text-slate-500 mb-1">
-                            Due Date
-                          </label>
-                          <input
-                            type="date"
-                            value={dueDate}
-                            onChange={(e) => setDueDate(e.target.value)}
-                            className="w-full text-xs p-1.5 bg-white border border-slate-200 rounded-md font-mono"
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* ROW 2: ITEMS TABLE (Exact MyBillBook Columns & Styling) */}
-                <div className="border border-slate-200 rounded-xl overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs border-collapse min-w-[700px]">
-                      <thead className="bg-[#F8F9FA] text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200 text-[11px]">
-                        <tr>
-                          <th className="py-2.5 px-3 w-10 text-center">NO</th>
-                          <th className="py-2.5 px-3 min-w-[240px]">ITEMS</th>
-                          {quickSettings.showHsnColumn && (
-                            <th className="py-2.5 px-3 w-24 text-center">HSN</th>
-                          )}
-                          <th className="py-2.5 px-3 w-20 text-right">QTY</th>
-                          <th className="py-2.5 px-3 w-28 text-right">PRICE/ITEM (₹)</th>
-                          {quickSettings.showDiscountColumn && (
-                            <th className="py-2.5 px-3 w-24 text-right">DISCOUNT</th>
-                          )}
-                          {quickSettings.showTaxColumn && (
-                            <th className="py-2.5 px-3 w-24 text-right">TAX</th>
-                          )}
-                          <th className="py-2.5 px-3 w-28 text-right">AMOUNT (₹)</th>
-                          <th className="py-2.5 px-2 w-10 text-center">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setQuickSettingsTab("items");
-                                setIsQuickSettingsOpen(true);
-                              }}
-                              className="text-xs text-slate-400 hover:text-slate-700 cursor-pointer p-0.5"
-                              title="Customize Items Table Columns & Settings"
-                            >
-                              ⚙️
-                            </button>
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {rows.length === 0 ? (
-                          <tr>
-                            <td
-                              colSpan={
-                                5 +
-                                (quickSettings.showHsnColumn ? 1 : 0) +
-                                (quickSettings.showDiscountColumn ? 1 : 0) +
-                                (quickSettings.showTaxColumn ? 1 : 0)
-                              }
-                              className="p-3"
-                            >
-                              <button
-                                type="button"
-                                onClick={() => setIsAddItemsModalOpen(true)}
-                                className="w-full py-4 border-2 border-dashed border-blue-400 bg-blue-50/30 hover:bg-blue-50/70 transition-colors rounded-xl text-xs font-bold text-blue-600 flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
-                              >
-                                <span className="text-base font-black">+</span>
-                                <span>Add Item</span>
-                              </button>
-                            </td>
-                          </tr>
-                        ) : (
-                          rows.map((row, idx) => {
-                            const qty = Number(row.quantity) || 0;
-                            const rate = Number(row.unitPrice) || 0;
-                            const disc = quickSettings.showDiscountColumn
-                              ? Number(row.discountPercent) || 0
-                              : 0;
-                            const gross = qty * rate;
-                            const grossAfterDisc = gross - (gross * disc) / 100;
-                            const effectiveTaxRate = quickSettings.showTaxColumn ? row.taxRate : 0;
-                            const lineTotal = isTaxInclusive
-                              ? grossAfterDisc
-                              : grossAfterDisc + (grossAfterDisc * effectiveTaxRate) / 100;
-
-                            return (
-                              <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
-                                {/* NO */}
-                                <td className="py-2.5 px-3 text-center text-slate-500 font-mono">
-                                  {idx + 1}
-                                </td>
-
-                                {/* ITEMS */}
-                                <td className="py-2.5 px-3">
-                                  <div className="flex items-center gap-1.5">
-                                    <select
-                                      value={row.itemId}
-                                      onChange={(e) => handleItemSelect(idx, e.target.value)}
-                                      className="flex-1 text-xs p-1.5 bg-slate-50 border border-slate-200 rounded-md font-medium text-slate-900 focus:bg-white focus:outline-none"
-                                    >
-                                      {items.map((it) => (
-                                        <option key={it.id} value={it.id}>
-                                          {it.name} (Stock: {it.stockQuantity ?? 0})
-                                        </option>
-                                      ))}
-                                    </select>
-                                    {newlyScannedItemIndices.includes(idx) && (
-                                      <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-black rounded uppercase tracking-wider shrink-0 animate-pulse">
-                                        NEW
-                                      </span>
-                                    )}
-                                  </div>
-                                </td>
-
-                                {/* HSN */}
-                                {quickSettings.showHsnColumn && (
-                                  <td className="py-2.5 px-3">
-                                    <input
-                                      type="text"
-                                      value={row.hsnCode}
-                                      onChange={(e) => handleRowChange(idx, "hsnCode", e.target.value)}
-                                      className="w-full text-xs p-1.5 bg-slate-50 border border-slate-200 rounded-md text-center font-mono text-slate-800 focus:bg-white focus:outline-none"
-                                    />
-                                  </td>
-                                )}
-
-                                {/* QTY */}
-                                <td className="py-2.5 px-3">
-                                  <input
-                                    type="number"
-                                    min="0.001"
-                                    step="any"
-                                    value={row.quantity}
-                                    onChange={(e) => handleRowChange(idx, "quantity", e.target.value)}
-                                    className="w-full text-xs p-1.5 bg-slate-50 border border-slate-200 rounded-md text-right font-mono font-bold text-slate-900 focus:bg-white focus:outline-none"
-                                  />
-                                </td>
-
-                                {/* PRICE/ITEM */}
-                                <td className="py-2.5 px-3">
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    step="any"
-                                    value={row.unitPrice}
-                                    onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value)}
-                                    className="w-full text-xs p-1.5 bg-slate-50 border border-slate-200 rounded-md text-right font-mono font-bold text-slate-900 focus:bg-white focus:outline-none"
-                                  />
-                                  {partyId && row.itemId && getPartyItemPrice(partyId, row.itemId, selectedParty?.name) !== null && (
-                                    <div className="flex justify-end mt-1">
-                                      <span
-                                        title={`Party specific price active for ${selectedParty?.name || "this party"}`}
-                                        className="inline-flex items-center gap-0.5 text-[9px] font-semibold text-purple-700 bg-purple-50 border border-purple-200 px-1 py-0.5 rounded shadow-2xs"
-                                      >
-                                        <span>🏷️</span>
-                                        <span>Party Rate</span>
-                                      </span>
-                                    </div>
-                                  )}
-                                </td>
-
-                                {/* DISCOUNT */}
-                                {quickSettings.showDiscountColumn && (
-                                  <td className="py-2.5 px-3">
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      max="100"
-                                      value={row.discountPercent}
-                                      onChange={(e) => handleRowChange(idx, "discountPercent", e.target.value)}
-                                      placeholder="0 %"
-                                      className="w-full text-xs p-1.5 bg-slate-50 border border-slate-200 rounded-md text-right font-mono text-slate-700 focus:bg-white focus:outline-none"
-                                    />
-                                  </td>
-                                )}
-
-                                {/* TAX */}
-                                {quickSettings.showTaxColumn && (
-                                  <td className="py-2.5 px-3">
-                                    <div className="relative flex items-center min-w-[70px]">
-                                      <input
-                                        type="number"
-                                        step="any"
-                                        min="0"
-                                        max="100"
-                                        list="gst-rates-table"
-                                        value={row.taxRate}
-                                        onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value) || 0)}
-                                        placeholder="0"
-                                        className="w-full text-xs p-1.5 pr-4 bg-slate-50 border border-slate-200 rounded-md text-right font-mono font-semibold text-slate-800 focus:bg-white focus:outline-none"
-                                      />
-                                      <span className="absolute right-1 text-[11px] font-bold text-slate-400 pointer-events-none">%</span>
-                                    </div>
-                                  </td>
-                                )}
-
-                                {/* AMOUNT */}
-                                <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">
-                                  {formatInr(lineTotal)}
-                                </td>
-
-                                {/* ACTIONS */}
-                                <td className="py-2.5 px-2 text-center">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveRow(idx)}
-                                    disabled={rows.length <= 1}
-                                    className="text-slate-400 hover:text-rose-600 disabled:opacity-20 transition-colors cursor-pointer"
-                                    title="Remove item"
-                                  >
-                                    ✕
-                                  </button>
-                                </td>
-                              </tr>
-                            );
-                          })
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* + Add Item & Scan Barcode Action Strip */}
-                  {/* <div className="p-3 bg-white border-t border-slate-200 flex items-center justify-between gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setIsAddItemsModalOpen(true)}
-                      className="flex-1 py-2 bg-blue-50/70 border-2 border-dashed border-blue-400 rounded-xl text-xs font-bold text-blue-600 hover:bg-blue-100/70 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
-                    >
-                      <span className="text-sm">+</span>
-                      <span>Add Items to Bill</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleAddRow}
-                      className="px-4 py-2 border border-slate-300 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-700 flex items-center gap-1.5 shadow-2xs transition-colors shrink-0 cursor-pointer"
-                      title="Add a blank row"
-                    >
-                      <span>+ Add Blank Row</span>
-                    </button>
-                    <button
-                      id="btn-scan-barcode"
-                      type="button"
-                      onClick={() => setIsAddItemsModalOpen(true)}
-                      className="px-4 py-2 border border-slate-300 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-700 flex items-center gap-1.5 shadow-xs transition-colors shrink-0 cursor-pointer"
-                    >
-                      <span>📷</span>
-                      <span>Scan Barcode</span>
-                    </button>
-                  </div> */}
-
-                  {/* Subtotal Strip */}
-                  <div className="bg-[#F8F9FA] border-t border-slate-200 px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-600 font-medium">
-                    <span className="font-bold text-slate-900">Subtotal</span>
-                    <div className="flex flex-wrap items-center gap-3 sm:gap-6 font-mono text-slate-700">
-                      <span>Total Qty: <strong>{totalQty}</strong></span>
-                      <span>Discount: <strong>{formatInr(totalDiscountAmt)}</strong></span>
-                      <span>Tax: <strong>{formatInr(totalTax)}</strong></span>
-                      <span className="font-bold text-slate-900 text-sm">
-                        {formatInr(itemsSubtotal)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* ROW 3: BOTTOM SECTION (2 COLUMNS: NOTES/TERMS & TOTALS/PAYMENT) */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pt-2">
-                  
-                  {/* Left Column (7 cols): Notes, Terms & Conditions, Bank Account, QR */}
-                  <div className="lg:col-span-7 space-y-4">
-                    {/* Add Notes */}
-                    {!showNotes ? (
-                      <button
-                        type="button"
-                        onClick={() => setShowNotes(true)}
-                        className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <span>📝</span>
-                        <span>+ Add Notes</span>
-                      </button>
-                    ) : (
-                      <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">Notes / Remarks</label>
-                        <textarea
-                          rows={2}
-                          value={notes}
-                          onChange={(e) => setNotes(e.target.value)}
-                          placeholder="Special instructions or notes for the customer..."
-                          className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:outline-none"
-                        />
-                      </div>
-                    )}
-
-                    {/* Terms & Conditions Box */}
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-800">Terms & Conditions</span>
-                        <span className="text-xs text-slate-400">⚙️</span>
-                      </div>
-                      <textarea
-                        rows={3}
-                        value={termsAndConditions}
-                        onChange={(e) => setTermsAndConditions(e.target.value)}
-                        className="w-full text-xs p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white focus:outline-none"
-                      />
-                    </div>
-
-                    {/* Add Bank Account & Payment QR Links */}
-                    <div className="flex flex-wrap items-center gap-4 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => setShowBankAccount(!showBankAccount)}
-                        className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <span>🏛️</span>
-                        <span>+ Add Bank Account</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowPaymentQr(!showPaymentQr)}
-                        className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <span>📱</span>
-                        <span>+ Add Payment QR</span>
-                      </button>
-                    </div>
-
-                    {showBankAccount && (
-                      <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 space-y-1">
-                        <p className="font-bold text-slate-900">Bank Details Included on Invoice:</p>
-                        <p>Bank: <strong>HDFC Bank</strong> • A/c: <strong>50200012345678</strong></p>
-                        <p>IFSC: <strong>HDFC0000123</strong> • Branch: Ahmedabad Main</p>
-                      </div>
-                    )}
-
-                    {showPaymentQr && (
-                      <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 space-y-1">
-                        <p className="font-bold text-slate-900">UPI QR Code Enabled:</p>
-                        <p>Dynamic UPI QR will be printed directly on this invoice for instant payment.</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Right Column (5 cols): Additional Charges, Round Off, Grand Total, Payments */}
-                  <div className="lg:col-span-5 space-y-3.5">
-                    
-                    {/* Add Additional Charges - EXACT MyBillBook Inline Expansion */}
-                    <div className="space-y-2 text-xs">
-                      {additionalCharges.map((chg) => (
-                        <div key={chg.id} className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            placeholder="Enter charge"
-                            value={chg.name}
-                            onChange={(e) => handleUpdateCharge(chg.id, "name", e.target.value)}
-                            className="flex-1 text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none"
-                          />
-                          <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 w-24">
-                            <span className="text-slate-400 font-bold">₹</span>
-                            <input
-                              type="number"
-                              min="0"
-                              value={chg.amount}
-                              onChange={(e) =>
-                                handleUpdateCharge(chg.id, "amount", Number(e.target.value) || 0)
-                              }
-                              className="w-full text-xs text-right bg-transparent font-mono font-bold focus:outline-none"
-                            />
-                          </div>
-                          <div className="relative flex items-center min-w-[80px]">
-                            <input
-                              type="number"
-                              step="any"
-                              min="0"
-                              max="100"
-                              list="gst-rates-table"
-                              value={chg.taxRate}
-                              onChange={(e) =>
-                                handleUpdateCharge(chg.id, "taxRate", Number(e.target.value) || 0)
-                              }
-                              placeholder="0"
-                              className="w-full text-xs p-1.5 pr-4 bg-slate-50 border border-slate-200 rounded-lg font-mono font-semibold text-slate-700 text-right focus:bg-white focus:outline-none"
-                            />
-                            <span className="absolute right-1.5 text-[11px] font-bold text-slate-400 pointer-events-none">%</span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveCharge(chg.id)}
-                            className="text-slate-400 hover:text-rose-600 text-sm p-1"
-                          >
-                            ⨂
-                          </button>
-                        </div>
-                      ))}
-
-                      <datalist id="gst-rates-table">
-                        <option value="0">0% (None)</option>
-                        <option value="0.1">0.1%</option>
-                        <option value="0.25">0.25%</option>
-                        <option value="3">3%</option>
-                        <option value="5">5% (Essential)</option>
-                        <option value="12">12% (Standard)</option>
-                        <option value="18">18% (Standard Services/Goods)</option>
-                        <option value="28">28% (Luxury / Sin)</option>
-                      </datalist>
-
+                    <div className="flex items-center justify-between pt-1">
                       <button
                         type="button"
                         onClick={handleAddChargeRow}
-                        className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1.5 cursor-pointer"
+                        className="text-xs font-bold text-[#174B43] hover:text-[#26A58A] flex items-center gap-1 cursor-pointer"
                       >
-                        <span>🔄</span>
-                        <span>{additionalCharges.length === 0 ? "+ Add Additional Charges" : "+ Add Another Charge"}</span>
+                        <span>+ Add Additional Charges</span>
                       </button>
 
-                      {/* Taxable Amount */}
-                      <div className="flex justify-between items-center text-slate-600 pt-1">
-                        <span>Taxable Amount</span>
-                        <span className="font-mono font-semibold text-slate-800">
-                          {formatInr(totalTaxable)}
-                        </span>
-                      </div>
-
-                      {/* Add Discount - EXACT MyBillBook Inline Expansion */}
+                      {/* Add Discount Toggle */}
                       {!showOverallDiscount ? (
                         <button
                           type="button"
@@ -2918,222 +3085,235 @@ export default function NewInvoicePage() {
                             setOverallDiscountPercent(0);
                             setOverallDiscountAmount(0);
                           }}
-                          className="font-bold text-blue-600 hover:underline flex items-center gap-1.5 cursor-pointer pt-1"
+                          className="text-xs font-bold text-[#174B43] hover:text-[#26A58A] flex items-center gap-1 cursor-pointer"
                         >
-                          <span>%</span>
                           <span>+ Add Discount</span>
                         </button>
-                      ) : (
-                        <div className="flex items-center gap-2 pt-1">
-                          <select
-                            value={discountTiming}
-                            onChange={(e) =>
-                              setDiscountTiming(e.target.value as "AFTER_TAX" | "BEFORE_TAX")
-                            }
-                            className="text-xs p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none"
-                          >
-                            <option value="AFTER_TAX">After Tax</option>
-                            <option value="BEFORE_TAX">Before Tax</option>
-                          </select>
-                          <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 w-20">
-                            <input
-                              type="number"
-                              min="0"
-                              max="100"
-                              value={overallDiscountPercent}
-                              onChange={(e) => {
-                                const p = Number(e.target.value) || 0;
-                                setOverallDiscountPercent(p);
-                                const calcAmt = (itemsSubtotal * p) / 100;
-                                setOverallDiscountAmount(Number(calcAmt.toFixed(2)));
-                              }}
-                              className="w-full text-xs text-right bg-transparent font-mono focus:outline-none"
-                            />
-                            <span className="text-slate-500 font-bold">%</span>
-                          </div>
-                          <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 flex-1">
-                            <span className="text-slate-500 font-bold">₹</span>
-                            <input
-                              type="number"
-                              min="0"
-                              value={overallDiscountAmount}
-                              onChange={(e) => {
-                                const amt = Number(e.target.value) || 0;
-                                setOverallDiscountAmount(amt);
-                                if (itemsSubtotal > 0) {
-                                  setOverallDiscountPercent(
-                                    Number(((amt / itemsSubtotal) * 100).toFixed(2))
-                                  );
-                                }
-                              }}
-                              className="w-full text-xs text-right bg-transparent font-mono font-bold focus:outline-none"
-                            />
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowOverallDiscount(false);
-                              setOverallDiscountPercent("");
-                              setOverallDiscountAmount("");
-                            }}
-                            className="text-slate-400 hover:text-rose-600 text-sm p-1"
-                          >
-                            ⨂
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Auto Round Off */}
-                      <div className="flex items-center justify-between pt-1">
-                        <label className="flex items-center gap-1.5 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={autoRoundOff}
-                            onChange={(e) => setAutoRoundOff(e.target.checked)}
-                            className="rounded text-blue-600"
-                          />
-                          <span>Auto Round Off</span>
-                        </label>
-                        <span className="font-mono text-slate-600">
-                          {roundOff >= 0 ? `+${roundOff.toFixed(2)}` : roundOff.toFixed(2)}
-                        </span>
-                      </div>
+                      ) : null}
                     </div>
 
-                    {/* Total Amount Display (Prominent) */}
-                    <div className="pt-3 border-t border-slate-200 flex items-center justify-between">
-                      <span className="text-base font-bold text-slate-900">Total Amount:</span>
-                      <span className="text-2xl font-black font-mono text-slate-900">
-                        {formatInr(roundedGrandTotal)}
-                      </span>
-                    </div>
-
-                    {/* Total Amount Received & Payment Mode */}
-                    <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-800">Total Amount Received</span>
-                        <span className="text-xs font-mono font-bold text-slate-900">
-                          {formatInr(effectiveReceived)}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span className="text-slate-500 font-bold text-xs">₹</span>
-                        <input
-                          type="number"
-                          value={isFullyPaid ? roundedGrandTotal : amountReceived}
-                          disabled={isFullyPaid}
-                          onChange={(e) => setAmountReceived(Number(e.target.value) || 0)}
-                          placeholder="0"
-                          className="flex-1 text-xs p-2 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-900 disabled:bg-slate-100"
-                        />
+                    {/* Overall Discount Input Strip */}
+                    {showOverallDiscount && (
+                      <div className="flex items-center gap-2 pt-2 p-2.5 bg-slate-50 rounded-xl border border-slate-200">
                         <select
-                          value={paymentMode}
-                          onChange={(e) => setPaymentMode(e.target.value)}
-                          className="text-xs p-2 bg-white border border-slate-200 rounded-lg font-semibold text-slate-800 focus:outline-none"
+                          value={discountTiming}
+                          onChange={(e) =>
+                            setDiscountTiming(e.target.value as "AFTER_TAX" | "BEFORE_TAX")
+                          }
+                          className="text-xs p-1.5 bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none"
                         >
-                          <option value="CASH">Cash</option>
-                          <option value="BANK_TRANSFER">Bank Transfer</option>
-                          <option value="CHEQUE">Cheque</option>
-                          <option value="UPI_QR">UPI</option>
-                          <option value="UNPAID_CREDIT">Credit (Unpaid)</option>
+                          <option value="AFTER_TAX">After Tax</option>
+                          <option value="BEFORE_TAX">Before Tax</option>
                         </select>
-                      </div>
-
-                      <div className="flex items-center justify-between text-xs pt-1">
-                        <label className="flex items-center gap-1.5 cursor-pointer text-slate-700">
+                        <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 w-20">
                           <input
-                            type="checkbox"
-                            checked={isFullyPaid}
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={overallDiscountPercent}
                             onChange={(e) => {
-                              setIsFullyPaid(e.target.checked);
-                              if (e.target.checked) {
-                                setAmountReceived(roundedGrandTotal);
+                              const p = Number(e.target.value) || 0;
+                              setOverallDiscountPercent(p);
+                              const calcAmt = (itemsSubtotal * p) / 100;
+                              setOverallDiscountAmount(Number(calcAmt.toFixed(2)));
+                            }}
+                            className="w-full text-xs text-right bg-transparent font-mono focus:outline-none"
+                          />
+                          <span className="text-slate-500 font-bold">%</span>
+                        </div>
+                        <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 flex-1">
+                          <span className="text-slate-500 font-bold">₹</span>
+                          <input
+                            type="number"
+                            min="0"
+                            value={overallDiscountAmount}
+                            onChange={(e) => {
+                              const amt = Number(e.target.value) || 0;
+                              setOverallDiscountAmount(amt);
+                              if (itemsSubtotal > 0) {
+                                setOverallDiscountPercent(
+                                  Number(((amt / itemsSubtotal) * 100).toFixed(2))
+                                );
                               }
                             }}
-                            className="rounded text-blue-600"
+                            className="w-full text-xs text-right bg-transparent font-mono font-bold focus:outline-none"
                           />
-                          <span>Mark as fully paid</span>
-                        </label>
+                        </div>
                         <button
                           type="button"
                           onClick={() => {
-                            setSplitRows([
-                              { mode: "CASH", amount: effectiveReceived || roundedGrandTotal },
-                              { mode: "UPI_QR", amount: 0 },
-                              { mode: "BANK_TRANSFER", amount: 0 },
-                            ]);
-                            setIsSplitPaymentOpen(true);
+                            setShowOverallDiscount(false);
+                            setOverallDiscountPercent("");
+                            setOverallDiscountAmount("");
                           }}
-                          className="text-blue-600 font-bold hover:underline cursor-pointer"
+                          className="text-slate-400 hover:text-rose-600 p-1"
                         >
-                          + Split Payment
+                          ✕
                         </button>
                       </div>
-                    </div>
+                    )}
+                  </div>
 
-                    {/* Balance Amount Indicator */}
-                    <div className="flex items-center justify-between pt-1 text-xs">
-                      <span className="font-bold text-slate-700">Balance Amount</span>
-                      <span className={`font-mono font-black text-sm ${balanceAmount === 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                        {formatInr(balanceAmount)}
+                  {/* Calculations Line Breakdown */}
+                  <div className="space-y-2 pt-2 border-t border-slate-100 text-xs">
+                    <div className="flex justify-between items-center text-slate-600">
+                      <span>Taxable Amount</span>
+                      <span className="font-mono font-semibold text-slate-900">
+                        {formatInr(totalTaxable)}
                       </span>
                     </div>
 
-                    {/* Signature Box */}
-                    <div className="pt-2">
-                      {signatureData ? (
-                        <div className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-2xs">
-                          <div>
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                              Authorized Signature
-                            </span>
-                            <img
-                              src={signatureData}
-                              alt="Signature"
-                              className="h-12 object-contain"
-                            />
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setIsSignatureModalOpen(true)}
-                              className="text-xs font-bold text-blue-600 hover:underline cursor-pointer"
-                            >
-                              Change
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setSignatureData(null)}
-                              className="text-xs font-bold text-rose-500 hover:underline cursor-pointer"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div
-                          onClick={() => setIsSignatureModalOpen(true)}
-                          className="w-full h-20 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50/50 hover:bg-slate-50 flex flex-col items-center justify-center text-xs text-slate-500 cursor-pointer transition-colors"
-                        >
-                          <span className="font-bold text-blue-600 flex items-center gap-1.5">
-                            <span>✍️</span>
-                            <span>+ Add Signature</span>
-                          </span>
-                          <span className="text-[10px] text-slate-400 mt-0.5">
-                            Click to draw, upload or type signature
-                          </span>
-                        </div>
-                      )}
+                    <div className="flex justify-between items-center text-slate-600">
+                      <span>
+                        GST Breakdown ({isInterState ? "IGST" : "CGST + SGST"})
+                      </span>
+                      <span className="font-mono font-semibold text-slate-900">
+                        {formatInr(totalTax)}
+                      </span>
                     </div>
 
+                    {totalAdditionalCharges > 0 && (
+                      <div className="flex justify-between items-center text-slate-600">
+                        <span>Additional Charges</span>
+                        <span className="font-mono font-semibold text-slate-900">
+                          +{formatInr(totalAdditionalCharges)}
+                        </span>
+                      </div>
+                    )}
+
+                    {discValue > 0 && (
+                      <div className="flex justify-between items-center text-rose-600 font-medium">
+                        <span>Overall Discount</span>
+                        <span className="font-mono">
+                          -{formatInr(discValue)}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Auto Round Off */}
+                    <div className="flex items-center justify-between pt-1">
+                      <label className="flex items-center gap-1.5 cursor-pointer text-slate-700">
+                        <input
+                          type="checkbox"
+                          checked={autoRoundOff}
+                          onChange={(e) => setAutoRoundOff(e.target.checked)}
+                          className="rounded text-[#174B43]"
+                        />
+                        <span>Auto Round Off</span>
+                      </label>
+                      <span className="font-mono text-slate-600">
+                        {roundOff >= 0 ? `+${roundOff.toFixed(2)}` : roundOff.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Grand Total Banner */}
+                  <div className="p-4 rounded-2xl bg-gradient-to-br from-[#174B43] to-[#1F5E54] text-white space-y-1 shadow-md">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-emerald-200">
+                        Total Invoice Amount
+                      </span>
+                      <span className="text-2xl font-black font-mono tracking-tight text-white">
+                        {formatInr(roundedGrandTotal)}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-emerald-100/90 italic truncate pt-1 border-t border-white/10">
+                      {numberToWordsINR(roundedGrandTotal)}
+                    </p>
                   </div>
                 </div>
+
+                {/* Payment Recording & Balance Settlement Card */}
+                <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#E2E8E5] p-5 shadow-xs space-y-3.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-extrabold text-[#1A2E2B] tracking-tight">
+                      Payment Settlement
+                    </span>
+                    <span className="text-xs font-mono font-bold text-slate-900">
+                      Received: {formatInr(effectiveReceived)}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                    <div className="sm:col-span-7 flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
+                      <span className="text-slate-400 font-bold text-xs">₹</span>
+                      <input
+                        type="number"
+                        value={isFullyPaid ? roundedGrandTotal : amountReceived}
+                        disabled={isFullyPaid}
+                        onChange={(e) => setAmountReceived(Number(e.target.value) || 0)}
+                        placeholder="0"
+                        className="w-full text-xs bg-transparent font-mono font-bold text-slate-900 focus:outline-none disabled:text-slate-500"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-5">
+                      <select
+                        value={paymentMode}
+                        onChange={(e) => setPaymentMode(e.target.value)}
+                        className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none"
+                      >
+                        <option value="CASH">Cash</option>
+                        <option value="BANK_TRANSFER">Bank Transfer</option>
+                        <option value="UPI_QR">UPI</option>
+                        <option value="CHEQUE">Cheque</option>
+                        <option value="UNPAID_CREDIT">Credit (Unpaid)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs pt-1">
+                    <label className="flex items-center gap-2 cursor-pointer font-semibold text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={isFullyPaid}
+                        onChange={(e) => {
+                          setIsFullyPaid(e.target.checked);
+                          if (e.target.checked) {
+                            setAmountReceived(roundedGrandTotal);
+                          }
+                        }}
+                        className="rounded text-[#174B43]"
+                      />
+                      <span>Mark as fully paid</span>
+                    </label>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSplitRows([
+                          { mode: "CASH", amount: effectiveReceived || roundedGrandTotal },
+                          { mode: "UPI_QR", amount: 0 },
+                          { mode: "BANK_TRANSFER", amount: 0 },
+                        ]);
+                        setIsSplitPaymentOpen(true);
+                      }}
+                      className="text-[#174B43] hover:text-[#26A58A] font-bold underline cursor-pointer"
+                    >
+                      + Split Payment
+                    </button>
+                  </div>
+
+                  {/* Balance Indicator Banner */}
+                  <div className={`p-3 rounded-xl border flex items-center justify-between ${
+                    balanceAmount === 0
+                      ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                      : "bg-amber-50 border-amber-200 text-amber-900"
+                  }`}>
+                    <span className="text-xs font-bold">
+                      {balanceAmount === 0 ? "✓ Fully Settled" : "⏳ Balance Due"}
+                    </span>
+                    <span className="text-sm font-black font-mono">
+                      {formatInr(balanceAmount)}
+                    </span>
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
         )}
-      </div>
+      </main>
 
       {/* FLOATING HELP BUTTON (?) matching MyBillBook */}
       <button
@@ -3851,14 +4031,16 @@ export default function NewInvoicePage() {
               !rows[0].itemId &&
               (!rows[0].quantity || rows[0].quantity === 1));
 
-          const newRows: InvoiceItemRow[] = selected.map((s) => {
+          const newRows: InvoiceItemRow[] = selected.map((s, idx) => {
             const partyPrice = partyId
               ? getPartyItemPrice(partyId, s.item.id, selectedParty?.name, s.item.name)
               : null;
             return {
+              rowId: `row-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 7)}`,
               itemId: s.item.id,
               hsnCode: s.item.hsnCode || "1001",
               quantity: s.quantity,
+              unit: s.item.unit || "PCS",
               unitPrice: partyPrice !== null ? partyPrice : s.unitPrice,
               discountPercent: 0,
               taxRate: s.item.taxRate ?? 5,

@@ -174,7 +174,7 @@ export default function VouchersPage() {
         <div className="flex items-center justify-end gap-2">
           <button
             onClick={() => setSelectedVoucher(v)}
-            className="text-xs text-[#F47721] hover:text-[#D95F12] font-semibold"
+            className="text-xs text-[#174B43] hover:text-[#123B35] font-semibold"
           >
             View Lines
           </button>
@@ -216,7 +216,7 @@ export default function VouchersPage() {
 
         <Link
           href="/accounting/vouchers/new"
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F47721] hover:bg-[#D95F12] active:bg-[#B94B0A] text-white text-xs sm:text-sm font-bold rounded-xl shadow-saffron transition-all w-full sm:w-auto shrink-0"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#174B43] hover:bg-[#123B35] active:bg-[#B94B0A] text-white text-xs sm:text-sm font-bold rounded-xl shadow-saffron transition-all w-full sm:w-auto shrink-0"
         >
           <svg
             className="w-4 h-4"
@@ -266,7 +266,7 @@ export default function VouchersPage() {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="text-xs bg-[#F8FAFC] border border-[#E5E7EB] text-[#202124] rounded-xl px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 focus:border-[#F47721] transition-all cursor-pointer"
+              className="text-xs bg-[#F8FAFC] border border-[#E5E7EB] text-[#202124] rounded-xl px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-[#174B43]/20 focus:border-[#174B43] transition-all cursor-pointer"
             >
               <option value="ALL">{lang === "gu" ? "તમામ વાઉચર (All Types)" : "All Voucher Types"}</option>
               <option value="JOURNAL">{lang === "gu" ? "જર્નલ (JOURNAL)" : "JOURNAL"}</option>
@@ -303,7 +303,7 @@ export default function VouchersPage() {
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 onClick={() => setSelectedVoucher(v)}
-                className="text-xs text-[#F47721] font-semibold"
+                className="text-xs text-[#174B43] font-semibold"
               >
                 View Lines
               </button>

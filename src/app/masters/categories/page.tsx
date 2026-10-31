@@ -269,7 +269,7 @@ export default function CategoriesPage() {
               <div className="inline-flex items-center justify-center gap-1.5">
                 <button
                   onClick={() => handleOpenEditModal(c)}
-                  className="px-2.5 py-1 text-xs font-semibold text-[#F47721] bg-[#FFF3E8] hover:bg-[#F47721] hover:text-white border border-[#F47721]/30 rounded transition-colors inline-flex items-center gap-1"
+                  className="px-2.5 py-1 text-xs font-semibold text-[#174B43] bg-[#E6F7F2] hover:bg-[#174B43] hover:text-white border border-[#174B43]/30 rounded transition-colors inline-flex items-center gap-1"
                   title="Edit Category"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -318,7 +318,7 @@ export default function CategoriesPage() {
             <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100">
               <button
                 onClick={() => handleOpenEditModal(c)}
-                className="text-xs text-[#F47721] font-semibold"
+                className="text-xs text-[#174B43] font-semibold"
               >
                 {lang === "gu" ? "સુધારો" : "Edit"}
               </button>
@@ -392,7 +392,7 @@ export default function CategoriesPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-[#F47721] hover:bg-[#D95F12] disabled:bg-[#F47721]/50 rounded-lg shadow-sm"
+              className="px-5 py-2 text-xs font-semibold text-white bg-[#174B43] hover:bg-[#123B35] disabled:bg-[#174B43]/50 rounded-lg shadow-sm"
             >
               {isSubmitting ? "Saving..." : "Save Category"}
             </button>
@@ -465,7 +465,7 @@ export default function CategoriesPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-[#F47721] hover:bg-[#D95F12] disabled:bg-[#F47721]/50 rounded-lg shadow-sm"
+              className="px-5 py-2 text-xs font-semibold text-white bg-[#174B43] hover:bg-[#123B35] disabled:bg-[#174B43]/50 rounded-lg shadow-sm"
             >
               {isSubmitting ? "Updating..." : "Save Changes"}
             </button>

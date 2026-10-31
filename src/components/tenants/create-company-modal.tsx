@@ -139,9 +139,9 @@ export function CreateCompanyModal({
       <div className="fixed inset-0 bg-transparent" onClick={() => !isSubmitting && onClose()} aria-hidden="true" />
       <div className="relative z-10 bg-white rounded-xl shadow-2xl max-w-xl w-full overflow-hidden border border-[#D1D5DB] flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-150 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]">
         {/* Modal Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-[#FFFAF5] to-white border-b border-[#FED7AA]/50 flex items-center justify-between">
+        <div className="px-6 py-4 bg-gradient-to-r from-[#FFFAF5] to-white border-b border-[#BCEADF]/50 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[#FFFAF5] border border-[#FED7AA] flex items-center justify-center text-[#F47721]">
+            <div className="w-10 h-10 rounded-lg bg-[#FFFAF5] border border-[#BCEADF] flex items-center justify-center text-[#174B43]">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
@@ -208,7 +208,7 @@ export function CreateCompanyModal({
                 value={tradeName}
                 onChange={(e) => setTradeName(e.target.value)}
                 disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F47721]/30 focus:border-[#F47721] disabled:bg-gray-50"
+                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 focus:border-[#174B43] disabled:bg-gray-50"
               />
             </div>
 
@@ -223,7 +223,7 @@ export function CreateCompanyModal({
                 value={legalName}
                 onChange={(e) => setLegalName(e.target.value)}
                 disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F47721]/30 focus:border-[#F47721] disabled:bg-gray-50"
+                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 focus:border-[#174B43] disabled:bg-gray-50"
               />
             </div>
 
@@ -239,7 +239,7 @@ export function CreateCompanyModal({
                 value={gstin}
                 onChange={handleGstinChange}
                 disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 font-mono text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F47721]/30 focus:border-[#F47721] uppercase disabled:bg-gray-50"
+                className="w-full px-3 py-2 font-mono text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 focus:border-[#174B43] uppercase disabled:bg-gray-50"
               />
             </div>
 
@@ -255,7 +255,7 @@ export function CreateCompanyModal({
                 value={pan}
                 onChange={handlePanChange}
                 disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 font-mono text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F47721]/30 focus:border-[#F47721] uppercase disabled:bg-gray-50"
+                className="w-full px-3 py-2 font-mono text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 focus:border-[#174B43] uppercase disabled:bg-gray-50"
               />
             </div>
 
@@ -268,7 +268,7 @@ export function CreateCompanyModal({
                 value={stateCode}
                 onChange={(e) => setStateCode(e.target.value)}
                 disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F47721]/30 focus:border-[#F47721] bg-white disabled:bg-gray-50"
+                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 focus:border-[#174B43] bg-white disabled:bg-gray-50"
               >
                 {Object.entries(INDIAN_STATES).map(([code, s]) => (
                   <option key={code} value={code}>
@@ -289,7 +289,7 @@ export function CreateCompanyModal({
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F47721]/30 focus:border-[#F47721] disabled:bg-gray-50"
+                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 focus:border-[#174B43] disabled:bg-gray-50"
               />
             </div>
 
@@ -304,7 +304,7 @@ export function CreateCompanyModal({
                 value={addressLine1}
                 onChange={(e) => setAddressLine1(e.target.value)}
                 disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F47721]/30 focus:border-[#F47721] disabled:bg-gray-50"
+                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 focus:border-[#174B43] disabled:bg-gray-50"
               />
             </div>
 
@@ -320,7 +320,7 @@ export function CreateCompanyModal({
                 value={pincode}
                 onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
                 disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 font-mono text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F47721]/30 focus:border-[#F47721] disabled:bg-gray-50"
+                className="w-full px-3 py-2 font-mono text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 focus:border-[#174B43] disabled:bg-gray-50"
               />
             </div>
 
@@ -336,7 +336,7 @@ export function CreateCompanyModal({
                 value={phone}
                 onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
                 disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 font-mono text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F47721]/30 focus:border-[#F47721] disabled:bg-gray-50"
+                className="w-full px-3 py-2 font-mono text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 focus:border-[#174B43] disabled:bg-gray-50"
               />
             </div>
           </div>
@@ -363,7 +363,7 @@ export function CreateCompanyModal({
             <button
               type="submit"
               disabled={isSubmitting || !canAdd}
-              className="px-5 py-2 text-xs font-bold text-white bg-[#F47721] hover:bg-[#E06612] rounded-lg shadow-xs transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-5 py-2 text-xs font-bold text-white bg-[#174B43] hover:bg-[#E06612] rounded-lg shadow-xs transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>

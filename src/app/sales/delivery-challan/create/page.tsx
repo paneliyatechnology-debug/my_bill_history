@@ -526,7 +526,7 @@ export default function CreateDeliveryChallanPage() {
               type="button"
               disabled={isSubmitting}
               onClick={() => handleSubmit(false)}
-              className="px-4 py-1.5 bg-[#4F46E5] hover:bg-[#4338CA] active:bg-[#3730A3] text-white rounded-lg text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+              className="px-4 py-1.5 bg-[#174B43] hover:bg-[#123B35] active:bg-[#0F322C] text-white rounded-lg text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
             >
               {isSubmitting ? (
                 <>
@@ -1117,7 +1117,7 @@ export default function CreateDeliveryChallanPage() {
                       if (p.stateCode) setPlaceOfSupply(p.stateCode);
                       setIsAddPartyModalOpen(false);
                     }}
-                    className="w-full text-left p-2 hover:bg-indigo-50 flex items-center justify-between"
+                    className="w-full text-left p-2 hover:bg-teal-50 flex items-center justify-between"
                   >
                     <div>
                       <div className="font-bold text-slate-900">{p.name}</div>
@@ -1188,7 +1188,7 @@ export default function CreateDeliveryChallanPage() {
               <button
                 type="submit"
                 disabled={isSavingParty}
-                className="px-4 py-1.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg font-bold shadow-xs cursor-pointer disabled:opacity-50"
+                className="px-4 py-1.5 bg-[#174B43] hover:bg-[#123B35] text-white rounded-lg font-bold shadow-xs cursor-pointer disabled:opacity-50"
               >
                 {isSavingParty ? "Saving..." : "Add & Select Party"}
               </button>
@@ -1242,7 +1242,7 @@ export default function CreateDeliveryChallanPage() {
             </button>
             <button
               type="submit"
-              className="px-4 py-1.5 bg-[#4F46E5] text-white rounded-lg font-bold"
+              className="px-4 py-1.5 bg-[#174B43] text-white rounded-lg font-bold"
             >
               Add Item
             </button>

@@ -698,7 +698,7 @@ export default function CreateCreditNotePage() {
             type="button"
             disabled={isSaving}
             onClick={() => handleSaveReturn(false)}
-            className="rounded-lg bg-[#4F46E5] hover:bg-[#4338CA] px-5 py-1.5 text-xs font-semibold text-white shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
+            className="rounded-lg bg-[#174B43] hover:bg-[#123B35] px-5 py-1.5 text-xs font-semibold text-white shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
           >
             {isSaving ? "Saving..." : "Save"}
           </button>
@@ -750,7 +750,7 @@ export default function CreateCreditNotePage() {
                 <p className="font-bold text-slate-800">Return No: #{returnNumber}</p>
                 <p className="text-slate-600">Date: {formatDisplayDate(returnDate)}</p>
                 {selectedInvoice && (
-                  <p className="text-indigo-600 font-medium">Orig. Invoice: #{selectedInvoice.invoiceNumber}</p>
+                  <p className="text-teal-600 font-medium">Orig. Invoice: #{selectedInvoice.invoiceNumber}</p>
                 )}
               </div>
             </div>
@@ -855,7 +855,7 @@ export default function CreateCreditNotePage() {
                       <button
                         type="button"
                         onClick={() => setIsPartyDropdownOpen(true)}
-                        className="px-2 py-0.5 text-[11px] font-semibold text-[#4F46E5] hover:bg-indigo-50 rounded border border-slate-200"
+                        className="px-2 py-0.5 text-[11px] font-semibold text-[#174B43] hover:bg-teal-50 rounded border border-slate-200"
                       >
                         Change Party
                       </button>
@@ -886,7 +886,7 @@ export default function CreateCreditNotePage() {
                     setIsPartyDropdownOpen(true);
                     setTimeout(() => partySearchInputRef.current?.focus(), 50);
                   }}
-                  className="h-24 border-2 border-dashed border-indigo-200 rounded-xl flex items-center justify-center text-xs font-semibold text-[#4F46E5] bg-indigo-50/20 hover:bg-indigo-50/50 cursor-pointer transition-colors"
+                  className="h-24 border-2 border-dashed border-teal-200 rounded-xl flex items-center justify-center text-xs font-semibold text-[#174B43] bg-teal-50/20 hover:bg-teal-50/50 cursor-pointer transition-colors"
                 >
                   + Add Party
                 </div>
@@ -952,7 +952,7 @@ export default function CreateCreditNotePage() {
                         setIsPartyDropdownOpen(false);
                         setIsCreatePartyModalOpen(true);
                       }}
-                      className="w-full py-2 border-2 border-dashed border-indigo-200 rounded-lg text-center text-xs font-semibold text-[#4F46E5] hover:bg-indigo-50/50 transition-colors"
+                      className="w-full py-2 border-2 border-dashed border-teal-200 rounded-lg text-center text-xs font-semibold text-[#174B43] hover:bg-teal-50/50 transition-colors"
                     >
                       + Create Party
                     </button>
@@ -1003,7 +1003,7 @@ export default function CreateCreditNotePage() {
                     type="text"
                     value={returnNumber}
                     onChange={(e) => setReturnNumber(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 focus:border-teal-500 focus:outline-none"
                   />
                 </div>
                 <div>
@@ -1012,7 +1012,7 @@ export default function CreateCreditNotePage() {
                     type="date"
                     value={returnDate}
                     onChange={(e) => setReturnDate(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 focus:border-teal-500 focus:outline-none"
                   />
                 </div>
               </div>
@@ -1025,7 +1025,7 @@ export default function CreateCreditNotePage() {
                 </div>
 
                 {selectedInvoice ? (
-                  <div className="flex items-center justify-between rounded-lg border border-indigo-200 bg-indigo-50/40 px-3 py-1.5 text-xs">
+                  <div className="flex items-center justify-between rounded-lg border border-teal-200 bg-teal-50/40 px-3 py-1.5 text-xs">
                     <span className="font-semibold text-indigo-900">
                       Invoice #{String(selectedInvoice.invoiceNumber || "").replace(/^#+/, "")} ({formatDisplayDate(selectedInvoice.invoiceDate)}) - {formatInr(selectedInvoice.grandTotal)}
                     </span>
@@ -1048,7 +1048,7 @@ export default function CreateCreditNotePage() {
                         setIsInvoiceDropdownOpen(true);
                       }}
                       placeholder="🔍 Search invoices"
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-teal-500 focus:outline-none"
                     />
 
                     {isInvoiceDropdownOpen && (
@@ -1069,7 +1069,7 @@ export default function CreateCreditNotePage() {
                             <div
                               key={inv.id}
                               onClick={() => handleSelectInvoice(inv)}
-                              className="px-3 py-2 hover:bg-indigo-50/50 cursor-pointer flex items-center justify-between border-b border-slate-50 last:border-b-0"
+                              className="px-3 py-2 hover:bg-teal-50/50 cursor-pointer flex items-center justify-between border-b border-slate-50 last:border-b-0"
                             >
                               <div>
                                 <p className="font-semibold text-slate-900">#{inv.invoiceNumber}</p>
@@ -1119,7 +1119,7 @@ export default function CreateCreditNotePage() {
                           <div className="py-0.5">
                             <p className="font-bold text-slate-900 text-xs">{item.name}</p>
                             {item.salesItemId && (
-                              <span className="inline-flex items-center text-[9px] font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-1.5 py-0.2 rounded mt-0.5">
+                              <span className="inline-flex items-center text-[9px] font-semibold text-teal-600 bg-teal-50 border border-teal-100 px-1.5 py-0.2 rounded mt-0.5">
                                 From Invoice
                               </span>
                             )}
@@ -1131,7 +1131,7 @@ export default function CreateCreditNotePage() {
                               value={item.name}
                               onChange={(e) => updateLineItem(item.id, { name: e.target.value })}
                               placeholder="Item name"
-                              className="w-full font-semibold text-slate-900 border-b border-transparent hover:border-slate-300 focus:border-indigo-500 focus:outline-none py-0.5"
+                              className="w-full font-semibold text-slate-900 border-b border-transparent hover:border-slate-300 focus:border-teal-500 focus:outline-none py-0.5"
                             />
                             <textarea
                               rows={1}
@@ -1155,7 +1155,7 @@ export default function CreateCreditNotePage() {
                               value={item.hsn}
                               onChange={(e) => updateLineItem(item.id, { hsn: e.target.value })}
                               placeholder="HSN"
-                              className="w-full rounded border border-slate-200 px-2 py-1 text-xs focus:border-indigo-500 focus:outline-none"
+                              className="w-full rounded border border-slate-200 px-2 py-1 text-xs focus:border-teal-500 focus:outline-none"
                             />
                           </div>
                         )}
@@ -1170,7 +1170,7 @@ export default function CreateCreditNotePage() {
                             step="any"
                             value={item.quantity}
                             onChange={(e) => updateLineItem(item.id, { quantity: Number(e.target.value) || 0 })}
-                            className="w-16 rounded border border-slate-200 px-2 py-1 text-xs font-semibold focus:border-indigo-500 focus:outline-none"
+                            className="w-16 rounded border border-slate-200 px-2 py-1 text-xs font-semibold focus:border-teal-500 focus:outline-none"
                           />
                           <span className="text-[10px] font-bold text-slate-500 px-1 bg-slate-100 rounded py-1">
                             {item.unit}
@@ -1193,7 +1193,7 @@ export default function CreateCreditNotePage() {
                               step="0.01"
                               value={item.unitPrice}
                               onChange={(e) => updateLineItem(item.id, { unitPrice: Number(e.target.value) || 0 })}
-                              className="w-full rounded border border-slate-200 pl-5 pr-2 py-1 text-xs font-semibold focus:border-indigo-500 focus:outline-none"
+                              className="w-full rounded border border-slate-200 pl-5 pr-2 py-1 text-xs font-semibold focus:border-teal-500 focus:outline-none"
                             />
                           </div>
                         )}
@@ -1213,7 +1213,7 @@ export default function CreateCreditNotePage() {
                               step="0.01"
                               value={item.discountValue}
                               onChange={(e) => updateLineItem(item.id, { discountValue: Number(e.target.value) || 0 })}
-                              className="w-16 rounded border border-slate-200 px-2 py-1 text-xs focus:border-indigo-500 focus:outline-none"
+                              className="w-16 rounded border border-slate-200 px-2 py-1 text-xs focus:border-teal-500 focus:outline-none"
                             />
                             <select
                               value={item.discountType}
@@ -1241,7 +1241,7 @@ export default function CreateCreditNotePage() {
                             <select
                               value={item.taxRate}
                               onChange={(e) => updateLineItem(item.id, { taxRate: Number(e.target.value) })}
-                              className="w-full rounded border border-slate-200 px-2 py-1 text-xs font-medium focus:border-indigo-500 focus:outline-none"
+                              className="w-full rounded border border-slate-200 px-2 py-1 text-xs font-medium focus:border-teal-500 focus:outline-none"
                             >
                               {GST_RATES.map((g) => (
                                 <option key={g.label} value={g.value}>
@@ -1281,7 +1281,7 @@ export default function CreateCreditNotePage() {
                   <button
                     type="button"
                     onClick={() => setIsAddItemsModalOpen(true)}
-                    className="flex-1 py-2.5 border-2 border-dashed border-indigo-200 rounded-xl text-center text-xs font-semibold text-[#4F46E5] hover:bg-indigo-50/50 transition-colors cursor-pointer"
+                    className="flex-1 py-2.5 border-2 border-dashed border-teal-200 rounded-xl text-center text-xs font-semibold text-[#174B43] hover:bg-teal-50/50 transition-colors cursor-pointer"
                   >
                     + Add Item
                   </button>
@@ -1327,14 +1327,14 @@ export default function CreateCreditNotePage() {
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Enter notes for this return..."
-                    className="w-full text-xs text-slate-800 border border-slate-200 rounded-lg p-2 focus:border-indigo-500 focus:outline-none"
+                    className="w-full text-xs text-slate-800 border border-slate-200 rounded-lg p-2 focus:border-teal-500 focus:outline-none"
                   />
                 </div>
               ) : (
                 <button
                   type="button"
                   onClick={() => setShowNotes(true)}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-[#4F46E5] hover:text-[#4338CA] transition-colors"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-[#174B43] hover:text-[#123B35] transition-colors"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -1354,14 +1354,14 @@ export default function CreateCreditNotePage() {
                     value={terms}
                     onChange={(e) => setTerms(e.target.value)}
                     placeholder="Enter terms & conditions..."
-                    className="w-full text-xs text-slate-800 border border-slate-200 rounded-lg p-2 focus:border-indigo-500 focus:outline-none"
+                    className="w-full text-xs text-slate-800 border border-slate-200 rounded-lg p-2 focus:border-teal-500 focus:outline-none"
                   />
                 </div>
               ) : (
                 <button
                   type="button"
                   onClick={() => setShowTerms(true)}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-[#4F46E5] hover:text-[#4338CA] transition-colors"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-[#174B43] hover:text-[#123B35] transition-colors"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -1399,7 +1399,7 @@ export default function CreateCreditNotePage() {
                   <button
                     type="button"
                     onClick={() => setShowAdditionalCharges(true)}
-                    className="text-[#4F46E5] font-semibold flex items-center gap-1 hover:underline"
+                    className="text-[#174B43] font-semibold flex items-center gap-1 hover:underline"
                   >
                     <span>₹</span>
                     <span>+ Add Additional Charges</span>
@@ -1444,7 +1444,7 @@ export default function CreateCreditNotePage() {
                   <button
                     type="button"
                     onClick={() => setShowDiscount(true)}
-                    className="text-[#4F46E5] font-semibold flex items-center gap-1 hover:underline"
+                    className="text-[#174B43] font-semibold flex items-center gap-1 hover:underline"
                   >
                     <span>%</span>
                     <span>+ Add Discount</span>
@@ -1459,7 +1459,7 @@ export default function CreateCreditNotePage() {
                     type="checkbox"
                     checked={autoRoundOff}
                     onChange={(e) => setAutoRoundOff(e.target.checked)}
-                    className="rounded text-[#4F46E5] focus:ring-indigo-500"
+                    className="rounded text-[#174B43] focus:ring-teal-500"
                   />
                   <span>Auto Round Off</span>
                 </label>
@@ -1488,13 +1488,13 @@ export default function CreateCreditNotePage() {
                       min="0"
                       value={amountReceived}
                       onChange={(e) => setAmountReceived(e.target.value)}
-                      className="w-full rounded border border-slate-200 pl-6 pr-2 py-1 text-xs font-semibold focus:border-indigo-500 focus:outline-none"
+                      className="w-full rounded border border-slate-200 pl-6 pr-2 py-1 text-xs font-semibold focus:border-teal-500 focus:outline-none"
                     />
                   </div>
                   <select
                     value={paymentMode}
                     onChange={(e) => setPaymentMode(e.target.value)}
-                    className="rounded border border-slate-200 px-3 py-1 text-xs font-medium focus:border-indigo-500 focus:outline-none"
+                    className="rounded border border-slate-200 px-3 py-1 text-xs font-medium focus:border-teal-500 focus:outline-none"
                   >
                     <option value="Cash">Cash</option>
                     <option value="Cheque">Cheque</option>
@@ -1507,7 +1507,7 @@ export default function CreateCreditNotePage() {
                     type="checkbox"
                     checked={isMarkAsFullyPaid}
                     onChange={(e) => setIsMarkAsFullyPaid(e.target.checked)}
-                    className="rounded text-[#4F46E5] focus:ring-indigo-500"
+                    className="rounded text-[#174B43] focus:ring-teal-500"
                   />
                   <span>Mark as fully paid</span>
                 </label>
@@ -1536,7 +1536,7 @@ export default function CreateCreditNotePage() {
                   <button
                     type="button"
                     onClick={() => setIsSignatureModalOpen(true)}
-                    className="px-4 py-2 border-2 border-dashed border-indigo-200 rounded-lg text-xs font-semibold text-[#4F46E5] hover:bg-indigo-50/50 transition-colors"
+                    className="px-4 py-2 border-2 border-dashed border-teal-200 rounded-lg text-xs font-semibold text-[#174B43] hover:bg-teal-50/50 transition-colors"
                   >
                     + Add Signature
                   </button>
@@ -1641,7 +1641,7 @@ export default function CreateCreditNotePage() {
                 <button
                   type="submit"
                   disabled={isCreatingParty || !newPartyName.trim()}
-                  className="px-5 py-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg font-bold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+                  className="px-5 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-lg font-bold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {isCreatingParty ? "Saving..." : "Save Customer"}
                 </button>

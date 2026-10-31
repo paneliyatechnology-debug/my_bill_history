@@ -1662,8 +1662,8 @@ export function BillScannerModal({
           {step === "processing" && (
             <div className="p-16 flex flex-col items-center justify-center text-center space-y-6">
               <div className="relative">
-                <div className="w-20 h-20 rounded-full border-4 border-[#FFF3E8] border-t-[#F47721] animate-spin" />
-                <div className="absolute inset-0 flex items-center justify-center text-[#F47721]">
+                <div className="w-20 h-20 rounded-full border-4 border-[#E6F7F2] border-t-[#174B43] animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center text-[#174B43]">
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
@@ -1682,7 +1682,7 @@ export function BillScannerModal({
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-300 rounded-full text-[11px] font-mono text-slate-700">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                     <span className="text-slate-500">STAGE:</span>
-                    <span className="font-bold text-[#F47721]">{diagnosticStage}</span>
+                    <span className="font-bold text-[#174B43]">{diagnosticStage}</span>
                   </div>
                   {diagnosticDetails && (
                     <div className="text-[11px] text-slate-500 font-mono mt-1.5 truncate">
@@ -1704,7 +1704,7 @@ export function BillScannerModal({
                   onClick={() => setMobileTab("data")}
                   className={`flex-1 py-2.5 text-xs font-bold text-center border-b-2 ${
                     mobileTab === "data"
-                      ? "border-[#F47721] text-[#F47721] bg-white"
+                      ? "border-[#174B43] text-[#174B43] bg-white"
                       : "border-transparent text-slate-500"
                   }`}
                 >
@@ -1715,7 +1715,7 @@ export function BillScannerModal({
                   onClick={() => setMobileTab("preview")}
                   className={`flex-1 py-2.5 text-xs font-bold text-center border-b-2 ${
                     mobileTab === "preview"
-                      ? "border-[#F47721] text-[#F47721] bg-white"
+                      ? "border-[#174B43] text-[#174B43] bg-white"
                       : "border-transparent text-slate-500"
                   }`}
                 >
@@ -1901,7 +1901,7 @@ export function BillScannerModal({
                               type="button"
                               onClick={handleOpenCreateSupplierModal}
                               disabled={isSavingSupplier}
-                              className="px-2.5 py-1 text-[11px] font-bold bg-[#F47721] hover:bg-[#D95F12] text-white rounded shadow-sm disabled:opacity-50 shrink-0 transition-colors"
+                              className="px-2.5 py-1 text-[11px] font-bold bg-[#174B43] hover:bg-[#123B35] text-white rounded shadow-sm disabled:opacity-50 shrink-0 transition-colors"
                             >
                               {lang === "gu" ? "ખાતું બનાવો" : "Save to Masters"}
                             </button>
@@ -2030,7 +2030,7 @@ export function BillScannerModal({
                       <button
                         type="button"
                         onClick={handleAddLine}
-                        className="text-xs text-[#F47721] hover:text-[#D95F12] font-semibold flex items-center gap-1"
+                        className="text-xs text-[#174B43] hover:text-[#123B35] font-semibold flex items-center gap-1"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -2441,7 +2441,7 @@ export function BillScannerModal({
                     type="button"
                     onClick={handleConfirmPurchase}
                     disabled={isConfirming || isSavingDraft}
-                    className="flex-1 sm:flex-none px-5 py-2.5 bg-[#F47721] hover:bg-[#D95F12] text-white text-xs font-bold rounded-lg shadow-md transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="flex-1 sm:flex-none px-5 py-2.5 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-lg shadow-md transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     {isConfirming ? (
                       <>
@@ -2621,7 +2621,7 @@ export function BillScannerModal({
                     <button
                       type="submit"
                       disabled={isSavingSupplier}
-                      className="px-4 py-2 bg-[#F47721] hover:bg-[#D95F12] text-white text-xs font-bold rounded-lg shadow-sm disabled:opacity-50 flex items-center gap-1.5 transition-colors"
+                      className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-lg shadow-sm disabled:opacity-50 flex items-center gap-1.5 transition-colors"
                     >
                       {isSavingSupplier ? (
                         <>
@@ -2645,7 +2645,7 @@ export function BillScannerModal({
         <div className="fixed inset-0 z-[120] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-slate-200 text-center animate-in zoom-in-95 duration-200">
             {/* Animated Camera Icon */}
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-orange-50 border-2 border-[#F47721]/30 flex items-center justify-center text-[#F47721] shadow-inner">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-orange-50 border-2 border-[#174B43]/30 flex items-center justify-center text-[#174B43] shadow-inner">
               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -2675,7 +2675,7 @@ export function BillScannerModal({
                 <span>{lang === "gu" ? "100% સુરક્ષિત અને પ્રાઇવેટ એક્સેસ" : "100% secure in-browser session"}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-orange-100 text-[#F47721] flex items-center justify-center font-bold text-[10px]">⚡</span>
+                <span className="w-5 h-5 rounded-full bg-orange-100 text-[#174B43] flex items-center justify-center font-bold text-[10px]">⚡</span>
                 <span>{lang === "gu" ? "લો-મેમરી ઓપ્ટિમાઇઝ્ડ (કોઈ હેંગ નહિ)" : "Low-memory optimized (smooth capture)"}</span>
               </div>
             </div>
@@ -2711,7 +2711,7 @@ export function BillScannerModal({
           {/* Top Bar */}
           <div className="w-full max-w-2xl flex items-center justify-between text-white py-2">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-[#F47721]">
+              <div className="w-9 h-9 rounded-xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-[#174B43]">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -2768,17 +2768,17 @@ export function BillScannerModal({
             {/* Target Framing Guides */}
             <div className="absolute inset-4 sm:inset-8 pointer-events-none border-2 border-dashed border-white/40 rounded-xl flex flex-col justify-between p-3">
               <div className="flex justify-between items-start">
-                <div className="w-6 h-6 border-t-4 border-l-4 border-[#F47721] rounded-tl-lg" />
+                <div className="w-6 h-6 border-t-4 border-l-4 border-[#174B43] rounded-tl-lg" />
                 <div className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-[11px] font-semibold text-white/90 border border-white/20 flex items-center gap-1.5 shadow">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   {lang === "gu" ? "બિલને ફ્રેમમાં ગોઠવો" : "Align bill edges inside frame"}
                 </div>
-                <div className="w-6 h-6 border-t-4 border-r-4 border-[#F47721] rounded-tr-lg" />
+                <div className="w-6 h-6 border-t-4 border-r-4 border-[#174B43] rounded-tr-lg" />
               </div>
 
               <div className="flex justify-between items-end">
-                <div className="w-6 h-6 border-b-4 border-l-4 border-[#F47721] rounded-bl-lg" />
-                <div className="w-6 h-6 border-b-4 border-r-4 border-[#F47721] rounded-br-lg" />
+                <div className="w-6 h-6 border-b-4 border-l-4 border-[#174B43] rounded-bl-lg" />
+                <div className="w-6 h-6 border-b-4 border-r-4 border-[#174B43] rounded-br-lg" />
               </div>
             </div>
 
@@ -2810,7 +2810,7 @@ export function BillScannerModal({
               className="group relative flex items-center justify-center w-18 h-18 sm:w-20 sm:h-20 rounded-full border-4 border-white bg-white/20 hover:bg-white/30 active:scale-95 transition-all shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed"
               title={lang === "gu" ? "ફોટો લો અને સ્કેન કરો" : "Capture Photo"}
             >
-              <div className="w-14 h-14 sm:w-15 sm:h-15 rounded-full bg-[#F47721] group-hover:bg-[#D95F12] transition-colors flex items-center justify-center text-white shadow-inner">
+              <div className="w-14 h-14 sm:w-15 sm:h-15 rounded-full bg-[#174B43] group-hover:bg-[#123B35] transition-colors flex items-center justify-center text-white shadow-inner">
                 <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />

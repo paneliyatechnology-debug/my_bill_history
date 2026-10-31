@@ -111,7 +111,7 @@ function ReportPagination({
               onPageSizeChange(Number(e.target.value));
               onPageChange(1);
             }}
-            className="px-2 py-1 rounded-lg border border-[#E5E7EB] bg-slate-50 text-[#202124] font-semibold text-xs focus:ring-1 focus:ring-[#F47721] cursor-pointer"
+            className="px-2 py-1 rounded-lg border border-[#E5E7EB] bg-slate-50 text-[#202124] font-semibold text-xs focus:ring-1 focus:ring-[#174B43] cursor-pointer"
           >
             <option value={10}>10</option>
             <option value={25}>25</option>
@@ -176,7 +176,7 @@ function ReportPagination({
                   onClick={() => onPageChange(p)}
                   className={`min-w-[32px] h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     safePage === p
-                      ? "bg-[#F47721] text-white shadow-2xs"
+                      ? "bg-[#174B43] text-white shadow-2xs"
                       : "bg-white border border-[#E5E7EB] text-[#202124] hover:bg-slate-50"
                   }`}
                 >
@@ -1095,7 +1095,7 @@ export default function ReportsPage({
             {/* Loading State with Saffron Spinner */}
             {isLoading ? (
               <div className="py-24 text-center text-[#667085]">
-                <div className="inline-block w-9 h-9 border-3 border-[#F47721] border-t-transparent rounded-full animate-spin mb-3" />
+                <div className="inline-block w-9 h-9 border-3 border-[#174B43] border-t-transparent rounded-full animate-spin mb-3" />
                 <p className="text-sm font-semibold text-[#202124]">
                   {lang === "gu" ? "અહેવાલ લોડ થઈ રહ્યો છે..." : "Computing authoritative report from backend database..."}
                 </p>

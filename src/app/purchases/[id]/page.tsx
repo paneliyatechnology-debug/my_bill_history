@@ -215,7 +215,7 @@ function PurchaseInvoiceDetailContent() {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
-        <div className="w-8 h-8 border-3 border-[#F47721] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-3 border-[#174B43] border-t-transparent rounded-full animate-spin" />
         <p className="text-xs font-semibold text-slate-500">
           {lang === "gu" ? "ખરીદી બિલ વિગતો લોડ થઈ રહી છે..." : "Loading purchase invoice..."}
         </p>
@@ -277,59 +277,74 @@ function PurchaseInvoiceDetailContent() {
       {/* ─────────────────────────────────────────────────────────────
           2. TOP ACTION & NAVIGATION HEADER (Clean Unified Row)
          ───────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs print:hidden">
-        <div className="flex items-center gap-3 min-w-0">
-          <Link
-            href="/purchases"
-            className="p-2 rounded-xl border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors shrink-0"
-            title={lang === "gu" ? "બધા ખરીદી બિલ પર પાછા જાઓ" : "Back to Purchase Invoices"}
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-          </Link>
+      <div className="bg-white px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-3 print:hidden">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          {/* Left: Back Link, Document Title, Status Pill, Financial Summary */}
+          <div className="flex items-center gap-3 flex-wrap min-w-0">
+            <Link
+              href="/purchases"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-[#174B43] hover:bg-[#F2FAF7] rounded-xl border border-slate-200 transition-colors shadow-2xs shrink-0"
+              title={lang === "gu" ? "બધા ખરીદી બિલ પર પાછા જાઓ" : "Back to Purchase Invoices"}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span>{lang === "gu" ? "પાછા જાઓ" : "Purchases"}</span>
+            </Link>
 
-          <div className="min-w-0">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-1.5 flex-nowrap">
-                <span className="whitespace-nowrap">Purchase Invoice</span>
-                <span className="font-mono text-slate-600 font-semibold truncate max-w-[220px]">
-                  #{invoice.vendorInvoiceNumber}
-                </span>
-              </h1>
+            <div className="h-5 w-px bg-slate-200 hidden sm:block" />
 
-              {/* Clean Solid Status Badge - No pale glass look */}
-              {isPaid ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#10B981] text-white shadow-xs shrink-0">
-                  <svg className="w-3.5 h-3.5 text-white stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>{lang === "gu" ? "ચૂકવેલ (Paid)" : "Paid"}</span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h1 className="font-extrabold text-slate-900 text-base sm:text-lg tracking-tight truncate">
+                  <span>Purchase #{invoice.vendorInvoiceNumber}</span>
+                </h1>
+
+                {/* Status Badge */}
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase ${
+                    isPaid
+                      ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                      : isPartiallyPaid
+                        ? "bg-amber-50 text-amber-800 border border-amber-200"
+                        : "bg-rose-50 text-rose-800 border border-rose-200"
+                  }`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${isPaid ? "bg-emerald-500" : isPartiallyPaid ? "bg-amber-500" : "bg-rose-500"}`} />
+                  <span>
+                    {isPaid
+                      ? (lang === "gu" ? "ચૂકવેલ" : "Paid")
+                      : isPartiallyPaid
+                        ? (lang === "gu" ? "અડધી ચૂકવણી" : "Partially Paid")
+                        : (lang === "gu" ? "બાકી" : "Unpaid")}
+                  </span>
                 </span>
-              ) : isPartiallyPaid ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#F59E0B] text-white shadow-xs shrink-0">
-                  <span>{lang === "gu" ? "અડધી ચૂકવણી" : "Partially Paid"}</span>
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#EF4444] text-white shadow-xs shrink-0">
-                  <span>{lang === "gu" ? "બાકી (Unpaid)" : "Unpaid"}</span>
-                </span>
+              </div>
+              {invoice.party?.name && (
+                <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
+                  {invoice.party.name} • {new Date(invoice.invoiceDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                </p>
               )}
             </div>
-            {invoice.party?.name && (
-              <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
-                {invoice.party.name} • {new Date(invoice.invoiceDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
-              </p>
-            )}
+
+            {/* Financial Summary Pill */}
+            <div className="hidden md:flex items-center gap-2 bg-[#F6F8F7] px-3 py-1 rounded-xl border border-slate-200 text-xs shadow-2xs">
+              <span className="text-slate-500 font-medium">{lang === "gu" ? "કુલ:" : "Total:"}</span>
+              <span className="font-mono font-bold text-slate-900">₹{Number(invoice.grandTotal).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
+              <span className="text-slate-300">•</span>
+              <span className="text-slate-500 font-medium">{lang === "gu" ? "બાકી:" : "Due:"}</span>
+              <span className={`font-mono font-bold ${balance > 0 ? "text-rose-600" : "text-emerald-700"}`}>
+                ₹{balance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+              </span>
+            </div>
           </div>
-        </div>
 
         {/* Action Buttons: Unified, Perfectly Aligned Single Row */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0 py-0.5">
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
           {/* Print / PDF */}
           <button
             onClick={() => window.print()}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold shadow-xs transition-all active:scale-95 whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
             title={lang === "gu" ? "ઇન્વોઇસ પ્રિન્ટ અથવા PDF ડાઉનલોડ કરો" : "Print Invoice or Save as PDF"}
           >
             <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -341,7 +356,7 @@ function PurchaseInvoiceDetailContent() {
           {/* Barcode & QR Sticker Modal Button */}
           <button
             onClick={() => setIsStickerModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-orange-50 hover:bg-orange-100 text-[#F47721] border border-orange-200 rounded-xl text-xs font-bold shadow-xs transition-all active:scale-95 whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
             title={lang === "gu" ? "બારકોડ અને QR સ્ટીકર પ્રિન્ટ કરો" : "Print Barcode & QR Sticker"}
           >
             <span>🏷️</span>
@@ -359,7 +374,7 @@ function PurchaseInvoiceDetailContent() {
                 : `https://wa.me/?text=${encodeURIComponent(text)}`;
               window.open(waUrl, "_blank");
             }}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold shadow-xs transition-all active:scale-95 whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
             title={lang === "gu" ? "વોટ્સએપ પર શેર કરો" : "Share via WhatsApp"}
           >
             <span>💬</span>
@@ -369,7 +384,7 @@ function PurchaseInvoiceDetailContent() {
           {/* Audit Info Button */}
           <button
             onClick={() => setShowInfoModal(true)}
-            className="p-2 bg-white hover:bg-slate-50 text-slate-500 border border-slate-300 rounded-xl text-xs font-bold shadow-xs transition-all active:scale-95 shrink-0"
+            className="p-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-600 hover:text-[#174B43] border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer shrink-0"
             title={lang === "gu" ? "બિલ ઑડિટ વિગતો" : "Invoice Audit & Details"}
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -385,13 +400,15 @@ function PurchaseInvoiceDetailContent() {
                 setPaymentError(null);
                 setIsPaymentModalOpen(true);
               }}
-              className="px-4 py-2 bg-[#F47721] hover:bg-[#E06410] text-white text-xs font-bold rounded-xl shadow-xs transition-all active:scale-95 whitespace-nowrap shrink-0"
+              className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
             >
-              {lang === "gu" ? "ચુકવણી નોંધો" : "Record Payment"}
+              <span>💳</span>
+              <span>{lang === "gu" ? "ચુકવણી નોંધો" : "Record Payment"}</span>
             </button>
           )}
         </div>
       </div>
+    </div>
 
       {/* ─────────────────────────────────────────────────────────────
           3. REALISTIC INVOICE DOCUMENT PAPER (Matches Frame 0010)
@@ -477,7 +494,7 @@ function PurchaseInvoiceDetailContent() {
             </div>
           )}
           {invoice.party?.gstin && (
-            <div className="font-mono text-[#F47721] font-bold">
+            <div className="font-mono text-[#174B43] font-bold">
               GSTIN: {invoice.party.gstin}
             </div>
           )}
@@ -561,7 +578,7 @@ function PurchaseInvoiceDetailContent() {
 
             <div className="flex justify-between text-sm font-black text-slate-900 border-t border-slate-300 pt-2">
               <span>Grand Total:</span>
-              <span className="font-mono text-[#F47721]">₹{Number(invoice.grandTotal).toFixed(2)}</span>
+              <span className="font-mono text-[#174B43]">₹{Number(invoice.grandTotal).toFixed(2)}</span>
             </div>
 
             <div className="flex justify-between text-slate-600">
@@ -625,7 +642,7 @@ function PurchaseInvoiceDetailContent() {
           <div className="flex items-center gap-2">
             <Link
               href={`/purchases/returns?invoiceId=${invoice.id}`}
-              className="px-3 py-1.5 bg-[#FFF8F3] text-[#F47721] border border-[#FED7AA] rounded-xl text-xs font-bold"
+              className="px-3 py-1.5 bg-[#F2FAF7] text-[#174B43] border border-[#BCEADF] rounded-xl text-xs font-bold"
             >
               + Create Debit Note
             </Link>
@@ -752,7 +769,7 @@ function PurchaseInvoiceDetailContent() {
               <button
                 type="submit"
                 disabled={isSubmittingPayment}
-                className="px-5 py-2 bg-[#F47721] text-white font-bold rounded-xl shadow-xs"
+                className="px-5 py-2 bg-[#174B43] hover:bg-[#123B35] text-white font-bold rounded-xl shadow-xs transition-colors cursor-pointer"
               >
                 {isSubmittingPayment ? "Recording..." : "Record Payment"}
               </button>
@@ -816,7 +833,7 @@ export default function PurchaseInvoiceDetailPage() {
       fallback={
         <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center p-8">
           <div className="text-center space-y-3">
-            <div className="w-8 h-8 border-3 border-[#F47721] border-t-transparent rounded-full animate-spin mx-auto" />
+            <div className="w-8 h-8 border-3 border-[#174B43] border-t-transparent rounded-full animate-spin mx-auto" />
             <p className="text-xs font-semibold text-slate-500">Loading purchase bill details...</p>
           </div>
         </div>

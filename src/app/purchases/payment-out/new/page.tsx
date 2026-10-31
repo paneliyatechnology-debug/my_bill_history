@@ -450,7 +450,7 @@ export default function CreatePaymentOutPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-lg bg-[#4F46E5] px-5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-[#4338CA] transition-colors disabled:opacity-50"
+              className="rounded-lg bg-[#174B43] px-5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-[#123B35] transition-colors disabled:opacity-50"
             >
               {isSubmitting ? "Saving..." : "Save"}
             </button>
@@ -515,7 +515,7 @@ export default function CreatePaymentOutPage() {
                             value={partySearchQuery}
                             onChange={(e) => setPartySearchQuery(e.target.value)}
                             placeholder="Search supplier..."
-                            className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none"
+                            className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-800 focus:border-teal-500 focus:outline-none"
                           />
                         </div>
                         <div className="max-h-60 overflow-y-auto p-1 text-xs">
@@ -564,7 +564,7 @@ export default function CreatePaymentOutPage() {
                     value={amountPaid}
                     onChange={(e) => handleAmountPaidChange(e.target.value)}
                     placeholder="0"
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 focus:border-teal-500 focus:outline-none"
                   />
                 </div>
                 <div>
@@ -578,7 +578,7 @@ export default function CreatePaymentOutPage() {
                     value={paymentOutDiscount}
                     onChange={(e) => setPaymentOutDiscount(e.target.value)}
                     placeholder="0"
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none"
                   />
                 </div>
               </div>
@@ -595,7 +595,7 @@ export default function CreatePaymentOutPage() {
                     type="date"
                     value={voucherDate}
                     onChange={(e) => setVoucherDate(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none"
                   />
                 </div>
 
@@ -606,7 +606,7 @@ export default function CreatePaymentOutPage() {
                   <select
                     value={paymentMode}
                     onChange={(e) => setPaymentMode(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none"
                   >
                     {PAYMENT_MODES.map((m) => (
                       <option key={m.value} value={m.value}>
@@ -624,7 +624,7 @@ export default function CreatePaymentOutPage() {
                     type="text"
                     value={paymentNumber}
                     onChange={(e) => setPaymentNumber(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none"
                   />
                 </div>
               </div>
@@ -638,7 +638,7 @@ export default function CreatePaymentOutPage() {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Enter Notes"
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none resize-none"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none resize-none"
                 />
               </div>
             </div>
@@ -661,7 +661,7 @@ export default function CreatePaymentOutPage() {
                     setIsPartyDropdownOpen(true);
                     setTimeout(() => partySearchInputRef.current?.focus(), 50);
                   }}
-                  className="rounded-lg bg-[#4F46E5] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#4338CA]"
+                  className="rounded-lg bg-[#174B43] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#123B35]"
                 >
                   Select Party
                 </button>
@@ -693,7 +693,7 @@ export default function CreatePaymentOutPage() {
                         value={billSearchQuery}
                         onChange={(e) => setBillSearchQuery(e.target.value)}
                         placeholder="Search invoice..."
-                        className="w-full rounded-lg border border-slate-200 bg-white py-1 pl-7 pr-2 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none"
+                        className="w-full rounded-lg border border-slate-200 bg-white py-1 pl-7 pr-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none"
                       />
                       <span className="absolute left-2.5 top-1.5 text-xs text-slate-400">🔍</span>
                     </div>
@@ -717,7 +717,7 @@ export default function CreatePaymentOutPage() {
                             type="checkbox"
                             checked={bills.length > 0 && bills.every((b) => b.isSelected)}
                             onChange={toggleSelectAllBills}
-                            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            className="rounded border-slate-300 text-indigo-600 focus:ring-teal-500"
                           />
                         </th>
                         <th className="px-4 py-2.5 whitespace-nowrap">Date ↕</th>
@@ -740,14 +740,14 @@ export default function CreatePaymentOutPage() {
                           return (
                             <tr
                               key={bill.id}
-                              className={`hover:bg-slate-50/60 ${bill.isSelected ? "bg-indigo-50/20" : ""}`}
+                              className={`hover:bg-slate-50/60 ${bill.isSelected ? "bg-teal-50/20" : ""}`}
                             >
                               <td className="px-4 py-3 text-center">
                                 <input
                                   type="checkbox"
                                   checked={bill.isSelected}
                                   onChange={() => toggleBillSelect(idx)}
-                                  className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                  className="rounded border-slate-300 text-indigo-600 focus:ring-teal-500"
                                 />
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap text-slate-700">
@@ -772,7 +772,7 @@ export default function CreatePaymentOutPage() {
                                   value={bill.discount}
                                   onChange={(e) => handleBillDiscountChange(idx, e.target.value)}
                                   placeholder="Apply Discount"
-                                  className="w-24 rounded border border-slate-200 px-2 py-1 text-right text-xs focus:border-indigo-500 focus:outline-none"
+                                  className="w-24 rounded border border-slate-200 px-2 py-1 text-right text-xs focus:border-teal-500 focus:outline-none"
                                 />
                               </td>
                               <td className="px-4 py-3 text-right whitespace-nowrap">
@@ -782,7 +782,7 @@ export default function CreatePaymentOutPage() {
                                   value={bill.settle}
                                   onChange={(e) => handleBillSettleChange(idx, e.target.value)}
                                   placeholder="0.00"
-                                  className="w-24 rounded border border-slate-200 px-2 py-1 text-right text-xs font-semibold text-slate-900 focus:border-indigo-500 focus:outline-none"
+                                  className="w-24 rounded border border-slate-200 px-2 py-1 text-right text-xs font-semibold text-slate-900 focus:border-teal-500 focus:outline-none"
                                 />
                               </td>
                             </tr>
@@ -864,7 +864,7 @@ export default function CreatePaymentOutPage() {
                       value={settingsPrefix}
                       onChange={(e) => setSettingsPrefix(e.target.value)}
                       placeholder="e.g. PAY-"
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none"
                     />
                   </div>
                   <div>
@@ -874,7 +874,7 @@ export default function CreatePaymentOutPage() {
                       value={settingsSequence}
                       onChange={(e) => setSettingsSequence(e.target.value)}
                       placeholder="e.g. 1"
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -905,7 +905,7 @@ export default function CreatePaymentOutPage() {
                   }
                   setIsSettingsOpen(false);
                 }}
-                className="rounded-lg bg-indigo-600 px-5 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
+                className="rounded-lg bg-indigo-600 px-5 py-2 text-xs font-semibold text-white hover:bg-teal-700"
               >
                 Save
               </button>
