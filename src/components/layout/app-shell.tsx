@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
+import { resolveActiveNavigation } from "../../lib/sidebar-navigation";
 import { CompanySwitcher } from "../tenants/company-switcher";
 import { WaveBackground } from "../ui/wave-background";
 import { BrandLogo } from "../ui/brand-logo";
@@ -76,11 +77,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       if (timer) clearTimeout(timer);
     };
   }, [isLoading]);
+  const activeNav = useMemo(() => resolveActiveNavigation(pathname), [pathname]);
+
   const [expandedSections, setExpandedSections] = useState<
     Record<string, boolean>
   >({
     sales: true,
-    purchase: false,
+    purchases: true,
     items: false,
     parties: false,
     cash_bank: false,
@@ -88,6 +91,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     advanced: false,
     settings: false,
   });
+
+  // Automatically expand the active parent section when page loads or route changes
+  useEffect(() => {
+    if (activeNav.activeSectionId) {
+      setExpandedSections((prev) => {
+        if (prev[activeNav.activeSectionId!]) return prev;
+        const next = { ...prev, [activeNav.activeSectionId!]: true };
+        try {
+          localStorage.setItem("sidebar_expanded_sections", JSON.stringify(next));
+        } catch { }
+        return next;
+      });
+    }
+  }, [activeNav.activeSectionId]);
 
   const [supportSession, setSupportSession] = useState<{
     isSupportSession: boolean;
@@ -348,45 +365,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return null;
   }
 
-  // Dedicated Full-Screen Voucher Creation & Editing (Exact MyBillBook Wide-Screen Experience)
-  const isDedicatedInvoicePage =
-    pathname === "/sales/invoices/new" ||
-    (pathname.startsWith("/sales/invoices/") &&
-      (pathname.endsWith("/edit") || pathname.endsWith("/new"))) ||
-    pathname === "/sales/quotations/new" ||
-    (pathname.startsWith("/sales/quotations/") &&
-      (pathname.endsWith("/edit") || pathname.endsWith("/new"))) ||
-    pathname === "/sales/returns/new" ||
-    (pathname.startsWith("/sales/returns/") &&
-      (pathname.endsWith("/edit") || pathname.endsWith("/new"))) ||
-    pathname === "/purchases/returns/create" ||
-    pathname === "/purchases/returns/new" ||
-    (pathname.startsWith("/purchases/returns/") &&
-      (pathname.endsWith("/edit") || pathname.endsWith("/new") || pathname.endsWith("/create"))) ||
-    pathname.includes("/purchases/debit-note/create") ||
-    pathname.includes("/purchases/debit-memo/create") ||
-    pathname.includes("/purchases/returns/create") ||
-    pathname === "/sales/credit-note/create" ||
-    pathname === "/sales/credit-note/new" ||
-    (pathname.startsWith("/sales/credit-note/") &&
-      (pathname.endsWith("/edit") || pathname.endsWith("/new"))) ||
-    pathname.includes("/sales/debit-note/create") ||
-    pathname.includes("/sales/debit-note/new") ||
-    (pathname.includes("delivery-challan") &&
-      (pathname.includes("/create") || pathname.includes("/new") || pathname.includes("/edit"))) ||
-    (pathname.includes("proforma") &&
-      (pathname.includes("/create") || pathname.includes("/new") || pathname.includes("/edit"))) ||
-    pathname.includes("/purchases/orders/create") ||
-    pathname.includes("/purchases/orders/new") ||
-    pathname.includes("/purchases/purchase_order/create") ||
-    pathname.includes("/purchases/purchase-order/create") ||
-    pathname.includes("/purchases/purchase-orders/create") ||
-    (pathname.startsWith("/purchases/orders/") &&
-      (pathname.endsWith("/edit") || pathname.endsWith("/new") || pathname.endsWith("/create")));
 
-  if (isDedicatedInvoicePage) {
-    return <>{children}</>;
-  }
 
   // Exact MyBillBook Hierarchical Menu Structure with 3 Core Sections
   const navigationSections: NavSection[] = [
@@ -898,8 +877,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {!isSettingsPage && (
         <aside
           style={{ backgroundColor: SIDEBAR_BG }}
-          className={`${isCashBankPage ? "hidden" : "hidden lg:flex"
-            } flex-col shrink-0 h-full border-r border-[#1F5E54] text-white transition-all duration-300 z-30 select-none print:hidden ${isSidebarCollapsed ? "w-20" : "w-64"
+          className={`hidden lg:flex flex-col shrink-0 h-full border-r border-[#1F5E54] text-white transition-all duration-300 z-30 select-none print:hidden ${isSidebarCollapsed ? "w-20" : "w-64"
             }`}
         >
           {/* Brand / Company Profile Header */}
@@ -991,11 +969,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   section.href &&
                   (!section.items || section.items.length === 0)
                 ) {
-                  const isActive =
-                    pathname === section.href ||
-                    (section.href !== "/" && pathname.startsWith(section.href)) ||
-                    (section.id === "payroll" && (pathname === "/payroll" || pathname.startsWith("/app/sam"))) ||
-                    (section.id === "users" && (pathname === "/settings/user-management" || pathname.startsWith("/app/settings/user-management")));
+                  const isActive = activeNav.isDirectLinkActive(section.id, section.href);
                   return (
                     <React.Fragment key={section.id}>
                       {showGroupHeader && (
@@ -1042,9 +1016,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
                 // Accordion Section with Submenu (Sales, Purchases, Items, Parties)
                 const isExpanded = expandedSections[section.id];
-                const hasActiveChild = section.items?.some((sub) =>
-                  pathname.startsWith(sub.href),
-                );
+                const hasActiveChild = activeNav.activeSectionId === section.id;
 
                 if (isSidebarCollapsed) {
                   // Collapsed mode: Icon button with hover flyout menu
@@ -1087,26 +1059,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         </div>
                         <div className="space-y-0.5 px-1.5">
                           {section.items?.map((item) => {
-                            const isSubActive =
-                              pathname === item.href ||
-                              (item.href === "/sales/payment-in" &&
-                                pathname.startsWith("/sales/payment-in")) ||
-                              (item.href === "/sales/credit-note" &&
-                                pathname.startsWith("/sales/credit-note")) ||
-                              (item.href === "/sales/delivery-challan" &&
-                                (pathname.startsWith("/sales/delivery-challan") ||
-                                  pathname.startsWith("/sales/delivery-challans"))) ||
-                              (item.href === "/sales/proforma" &&
-                                pathname.startsWith("/sales/proforma")) ||
-                              (item.href === "/sales/returns" &&
-                                pathname.startsWith("/sales/returns") &&
-                                !pathname.includes("credit-note"));
+                            const isSubActive = activeNav.isSubItemActive(item.href);
                             return (
                               <Link
                                 key={`${item.name}-${item.href}`}
                                 href={item.href}
                                 className={`block px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${isSubActive
-                                    ? "text-white font-bold"
+                                    ? "text-white font-bold bg-[#26A58A]"
                                     : "text-slate-300 hover:text-white hover:bg-white/10"
                                   }`}
                                 style={{ backgroundColor: isSubActive ? ACTIVE_MENU_BG : undefined, color: isSubActive ? TEXT_COLOR : undefined }}
@@ -1139,7 +1098,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         type="button"
                         onClick={() => toggleSection(section.id)}
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${hasActiveChild
-                            ? "text-white font-semibold bg-white/10 border-l-2 border-[#26A58A]"
+                            ? "text-white font-semibold bg-white/10"
                             : "text-[#C4DBD6] hover:text-white hover:bg-white/10"
                           }`}
                         title={section.name}
@@ -1147,7 +1106,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         <div className="flex items-center gap-3 truncate">
                           <span
                             className={
-                              hasActiveChild ? "text-[#85D5C2]" : "text-slate-400"
+                              hasActiveChild ? "text-[#85D5C2]" : "text-[#A7C7C0]"
                             }
                           >
                             {section.icon}
@@ -1157,7 +1116,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                           </span>
                         </div>
                         <svg
-                          className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 ${isExpanded ? "rotate-90 text-white" : ""
+                          className={`w-3.5 h-3.5 transition-transform duration-200 shrink-0 ${isExpanded ? "rotate-180 text-white" : "text-slate-400"
                             }`}
                           fill="none"
                           viewBox="0 0 24 24"
@@ -1167,47 +1126,52 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M9 5l7 7-7 7"
+                            d="M19 9l-7 7-7-7"
                           />
                         </svg>
                       </button>
 
-                      {/* Submenu Items */}
+                      {/* Submenu Items with Vertical Navigation History Tree Line */}
                       {isExpanded && (
-                        <div className="pl-9 pr-1 py-1 space-y-0.5">
+                        <div className="relative ml-[19px] pl-3.5 py-1 space-y-1">
+                          {/* Continuous vertical connector line */}
+                          <div
+                            className="absolute left-0 top-1.5 bottom-2.5 w-[1.5px] bg-[#26A58A]/35 rounded-full pointer-events-none"
+                            aria-hidden="true"
+                          />
+
                           {section.items?.map((item) => {
-                            const isItemActive =
-                              pathname === item.href ||
-                              (item.href === "/sales/payment-in" &&
-                                pathname.startsWith("/sales/payment-in")) ||
-                              (item.href === "/sales/credit-note" &&
-                                pathname.startsWith("/sales/credit-note")) ||
-                              (item.href === "/sales/delivery-challan" &&
-                                (pathname.startsWith("/sales/delivery-challan") ||
-                                  pathname.startsWith("/sales/delivery-challans"))) ||
-                              (item.href === "/sales/proforma" &&
-                                pathname.startsWith("/sales/proforma")) ||
-                              (item.href === "/sales/returns" &&
-                                pathname.startsWith("/sales/returns") &&
-                                !pathname.includes("credit-note")) ||
-                              (item.href === "/purchases/orders" &&
-                                (pathname.startsWith("/purchases/orders") ||
-                                  pathname.startsWith("/purchases/purchase_order") ||
-                                  pathname.startsWith("/purchases/purchase-order") ||
-                                  pathname.startsWith("/purchases/purchase-orders")));
+                            const isItemActive = activeNav.isSubItemActive(item.href);
                             return (
                               <Link
                                 key={`${item.name}-${item.href}`}
                                 href={item.href}
-                                className={`block py-1.5 px-2.5 rounded-lg text-xs font-medium transition-colors ${isItemActive
-                                    ? "text-white font-bold shadow-2xs bg-[#26A58A]"
-                                    : "text-[#A7C7C0] hover:text-white hover:bg-white/10"
+                                className={`group relative flex items-center justify-between py-2 px-2.5 rounded-xl text-xs font-medium transition-all duration-150 ${isItemActive
+                                    ? "text-white font-bold shadow-xs bg-[#26A58A]"
+                                    : "text-[#C4DBD6] hover:text-white hover:bg-white/10"
                                   }`}
                                 style={{ backgroundColor: isItemActive ? ACTIVE_MENU_BG : undefined, color: isItemActive ? TEXT_COLOR : undefined }}
                               >
-                                <span className="truncate">
-                                  {lang === "gu" ? item.nameGujarati : item.name}
-                                </span>
+                                {/* Circular node dot on connector line */}
+                                <span
+                                  aria-hidden="true"
+                                  className={`absolute -left-[18px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full border transition-all duration-200 pointer-events-none ${isItemActive
+                                      ? "bg-[#A7F3D0] border-[#174B43] ring-2 ring-[#26A58A] scale-110 shadow-xs z-10"
+                                      : "bg-[#174B43] border-[#377F72] group-hover:border-[#85D5C2]"
+                                    }`}
+                                />
+
+                                <div className="flex items-center gap-2 truncate min-w-0">
+                                  {isItemActive && (
+                                    <span
+                                      aria-hidden="true"
+                                      className="w-1 h-3.5 bg-white/95 rounded-full shrink-0 -ml-0.5 shadow-2xs"
+                                    />
+                                  )}
+                                  <span className="truncate">
+                                    {lang === "gu" ? item.nameGujarati : item.name}
+                                  </span>
+                                </div>
                               </Link>
                             );
                           })}
@@ -1227,15 +1191,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             <Link
               href="/settings/account"
-              className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${pathname.startsWith("/settings")
-                  ? "text-white shadow-xs font-bold"
+              className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${(activeNav.activeSectionId === "settings" || pathname.startsWith("/settings"))
+                  ? "text-white shadow-xs font-bold bg-[#26A58A]"
                   : "text-slate-300 hover:text-white hover:bg-white/10"
                 }`}
-              style={{ backgroundColor: pathname.startsWith("/settings") ? ACTIVE_MENU_BG : undefined, color: pathname.startsWith("/settings") ? TEXT_COLOR : undefined }}
+              style={{ backgroundColor: (activeNav.activeSectionId === "settings" || pathname.startsWith("/settings")) ? ACTIVE_MENU_BG : undefined, color: (activeNav.activeSectionId === "settings" || pathname.startsWith("/settings")) ? TEXT_COLOR : undefined }}
               title="Settings"
             >
               <svg
-                className="w-4 h-4 text-slate-400"
+                className={`w-4 h-4 ${(activeNav.activeSectionId === "settings" || pathname.startsWith("/settings")) ? "text-white" : "text-slate-400"}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -1333,11 +1297,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <header className="shrink-0 h-14 sm:h-15 bg-white border-b border-[#E2E8E5] px-3 sm:px-6 flex items-center justify-between z-20 shadow-xs max-w-full min-w-0 print:hidden">
             {/* Left: Active Company/Branch Context & Brand Logo */}
             <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
-              {/* Menu Drawer Toggle Button (Visible on mobile, and on desktop when sidebar is hidden) */}
+              {/* Menu Drawer Toggle Button (Visible on mobile) */}
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
-                className={`${isCashBankPage ? "flex" : "lg:hidden flex"
-                  } items-center justify-center p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer shrink-0`}
+                className="lg:hidden flex items-center justify-center p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer shrink-0"
                 title={lang === "gu" ? "મેનૂ ખોલો" : "Open Navigation Menu"}
                 aria-label="Navigation Menu"
               >
@@ -1346,11 +1309,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </svg>
               </button>
 
-              {/* Brand Logo when desktop sidebar is hidden: compact icon on mobile (< sm), full horizontal logo on sm+ */}
-              <div
-                className={`${isCashBankPage ? "flex" : "lg:hidden flex"
-                  } items-center shrink-0`}
-              >
+              {/* Brand Logo on mobile (< lg): compact icon on mobile (< sm), full horizontal logo on sm+ */}
+              <div className="lg:hidden flex items-center shrink-0">
                 <div className="hidden sm:block">
                   <BrandLogo size="md" variant="horizontal" />
                 </div>
@@ -1526,10 +1486,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </main>
       </div>
 
-      {/* 4. MOBILE & DESKTOP FLYOUT DRAWER OVERLAY */}
+      {/* 4. MOBILE DRAWER OVERLAY */}
       {isMobileMenuOpen && (
         <div
-          className={`fixed inset-0 z-50 ${isCashBankPage ? "flex" : "lg:hidden flex"} print:hidden`}
+          className="fixed inset-0 z-50 lg:hidden flex print:hidden"
           role="dialog"
           aria-modal="true"
           aria-label="Navigation drawer"
@@ -1595,15 +1555,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         <Link
                           href={sec.href}
                           onClick={() => setIsMobileMenuOpen(false)}
-                          className={`flex items-center gap-3 px-3 py-2.5 rounded-button text-sm font-medium transition-colors ${pathname === sec.href ||
-                              (sec.href !== "/" && pathname.startsWith(sec.href)) ||
-                              (sec.id === "payroll" && (pathname === "/payroll" || pathname.startsWith("/app/sam"))) ||
-                              (sec.id === "users" && (pathname === "/settings/user-management" || pathname.startsWith("/app/settings/user-management")))
-                              ? "bg-[#26A58A] text-white font-bold"
+                          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${activeNav.isDirectLinkActive(sec.id, sec.href)
+                              ? "bg-[#26A58A] text-white font-bold shadow-xs"
                               : "text-[#C4DBD6] hover:text-white hover:bg-white/10"
                             }`}
                         >
-                          {sec.icon}
+                          <span className={activeNav.isDirectLinkActive(sec.id, sec.href) ? "text-white" : "text-[#A7C7C0]"}>
+                            {sec.icon}
+                          </span>
                           <span>{lang === "gu" ? sec.nameGujarati : sec.name}</span>
                         </Link>
                       ) : (
@@ -1611,31 +1570,46 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                           <div className="px-3 pt-3 pb-1 text-[11px] font-bold text-[#90B6AE] uppercase tracking-wider">
                             {lang === "gu" ? sec.nameGujarati : sec.name}
                           </div>
-                          <div className="pl-4 space-y-1">
-                            {sec.items?.map((item) => (
-                              <Link
-                                key={`${item.name}-${item.href}`}
-                                href={item.href}
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className={`flex items-center gap-2.5 px-3 py-2 rounded-button text-sm transition-colors ${pathname === item.href ||
-                                    (item.href === "/sales/payment-in" &&
-                                      pathname.startsWith("/sales/payment-in")) ||
-                                    (item.href === "/sales/delivery-challan" &&
-                                      pathname.startsWith("/sales/delivery-challan")) ||
-                                    (item.href === "/sales/proforma" &&
-                                      pathname.startsWith("/sales/proforma")) ||
-                                    (item.href === "/sales/returns" &&
-                                      pathname.startsWith("/sales/returns") &&
-                                      !pathname.includes("credit-note"))
-                                    ? "bg-[#26A58A] text-white font-bold"
-                                    : "text-[#C4DBD6] hover:text-white hover:bg-white/10"
-                                  }`}
-                              >
-                                <span>
-                                  {lang === "gu" ? item.nameGujarati : item.name}
-                                </span>
-                              </Link>
-                            ))}
+                          <div className="relative ml-[19px] pl-3.5 py-1 space-y-1">
+                            {/* Continuous vertical connector line */}
+                            <div
+                              className="absolute left-0 top-1.5 bottom-2.5 w-[1.5px] bg-[#26A58A]/35 rounded-full pointer-events-none"
+                              aria-hidden="true"
+                            />
+                            {sec.items?.map((item) => {
+                              const isItemActive = activeNav.isSubItemActive(item.href);
+                              return (
+                                <Link
+                                  key={`${item.name}-${item.href}`}
+                                  href={item.href}
+                                  onClick={() => setIsMobileMenuOpen(false)}
+                                  className={`group relative flex items-center justify-between py-2 px-2.5 rounded-xl text-xs font-medium transition-all duration-150 ${isItemActive
+                                      ? "bg-[#26A58A] text-white font-bold shadow-xs"
+                                      : "text-[#C4DBD6] hover:text-white hover:bg-white/10"
+                                    }`}
+                                >
+                                  {/* Circular node dot on connector line */}
+                                  <span
+                                    aria-hidden="true"
+                                    className={`absolute -left-[18px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full border transition-all duration-200 pointer-events-none ${isItemActive
+                                        ? "bg-[#A7F3D0] border-[#174B43] ring-2 ring-[#26A58A] scale-110 shadow-xs z-10"
+                                        : "bg-[#174B43] border-[#377F72] group-hover:border-[#85D5C2]"
+                                      }`}
+                                  />
+                                  <div className="flex items-center gap-2 truncate min-w-0">
+                                    {isItemActive && (
+                                      <span
+                                        aria-hidden="true"
+                                        className="w-1 h-3.5 bg-white/95 rounded-full shrink-0 -ml-0.5 shadow-2xs"
+                                      />
+                                    )}
+                                    <span className="truncate">
+                                      {lang === "gu" ? item.nameGujarati : item.name}
+                                    </span>
+                                  </div>
+                                </Link>
+                              );
+                            })}
                           </div>
                         </div>
                       )}
