@@ -219,7 +219,10 @@ export function OfficialGovernmentEInvoiceTemplate({
       : "TAX INVOICE";
 
   return (
-    <div className="mx-auto w-full max-w-4xl bg-white text-slate-900 border-2 border-slate-900 font-sans text-xs shadow-xl print:shadow-none print:border-slate-900 print:text-[10px] print:w-full print:max-w-none">
+    <div
+      id="printable-official-einvoice"
+      className="mx-auto w-full max-w-4xl bg-white text-slate-900 border-2 border-slate-900 font-sans text-xs shadow-xl print:shadow-none print:border-slate-900 print:text-[10px] print:w-full print:max-w-none"
+    >
       {/* 1. OFFICIAL STATUTORY HEADER BANNER */}
       <div className="border-b-2 border-slate-900 p-3 bg-slate-50/60 flex items-start justify-between gap-4">
         {/* Left / Center: Document Title & Legal Authority */}

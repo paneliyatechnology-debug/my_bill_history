@@ -19,6 +19,7 @@ export default function EInvoicePreviewPage() {
 
   // Copy Type state (Original for Recipient, Duplicate for Transporter, Triplicate for Supplier)
   const [copyType, setCopyType] = useState<"ORIGINAL" | "DUPLICATE" | "TRIPLICATE">("ORIGINAL");
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -39,6 +40,47 @@ export default function EInvoicePreviewPage() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadPdf = async () => {
+    const el = document.getElementById("printable-official-einvoice");
+    if (!el) {
+      window.print();
+      return;
+    }
+    setIsDownloadingPdf(true);
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const { jsPDF } = await import("jspdf");
+
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 5;
+      const printableWidth = pdfWidth - margin * 2;
+      const imgHeight = (canvas.height * printableWidth) / canvas.width;
+
+      pdf.addImage(imgData, "PNG", margin, margin, printableWidth, Math.min(imgHeight, pageHeight - margin * 2));
+      pdf.save(`EInvoice-${data?.invoice?.invoiceNumber || "Document"}.pdf`);
+    } catch (err) {
+      console.warn("Client PDF generation fallback to print:", err);
+      window.print();
+    } finally {
+      setIsDownloadingPdf(false);
+    }
   };
 
   if (loading) {
@@ -167,17 +209,18 @@ export default function EInvoicePreviewPage() {
             {lang === "gu" ? "પ્રિન્ટ" : "Print"}
           </button>
 
-          <a
-            href={`/e-invoices/${id}/pdf?copy=${copyType}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 transition"
+          <button
+            onClick={handleDownloadPdf}
+            disabled={isDownloadingPdf}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 transition disabled:opacity-50 cursor-pointer"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            {lang === "gu" ? "અધિકૃત PDF ડાઉનલોડ" : "Download Official PDF"}
-          </a>
+            {isDownloadingPdf
+              ? (lang === "gu" ? "PDF જનરેટ થઈ રહ્યું છે..." : "Generating PDF...")
+              : (lang === "gu" ? "અધિકૃત PDF ડાઉનલોડ" : "Download Official PDF")}
+          </button>
         </div>
       </div>
 
