@@ -79,7 +79,7 @@ export interface InvoiceStudioState {
   borderStyle: string;
 }
 
-const DEFAULT_STATE: InvoiceStudioState = {
+export const DEFAULT_INVOICE_STUDIO_STATE: InvoiceStudioState = {
   themeId: "stylish",
   themeMode: "preset",
   accentColor: "#111111",
@@ -137,6 +137,8 @@ const DEFAULT_STATE: InvoiceStudioState = {
   tablePadding: "normal",
   borderStyle: "solid",
 };
+
+const DEFAULT_STATE = DEFAULT_INVOICE_STUDIO_STATE;
 
 const COLOR_PALETTE = [
   { id: "#111827", name: "Charcoal Black" },

@@ -9,6 +9,7 @@ import { INDIAN_STATES } from "@billing/shared-types";
 import { CreateCompanyModal } from "../tenants/create-company-modal";
 import ManageUsersView from "./manage-users-view";
 import { InvoiceSettingsStudio } from "../invoice/invoice-settings-studio";
+import EInvoiceSettingsPage from "../../app/settings/e-invoice/page";
 
 export interface SettingsViewProps {
   tab: string;
@@ -24,6 +25,10 @@ export function SettingsView({ tab }: SettingsViewProps) {
     case "invoice":
     case "invoice-settings":
       return <InvoiceSettingsView />;
+    case "e-invoice":
+    case "einvoice":
+    case "e-invoices":
+      return <EInvoiceSettingsPage />;
     case "thermal-print":
     case "print-settings":
       return <PrintSettingsView />;
@@ -1540,17 +1545,36 @@ function ManageBusinessSettingsView() {
             </div>
           )}
 
-          <label className="flex items-center justify-between py-1">
-            <span className="text-[13px] text-slate-700">Enable e-Invoicing</span>
-            <button
-              type="button"
-              disabled={!formData.gstRegistered}
-              onClick={() => setFormData({ ...formData, eInvoiceApplicable: !formData.eInvoiceApplicable })}
-              className={`relative w-11 h-6 rounded-full transition-colors ${formData.eInvoiceApplicable && formData.gstRegistered ? "bg-[#6D28D9]" : "bg-slate-300"}`}
-            >
-              <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${formData.eInvoiceApplicable && formData.gstRegistered ? "left-5" : "left-0.5"}`} />
-            </button>
-          </label>
+          <div className="py-2 border-y border-slate-100 my-1">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[13px] font-medium text-slate-800 block">Enable e-Invoicing</span>
+                <span className="text-[11px] text-slate-500 block">
+                  {formData.gstRegistered
+                    ? (formData.eInvoiceApplicable ? "E-Invoicing is enabled for your sales invoices." : "Generate government-compliant IRN & QR codes on B2B invoices.")
+                    : "GST registration is required to enable statutory e-invoicing."}
+                </span>
+              </div>
+              <button
+                type="button"
+                disabled={!formData.gstRegistered}
+                onClick={() => setFormData({ ...formData, eInvoiceApplicable: !formData.eInvoiceApplicable })}
+                className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${formData.eInvoiceApplicable && formData.gstRegistered ? "bg-[#1E7A4C]" : "bg-slate-300"}`}
+              >
+                <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${formData.eInvoiceApplicable && formData.gstRegistered ? "left-5" : "left-0.5"}`} />
+              </button>
+            </div>
+            {formData.gstRegistered && (
+              <div className="mt-1.5 flex items-center justify-end">
+                <Link
+                  href="/settings/e-invoice"
+                  className="text-[11px] font-semibold text-[#1E7A4C] hover:underline flex items-center gap-1"
+                >
+                  Configure IRP Credentials & Settings &rarr;
+                </Link>
+              </div>
+            )}
+          </div>
 
           <div>
             <label className={labelCls}>PAN Number</label>

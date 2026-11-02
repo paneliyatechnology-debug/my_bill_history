@@ -107,7 +107,13 @@ export function resolveActiveNavigation(rawPath: string): {
   // =========================================================================
   // 3. SALES SUB-ITEMS
   // =========================================================================
-  else if (isPathPrefixMatch(path, "/sales/invoices")) {
+  else if (
+    isPathPrefixMatch(path, "/sales/e-invoices") ||
+    isPathPrefixMatch(path, "/sales/einvoices")
+  ) {
+    activeSectionId = "sales";
+    activeSubItemHref = "/sales/e-invoices";
+  } else if (isPathPrefixMatch(path, "/sales/invoices")) {
     activeSectionId = "sales";
     activeSubItemHref = "/sales/invoices";
   } else if (isPathPrefixMatch(path, "/sales/quotations")) {
@@ -206,7 +212,7 @@ export function resolveActiveNavigation(rawPath: string): {
     isPathPrefixMatch(path, "/gst") ||
     isPathPrefixMatch(path, "/sales/eway-bills")
   ) {
-    activeSectionId = "e_invoicing";
+    activeSectionId = "gst_returns";
   } else if (
     path === "/sales/pos" ||
     path === "/pos"

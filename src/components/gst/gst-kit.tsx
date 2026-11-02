@@ -11,7 +11,7 @@ const LINKS = [
   { href: "/gst/gstr-3b", label: "GSTR-3B" },
   { href: "/gst/gstr-2b", label: "GSTR-2B Reconciliation" },
   { href: "/gst/purchases", label: "Purchase Register" },
-  { href: "/gst/einvoice", label: "E-Invoice / IRN" },
+  { href: "/sales/e-invoices", label: "E-Invoices" },
   { href: "/gst/eway", label: "E-Way Bill" },
   { href: "/gst/reports", label: "GST Reports" },
   { href: "/gst/settings", label: "GST Settings" },

@@ -500,6 +500,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           href: "/sales/invoices",
         },
         {
+          name: "E-Invoices",
+          nameGujarati: "ઈ-ઇનવોઇસ (E-Invoices)",
+          href: "/sales/e-invoices",
+        },
+        {
           name: "Quotation / Estimate",
           nameGujarati: "કાચું બિલ / એસ્ટીમેટ",
           href: "/sales/quotations",
@@ -631,9 +636,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       ),
     },
     {
-      id: "e_invoicing",
-      name: "E-Invoicing",
-      nameGujarati: "ઈ-ઇન્વોઇસિંગ & GST",
+      id: "gst_returns",
+      name: "GST & Tax Filing",
+      nameGujarati: "જીએસટી અને રિટર્ન (GST & Returns)",
       group: "ACCOUNTING SOLUTIONS",
       href: "/gst",
       icon: (

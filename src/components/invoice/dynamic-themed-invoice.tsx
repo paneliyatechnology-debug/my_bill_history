@@ -68,6 +68,17 @@ export interface DynamicInvoiceData {
   party?: DynamicInvoiceParty;
   items: DynamicInvoiceItem[];
   eWayBillRecord?: any;
+  eInvoiceRecord?: {
+    irn: string;
+    ackNo: string;
+    ackDate: string;
+    signedInvoice?: string;
+    signedQrCode?: string;
+    status: string;
+    cancelReason?: string;
+    cancelledAt?: string;
+  } | null;
+  isEinvoiceDraft?: boolean;
   bankAccount?: any;
 }
 
@@ -193,6 +204,7 @@ export function DynamicThemedInvoice({
 }) {
   const barcodeRef = useRef<SVGSVGElement | null>(null);
   const upiQrRef = useRef<HTMLCanvasElement | null>(null);
+  const eInvoiceQrRef = useRef<HTMLCanvasElement | null>(null);
 
   const companyName =
     company?.tradeName ||
@@ -340,6 +352,73 @@ export function DynamicThemedInvoice({
     }
   }, [upiVpa, companyName, invoice.balanceAmount, invoice.grandTotal, invoice.invoiceNumber]);
 
+  // Generate E-Invoice Signed QR Code
+  useEffect(() => {
+    if (eInvoiceQrRef.current && invoice.eInvoiceRecord?.signedQrCode) {
+      try {
+        QRCode.toCanvas(eInvoiceQrRef.current, invoice.eInvoiceRecord.signedQrCode, {
+          width: 76,
+          margin: 1,
+          errorCorrectionLevel: "M",
+        });
+      } catch (err) {
+        console.warn("Failed to render e-invoice QR canvas", err);
+      }
+    }
+  }, [invoice.eInvoiceRecord?.signedQrCode]);
+
+  const renderEInvoiceBanner = () => {
+    const eInv = invoice.eInvoiceRecord;
+    if (eInv) {
+      const isCnl = eInv.status === "CNL";
+      if (isCnl) {
+        return (
+          <div className="mb-3 rounded border-2 border-dashed border-red-500 bg-red-50 p-2 text-xs text-red-800">
+            <div className="font-bold text-red-700 uppercase tracking-wide">⚠️ CANCELLED GST E-INVOICE</div>
+            <div className="mt-0.5 font-mono text-[10px] break-all"><b>IRN:</b> {eInv.irn}</div>
+            <div className="mt-0.5 text-[10px]"><b>Ack No:</b> {eInv.ackNo} &nbsp;|&nbsp; <b>Ack Date:</b> {new Date(eInv.ackDate).toLocaleString("en-IN")}</div>
+            {eInv.cancelReason && <div className="mt-0.5 text-[10px]"><b>Reason:</b> {eInv.cancelReason}</div>}
+          </div>
+        );
+      }
+      return (
+        <div className="mb-3 flex items-center justify-between rounded border border-emerald-500 bg-emerald-50/70 p-2 text-xs text-emerald-950">
+          <div className="flex-1 pr-2">
+            <div className="flex items-center gap-1.5 font-bold text-emerald-800 text-[10px] uppercase tracking-wide">
+              <span className="inline-block h-2 w-2 rounded-full bg-emerald-600"></span>
+              GST E-INVOICE (IRP ACKNOWLEDGED)
+            </div>
+            <div className="mt-0.5 font-mono text-[9.5px] break-all text-slate-800">
+              <span className="font-semibold text-emerald-900">IRN:</span> {eInv.irn}
+            </div>
+            <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-slate-700">
+              <div><span className="font-semibold text-emerald-900">Ack No:</span> {eInv.ackNo}</div>
+              <div><span className="font-semibold text-emerald-900">Ack Date:</span> {new Date(eInv.ackDate).toLocaleString("en-IN")}</div>
+            </div>
+          </div>
+          <div className="flex flex-col items-center shrink-0">
+            <canvas ref={eInvoiceQrRef} className="rounded border border-emerald-300 bg-white p-0.5 shadow-sm" />
+            <span className="mt-0.5 text-[8px] font-semibold text-emerald-700">IRP Signed QR</span>
+          </div>
+        </div>
+      );
+    }
+
+    if (invoice.isEinvoiceDraft) {
+      return (
+        <div className="mb-3 flex items-center justify-between rounded border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs text-amber-900">
+          <div className="flex items-center gap-2">
+            <span className="rounded bg-amber-200 px-1.5 py-0.5 font-bold text-[9px] text-amber-800 uppercase">DRAFT PREVIEW</span>
+            <span className="text-[11px]">This document is not yet registered on the GST Invoice Registration Portal (IRP).</span>
+          </div>
+          <span className="font-medium text-amber-700 text-[10px]">No IRN Generated</span>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   // HSN Tax Breakdown Map
   const hsnMap: Record<
     string,
@@ -387,6 +466,7 @@ export function DynamicThemedInvoice({
         />
 
         <div className="relative z-10 flex flex-col justify-between flex-1 h-full">
+          {renderEInvoiceBanner()}
           {/* Top Header Row & Boxed Invoice */}
           <div className="flex-1 flex flex-col justify-between">
             <div>
@@ -890,6 +970,7 @@ export function DynamicThemedInvoice({
         style={{ fontFamily: settings.fontFamily || "Georgia, serif" }}
       >
         <div className="border-2 border-amber-600/40 p-4 sm:p-6 rounded-md bg-amber-50/10">
+          {renderEInvoiceBanner()}
           {/* Header */}
           <div className="flex justify-between items-start border-b-2 border-amber-600/60 pb-4 mb-4">
             <div>
@@ -1040,6 +1121,7 @@ export function DynamicThemedInvoice({
         style={{ fontFamily: settings.fontFamily || "Arial, Helvetica, sans-serif" }}
       >
         <div className="flex flex-col justify-between flex-1 h-full">
+          {renderEInvoiceBanner()}
           {/* Header Title Bar */}
           <div
             className="flex items-center justify-between px-3 py-1.5 border border-black text-white mb-2"
@@ -1354,6 +1436,7 @@ export function DynamicThemedInvoice({
         borderLeftColor: layout === "modern" ? activeColor : undefined,
       }}
     >
+      {renderEInvoiceBanner()}
       {/* Brand Accent Top Banner */}
       <div
         className={`rounded-xl p-4 sm:p-5 mb-4 shadow-xs flex justify-between items-start gap-4 ${
