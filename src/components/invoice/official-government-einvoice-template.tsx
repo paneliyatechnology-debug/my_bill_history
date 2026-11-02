@@ -10,6 +10,20 @@ export interface OfficialGovernmentEInvoiceProps {
   copyType?: "ORIGINAL" | "DUPLICATE" | "TRIPLICATE";
 }
 
+function formatAddress(addr: any): string {
+  if (!addr) return "";
+  if (typeof addr === "string") return addr;
+  if (typeof addr !== "object") return String(addr);
+  const parts = [
+    addr.addressLine1 || addr.line1 || addr.street,
+    addr.addressLine2 || addr.line2,
+    addr.city,
+    addr.state,
+    addr.pincode || addr.postalCode,
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(", ") : "";
+}
+
 function numberToWordsINR(amount: number): string {
   const a = [
     "",
@@ -166,9 +180,13 @@ export function OfficialGovernmentEInvoiceTemplate({
   const supplierState = company?.state || "Gujarat";
   const supplierStateCode = company?.stateCode || (supplierGstin ? supplierGstin.slice(0, 2) : "24");
   const supplierAddress =
-    [company?.addressLine1, company?.city, company?.pincode ? `PIN: ${company.pincode}` : ""]
-      .filter(Boolean)
-      .join(", ") || "Amreli, Gujarat - 365630";
+    formatAddress(company?.billingAddress) ||
+    formatAddress({
+      addressLine1: company?.addressLine1,
+      city: company?.city,
+      pincode: company?.pincode,
+    }) ||
+    "Amreli, Gujarat - 365630";
   const supplierPan = company?.pan || (supplierGstin && supplierGstin.length >= 10 ? supplierGstin.slice(2, 12) : "");
 
   const buyerName = invoice.party?.name || "Cash / Counter Customer";
@@ -178,9 +196,9 @@ export function OfficialGovernmentEInvoiceTemplate({
     invoice.party?.stateCode ||
     (invoice.party?.gstin && invoice.party.gstin.length >= 2 ? invoice.party.gstin.slice(0, 2) : "24");
   const buyerAddress =
-    (typeof invoice.party?.billingAddress === "string"
-      ? invoice.party.billingAddress
-      : invoice.party?.billingAddress?.addressLine1 || invoice.party?.address || "") ||
+    formatAddress(invoice.party?.billingAddress) ||
+    formatAddress(invoice.billingAddress) ||
+    formatAddress(invoice.party?.address) ||
     "Ahmedabad, Gujarat";
   const placeOfSupply = invoice.placeOfSupply || `${buyerStateCode} - ${buyerState}`;
 

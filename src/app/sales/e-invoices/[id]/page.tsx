@@ -11,6 +11,20 @@ import {
 } from "@/lib/einvoice";
 import { formatInr } from "@/components/design-system/tokens";
 
+function formatAddress(addr: any): string {
+  if (!addr) return "";
+  if (typeof addr === "string") return addr;
+  if (typeof addr !== "object") return String(addr);
+  const parts = [
+    addr.addressLine1 || addr.line1 || addr.street,
+    addr.addressLine2 || addr.line2,
+    addr.city,
+    addr.state,
+    addr.pincode || addr.postalCode,
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(", ") : "";
+}
+
 export default function EInvoiceDetailsPage() {
   const params = useParams();
   const router = useRouter();
@@ -301,20 +315,27 @@ export default function EInvoiceDetailsPage() {
           <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
             Supplier (Seller)
           </div>
-          <div className="text-base font-bold text-slate-900">{company.legalName}</div>
-          {company.tradeName && company.tradeName !== company.legalName && (
+          <div className="text-base font-bold text-slate-900">{company?.legalName || company?.name || "Company Name"}</div>
+          {company?.tradeName && company.tradeName !== company.legalName && (
             <div className="text-xs text-slate-500">{company.tradeName}</div>
           )}
           <div className="mt-2 space-y-1 text-xs text-slate-600">
             <div>
               <span className="font-semibold text-slate-700">GSTIN:</span>{" "}
-              <span className="font-mono font-bold text-emerald-800">{company.gstin}</span>
+              <span className="font-mono font-bold text-emerald-800">{company?.gstin || "—"}</span>
             </div>
             <div>
-              <span className="font-semibold text-slate-700">State:</span> Code {company.stateCode}
+              <span className="font-semibold text-slate-700">State:</span> Code {company?.stateCode || "24"}
             </div>
-            <div>{company.addressLine1}</div>
-            <div>{company.city} - {company.pincode}</div>
+            <div>
+              {formatAddress(company?.billingAddress) ||
+                formatAddress({
+                  addressLine1: company?.addressLine1,
+                  city: company?.city,
+                  pincode: company?.pincode,
+                }) ||
+                "Registered Office Address"}
+            </div>
           </div>
         </div>
 
@@ -335,12 +356,13 @@ export default function EInvoiceDetailsPage() {
             </div>
             <div>
               <span className="font-semibold text-slate-700">Place of Supply:</span>{" "}
-              <span className="font-mono font-semibold">Code {invoice.placeOfSupply}</span>
+              <span className="font-mono font-semibold">Code {String(invoice.placeOfSupply || "24")}</span>
             </div>
             <div>
-              {typeof invoice.billingAddress === "string"
-                ? invoice.billingAddress
-                : invoice.billingAddress?.line1 || invoice.party?.billingAddress || "Billing Address"}
+              {formatAddress(invoice.billingAddress) ||
+                formatAddress(invoice.party?.billingAddress) ||
+                formatAddress(invoice.party?.address) ||
+                "Billing Address"}
             </div>
           </div>
         </div>
@@ -353,7 +375,9 @@ export default function EInvoiceDetailsPage() {
           <div className="space-y-2 text-xs">
             <div className="flex justify-between">
               <span className="text-slate-500">Document Type:</span>
-              <span className="font-bold text-slate-900 uppercase">{invoice.category.replace("_", " ")}</span>
+              <span className="font-bold text-slate-900 uppercase">
+                {String(invoice.category || "TAX_INVOICE").replace("_", " ")}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Invoice Date:</span>
@@ -361,7 +385,7 @@ export default function EInvoiceDetailsPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Payment Mode:</span>
-              <span className="font-semibold text-slate-800">{invoice.paymentMode}</span>
+              <span className="font-semibold text-slate-800">{invoice.paymentMode || "Cash / Bank"}</span>
             </div>
             <div className="flex justify-between border-t border-slate-100 pt-2 font-mono">
               <span className="text-slate-500 font-sans">Taxable Amount:</span>
