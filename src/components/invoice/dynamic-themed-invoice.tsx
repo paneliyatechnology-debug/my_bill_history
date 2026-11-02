@@ -14,6 +14,7 @@ import { resolveThemeDefinition } from "@/lib/invoice-theme-keys";
 export interface DynamicInvoiceParty {
   id?: string;
   name?: string;
+  nameGujarati?: string;
   tradeName?: string;
   gstin?: string;
   stateCode?: string;
@@ -89,6 +90,8 @@ export interface DynamicCompanyData {
   ifscCode?: string;
   branchName?: string;
   accountHolderName?: string;
+  logoUrl?: string;
+  signatureUrl?: string;
 }
 
 function numberToWordsINR(amount: number): string {

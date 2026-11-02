@@ -24,8 +24,18 @@ export interface CompanyInfo {
   legalName: string;
   tradeName?: string;
   gstin?: string;
+  pan?: string;
   stateCode?: string;
   city?: string;
+  email?: string;
+  phone?: string;
+  mobile?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  address?: string;
+  pincode?: string;
+  district?: string;
+  logoUrl?: string;
   bankName?: string;
   bankAccountNo?: string;
   bankIfsc?: string;
@@ -35,6 +45,14 @@ export interface CompanyInfo {
   signatoryName?: string;
   signatoryDesignation?: string;
   signatureUrl?: string;
+  enableTds?: boolean;
+  enableTcs?: boolean;
+  eInvoiceApplicable?: boolean;
+  gstRegistered?: boolean;
+  businessTypes?: string[];
+  industryType?: string;
+  registrationType?: string;
+  extraDetails?: Record<string, string>;
 }
 
 export interface BranchInfo {
