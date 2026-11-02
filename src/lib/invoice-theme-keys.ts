@@ -72,6 +72,26 @@ export const ALL_THEME_KEYS: ThemeDefinition[] = [
     thumbSrc: "/themes/navaratri_2_thumb.png",
   },
   {
+    uniqueKey: "durga_puja_1",
+    baseTheme: "durga_puja",
+    variant: 1,
+    displayName: "Durga Puja (Shubho Sharodiya)",
+    displayNameGu: "દુર્ગા પૂજા (શુભો શારોદિયા)",
+    isFestive: true,
+    bgImageSrc: "/themes/durga_puja_1.jpg",
+    thumbSrc: "/themes/durga_puja_thumb.png",
+  },
+  {
+    uniqueKey: "durga_puja_2",
+    baseTheme: "durga_puja",
+    variant: 2,
+    displayName: "Durga Puja 2",
+    displayNameGu: "દુર્ગા પૂજા ૨",
+    isFestive: true,
+    bgImageSrc: "/themes/durga_puja_1.jpg",
+    thumbSrc: "/themes/durga_puja_thumb.png",
+  },
+  {
     uniqueKey: "durga_puja",
     baseTheme: "durga_puja",
     variant: 1,
@@ -80,6 +100,26 @@ export const ALL_THEME_KEYS: ThemeDefinition[] = [
     isFestive: true,
     bgImageSrc: "/themes/durga_puja_1.jpg",
     thumbSrc: "/themes/durga_puja_thumb.png",
+  },
+  {
+    uniqueKey: "dussehra_1",
+    baseTheme: "dussehra",
+    variant: 1,
+    displayName: "Dussehra 1 (Vijayadashami)",
+    displayNameGu: "દશેરા ૧ (વિજયાદશમી)",
+    isFestive: true,
+    bgImageSrc: "/themes/dussehra_1.jpg",
+    thumbSrc: "/themes/dussehra_thumb.png",
+  },
+  {
+    uniqueKey: "dussehra_2",
+    baseTheme: "dussehra",
+    variant: 2,
+    displayName: "Dussehra 2",
+    displayNameGu: "દશેરા ૨",
+    isFestive: true,
+    bgImageSrc: "/themes/dussehra_1.jpg",
+    thumbSrc: "/themes/dussehra_thumb.png",
   },
   {
     uniqueKey: "dussehra",
@@ -92,6 +132,26 @@ export const ALL_THEME_KEYS: ThemeDefinition[] = [
     thumbSrc: "/themes/dussehra_thumb.png",
   },
   {
+    uniqueKey: "uttarayan_1",
+    baseTheme: "uttarayan",
+    variant: 1,
+    displayName: "Uttarayan 1 (Makar Sankranti)",
+    displayNameGu: "ઉત્તરાયણ ૧ (મકરસંક્રાંતિ)",
+    isFestive: true,
+    bgImageSrc: "/themes/navaratri_1.jpg",
+    thumbSrc: "/themes/navaratri_thumb.png",
+  },
+  {
+    uniqueKey: "uttarayan_2",
+    baseTheme: "uttarayan",
+    variant: 2,
+    displayName: "Uttarayan 2",
+    displayNameGu: "ઉત્તરાયણ ૨",
+    isFestive: true,
+    bgImageSrc: "/themes/navaratri_1.jpg",
+    thumbSrc: "/themes/navaratri_thumb.png",
+  },
+  {
     uniqueKey: "uttarayan",
     baseTheme: "uttarayan",
     variant: 1,
@@ -102,11 +162,51 @@ export const ALL_THEME_KEYS: ThemeDefinition[] = [
     thumbSrc: "/themes/navaratri_thumb.png",
   },
   {
+    uniqueKey: "independence_1",
+    baseTheme: "independence",
+    variant: 1,
+    displayName: "Independence Day 1",
+    displayNameGu: "સ્વતંત્રતા દિવસ ૧",
+    isFestive: true,
+    bgImageSrc: "/themes/navaratri_1.jpg",
+    thumbSrc: "/themes/navaratri_thumb.png",
+  },
+  {
+    uniqueKey: "independence_2",
+    baseTheme: "independence",
+    variant: 2,
+    displayName: "Independence Day 2",
+    displayNameGu: "સ્વતંત્રતા દિવસ ૨",
+    isFestive: true,
+    bgImageSrc: "/themes/navaratri_1.jpg",
+    thumbSrc: "/themes/navaratri_thumb.png",
+  },
+  {
     uniqueKey: "independence",
     baseTheme: "independence",
     variant: 1,
     displayName: "Independence Day",
     displayNameGu: "સ્વતંત્રતા દિવસ",
+    isFestive: true,
+    bgImageSrc: "/themes/navaratri_1.jpg",
+    thumbSrc: "/themes/navaratri_thumb.png",
+  },
+  {
+    uniqueKey: "ganesh_chaturthi_1",
+    baseTheme: "ganesh_chaturthi",
+    variant: 1,
+    displayName: "Ganesh Chaturthi 1",
+    displayNameGu: "ગણેશ ચતુર્થી ૧",
+    isFestive: true,
+    bgImageSrc: "/themes/navaratri_1.jpg",
+    thumbSrc: "/themes/navaratri_thumb.png",
+  },
+  {
+    uniqueKey: "ganesh_chaturthi_2",
+    baseTheme: "ganesh_chaturthi",
+    variant: 2,
+    displayName: "Ganesh Chaturthi 2",
+    displayNameGu: "ગણેશ ચતુર્થી ૨",
     isFestive: true,
     bgImageSrc: "/themes/navaratri_1.jpg",
     thumbSrc: "/themes/navaratri_thumb.png",
@@ -123,6 +223,15 @@ export const ALL_THEME_KEYS: ThemeDefinition[] = [
   },
   {
     uniqueKey: "your_logo",
+    baseTheme: "your_logo",
+    variant: 1,
+    displayName: "Your Logo",
+    displayNameGu: "યોર લોગો (Brand Logo)",
+    isFestive: true,
+    bgImageSrc: undefined,
+  },
+  {
+    uniqueKey: "your_logo_1",
     baseTheme: "your_logo",
     variant: 1,
     displayName: "Your Logo",
@@ -164,6 +273,38 @@ export const ALL_THEME_KEYS: ThemeDefinition[] = [
     isFestive: false,
   },
   {
+    uniqueKey: "advanced_gst",
+    baseTheme: "advanced_gst",
+    variant: 1,
+    displayName: "Advanced GST",
+    displayNameGu: "એડવાન્સ્ડ GST",
+    isFestive: false,
+  },
+  {
+    uniqueKey: "tallybook",
+    baseTheme: "tallybook",
+    variant: 1,
+    displayName: "TallyBook",
+    displayNameGu: "ટેલીબુક",
+    isFestive: false,
+  },
+  {
+    uniqueKey: "tallybook_lite",
+    baseTheme: "tallybook_lite",
+    variant: 1,
+    displayName: "Billbook (A5)",
+    displayNameGu: "બિલબુક (A5)",
+    isFestive: false,
+  },
+  {
+    uniqueKey: "advanced_compact",
+    baseTheme: "advanced_compact",
+    variant: 1,
+    displayName: "Advanced GST (A5)",
+    displayNameGu: "એડવાન્સ્ડ GST (A5)",
+    isFestive: false,
+  },
+  {
     uniqueKey: "modern",
     baseTheme: "modern",
     variant: 1,
@@ -187,6 +328,14 @@ export const ALL_THEME_KEYS: ThemeDefinition[] = [
     displayNameGu: "બિલબુક લોગો",
     isFestive: false,
   },
+  {
+    uniqueKey: "custom",
+    baseTheme: "custom",
+    variant: 1,
+    displayName: "Custom Theme",
+    displayNameGu: "કસ્ટમ થીમ",
+    isFestive: false,
+  },
 ];
 
 export function resolveThemeDefinition(
@@ -194,6 +343,7 @@ export function resolveThemeDefinition(
   fallbackVariant: number = 1
 ): ThemeDefinition {
   const raw = (key || "").toLowerCase().trim();
+  if (!raw) return ALL_THEME_KEYS.find((t) => t.uniqueKey === "stylish")!;
 
   // 1. Direct match on uniqueKey
   const direct = ALL_THEME_KEYS.find((t) => t.uniqueKey === raw);
@@ -201,11 +351,20 @@ export function resolveThemeDefinition(
     return direct;
   }
 
-  // 2. Handle aliases like "navaratri_1", "navaratri_2"
-  if (raw === "navaratri_2") return ALL_THEME_KEYS.find((t) => t.uniqueKey === "navratri_2")!;
-  if (raw === "navaratri_1") return ALL_THEME_KEYS.find((t) => t.uniqueKey === "navratri_1")!;
+  // 2. Direct match on baseTheme with fallbackVariant
+  const baseMatch = ALL_THEME_KEYS.find((t) => t.baseTheme === raw && t.variant === fallbackVariant)
+    || ALL_THEME_KEYS.find((t) => t.baseTheme === raw);
+  if (baseMatch) {
+    return baseMatch;
+  }
 
-  // 3. Handle base themes with fallbackVariant
+  // 3. Handle common aliases
+  if (raw === "navaratri_2" || raw === "navratri_2") return ALL_THEME_KEYS.find((t) => t.uniqueKey === "navratri_2")!;
+  if (raw === "navaratri_1" || raw === "navratri_1" || raw === "navaratri" || raw === "navratri") {
+    return fallbackVariant === 2
+      ? ALL_THEME_KEYS.find((t) => t.uniqueKey === "navratri_2")!
+      : ALL_THEME_KEYS.find((t) => t.uniqueKey === "navratri_1")!;
+  }
   if (raw === "diwali") {
     return fallbackVariant === 2
       ? ALL_THEME_KEYS.find((t) => t.uniqueKey === "diwali_2")!
@@ -216,15 +375,42 @@ export function resolveThemeDefinition(
       ? ALL_THEME_KEYS.find((t) => t.uniqueKey === "dhanteras_2")!
       : ALL_THEME_KEYS.find((t) => t.uniqueKey === "dhanteras_1")!;
   }
-  if (raw === "navratri" || raw === "navaratri") {
-    return fallbackVariant === 2
-      ? ALL_THEME_KEYS.find((t) => t.uniqueKey === "navratri_2")!
-      : ALL_THEME_KEYS.find((t) => t.uniqueKey === "navratri_1")!;
+  if (raw === "logo" || raw === "logo_1" || raw === "your_logo_1" || raw === "your_logo") {
+    return ALL_THEME_KEYS.find((t) => t.uniqueKey === "your_logo")!;
+  }
+  if (raw === "tally" || raw === "advanced_gst_tally") {
+    return ALL_THEME_KEYS.find((t) => t.uniqueKey === "advanced_gst_tally")!;
+  }
+  if (raw === "gst" || raw === "advanced_gst") {
+    return ALL_THEME_KEYS.find((t) => t.uniqueKey === "advanced_gst")!;
+  }
+  if (raw === "tallybook") {
+    return ALL_THEME_KEYS.find((t) => t.uniqueKey === "tallybook")!;
+  }
+  if (raw === "tallybook_lite" || raw === "lite") {
+    return ALL_THEME_KEYS.find((t) => t.uniqueKey === "tallybook_lite")!;
+  }
+  if (raw === "advanced_compact" || raw === "compact") {
+    return ALL_THEME_KEYS.find((t) => t.uniqueKey === "advanced_compact")!;
+  }
+  if (raw === "custom") {
+    return ALL_THEME_KEYS.find((t) => t.uniqueKey === "custom")!;
   }
 
-  if (raw === "logo") return ALL_THEME_KEYS.find((t) => t.uniqueKey === "your_logo")!;
-  if (raw === "advanced_gst_tally" || raw === "tally" || raw === "gst" || raw === "tallybook" || raw === "advanced_gst") {
-    return ALL_THEME_KEYS.find((t) => t.uniqueKey === "advanced_gst_tally") || ALL_THEME_KEYS.find((t) => t.uniqueKey === "tally")!;
+  // 4. Suffix matching e.g. "durga_puja_1" or "durga_puja_2"
+  const suffixMatch = raw.match(/^(.*)_(d+)$/);
+  if (suffixMatch) {
+    const base = suffixMatch[1];
+    const variantNum = parseInt(suffixMatch[2], 10);
+    const found = ALL_THEME_KEYS.find((t) => (t.baseTheme === base || t.uniqueKey === base) && t.variant === variantNum)
+      || ALL_THEME_KEYS.find((t) => t.baseTheme === base || t.uniqueKey === base);
+    if (found) {
+      return {
+        ...found,
+        variant: variantNum,
+        uniqueKey: raw,
+      };
+    }
   }
 
   // Fallback to stylish

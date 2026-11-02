@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import {
   QuickSettingsModal,
@@ -10,6 +10,12 @@ import {
   type QuickSettingsConfig,
 } from "@/components/invoice/quick-settings-modal";
 import { ShortcutsModal } from "@/components/invoice/shortcuts-modal";
+import { useActiveInvoiceTheme } from "@/lib/use-active-invoice-theme";
+import {
+  DynamicThemedInvoice,
+  DynamicInvoiceData,
+  DynamicCompanyData,
+} from "@/components/invoice/dynamic-themed-invoice";
 
 interface PurchaseOrderItem {
   id: string;
@@ -61,7 +67,26 @@ interface PurchaseOrderRecord {
 
 export default function PurchaseOrdersListPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { lang, currentCompany } = useAuth();
+
+  // Active Invoice Theme configured in Settings
+  const { state: invoiceThemeState } = useActiveInvoiceTheme(currentCompany?.id);
+  const [selectedPaperSize, setSelectedPaperSize] = useState<
+    "A4" | "A5" | "US_LETTER" | "LEGAL" | "THERMAL_80" | "DL"
+  >("A4");
+
+  useEffect(() => {
+    if ((invoiceThemeState as any)?.paperSize) {
+      setSelectedPaperSize((invoiceThemeState as any).paperSize as any);
+    }
+  }, [(invoiceThemeState as any)?.paperSize]);
+
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isPrintDropdownOpen, setIsPrintDropdownOpen] = useState(false);
+  const [isShareDropdownOpen, setIsShareDropdownOpen] = useState(false);
+  const printDropdownRef = useRef<HTMLDivElement>(null);
+  const shareDropdownRef = useRef<HTMLDivElement>(null);
 
   // State
   const [orders, setOrders] = useState<PurchaseOrderRecord[]>([]);
@@ -101,10 +126,25 @@ export default function PurchaseOrdersListPage() {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setActiveMenuId(null);
       }
+      if (printDropdownRef.current && !printDropdownRef.current.contains(e.target as Node)) {
+        setIsPrintDropdownOpen(false);
+      }
+      if (shareDropdownRef.current && !shareDropdownRef.current.contains(e.target as Node)) {
+        setIsShareDropdownOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Check URL query for order selection
+  useEffect(() => {
+    const viewId = searchParams?.get("id") || searchParams?.get("view");
+    if (viewId && orders.length > 0) {
+      const match = orders.find((o) => o.id === viewId || o.orderNumber === viewId);
+      if (match) setSelectedOrderForView(match);
+    }
+  }, [searchParams, orders]);
 
   // Load from localStorage (or populate sample identical to myBillBook screenshot)
   useEffect(() => {
@@ -309,20 +349,182 @@ export default function PurchaseOrdersListPage() {
 
   /* -------------------------------------------------------------
      IF A ROW IS CLICKED -> DISPLAY DETAIL / PREVIEW VIEW
-     (Matching exact myBillBook design from screenshot media_1792675206457.png)
+     (Unified Dynamic Themed Invoice format matching active Settings theme)
   -------------------------------------------------------------- */
+  const handleDownloadPdf = async () => {
+    const element = document.getElementById("printable-purchase-order");
+    if (!element) {
+      window.print();
+      return;
+    }
+    setIsGeneratingPdf(true);
+    let originalTransform = "";
+    let originalWidth = "";
+    let wrapperEl: HTMLElement | null = null;
+    try {
+      originalTransform = element.style.transform;
+      originalWidth = element.style.width;
+      wrapperEl = element.closest(".invoice-viewport-wrapper") as HTMLElement;
+      if (wrapperEl) {
+        wrapperEl.style.height = "";
+        wrapperEl.style.overflow = "";
+      }
+      element.style.transform = "none";
+      element.style.width = "";
+
+      const html2canvas = (await import("html2canvas")).default;
+      const { jsPDF } = await import("jspdf");
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        windowWidth: 1200,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format:
+          selectedPaperSize === "A5"
+            ? "a5"
+            : selectedPaperSize === "THERMAL_80"
+            ? [80, 200]
+            : "a4",
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      let heightLeft = pdfHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`Purchase-Order-${selectedOrderForView?.orderNumber || "draft"}.pdf`);
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      window.print();
+    } finally {
+      if (element) {
+        element.style.transform = originalTransform;
+        element.style.width = originalWidth;
+      }
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  const handlePrintOrder = (paperSize: "A4" | "THERMAL_80" = "A4") => {
+    setSelectedPaperSize(paperSize);
+    setIsPrintDropdownOpen(false);
+    if (paperSize === "THERMAL_80") {
+      setTimeout(() => {
+        window.print();
+      }, 150);
+    } else {
+      window.print();
+    }
+  };
+
   if (selectedOrderForView) {
     const ord = selectedOrderForView;
+
+    const compData: DynamicCompanyData = {
+      id: currentCompany?.id,
+      tradeName: currentCompany?.tradeName || currentCompany?.legalName || "My Company",
+      legalName: currentCompany?.legalName || currentCompany?.tradeName || "My Company",
+      gstin: currentCompany?.gstin || "",
+      phone: (currentCompany as any)?.phone || (currentCompany as any)?.mobile || "",
+      email: currentCompany?.email || "",
+      addressLine1: (currentCompany as any)?.addressLine1 || (currentCompany as any)?.address || "",
+      city: currentCompany?.city || "",
+      pincode: (currentCompany as any)?.pincode || "",
+      stateCode: currentCompany?.stateCode || "24",
+      logoUrl: (currentCompany as any)?.logoUrl,
+      signatureUrl: (currentCompany as any)?.signatureUrl,
+      pan: (currentCompany as any)?.pan,
+    };
+
+    const themedInvoiceData: DynamicInvoiceData = {
+      id: ord.id,
+      category: "PURCHASE_ORDER",
+      invoiceNumber: ord.orderNumber,
+      invoiceDate: ord.orderDate?.split("T")[0] || new Date().toISOString().split("T")[0],
+      dueDate: ord.validTill || undefined,
+      status: ord.status,
+      placeOfSupply: ord.party?.stateCode
+        ? `${ord.party.stateCode}`
+        : currentCompany?.stateCode || "24 (Gujarat)",
+      isB2B: !!ord.party?.gstin,
+      taxableAmount: Number(ord.taxableAmount || 0),
+      cgstAmount: Number(ord.cgstAmount || 0),
+      sgstAmount: Number(ord.sgstAmount || 0),
+      igstAmount: Number(ord.igstAmount || 0),
+      grandTotal: Number(ord.grandTotal || 0),
+      paidAmount: Number(ord.advancePaid || 0),
+      balanceAmount: Number(
+        ord.balanceAmount !== undefined
+          ? ord.balanceAmount
+          : (ord.grandTotal || 0) - (ord.advancePaid || 0)
+      ),
+      notes: ord.notes || ord.terms,
+      party: {
+        id: ord.party?.id,
+        name: ord.party?.name || "Vendor",
+        phone: ord.party?.phone,
+        gstin: ord.party?.gstin,
+        stateCode: ord.party?.stateCode,
+        billingAddress: ord.party?.billingAddress,
+        shippingAddress: ord.party?.shippingAddress,
+      },
+      items: (ord.items || []).map((it, idx) => {
+        const qty = Number(it.quantity || 1);
+        const unitPrice = Number(it.unitPrice || 0);
+        const taxable = Number(it.taxableAmount || qty * unitPrice);
+        const taxRate = Number(it.taxRate || 0);
+        const taxAmt = Number(
+          it.taxAmount !== undefined
+            ? it.taxAmount
+            : (taxable * taxRate) / 100
+        );
+        return {
+          id: it.id || `item-${idx}`,
+          description: it.name,
+          hsnCode: it.hsn,
+          quantity: qty,
+          unitPrice: unitPrice,
+          taxRate: taxRate,
+          taxableAmount: taxable,
+          cgstAmount: Number(ord.cgstAmount ? taxAmt / 2 : 0),
+          sgstAmount: Number(ord.sgstAmount ? taxAmt / 2 : 0),
+          igstAmount: Number(ord.igstAmount ? taxAmt : 0),
+          totalAmount: Number(it.totalAmount || taxable + taxAmt),
+          unit: it.unit || "PCS",
+        };
+      }),
+    };
+
     return (
       <div className="min-h-screen bg-[#F0F3F8] text-slate-800 p-4 sm:p-6 font-sans">
         <div className="max-w-[1300px] mx-auto space-y-4">
           {/* Top Bar with Back, Title, Actions */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-lg border border-slate-200 shadow-2xs print:hidden">
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => setSelectedOrderForView(null)}
-                className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors inline-flex items-center"
+                className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors inline-flex items-center cursor-pointer"
                 title="Back to List"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -340,64 +542,143 @@ export default function PurchaseOrdersListPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              {/* Paper Size Selector */}
+              <select
+                value={selectedPaperSize}
+                onChange={(e) => setSelectedPaperSize(e.target.value as any)}
+                className="px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+              >
+                <option value="A4">A4 (Standard)</option>
+                <option value="A5">A5 (Half Page)</option>
+                <option value="THERMAL_80">Thermal (80mm)</option>
+                <option value="US_LETTER">Letter</option>
+                <option value="LEGAL">Legal</option>
+              </select>
+
+              {/* Theme Settings Button */}
+              <Link
+                href="/settings/invoice-settings"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs"
+                title="Change Invoice Theme in Settings"
+              >
+                <span className="text-sm">🎨</span>
+                <span className="hidden sm:inline">Theme</span>
+              </Link>
+
+              {/* Download PDF Button */}
               <button
                 type="button"
-                onClick={() => window.print()}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs"
+                onClick={handleDownloadPdf}
+                disabled={isGeneratingPdf}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
               >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
+                {isGeneratingPdf ? (
+                  <span className="inline-block w-3.5 h-3.5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                )}
                 <span>Download PDF</span>
               </button>
 
-              <button
-                type="button"
-                onClick={() => window.print()}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                </svg>
-                <span>Print PDF</span>
-                <span className="text-[10px] text-slate-400">▼</span>
-              </button>
+              {/* Print PDF Dropdown */}
+              <div className="relative" ref={printDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsPrintDropdownOpen((p) => !p)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                  <span>Print</span>
+                  <span className="text-[10px] text-slate-400">▼</span>
+                </button>
+                {isPrintDropdownOpen && (
+                  <div className="absolute right-0 top-9 z-50 w-44 rounded-lg border border-slate-200 bg-white py-1 shadow-xl text-xs">
+                    <button
+                      type="button"
+                      onClick={() => handlePrintOrder("A4")}
+                      className="w-full text-left px-3.5 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
+                    >
+                      <span>📄</span>
+                      <span>Print A4 / Standard</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePrintOrder("THERMAL_80")}
+                      className="w-full text-left px-3.5 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-t border-slate-100 cursor-pointer"
+                    >
+                      <span>🧾</span>
+                      <span>Print Thermal (80mm)</span>
+                    </button>
+                  </div>
+                )}
+              </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  if (navigator.share) {
-                    navigator.share({
-                      title: `Purchase Order #${ord.orderNumber}`,
-                      text: `Purchase Order for ${ord.party?.name || "Vendor"}`,
-                      url: window.location.href,
-                    });
-                  } else {
-                    navigator.clipboard.writeText(window.location.href);
-                    alert("Order link copied to clipboard!");
-                  }
-                }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg>
-                <span>Share</span>
-                <span className="text-[10px] text-slate-400">▼</span>
-              </button>
+              {/* Share Dropdown */}
+              <div className="relative" ref={shareDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsShareDropdownOpen((p) => !p)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  </svg>
+                  <span>Share</span>
+                  <span className="text-[10px] text-slate-400">▼</span>
+                </button>
+                {isShareDropdownOpen && (
+                  <div className="absolute right-0 top-9 z-50 w-48 rounded-lg border border-slate-200 bg-white py-1 shadow-xl text-xs">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsShareDropdownOpen(false);
+                        const comp = currentCompany?.tradeName || currentCompany?.legalName || "My Company";
+                        const text = `*Purchase Order #${ord.orderNumber}*\nVendor: ${ord.party?.name || "Vendor"}\nDate: ${formatDateDisplay(ord.orderDate)}\nTotal: ₹${Number(ord.grandTotal || 0).toFixed(2)}\n\nIssued by: ${comp}`;
+                        const phone = ord.party?.phone ? String(ord.party.phone).replace(/[^0-9]/g, "") : "";
+                        const waUrl = phone
+                          ? `https://wa.me/${phone.startsWith("91") ? phone : "91" + phone}?text=${encodeURIComponent(text)}`
+                          : `https://wa.me/?text=${encodeURIComponent(text)}`;
+                        window.open(waUrl, "_blank");
+                      }}
+                      className="w-full text-left px-3.5 py-2 text-emerald-700 hover:bg-emerald-50 flex items-center gap-2 cursor-pointer"
+                    >
+                      <span>💬</span>
+                      <span>Share on WhatsApp</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsShareDropdownOpen(false);
+                        navigator.clipboard.writeText(window.location.href);
+                        alert("Order link copied to clipboard!");
+                      }}
+                      className="w-full text-left px-3.5 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-t border-slate-100 cursor-pointer"
+                    >
+                      <span>🔗</span>
+                      <span>Copy Link</span>
+                    </button>
+                  </div>
+                )}
+              </div>
 
+              {/* Convert to Purchase Invoice */}
               <button
                 type="button"
                 onClick={() => handleConvertToBill(ord)}
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-[#4C3CCE] hover:bg-[#4338CA] rounded-md transition-colors shadow-xs"
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-[#4C3CCE] hover:bg-[#4338CA] rounded-md transition-colors shadow-xs cursor-pointer"
               >
                 <span>Convert to Purchase Invoice</span>
               </button>
 
+              {/* Edit Order */}
               <button
                 type="button"
                 onClick={() => router.push(`/purchases/orders/create?edit=${ord.id}`)}
-                className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md border border-slate-200"
+                className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md border border-slate-200 cursor-pointer"
                 title="Edit Order"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -407,134 +688,14 @@ export default function PurchaseOrdersListPage() {
             </div>
           </div>
 
-          {/* Printable Document Preview Area */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-md p-8 sm:p-12 max-w-4xl mx-auto text-slate-900">
-            {/* Elegant Ornamental Document Header */}
-            <div className="border-b-2 border-slate-800 pb-4 mb-6 flex justify-between items-start">
-              <div>
-                <h2 className="text-2xl font-black text-[#1E293B] tracking-tight uppercase">
-                  {currentCompany?.tradeName || currentCompany?.legalName || "MODI CHAI"}
-                </h2>
-                <p className="text-xs text-slate-600 mt-1 font-medium">
-                  📞 {(currentCompany as any)?.phone || (currentCompany as any)?.mobile || "9510442798"}
-                </p>
-                <p className="text-xs text-slate-600 font-medium">
-                  📍 {currentCompany?.city ? `${currentCompany.city}, Gujarat` : "Gujarat"}
-                </p>
-                {currentCompany?.gstin && (
-                  <p className="text-xs text-slate-600 font-medium">
-                    GSTIN: {currentCompany.gstin}
-                  </p>
-                )}
-              </div>
-              <div className="text-right">
-                <div className="text-lg font-black tracking-wider text-slate-800 uppercase">
-                  PURCHASE ORDER
-                </div>
-              </div>
-            </div>
-
-            {/* PO Details Grid */}
-            <div className="grid grid-cols-2 gap-4 pb-4 border-b border-slate-200 text-xs">
-              <div className="space-y-1">
-                <span className="font-semibold text-slate-500">PO No.</span>
-                <p className="font-bold text-slate-900">{ord.orderNumber}</p>
-              </div>
-              <div className="space-y-1">
-                <span className="font-semibold text-slate-500">PO Date</span>
-                <p className="font-bold text-slate-900">{formatDateDisplay(ord.orderDate)}</p>
-              </div>
-            </div>
-
-            {/* BILL FROM Section */}
-            <div className="py-4 border-b border-slate-200 text-xs">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                BILL FROM
-              </span>
-              <p className="font-bold text-slate-900 text-sm">{ord.party?.name || "Cash Sale"}</p>
-              {ord.party?.phone && (
-                <p className="text-slate-600 text-xs mt-0.5">Mobile: {ord.party.phone}</p>
-              )}
-              {ord.party?.gstin && (
-                <p className="text-slate-600 text-xs mt-0.5">GSTIN: {ord.party.gstin}</p>
-              )}
-            </div>
-
-            {/* Items Table */}
-            <div className="py-4 overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-[#FAF7F0] border-y border-slate-200 text-slate-700 font-bold uppercase text-[10px]">
-                    <th className="py-2.5 px-3 w-12">No</th>
-                    <th className="py-2.5 px-3">Items</th>
-                    <th className="py-2.5 px-3">HSN No.</th>
-                    <th className="py-2.5 px-3 text-right">Qty.</th>
-                    <th className="py-2.5 px-3 text-right">Rate</th>
-                    <th className="py-2.5 px-3 text-right">Tax</th>
-                    <th className="py-2.5 px-3 text-right">Total</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {ord.items?.map((it, idx) => (
-                    <tr key={it.id || idx}>
-                      <td className="py-3 px-3 text-slate-500">{idx + 1}</td>
-                      <td className="py-3 px-3 font-semibold text-slate-900">{it.name}</td>
-                      <td className="py-3 px-3 text-slate-500">{it.hsn || "—"}</td>
-                      <td className="py-3 px-3 text-right">
-                        {it.quantity} {it.unit || "PCS"}
-                      </td>
-                      <td className="py-3 px-3 text-right">
-                        ₹ {Number(it.unitPrice).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                      </td>
-                      <td className="py-3 px-3 text-right">
-                        ₹ {Number(it.taxAmount || 0).toFixed(2)} ({it.taxRate || 18}%)
-                      </td>
-                      <td className="py-3 px-3 text-right font-bold text-slate-900">
-                        ₹ {Number(it.totalAmount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Calculations & Summary */}
-            <div className="flex justify-end pt-4 border-t border-slate-200">
-              <div className="w-72 space-y-2 text-xs">
-                <div className="flex justify-between text-slate-600">
-                  <span>Taxable Amount</span>
-                  <span>₹ {Number(ord.taxableAmount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
-                </div>
-                {ord.cgstAmount ? (
-                  <div className="flex justify-between text-slate-600">
-                    <span>CGST</span>
-                    <span>₹ {Number(ord.cgstAmount).toFixed(2)}</span>
-                  </div>
-                ) : null}
-                {ord.sgstAmount ? (
-                  <div className="flex justify-between text-slate-600">
-                    <span>SGST</span>
-                    <span>₹ {Number(ord.sgstAmount).toFixed(2)}</span>
-                  </div>
-                ) : null}
-                <div className="flex justify-between text-base font-extrabold text-slate-900 pt-2 border-t border-slate-200">
-                  <span>Total Amount</span>
-                  <span className="text-[#4C3CCE]">
-                    ₹ {Number(ord.grandTotal || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Authorized Signatory */}
-            <div className="flex justify-between items-end pt-8 mt-6 border-t border-slate-200 text-xs">
-              <div className="text-slate-500 text-[11px]">
-                Goods once sold will not be taken back or exchanged.
-              </div>
-              <div className="text-center w-48 border-t border-slate-300 pt-1 font-semibold text-slate-700">
-                Authorized Signatory
-              </div>
-            </div>
+          {/* Unified Dynamic Themed Invoice Document */}
+          <div className="w-full max-w-4xl mx-auto min-w-0 invoice-viewport-wrapper print:block print:max-w-none print:w-full">
+            <DynamicThemedInvoice
+              invoice={themedInvoiceData}
+              settings={{ ...invoiceThemeState, paperSize: selectedPaperSize }}
+              company={compData}
+              printableId="printable-purchase-order"
+            />
           </div>
         </div>
       </div>

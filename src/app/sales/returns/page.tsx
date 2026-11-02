@@ -174,6 +174,7 @@ export default function SalesReturnsPage() {
 
   const isCreditNote = pathname?.includes("credit-note");
   const isDebitNote = pathname?.includes("debit-note");
+  const basePath = isDebitNote ? "/sales/debit-note" : isCreditNote ? "/sales/credit-note" : "/sales/returns";
 
   const [rows, setRows] = useState<SalesReturnRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -706,7 +707,7 @@ export default function SalesReturnsPage() {
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            onClick={() => setSelectedReturnForView(row)}
+                            onClick={() => router.push(`${basePath}/${row.id}`)}
                             className="font-mono font-bold text-[#174B43] hover:text-[#26A58A] hover:underline transition-colors text-xs cursor-pointer"
                           >
                             {row.returnNumber}
@@ -768,7 +769,7 @@ export default function SalesReturnsPage() {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             type="button"
-                            onClick={() => setSelectedReturnForView(row)}
+                            onClick={() => router.push(`${basePath}/${row.id}`)}
                             className="p-1.5 text-xs text-[#174B43] hover:bg-[#F2FAF7] rounded-lg font-semibold transition-colors border border-[#E2E8E5] cursor-pointer"
                             title="View Voucher"
                           >
@@ -856,6 +857,13 @@ export default function SalesReturnsPage() {
             </div>
 
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <Link
+                href={`${basePath}/${selectedReturnForView.id}`}
+                className="rounded-xl bg-[#174B43] px-4 py-2 text-xs font-bold text-white hover:bg-[#123B35] cursor-pointer inline-flex items-center gap-1.5"
+              >
+                <span>View Themed Invoice</span>
+                <span>→</span>
+              </Link>
               <button
                 type="button"
                 onClick={() => window.print()}
@@ -866,7 +874,7 @@ export default function SalesReturnsPage() {
               <button
                 type="button"
                 onClick={() => setSelectedReturnForView(null)}
-                className="rounded-xl bg-[#174B43] px-5 py-2 text-xs font-bold text-white hover:bg-[#123B35] cursor-pointer"
+                className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 cursor-pointer"
               >
                 Close
               </button>

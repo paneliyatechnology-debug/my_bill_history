@@ -281,7 +281,7 @@ export default function PurchaseReturnsPage() {
     setActiveActionMenu(null);
     if (!window.confirm("Are you sure you want to delete this purchase return?")) return;
     try {
-      await apiClient.delete(`/purchases/invoices/debit-notes/${id}`);
+      await apiClient.delete(`/purchases/debit-notes/${id}`);
       showToast("Purchase return deleted successfully");
       fetchReturns();
     } catch (err: any) {

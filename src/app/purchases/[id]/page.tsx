@@ -12,6 +12,8 @@ import {
   InvoiceBarcode,
   InvoiceBarcodeStickerModal,
 } from "../components/invoice-barcode-qr";
+import { useActiveInvoiceTheme } from "@/lib/use-active-invoice-theme";
+import { DynamicThemedInvoice } from "@/components/invoice/dynamic-themed-invoice";
 
 interface PurchaseInvoiceDetail {
   id: string;
@@ -90,12 +92,22 @@ function PurchaseInvoiceDetailContent() {
   const { lang, currentCompany, user } = useAuth();
   const canPay = ["SUPER_ADMIN", "ORG_ADMIN", "COMPANY_ADMIN", "ACCOUNTANT", "BRANCH_MANAGER"].includes(user?.role || "");
 
+  // ─── Invoice Theme (same as Sales Invoice) ───────────────────────────────
+  const { state: invoiceThemeState } = useActiveInvoiceTheme(currentCompany?.id);
+  const [selectedPaperSize, setSelectedPaperSize] = useState<"A4" | "A5" | "US_LETTER" | "LEGAL" | "THERMAL_80" | "DL">("A4");
+
+  useEffect(() => {
+    if ((invoiceThemeState as any)?.paperSize) {
+      setSelectedPaperSize((invoiceThemeState as any).paperSize as any);
+    }
+  }, [(invoiceThemeState as any)?.paperSize]);
+
   const [invoice, setInvoice] = useState<PurchaseInvoiceDetail | null>(null);
   const [payments, setPayments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Success Banner (shown when redirected from creation, matching MyBillBook Frame 0009)
+  // Success Banner (shown when redirected from creation)
   const [showCreatedBanner, setShowCreatedBanner] = useState<boolean>(
     searchParams?.get("created") === "true"
   );
@@ -248,10 +260,54 @@ function PurchaseInvoiceDetailContent() {
   const isPaid = balance <= 0.01;
   const isPartiallyPaid = !isPaid && Number(invoice.paidAmount) > 0;
 
+  // ─── Build DynamicInvoiceData for the themed invoice renderer ────────────
+  const themedInvoiceData = {
+    id: invoice.id,
+    category: "PURCHASE",
+    invoiceNumber: invoice.vendorInvoiceNumber,
+    invoiceDate: invoice.invoiceDate,
+    dueDate: invoice.dueDate,
+    status: isPaid ? "PAID" : isPartiallyPaid ? "PARTIALLY_PAID" : "ISSUED",
+    placeOfSupply: invoice.placeOfSupply,
+    isB2B: !!invoice.party?.gstin,
+    taxableAmount: Number(invoice.taxableAmount),
+    cgstAmount: Number(invoice.cgstAmount),
+    sgstAmount: Number(invoice.sgstAmount),
+    igstAmount: Number(invoice.igstAmount),
+    grandTotal: Number(invoice.grandTotal),
+    paidAmount: Number(invoice.paidAmount || 0),
+    balanceAmount: balance,
+    notes: invoice.notes,
+    party: {
+      id: invoice.party?.id,
+      name: invoice.party?.name,
+      nameGujarati: invoice.party?.nameGujarati,
+      gstin: invoice.party?.gstin,
+      stateCode: invoice.party?.stateCode,
+      phone: invoice.party?.phone,
+      email: invoice.party?.email,
+      billingAddress: invoice.party?.billingAddress,
+    },
+    items: (invoice.items || []).map((row) => ({
+      id: row.id,
+      hsnCode: row.hsnCode,
+      quantity: Number(row.quantity),
+      unitPrice: Number(row.unitPrice),
+      taxableAmount: Number(row.taxableAmount),
+      taxRate: Number(row.taxRate),
+      cgstAmount: Number(row.cgstAmount),
+      sgstAmount: Number(row.sgstAmount),
+      igstAmount: Number(row.igstAmount),
+      totalAmount: Number(row.totalAmount),
+      unit: row.item?.primaryUom?.symbol,
+      item: { name: row.item?.name, nameGujarati: row.item?.nameGujarati, sku: row.item?.sku },
+    })),
+  };
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-16 print:space-y-0 print:max-w-none print:w-full print:m-0 print:p-0">
       {/* ─────────────────────────────────────────────────────────────
-          1. CREATION SUCCESS NOTIFICATION BANNER (Matches Frame 0009)
+          1. CREATION SUCCESS NOTIFICATION BANNER
          ───────────────────────────────────────────────────────────── */}
       {showCreatedBanner && (
         <div className="p-3.5 bg-emerald-600 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-between shadow-md print:hidden animate-fadeIn">
@@ -275,7 +331,17 @@ function PurchaseInvoiceDetailContent() {
       )}
 
       {/* ─────────────────────────────────────────────────────────────
-          2. TOP ACTION & NAVIGATION HEADER (Clean Unified Row)
+          PAYMENT SUCCESS BANNER
+         ───────────────────────────────────────────────────────────── */}
+      {paymentSuccess && (
+        <div className="p-3.5 bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center justify-between shadow-md print:hidden">
+          <span>✓ {paymentSuccess}</span>
+          <button onClick={() => setPaymentSuccess(null)} className="text-white hover:text-emerald-100 p-1">✕</button>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          2. TOP ACTION & NAVIGATION HEADER
          ───────────────────────────────────────────────────────────── */}
       <div className="bg-white px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-3 print:hidden">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
@@ -339,295 +405,89 @@ function PurchaseInvoiceDetailContent() {
             </div>
           </div>
 
-        {/* Action Buttons: Unified, Perfectly Aligned Single Row */}
-        <div className="flex items-center gap-2 flex-wrap shrink-0">
-          {/* Print / PDF */}
-          <button
-            onClick={() => window.print()}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
-            title={lang === "gu" ? "ઇન્વોઇસ પ્રિન્ટ અથવા PDF ડાઉનલોડ કરો" : "Print Invoice or Save as PDF"}
-          >
-            <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-            </svg>
-            <span>{lang === "gu" ? "પ્રિન્ટ PDF" : "Print PDF"}</span>
-          </button>
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 flex-wrap shrink-0">
+            {/* Print / PDF */}
+            <button
+              onClick={() => window.print()}
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+              title={lang === "gu" ? "ઇન્વોઇસ પ્રિન્ટ અથવા PDF ડાઉનલોડ કરો" : "Print Invoice or Save as PDF"}
+            >
+              <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              <span>{lang === "gu" ? "પ્રિન્ટ PDF" : "Print PDF"}</span>
+            </button>
 
-          {/* Barcode & QR Sticker Modal Button */}
-          <button
-            onClick={() => setIsStickerModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
-            title={lang === "gu" ? "બારકોડ અને QR સ્ટીકર પ્રિન્ટ કરો" : "Print Barcode & QR Sticker"}
-          >
-            <span>🏷️</span>
-            <span>{lang === "gu" ? "બારકોડ સ્ટીકર" : "Barcode Sticker"}</span>
-          </button>
+            {/* Barcode & QR Sticker Modal Button */}
+            <button
+              onClick={() => setIsStickerModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+              title={lang === "gu" ? "બારકોડ અને QR સ્ટીકર પ્રિન્ટ કરો" : "Print Barcode & QR Sticker"}
+            >
+              <span>🏷️</span>
+              <span>{lang === "gu" ? "બારકોડ સ્ટીકર" : "Barcode Sticker"}</span>
+            </button>
 
-          {/* WhatsApp / Share */}
-          <button
-            onClick={() => {
-              const comp = currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook";
-              const text = `*Purchase Invoice Record*\nVendor Bill No: ${invoice.vendorInvoiceNumber}\nSupplier: ${invoice.party?.name}\nDate: ${new Date(invoice.invoiceDate).toLocaleDateString("en-IN")}\nGrand Total: ₹${Number(invoice.grandTotal).toFixed(2)}\nBalance Due: ₹${balance.toFixed(2)}\n\nRecorded by: ${comp}`;
-              const phone = invoice.party?.phone ? invoice.party.phone.replace(/[^0-9]/g, "") : "";
-              const waUrl = phone
-                ? `https://wa.me/${phone.startsWith("91") ? phone : "91" + phone}?text=${encodeURIComponent(text)}`
-                : `https://wa.me/?text=${encodeURIComponent(text)}`;
-              window.open(waUrl, "_blank");
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
-            title={lang === "gu" ? "વોટ્સએપ પર શેર કરો" : "Share via WhatsApp"}
-          >
-            <span>💬</span>
-            <span>{lang === "gu" ? "શેર કરો" : "Share"}</span>
-          </button>
-
-          {/* Audit Info Button */}
-          <button
-            onClick={() => setShowInfoModal(true)}
-            className="p-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-600 hover:text-[#174B43] border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer shrink-0"
-            title={lang === "gu" ? "બિલ ઑડિટ વિગતો" : "Invoice Audit & Details"}
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </button>
-
-          {/* Record Payment (if unpaid) */}
-          {canPay && !isPaid && (
+            {/* WhatsApp / Share */}
             <button
               onClick={() => {
-                setPayAmount(balance);
-                setPaymentError(null);
-                setIsPaymentModalOpen(true);
+                const comp = currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook";
+                const text = `*Purchase Invoice Record*\nVendor Bill No: ${invoice.vendorInvoiceNumber}\nSupplier: ${invoice.party?.name}\nDate: ${new Date(invoice.invoiceDate).toLocaleDateString("en-IN")}\nGrand Total: ₹${Number(invoice.grandTotal).toFixed(2)}\nBalance Due: ₹${balance.toFixed(2)}\n\nRecorded by: ${comp}`;
+                const phone = invoice.party?.phone ? invoice.party.phone.replace(/[^0-9]/g, "") : "";
+                const waUrl = phone
+                  ? `https://wa.me/${phone.startsWith("91") ? phone : "91" + phone}?text=${encodeURIComponent(text)}`
+                  : `https://wa.me/?text=${encodeURIComponent(text)}`;
+                window.open(waUrl, "_blank");
               }}
-              className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+              title={lang === "gu" ? "વોટ્સએપ પર શેર કરો" : "Share via WhatsApp"}
             >
-              <span>💳</span>
-              <span>{lang === "gu" ? "ચુકવણી નોંધો" : "Record Payment"}</span>
+              <span>💬</span>
+              <span>{lang === "gu" ? "શેર કરો" : "Share"}</span>
             </button>
-          )}
+
+            {/* Audit Info Button */}
+            <button
+              onClick={() => setShowInfoModal(true)}
+              className="p-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-600 hover:text-[#174B43] border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer shrink-0"
+              title={lang === "gu" ? "બિલ ઑડિટ વિગતો" : "Invoice Audit & Details"}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+
+            {/* Record Payment (if unpaid) */}
+            {canPay && !isPaid && (
+              <button
+                onClick={() => {
+                  setPayAmount(balance);
+                  setPaymentError(null);
+                  setIsPaymentModalOpen(true);
+                }}
+                className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
+              >
+                <span>💳</span>
+                <span>{lang === "gu" ? "ચુકવણી નોંધો" : "Record Payment"}</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
-    </div>
 
       {/* ─────────────────────────────────────────────────────────────
-          3. REALISTIC INVOICE DOCUMENT PAPER (Matches Frame 0010)
+          3. THEMED INVOICE DOCUMENT
+             Uses the exact same DynamicThemedInvoice as Sales Invoices,
+             so the user's saved theme applies here too.
          ───────────────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-md overflow-hidden p-8 sm:p-12 space-y-6 print:border-none print:shadow-none print:p-0">
-        {/* Document Header */}
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 border-b border-slate-200 pb-6">
-          <div className="flex items-start gap-4">
-            {/* Real Scannable Invoice QR Code */}
-            <div className="shrink-0 flex flex-col items-center">
-              <InvoiceQrCode
-                value={invoiceUrl || (typeof window !== "undefined" ? window.location.href : `/purchases/${invoice.id}`)}
-                size={96}
-                label="SCAN TO VIEW"
-                showTooltip={true}
-                onClick={() => setIsStickerModalOpen(true)}
-              />
-            </div>
-
-            <div>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                {currentCompany?.tradeName || currentCompany?.legalName || "Anand Solar connecting to Future"}
-              </h2>
-              <p className="text-xs text-slate-500 font-medium">Latest Is Here</p>
-              <div className="mt-2 space-y-0.5 text-xs text-slate-600">
-                <p>✉ {(currentCompany as any)?.email || "anandsingh@gmail.com"}</p>
-                <p>📍 {(currentCompany as any)?.billingAddress?.line1 || (currentCompany?.city ? `${currentCompany.city}, India` : "85 sector 105 Noida, Uttar Pradesh, Gautam Buddha Nagar, 201308")}</p>
-                <p>Website: {(currentCompany as any)?.website || "mybillbook.in"}</p>
-                <p className="font-mono font-bold text-slate-800">GSTIN: {currentCompany?.gstin || "09AAAAA0000A1Z5"}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="text-right">
-            <span className="text-xl font-bold tracking-widest text-slate-400 block mb-3 uppercase">
-              PURCHASE
-            </span>
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-left space-y-2">
-              <div>
-                <span className="text-slate-400">Purchase No: </span>
-                <strong className="font-mono text-slate-900">{invoice.vendorInvoiceNumber}</strong>
-              </div>
-              <div>
-                <span className="text-slate-400">Purchase Date: </span>
-                <strong className="font-mono text-slate-900">
-                  {new Date(invoice.invoiceDate).toLocaleDateString("en-IN", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })}
-                </strong>
-              </div>
-              {/* Real Scannable Code128 Barcode */}
-              <div className="pt-1.5 border-t border-slate-200 flex flex-col items-center">
-                <InvoiceBarcode
-                  value={invoice.vendorInvoiceNumber}
-                  height={26}
-                  width={1.2}
-                  fontSize={9}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* BILL FROM BOX */}
-        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-            BILL FROM
-          </span>
-          <div className="text-sm font-bold text-slate-900">
-            {invoice.party?.name || "Aalok Tripathi"}
-          </div>
-          {invoice.party?.phone && (
-            <div className="text-slate-600">
-              Mobile {invoice.party.phone}
-            </div>
-          )}
-          {invoice.party?.billingAddress?.line1 && (
-            <div className="text-slate-600">
-              {invoice.party.billingAddress.line1}
-              {invoice.party.billingAddress.city ? `, ${invoice.party.billingAddress.city}` : ""}
-            </div>
-          )}
-          {invoice.party?.gstin && (
-            <div className="font-mono text-[#174B43] font-bold">
-              GSTIN: {invoice.party.gstin}
-            </div>
-          )}
-        </div>
-
-        {/* ITEMS / SERVICES TABLE */}
-        <div className="overflow-x-auto border border-slate-200 rounded-xl">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[11px]">
-                <th className="p-3 w-10 text-center">No</th>
-                <th className="p-3 min-w-[200px]">ITEMS/SERVICES</th>
-                <th className="p-3 w-24 text-right">Qty.</th>
-                <th className="p-3 w-28 text-right">Rate</th>
-                <th className="p-3 w-28 text-right">Tax</th>
-                <th className="p-3 w-32 text-right">Total</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {invoice.items.map((row, idx) => {
-                const tax = Number(row.cgstAmount || 0) + Number(row.sgstAmount || 0) + Number(row.igstAmount || 0);
-                return (
-                  <tr key={row.id || idx}>
-                    <td className="p-3 text-center font-mono text-slate-400 font-bold">{idx + 1}</td>
-                    <td className="p-3 font-semibold text-slate-900">
-                      <div>{row.item?.name || "Item"}</div>
-                      {row.hsnCode && <div className="text-[10px] text-slate-400 font-mono">HSN: {row.hsnCode}</div>}
-                    </td>
-                    <td className="p-3 text-right font-mono font-bold text-slate-900">
-                      {Number(row.quantity)} {row.item?.primaryUom?.symbol || "QTY"}
-                    </td>
-                    <td className="p-3 text-right font-mono text-slate-700">
-                      {Number(row.unitPrice).toFixed(2)}
-                    </td>
-                    <td className="p-3 text-right font-mono text-slate-600">
-                      {tax.toFixed(2)}
-                      <span className="block text-[10px] text-slate-400">({Number(row.taxRate)}%)</span>
-                    </td>
-                    <td className="p-3 text-right font-mono font-bold text-slate-900">
-                      {Number(row.totalAmount).toFixed(2)}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {/* TOTALS SECTION */}
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-6 pt-4 border-t border-slate-200">
-          <div className="text-xs text-slate-500 max-w-sm space-y-2">
-            <div className="font-bold text-slate-700">Remarks & Terms:</div>
-            <p className="text-slate-600 leading-relaxed">
-              {invoice.notes || "Goods received verified. Accounts Payable credited."}
-            </p>
-          </div>
-
-          <div className="w-full sm:w-72 space-y-2 text-xs">
-            <div className="flex justify-between text-slate-600">
-              <span>Taxable Amount:</span>
-              <span className="font-mono font-semibold">₹{Number(invoice.taxableAmount).toFixed(2)}</span>
-            </div>
-
-            {isInterState ? (
-              <div className="flex justify-between text-slate-600">
-                <span>IGST:</span>
-                <span className="font-mono">₹{Number(invoice.igstAmount).toFixed(2)}</span>
-              </div>
-            ) : (
-              <>
-                <div className="flex justify-between text-slate-600">
-                  <span>CGST:</span>
-                  <span className="font-mono">₹{Number(invoice.cgstAmount).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>SGST:</span>
-                  <span className="font-mono">₹{Number(invoice.sgstAmount).toFixed(2)}</span>
-                </div>
-              </>
-            )}
-
-            <div className="flex justify-between text-sm font-black text-slate-900 border-t border-slate-300 pt-2">
-              <span>Grand Total:</span>
-              <span className="font-mono text-[#174B43]">₹{Number(invoice.grandTotal).toFixed(2)}</span>
-            </div>
-
-            <div className="flex justify-between text-slate-600">
-              <span>Paid Amount:</span>
-              <span className="font-mono font-semibold text-emerald-700">₹{Number(invoice.paidAmount || 0).toFixed(2)}</span>
-            </div>
-
-            <div className="flex justify-between text-xs font-bold text-slate-800">
-              <span>Balance Due:</span>
-              <span className={`font-mono ${balance > 0 ? "text-rose-600 font-bold" : "text-emerald-600"}`}>
-                ₹{balance.toFixed(2)}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Authorized Signatory Line */}
-        <div className="pt-12 flex justify-between items-end border-t border-slate-100 text-xs">
-          <div className="text-slate-400 font-mono text-[10px]">
-            Generated via myownbillbook Billing SaaS Engine
-          </div>
-          <div className="text-right space-y-1 min-w-[200px]">
-            <div className="font-semibold text-slate-800 text-[11px] uppercase">
-              For {currentCompany?.tradeName || currentCompany?.legalName || "Authorized Signatory"}
-            </div>
-            <div className="min-h-[44px] flex flex-col items-end justify-end py-1">
-              {currentCompany?.signatureUrl ? (
-                <img
-                  src={currentCompany.signatureUrl}
-                  alt="Authorised Signature"
-                  className="max-h-12 max-w-[160px] object-contain block"
-                  crossOrigin="anonymous"
-                />
-              ) : (
-                <div className="h-8" />
-              )}
-            </div>
-            <div className="border-t border-slate-400 pt-1 text-right">
-              {currentCompany?.signatoryName && (
-                <p className="font-semibold text-slate-800 text-[11px]">
-                  {currentCompany.signatoryName}
-                </p>
-              )}
-              <span className="text-[10px] text-slate-500 uppercase">
-                {currentCompany?.signatoryDesignation || "Authorised Signatory"}
-              </span>
-            </div>
-          </div>
-        </div>
+      <div className="w-full max-w-4xl mx-auto min-w-0 invoice-viewport-wrapper print:block print:max-w-none print:w-full">
+        <DynamicThemedInvoice
+          invoice={themedInvoiceData as any}
+          settings={{ ...invoiceThemeState, paperSize: selectedPaperSize }}
+          company={currentCompany as any}
+          printableId="printable-invoice"
+        />
       </div>
 
       {/* ─────────────────────────────────────────────────────────────

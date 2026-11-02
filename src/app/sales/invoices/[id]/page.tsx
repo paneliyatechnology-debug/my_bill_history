@@ -311,6 +311,14 @@ export default function InvoiceDetailPage() {
       const bal = invRes?.balanceAmount !== undefined ? Number(invRes.balanceAmount) : Number(invRes?.outstandingBalance || 0);
       setPaymentAmount(bal);
     } catch (err: any) {
+      // Check if this ID is a delivery challan and redirect seamlessly
+      try {
+        const challanRes: any = await apiClient.get(`/sales/delivery-challan/${id}`);
+        if (challanRes?.id || challanRes?.challanNumber) {
+          router.replace(`/sales/delivery-challan/${id}`);
+          return;
+        }
+      } catch {}
       setError(err.message || "Failed to load invoice details.");
     } finally {
       setIsLoading(false);

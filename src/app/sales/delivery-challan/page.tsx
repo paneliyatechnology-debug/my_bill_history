@@ -586,7 +586,7 @@ export default function DeliveryChallanListingPage() {
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <Link
-                            href={`/sales/invoices/${ch.id}`}
+                            href={`/sales/delivery-challan/${ch.id}`}
                             className="font-mono font-bold text-[#174B43] hover:text-[#26A58A] hover:underline transition-colors text-xs"
                           >
                             {ch.challanNumber}
@@ -664,7 +664,7 @@ export default function DeliveryChallanListingPage() {
                           )}
 
                           <Link
-                            href={`/sales/invoices/${ch.id}`}
+                            href={`/sales/delivery-challan/${ch.id}`}
                             className="p-1.5 text-xs text-[#174B43] hover:bg-[#F2FAF7] rounded-lg font-semibold transition-colors border border-[#E2E8E5]"
                             title="View / Print PDF"
                           >

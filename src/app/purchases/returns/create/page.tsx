@@ -381,7 +381,7 @@ const [notes, setNotes] = useState<string>("");
     if (!editId) return;
     setIsEditMode(true);
     apiClient
-      .get(`/purchases/invoices/debit-notes/${editId}`)
+      .get(`/purchases/debit-notes/${editId}`)
       .then((res: any) => {
         const ret = res?.data || res;
         if (!ret) return;
@@ -1004,7 +1004,7 @@ const [notes, setNotes] = useState<string>("");
 
       let res: any;
       if (editId) {
-        res = await apiClient.put(`/purchases/invoices/debit-notes/${editId}`, payload);
+        res = await apiClient.put(`/purchases/debit-notes/${editId}`, payload);
       } else {
         res = await apiClient.post("/purchases/debit-notes", payload);
       }

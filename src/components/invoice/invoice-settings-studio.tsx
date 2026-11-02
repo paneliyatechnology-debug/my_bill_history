@@ -313,7 +313,7 @@ export function InvoiceSettingsStudio() {
           if (skipRemoteLoad.current) return;
           const s = res.settings;
           const def = resolveThemeDefinition(
-            s.uniqueThemeKey || s.festiveTheme || s.themeId,
+            s.festiveTheme || s.uniqueThemeKey || s.themeId,
             s.festiveVariant
           );
           const merged: InvoiceStudioState = {
@@ -370,7 +370,7 @@ export function InvoiceSettingsStudio() {
         if (local) {
           const parsed = JSON.parse(local);
           const def = resolveThemeDefinition(
-            parsed.uniqueThemeKey || parsed.festiveTheme || parsed.themeId,
+            parsed.festiveTheme || parsed.uniqueThemeKey || parsed.themeId,
             parsed.festiveVariant
           );
           const merged: InvoiceStudioState = {
@@ -384,6 +384,7 @@ export function InvoiceSettingsStudio() {
           setState(merged);
           setHistory([merged]);
           setHistoryIndex(0);
+          setLastSaved(merged); // setLastSaved in local fallback
         }
       } catch {}
     };
@@ -954,17 +955,19 @@ export function InvoiceSettingsStudio() {
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
               >
                 {festiveThemesList.map((th) => {
+                  const targetId = th.id === "logo" ? "your_logo" : th.id;
                   const isActive =
+                    state.festiveTheme === targetId ||
                     state.festiveTheme === th.id ||
-                    (!state.festiveTheme && th.id === "logo" && state.themeId === "your_logo");
+                    (!state.festiveTheme && (state.themeId === targetId || (th.id === "logo" && state.themeId === "your_logo")));
                   return (
                     <div
                       key={th.id}
                       onClick={() =>
                         updateState({
-                          festiveTheme: isActive ? null : th.id,
-                          themeId: isActive ? "stylish" : th.id === "logo" ? "your_logo" : th.id,
-                          uniqueThemeKey: isActive ? "stylish" : th.id === "logo" ? "your_logo" : `${th.id}_${state.festiveVariant || 1}`,
+                          festiveTheme: isActive ? null : targetId,
+                          themeId: isActive ? "stylish" : targetId,
+                          uniqueThemeKey: isActive ? "stylish" : `${targetId}_${state.festiveVariant || 1}`,
                           themeMode: "preset",
                         })
                       }
@@ -1055,13 +1058,15 @@ export function InvoiceSettingsStudio() {
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setSaveBanner("Festive theme applied to invoice!");
-                    setTimeout(() => setSaveBanner(null), 3000);
-                  }}
-                  className="w-full rounded-xl bg-[#5346F5] hover:bg-[#4338CA] py-2.5 text-xs font-bold text-white shadow-xs transition-colors flex items-center justify-center gap-2"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="w-full rounded-xl bg-[#5346F5] hover:bg-[#4338CA] py-2.5 text-xs font-bold text-white shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                 >
-                  <span>Unlock theme now</span>
+                  {isSaving ? (
+                    <span>Saving Theme...</span>
+                  ) : (
+                    <span>Unlock & Save Theme</span>
+                  )}
                 </button>
               </div>
             )}
@@ -1091,7 +1096,7 @@ export function InvoiceSettingsStudio() {
 
             <div className={`grid ${showAllThemesInline ? "grid-cols-3 gap-2.5" : "grid-cols-4 gap-2"}`}>
               {(showAllThemesInline ? STANDARD_THEMES : STANDARD_THEMES.slice(0, 3)).map((thm) => {
-                const isSelected = !state.festiveTheme && state.themeMode === "preset" && state.themeId === thm.id;
+                const isSelected = !state.festiveTheme && state.themeId === thm.id;
                 return (
                   <button
                     key={thm.id}
