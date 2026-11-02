@@ -693,7 +693,8 @@ export default function SalesReturnsPage() {
                   return (
                     <tr
                       key={row.id}
-                      className={`hover:bg-[#F2FAF7]/70 transition-colors group ${
+                      onClick={() => row?.id && router.push(`${basePath}/${row.id}`)}
+                      className={`hover:bg-[#F2FAF7]/70 transition-colors group cursor-pointer ${
                         row.status === "CANCELLED" ? "opacity-60 bg-slate-50/50" : ""
                       }`}
                     >
@@ -732,6 +733,7 @@ export default function SalesReturnsPage() {
                         {row.salesInvoice?.invoiceNumber ? (
                           <Link
                             href={`/sales/invoices/${row.salesInvoice.id}`}
+                            onClick={(e) => e.stopPropagation()}
                             className="text-[#174B43] hover:underline font-mono font-semibold"
                           >
                             #{row.salesInvoice.invoiceNumber}
@@ -765,7 +767,7 @@ export default function SalesReturnsPage() {
                       </td>
 
                       {/* Actions */}
-                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <td className="px-4 py-3 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             type="button"

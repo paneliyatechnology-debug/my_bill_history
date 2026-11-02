@@ -562,7 +562,8 @@ export default function DeliveryChallanListingPage() {
                   return (
                     <tr
                       key={ch.id}
-                      className={`hover:bg-[#F2FAF7]/70 transition-colors group ${
+                      onClick={() => ch?.id && router.push(`/sales/delivery-challan/${ch.id}`)}
+                      className={`hover:bg-[#F2FAF7]/70 transition-colors group cursor-pointer ${
                         ch.status === "CANCELLED" ? "opacity-60 bg-slate-50/50" : ""
                       }`}
                     >
@@ -615,7 +616,10 @@ export default function DeliveryChallanListingPage() {
                         {ch.eWayBillNumber ? (
                           <button
                             type="button"
-                            onClick={() => setViewEwbSlipNumber(ch.eWayBillNumber!)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setViewEwbSlipNumber(ch.eWayBillNumber!);
+                            }}
                             className="inline-flex items-center gap-1 font-mono text-[11px] font-bold text-[#174B43] hover:text-[#26A58A] hover:underline cursor-pointer"
                           >
                             <span>🚚 {ch.eWayBillNumber}</span>
@@ -647,7 +651,7 @@ export default function DeliveryChallanListingPage() {
                       </td>
 
                       {/* Actions */}
-                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <td className="px-4 py-3 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1.5">
                           {!isClosed && ch.status !== "CANCELLED" && (
                             <button

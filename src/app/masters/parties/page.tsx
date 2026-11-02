@@ -824,7 +824,7 @@ export default function PartiesPage() {
         header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
         className: "text-center",
         cell: (p) => (
-          <div className="inline-flex items-center justify-center gap-2">
+          <div className="inline-flex items-center justify-center gap-2" onClick={(e) => e.stopPropagation()}>
             {p.phone && (
               <button
                 type="button"
@@ -1911,6 +1911,7 @@ export default function PartiesPage() {
             }
             isLoading={isLoading}
             lang={lang}
+            onRowClick={(p) => setSelectedParty(p)}
             themeColor="saffron"
             exportable
             exportFileName="parties_master"
@@ -1937,7 +1938,7 @@ export default function PartiesPage() {
               </div>
             }
             mobileCardRender={(p) => (
-              <div key={p.id} className="p-3.5 hover:bg-slate-50 transition-colors space-y-2">
+              <div key={p.id} onClick={() => setSelectedParty(p)} className="p-3.5 hover:bg-slate-50 transition-colors space-y-2 cursor-pointer">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-semibold text-slate-900 text-sm">{p.name}</span>
                   <Badge

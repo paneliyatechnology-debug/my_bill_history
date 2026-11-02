@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
 import { StatusBadge } from "../../components/ui/badge";
@@ -217,6 +218,7 @@ export default function ReportsPage({
   defaultDashboard?: boolean;
   initialTab?: ReportTab;
 } = {}) {
+  const router = useRouter();
   const { lang, tenantContext, currentFY, currentCompany } = useAuth();
   const [viewMode, setViewMode] = useState<"dashboard" | "report">(
     initialTab ? "report" : defaultDashboard ? "dashboard" : "dashboard"
@@ -1201,7 +1203,11 @@ export default function ReportsPage({
                           </thead>
                           <tbody className="divide-y divide-[#E2E8F0]">
                             {paginatedList.map((inv: any, idx: number) => (
-                              <tr key={inv.id || `inv-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
+                              <tr
+                                key={inv.id || `inv-${idx}`}
+                                onClick={() => inv.id && router.push(`/sales/invoices/${inv.id}`)}
+                                className={`hover:bg-[#F8FAFC] transition-colors ${inv.id ? "cursor-pointer" : ""}`}
+                              >
                                 <td className="py-3 px-3.5 text-[#1E293B] font-normal whitespace-nowrap">
                                   {formatDisplayDate(inv.invoiceDate)}
                                 </td>
@@ -1301,7 +1307,11 @@ export default function ReportsPage({
                                       : Number(inv.invoiceTotal || 0) - Number(inv.costOfGoodsSold || 0)
                                   );
                                   return (
-                                    <tr key={inv.id || `inv-profit-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
+                                    <tr
+                                      key={inv.id || `inv-profit-${idx}`}
+                                      onClick={() => inv.id && router.push(`/sales/invoices/${inv.id}`)}
+                                      className={`hover:bg-[#F8FAFC] transition-colors ${inv.id ? "cursor-pointer" : ""}`}
+                                    >
                                       <td className="py-2.5 px-3 font-mono text-[#64748B]">{inv.invoiceDate}</td>
                                       <td className="py-2.5 px-3 font-mono font-bold text-[#0F172A]">{inv.invoiceNumber}</td>
                                       <td className="py-2.5 px-3 font-medium text-[#0F172A]">{inv.partyName || inv.party?.name || "Cash Sale"}</td>
@@ -1565,7 +1575,11 @@ export default function ReportsPage({
                               </tr>
                             ) : (
                               paginatedList.map((r: any, idx: number) => (
-                                <tr key={r.id || `credit-note-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
+                                <tr
+                                  key={r.id || `credit-note-${idx}`}
+                                  onClick={() => r.id && router.push(`/sales/credit-note/${r.id}`)}
+                                  className={`hover:bg-[#F8FAFC] transition-colors ${r.id ? "cursor-pointer" : ""}`}
+                                >
                                   <td className="py-2.5 px-3 font-mono font-bold text-[#0F172A]">{r.creditNoteNumber || r.returnNumber}</td>
                                   <td className="py-2.5 px-3 font-mono text-[#64748B]">{r.returnDate}</td>
                                   <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{r.partyName || r.party?.name}</td>
@@ -1646,7 +1660,11 @@ export default function ReportsPage({
                               </tr>
                             ) : (
                               paginatedList.map((qRow: any, idx: number) => (
-                                <tr key={qRow.id || `quote-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
+                                <tr
+                                  key={qRow.id || `quote-${idx}`}
+                                  onClick={() => qRow.id && router.push(`/sales/quotations/${qRow.id}`)}
+                                  className={`hover:bg-[#F8FAFC] transition-colors ${qRow.id ? "cursor-pointer" : ""}`}
+                                >
                                   <td className="py-2.5 px-3 font-mono font-bold text-[#0F172A]">{qRow.quoteNumber || qRow.quotationNumber}</td>
                                   <td className="py-2.5 px-3 font-mono text-[#64748B]">{qRow.date}</td>
                                   <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{qRow.partyName || qRow.party?.name}</td>
@@ -1714,7 +1732,11 @@ export default function ReportsPage({
                               </tr>
                             ) : (
                               paginatedList.map((c: any, idx: number) => (
-                                <tr key={c.id || `challan-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
+                                <tr
+                                  key={c.id || `challan-${idx}`}
+                                  onClick={() => c.id && router.push(`/sales/delivery-challan/${c.id}`)}
+                                  className={`hover:bg-[#F8FAFC] transition-colors ${c.id ? "cursor-pointer" : ""}`}
+                                >
                                   <td className="py-2.5 px-3 font-mono font-bold text-[#0F172A]">{c.challanNumber}</td>
                                   <td className="py-2.5 px-3 font-mono text-[#64748B]">{c.date}</td>
                                   <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{c.partyName || c.party?.name}</td>
@@ -2090,7 +2112,11 @@ export default function ReportsPage({
                           </thead>
                           <tbody className="divide-y divide-[#E2E8F0]">
                             {paginatedList.map((bill: any) => (
-                              <tr key={bill.id} className="hover:bg-[#F8FAFC] transition-colors">
+                              <tr
+                                key={bill.id}
+                                onClick={() => bill.id && router.push(`/purchases/invoices/${bill.id}`)}
+                                className={`hover:bg-[#F8FAFC] transition-colors ${bill.id ? "cursor-pointer" : ""}`}
+                              >
                                 <td className="py-3 px-3.5 text-[#1E293B] font-normal whitespace-nowrap">{formatDisplayDate(bill.invoiceDate)}</td>
                                 <td className="py-3 px-3.5 font-normal text-[#1E293B]">{bill.vendorInvoiceNumber || bill.billNumber || "—"}</td>
                                 <td className="py-3 px-3.5 font-normal text-[#1E293B] uppercase">{bill.supplierName || bill.party?.name}</td>
@@ -3800,8 +3826,21 @@ export default function ReportsPage({
                                   const moneyOut = Number(e.debit) > 0 ? Number(e.debit) : (e.type === "UDHAR" ? Number(e.totalAmount || 0) : 0);
                                   const totalAmt = Number(e.totalAmount || (moneyIn > 0 ? moneyIn : moneyOut));
                                   const party = e.partyName || e.narration || "General Account";
+                                  const vType = (e.voucherType || e.type || "").toUpperCase();
+                                  const vId = e.voucherId || e.id;
+                                  let targetLink: string | undefined = undefined;
+                                  if ((vType.includes("SALES") || vType.includes("INVOICE")) && vId) targetLink = `/sales/invoices/${vId}`;
+                                  else if (vType.includes("PURCHASE") && vId) targetLink = `/purchases/invoices/${vId}`;
+                                  else if ((vType.includes("RECEIPT") || vType.includes("PAYMENT_IN")) && vId) targetLink = `/sales/payment-in/${vId}`;
+                                  else if ((vType.includes("PAYMENT_OUT") || vType.includes("PAYMENT")) && vId) targetLink = `/purchases/payment-out/${vId}`;
+                                  else if (e.voucherNumber) targetLink = `/app/home/vouchers/all_transactions?search=${encodeURIComponent(e.voucherNumber)}`;
+
                                   return (
-                                    <tr key={idx} className="hover:bg-[#F8FAFC] transition-colors">
+                                    <tr
+                                      key={idx}
+                                      onClick={() => targetLink && router.push(targetLink)}
+                                      className={`hover:bg-[#F8FAFC] transition-colors ${targetLink ? "cursor-pointer" : ""}`}
+                                    >
                                       <td className="py-2.5 px-3 font-mono text-[#64748B]">{e.date || reportData.date || "—"}</td>
                                       <td className="py-2.5 px-3 font-medium text-[#0F172A]">{party}</td>
                                       <td className="py-2.5 px-3">

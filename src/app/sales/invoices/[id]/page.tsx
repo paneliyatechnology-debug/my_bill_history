@@ -284,6 +284,10 @@ export default function InvoiceDetailPage() {
   };
 
   const fetchInvoice = useCallback(async () => {
+    if (!id || id === "undefined" || id === "null") {
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     setError(null);
     try {
@@ -323,13 +327,15 @@ export default function InvoiceDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [id]);
+  }, [id, router]);
 
   useEffect(() => {
-    if (id) {
+    if (id && id !== "undefined" && id !== "null") {
       fetchInvoice();
+    } else if (id === "undefined" || id === "null") {
+      router.replace("/sales/invoices");
     }
-  }, [id, fetchInvoice]);
+  }, [id, fetchInvoice, router]);
 
   const handleIssueInvoice = async (forceNegativeStock = false) => {
     if (!invoice) return;

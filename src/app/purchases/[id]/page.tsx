@@ -139,6 +139,10 @@ function PurchaseInvoiceDetailContent() {
   }, [id]);
 
   const fetchInvoice = useCallback(async () => {
+    if (!id || id === "undefined" || id === "null") {
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     setError(null);
     try {
@@ -168,10 +172,12 @@ function PurchaseInvoiceDetailContent() {
   }, [id]);
 
   useEffect(() => {
-    if (id) {
+    if (id && id !== "undefined" && id !== "null") {
       fetchInvoice();
+    } else if (id === "undefined" || id === "null") {
+      router.replace("/purchases");
     }
-  }, [id, fetchInvoice]);
+  }, [id, fetchInvoice, router]);
 
   const handleRecordPayment = async (e: React.FormEvent) => {
     e.preventDefault();

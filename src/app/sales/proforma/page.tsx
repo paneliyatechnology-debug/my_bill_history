@@ -551,7 +551,8 @@ export default function ProformaInvoiceListingPage() {
                   return (
                     <tr
                       key={inv.id}
-                      className={`hover:bg-[#F2FAF7]/70 transition-colors group ${
+                      onClick={() => inv?.id && router.push(`/sales/invoices/${inv.id}`)}
+                      className={`hover:bg-[#F2FAF7]/70 transition-colors group cursor-pointer ${
                         inv.status === "CANCELLED" ? "opacity-60 bg-slate-50/50" : ""
                       }`}
                     >
@@ -626,7 +627,7 @@ export default function ProformaInvoiceListingPage() {
                       </td>
 
                       {/* Actions */}
-                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <td className="px-4 py-3 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1.5">
                           {!isClosed && inv.status !== "CANCELLED" && (
                             <button

@@ -407,7 +407,10 @@ export default function EWayBillsPage() {
     {
       header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
       cell: (item: EWayBillListItem) => (
-        <div className="flex items-center justify-end gap-1.5">
+        <div 
+          className="flex items-center justify-end gap-1.5"
+          onClick={(e) => e.stopPropagation()}
+        >
           <button
             onClick={() => setSelectedEwbForSlip(item.ewbNumber)}
             className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded shadow-sm flex items-center gap-1 transition-colors"
@@ -649,13 +652,18 @@ export default function EWayBillsPage() {
           data={filteredItems}
           keyExtractor={(item) => item.id}
           isLoading={isLoading}
+          onRowClick={(item) => setSelectedEwbForSlip(item.ewbNumber)}
           emptyMessage={
             lang === "gu"
               ? "કોઈ પણ E-Way Bill મળ્યા નથી. નવું બિલ અથવા ડિલિવરી ચલણ બનાવીને ઈ-વે બિલ જનરેટ કરો."
               : "No E-Way Bills found. Generate an E-Way Bill from Sales Invoices or Delivery Challans, or link one above."
           }
           mobileCardRender={(item) => (
-            <div key={item.id} className="space-y-2">
+            <div
+              key={item.id}
+              onClick={() => setSelectedEwbForSlip(item.ewbNumber)}
+              className="space-y-2 cursor-pointer hover:bg-slate-50 transition-colors p-2 rounded-lg"
+            >
               <div className="flex items-center justify-between">
                 <div>
                   <button
@@ -683,7 +691,10 @@ export default function EWayBillsPage() {
                 <span>Vehicle: <strong className="font-mono">{item.vehicleNumber || "—"}</strong></span>
                 <span className="font-mono font-bold">₹{Number(item.totalAmount).toLocaleString("en-IN")}</span>
               </div>
-              <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100">
+              <div 
+                className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <button
                   onClick={() => setSelectedEwbForSlip(item.ewbNumber)}
                   className="text-xs text-indigo-600 font-semibold"

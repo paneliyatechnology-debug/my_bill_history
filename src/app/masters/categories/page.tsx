@@ -266,7 +266,7 @@ export default function CategoriesPage() {
             header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
             className: "text-center",
             cell: (c) => (
-              <div className="inline-flex items-center justify-center gap-1.5">
+              <div className="inline-flex items-center justify-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => handleOpenEditModal(c)}
                   className="px-2.5 py-1 text-xs font-semibold text-[#174B43] bg-[#E6F7F2] hover:bg-[#174B43] hover:text-white border border-[#174B43]/30 rounded transition-colors inline-flex items-center gap-1"
@@ -300,6 +300,7 @@ export default function CategoriesPage() {
         searchKeys={["name", "nameGujarati"]}
         defaultPageSize={10}
         isLoading={isLoading}
+        onRowClick={(c) => handleOpenEditModal(c)}
         emptyMessage={
           lang === "gu"
             ? "કોઈ શ્રેણી મળી નથી. ઉપર 'નવી શ્રેણી ઉમેરો' પર ક્લિક કરો."
@@ -308,7 +309,7 @@ export default function CategoriesPage() {
         exportFilename="categories_master"
         themeColor="saffron"
         mobileCardRender={(c) => (
-          <div key={c.id} className="space-y-2">
+          <div key={c.id} onClick={() => handleOpenEditModal(c)} className="space-y-2 cursor-pointer hover:bg-slate-50 transition-colors p-2 rounded-lg">
             <div className="flex items-center justify-between">
               <span className="font-semibold text-slate-900">{c.name}</span>
               {lang === "gu" && c.nameGujarati && (

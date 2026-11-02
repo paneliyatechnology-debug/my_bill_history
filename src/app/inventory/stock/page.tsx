@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient } from "../../../lib/api-client";
 import { Badge } from "../../../components/ui/badge";
@@ -25,6 +25,7 @@ interface StockSummaryRow {
 }
 
 function StockSummaryContent() {
+  const router = useRouter();
   const { lang, tenantContext } = useAuth();
   const searchParams = useSearchParams();
   const filterParam = searchParams.get("filter");
@@ -296,6 +297,7 @@ function StockSummaryContent() {
         }
         isLoading={isLoading}
         lang={lang}
+        onRowClick={(s) => router.push(`/inventory/movements?itemId=${s.itemId}`)}
         themeColor="saffron"
         exportable
         exportFileName="stock_summary"
@@ -304,7 +306,8 @@ function StockSummaryContent() {
           return (
             <div
               key={s.itemId}
-              className="p-3.5 hover:bg-slate-50 transition-colors space-y-2"
+              onClick={() => router.push(`/inventory/movements?itemId=${s.itemId}`)}
+              className="p-3.5 hover:bg-slate-50 transition-colors space-y-2 cursor-pointer"
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="font-semibold text-slate-900 text-sm">

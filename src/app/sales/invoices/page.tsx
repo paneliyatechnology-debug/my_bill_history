@@ -986,12 +986,13 @@ export default function SalesInvoicesDashboardPage() {
                   return (
                     <tr
                       key={inv.id}
-                      className={`hover:bg-[#F8FAF9] transition-colors group ${
+                      onClick={() => inv?.id && router.push(`/sales/invoices/${inv.id}`)}
+                      className={`hover:bg-[#F8FAF9] transition-colors group cursor-pointer ${
                         isSelected ? "bg-[#E6F7F2]/40" : ""
                       }`}
                     >
                       {/* Checkbox */}
-                      <td className="py-3 px-3.5 text-center">
+                      <td className="py-3 px-3.5 text-center" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           checked={isSelected}
@@ -1112,7 +1113,7 @@ export default function SalesInvoicesDashboardPage() {
                       </td>
 
                       {/* Quick Actions */}
-                      <td className="py-3 px-3 text-center relative">
+                      <td className="py-3 px-3 text-center relative" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-center gap-1">
                           {/* Quick Link to View */}
                           <Link

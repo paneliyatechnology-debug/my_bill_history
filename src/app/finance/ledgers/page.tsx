@@ -345,7 +345,7 @@ export default function FinanceLedgersPage() {
       header: lang === "gu" ? "ક્રિયા" : "Action",
       className: "text-right",
       cell: (l) => (
-        <div className="flex items-center justify-end gap-1.5">
+        <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
           <Link
             href={`/reports?tab=party-ledger&partyId=${l.id}`}
             className="p-1.5 text-xs text-primary hover:bg-primary/10 rounded-lg font-semibold transition-colors"
@@ -604,6 +604,15 @@ export default function FinanceLedgersPage() {
           columns={columns}
           data={filteredLedgers}
           isLoading={isLoading}
+          onRowClick={(l) => {
+            setEditingLedger(l);
+            setEditFormData({
+              name: l.name,
+              nameGujarati: l.nameGujarati || "",
+              isActive: l.isActive,
+            });
+            setEditError(null);
+          }}
           searchPlaceholder={lang === "gu" ? "ખાતા કોડ અથવા નામ શોધો..." : "Search ledgers..."}
         />
       </div>

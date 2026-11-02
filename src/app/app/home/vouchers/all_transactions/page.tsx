@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -40,6 +41,7 @@ type DateFilterOption =
   | "Custom Date";
 
 export default function AllTransactionsPage() {
+  const router = useRouter();
   const [transactions, setTransactions] = useState<TransactionItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -472,7 +474,11 @@ export default function AllTransactionsPage() {
                 </tr>
               ) : (
                 transactions.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-slate-50/70 transition-colors">
+                  <tr
+                    key={tx.id}
+                    onClick={() => tx.link && router.push(tx.link)}
+                    className="hover:bg-slate-50/70 transition-colors cursor-pointer"
+                  >
                     {/* Date */}
                     <td className="py-3 px-4 font-medium text-slate-600 whitespace-nowrap">
                       {tx.date || "-"}

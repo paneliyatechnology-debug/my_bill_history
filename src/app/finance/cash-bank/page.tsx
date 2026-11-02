@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { apiClient, extractList } from "@/lib/api-client";
 import { Modal } from "@/components/ui/modal";
@@ -47,6 +48,7 @@ interface TransactionItem {
   received: number;
   balance: number;
   narration?: string;
+  link?: string;
 }
 
 // Bank Brand Identification & Authentic Logo SVGs
@@ -252,6 +254,7 @@ function saveStoredBankMeta(
 }
 
 export default function CashAndBankPage() {
+  const router = useRouter();
   const { lang, tenantContext, currentFY } = useAuth();
 
   const [ledgers, setLedgers] = useState<LedgerAccount[]>([]);
@@ -644,6 +647,14 @@ export default function CashAndBankPage() {
               typeStr = "Purchase";
             }
 
+            let targetLink: string | undefined = undefined;
+            const vId = l.voucherId || l.id;
+            if (typeStr === "Payment In" && vId) targetLink = `/sales/payment-in/${vId}`;
+            else if (typeStr === "Payment Out" && vId) targetLink = `/purchases/payment-out/${vId}`;
+            else if (typeStr === "Sales" && vId) targetLink = `/sales/invoices/${vId}`;
+            else if (typeStr === "Purchase" && vId) targetLink = `/purchases/invoices/${vId}`;
+            else if (l.voucherNumber && l.voucherNumber !== "-") targetLink = `/app/home/vouchers/all_transactions?search=${encodeURIComponent(l.voucherNumber)}`;
+
             return {
               id: l.id || `txn_${i}`,
               date: l.voucherDate || l.date || toDate,
@@ -655,6 +666,7 @@ export default function CashAndBankPage() {
               received: debit,
               balance: Number(l.balance !== undefined ? l.balance : runningBal),
               narration: l.narration,
+              link: targetLink,
             };
           });
           setTransactions(mapped);
@@ -724,6 +736,13 @@ export default function CashAndBankPage() {
             typeStr = "Purchase";
           }
 
+          let targetLink: string | undefined = undefined;
+          if (typeStr === "Payment In" && v.id) targetLink = `/sales/payment-in/${v.id}`;
+          else if (typeStr === "Payment Out" && v.id) targetLink = `/purchases/payment-out/${v.id}`;
+          else if (typeStr === "Sales" && v.id) targetLink = `/sales/invoices/${v.id}`;
+          else if (typeStr === "Purchase" && v.id) targetLink = `/purchases/invoices/${v.id}`;
+          else if (v.voucherNumber && v.voucherNumber !== "-") targetLink = `/app/home/vouchers/all_transactions?search=${encodeURIComponent(v.voucherNumber)}`;
+
           filtered.push({
             id: v.id,
             date: v.voucherDate
@@ -737,6 +756,7 @@ export default function CashAndBankPage() {
             received: debit,
             balance: runningBal,
             narration: v.narration,
+            link: targetLink,
           });
         }
       }
@@ -1901,7 +1921,15 @@ export default function CashAndBankPage() {
                           t.type.toLowerCase().includes("add") ||
                           (!isTransfer && t.received > 0);
                         return (
-                          <tr key={t.id} className="hover:bg-[#F8FAFC] transition-colors">
+                          <tr
+                            key={t.id}
+                            onClick={() => {
+                              if (t.link) router.push(t.link);
+                            }}
+                            className={`hover:bg-[#F8FAFC] transition-colors ${
+                              t.link ? "cursor-pointer hover:bg-[#F0FDF4]/50" : ""
+                            }`}
+                          >
                             <td className="py-2.5 px-3 text-slate-800 whitespace-nowrap font-normal">
                               {formatDisplayDate(t.date)}
                             </td>

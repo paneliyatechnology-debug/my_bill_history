@@ -383,7 +383,10 @@ export default function ProductionOrdersPage() {
       header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
       align: "right",
       cell: (order) => (
-        <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+        <div 
+          className="flex items-center justify-end gap-1.5 whitespace-nowrap"
+          onClick={(e) => e.stopPropagation()}
+        >
           <button
             onClick={() => handleOpenView(order)}
             className="text-xs text-slate-600 hover:text-indigo-600 font-medium px-2 py-1 rounded hover:bg-slate-100"
@@ -462,6 +465,7 @@ export default function ProductionOrdersPage() {
         data={filteredOrders}
         columns={columns}
         isLoading={isLoading}
+        onRowClick={(order) => handleOpenView(order)}
         searchPlaceholder={lang === "gu" ? "ઓર્ડર નંબર અથવા તૈયાર માલથી શોધો..." : "Search order # or finished item..."}
         exportFileName="production_orders"
         themeColor="saffron"
@@ -512,7 +516,11 @@ export default function ProductionOrdersPage() {
         mobileCardRender={(order) => {
           const batch = order.batches?.[0];
           return (
-            <div key={order.id} className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3">
+            <div
+              key={order.id}
+              onClick={() => handleOpenView(order)}
+              className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3 cursor-pointer hover:border-emerald-400 transition-colors"
+            >
               <div className="flex items-start justify-between">
                 <div>
                   <div className="font-mono font-semibold text-slate-900">{order.orderNumber}</div>
@@ -540,7 +548,10 @@ export default function ProductionOrdersPage() {
                   <span className="text-indigo-600 font-medium truncate block">{order.bom?.bomName || "Standard"}</span>
                 </div>
               </div>
-              <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-slate-100">
+              <div
+                className="flex items-center justify-end gap-1.5 pt-2 border-t border-slate-100"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <button
                   onClick={() => handleOpenView(order)}
                   className="text-xs text-slate-600 hover:text-indigo-600 font-medium px-2 py-1 rounded hover:bg-slate-100"

@@ -285,7 +285,10 @@ export default function UnitsPage() {
             header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
             className: "text-center",
             cell: (u) => (
-              <div className="inline-flex items-center justify-center gap-1.5">
+              <div 
+                className="inline-flex items-center justify-center gap-1.5"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <button
                   onClick={() => handleOpenEditModal(u)}
                   className="px-2.5 py-1 text-xs font-semibold text-[#174B43] bg-[#E6F7F2] hover:bg-[#174B43] hover:text-white border border-[#174B43]/30 rounded transition-colors inline-flex items-center gap-1"
@@ -326,8 +329,13 @@ export default function UnitsPage() {
         }
         exportFilename="units_master"
         themeColor="saffron"
+        onRowClick={(u) => handleOpenEditModal(u)}
         mobileCardRender={(u) => (
-          <div key={u.id || u.code} className="space-y-2">
+          <div
+            key={u.id || u.code}
+            onClick={() => handleOpenEditModal(u)}
+            className="space-y-2 cursor-pointer hover:bg-slate-50 transition-colors p-2 rounded-lg"
+          >
             <div className="flex items-center justify-between">
               <span className="font-semibold text-slate-900">{u.name}</span>
               <span className="bg-slate-100 text-slate-800 px-2 py-0.5 rounded border border-slate-200 font-mono font-bold text-xs">
@@ -337,7 +345,10 @@ export default function UnitsPage() {
             <div className="text-xs text-slate-500">
               Decimals: {u.decimalPlaces}
             </div>
-            <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100">
+            <div
+              className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100"
+              onClick={(e) => e.stopPropagation()}
+            >
               <button
                 onClick={() => handleOpenEditModal(u)}
                 className="text-xs text-[#174B43] font-semibold"

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { Badge, StatusBadge } from "../../../components/ui/badge";
@@ -62,6 +63,7 @@ interface WarehouseOption {
 }
 
 export default function InventoryReconciliationPage() {
+  const router = useRouter();
   const { lang, tenantContext, user } = useAuth();
   const [activeTab, setActiveTab] = useState<"stock-gl" | "in-transit" | "manufacturing">("stock-gl");
 
@@ -558,13 +560,18 @@ export default function InventoryReconciliationPage() {
                     exportFileName="in_transit_goods"
                     themeColor="saffron"
                     pageSize={10}
+                    onRowClick={(t) => router.push("/inventory/transfers")}
                     emptyState={
                       <div className="p-8 text-center text-slate-400 text-xs">
                         {lang === "gu" ? "કોઈ સક્રિય માલ રસ્તામાં નથી." : "No active goods currently in transit."}
                       </div>
                     }
                     mobileCardRender={(t) => (
-                      <div key={t.transferId || t.transferNumber} className="p-3 bg-white rounded-xl border border-slate-200 shadow-sm space-y-2 text-xs">
+                      <div
+                        key={t.transferId || t.transferNumber}
+                        onClick={() => router.push("/inventory/transfers")}
+                        className="p-3 bg-white rounded-xl border border-slate-200 shadow-sm space-y-2 text-xs cursor-pointer hover:border-indigo-400 transition-colors"
+                      >
                         <div className="flex justify-between items-start">
                           <span className="font-mono font-bold text-slate-900">{t.transferNumber}</span>
                           <span className="font-mono font-bold text-slate-900">₹{Number(t.inTransitValuation).toFixed(2)}</span>

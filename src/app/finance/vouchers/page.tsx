@@ -452,7 +452,7 @@ export default function FinanceVouchersPage() {
       header: lang === "gu" ? "ક્રિયા" : "Action",
       className: "text-right",
       cell: (v) => (
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => setSelectedVoucher(v)}
             className="px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
@@ -628,6 +628,7 @@ export default function FinanceVouchersPage() {
         searchKeys={["voucherNumber", "narration", "voucherType"]}
         defaultPageSize={10}
         isLoading={isLoading}
+        onRowClick={(v) => setSelectedVoucher(v)}
         emptyMessage={
           lang === "gu"
             ? "કોઈ વાઉચર નોંધાયેલ નથી. ઉપરના બટનથી નવું વાઉચર ઉમેરો."

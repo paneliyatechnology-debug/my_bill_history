@@ -858,7 +858,11 @@ export default function StaffAttendancePayrollView() {
                     const isOtherStatus = att.status === "HD" || att.status === "PL" || att.status === "WO";
 
                     return (
-                      <tr key={staff.id} className="hover:bg-slate-50/60 transition-colors">
+                      <tr
+                        key={staff.id}
+                        onClick={() => setDetailStaff(staff)}
+                        className="cursor-pointer hover:bg-indigo-50/20 transition-colors"
+                      >
                         
                         {/* 1. Staff Name */}
                         <td className="py-4 px-4 sm:px-6">
@@ -908,7 +912,10 @@ export default function StaffAttendancePayrollView() {
                         </td>
 
                         {/* 3. Attendance [ P ] [ A ] [ ... ] */}
-                        <td className="py-4 px-4 text-center">
+                        <td 
+                          className="py-4 px-4 text-center"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <div className="inline-flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200">
                             
                             {/* Present Button */}
@@ -1005,7 +1012,10 @@ export default function StaffAttendancePayrollView() {
                         </td>
 
                         {/* 4. Check In - Check Out */}
-                        <td className="py-4 px-4 text-center">
+                        <td 
+                          className="py-4 px-4 text-center"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <button
                             type="button"
                             onClick={() => {
@@ -1034,7 +1044,10 @@ export default function StaffAttendancePayrollView() {
                         </td>
 
                         {/* 6. Actions */}
-                        <td className="py-4 px-4 text-right">
+                        <td 
+                          className="py-4 px-4 text-right"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => {

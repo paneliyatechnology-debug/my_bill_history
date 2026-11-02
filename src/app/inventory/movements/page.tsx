@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { Badge } from "../../../components/ui/badge";
@@ -18,6 +19,7 @@ interface StockMovement {
 }
 
 export default function StockMovementsPage() {
+  const router = useRouter();
   const { lang, tenantContext } = useAuth();
   const [movements, setMovements] = useState<StockMovement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -163,6 +165,17 @@ export default function StockMovementsPage() {
         searchKeys={["transactionType"]}
         defaultPageSize={10}
         isLoading={isLoading}
+        onRowClick={(m) => {
+          if (m.referenceType === "SALES" || m.referenceType === "INVOICE") {
+            if (m.referenceId) router.push(`/sales/invoices/${m.referenceId}`);
+          } else if (m.referenceType === "PURCHASE") {
+            if (m.referenceId) router.push(`/purchases/invoices/${m.referenceId}`);
+          } else if (m.referenceType === "TRANSFER") {
+            router.push("/inventory/transfers");
+          } else {
+            router.push("/masters/items");
+          }
+        }}
         emptyMessage={
           lang === "gu"
             ? "કોઈ સ્ટોક વ્યવહાર નોંધાયેલ નથી"
@@ -178,7 +191,21 @@ export default function StockMovementsPage() {
             "SALES_CANCELLATION",
           ].includes(m.transactionType);
           return (
-            <div key={m.id} className="space-y-1.5">
+            <div
+              key={m.id}
+              onClick={() => {
+                if (m.referenceType === "SALES" || m.referenceType === "INVOICE") {
+                  if (m.referenceId) router.push(`/sales/invoices/${m.referenceId}`);
+                } else if (m.referenceType === "PURCHASE") {
+                  if (m.referenceId) router.push(`/purchases/invoices/${m.referenceId}`);
+                } else if (m.referenceType === "TRANSFER") {
+                  router.push("/inventory/transfers");
+                } else {
+                  router.push("/masters/items");
+                }
+              }}
+              className="space-y-1.5 cursor-pointer hover:bg-slate-50 transition-colors p-2 rounded-lg"
+            >
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-slate-900">
                   {m.item?.name || "Inventory Item"}

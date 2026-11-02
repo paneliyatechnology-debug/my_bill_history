@@ -685,7 +685,8 @@ export default function HsnMasterPage() {
                 data.map((item) => (
                   <tr
                     key={item.id}
-                    className={`hover:bg-slate-50/80 transition-colors ${
+                    onClick={() => handleViewDetails(item)}
+                    className={`cursor-pointer hover:bg-emerald-50/40 transition-colors ${
                       !item.isActive ? "opacity-60 bg-slate-50/40" : ""
                     }`}
                   >
@@ -778,7 +779,10 @@ export default function HsnMasterPage() {
                     </td>
 
                     {/* Active Status Toggle */}
-                    <td className="py-3 px-3 text-center">
+                    <td 
+                      className="py-3 px-3 text-center"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <button
                         type="button"
                         onClick={() => handleToggleStatus(item)}
@@ -798,7 +802,10 @@ export default function HsnMasterPage() {
                     </td>
 
                     {/* Actions */}
-                    <td className="py-3 px-4 text-center">
+                    <td 
+                      className="py-3 px-4 text-center"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <div className="inline-flex items-center justify-center gap-1">
                         {/* View Details */}
                         <button

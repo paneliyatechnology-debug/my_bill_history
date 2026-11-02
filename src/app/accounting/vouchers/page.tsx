@@ -171,7 +171,7 @@ export default function VouchersPage() {
       header: lang === "gu" ? "ક્રિયા" : "Action",
       className: "text-right",
       cell: (v) => (
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => setSelectedVoucher(v)}
             className="text-xs text-[#174B43] hover:text-[#123B35] font-semibold"
@@ -254,6 +254,7 @@ export default function VouchersPage() {
         searchKeys={["voucherNumber", "narration", "voucherType"]}
         defaultPageSize={10}
         isLoading={isLoading}
+        onRowClick={(v) => setSelectedVoucher(v)}
         emptyMessage={
           lang === "gu"
             ? "કોઈ વાઉચર નોંધાયેલ નથી"
@@ -278,7 +279,7 @@ export default function VouchersPage() {
           </div>
         }
         mobileCardRender={(v) => (
-          <div key={v.id} className="space-y-2">
+          <div key={v.id} onClick={() => setSelectedVoucher(v)} className="space-y-2 cursor-pointer hover:bg-slate-50 transition-colors p-2 rounded-lg">
             <div className="flex items-center justify-between">
               <span className="font-mono font-bold text-slate-900">
                 {v.voucherNumber}

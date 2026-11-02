@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
@@ -19,6 +20,7 @@ interface LedgerGroup {
 }
 
 export default function ChartOfAccountsPage() {
+  const router = useRouter();
   const { lang, tenantContext } = useAuth();
   const [groups, setGroups] = useState<LedgerGroup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -255,8 +257,13 @@ export default function ChartOfAccountsPage() {
         }
         exportFilename="chart_of_accounts_groups"
         themeColor="saffron"
+        onRowClick={(g) => router.push(`/accounting/ledgers?groupId=${g.id}`)}
         mobileCardRender={(g) => (
-          <div key={g.id || g.code} className="space-y-2">
+          <div
+            key={g.id || g.code}
+            onClick={() => router.push(`/accounting/ledgers?groupId=${g.id}`)}
+            className="space-y-2 cursor-pointer hover:bg-slate-50 transition-colors p-2 rounded-lg"
+          >
             <div className="flex items-center justify-between">
               <span className="font-mono font-bold text-slate-800">{g.code}</span>
               <Badge variant={classificationColor[g.classification] || "neutral"}>

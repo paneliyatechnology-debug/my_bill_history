@@ -438,7 +438,7 @@ export default function StockTransfersPage() {
       header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
       className: "text-right space-x-1.5 whitespace-nowrap",
       cell: (tr) => (
-        <div className="flex items-center justify-end gap-1.5">
+        <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => handleOpenRecon(tr)}
             className="text-xs text-slate-600 hover:text-[#174B43] font-medium px-2 py-1 rounded hover:bg-slate-100"
@@ -528,6 +528,7 @@ export default function StockTransfersPage() {
         searchKeys={["transferNumber", "challanNumber"]}
         defaultPageSize={10}
         isLoading={isLoading}
+        onRowClick={(tr) => setSelectedTransfer(tr)}
         emptyMessage={
           lang === "gu"
             ? "કોઈ સ્ટોક ટ્રાન્સફર મળ્યો નથી. ગોડાઉન વચ્ચે માલ મોકલવા માટે નવો સ્ટોક ટ્રાન્સફર બનાવો."
@@ -555,7 +556,7 @@ export default function StockTransfersPage() {
         mobileCardRender={(tr) => {
           const totalQty = tr.items.reduce((s, i) => s + Number(i.quantity), 0);
           return (
-            <div key={tr.id} className="space-y-2">
+            <div key={tr.id} onClick={() => setSelectedTransfer(tr)} className="space-y-2 cursor-pointer hover:bg-slate-50 transition-colors p-2 rounded-lg">
               <div className="flex items-center justify-between">
                 <div>
                   <span className="font-mono font-bold text-slate-900">

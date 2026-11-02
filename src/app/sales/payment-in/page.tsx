@@ -723,7 +723,8 @@ export default function PaymentInPage() {
                 displayedRows.map((row) => (
                   <tr
                     key={row.id}
-                    className={`hover:bg-[#F2FAF7]/70 transition-colors group ${
+                    onClick={() => row?.id && router.push(`/sales/payment-in/${row.id}`)}
+                    className={`hover:bg-[#F2FAF7]/70 transition-colors group cursor-pointer ${
                       row.isCancelled ? "opacity-60 bg-slate-50/50" : ""
                     }`}
                   >
@@ -748,6 +749,7 @@ export default function PaymentInPage() {
                       {row.partyId ? (
                         <Link
                           href={`/parties/${row.partyId}`}
+                          onClick={(e) => e.stopPropagation()}
                           className="hover:text-[#174B43] hover:underline transition-colors"
                         >
                           {row.partyName}
@@ -790,7 +792,7 @@ export default function PaymentInPage() {
                     </td>
 
                     {/* Action 3-dots */}
-                    <td className="relative px-4 py-3 text-center whitespace-nowrap overflow-visible">
+                    <td className="relative px-4 py-3 text-center whitespace-nowrap overflow-visible" onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
                         className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors cursor-pointer"

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
@@ -26,6 +27,7 @@ interface GroupOption {
 }
 
 export default function LedgersPage() {
+  const router = useRouter();
   const { lang, tenantContext } = useAuth();
   const [ledgers, setLedgers] = useState<LedgerAccount[]>([]);
   const [groups, setGroups] = useState<GroupOption[]>([]);
@@ -261,6 +263,7 @@ export default function LedgersPage() {
         searchKeys={["name", "code", "nameGujarati"]}
         defaultPageSize={10}
         isLoading={isLoading}
+        onRowClick={(l) => router.push(`/reports?tab=party-ledger&partyId=${l.id}`)}
         emptyMessage={
           lang === "gu"
             ? "કોઈ ખાતા મળ્યા નથી"

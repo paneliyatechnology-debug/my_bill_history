@@ -568,7 +568,7 @@ export default function PurchaseReturnsPage() {
                   return (
                     <tr
                       key={row.id}
-                      onClick={() => router.push(`${basePath}/${row.id}`)}
+                      onClick={() => row?.id && router.push(`${basePath}/${row.id}`)}
                       className="hover:bg-slate-50/80 transition-colors cursor-pointer"
                     >
                       <td className="px-4 py-3 whitespace-nowrap text-slate-600">

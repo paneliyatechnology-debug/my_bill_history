@@ -355,7 +355,10 @@ export default function BomPage() {
       header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
       align: "right",
       cell: (bom) => (
-        <div className="flex items-center justify-end space-x-2 whitespace-nowrap">
+        <div 
+          className="flex items-center justify-end space-x-2 whitespace-nowrap"
+          onClick={(e) => e.stopPropagation()}
+        >
           <button
             onClick={() => handleOpenView(bom)}
             className="text-xs text-slate-600 hover:text-[#174B43] font-medium px-2 py-1 rounded hover:bg-slate-100 transition-colors"
@@ -425,6 +428,7 @@ export default function BomPage() {
         data={boms}
         columns={columns}
         isLoading={isLoading}
+        onRowClick={(bom) => handleOpenView(bom)}
         searchPlaceholder={lang === "gu" ? "BOM અથવા તૈયાર માલના નામથી શોધો..." : "Search by BOM name or finished item..."}
         exportFileName="bill_of_materials"
         themeColor="saffron"
@@ -461,7 +465,11 @@ export default function BomPage() {
           </div>
         }
         mobileCardRender={(bom) => (
-          <div key={bom.id} className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3">
+          <div
+            key={bom.id}
+            onClick={() => handleOpenView(bom)}
+            className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3 cursor-pointer hover:border-[#174B43]/50 transition-colors"
+          >
             <div className="flex items-start justify-between">
               <div>
                 <div className="font-semibold text-slate-900">{bom.bomName}</div>
@@ -485,7 +493,10 @@ export default function BomPage() {
                 </span>
               </div>
             </div>
-            <div className="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100">
+            <div 
+              className="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100"
+              onClick={(e) => e.stopPropagation()}
+            >
               <button
                 onClick={() => handleOpenView(bom)}
                 className="text-xs text-slate-600 hover:text-[#174B43] font-medium px-2 py-1 rounded hover:bg-slate-100 transition-colors"

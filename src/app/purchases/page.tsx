@@ -979,7 +979,8 @@ export default function PurchasesPage() {
                       return (
                         <tr
                           key={inv.id}
-                          className="hover:bg-[#F8FAF9] transition-colors group"
+                          onClick={() => inv?.id && router.push(`/purchases/invoices/${inv.id}`)}
+                          className="hover:bg-[#F8FAF9] transition-colors group cursor-pointer"
                         >
                           {/* Date */}
                           <td className="py-3 px-4 text-slate-700 font-medium whitespace-nowrap">
@@ -1067,7 +1068,7 @@ export default function PurchasesPage() {
                           </td>
 
                           {/* Actions */}
-                          <td className="py-3 px-4 text-center relative">
+                          <td className="py-3 px-4 text-center relative" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center justify-center gap-1">
                               {/* Quick View */}
                               <Link

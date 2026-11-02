@@ -972,6 +972,7 @@ export default function ItemsPage() {
         }
         isLoading={isLoading}
         lang={lang}
+        onRowClick={(it) => handleOpenEditModal(it)}
         themeColor="purple"
         exportable
         exportFileName="items_catalog"
