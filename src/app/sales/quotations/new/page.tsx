@@ -110,7 +110,6 @@ export default function NewQuotationPage() {
   const [partyId, setPartyId] = useState("");
   const [partySearchTerm, setPartySearchTerm] = useState("");
   const [isPartyDropdownOpen, setIsPartyDropdownOpen] = useState(false);
-  const partyDropdownRef = useRef<HTMLDivElement | null>(null);
 
   // Quotation Meta
   const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
@@ -859,16 +858,15 @@ const [notes, setNotes] = useState("");
                       isOpen={isPartyDropdownOpen}
                       onOpenChange={setIsPartyDropdownOpen}
                       filteredParties={filteredParties}
-                      onSelectParty={(id) => {
-                        setPartyId(id);
-                        const p = parties.find((party) => party.id === id);
-                        if (p?.stateCode) setPlaceOfSupply(p.stateCode);
-                      }}
+                      onSelectParty={handlePartyChange}
                       onClearParty={() => {
                         setPartyId("");
                         setPartySearchTerm("");
                       }}
-                      onAddNew={() => setIsCreatePartyModalOpen(true)}
+                      onAddNew={() => {
+                        setIsPartyDropdownOpen(false);
+                        setIsCreatePartyModalOpen(true);
+                      }}
                       placeholder="Search customer..."
                     />
                   ),
@@ -1139,105 +1137,7 @@ const [notes, setNotes] = useState("");
       {/* POPUP MODALS                                                              */}
       {/* ========================================================================= */}
 
-      {/* Party Selection Modal / Dropdown */}
-      {isPartyDropdownOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-2xs flex items-center justify-center p-4">
-          <div
-            ref={partyDropdownRef}
-            className="bg-white rounded-2xl w-full max-w-lg shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-150"
-          >
-            {/* Modal Header */}
-            <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-              <div>
-                <h3 className="font-bold text-slate-900 text-sm">Select Party / Customer</h3>
-                <p className="text-[11px] text-slate-500">Choose a party for this quotation</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsPartyDropdownOpen(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm p-1"
-              >
-                ✕
-              </button>
-            </div>
 
-            {/* Search Input */}
-            <div className="p-3 border-b border-slate-100">
-              <input
-                type="text"
-                autoFocus
-                value={partySearchTerm}
-                onChange={(e) => setPartySearchTerm(e.target.value)}
-                placeholder="Search party by name, phone or GSTIN..."
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500"
-              />
-            </div>
-
-            {/* List Header */}
-            <div className="flex items-center justify-between px-4 py-2 bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-              <span>Party Name</span>
-              <span>Balance</span>
-            </div>
-
-            {/* Parties Scrollable List */}
-            <div className="overflow-y-auto divide-y divide-slate-100 flex-1 max-h-80">
-              {filteredParties.length === 0 ? (
-                <div className="p-6 text-center text-xs text-slate-500">
-                  No party found matching &quot;{partySearchTerm}&quot;
-                </div>
-              ) : (
-                filteredParties.map((p) => {
-                  const bal = p.outstandingBalance ?? 0;
-                  return (
-                    <div
-                      key={p.id}
-                      onClick={() => handlePartyChange(p.id)}
-                      className="flex items-center justify-between px-4 py-3 hover:bg-blue-50/60 cursor-pointer transition-colors text-xs"
-                    >
-                      <div>
-                        <p className="font-bold text-slate-900">{p.name}</p>
-                        <p className="text-[10px] text-slate-500">
-                          {p.phone || p.gstin || "Cash Customer"}
-                        </p>
-                      </div>
-                      <div className="text-right font-mono font-bold">
-                        {bal > 0 ? (
-                          <span className="text-rose-600 flex items-center gap-1 justify-end">
-                            <span>{formatInr(bal)}</span>
-                            <span>↑</span>
-                          </span>
-                        ) : bal < 0 ? (
-                          <span className="text-emerald-600 flex items-center gap-1 justify-end">
-                            <span>{formatInr(Math.abs(bal))}</span>
-                            <span>↓</span>
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">₹ 0</span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-
-            {/* Footer: + Create Party */}
-            <div className="p-3 border-t border-slate-200 bg-slate-50">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsPartyDropdownOpen(false);
-                  setIsCreatePartyModalOpen(true);
-                }}
-                className="w-full py-2.5 border-2 border-dashed border-blue-400 bg-white hover:bg-blue-50/50 rounded-xl text-xs font-bold text-blue-600 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
-              >
-                <span className="text-base font-bold">+</span>
-                <span>Create New Party</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Catalog AddItemsModal (with Party Rate support) */}
       <AddItemsModal

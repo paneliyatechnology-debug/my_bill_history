@@ -49,11 +49,18 @@ export function PartySelectorCompact({
         onOpenChange(false);
       }
     }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        onOpenChange(false);
+      }
+    }
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, onOpenChange]);
 
@@ -126,7 +133,15 @@ export function PartySelectorCompact({
             {onAddNew && (
               <button
                 type="button"
-                onClick={onAddNew}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  onOpenChange(false);
+                  onAddNew();
+                }}
+                onClick={() => {
+                  onOpenChange(false);
+                  onAddNew();
+                }}
                 className="text-[#174B43] hover:underline font-bold"
               >
                 + Add New
@@ -140,7 +155,15 @@ export function PartySelectorCompact({
                 {onAddNew && (
                   <button
                     type="button"
-                    onClick={onAddNew}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      onOpenChange(false);
+                      onAddNew();
+                    }}
+                    onClick={() => {
+                      onOpenChange(false);
+                      onAddNew();
+                    }}
                     className="mt-1 text-xs text-[#174B43] font-bold hover:underline"
                   >
                     Create &quot;{searchTerm}&quot;
@@ -151,6 +174,11 @@ export function PartySelectorCompact({
               filteredParties.map((p) => (
                 <div
                   key={p.id}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    onSelectParty(p.id);
+                    onOpenChange(false);
+                  }}
                   onClick={() => {
                     onSelectParty(p.id);
                     onOpenChange(false);

@@ -143,6 +143,7 @@ const [notes, setNotes] = useState("");
   const [paymentAmountReceived, setPaymentAmountReceived] = useState<number | "">("");
 
   // Modals state
+  const [isPartyDropdownOpen, setIsPartyDropdownOpen] = useState(false);
   const [isAddPartyModalOpen, setIsAddPartyModalOpen] = useState(false);
   const [partySearchQuery, setPartySearchQuery] = useState("");
   const [newPartyName, setNewPartyName] = useState("");
@@ -631,19 +632,24 @@ return (
                       selectedParty={selectedParty}
                       searchTerm={partySearchQuery}
                       onSearchChange={setPartySearchQuery}
-                      isOpen={isAddPartyModalOpen}
-                      onOpenChange={setIsAddPartyModalOpen}
+                      isOpen={isPartyDropdownOpen}
+                      onOpenChange={setIsPartyDropdownOpen}
                       filteredParties={filteredParties}
                       onSelectParty={(id) => {
                         setPartyId(id);
                         const p = parties.find((party) => party.id === id);
                         if (p?.stateCode) setPlaceOfSupply(p.stateCode);
+                        setIsPartyDropdownOpen(false);
+                        setPartySearchQuery("");
                       }}
                       onClearParty={() => {
                         setPartyId("");
                         setPartySearchQuery("");
                       }}
-                      onAddNew={() => setIsAddPartyModalOpen(true)}
+                      onAddNew={() => {
+                        setIsPartyDropdownOpen(false);
+                        setIsAddPartyModalOpen(true);
+                      }}
                       placeholder="Search customer..."
                     />
                   ),
