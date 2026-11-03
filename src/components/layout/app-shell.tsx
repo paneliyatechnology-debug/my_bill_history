@@ -771,6 +771,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </svg>
       ),
     },
+    // Temporarily commented out as requested (keep for future use)
+    /*
     {
       id: "sms_marketing",
       name: "SMS Marketing",
@@ -793,6 +795,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </svg>
       ),
     },
+    */
     {
       id: "payroll",
       name: "Staff Attendance & Payroll",
