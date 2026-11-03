@@ -37,6 +37,14 @@ export default function (phase) {
           source: '/api/v1/:path*',
           destination,
         },
+        {
+          source: '/sales/sales-returns/:path*',
+          destination: '/sales/returns/:path*',
+        },
+        {
+          source: '/purchases/purchase-returns/:path*',
+          destination: '/purchases/returns/:path*',
+        },
       ];
     },
   };

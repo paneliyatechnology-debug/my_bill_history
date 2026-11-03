@@ -440,16 +440,48 @@ export default function InvoiceDetailPage() {
 
   if (error || !invoice) {
     return (
-      <div className="p-6 bg-rose-50 border border-rose-200 rounded-xl text-center space-y-3">
-        <p className="text-xs font-semibold text-rose-700">
-          {error || "Invoice not found."}
-        </p>
-        <Link
-          href="/sales/invoices"
-          className="text-xs text-primary font-medium hover:underline"
-        >
-          Return to Invoices List
-        </Link>
+      <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 text-center">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-md border border-slate-200/80 p-6 sm:p-8 text-center animate-in fade-in zoom-in-95 duration-200">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 border border-amber-100 text-amber-600 shadow-xs">
+            <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 mb-2">
+            Record Not Found · મળેલ નથી
+          </span>
+          <h2 className="text-xl font-bold text-slate-900">
+            {lang === "gu" ? "વેચાણ બિલ મળેલ નથી" : "Sales Invoice Not Found"}
+          </h2>
+          <p className="text-xs font-semibold text-[#174B43] mt-0.5">
+            {lang === "gu" ? "આ બિલ કાઢી નાખવામાં આવ્યું હોઈ શકે છે" : "The invoice may have been deleted or removed"}
+          </p>
+          <p className="mt-2 text-xs sm:text-sm text-slate-500 leading-relaxed">
+            {error || (lang === "gu" ? "વિનંતી કરેલ વેચાણ બિલ ઉપલબ્ધ નથી. સંકળાયેલા તમામ ખાતાઓ યોગ્ય રીતે સચવાયેલા છે." : "The requested invoice does not exist or has been removed. All corresponding entries and effects have been cleanly maintained.")}
+          </p>
+          <div className="mt-6 pt-4 border-t border-slate-100 flex flex-col gap-2">
+            <Link
+              href="/sales/invoices"
+              className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-[#174B43] px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-[#123B35] transition-colors"
+            >
+              <span>{lang === "gu" ? "વેચાણ બિલોની યાદી પર પાછા જાઓ" : "Return to Invoices List"}</span>
+            </Link>
+            <div className="grid grid-cols-2 gap-2 mt-1">
+              <Link
+                href="/sales/returns"
+                className="flex items-center justify-center py-2 px-3 rounded-lg text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+              >
+                <span>Sales Returns</span>
+              </Link>
+              <Link
+                href="/sales/invoices/new"
+                className="flex items-center justify-center py-2 px-3 rounded-lg text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors"
+              >
+                <span>+ Create Invoice</span>
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
