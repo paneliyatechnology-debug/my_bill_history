@@ -425,9 +425,10 @@ export function DynamicThemedInvoice({
     { hsn: string; taxable: number; rate: number; cgst: number; sgst: number; igst: number; total: number }
   > = {};
 
-  (invoice.items || []).forEach((it) => {
-    const hsn = it.hsnCode || "GENERAL";
-    const rate = it.taxRate || 0;
+  (invoice.items || []).forEach((it: any) => {
+    const hsn = it.hsnCode || it.item?.hsnCode || "GENERAL";
+    const rawRate = it.taxRate ?? it.taxPercent ?? it.rate ?? 0;
+    const rate = Number(rawRate) || 0;
     const taxable = Number(it.taxableAmount || 0);
     const cgst = Number(it.cgstAmount || 0);
     const sgst = Number(it.sgstAmount || 0);
@@ -782,26 +783,34 @@ export function DynamicThemedInvoice({
                       </tr>
                     </thead>
                     <tbody className="font-mono text-slate-900 font-semibold">
-                      {hsnList.map((row) => (
-                        <tr key={row.hsn} className="border-b border-black/20">
-                          <td className="text-left py-0.5">{row.hsn}</td>
-                          <td className="py-0.5">{row.taxable.toFixed(2)}</td>
-                          {!isInterState ? (
-                            <>
-                              <td className="py-0.5">{(row.rate / 2).toFixed(1)}%</td>
-                              <td className="py-0.5">{row.cgst.toFixed(2)}</td>
-                              <td className="py-0.5">{(row.rate / 2).toFixed(1)}%</td>
-                              <td className="py-0.5">{row.sgst.toFixed(2)}</td>
-                            </>
-                          ) : (
-                            <>
-                              <td className="py-0.5">{row.rate.toFixed(1)}%</td>
-                              <td className="py-0.5">{row.igst.toFixed(2)}</td>
-                            </>
-                          )}
-                          <td className="py-0.5 font-bold">{row.total.toFixed(2)}</td>
-                        </tr>
-                      ))}
+                      {hsnList.map((row) => {
+                        const rowTaxable = Number(row.taxable || 0);
+                        const rowRate = Number(row.rate || 0);
+                        const rowCgst = Number(row.cgst || 0);
+                        const rowSgst = Number(row.sgst || 0);
+                        const rowIgst = Number(row.igst || 0);
+                        const rowTotal = Number(row.total || 0);
+                        return (
+                          <tr key={row.hsn} className="border-b border-black/20">
+                            <td className="text-left py-0.5">{row.hsn}</td>
+                            <td className="py-0.5">{rowTaxable.toFixed(2)}</td>
+                            {!isInterState ? (
+                              <>
+                                <td className="py-0.5">{(rowRate / 2).toFixed(1)}%</td>
+                                <td className="py-0.5">{rowCgst.toFixed(2)}</td>
+                                <td className="py-0.5">{(rowRate / 2).toFixed(1)}%</td>
+                                <td className="py-0.5">{rowSgst.toFixed(2)}</td>
+                              </>
+                            ) : (
+                              <>
+                                <td className="py-0.5">{rowRate.toFixed(1)}%</td>
+                                <td className="py-0.5">{rowIgst.toFixed(2)}</td>
+                              </>
+                            )}
+                            <td className="py-0.5 font-bold">{rowTotal.toFixed(2)}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -1314,11 +1323,11 @@ export function DynamicThemedInvoice({
                     {hsnList.map((h, i) => (
                       <tr key={i} className="border-b border-slate-200">
                         <td className="p-1 border-r border-slate-300 font-mono">{h.hsn}</td>
-                        <td className="p-1 border-r border-slate-300 text-right font-mono">₹{h.taxable.toFixed(2)}</td>
-                        <td className="p-1 border-r border-slate-300 text-right font-mono">₹{h.cgst.toFixed(2)}</td>
-                        <td className="p-1 border-r border-slate-300 text-right font-mono">₹{h.sgst.toFixed(2)}</td>
-                        <td className="p-1 border-r border-slate-300 text-right font-mono">₹{h.igst.toFixed(2)}</td>
-                        <td className="p-1 text-right font-mono font-bold">₹{h.total.toFixed(2)}</td>
+                        <td className="p-1 border-r border-slate-300 text-right font-mono">₹{Number(h.taxable || 0).toFixed(2)}</td>
+                        <td className="p-1 border-r border-slate-300 text-right font-mono">₹{Number(h.cgst || 0).toFixed(2)}</td>
+                        <td className="p-1 border-r border-slate-300 text-right font-mono">₹{Number(h.sgst || 0).toFixed(2)}</td>
+                        <td className="p-1 border-r border-slate-300 text-right font-mono">₹{Number(h.igst || 0).toFixed(2)}</td>
+                        <td className="p-1 text-right font-mono font-bold">₹{Number(h.total || 0).toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1378,7 +1387,7 @@ export function DynamicThemedInvoice({
                   {invoice.roundOff !== undefined && invoice.roundOff !== 0 && (
                     <div className="flex justify-between py-0.5 text-slate-600">
                       <span>Round Off:</span>
-                      <span className="font-mono">₹{Number(invoice.roundOff).toFixed(2)}</span>
+                      <span className="font-mono">₹{Number(invoice.roundOff || 0).toFixed(2)}</span>
                     </div>
                   )}
                   <div className="flex justify-between py-1 border-t-2 border-black font-black text-sm text-slate-950 mt-1">
@@ -1388,13 +1397,13 @@ export function DynamicThemedInvoice({
                   {invoice.paidAmount !== undefined && invoice.paidAmount > 0 && (
                     <div className="flex justify-between py-0.5 text-emerald-700 font-bold text-[10px]">
                       <span>Amount Received / Paid:</span>
-                      <span className="font-mono">₹{Number(invoice.paidAmount).toFixed(2)}</span>
+                      <span className="font-mono">₹{Number(invoice.paidAmount || 0).toFixed(2)}</span>
                     </div>
                   )}
                   {invoice.balanceAmount !== undefined && (
                     <div className="flex justify-between py-0.5 text-rose-700 font-bold text-[10px]">
                       <span>Balance Due:</span>
-                      <span className="font-mono">₹{Number(invoice.balanceAmount).toFixed(2)}</span>
+                      <span className="font-mono">₹{Number(invoice.balanceAmount || 0).toFixed(2)}</span>
                     </div>
                   )}
                 </div>

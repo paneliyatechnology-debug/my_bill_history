@@ -1377,10 +1377,10 @@ export default function InvoiceDetailPage() {
                         <tr key={idx} className="hover:bg-slate-50/50">
                           <td className="py-2 px-3 font-medium text-slate-800">{it.name}</td>
                           <td className="py-2 px-3 text-right font-mono">{it.qty}</td>
-                          <td className="py-2 px-3 text-right font-mono text-slate-700">₹{it.sellingRate.toFixed(2)}</td>
-                          <td className="py-2 px-3 text-right font-mono text-slate-500">₹{it.purchaseRate.toFixed(2)}</td>
-                          <td className="py-2 px-3 text-right font-mono font-bold text-emerald-700">₹{it.itemProfit.toFixed(2)}</td>
-                          <td className="py-2 px-3 text-right font-mono text-indigo-700 font-semibold">{it.margin.toFixed(1)}%</td>
+                          <td className="py-2 px-3 text-right font-mono text-slate-700">₹{Number(it.sellingRate || 0).toFixed(2)}</td>
+                          <td className="py-2 px-3 text-right font-mono text-slate-500">₹{Number(it.purchaseRate || 0).toFixed(2)}</td>
+                          <td className="py-2 px-3 text-right font-mono font-bold text-emerald-700">₹{Number(it.itemProfit || 0).toFixed(2)}</td>
+                          <td className="py-2 px-3 text-right font-mono text-indigo-700 font-semibold">{Number(it.margin || 0).toFixed(1)}%</td>
                         </tr>
                       ))}
                     </tbody>

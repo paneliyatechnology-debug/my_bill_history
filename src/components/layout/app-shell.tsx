@@ -662,7 +662,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       name: "Automated Bills",
       nameGujarati: "ઓટોમેટેડ બિલ્સ",
       group: "ACCOUNTING SOLUTIONS",
-      href: "/sales/invoices",
+      href: "/sales/automated-billing",
       icon: (
         <svg
           className="w-5 h-5"

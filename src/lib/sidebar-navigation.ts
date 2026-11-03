@@ -219,6 +219,12 @@ export function resolveActiveNavigation(rawPath: string): {
   ) {
     activeSectionId = "pos";
   } else if (
+    isPathPrefixMatch(path, "/sales/automated-billing") ||
+    isPathPrefixMatch(path, "/sales/automated-bills") ||
+    isPathPrefixMatch(path, "/app/home/vouchers/automated_billing")
+  ) {
+    activeSectionId = "automated_bills";
+  } else if (
     isPathPrefixMatch(path, "/app/data-import") ||
     isPathPrefixMatch(path, "/data-import")
   ) {
