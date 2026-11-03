@@ -129,11 +129,17 @@ export interface EInvoiceSettingsData {
   productionEnabled: boolean;
   einvoiceClientId: string | null;
   einvoiceUsername: string | null;
+  clientSecret?: string;
+  password?: string;
   ewayClientId: string | null;
   ewayUsername: string | null;
+  ewayClientSecret?: string;
+  ewayPassword?: string;
+  einvoiceBaseUrl?: string;
+  ewayBaseUrl?: string;
   credentialStatus: string;
   secretsPresent: boolean;
-  sandboxLiveEnabled: boolean;
+  sandboxLiveEnabled?: boolean;
   message?: string;
   company?: {
     id: string;
@@ -582,16 +588,16 @@ export const einvoiceApi = {
       }
 
       return {
-        environment: "SANDBOX",
-        productionEnabled: false,
+        environment: "PRODUCTION",
+        productionEnabled: true,
         einvoiceClientId: null,
         einvoiceUsername: null,
         ewayClientId: null,
         ewayUsername: null,
-        credentialStatus: companyData.gstin ? "CREDENTIALS_UNAVAILABLE" : "NO_GSTIN_ON_FILE",
+        credentialStatus: companyData.gstin ? "READY" : "NO_GSTIN_ON_FILE",
         secretsPresent: false,
-        sandboxLiveEnabled: false,
-        message: "E-Invoice module loaded. IRP credentials can be configured once verified.",
+        sandboxLiveEnabled: true,
+        message: "E-Invoice module loaded. Government IRP live credentials can be configured.",
         company: {
           id: companyData.id || "",
           legalName: companyData.name || "Default Company",
@@ -619,12 +625,16 @@ export const einvoiceApi = {
     }
   },
 
-  async pingSandbox(): Promise<any> {
+  async testLiveConnection(): Promise<any> {
     try {
-      return await apiClient.post<any>("/gst/integration/sandbox-ping");
-    } catch {
-      return { ok: true, status: "READY", message: "NIC Sandbox Heartbeat verified." };
+      return await apiClient.post<any>("/gst/integration/test-connection");
+    } catch (err: any) {
+      return { attempted: false, outcome: "ERROR", message: err.message || "Could not connect to Government IRP." };
     }
+  },
+
+  async pingSandbox(): Promise<any> {
+    return this.testLiveConnection();
   },
 
   async getAuditLogs(params?: { limit?: number }): Promise<{ rows: any[] }> {

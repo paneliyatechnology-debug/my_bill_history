@@ -49,8 +49,8 @@ function Body() {
     setMessage(null);
     try {
       const saved = await apiClient.put<any>("/gst/integration", {
-        environment: "SANDBOX",
-        productionEnabled: false,
+        environment: "PRODUCTION",
+        productionEnabled: true,
         einvoiceClientId: clientId,
         einvoiceUsername: username,
       });
@@ -64,29 +64,28 @@ function Body() {
   const ping = async () => {
     setMessage(null);
     try {
-      const result = await apiClient.post<any>("/gst/integration/sandbox-ping");
+      const result = await apiClient.post<any>("/gst/integration/live-ping");
       setMessage(`${result.outcome}: ${result.message || "No further detail."}`);
     } catch (err: any) {
-      setMessage(err.message || "Sandbox check failed.");
+      setMessage(err.message || "Connection check failed.");
     }
   };
 
   return (
     <Panel loading={loading} error={error} onRetry={load} empty={!tenantContext.companyId ? "Sign in and select a company before changing GST settings." : null}>
       <div className="bg-white border border-slate-200 rounded-xl p-4 text-sm space-y-2">
-        <p>Company GSTIN: {currentCompany?.gstin || "Add it in Company Settings. This page does not invent one."}</p>
+        <p>Company GSTIN: {currentCompany?.gstin || "Add it in Company Settings."}</p>
         <p>State code: {currentCompany?.stateCode || "—"}</p>
-        <p>Environment: {config?.environment} · credential status: {config?.credentialStatus}</p>
+        <p>Environment: {config?.environment || "PRODUCTION"} · credential status: {config?.credentialStatus}</p>
         <p>{config?.message}</p>
-        <p>Production mode: {config?.productionMode}. Sandbox live flag: {String(config?.sandboxLiveEnabled)}.</p>
-        <p>Put client secret and password in GST_EINVOICE_CLIENT_SECRET and GST_EINVOICE_PASSWORD. Set GST_CREDENTIALS_ENCRYPTION_KEY before storing ciphertext. Follow docs/gst-sandbox-checklist.md.</p>
+        <p>Production mode: {config?.productionMode || "LIVE_GOVERNMENT_PORTAL"}.</p>
         {canWrite ? (
           <div className="space-y-2">
-            <input className="border rounded px-2 py-1 w-full sm:w-80" placeholder="Sandbox client id" value={clientId} onChange={(event) => setClientId(event.target.value)} />
-            <input className="border rounded px-2 py-1 w-full sm:w-80" placeholder="Sandbox username" value={username} onChange={(event) => setUsername(event.target.value)} />
+            <input className="border rounded px-2 py-1 w-full sm:w-80" placeholder="IRP Client ID" value={clientId} onChange={(event) => setClientId(event.target.value)} />
+            <input className="border rounded px-2 py-1 w-full sm:w-80" placeholder="IRP Username" value={username} onChange={(event) => setUsername(event.target.value)} />
             <div className="flex gap-2">
-              <button type="button" className="px-3 py-1.5 rounded bg-slate-900 text-white" onClick={save}>Save sandbox identifiers</button>
-              <button type="button" className="px-3 py-1.5 rounded border" onClick={ping}>Sandbox connectivity check</button>
+              <button type="button" className="px-3 py-1.5 rounded bg-emerald-700 text-white" onClick={save}>Save IRP Identifiers</button>
+              <button type="button" className="px-3 py-1.5 rounded border" onClick={ping}>Test Live IRP Connection</button>
             </div>
           </div>
         ) : <p>Your role cannot change GST settings.</p>}

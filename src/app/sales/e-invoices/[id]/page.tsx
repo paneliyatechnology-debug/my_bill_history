@@ -230,7 +230,7 @@ export default function EInvoiceDetailsPage() {
                   STATUTORY IRN ISSUED
                 </span>
                 <span className="text-xs text-slate-500">
-                  Environment: <b className="uppercase">{eInvoice.environment || "SANDBOX"}</b> · Provider: <b>{eInvoice.providerName || "NIC"}</b>
+                  Environment: <b className="uppercase text-emerald-800">{eInvoice.environment || "PRODUCTION"}</b> · Provider: <b>{eInvoice.providerName || "NIC"}</b>
                 </span>
               </div>
 

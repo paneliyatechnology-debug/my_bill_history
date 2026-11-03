@@ -236,6 +236,11 @@ export function resolveActiveNavigation(rawPath: string): {
   ) {
     activeSectionId = "users";
   } else if (
+    isPathPrefixMatch(path, "/home/sms-marketing") ||
+    isPathPrefixMatch(path, "/sms-marketing")
+  ) {
+    activeSectionId = "sms_marketing";
+  } else if (
     isPathPrefixMatch(path, "/marketing")
   ) {
     activeSectionId = "marketing";
