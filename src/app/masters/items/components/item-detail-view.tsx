@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { apiClient } from "../../../../lib/api-client";
 import {
   PartyWisePriceRule,
@@ -132,6 +133,7 @@ export function ItemDetailView({
   categories = [],
   lang = "en",
 }: ItemDetailViewProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<ItemDetailTab>("details");
   const [leftSearch, setLeftSearch] = useState("");
 
@@ -766,13 +768,28 @@ export function ItemDetailView({
                     ) : (
                       stockMovements.map((m) => {
                         const isMinus = m.quantity < 0;
+                        const hasLink = Boolean(m.docLink);
                         return (
-                          <tr key={m.id} className="hover:bg-slate-50/60">
+                          <tr
+                            key={m.id}
+                            onClick={() => {
+                              if (m.docLink) {
+                                router.push(m.docLink);
+                              }
+                            }}
+                            className={`transition-colors ${
+                              hasLink
+                                ? "cursor-pointer hover:bg-indigo-50/70 group"
+                                : "hover:bg-slate-50/60"
+                            }`}
+                          >
                             <td className="px-5 py-3 whitespace-nowrap text-slate-700">
                               {formatDateDisplay(m.date)}
                             </td>
                             <td className="px-5 py-3 whitespace-nowrap font-medium text-slate-900">
-                              {m.transactionType}
+                              <span className={hasLink ? "group-hover:text-indigo-600 transition-colors" : ""}>
+                                {m.transactionType}
+                              </span>
                             </td>
                             <td
                               className={`px-5 py-3 whitespace-nowrap font-semibold ${
@@ -781,20 +798,33 @@ export function ItemDetailView({
                             >
                               {m.quantity > 0 ? `+${m.quantity}` : `${m.quantity}`} {uomLabel}
                             </td>
-                            <td className="px-5 py-3 whitespace-nowrap text-slate-700">
-                              {m.invoiceNumber || "-"}
+                            <td className="px-5 py-3 whitespace-nowrap">
+                              {hasLink ? (
+                                <Link
+                                  href={m.docLink!}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center gap-1 font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                                >
+                                  <span>{m.invoiceNumber && m.invoiceNumber !== "-" ? m.invoiceNumber : "Open Invoice"}</span>
+                                  <span className="text-[10px]">↗</span>
+                                </Link>
+                              ) : (
+                                <span className="text-slate-500 font-medium">{m.invoiceNumber || "-"}</span>
+                              )}
                             </td>
                             <td className="px-5 py-3 whitespace-nowrap font-semibold text-slate-900">
                               {m.closingStock} {uomLabel}
                             </td>
                             <td className="px-5 py-3 text-right whitespace-nowrap">
-                              {m.docLink ? (
+                              {hasLink ? (
                                 <Link
-                                  href={m.docLink}
-                                  title="View document"
-                                  className="inline-flex items-center justify-center p-1 rounded-md text-indigo-600 hover:bg-indigo-50 transition-colors"
+                                  href={m.docLink!}
+                                  onClick={(e) => e.stopPropagation()}
+                                  title="Open Invoice / Voucher"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors cursor-pointer"
                                 >
-                                  📄
+                                  <span>Open</span>
+                                  <span className="text-[10px]">↗</span>
                                 </Link>
                               ) : (
                                 <span className="text-slate-300">-</span>
