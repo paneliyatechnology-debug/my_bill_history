@@ -161,6 +161,7 @@ function clearAuthStorage() {
   if (typeof window === "undefined") return;
   try {
     localStorage.removeItem("billing_auth_token");
+    localStorage.removeItem("billing_refresh_token");
     localStorage.removeItem("billing_user_profile");
     localStorage.removeItem("billing_tenant_context");
     localStorage.removeItem("billing_support_session");
@@ -189,6 +190,7 @@ interface AuthContextType {
   currentFY: FinancialYearInfo | null;
   login: (data: {
     accessToken: string;
+    refreshToken?: string;
     user: UserProfile;
     defaultContext?: TenantContextState;
   }) => Promise<void>;
@@ -644,6 +646,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (data: {
     accessToken: string;
+    refreshToken?: string;
     user: UserProfile;
     defaultContext?: TenantContextState;
   }) => {
@@ -660,6 +663,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== "undefined") {
       try {
         localStorage.setItem("billing_auth_token", data.accessToken);
+        if (data.refreshToken) {
+          localStorage.setItem("billing_refresh_token", data.refreshToken);
+        }
         localStorage.setItem(
           "billing_user_profile",
           JSON.stringify(normalizedUser),

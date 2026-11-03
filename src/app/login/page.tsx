@@ -104,6 +104,7 @@ function LoginContent() {
       if (res?.accessToken) {
         await login({
           accessToken: res.accessToken,
+          refreshToken: res.refreshToken,
           user: res.user,
           defaultContext: res.defaultContext,
         });
@@ -177,6 +178,7 @@ function LoginContent() {
       if (res?.accessToken) {
         await login({
           accessToken: res.accessToken,
+          refreshToken: res.refreshToken,
           user: res.user,
           defaultContext: res.defaultContext,
         });

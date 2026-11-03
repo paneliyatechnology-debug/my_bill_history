@@ -46,9 +46,26 @@ export interface RequestOptions extends RequestInit {
 
 const DEFAULT_TIMEOUT_MS = 60000; // 60s to accommodate cloud cold starts (Render/Fly)
 
-const getStoredToken = (): string | null => {
+export const getStoredToken = (): string | null => {
   if (typeof window === "undefined") return null;
   return localStorage.getItem("billing_auth_token");
+};
+
+export const getStoredRefreshToken = (): string | null => {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("billing_refresh_token");
+};
+
+export const setStoredTokens = (accessToken: string, refreshToken?: string) => {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem("billing_auth_token", accessToken);
+    if (refreshToken) {
+      localStorage.setItem("billing_refresh_token", refreshToken);
+    }
+  } catch {
+    // Storage failover
+  }
 };
 
 const getStoredTenant = (): TenantHeaders => {
@@ -120,6 +137,7 @@ export function handleUnauthorized(redirectTarget?: string) {
   isRedirectingToLogin = true;
   try {
     localStorage.removeItem("billing_auth_token");
+    localStorage.removeItem("billing_refresh_token");
     localStorage.removeItem("billing_user_profile");
     localStorage.removeItem("billing_tenant_context");
   } catch {
@@ -134,6 +152,56 @@ export function handleUnauthorized(redirectTarget?: string) {
 
   // Use replace to avoid browser history trap
   window.location.replace(`/login${redirectParam}`);
+}
+
+let refreshPromise: Promise<string | null> | null = null;
+
+export async function refreshSessionToken(): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+  if (refreshPromise) return refreshPromise;
+
+  const rawRefreshToken = getStoredRefreshToken();
+  if (!rawRefreshToken) return null;
+
+  refreshPromise = (async () => {
+    try {
+      const baseUrl = resolveApiBase();
+      const tenant = getStoredTenant();
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (tenant.organizationId) headers["x-organization-id"] = tenant.organizationId;
+      if (tenant.companyId) headers["x-company-id"] = tenant.companyId;
+      if (tenant.branchId) headers["x-branch-id"] = tenant.branchId;
+
+      const res = await fetch(`${baseUrl}/auth/refresh-token`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          refreshToken: rawRefreshToken,
+          companyId: tenant.companyId,
+          branchId: tenant.branchId,
+        }),
+      });
+
+      if (!res.ok) {
+        return null;
+      }
+
+      const data = await res.json();
+      if (data?.accessToken) {
+        setStoredTokens(data.accessToken, data.refreshToken);
+        return data.accessToken as string;
+      }
+      return null;
+    } catch {
+      return null;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
 }
 
 async function request<T>(
@@ -230,6 +298,43 @@ async function request<T>(
   }
 
   if (!response.ok) {
+    const isAuthRoute =
+      cleanPath.startsWith("/auth/login") ||
+      cleanPath.startsWith("/auth/register") ||
+      cleanPath.startsWith("/auth/refresh") ||
+      cleanPath.startsWith("/auth/otp");
+
+    if (
+      response.status === 401 &&
+      !isAuthRoute &&
+      typeof window !== "undefined" &&
+      Boolean(getStoredRefreshToken())
+    ) {
+      const refreshedAccessToken = await refreshSessionToken();
+      if (refreshedAccessToken) {
+        const retryHeaders: Record<string, string> = {
+          ...headers,
+          Authorization: `Bearer ${refreshedAccessToken}`,
+        };
+        try {
+          const retryRes = await fetch(url, {
+            ...options,
+            headers: retryHeaders,
+          });
+          if (retryRes.ok) {
+            const contentType = retryRes.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+              return retryRes.json();
+            }
+            return retryRes.text() as unknown as T;
+          }
+          response = retryRes;
+        } catch {
+          // If retry network fails, keep original 401 response to proceed
+        }
+      }
+    }
+
     let errBody: any = null;
     try {
       const contentType = response.headers.get("content-type");
@@ -464,6 +569,10 @@ export const apiClient = {
     a.click();
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
+  },
+
+  refreshToken(): Promise<string | null> {
+    return refreshSessionToken();
   },
 };
 
