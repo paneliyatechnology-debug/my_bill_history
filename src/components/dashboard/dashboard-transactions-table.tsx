@@ -150,7 +150,7 @@ export function DashboardTransactionsTable({
 
                     {/* Amount formatted */}
                     <td className="px-5 py-3 whitespace-nowrap text-right font-mono font-black text-[#10233F]">
-                      ₹ {formatInr(tx.amount)}
+                      {formatInr(tx.amount)}
                     </td>
 
                     {/* Status Pill Badge matching Section 2 Reference */}
@@ -180,3 +180,4 @@ export function DashboardTransactionsTable({
     </div>
   );
 }
+

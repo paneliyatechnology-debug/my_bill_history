@@ -197,7 +197,7 @@ function DashboardContent() {
         <DashboardKpiCard
           id="collect"
           variant="receivable"
-          title="TO COLLECT (RECEIVABLES)"
+          title="To Collect (Receivables)"
           titleGujarati="ઉઘરાણી (લેવાના બાકી)"
           amount={toCollect > 0 ? toCollect : 2100}
           subtitle="Open customer balances"
@@ -211,7 +211,7 @@ function DashboardContent() {
         <DashboardKpiCard
           id="pay"
           variant="payable"
-          title="TO PAY (PAYABLES)"
+          title="To Pay (Payables)"
           titleGujarati="ચૂકવવાના બાકી (દેવાના)"
           amount={toPay > 0 ? toPay : 3150}
           subtitle="Pending supplier bills"
@@ -225,7 +225,7 @@ function DashboardContent() {
         <DashboardKpiCard
           id="cash-bank"
           variant="cash-bank"
-          title="CASH & BANK BALANCE"
+          title="Cash & Bank Balance"
           titleGujarati="રોકડ અને બેંક સિલક"
           amount={cashBankBalance > 0 ? cashBankBalance : 194200}
           subtitle="Liquid Treasury Funds"
@@ -238,7 +238,7 @@ function DashboardContent() {
         <DashboardKpiCard
           id="sales-7d"
           variant="sales"
-          title="SALES (LAST 7 DAYS)"
+          title="Sales (Last 7 Days)"
           titleGujarati="વેચાણ (છેલ્લા 7 દિવસ)"
           amount={sevenDaysSales > 0 ? sevenDaysSales : 289800}
           subtitle={`${invoicesCount > 0 ? invoicesCount : 8} Invoices Created`}
@@ -249,19 +249,25 @@ function DashboardContent() {
         />
       </div>
 
-      {/* 3. MIDDLE SECTION: RECENT TRANSACTIONS STREAM (8-col) & QUICK ACTIONS (4-col) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        {/* Left Column (8-col): High-density Table */}
-        <div className="lg:col-span-8">
+      {/* 3. TWO-COLUMN WORKSPACE: LEFT (STREAM & CHART) | RIGHT (QUICK ACTIONS & AI SCANNER) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Left Column (8-col): High-density Table + Sales Performance Spline Chart */}
+        <div className="lg:col-span-8 space-y-5">
           <DashboardTransactionsTable
             transactions={transactions}
             isLoading={isLoading}
             lang={lang}
           />
+          <DashboardSalesChart
+            chartDays={chartDays}
+            sevenDaysSales={sevenDaysSales}
+            invoicesCount={invoicesCount}
+            lang={lang}
+          />
         </div>
 
         {/* Right Column (4-col): Quick Actions Grid & AI Bill Scanner Card */}
-        <div className="lg:col-span-4 space-y-4">
+        <div className="lg:col-span-4 space-y-5">
           <DashboardQuickActions lang={lang} />
           <DashboardScannerCard
             onOpenScanner={() => setIsScannerModalOpen(true)}
@@ -269,14 +275,6 @@ function DashboardContent() {
           />
         </div>
       </div>
-
-      {/* 4. BOTTOM SECTION: SALES PERFORMANCE MATRIX SPLINE CHART */}
-      <DashboardSalesChart
-        chartDays={chartDays}
-        sevenDaysSales={sevenDaysSales}
-        invoicesCount={invoicesCount}
-        lang={lang}
-      />
 
       {/* 5. MODALS INTEGRATION PRESERVED 100% */}
       <BillScannerModal

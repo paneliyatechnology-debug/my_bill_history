@@ -138,3 +138,4 @@ export function DashboardQuickActions({ lang = "en" }: DashboardQuickActionsProp
     </div>
   );
 }
+

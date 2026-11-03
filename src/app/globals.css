@@ -46,6 +46,13 @@
   --info: #2563EB;
 }
 
+/* Hide Next.js dev indicator portal if rendered */
+nextjs-portal,
+[data-nextjs-toast],
+[data-nextjs-dialog-overlay] {
+  display: none !important;
+}
+
 html,
 body {
   min-height: 100%;

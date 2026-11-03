@@ -6,6 +6,7 @@ export default function (phase) {
 
   return {
     reactStrictMode: true,
+    devIndicators: false,
     distDir: isDev ? '.next-dev' : '.next',
     allowedDevOrigins: [
       '192.168.*.*',
@@ -36,6 +37,22 @@ export default function (phase) {
         {
           source: '/api/v1/:path*',
           destination,
+        },
+        {
+          source: '/app/home/items/:path*',
+          destination: '/masters/items/:path*',
+        },
+        {
+          source: '/app/home/items',
+          destination: '/masters/items',
+        },
+        {
+          source: '/items/:path*',
+          destination: '/masters/items/:path*',
+        },
+        {
+          source: '/items',
+          destination: '/masters/items',
         },
         {
           source: '/sales/sales-returns/:path*',

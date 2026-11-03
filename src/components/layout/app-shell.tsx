@@ -82,8 +82,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [expandedSections, setExpandedSections] = useState<
     Record<string, boolean>
   >({
-    sales: true,
-    purchases: true,
+    sales: false,
+    purchases: false,
     items: false,
     parties: false,
     cash_bank: false,
@@ -917,45 +917,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
           </div>
 
-          {/* Company Profile Header */}
-          <div
-            style={{ backgroundColor: SIDEBAR_BG }}
-            className={`shrink-0 flex items-center border-b border-white/10 transition-all ${
-              isSidebarCollapsed
-                ? "justify-center px-2 py-3"
-                : "justify-between px-4 py-3"
-            }`}
-          >
-            <Link
-              href="/settings/account"
-              className={`flex items-center gap-3 group hover:bg-white/5 rounded-xl p-1 transition-all ${
-                isSidebarCollapsed ? "justify-center" : "overflow-hidden flex-1 min-w-0"
-              }`}
-              title={lang === "gu" ? "કંપની સેટિંગ્સ ખોલો" : "Open Company Settings"}
-            >
-              <div
-                style={{ backgroundColor: CTA_ACCENT }}
-                className="w-9 h-9 rounded-full group-hover:scale-105 flex items-center justify-center text-white font-extrabold text-sm shadow-sm shrink-0 uppercase transition-transform"
-              >
-                {currentCompany?.tradeName?.charAt(0) ||
-                  currentCompany?.legalName?.charAt(0) ||
-                  "N"}
-              </div>
-              {!isSidebarCollapsed && (
-                <div className="flex flex-col truncate min-w-0 text-left">
-                  <span className="text-xs font-bold text-white group-hover:text-[#85D5C2] tracking-tight leading-tight truncate transition-colors">
-                    {currentCompany?.tradeName ||
-                      currentCompany?.legalName ||
-                      "NV"}
-                  </span>
-                  <span className="text-[11px] text-[#A7C7C0] font-mono tracking-wide mt-0.5 truncate">
-                    {user?.phone || currentCompany?.gstin || "9426886960"}
-                  </span>
-                </div>
-              )}
-            </Link>
-          </div>
-
           {/* Navigation Item Tree */}
           <nav
             aria-label="Sidebar Navigation"
@@ -1387,28 +1348,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </span>
 
                 {/* Dynamic Breadcrumbs for clear situational context */}
-                <div className="hidden xl:flex items-center gap-1.5 text-xs text-slate-400 pl-3 border-l border-slate-200">
-                  <span className="hover:text-slate-600 transition-colors">App</span>
-                  <span>/</span>
-                  <span className="font-bold text-[#174B43] capitalize">
-                    {pathname === "/"
-                      ? "Dashboard"
-                      : pathname
-                          .split("/")
-                          .filter(Boolean)
-                          .slice(-2)
-                          .join(" / ")
-                          .replace(/-/g, " ")}
-                  </span>
-                </div>
+                {pathname !== "/" && (
+                  <div className="hidden xl:flex items-center gap-1.5 text-xs text-slate-400 pl-3 border-l border-slate-200">
+                    <span className="hover:text-slate-600 transition-colors">App</span>
+                    <span>/</span>
+                    <span className="font-bold text-[#174B43] capitalize">
+                      {pathname
+                        .split("/")
+                        .filter(Boolean)
+                        .slice(-2)
+                        .join(" / ")
+                        .replace(/-/g, " ")}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Right: Quick Action, Language Toggle & User/Logout */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto pl-1 sm:pl-2">
 
-              {/* Quick Create Bill (shown only when NOT already on pages that have their own prominent creation CTAs) */}
-              {!pathname.startsWith("/sales/invoices") &&
+              {/* Quick Create Bill (hidden on dashboard and creation pages) */}
+              {pathname !== "/" &&
+                !pathname.startsWith("/sales/invoices") &&
                 !pathname.startsWith("/purchases") &&
                 !pathname.startsWith("/sales/quotations") &&
                 !pathname.startsWith("/sales/pos") &&
@@ -1416,7 +1378,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 !pathname.includes("/edit") && (
                 <Link
                   href="/sales/invoices/new"
-                  className="flex items-center gap-1.5 sm:gap-2 py-1.5 px-3 sm:px-4 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs transition-all shrink-0 whitespace-nowrap active:scale-95 bg-[#26A58A] hover:bg-[#208E76]"
+                  className="flex items-center gap-1.5 sm:gap-2 py-1.5 px-3 sm:px-4 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs transition-all shrink-0 whitespace-nowrap active:scale-95 bg-[#0DAA8A] hover:bg-[#0C987B]"
                   title={
                     lang === "gu" ? "નવું વેચાણ બિલ (F2)" : "Create New Bill (F2)"
                   }
@@ -1448,53 +1410,80 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </Link>
               )}
 
-              {/* Bilingual Language Switcher (EN | ગુજ) */}
-              <div className="flex items-center bg-[#F3F4F6] p-0.5 rounded-lg border border-[#E5E7EB] shrink-0 text-xs font-bold">
+              {/* Notification Bell matching Reference Image */}
+              <button
+                type="button"
+                className="relative p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                title="Notifications"
+              >
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500" />
+              </button>
+
+              {/* Language Selector Pill matching Reference Image (EN ⌵) */}
+              <div className="relative inline-flex items-center">
                 <button
                   type="button"
-                  onClick={() => setLang("en")}
-                  className={`px-2 py-1 text-xs sm:text-[13px] font-bold rounded-md transition-all ${
-                    lang === "en"
-                      ? "bg-white text-slate-900 shadow-xs"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
+                  onClick={() => setLang(lang === "en" ? "gu" : "en")}
+                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-[#E1EAF0] rounded-lg shadow-2xs transition-colors cursor-pointer"
+                  title="Toggle Language"
                 >
-                  EN
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLang("gu")}
-                  className={`px-2 py-1 text-xs sm:text-[13px] font-bold rounded-md transition-all ${
-                    lang === "gu"
-                      ? "bg-white text-slate-900 shadow-xs"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  ગુજરાતી
+                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="uppercase">{lang}</span>
+                  <svg className="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
               </div>
 
-              {/* Logout / User Trigger: Hidden on mobile (< md), visible on desktop (>= md) */}
-              <button
-                onClick={logout}
-                className="hidden md:inline-flex items-center justify-center p-1 sm:p-1.5 text-[#667085] hover:text-[#DC3545] hover:bg-rose-50 rounded-lg transition-colors shrink-0"
-                title={lang === "gu" ? "લોગઆઉટ" : "Logout"}
-                aria-label="Logout"
-              >
-                <svg
-                  className="w-4 h-4 sm:w-5 sm:h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+              {/* User Profile Pill matching Reference */}
+              <div className="hidden sm:flex items-center gap-2 pl-1 border-l border-slate-200">
+                <div className="w-7 h-7 rounded-full bg-[#004D40] text-white flex items-center justify-center font-bold text-[11px] shadow-2xs uppercase">
+                  {user?.fullName
+                    ? user.fullName
+                        .split(" ")
+                        .map((w: string) => w[0])
+                        .slice(0, 2)
+                        .join("")
+                    : "JD"}
+                </div>
+                <div className="hidden lg:flex items-center gap-1 text-xs font-bold text-slate-800">
+                  <span className="truncate max-w-[120px]">
+                    {user?.fullName || user?.name || "Jaydip Khunt"}
+                  </span>
+                  <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Logout / User Trigger: Shown when NOT on dashboard */}
+              {pathname !== "/" && (
+                <button
+                  onClick={logout}
+                  className="hidden md:inline-flex items-center justify-center p-1 sm:p-1.5 text-[#667085] hover:text-[#DC3545] hover:bg-rose-50 rounded-lg transition-colors shrink-0"
+                  title={lang === "gu" ? "લોગઆઉટ" : "Logout"}
+                  aria-label="Logout"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.8}
-                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                  />
-                </svg>
-              </button>
+                  <svg
+                    className="w-4 h-4 sm:w-5 sm:h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.8}
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                    />
+                  </svg>
+                </button>
+              )}
             </div>
           </header>
         )}

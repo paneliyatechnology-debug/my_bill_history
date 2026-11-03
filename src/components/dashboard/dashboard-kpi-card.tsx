@@ -93,24 +93,24 @@ export function DashboardKpiCard({
           onClick();
         }
       }}
-      className={`rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-200 border ${config.bg} ${config.border} ${
+      className={`rounded-2xl p-3.5 sm:p-4 min-h-[136px] flex flex-col justify-between transition-all duration-200 border ${config.bg} ${config.border} ${
         onClick
           ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(16,35,63,0.08)] active:translate-y-0"
           : "cursor-default"
       } shadow-[0_2px_10px_rgba(16,35,63,0.03)]`}
     >
-      {/* Top Header Row: Status Dot + Title + Pill Badge */}
-      <div className="flex items-center justify-between gap-2 mb-2 w-full">
-        <div className="flex items-center gap-2 min-w-0">
+      {/* Top Header Row: Status Dot + Title + Pill Badge (No clipping, readable wrapping) */}
+      <div className="flex items-start justify-between gap-1.5 mb-1.5 w-full">
+        <div className="flex items-center gap-1.5 min-w-0 flex-1">
           <span className={`w-2 h-2 rounded-full shrink-0 ${config.dot}`} />
-          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#10233F] truncate">
+          <span className="text-[11px] sm:text-xs font-bold text-[#10233F] leading-snug">
             {displayTitle}
           </span>
         </div>
 
         {badge && (
           <span
-            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${config.pillBg} ${config.pillText} ${config.pillBorder}`}
+            className={`text-[9.5px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 whitespace-nowrap leading-none ${config.pillBg} ${config.pillText} ${config.pillBorder}`}
           >
             {badge}
           </span>
@@ -118,22 +118,22 @@ export function DashboardKpiCard({
       </div>
 
       {/* Primary Currency Metric Amount */}
-      <div className="my-1">
+      <div className="my-0.5">
         <div
-          className={`text-2xl sm:text-[26px] lg:text-[27px] font-black font-mono tracking-tight truncate ${config.amountColor}`}
+          className={`text-[22px] sm:text-[24px] xl:text-[26px] font-black font-mono tracking-tight truncate ${config.amountColor}`}
         >
           {formatInr(amount)}
         </div>
       </div>
 
       {/* Bottom Row: Subtitle + Floating Smooth SVG Sparkline */}
-      <div className="flex items-end justify-between gap-2 mt-1 pt-1">
-        <p className="text-xs text-[#526780] font-medium truncate flex-1 min-w-0">
+      <div className="flex items-end justify-between gap-2 mt-1">
+        <p className="text-[11px] sm:text-xs text-[#526780] font-medium leading-tight flex-1 min-w-0">
           {displaySubtitle}
         </p>
 
         {/* Decorative Sparkline Chart Wave matching Reference */}
-        <div className="w-[84px] h-[32px] shrink-0 overflow-hidden pointer-events-none select-none">
+        <div className="w-[76px] h-[30px] shrink-0 overflow-hidden pointer-events-none select-none">
           <svg viewBox="0 0 84 32" className="w-full h-full overflow-visible">
             <defs>
               <linearGradient id={`grad-${variant}`} x1="0" y1="0" x2="0" y2="1">
@@ -156,3 +156,4 @@ export function DashboardKpiCard({
     </div>
   );
 }
+

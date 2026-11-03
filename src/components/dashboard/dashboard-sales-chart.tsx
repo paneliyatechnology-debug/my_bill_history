@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { formatInr } from "@/components/design-system/tokens";
+import { formatInr, formatInrCompact } from "@/components/design-system/tokens";
 
 export interface DailySalesPoint {
   dayLabel: string;
@@ -134,7 +134,7 @@ export function DashboardSalesChart({
         {/* Metric Highlight on Left */}
         <div className="mb-2">
           <div className="text-2xl sm:text-[28px] font-black font-mono text-[#10233F] tracking-tight">
-            ₹ {formatInr(sevenDaysSales > 0 ? sevenDaysSales : 289800)}
+            {formatInrCompact(sevenDaysSales > 0 ? sevenDaysSales : 289800)}
           </div>
           <div className="flex items-center gap-1.5 mt-0.5 text-xs font-bold text-[#0CA678]">
             <span>↑ 12% vs last week</span>
@@ -269,7 +269,7 @@ export function DashboardSalesChart({
               >
                 <div className="bg-white border border-[#E1EAF0] px-2.5 py-1 rounded-lg shadow-md text-center">
                   <div className="text-[11px] font-black font-mono text-[#10233F]">
-                    ₹ {formatInr(activePoint.data.sales)}
+                    {formatInrCompact(activePoint.data.sales)}
                   </div>
                   <div className="text-[9px] font-bold text-[#8293A8]">
                     {activePoint.data.dayLabel}
@@ -285,7 +285,7 @@ export function DashboardSalesChart({
           <div>
             <span className="font-semibold text-[#8293A8]">7-Day Volume:</span>{" "}
             <span className="font-mono font-bold text-[#10233F]">
-              ₹ {formatInr(sevenDaysSales > 0 ? sevenDaysSales : 289800)}
+              {formatInr(sevenDaysSales > 0 ? sevenDaysSales : 289800)}
             </span>
           </div>
           <div>
@@ -299,3 +299,4 @@ export function DashboardSalesChart({
     </div>
   );
 }
+

@@ -82,12 +82,37 @@ export const DS_COLORS = {
 
 /**
  * Format Indian Rupee currency with standard Indian Numbering system (Lakhs & Crores)
+ * Defensively cleans any pre-existing currency symbols to prevent double symbol bugs
  */
 export function formatInr(val: number | string | undefined | null): string {
-  const num = Number(val) || 0;
+  if (val === undefined || val === null || val === "") return "₹ 0.00";
+  let num: number;
+  if (typeof val === "string") {
+    const cleaned = val.replace(/[₹,\sINR]/gi, "");
+    num = Number(cleaned) || 0;
+  } else {
+    num = Number(val) || 0;
+  }
   return "₹ " + num.toLocaleString("en-IN", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
+  });
+}
+
+/**
+ * Format Indian Rupee without decimals (compact for charts and dashboard cards)
+ */
+export function formatInrCompact(val: number | string | undefined | null): string {
+  if (val === undefined || val === null || val === "") return "₹ 0";
+  let num: number;
+  if (typeof val === "string") {
+    const cleaned = val.replace(/[₹,\sINR]/gi, "");
+    num = Number(cleaned) || 0;
+  } else {
+    num = Number(val) || 0;
+  }
+  return "₹ " + num.toLocaleString("en-IN", {
+    maximumFractionDigits: 0,
   });
 }
 
