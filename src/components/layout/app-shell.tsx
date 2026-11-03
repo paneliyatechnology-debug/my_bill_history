@@ -11,10 +11,10 @@ import { WaveBackground } from "../ui/wave-background";
 import { BrandLogo } from "../ui/brand-logo";
 import { SettingsSidebar } from "../settings/settings-sidebar";
 import { WorkspaceErrorState } from "../ui/workspace-error-state";
-const SIDEBAR_BG = "#174B43";
-const ACTIVE_MENU_BG = "#26A58A";
+const SIDEBAR_BG = "#004D40";
+const ACTIVE_MENU_BG = "#16A085";
 const TEXT_COLOR = "#FFFFFF";
-const CTA_ACCENT = "#26A58A";
+const CTA_ACCENT = "#0DAA8A";
 import Image from "next/image";
 
 interface SubNavItem {
@@ -885,75 +885,75 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {!isSettingsPage && (
         <aside
           style={{ backgroundColor: SIDEBAR_BG }}
-          className={`hidden lg:flex flex-col shrink-0 h-full border-r border-[#1F5E54] text-white transition-all duration-300 z-30 select-none print:hidden ${isSidebarCollapsed ? "w-20" : "w-64"
-            }`}
+          className={`hidden lg:flex flex-col shrink-0 h-full border-r border-[#00695C]/40 text-white transition-all duration-300 z-30 select-none print:hidden ${
+            isSidebarCollapsed ? "w-20" : "w-64"
+          }`}
         >
-          {/* Brand / Company Profile Header */}
-          <div
-            style={{ backgroundColor: SIDEBAR_BG }}
-            className={`shrink-0 flex items-center border-b border-[#1F5E54] transition-all relative ${isSidebarCollapsed
-                ? "justify-center px-2 py-4"
-                : "justify-between px-4 py-3.5"
-              }`}
-          >
-            <Link
-              href="/settings/account"
-              className={`flex items-center gap-3 group hover:bg-white/5 rounded-xl p-1 transition-all ${isSidebarCollapsed ? "justify-center" : "overflow-hidden flex-1 min-w-0"
-                }`}
-              title={lang === "gu" ? "કંપની સેટિંગ્સ ખોલો" : "Open Company Settings"}
-            >
-              {/* Avatar Circle with First Letter using primaryColor */}
-              <div
-                style={{ backgroundColor: CTA_ACCENT }}
-                className="w-10 h-10 rounded-full group-hover:scale-105 flex items-center justify-center text-white font-extrabold text-base shadow-sm shrink-0 uppercase transition-transform"
-              >
-                {currentCompany?.tradeName?.charAt(0) ||
-                  currentCompany?.legalName?.charAt(0) ||
-                  "B"}
+          {/* Top Brand Logo matching Reference Image */}
+          <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-white/10">
+            <Link href="/" className="flex items-center gap-2.5 overflow-hidden">
+              <div className="w-8 h-8 rounded-lg bg-[#20B99A]/20 border border-[#20B99A]/40 flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-[#42DCC0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
               </div>
               {!isSidebarCollapsed && (
-                <div className="flex flex-col truncate min-w-0 text-left">
-                  <span className="text-sm font-bold text-white group-hover:text-[#85D5C2] tracking-tight leading-tight truncate transition-colors">
-                    {currentCompany?.tradeName ||
-                      currentCompany?.legalName ||
-                      (lang === "gu" ? "કંપની" : "Company")}
-                  </span>
-                  {(user?.phone || currentCompany?.gstin) && (
-                    <span className="text-xs text-[#A7C7C0] font-mono tracking-wide mt-0.5 truncate">
-                      {user?.phone || currentCompany?.gstin}
-                    </span>
-                  )}
+                <div className="flex flex-col leading-tight">
+                  <span className="text-sm font-black tracking-tight text-white">MyOwn</span>
+                  <span className="text-xs font-bold text-[#A7C7C0]">BillBook</span>
                 </div>
               )}
             </Link>
 
-            {/* Floating Collapse / Expand Toggle Button */}
             <button
               onClick={toggleSidebarCollapse}
-              className={`transition-colors ${isSidebarCollapsed
-                  ? "absolute -right-3 top-5 w-6 h-6 bg-[#133E37] border border-[#1F5E54] shadow-xs rounded-full flex items-center justify-center text-slate-300 hover:text-white z-40"
-                  : "p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg shrink-0"
-                }`}
+              className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
               title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-              aria-label={
-                isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
-              }
+              aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
-              <svg
-                className={`w-3.5 h-3.5 transition-transform duration-200 ${isSidebarCollapsed ? "rotate-180" : ""
-                  }`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
-                />
+              <svg className={`w-4 h-4 transition-transform duration-200 ${isSidebarCollapsed ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
               </svg>
             </button>
+          </div>
+
+          {/* Company Profile Header */}
+          <div
+            style={{ backgroundColor: SIDEBAR_BG }}
+            className={`shrink-0 flex items-center border-b border-white/10 transition-all ${
+              isSidebarCollapsed
+                ? "justify-center px-2 py-3"
+                : "justify-between px-4 py-3"
+            }`}
+          >
+            <Link
+              href="/settings/account"
+              className={`flex items-center gap-3 group hover:bg-white/5 rounded-xl p-1 transition-all ${
+                isSidebarCollapsed ? "justify-center" : "overflow-hidden flex-1 min-w-0"
+              }`}
+              title={lang === "gu" ? "કંપની સેટિંગ્સ ખોલો" : "Open Company Settings"}
+            >
+              <div
+                style={{ backgroundColor: CTA_ACCENT }}
+                className="w-9 h-9 rounded-full group-hover:scale-105 flex items-center justify-center text-white font-extrabold text-sm shadow-sm shrink-0 uppercase transition-transform"
+              >
+                {currentCompany?.tradeName?.charAt(0) ||
+                  currentCompany?.legalName?.charAt(0) ||
+                  "N"}
+              </div>
+              {!isSidebarCollapsed && (
+                <div className="flex flex-col truncate min-w-0 text-left">
+                  <span className="text-xs font-bold text-white group-hover:text-[#85D5C2] tracking-tight leading-tight truncate transition-colors">
+                    {currentCompany?.tradeName ||
+                      currentCompany?.legalName ||
+                      "NV"}
+                  </span>
+                  <span className="text-[11px] text-[#A7C7C0] font-mono tracking-wide mt-0.5 truncate">
+                    {user?.phone || currentCompany?.gstin || "9426886960"}
+                  </span>
+                </div>
+              )}
+            </Link>
           </div>
 
           {/* Navigation Item Tree */}
@@ -1192,11 +1192,44 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             })()}
           </nav>
 
-          {/* Sidebar Footer: Theme Customizer, Settings & Security Badges */}
+          {/* Sidebar Footer: Upgrade to Pro, Help Hotline & Settings */}
           <div
             style={{ backgroundColor: SIDEBAR_BG }}
-            className="shrink-0 p-3 border-t border-slate-700/50 flex flex-col gap-1.5"
+            className="shrink-0 p-3 border-t border-white/10 flex flex-col gap-1.5"
           >
+            {/* Upgrade to Pro Card matching Reference Image */}
+            {!isSidebarCollapsed && (
+              <div className="mb-2 p-3.5 rounded-2xl bg-gradient-to-b from-[#00382E] to-[#002B24] border border-[#20B99A]/20 shadow-lg text-center space-y-2">
+                <div className="w-8 h-8 rounded-full bg-amber-400/20 text-amber-300 flex items-center justify-center mx-auto text-base">
+                  👑
+                </div>
+                <div className="text-xs font-black text-white">Upgrade to Pro</div>
+                <p className="text-[10px] text-[#C7E6DF] leading-tight">
+                  Unlock more features for your business
+                </p>
+                <button
+                  type="button"
+                  onClick={() => router.push("/settings/billing")}
+                  className="w-full py-1.5 px-3 rounded-xl bg-[#20B99A] hover:bg-[#16A085] text-slate-950 font-bold text-[11px] shadow-sm transition-all cursor-pointer"
+                >
+                  Upgrade Now →
+                </button>
+              </div>
+            )}
+
+            {/* Need Help Support Contact matching Reference Image */}
+            {!isSidebarCollapsed && (
+              <div className="px-2 py-2 flex items-center gap-2.5 text-xs text-[#C7E6DF] border-b border-white/10 mb-1">
+                <svg className="w-5 h-5 text-[#42DCC0] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z" />
+                </svg>
+                <div className="text-[11px] leading-tight">
+                  <div className="text-[#85D5C2] text-[10px] font-medium">Need Help?</div>
+                  <div className="font-mono font-bold text-white tracking-wider">+91 98765 43210</div>
+                </div>
+              </div>
+            )}
+
             <Link
               href="/settings/account"
               className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${(activeNav.activeSectionId === "settings" || pathname.startsWith("/settings"))
@@ -1245,7 +1278,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       {/* 2. MAIN APPLICATION CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-0 h-full overflow-hidden print:h-auto print:min-h-0 print:overflow-visible print:block print:w-full relative bg-[#F7F8FA]">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 h-full overflow-hidden print:h-auto print:min-h-0 print:overflow-visible print:block print:w-full relative bg-[#F4F7FA]">
         {/* Background treatment: subtle neutral for inner pages, elegant branded depth for dashboard */}
         <WaveBackground variant={pathname === "/" ? "dashboard" : "inner"} />
 
@@ -1302,7 +1335,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
           </header>
         ) : (
-          <header className="shrink-0 h-14 sm:h-15 bg-white border-b border-[#E2E8E5] px-3 sm:px-6 flex items-center justify-between z-20 shadow-xs max-w-full min-w-0 print:hidden">
+          <header className="shrink-0 h-14 sm:h-15 bg-white/95 backdrop-blur-xs border-b border-[#E1EAF0] px-3 sm:px-6 flex items-center justify-between z-20 shadow-2xs max-w-full min-w-0 print:hidden">
             {/* Left: Active Company/Branch Context & Brand Logo */}
             <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
               {/* Menu Drawer Toggle Button (Visible on mobile) */}
