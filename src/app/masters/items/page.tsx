@@ -12,6 +12,7 @@ import { AdjustStockModal } from "./components/adjust-stock-modal";
 import { getItemPartyPrices, setItemPartyPrices } from "../../../lib/party-item-pricing";
 import { ImportWizardModal } from "../../../components/imports/import-wizard-modal";
 import { ImportModuleType } from "@billing/shared-types";
+import { ItemDetailView } from "./components/item-detail-view";
 
 interface Item {
   id: string;
@@ -199,15 +200,47 @@ function ItemActionMenu({
 }
 
 
-export default function ItemsPage() {
+export default function ItemsPage({ initialItemId }: { initialItemId?: string } = {}) {
   const { lang, tenantContext, currentCompany } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(initialItemId || null);
+  const [directItem, setDirectItem] = useState<Item | null>(null);
   const [units, setUnits] = useState<Unit[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [parties, setParties] = useState<PartyOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialItemId) {
+      setSelectedItemId(initialItemId);
+    } else if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const sel = params.get("selectedId");
+      if (sel) {
+        setSelectedItemId(sel);
+      }
+    }
+  }, [initialItemId]);
+
+  useEffect(() => {
+    if (!selectedItemId) {
+      setDirectItem(null);
+      return;
+    }
+    const found = items.find((i) => i.id === selectedItemId);
+    if (found) {
+      setDirectItem(found);
+    } else {
+      apiClient
+        .get<Item>(`/masters/items/${selectedItemId}`)
+        .then((res) => setDirectItem(res))
+        .catch(() => setDirectItem(null));
+    }
+  }, [selectedItemId, items]);
+
+  const activeSelectedItem = directItem || items.find((i) => i.id === selectedItemId) || null;
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
@@ -516,6 +549,9 @@ export default function ItemsPage() {
               : "Item deleted successfully.");
 
       setSuccessMessage(msg);
+      if (selectedItemId === itemToDelete.id) {
+        setSelectedItemId(null);
+      }
       setItemToDelete(null);
       setForceDelete(false);
       await fetchData();
@@ -670,7 +706,15 @@ export default function ItemsPage() {
         cell: (it) => (
           <div
             className="cursor-pointer group py-1"
-            onClick={() => handleOpenEditModal(it)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedItemId(it.id);
+              if (typeof window !== "undefined") {
+                const url = new URL(window.location.href);
+                url.searchParams.set("selectedId", it.id);
+                window.history.pushState({}, "", url.toString());
+              }
+            }}
           >
             <div className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">
               {it.name}
@@ -803,9 +847,40 @@ export default function ItemsPage() {
 
   return (
     <div className="space-y-4">
-      {/* ============================================================ */}
-      {/* 1. TOP HEADER BAR matching MyBillBook                         */}
-      {/* ============================================================ */}
+      {activeSelectedItem ? (
+        <ItemDetailView
+          item={activeSelectedItem as any}
+          allItems={items as any}
+          onSelectItem={(id) => {
+            setSelectedItemId(id);
+            if (typeof window !== "undefined") {
+              const url = new URL(window.location.href);
+              url.searchParams.set("selectedId", id);
+              window.history.pushState({}, "", url.toString());
+            }
+          }}
+          onBack={() => {
+            setSelectedItemId(null);
+            if (typeof window !== "undefined") {
+              const url = new URL(window.location.href);
+              url.searchParams.delete("selectedId");
+              window.history.pushState({}, "", url.toString());
+            }
+          }}
+          onEdit={(it) => handleOpenEditModal(it as Item)}
+          onAdjustStock={(it) => setAdjustStockItem(it as Item)}
+          onBarcode={(it) => setBarcodeModalItem(it as Item)}
+          onDelete={(it) => setItemToDelete(it as Item)}
+          onCreateItem={handleOpenCreateModal}
+          parties={parties}
+          categories={categories}
+          lang={lang}
+        />
+      ) : (
+        <>
+          {/* ============================================================ */}
+          {/* 1. TOP HEADER BAR matching MyBillBook                         */}
+          {/* ============================================================ */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
           {lang === "gu" ? "વસ્તુઓ (Items)" : "Items"}
@@ -972,7 +1047,14 @@ export default function ItemsPage() {
         }
         isLoading={isLoading}
         lang={lang}
-        onRowClick={(it) => handleOpenEditModal(it)}
+        onRowClick={(it) => {
+          setSelectedItemId(it.id);
+          if (typeof window !== "undefined") {
+            const url = new URL(window.location.href);
+            url.searchParams.set("selectedId", it.id);
+            window.history.pushState({}, "", url.toString());
+          }
+        }}
         themeColor="purple"
         exportable
         exportFileName="items_catalog"
@@ -1101,7 +1183,14 @@ export default function ItemsPage() {
                   className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0 accent-indigo-600"
                 />
                 <span
-                  onClick={() => handleOpenEditModal(it)}
+                  onClick={() => {
+                    setSelectedItemId(it.id);
+                    if (typeof window !== "undefined") {
+                      const url = new URL(window.location.href);
+                      url.searchParams.set("selectedId", it.id);
+                      window.history.pushState({}, "", url.toString());
+                    }
+                  }}
                   className="font-semibold text-slate-900 text-sm truncate cursor-pointer hover:text-indigo-600"
                 >
                   {it.name}
@@ -1211,6 +1300,8 @@ export default function ItemsPage() {
           </button>
         </div>
       </div>
+        </>
+      )}
 
       {/* ============================================================ */}
       {/* 5. CREATE ITEM STEP MODAL                                    */}
