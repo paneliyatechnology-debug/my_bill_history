@@ -423,6 +423,12 @@ export function UpcomingDuesAlertCard() {
                       {item.partyPhone && (
                         <p className="text-[10px] text-slate-400 mt-0.5">{item.partyPhone}</p>
                       )}
+
+                      {/* Explicit Due Date Highlight */}
+                      <div className="mt-1.5 flex items-center justify-between text-[11px] bg-slate-50 rounded px-2 py-1 border border-slate-100">
+                        <span className="text-slate-500">{lang === "gu" ? "મુદત:" : "Due Date:"}</span>
+                        <span className="font-bold text-slate-800 tabular-nums">{formatDueDate(item.dueDate)}</span>
+                      </div>
                     </div>
                   </div>
 
