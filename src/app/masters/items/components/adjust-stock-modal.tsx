@@ -114,7 +114,7 @@ export function AdjustStockModal({
       <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white">
-          <h2 className="text-base font-bold text-slate-800 tracking-tight">
+          <h2 className="text-[15px] font-semibold text-[#182230] tracking-tight">
             {lang === "gu" ? "સ્ટોક જથ્થામાં ફેરફાર (Adjust Stock Quantity)" : "Adjust Stock Quantity"}
           </h2>
           <button
@@ -140,7 +140,7 @@ export function AdjustStockModal({
             <div className="md:col-span-7 space-y-4">
               {/* Date */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                <label className="block text-[12px] font-medium text-slate-700 mb-1.5">
                   {lang === "gu" ? "તારીખ (Date)" : "Date"}
                 </label>
                 <div className="relative">
@@ -148,20 +148,20 @@ export function AdjustStockModal({
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full text-xs py-2 px-3 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 font-medium cursor-pointer"
+                    className="w-full text-[13px] py-2 px-3 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 font-medium cursor-pointer h-10"
                   />
                 </div>
               </div>
 
               {/* Godown */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                <label className="block text-[12px] font-medium text-slate-700 mb-1.5">
                   {lang === "gu" ? "ગોડાઉન (Godown) *" : "Godown *"}
                 </label>
                 <select
                   value={warehouseId}
                   onChange={(e) => setWarehouseId(e.target.value)}
-                  className="w-full text-xs py-2 px-3 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 font-medium cursor-pointer"
+                  className="w-full text-[13px] py-2 px-3 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 font-medium cursor-pointer h-10"
                 >
                   {warehouses.map((w) => (
                     <option key={w.id} value={w.id}>
@@ -177,13 +177,13 @@ export function AdjustStockModal({
               {/* Add or Reduce Stock & Quantity Row */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1.5">
                     {lang === "gu" ? "સ્ટોક ઉમેરો કે ઘટાડો" : "Add or Reduce Stock"}
                   </label>
                   <select
                     value={adjustType}
                     onChange={(e) => setAdjustType(e.target.value as "ADD" | "REDUCE")}
-                    className="w-full text-xs py-2 px-3 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 font-medium cursor-pointer"
+                    className="w-full text-[13px] py-2 px-3 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 font-medium cursor-pointer h-10"
                   >
                     <option value="ADD">Add (+)</option>
                     <option value="REDUCE">Reduce (-)</option>
@@ -191,7 +191,7 @@ export function AdjustStockModal({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1.5">
                     {lang === "gu" ? "જથ્થો (Adjust quantity)" : "Adjust quantity"}
                   </label>
                   <div className="flex rounded-lg border border-slate-300 bg-white overflow-hidden focus-within:ring-1 focus-within:ring-indigo-500 focus-within:border-indigo-500">
@@ -202,7 +202,7 @@ export function AdjustStockModal({
                       value={quantity}
                       onChange={(e) => setQuantity(e.target.value)}
                       placeholder="0"
-                      className="w-full text-xs py-2 px-3 font-semibold text-slate-900 focus:outline-none"
+                      className="w-full text-[13px] py-2 px-3 font-normal text-slate-900 focus:outline-none h-10"
                     />
                     <span className="px-2.5 py-1.5 text-xs font-bold text-slate-600 bg-slate-100 border-l border-slate-200 flex items-center shrink-0">
                       {uom}
@@ -213,7 +213,7 @@ export function AdjustStockModal({
 
               {/* Remarks */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                <label className="block text-[12px] font-medium text-slate-700 mb-1.5">
                   {lang === "gu" ? "નોંધ (Remarks - Optional)" : "Remarks (Optional)"}
                 </label>
                 <textarea
@@ -221,7 +221,7 @@ export function AdjustStockModal({
                   onChange={(e) => setRemarks(e.target.value)}
                   placeholder="Enter remarks"
                   rows={3}
-                  className="w-full text-xs p-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 resize-none font-medium placeholder-slate-400"
+                  className="w-full text-[13px] p-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 resize-none font-medium placeholder-slate-400"
                 />
               </div>
             </div>
@@ -259,14 +259,14 @@ export function AdjustStockModal({
                     <div className="p-3 bg-white border border-slate-200 rounded-lg space-y-2 text-xs">
                       <div className="flex items-center justify-between text-slate-600">
                         <span>Current Stock:</span>
-                        <span className="font-mono font-semibold">
+                        <span className="tabular-nums font-semibold">
                           {currentStock} {uom}
                         </span>
                       </div>
                       <div className="flex items-center justify-between font-semibold">
                         <span>Adjustment:</span>
                         <span
-                          className={`font-mono ${
+                          className={`tabular-nums ${
                             adjustType === "ADD" ? "text-emerald-600" : "text-rose-600"
                           }`}
                         >
@@ -276,7 +276,7 @@ export function AdjustStockModal({
                       <div className="pt-2 border-t border-slate-200 flex items-center justify-between font-bold text-slate-900">
                         <span>Final Stock:</span>
                         <span
-                          className={`font-mono text-sm ${
+                          className={`tabular-nums text-sm ${
                             finalStock < 0 ? "text-rose-600" : "text-slate-900"
                           }`}
                         >
@@ -300,14 +300,14 @@ export function AdjustStockModal({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg transition-colors cursor-pointer"
+              className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg transition-colors cursor-pointer"
             >
               Close
             </button>
             <button
               type="submit"
               disabled={isSubmitting || numQty <= 0}
-              className="px-5 py-2 text-xs font-bold text-white bg-[#5c56df] hover:bg-[#4d47d4] disabled:bg-slate-300 rounded-lg shadow-sm transition-all cursor-pointer inline-flex items-center gap-1.5"
+              className="px-5 py-2 text-[13px] font-medium text-white bg-[#5c56df] hover:bg-[#4d47d4] disabled:bg-slate-300 rounded-lg shadow-sm transition-all cursor-pointer inline-flex items-center gap-1.5"
             >
               {isSubmitting ? (
                 <>

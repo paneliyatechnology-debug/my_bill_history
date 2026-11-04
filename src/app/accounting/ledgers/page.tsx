@@ -125,7 +125,7 @@ export default function LedgersPage() {
       accessorKey: "code",
       sortable: true,
       cell: (l) => (
-        <span className="font-mono font-bold text-slate-800">{l.code}</span>
+        <span className="tabular-nums font-bold text-slate-800">{l.code}</span>
       ),
     },
     {
@@ -157,7 +157,7 @@ export default function LedgersPage() {
       sortable: true,
       className: "text-right",
       cell: (l) => (
-        <span className="font-mono font-semibold text-slate-800">
+        <span className="tabular-nums font-semibold text-slate-800">
           ₹{Number(l.openingBalance || 0).toFixed(2)}{" "}
           <span className="text-[10px] text-slate-500 font-normal">
             ({l.openingBalanceType === "DEBIT" ? "Dr" : "Cr"})
@@ -180,7 +180,7 @@ export default function LedgersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl lg:text-[1.75rem] font-bold text-[#202124] tracking-tight leading-tight">
+            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight leading-tight">
               {lang === "gu"
                 ? "ખાતાઓનું રજિસ્ટર (Ledger Accounts)"
                 : "Ledger Accounts Register"}
@@ -206,7 +206,7 @@ export default function LedgersPage() {
             setFormError(null);
             setIsModalOpen(true);
           }}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#174B43] hover:bg-[#123B35] active:bg-[#B94B0A] text-white text-xs sm:text-sm font-bold rounded-xl shadow-saffron transition-all w-full sm:w-auto shrink-0"
+          className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] text-white text-[13px] font-medium rounded-xl shadow-xs transition-all w-full sm:w-auto shrink-0"
         >
           <svg
             className="w-4 h-4"
@@ -277,7 +277,7 @@ export default function LedgersPage() {
               <select
                 value={groupFilter}
                 onChange={(e) => setGroupFilter(e.target.value)}
-                className="text-xs bg-[#F8FAFC] border border-[#E5E7EB] text-[#202124] rounded-xl px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-[#174B43]/20 focus:border-[#174B43] transition-all cursor-pointer"
+                className="text-[13px] bg-[#F8FAFC] border border-[#E5E7EB] text-[#182230] rounded-xl px-3 py-2 font-normal focus:outline-none focus:ring-2 focus:ring-[#0F172A]/20 focus:border-[#0F172A] transition-all cursor-pointer h-10"
               >
                 <option value="ALL">{lang === "gu" ? "તમામ જૂથ (All Groups)" : "All Ledger Groups"}</option>
                 {groups.map((g) => (
@@ -292,7 +292,7 @@ export default function LedgersPage() {
         mobileCardRender={(l) => (
           <div key={l.id || l.code} className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-mono font-bold text-slate-800">{l.code}</span>
+              <span className="tabular-nums font-bold text-slate-800">{l.code}</span>
               <StatusBadge status={l.isActive ? "ACTIVE" : "INACTIVE"} />
             </div>
             <div>
@@ -303,7 +303,7 @@ export default function LedgersPage() {
             </div>
             <div className="flex items-center justify-between text-xs text-slate-600">
               <span>{l.group?.name || "Standard Group"}</span>
-              <span className="font-mono font-bold text-slate-900">
+              <span className="tabular-nums font-bold text-slate-900">
                 ₹{Number(l.openingBalance || 0).toFixed(2)}{" "}
                 <span className="text-[10px] text-slate-500">
                   ({l.openingBalanceType === "DEBIT" ? "Dr" : "Cr"})
@@ -329,7 +329,7 @@ export default function LedgersPage() {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               Account Code *
             </label>
             <input
@@ -339,12 +339,12 @@ export default function LedgersPage() {
               onChange={(e) =>
                 setFormData({ ...formData, code: e.target.value })
               }
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono focus:bg-white"
+              className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums focus:bg-white h-10"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               Account Name *
             </label>
             <input
@@ -355,13 +355,13 @@ export default function LedgersPage() {
                 setFormData({ ...formData, name: e.target.value })
               }
               placeholder="e.g. HDFC Bank Current A/c"
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
+              className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white h-10"
             />
           </div>
 
           {lang === "gu" && (
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 નામ ગુજરાતીમાં (વૈકલ્પિક)
               </label>
               <input
@@ -371,13 +371,13 @@ export default function LedgersPage() {
                   setFormData({ ...formData, nameGujarati: e.target.value })
                 }
                 placeholder="એચડીએફસી બેંક ખાતું"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white h-10"
               />
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               Parent Ledger Group *
             </label>
             <select
@@ -385,7 +385,7 @@ export default function LedgersPage() {
               onChange={(e) =>
                 setFormData({ ...formData, groupId: e.target.value })
               }
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
+              className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white h-10"
             >
               {groups.map((g) => (
                 <option key={g.id} value={g.id}>
@@ -397,7 +397,7 @@ export default function LedgersPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 Opening Balance (₹)
               </label>
               <input
@@ -410,11 +410,11 @@ export default function LedgersPage() {
                     openingBalance: Number(e.target.value),
                   })
                 }
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums h-10"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 Balance Type
               </label>
               <select
@@ -425,7 +425,7 @@ export default function LedgersPage() {
                     openingBalanceType: e.target.value,
                   })
                 }
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded h-10"
               >
                 <option value="DEBIT">{lang === "gu" ? "ઉધાર (Dr - Debit)" : "Debit (Dr)"}</option>
                 <option value="CREDIT">{lang === "gu" ? "જમા (Cr - Credit)" : "Credit (Cr)"}</option>
@@ -437,14 +437,14 @@ export default function LedgersPage() {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 rounded-lg"
+              className="h-9 px-3.5 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] disabled:opacity-50 rounded-lg"
             >
               {isSubmitting ? "Saving..." : "Save Ledger"}
             </button>

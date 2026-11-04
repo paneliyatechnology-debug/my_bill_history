@@ -345,25 +345,25 @@ export default function ProformaInvoiceListingPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:px-6 sm:py-3.5 rounded-2xl border border-[#E2E8E5] shadow-xs">
         <div>
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#26A58A]">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#1677E8]">
               {lang === "gu" ? "વેચાણ અને પ્રોફોર્મા" : "SALES & PROFORMA"}
             </span>
             <span className="text-slate-300">•</span>
-            <span className="text-[10px] font-bold text-slate-500 font-mono">
+            <span className="text-[10px] font-bold text-slate-500 tabular-nums">
               {filteredInvoices.length} {lang === "gu" ? "પ્રોફોર્મા બિલ" : "Proforma Invoices"}
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <h1 className="text-xl sm:text-2xl font-black text-[#1A2E2B] tracking-tight">
+            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
               {lang === "gu" ? "પ્રોફોર્મા ઇનવોઇસ રજિસ્ટર" : "Proforma Invoices"}
             </h1>
             <button
               type="button"
               onClick={fetchInvoices}
               title="Refresh Proforma Invoices"
-              className="p-1 text-slate-400 hover:text-[#174B43] rounded-md transition-colors"
+              className="p-1 text-slate-400 hover:text-[#0F172A] rounded-md transition-colors"
             >
-              <svg className={`w-4 h-4 ${isLoading ? "animate-spin text-[#26A58A]" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+              <svg className={`w-4 h-4 ${isLoading ? "animate-spin text-[#1677E8]" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </button>
@@ -390,7 +390,7 @@ export default function ProformaInvoiceListingPage() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8E5] bg-white text-xs font-semibold text-[#1A2E2B] hover:bg-[#F2FAF7] hover:border-[#85D5C2] transition-colors shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#E2E8F0] bg-white text-[13px] font-medium text-[#182230] hover:bg-[#F8FAFC] hover:border-[#93C5FD] transition-colors shadow-2xs cursor-pointer"
             title="Print Register"
           >
             <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -401,7 +401,7 @@ export default function ProformaInvoiceListingPage() {
 
           <Link
             href="/sales/proforma/create"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold shadow-md shadow-[#174B43]/20 hover:shadow-lg hover:shadow-[#174B43]/30 transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium shadow-md shadow-[#0F172A]/20 hover:shadow-lg hover:shadow-[#0F172A]/30 transition-all cursor-pointer"
           >
             <svg className="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -430,7 +430,7 @@ export default function ProformaInvoiceListingPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={lang === "gu" ? "શોધો: પ્રોફોર્મા નં, ગ્રાહક..." : "Search proforma #, customer..."}
-              className="w-full rounded-xl border border-[#E2E8E5] bg-[#F6F7F1] py-2 pl-9 pr-8 text-xs text-[#1A2E2B] placeholder-slate-400 focus:bg-white focus:border-[#26A58A] focus:ring-1 focus:ring-[#26A58A] focus:outline-none transition-colors"
+              className="w-full rounded-xl border border-[#E2E8F0] bg-[#F6F7F1] py-2 pl-9 pr-8 text-[13px] text-[#182230] placeholder-slate-400 focus:bg-white focus:border-[#1677E8] focus:ring-1 focus:ring-[#1677E8] focus:outline-none transition-colors h-10"
             />
             {searchQuery && (
               <button
@@ -447,7 +447,7 @@ export default function ProformaInvoiceListingPage() {
           <select
             value={dateRangePreset}
             onChange={(e) => setDateRangePreset(e.target.value as DateRangePreset)}
-            className="pl-3 pr-8 py-2 border border-[#E2E8E5] rounded-xl text-xs font-medium text-[#1A2E2B] bg-white focus:outline-none focus:border-[#26A58A] cursor-pointer"
+            className="pl-3 pr-8 py-2 border border-[#E2E8F0] rounded-xl text-[13px] font-medium text-[#182230] bg-white focus:outline-none focus:border-[#1677E8] cursor-pointer h-10"
           >
             {Object.entries(DATE_PRESET_LABELS).map(([key, label]) => (
               <option key={key} value={key}>
@@ -473,7 +473,7 @@ export default function ProformaInvoiceListingPage() {
               onClick={() => setStatusFilter(tab.key)}
               className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
                 statusFilter === tab.key
-                  ? "bg-white text-[#174B43] shadow-xs font-bold"
+                  ? "bg-white text-[#0F172A] shadow-xs font-bold"
                   : "text-slate-500 hover:text-slate-900"
               }`}
             >
@@ -496,20 +496,20 @@ export default function ProformaInvoiceListingPage() {
           <table className="min-w-full text-left text-xs border-collapse">
             <thead className="bg-[#F8FAF9] border-b border-[#E2E8E5] text-[#5A6B66] font-semibold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="px-4 py-3.5 whitespace-nowrap font-bold">Date & Validity</th>
-                <th className="px-4 py-3.5 whitespace-nowrap font-bold">Proforma #</th>
-                <th className="px-4 py-3.5 whitespace-nowrap font-bold">Customer / Party</th>
-                <th className="px-4 py-3.5 text-right whitespace-nowrap font-bold">Amount</th>
-                <th className="px-4 py-3.5 text-center whitespace-nowrap font-bold">Status</th>
-                <th className="px-4 py-3.5 text-right whitespace-nowrap font-bold">Actions</th>
+                <th className="px-4 py-3.5 whitespace-nowrap font-medium">Date & Validity</th>
+                <th className="px-4 py-3.5 whitespace-nowrap font-medium">Proforma #</th>
+                <th className="px-4 py-3.5 whitespace-nowrap font-medium">Customer / Party</th>
+                <th className="px-4 py-3.5 text-right whitespace-nowrap font-medium">Amount</th>
+                <th className="px-4 py-3.5 text-center whitespace-nowrap font-medium">Status</th>
+                <th className="px-4 py-3.5 text-right whitespace-nowrap font-medium">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E8E5]">
               {isLoading && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-16 text-center text-xs text-[#5A6B66]">
+                  <td colSpan={6} className="px-4 py-16 text-center text-[13px] text-[#5A6B66]">
                     <div className="flex items-center justify-center gap-2">
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#26A58A] border-t-transparent" />
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#1677E8] border-t-transparent" />
                       <span>{lang === "gu" ? "લોડ થઈ રહ્યું છે..." : "Loading proforma invoices..."}</span>
                     </div>
                   </td>
@@ -520,8 +520,8 @@ export default function ProformaInvoiceListingPage() {
                 <tr>
                   <td colSpan={6} className="px-4 py-20 text-center text-[#5A6B66]">
                     <div className="flex flex-col items-center justify-center max-w-md mx-auto">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-[#174B43] mb-3 shadow-inner">
-                        <svg className="w-7 h-7 text-[#26A58A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75}>
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-[#0F172A] mb-3 shadow-inner">
+                        <svg className="w-7 h-7 text-[#1677E8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                       </div>
@@ -535,7 +535,7 @@ export default function ProformaInvoiceListingPage() {
                       </p>
                       <Link
                         href="/sales/proforma/create"
-                        className="mt-4 rounded-xl bg-[#174B43] px-4 py-2 text-xs font-bold text-white shadow-jade hover:bg-[#123B35] transition-colors"
+                        className="mt-4 rounded-xl bg-[#0F172A] h-9 px-3 text-[13px] font-medium text-white shadow-blue-500/20 hover:bg-[#1268D3] transition-colors"
                       >
                         {lang === "gu" ? "+ નવું પ્રોફોર્મા બિલ" : "+ Create Proforma"}
                       </Link>
@@ -552,12 +552,12 @@ export default function ProformaInvoiceListingPage() {
                     <tr
                       key={inv.id}
                       onClick={() => inv?.id && router.push(`/sales/invoices/${inv.id}`)}
-                      className={`hover:bg-[#F2FAF7]/70 transition-colors group cursor-pointer ${
+                      className={`hover:bg-[#F8FAFC]/70 transition-colors group cursor-pointer ${
                         inv.status === "CANCELLED" ? "opacity-60 bg-slate-50/50" : ""
                       }`}
                     >
                       {/* Date & Validity */}
-                      <td className="px-4 py-3 whitespace-nowrap text-xs text-[#1A2E2B]">
+                      <td className="px-4 py-3 whitespace-nowrap text-[13px] text-[#182230]">
                         <div>
                           {inv.invoiceDate
                             ? new Date(inv.invoiceDate).toLocaleDateString("en-GB", {
@@ -579,7 +579,7 @@ export default function ProformaInvoiceListingPage() {
                         <div className="flex items-center gap-2">
                           <Link
                             href={`/sales/invoices/${inv.id}`}
-                            className="font-mono font-bold text-[#174B43] hover:text-[#26A58A] hover:underline transition-colors text-xs"
+                            className="tabular-nums font-bold text-[#0F172A] hover:text-[#1677E8] hover:underline transition-colors text-xs"
                           >
                             {inv.invoiceNumber}
                           </Link>
@@ -594,14 +594,14 @@ export default function ProformaInvoiceListingPage() {
                         <div className="font-semibold text-[#1A2E2B] text-xs">
                           {inv.party?.name || inv.partyName || "Cash Customer"}
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono mt-0.5">
+                        <div className="flex items-center gap-2 text-[10px] text-slate-400 tabular-nums mt-0.5">
                           {inv.party?.phone && <span>📞 {inv.party.phone}</span>}
                           {inv.party?.gstin && <span>GST: {inv.party.gstin}</span>}
                         </div>
                       </td>
 
                       {/* Amount */}
-                      <td className="px-4 py-3 text-right font-bold text-[#1A2E2B] whitespace-nowrap font-mono text-[13px]">
+                      <td className="px-4 py-3 text-right font-medium text-[#182230] whitespace-nowrap tabular-nums text-[13px]">
                         {formatInr(amt)}
                       </td>
 
@@ -633,7 +633,7 @@ export default function ProformaInvoiceListingPage() {
                             <button
                               type="button"
                               onClick={() => handleConvertToTaxInvoice(inv)}
-                              className="px-2.5 py-1 text-xs font-bold text-white bg-[#174B43] hover:bg-[#123B35] rounded-lg shadow-xs transition-colors flex items-center gap-1 cursor-pointer"
+                              className="px-2.5 py-1 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] rounded-lg shadow-xs transition-colors flex items-center gap-1 cursor-pointer"
                               title="Convert this proforma to legal Tax Invoice"
                             >
                               <svg className="w-3.5 h-3.5 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -645,7 +645,7 @@ export default function ProformaInvoiceListingPage() {
 
                           <Link
                             href={`/sales/invoices/${inv.id}`}
-                            className="p-1.5 text-xs text-[#174B43] hover:bg-[#F2FAF7] rounded-lg font-semibold transition-colors border border-[#E2E8E5]"
+                            className="p-1.5 text-[13px] text-[#0F172A] hover:bg-[#F8FAFC] rounded-lg font-medium transition-colors border border-[#E2E8F0]"
                             title="View / Print PDF"
                           >
                             View
@@ -658,7 +658,7 @@ export default function ProformaInvoiceListingPage() {
                                 setSelectedInvoice(inv);
                                 setIsCancelModalOpen(true);
                               }}
-                              className="p-1.5 text-xs text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                              className="p-1.5 text-[13px] text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
                               title="Cancel Proforma"
                             >
                               ✕
@@ -668,7 +668,7 @@ export default function ProformaInvoiceListingPage() {
                           <button
                             type="button"
                             onClick={() => setInvoiceToDelete(inv)}
-                            className="p-1.5 text-xs text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-[13px] text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                             title="Delete Proforma"
                           >
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -709,27 +709,27 @@ export default function ProformaInvoiceListingPage() {
             <strong>#{selectedInvoice?.invoiceNumber}</strong>?
           </p>
           <div>
-            <label className="block font-bold text-slate-700 mb-1">Cancellation Reason</label>
+            <label className="block font-medium text-slate-700 mb-1">Cancellation Reason</label>
             <input
               type="text"
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               placeholder="e.g. Quotation rejected or deal cancelled"
-              className="w-full p-2.5 border border-[#E2E8E5] rounded-xl text-xs bg-[#F6F7F1] focus:bg-white focus:border-[#26A58A] focus:outline-none"
+              className="w-full p-2.5 border border-[#E2E8F0] rounded-xl text-[13px] bg-[#F6F7F1] focus:bg-white focus:border-[#1677E8] focus:outline-none h-10"
             />
           </div>
           <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
             <button
               type="button"
               onClick={() => setIsCancelModalOpen(false)}
-              className="px-3.5 py-1.5 border border-[#E2E8E5] rounded-xl text-slate-600 hover:bg-slate-50 cursor-pointer"
+              className="h-9 px-3 border border-[#E2E8F0] rounded-xl text-slate-600 hover:bg-slate-50 cursor-pointer"
             >
               Close
             </button>
             <button
               type="button"
               onClick={handleCancelSubmit}
-              className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold shadow-xs cursor-pointer"
+              className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-medium shadow-xs cursor-pointer"
             >
               Cancel Proforma
             </button>
@@ -753,7 +753,7 @@ export default function ProformaInvoiceListingPage() {
             <button
               type="button"
               onClick={() => setInvoiceToDelete(null)}
-              className="px-3.5 py-1.5 border border-[#E2E8E5] rounded-xl text-slate-600 hover:bg-slate-50 cursor-pointer"
+              className="h-9 px-3 border border-[#E2E8F0] rounded-xl text-slate-600 hover:bg-slate-50 cursor-pointer"
             >
               Cancel
             </button>
@@ -761,7 +761,7 @@ export default function ProformaInvoiceListingPage() {
               type="button"
               disabled={isDeleting}
               onClick={handleDeleteInvoice}
-              className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold shadow-xs cursor-pointer disabled:opacity-50"
+              className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-medium shadow-xs cursor-pointer disabled:opacity-50"
             >
               {isDeleting ? "Deleting..." : "Delete"}
             </button>

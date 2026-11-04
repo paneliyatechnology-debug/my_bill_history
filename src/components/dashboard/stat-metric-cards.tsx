@@ -73,20 +73,20 @@ export function StatMetricCards({
       {/* 1. TOTAL SALES */}
       <Link
         href="/reports?tab=sales"
-        className="group relative bg-white hover:bg-slate-50/60 border border-[#E5E7EB] hover:border-[#174B43]/60 rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col justify-between min-h-[125px] sm:min-h-[135px]"
+        className="group relative bg-white hover:bg-slate-50/60 border border-[#E5E7EB] hover:border-[#0F172A]/60 rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col justify-between min-h-[125px] sm:min-h-[135px]"
       >
         <div className="flex items-start justify-between gap-3 z-10">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#E6F7F2] text-[#174B43] flex items-center justify-center shrink-0 shadow-xs">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#EFF6FF] text-[#0F172A] flex items-center justify-center shrink-0 shadow-xs">
             <span className="font-bold text-base sm:text-lg">₹</span>
           </div>
-          <span className="text-xs text-[#9CA3AF] group-hover:text-[#174B43] transition-colors">↗</span>
+          <span className="text-xs text-[#9CA3AF] group-hover:text-[#0F172A] transition-colors">↗</span>
         </div>
 
         <div className="mt-2 z-10">
           <div className="text-[11px] sm:text-xs font-semibold text-[#6B7280] uppercase tracking-wider truncate">
             {lang === "gu" ? "કુલ વેચાણ (Sales)" : "Total Sales"}
           </div>
-          <div className="text-xl sm:text-2xl lg:text-[1.65rem] font-extrabold font-mono text-[#111827] tracking-tight truncate my-0.5">
+          <div className="text-xl sm:text-2xl lg:text-[1.65rem] font-semibold tabular-nums text-[#111827] tracking-tight truncate my-0.5">
             {isLoading ? "..." : formatInr(totalSales)}
           </div>
           <div className="text-xs text-[#6B7280] font-medium truncate">
@@ -95,10 +95,10 @@ export function StatMetricCards({
         </div>
 
         <WaveSparkline
-          strokeColor="#174B43"
+          strokeColor="#0F172A"
           gradientId="salesWave"
-          startColor="#174B43"
-          stopColor="#BCEADF"
+          startColor="#0F172A"
+          stopColor="#BFDBFE"
         />
       </Link>
 
@@ -120,7 +120,7 @@ export function StatMetricCards({
           <div className="text-[11px] sm:text-xs font-semibold text-[#6B7280] uppercase tracking-wider truncate">
             {lang === "gu" ? "ઉઘરાણી બાકી (લેણું)" : "Receivables"}
           </div>
-          <div className="text-xl sm:text-2xl lg:text-[1.65rem] font-extrabold font-mono text-[#111827] tracking-tight truncate my-0.5">
+          <div className="text-xl sm:text-2xl lg:text-[1.65rem] font-semibold tabular-nums text-[#111827] tracking-tight truncate my-0.5">
             {isLoading ? "..." : formatInr(totalReceivables)}
           </div>
           <div className="text-xs text-[#6B7280] font-medium truncate">
@@ -154,7 +154,7 @@ export function StatMetricCards({
           <div className="text-[11px] sm:text-xs font-semibold text-[#6B7280] uppercase tracking-wider truncate">
             {lang === "gu" ? "સ્ટોકની કુલ કિંમત" : "Stock Valuation"}
           </div>
-          <div className="text-xl sm:text-2xl lg:text-[1.65rem] font-extrabold font-mono text-[#111827] tracking-tight truncate my-0.5">
+          <div className="text-xl sm:text-2xl lg:text-[1.65rem] font-semibold tabular-nums text-[#111827] tracking-tight truncate my-0.5">
             {isLoading ? "..." : formatInr(stockValuation)}
           </div>
           <div className="text-xs text-[#6B7280] font-medium truncate">
@@ -190,7 +190,7 @@ export function StatMetricCards({
           <div className="text-[11px] sm:text-xs font-semibold text-[#6B7280] uppercase tracking-wider truncate">
             {lang === "gu" ? "ઓછો સ્ટોક ચેતવણી" : "Low Stock Alert"}
           </div>
-          <div className="text-xl sm:text-2xl lg:text-[1.65rem] font-extrabold font-mono text-[#111827] tracking-tight truncate my-0.5">
+          <div className="text-xl sm:text-2xl lg:text-[1.65rem] font-semibold tabular-nums text-[#111827] tracking-tight truncate my-0.5">
             {isLoading ? "..." : `${lowStockCount} Items`}
           </div>
           <div className="text-xs text-rose-600 font-medium truncate">

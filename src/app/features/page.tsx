@@ -399,7 +399,7 @@ export default function FeaturesPage() {
         {/* Eyebrow Pill */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FFF3E8] border border-[#FED7AA] text-[#C2410C] text-[11px] sm:text-xs font-bold mb-4 shadow-2xs">
           <span>✨</span>
-          <span className="tracking-wide uppercase font-extrabold">
+          <span className="tracking-wide uppercase font-semibold">
             {lang === "gu" ? "તમામ સુવિધાઓ ડિરેક્ટરી" : "EXPLORE FEATURES"}
           </span>
           <span className="text-[#C24E1D]">•</span>
@@ -532,13 +532,13 @@ export default function FeaturesPage() {
                       <div className="w-10 h-10 rounded-xl bg-[#FFF3E8] border border-[#FED7AA]/60 flex items-center justify-center text-xl shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-transform">
                         {feat.icon}
                       </div>
-                      <span className="text-[10px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-md bg-[#FAFBFD] border border-[#E5E7EB] text-[#667085]">
+                      <span className="text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded-md bg-[#FAFBFD] border border-[#E5E7EB] text-[#667085]">
                         {feat.category}
                       </span>
                     </div>
 
                     {/* Feature Title */}
-                    <h3 className="text-base sm:text-lg font-extrabold text-[#18263B] group-hover:text-[#C24E1D] transition-colors leading-snug">
+                    <h3 className="text-base sm:text-lg font-semibold text-[#18263B] group-hover:text-[#C24E1D] transition-colors leading-snug">
                       {lang === "gu" ? feat.nameGu : feat.nameEn}
                     </h3>
 
@@ -571,7 +571,7 @@ export default function FeaturesPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                       </svg>
                     </Link>
-                    <span className="text-[10px] text-[#98A2B3] font-mono">
+                    <span className="text-[10px] text-[#98A2B3] tabular-nums">
                       {feat.link.split("?")[0]}
                     </span>
                   </div>
@@ -592,7 +592,7 @@ export default function FeaturesPage() {
             <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold uppercase tracking-wider text-[#FED7AA]">
               {lang === "gu" ? "ઝડપી & સુરક્ષિત ક્લાઉડ સોફ્ટવેર" : "Ready In 2 Minutes"}
             </span>
-            <h2 className="text-xl xs:text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+            <h2 className="text-xl xs:text-2xl sm:text-4xl font-semibold text-white tracking-tight leading-tight">
               {lang === "gu"
                 ? "આજે જ તમારા વેપારનું ડિજિટલ બિલિંગ શરૂ કરો"
                 : "Experience Complete Indian MSME Billing Today"}
@@ -606,7 +606,7 @@ export default function FeaturesPage() {
             <div className="pt-2 flex flex-col xs:flex-row items-stretch xs:items-center gap-3">
               <Link
                 href="/login?mode=signup"
-                className="px-6 py-3.5 bg-[#C24E1D] hover:bg-[#D95F12] text-white text-xs sm:text-sm font-extrabold rounded-xl shadow-saffron text-center transition-all min-h-[44px] flex items-center justify-center cursor-pointer active:scale-95"
+                className="px-6 py-3.5 bg-[#C24E1D] hover:bg-[#D95F12] text-white text-xs sm:text-sm font-semibold rounded-xl shadow-saffron text-center transition-all min-h-[44px] flex items-center justify-center cursor-pointer active:scale-95"
               >
                 {lang === "gu" ? "મફત નોંધણી કરો (Get Started Free) →" : "Create Free Account →"}
               </Link>

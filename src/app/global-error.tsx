@@ -155,7 +155,7 @@ export default function GlobalError({
               onClick={() => reset()}
               style={{
                 padding: "11px 22px",
-                background: "linear-gradient(135deg, #174B43 0%, #26A58A 100%)",
+                background: "linear-gradient(135deg, #0F172A 0%, #1677E8 100%)",
                 color: "#FFFFFF",
                 border: "none",
                 borderRadius: "12px",

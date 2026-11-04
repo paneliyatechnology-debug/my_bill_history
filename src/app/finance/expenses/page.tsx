@@ -628,7 +628,7 @@ export default function ExpensesPage() {
       {/* Top Header matching MyBillBook screenshot */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Expenses</h1>
+          <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">Expenses</h1>
         </div>
 
         {/* Top Right Action Buttons */}
@@ -637,7 +637,7 @@ export default function ExpensesPage() {
           <div className="relative" ref={reportsMenuRef}>
             <button
               onClick={() => setIsReportsMenuOpen(!isReportsMenuOpen)}
-              className="px-3.5 py-2 bg-white hover:bg-slate-50 text-teal-600 font-semibold text-xs rounded-lg border border-teal-200 shadow-sm flex items-center gap-1.5 transition-all"
+              className="h-9 px-3 bg-white hover:bg-slate-50 text-[#1677E8] font-medium text-[13px] rounded-lg border border-teal-200 shadow-sm flex items-center gap-1.5 transition-all"
             >
               <svg className="w-4 h-4 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -652,35 +652,35 @@ export default function ExpensesPage() {
               <div className="absolute right-0 mt-1.5 w-56 bg-white border border-slate-200 rounded-xl shadow-lg z-30 py-1.5 text-xs animate-in fade-in duration-150">
                 <button
                   onClick={handleExportCSV}
-                  className="w-full text-left px-3.5 py-2 hover:bg-slate-50 text-slate-700 font-medium flex items-center gap-2"
+                  className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 font-medium flex items-center gap-2"
                 >
                   <span>📥</span>
                   <span>Export to Excel / CSV</span>
                 </button>
                 <button
                   onClick={handleExportPDF}
-                  className="w-full text-left px-3.5 py-2 hover:bg-slate-50 text-slate-700 font-medium flex items-center gap-2"
+                  className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 font-medium flex items-center gap-2"
                 >
                   <span>📑</span>
                   <span>Download PDF Statement</span>
                 </button>
                 <Link
                   href="/reports/day-book"
-                  className="w-full text-left px-3.5 py-2 hover:bg-slate-50 text-slate-700 font-medium flex items-center gap-2 block"
+                  className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 font-medium flex items-center gap-2 block"
                 >
                   <span>📅</span>
                   <span>Day Book Report</span>
                 </Link>
                 <Link
                   href="/reports/expense-category"
-                  className="w-full text-left px-3.5 py-2 hover:bg-slate-50 text-slate-700 font-medium flex items-center gap-2 block"
+                  className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 font-medium flex items-center gap-2 block"
                 >
                   <span>💸</span>
                   <span>Expense Category Report</span>
                 </Link>
                 <Link
                   href="/reports/general-ledger"
-                  className="w-full text-left px-3.5 py-2 hover:bg-slate-50 text-slate-700 font-medium flex items-center gap-2 block"
+                  className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 font-medium flex items-center gap-2 block"
                 >
                   <span>📊</span>
                   <span>General Ledger Report</span>
@@ -722,8 +722,7 @@ export default function ExpensesPage() {
           {/* Primary Create Expense Button */}
           <Link
             href="/finance/expenses/create"
-            className="px-5 py-2.5 bg-[#174B43] hover:bg-[#123B35] active:bg-[#0F322C] text-white font-bold text-xs rounded-lg shadow-md transition-all flex items-center gap-1.5"
-            style={{ backgroundColor: "#174B43" }}
+            className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] text-white font-medium text-[13px] rounded-lg shadow-md transition-all flex items-center gap-1.5"
           >
             <span>Create Expense</span>
           </Link>
@@ -748,7 +747,7 @@ export default function ExpensesPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by Party or Expense No..."
-              className="w-full pl-10 pr-4 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-teal-100 focus:border-teal-500 outline-none transition-all"
+              className="w-full pl-10 pr-4 py-2 text-[13px] bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-teal-100 focus:border-[#1677E8] outline-none transition-all h-10"
             />
           </div>
 
@@ -757,7 +756,7 @@ export default function ExpensesPage() {
             <select
               value={dateRangeFilter}
               onChange={(e: any) => setDateRangeFilter(e.target.value)}
-              className="w-full sm:w-auto text-xs py-2 pl-8 pr-8 bg-white border border-slate-200 rounded-lg font-semibold text-slate-700 outline-none hover:border-slate-300 focus:ring-2 focus:ring-teal-100 cursor-pointer appearance-none"
+              className="w-full sm:w-auto text-[13px] py-2 pl-8 pr-8 bg-white border border-slate-200 rounded-lg font-normal text-slate-700 outline-none hover:border-slate-300 focus:ring-2 focus:ring-teal-100 cursor-pointer appearance-none h-10"
             >
               <option value="LAST_365">Last 365 Days</option>
               <option value="TODAY">Today</option>
@@ -781,7 +780,7 @@ export default function ExpensesPage() {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full sm:w-auto text-xs py-2 px-3 pr-8 bg-white border border-slate-200 rounded-lg font-semibold text-slate-700 outline-none hover:border-slate-300 focus:ring-2 focus:ring-teal-100 cursor-pointer appearance-none"
+              className="w-full sm:w-auto text-[13px] py-2 px-3 pr-8 bg-white border border-slate-200 rounded-lg font-normal text-slate-700 outline-none hover:border-slate-300 focus:ring-2 focus:ring-teal-100 cursor-pointer appearance-none h-10"
             >
               <option value="ALL">All Expenses Categories</option>
               {allCategories.map((cat) => (
@@ -800,8 +799,7 @@ export default function ExpensesPage() {
         {/* <div className="w-full md:w-auto hidden sm:block">
           <Link
             href="/finance/expenses/create"
-            className="px-5 py-2 bg-[#174B43] hover:bg-[#123B35] text-white font-bold text-xs rounded-lg shadow-sm transition-all flex items-center justify-center gap-1.5"
-            style={{ backgroundColor: "#174B43" }}
+            className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white font-medium text-[13px] rounded-lg shadow-sm transition-all flex items-center justify-center gap-1.5"
           >
             Create Expense
           </Link>
@@ -856,8 +854,7 @@ export default function ExpensesPage() {
 
             <Link
               href="/finance/expenses/create"
-              className="px-5 py-2.5 bg-[#174B43] hover:bg-[#123B35] text-white font-bold text-xs rounded-lg shadow-sm transition-all"
-              style={{ backgroundColor: "#174B43" }}
+              className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white font-medium text-[13px] rounded-lg shadow-sm transition-all"
             >
               + Create Expense
             </Link>
@@ -919,7 +916,7 @@ export default function ExpensesPage() {
                         title="Click to view expense details"
                       >
                         {/* Date */}
-                        <td className="py-3.5 px-4 font-mono text-slate-700">
+                        <td className="py-3.5 px-4 tabular-nums text-slate-700">
                           {v.voucherDate
                             ? new Date(v.voucherDate).toLocaleDateString("en-IN", {
                                 day: "2-digit",
@@ -930,7 +927,7 @@ export default function ExpensesPage() {
                         </td>
 
                         {/* Expense Number */}
-                        <td className="py-3.5 px-4 font-mono font-bold text-slate-900">
+                        <td className="py-3.5 px-4 tabular-nums font-medium text-slate-900">
                           {v.voucherNumber}
                           {v.referenceNo && (
                             <span className="block text-[10px] font-normal text-slate-400">
@@ -955,7 +952,7 @@ export default function ExpensesPage() {
                         </td>
 
                         {/* Amount */}
-                        <td className="py-3.5 px-4 text-right font-mono font-bold text-slate-900 text-sm">
+                        <td className="py-3.5 px-4 text-right tabular-nums font-medium text-slate-900 text-[13px]">
                           ₹{" "}
                           {Number(details.amount).toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
@@ -991,7 +988,7 @@ export default function ExpensesPage() {
                                     setActionMenuVoucherId(null);
                                     router.push(`/finance/expenses/create?id=${v.id}`);
                                   }}
-                                  className="w-full text-left px-3.5 py-2 hover:bg-slate-50 text-slate-700 font-semibold flex items-center gap-2 cursor-pointer"
+                                  className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 font-medium flex items-center gap-2 cursor-pointer"
                                 >
                                   <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path
@@ -1012,7 +1009,7 @@ export default function ExpensesPage() {
                                       setReversalError(null);
                                       setActionMenuVoucherId(null);
                                     }}
-                                    className="w-full text-left px-3.5 py-2 hover:bg-rose-50 text-rose-600 font-semibold flex items-center gap-2 cursor-pointer"
+                                    className="w-full text-left h-9 px-3 hover:bg-rose-50 text-rose-600 font-medium flex items-center gap-2 cursor-pointer"
                                   >
                                     <svg className="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                       <path
@@ -1049,10 +1046,10 @@ export default function ExpensesPage() {
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-mono font-bold text-slate-900 text-xs">
+                      <span className="tabular-nums font-bold text-slate-900 text-xs">
                         {v.voucherNumber}
                       </span>
-                      <span className="font-mono text-[11px] text-slate-500">
+                      <span className="tabular-nums text-[11px] text-slate-500">
                         {v.voucherDate
                           ? new Date(v.voucherDate).toLocaleDateString("en-IN", {
                               day: "2-digit",
@@ -1074,7 +1071,7 @@ export default function ExpensesPage() {
                           </span>
                         )}
                       </div>
-                      <span className="text-sm font-mono font-bold text-slate-900">
+                      <span className="text-sm tabular-nums font-bold text-slate-900">
                         ₹{" "}
                         {Number(details.amount).toLocaleString("en-IN", {
                           minimumFractionDigits: 2,
@@ -1088,7 +1085,7 @@ export default function ExpensesPage() {
                           e.stopPropagation();
                           router.push(`/finance/expenses/create?id=${v.id}`);
                         }}
-                        className="px-3 py-1 text-[11px] font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-1 cursor-pointer"
+                        className="px-3 py-1 text-[11px] font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-1 cursor-pointer"
                       >
                         <span>✏️</span>
                         <span>Edit</span>
@@ -1101,7 +1098,7 @@ export default function ExpensesPage() {
                             setReversalReason("Deleted by user");
                             setReversalError(null);
                           }}
-                          className="px-3 py-1 text-[11px] font-semibold text-rose-600 bg-rose-50 border border-rose-100 rounded-lg hover:bg-rose-100 flex items-center gap-1 cursor-pointer"
+                          className="px-3 py-1 text-[11px] font-medium text-rose-600 bg-rose-50 border border-rose-100 rounded-lg hover:bg-rose-100 flex items-center gap-1 cursor-pointer"
                         >
                           <span>🗑️</span>
                           <span>Delete</span>
@@ -1120,8 +1117,7 @@ export default function ExpensesPage() {
       <div className="fixed bottom-6 right-6 block md:hidden z-30">
         <Link
           href="/finance/expenses/create"
-          className="w-14 h-14 bg-[#174B43] hover:bg-[#123B35] text-white rounded-full shadow-2xl flex items-center justify-center text-2xl font-bold"
-          style={{ backgroundColor: "#174B43" }}
+          className="w-14 h-14 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-full shadow-lg flex items-center justify-center text-[22px] font-medium"
         >
           +
         </Link>
@@ -1144,7 +1140,7 @@ export default function ExpensesPage() {
           >
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <h2 className="text-base font-bold text-slate-800">
+              <h2 className="text-[15px] font-semibold text-[#182230]">
                 {categoryModalMode === "add"
                   ? "New Expense Category"
                   : categoryModalMode === "edit"
@@ -1157,7 +1153,7 @@ export default function ExpensesPage() {
                   setIsManageCategoryModalOpen(false);
                   setCategoryModalMode("list");
                 }}
-                className="text-slate-400 hover:text-slate-700 p-2 rounded-lg hover:bg-slate-100 text-sm font-bold transition-colors cursor-pointer"
+                className="text-slate-400 hover:text-slate-700 p-2 rounded-lg hover:bg-slate-100 text-[13px] font-medium transition-colors cursor-pointer"
               >
                 ✕
               </button>
@@ -1174,7 +1170,7 @@ export default function ExpensesPage() {
                       setCategoryModalMode("add");
                       setNewCategoryNameInput("");
                     }}
-                    className="w-full py-2.5 border border-dashed border-[#174B43] text-[#174B43] hover:bg-teal-50/60 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+                    className="w-full py-2.5 border border-dashed border-[#0F172A] text-[#0F172A] hover:bg-[#EFF6FF]/60 rounded-xl text-[13px] font-medium transition-colors flex items-center justify-center gap-1.5"
                   >
                     <span>+</span>
                     <span>New Expense Category</span>
@@ -1196,7 +1192,7 @@ export default function ExpensesPage() {
                               setNewCategoryNameInput(cat);
                               setCategoryModalMode("edit");
                             }}
-                            className="px-2.5 py-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors flex items-center gap-1"
+                            className="px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors flex items-center gap-1"
                           >
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path
@@ -1232,7 +1228,7 @@ export default function ExpensesPage() {
                 /* Add / Edit Form */
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                    <label className="block text-[12px] font-medium text-slate-700 mb-1">
                       Category Name *
                     </label>
                     <input
@@ -1241,7 +1237,7 @@ export default function ExpensesPage() {
                       value={newCategoryNameInput}
                       onChange={(e) => setNewCategoryNameInput(e.target.value)}
                       placeholder="e.g. Courier & Postage"
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:bg-white focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[13px] font-normal text-slate-900 outline-none focus:bg-white focus:border-[#1677E8] focus:ring-2 focus:ring-teal-100 h-10"
                     />
                   </div>
 
@@ -1249,14 +1245,14 @@ export default function ExpensesPage() {
                     <button
                       type="button"
                       onClick={() => setCategoryModalMode("list")}
-                      className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                      className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
                     >
                       Back
                     </button>
                     <button
                       type="button"
                       onClick={handleSaveCategoryModal}
-                      className="px-5 py-2 text-xs font-bold text-white bg-[#174B43] hover:bg-[#123B35] rounded-xl shadow-md transition-all"
+                      className="h-9 px-3.5 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] rounded-xl shadow-md transition-all"
                     >
                       {categoryModalMode === "add" ? "Add Category" : "Update Category"}
                     </button>
@@ -1283,7 +1279,7 @@ export default function ExpensesPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
                   <div>
                     <span className="text-[10px] text-slate-400 font-bold block uppercase">Date</span>
-                    <span className="font-semibold text-slate-900 font-mono">
+                    <span className="font-semibold text-slate-900 tabular-nums">
                       {selectedVoucher.voucherDate
                         ? new Date(selectedVoucher.voucherDate).toLocaleDateString("en-IN")
                         : "-"}
@@ -1299,7 +1295,7 @@ export default function ExpensesPage() {
                   </div>
                   <div>
                     <span className="text-[10px] text-slate-400 font-bold block uppercase">Total Amount</span>
-                    <span className="font-bold text-slate-900 font-mono text-sm">
+                    <span className="font-bold text-slate-900 tabular-nums text-sm">
                       ₹ {Number(d.amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                     </span>
                   </div>
@@ -1308,7 +1304,7 @@ export default function ExpensesPage() {
                 {selectedVoucher.referenceNo && (
                   <div className="p-3 bg-teal-50/50 border border-teal-100 rounded-lg">
                     <span className="font-semibold text-indigo-900">Original Invoice / Ref No:</span>{" "}
-                    <span className="font-mono">{selectedVoucher.referenceNo}</span>
+                    <span className="tabular-nums">{selectedVoucher.referenceNo}</span>
                   </div>
                 )}
 
@@ -1336,7 +1332,7 @@ export default function ExpensesPage() {
                         <th className="p-2 text-right">Credit (Cr)</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 text-xs font-mono">
+                    <tbody className="divide-y divide-slate-100 text-xs tabular-nums">
                       {(selectedVoucher.journalEntries || selectedVoucher.lines || []).map((l, i) => (
                         <tr key={l.id || i}>
                           <td className="p-2 text-slate-800">
@@ -1362,14 +1358,14 @@ export default function ExpensesPage() {
                 <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
                   <button
                     onClick={() => handleDownloadVoucherReceipt(selectedVoucher)}
-                    className="px-4 py-2 bg-teal-50 text-teal-700 hover:bg-teal-100 font-semibold rounded-lg transition-colors flex items-center gap-1.5"
+                    className="h-9 px-3 bg-[#EFF6FF] text-[#1677E8] hover:bg-teal-100 font-medium rounded-lg transition-colors flex items-center gap-1.5"
                   >
                     <span>📄</span>
                     <span>Download PDF Receipt</span>
                   </button>
                   <button
                     onClick={() => setSelectedVoucher(null)}
-                    className="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors"
+                    className="h-9 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors"
                   >
                     Close
                   </button>
@@ -1404,7 +1400,7 @@ export default function ExpensesPage() {
               <button
                 type="button"
                 onClick={() => setReversalTarget(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
+                className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
               >
                 Cancel
               </button>
@@ -1412,7 +1408,7 @@ export default function ExpensesPage() {
                 type="button"
                 disabled={isReversing}
                 onClick={handleConfirmReversal}
-                className="px-5 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-all cursor-pointer"
+                className="h-9 px-3.5 text-[13px] font-medium text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-all cursor-pointer"
               >
                 {isReversing ? "Deleting..." : "Delete"}
               </button>

@@ -129,7 +129,7 @@ export function HsnSelector({
   return (
     <div className={`relative ${className}`} ref={containerRef}>
       {label && (
-        <label className="block text-xs font-semibold text-slate-700 mb-1">
+        <label className="block text-[12px] font-medium text-slate-700 mb-1">
           {lang === "gu" ? labelGujarati : label}
           {required && <span className="text-rose-500 ml-0.5">*</span>}
         </label>
@@ -164,7 +164,7 @@ export function HsnSelector({
             >
               {selectedHsn.type}
             </span>
-            <span className="font-mono font-bold text-xs text-slate-900 tracking-wide">
+            <span className="tabular-nums font-bold text-xs text-slate-900 tracking-wide">
               {selectedHsn.code}
             </span>
             <span className="text-xs text-slate-600 truncate max-w-[200px] sm:max-w-[260px]">
@@ -290,7 +290,7 @@ export function HsnSelector({
                 ? "શોધ પરિણામો (HSN / SAC)"
                 : "Centralized HSN/SAC Master"}
             </span>
-            <span className="font-mono text-[10px]">
+            <span className="tabular-nums text-[10px]">
               {options.length} {options.length === 1 ? "match" : "matches"}
             </span>
           </div>
@@ -309,7 +309,7 @@ export function HsnSelector({
                         setIsOpen(false);
                       }
                     }}
-                    className="font-mono text-emerald-600 font-bold hover:underline"
+                    className="tabular-nums text-emerald-600 font-bold hover:underline"
                   >
                     &ldquo;{query || value}&rdquo;
                   </button>
@@ -335,7 +335,7 @@ export function HsnSelector({
                       >
                         {opt.type}
                       </span>
-                      <span className="font-mono font-bold text-xs text-slate-900 tracking-wider">
+                      <span className="tabular-nums font-bold text-xs text-slate-900 tracking-wider">
                         {opt.code}
                       </span>
                       {opt.isSystem ? (
@@ -375,7 +375,7 @@ export function HsnSelector({
                   </div>
 
                   <div className="text-right flex-shrink-0">
-                    <span className="inline-block px-2 py-0.5 bg-slate-100 text-slate-800 rounded font-semibold text-xs font-mono">
+                    <span className="inline-block px-2 py-0.5 bg-slate-100 text-slate-800 rounded font-semibold text-xs tabular-nums">
                       {Number(opt.gstRate)}% GST
                     </span>
                     {opt.cessRate && Number(opt.cessRate) > 0 ? (

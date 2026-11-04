@@ -455,7 +455,7 @@ export default function SmsMarketingPage() {
             </svg>
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <h1 className="text-[22px] font-semibold text-[#182230] flex items-center gap-2">
               {lang === "gu" ? "એસએમએસ માર્કેટિંગ (SMS Marketing)" : "SMS Marketing"}
               <span className="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
                 DLT Standard
@@ -473,7 +473,7 @@ export default function SmsMarketingPage() {
           {/* Tutorial Button */}
           <button
             onClick={() => setShowTutorialModal(true)}
-            className="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-all"
+            className="inline-flex items-center gap-2 h-9 px-3 text-[13px] font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-all"
           >
             <svg className="w-4 h-4 text-[#4c3cce]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
@@ -508,7 +508,7 @@ export default function SmsMarketingPage() {
           {/* Primary Action Button */}
           <button
             onClick={() => handleOpenTemplateModal("festival")}
-            className="inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-[#4c3cce] rounded-lg hover:bg-[#3d2eb3] shadow-sm active:scale-95 transition-all"
+            className="inline-flex items-center gap-2 h-9 px-3 text-[13px] font-medium text-white bg-[#4c3cce] rounded-lg hover:bg-[#3d2eb3] shadow-sm active:scale-95 transition-all"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -536,7 +536,7 @@ export default function SmsMarketingPage() {
           </div>
           <button
             onClick={() => setShowLimitAlertModal(true)}
-            className="px-4 py-1.5 text-xs font-semibold text-amber-900 bg-amber-200 hover:bg-amber-300 rounded-lg transition-colors"
+            className="px-4 py-1.5 text-[13px] font-medium text-amber-900 bg-amber-200 hover:bg-amber-300 rounded-lg transition-colors"
           >
             {lang === "gu" ? "સંપર્ક કરો / રિચાર્જ" : "Contact Us / Recharge"}
           </button>
@@ -622,7 +622,7 @@ export default function SmsMarketingPage() {
                 <div className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center text-sm font-bold mb-3 shadow-xs">
                   🪔
                 </div>
-                <h3 className="font-bold text-gray-900 text-sm">
+                <h3 className="font-semibold text-gray-900 text-[15px]">
                   {lang === "gu" ? "તહેવાર ઑફર્સ & શુભેચ્છાઓ" : "Festival Offers & Wishes"}
                 </h3>
                 <p className="text-xs text-gray-600 mt-1 line-clamp-2">
@@ -633,7 +633,7 @@ export default function SmsMarketingPage() {
               </div>
               <button
                 onClick={() => handleOpenTemplateModal("festival")}
-                className="mt-4 w-full py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-xs"
+                className="mt-4 w-full py-2 bg-amber-600 hover:bg-amber-700 text-white text-[13px] font-medium rounded-lg transition-colors shadow-xs"
               >
                 {lang === "gu" ? "+ તહેવાર કેમ્પેઈન" : "+ Create Festival Campaign"}
               </button>
@@ -645,7 +645,7 @@ export default function SmsMarketingPage() {
                 <div className="w-8 h-8 rounded-lg bg-[#4c3cce] text-white flex items-center justify-center text-sm font-bold mb-3 shadow-xs">
                   🏷️
                 </div>
-                <h3 className="font-bold text-gray-900 text-sm">
+                <h3 className="font-semibold text-gray-900 text-[15px]">
                   {lang === "gu" ? "સ્પેશિયલ ડિસ્કાઉન્ટ & સેલ" : "Discount & Clearance Sale"}
                 </h3>
                 <p className="text-xs text-gray-600 mt-1 line-clamp-2">
@@ -656,7 +656,7 @@ export default function SmsMarketingPage() {
               </div>
               <button
                 onClick={() => handleOpenTemplateModal("discount")}
-                className="mt-4 w-full py-2 bg-[#4c3cce] hover:bg-[#3d2eb3] text-white text-xs font-semibold rounded-lg transition-colors shadow-xs"
+                className="mt-4 w-full py-2 bg-[#4c3cce] hover:bg-[#3d2eb3] text-white text-[13px] font-medium rounded-lg transition-colors shadow-xs"
               >
                 {lang === "gu" ? "+ ડિસ્કાઉન્ટ કેમ્પેઈન" : "+ Create Discount Campaign"}
               </button>
@@ -668,7 +668,7 @@ export default function SmsMarketingPage() {
                 <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-sm font-bold mb-3 shadow-xs">
                   📦
                 </div>
-                <h3 className="font-bold text-gray-900 text-sm">
+                <h3 className="font-semibold text-gray-900 text-[15px]">
                   {lang === "gu" ? "નવા માલસામાનનું આગમન" : "New Arrivals & Stock Update"}
                 </h3>
                 <p className="text-xs text-gray-600 mt-1 line-clamp-2">
@@ -679,7 +679,7 @@ export default function SmsMarketingPage() {
               </div>
               <button
                 onClick={() => handleOpenTemplateModal("stock_update")}
-                className="mt-4 w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-xs"
+                className="mt-4 w-full py-2 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-lg transition-colors shadow-xs"
               >
                 {lang === "gu" ? "+ સ્ટોક અપડેટ કેમ્પેઈન" : "+ Create Stock Campaign"}
               </button>
@@ -691,7 +691,7 @@ export default function SmsMarketingPage() {
                 <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm font-bold mb-3 shadow-xs">
                   📢
                 </div>
-                <h3 className="font-bold text-gray-900 text-sm">
+                <h3 className="font-semibold text-gray-900 text-[15px]">
                   {lang === "gu" ? "વ્યવસાય પ્રમોશન & જાહેરાત" : "Business Announcement"}
                 </h3>
                 <p className="text-xs text-gray-600 mt-1 line-clamp-2">
@@ -702,7 +702,7 @@ export default function SmsMarketingPage() {
               </div>
               <button
                 onClick={() => handleOpenTemplateModal("business_promotion")}
-                className="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-xs"
+                className="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-medium rounded-lg transition-colors shadow-xs"
               >
                 {lang === "gu" ? "+ પ્રમોશન કેમ્પેઈન" : "+ Create Promo Campaign"}
               </button>
@@ -715,7 +715,7 @@ export default function SmsMarketingPage() {
               <div className="w-16 h-16 rounded-full bg-indigo-50 text-[#4c3cce] flex items-center justify-center mx-auto mb-4 text-2xl">
                 🚀
               </div>
-              <h2 className="text-lg font-bold text-gray-900">
+              <h2 className="text-[15px] font-semibold text-[#182230]">
                 {lang === "gu"
                   ? "એસએમએસ પ્રમોશન દ્વારા તમારો વ્યવસાય વધારો"
                   : "Grow Your Business through SMS Promotions"}
@@ -727,7 +727,7 @@ export default function SmsMarketingPage() {
               </p>
               <button
                 onClick={() => handleOpenTemplateModal("festival")}
-                className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 bg-[#4c3cce] hover:bg-[#3d2eb3] text-white font-semibold text-sm rounded-lg shadow-sm transition-all"
+                className="mt-6 inline-flex items-center gap-2 h-9 px-3.5 bg-[#4c3cce] hover:bg-[#3d2eb3] text-white font-medium text-[13px] rounded-lg shadow-sm transition-all"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -738,7 +738,7 @@ export default function SmsMarketingPage() {
           ) : (
             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
               <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                <h3 className="font-bold text-gray-900 text-sm">
+                <h3 className="font-semibold text-gray-900 text-[15px]">
                   {lang === "gu" ? "મોકલેલ ઝુંબેશોની યાદી" : "My Campaigns History"}
                 </h3>
                 <button
@@ -796,7 +796,7 @@ export default function SmsMarketingPage() {
                             onClick={() => {
                               handleOpenTemplateModal(c.category || "festival");
                             }}
-                            className="text-xs font-semibold text-gray-600 hover:text-gray-900 border border-gray-300 rounded px-2 py-1 ml-2"
+                            className="text-[13px] font-medium text-gray-600 hover:text-gray-900 border border-gray-300 rounded px-2 py-1 ml-2"
                           >
                             {lang === "gu" ? "ફરી મોકલો" : "Resend"}
                           </button>
@@ -815,7 +815,7 @@ export default function SmsMarketingPage() {
       {activeTab === "smart_greetings" && (
         <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-xs max-w-4xl space-y-6">
           <div>
-            <h2 className="text-base font-bold text-gray-900">
+            <h2 className="text-[15px] font-semibold text-[#182230]">
               {lang === "gu"
                 ? "પાર્ટીઓ સાથે ઓટોમેટેડ સ્માર્ટ મેસેજ શેર કરવા માટે ટેમ્પલેટ્સ પસંદ કરો"
                 : "Select Templates to Share Automated Smart Greetings with Parties on WhatsApp / SMS"}
@@ -831,7 +831,7 @@ export default function SmsMarketingPage() {
           <div className="border border-gray-200 rounded-lg p-5 space-y-3 bg-gray-50/50">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-gray-900">
+                <h3 className="text-[15px] font-semibold text-gray-900">
                   {lang === "gu" ? "૧. ઇન્વૉઇસ માઇલસ્ટોન મેસેજ" : "1. Invoice Milestones"}
                 </h3>
                 <p className="text-xs text-gray-500">
@@ -862,7 +862,7 @@ export default function SmsMarketingPage() {
 
             {greetingSettings.invoice_milestone.enabled && (
               <div className="space-y-2 pt-2 border-t border-gray-200">
-                <label className="text-xs font-semibold text-gray-700">
+                <label className="text-[12px] font-medium text-gray-700">
                   {lang === "gu" ? "ટેમ્પલેટ પસંદ કરો:" : "Select Milestone Template:"}
                 </label>
                 <select
@@ -878,7 +878,7 @@ export default function SmsMarketingPage() {
                       },
                     }));
                   }}
-                  className="w-full text-xs sm:text-sm p-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500"
+                  className="w-full text-[13px] sm:text-[13px] p-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 h-10"
                 >
                   {REMINDER_TEMPLATES_DATA.filter(
                     (t) => t.category === "invoice_milestone_reminders",
@@ -901,7 +901,7 @@ export default function SmsMarketingPage() {
           <div className="border border-gray-200 rounded-lg p-5 space-y-3 bg-gray-50/50">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-gray-900">
+                <h3 className="text-[15px] font-semibold text-gray-900">
                   {lang === "gu" ? "૨. જન્મદિવસની શુભેચ્છાઓ (Birthday Wishes)" : "2. Birthday Wishes"}
                 </h3>
                 <p className="text-xs text-gray-500">
@@ -932,7 +932,7 @@ export default function SmsMarketingPage() {
 
             {greetingSettings.birthday_reminder.enabled && (
               <div className="space-y-2 pt-2 border-t border-gray-200">
-                <label className="text-xs font-semibold text-gray-700">
+                <label className="text-[12px] font-medium text-gray-700">
                   {lang === "gu" ? "જન્મદિવસ ટેમ્પલેટ પસંદ કરો:" : "Select Birthday Template:"}
                 </label>
                 <select
@@ -948,7 +948,7 @@ export default function SmsMarketingPage() {
                       },
                     }));
                   }}
-                  className="w-full text-xs sm:text-sm p-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500"
+                  className="w-full text-[13px] sm:text-[13px] p-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 h-10"
                 >
                   {REMINDER_TEMPLATES_DATA.filter(
                     (t) => t.category === "birthday_reminders",
@@ -971,7 +971,7 @@ export default function SmsMarketingPage() {
             <button
               onClick={handleSaveGreetingSettings}
               disabled={actionLoading}
-              className="px-6 py-2.5 bg-[#4c3cce] hover:bg-[#3d2eb3] text-white font-semibold text-xs sm:text-sm rounded-lg shadow-sm transition-all flex items-center gap-2"
+              className="px-6 py-2.5 bg-[#4c3cce] hover:bg-[#3d2eb3] text-white font-medium text-[13px] rounded-lg shadow-sm transition-all flex items-center gap-2"
             >
               {actionLoading && <span className="animate-spin">⏳</span>}
               {lang === "gu" ? "સેટિંગ્સ સાચવો" : "Save Settings"}
@@ -1020,7 +1020,7 @@ export default function SmsMarketingPage() {
                     <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-gray-100 text-gray-700">
                       {tpl.category.replace("_", " ")}
                     </span>
-                    <span className="text-[10px] text-gray-400 font-mono">
+                    <span className="text-[10px] text-gray-400 tabular-nums">
                       DLT: {tpl.dlt_te_id}
                     </span>
                   </div>
@@ -1035,7 +1035,7 @@ export default function SmsMarketingPage() {
                     setWizardStep(1);
                     setShowCampaignWizard(true);
                   }}
-                  className="mt-4 w-full py-2 bg-indigo-50 hover:bg-[#4c3cce] hover:text-white text-[#4c3cce] text-xs font-semibold rounded-lg border border-indigo-200 transition-all flex items-center justify-center gap-1.5"
+                  className="mt-4 w-full py-2 bg-indigo-50 hover:bg-[#4c3cce] hover:text-white text-[#4c3cce] text-[13px] font-medium rounded-lg border border-indigo-200 transition-all flex items-center justify-center gap-1.5"
                 >
                   <span>{lang === "gu" ? "આ ટેમ્પલેટ વાપરો" : "Use This Template"}</span>
                   <span>→</span>
@@ -1054,7 +1054,7 @@ export default function SmsMarketingPage() {
           <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-scale-up">
             {/* Header */}
             <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-              <h3 className="font-bold text-gray-900 text-base">
+              <h3 className="font-semibold text-gray-900 text-[15px]">
                 {lang === "gu" ? "એસએમએસ ટેમ્પલેટ પસંદ કરો" : "Choose SMS Template"}
               </h3>
               <button
@@ -1077,7 +1077,7 @@ export default function SmsMarketingPage() {
                   const match = PRE_APPROVED_TEMPLATES.find((t) => t.category === e.target.value);
                   if (match) setSelectedTemplateForEdit(match);
                 }}
-                className="text-xs p-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 font-medium"
+                className="text-[13px] p-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 font-medium h-10"
               >
                 <option value="festival">{lang === "gu" ? "તહેવાર (Festival)" : "Festival"}</option>
                 <option value="discount">{lang === "gu" ? "ડિસ્કાઉન્ટ (Discount)" : "Discount"}</option>
@@ -1114,7 +1114,7 @@ export default function SmsMarketingPage() {
                   />
                   <div className="flex-1">
                     <p className="text-xs text-gray-800 leading-relaxed font-sans">{tpl.example}</p>
-                    <span className="text-[10px] text-gray-400 font-mono mt-1 block">
+                    <span className="text-[10px] text-gray-400 tabular-nums mt-1 block">
                       DLT Template ID: {tpl.dlt_te_id}
                     </span>
                   </div>
@@ -1126,13 +1126,13 @@ export default function SmsMarketingPage() {
             <div className="p-4 border-t border-gray-200 flex items-center justify-end gap-3 bg-gray-50">
               <button
                 onClick={() => setShowTemplateModal(false)}
-                className="px-4 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
+                className="h-9 px-3 text-[13px] font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
               >
                 {lang === "gu" ? "રદ કરો" : "Cancel"}
               </button>
               <button
                 onClick={handleSelectTemplateAndProceed}
-                className="px-5 py-2 text-xs font-semibold text-white bg-[#4c3cce] hover:bg-[#3d2eb3] rounded-lg shadow-sm"
+                className="h-9 px-3.5 text-[13px] font-medium text-white bg-[#4c3cce] hover:bg-[#3d2eb3] rounded-lg shadow-sm"
               >
                 {lang === "gu" ? "પસંદ કરો અને એડિટ કરો →" : "Select & Edit →"}
               </button>
@@ -1159,7 +1159,7 @@ export default function SmsMarketingPage() {
                 >
                   ←
                 </button>
-                <h3 className="font-bold text-gray-900 text-base">
+                <h3 className="font-semibold text-gray-900 text-[15px]">
                   {lang === "gu" ? "નવી SMS ઝુંબેશ બનાવો" : "Create SMS Campaign"}
                 </h3>
               </div>
@@ -1316,7 +1316,7 @@ export default function SmsMarketingPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                       {/* Business Name */}
                       <div>
-                        <label className="font-semibold text-gray-700 block mb-1">
+                        <label className="font-medium text-gray-700 block mb-1">
                           {lang === "gu" ? "વ્યવસાય નામ (Business Name)" : "Business Name"}
                         </label>
                         <input
@@ -1325,13 +1325,13 @@ export default function SmsMarketingPage() {
                           onChange={(e) =>
                             setVariables((prev) => ({ ...prev, business_name: e.target.value }))
                           }
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-[13px] font-normal h-10"
                         />
                       </div>
 
                       {/* Mobile Number */}
                       <div>
-                        <label className="font-semibold text-gray-700 block mb-1">
+                        <label className="font-medium text-gray-700 block mb-1">
                           {lang === "gu" ? "હેલ્પલાઇન / મોબાઇલ" : "Contact Phone"}
                         </label>
                         <input
@@ -1340,14 +1340,14 @@ export default function SmsMarketingPage() {
                           onChange={(e) =>
                             setVariables((prev) => ({ ...prev, mobile_number: e.target.value }))
                           }
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-[13px] font-normal h-10"
                         />
                       </div>
 
                       {/* Discount Pct */}
                       {selectedTemplateForEdit.template.includes("%{discount_pct}") && (
                         <div>
-                          <label className="font-semibold text-gray-700 block mb-1">
+                          <label className="font-medium text-gray-700 block mb-1">
                             {lang === "gu" ? "ડિસ્કાઉન્ટ ટકાવારી (%)" : "Discount Percentage (%)"}
                           </label>
                           <input
@@ -1356,7 +1356,7 @@ export default function SmsMarketingPage() {
                             onChange={(e) =>
                               setVariables((prev) => ({ ...prev, discount_pct: e.target.value }))
                             }
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-[13px] font-normal h-10"
                             placeholder="e.g. 15%"
                           />
                         </div>
@@ -1365,7 +1365,7 @@ export default function SmsMarketingPage() {
                       {/* Festival Name */}
                       {selectedTemplateForEdit.template.includes("%{festival_name}") && (
                         <div>
-                          <label className="font-semibold text-gray-700 block mb-1">
+                          <label className="font-medium text-gray-700 block mb-1">
                             {lang === "gu" ? "તહેવારનું નામ" : "Festival Name"}
                           </label>
                           <input
@@ -1374,7 +1374,7 @@ export default function SmsMarketingPage() {
                             onChange={(e) =>
                               setVariables((prev) => ({ ...prev, festival_name: e.target.value }))
                             }
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-[13px] font-normal h-10"
                             placeholder="e.g. Diwali, New Year, Eid"
                           />
                         </div>
@@ -1383,7 +1383,7 @@ export default function SmsMarketingPage() {
                       {/* Items / Products */}
                       {selectedTemplateForEdit.template.includes("%{items}") && (
                         <div>
-                          <label className="font-semibold text-gray-700 block mb-1">
+                          <label className="font-medium text-gray-700 block mb-1">
                             {lang === "gu" ? "માલસામાન વર્ણન (Items)" : "Applicable Items"}
                           </label>
                           <input
@@ -1392,7 +1392,7 @@ export default function SmsMarketingPage() {
                             onChange={(e) =>
                               setVariables((prev) => ({ ...prev, items: e.target.value }))
                             }
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-[13px] font-normal h-10"
                             placeholder="e.g. all items, fresh arrivals"
                           />
                         </div>
@@ -1401,7 +1401,7 @@ export default function SmsMarketingPage() {
                       {/* Valid Till Date */}
                       {selectedTemplateForEdit.template.includes("%{valid_till}") && (
                         <div>
-                          <label className="font-semibold text-gray-700 block mb-1">
+                          <label className="font-medium text-gray-700 block mb-1">
                             {lang === "gu" ? "ઓફર માન્ય તારીખ" : "Offer Valid Till"}
                           </label>
                           <input
@@ -1410,7 +1410,7 @@ export default function SmsMarketingPage() {
                             onChange={(e) =>
                               setVariables((prev) => ({ ...prev, valid_till: e.target.value }))
                             }
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-[13px] font-normal h-10"
                             placeholder="e.g. 15 Nov 2026"
                           />
                         </div>
@@ -1445,7 +1445,7 @@ export default function SmsMarketingPage() {
                           }
                           value={partySearchQuery}
                           onChange={(e) => setPartySearchQuery(e.target.value)}
-                          className="w-full text-xs p-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                          className="w-full text-[13px] p-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 h-10"
                         />
                         <span className="absolute left-2.5 top-2 text-gray-400">🔍</span>
                       </div>
@@ -1515,7 +1515,7 @@ export default function SmsMarketingPage() {
                           <button
                             onClick={handleCreateSampleCustomer}
                             disabled={actionLoading}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-[#4c3cce] font-semibold rounded-lg text-xs"
+                            className="inline-flex items-center gap-1.5 h-9 px-3 bg-indigo-50 hover:bg-indigo-100 text-[#4c3cce] font-medium rounded-lg text-[13px]"
                           >
                             <span>+</span>
                             <span>{lang === "gu" ? "સેમ્પલ ગ્રાહક બનાવો (ટેસ્ટ)" : "Create Sample Customer (Quick Test)"}</span>
@@ -1597,12 +1597,12 @@ export default function SmsMarketingPage() {
                           value={testMobileInput}
                           onChange={(e) => setTestMobileInput(e.target.value)}
                           placeholder="Enter 10-digit mobile number"
-                          className="text-xs p-2 border border-indigo-200 rounded-lg flex-1 bg-white"
+                          className="text-[13px] p-2 border border-indigo-200 rounded-lg flex-1 bg-white h-10"
                         />
                         <button
                           onClick={handleSendTestSms}
                           disabled={actionLoading}
-                          className="px-3 py-2 bg-[#4c3cce] hover:bg-[#3d2eb3] text-white text-xs font-semibold rounded-lg whitespace-nowrap shadow-xs"
+                          className="h-9 px-3 bg-[#4c3cce] hover:bg-[#3d2eb3] text-white text-[13px] font-medium rounded-lg whitespace-nowrap shadow-xs"
                         >
                           {actionLoading ? "..." : lang === "gu" ? "મોકલો" : "Send Test"}
                         </button>
@@ -1629,14 +1629,14 @@ export default function SmsMarketingPage() {
                   {wizardStep > 1 ? (
                     <button
                       onClick={() => setWizardStep((prev) => (prev - 1) as any)}
-                      className="px-4 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
+                      className="h-9 px-3 text-[13px] font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
                     >
                       {lang === "gu" ? "← પાછળ જાઓ" : "← Back"}
                     </button>
                   ) : (
                     <button
                       onClick={() => setShowCampaignWizard(false)}
-                      className="px-4 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
+                      className="h-9 px-3 text-[13px] font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
                     >
                       {lang === "gu" ? "રદ કરો" : "Cancel"}
                     </button>
@@ -1655,7 +1655,7 @@ export default function SmsMarketingPage() {
                         }
                         setWizardStep((prev) => (prev + 1) as any);
                       }}
-                      className="px-5 py-2 text-xs font-semibold text-white bg-[#4c3cce] hover:bg-[#3d2eb3] rounded-lg shadow-sm"
+                      className="h-9 px-3.5 text-[13px] font-medium text-white bg-[#4c3cce] hover:bg-[#3d2eb3] rounded-lg shadow-sm"
                     >
                       {lang === "gu" ? "આગળ વધો →" : "Continue →"}
                     </button>
@@ -1663,7 +1663,7 @@ export default function SmsMarketingPage() {
                     <button
                       onClick={handleDispatchCampaign}
                       disabled={actionLoading || selectedCount === 0}
-                      className="px-6 py-2.5 text-xs sm:text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm flex items-center gap-2"
+                      className="px-6 py-2.5 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] rounded-lg shadow-sm flex items-center gap-2"
                     >
                       {actionLoading && <span className="animate-spin">⏳</span>}
                       {lang === "gu" ? "પાર્ટીઓને SMS મોકલો" : "Send SMS to parties"}
@@ -1684,7 +1684,7 @@ export default function SmsMarketingPage() {
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-scale-up">
             <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
               <div>
-                <h3 className="font-bold text-gray-900 text-sm">
+                <h3 className="font-semibold text-gray-900 text-[15px]">
                   {selectedCampaignDetail.campaign.name}
                 </h3>
                 <p className="text-xs text-gray-500">
@@ -1734,7 +1734,7 @@ export default function SmsMarketingPage() {
             <div className="p-3 border-t border-gray-200 flex justify-end bg-gray-50">
               <button
                 onClick={() => setSelectedCampaignDetail(null)}
-                className="px-4 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
+                className="px-4 py-1.5 text-[13px] font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
               >
                 {lang === "gu" ? "બંધ કરો" : "Close"}
               </button>
@@ -1752,7 +1752,7 @@ export default function SmsMarketingPage() {
             <div className="w-12 h-12 rounded-full bg-indigo-100 text-[#4c3cce] flex items-center justify-center mx-auto text-xl">
               📺
             </div>
-            <h3 className="text-lg font-bold text-gray-900">
+            <h3 className="text-[15px] font-semibold text-gray-900">
               {lang === "gu" ? "ઝુંબેશ કેવી રીતે બનાવવી?" : "How to Create an SMS Campaign"}
             </h3>
             <div className="space-y-3 text-left text-xs text-gray-600">
@@ -1795,7 +1795,7 @@ export default function SmsMarketingPage() {
 
             <button
               onClick={() => setShowTutorialModal(false)}
-              className="w-full py-2.5 bg-[#4c3cce] hover:bg-[#3d2eb3] text-white font-semibold text-xs rounded-lg transition-colors"
+              className="w-full py-2.5 bg-[#4c3cce] hover:bg-[#3d2eb3] text-white font-medium text-[13px] rounded-lg transition-colors"
             >
               {lang === "gu" ? "સમજાઈ ગયું (Got it!)" : "Got it!"}
             </button>
@@ -1812,7 +1812,7 @@ export default function SmsMarketingPage() {
             <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-xl">
               ⚠️
             </div>
-            <h3 className="text-base font-bold text-gray-900">
+            <h3 className="text-[15px] font-semibold text-gray-900">
               {lang === "gu" ? "SMS ક્વોટા મર્યાદા સમાપ્ત" : "SMS Limit Exceeded"}
             </h3>
             <p className="text-xs text-gray-600">
@@ -1823,7 +1823,7 @@ export default function SmsMarketingPage() {
             <div className="flex items-center gap-2 pt-2">
               <button
                 onClick={() => setShowLimitAlertModal(false)}
-                className="w-1/2 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg"
+                className="w-1/2 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[13px] font-medium rounded-lg"
               >
                 {lang === "gu" ? "રદ કરો" : "Cancel"}
               </button>
@@ -1832,7 +1832,7 @@ export default function SmsMarketingPage() {
                   setShowLimitAlertModal(false);
                   alert("Support helpline: +91 9898990001 (Available Mon-Sat 9 AM - 7 PM)");
                 }}
-                className="w-1/2 py-2 bg-[#4c3cce] hover:bg-[#3d2eb3] text-white text-xs font-semibold rounded-lg"
+                className="w-1/2 py-2 bg-[#4c3cce] hover:bg-[#3d2eb3] text-white text-[13px] font-medium rounded-lg"
               >
                 {lang === "gu" ? "સંપર્ક કરો" : "Contact Us"}
               </button>

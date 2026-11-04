@@ -125,7 +125,7 @@ export default function PublicSharedLedgerPortalPage({
         <div className="w-16 h-16 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center text-3xl mb-4 border border-rose-200">
           ⚠️
         </div>
-        <h2 className="text-lg font-bold text-slate-800">Statement Not Found</h2>
+        <h2 className="text-[15px] font-semibold text-[#182230]">Statement Not Found</h2>
         <p className="text-xs text-slate-500 max-w-sm mt-1">{error}</p>
         <p className="text-[11px] text-slate-400 mt-4">
           Please contact the vendor or business owner to request a fresh statement link.
@@ -164,7 +164,7 @@ export default function PublicSharedLedgerPortalPage({
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-lg sm:text-2xl font-extrabold tracking-tight">
+                  <h1 className="text-lg sm:text-[22px] font-semibold tracking-tight">
                     {company.name}
                   </h1>
                   <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -172,7 +172,7 @@ export default function PublicSharedLedgerPortalPage({
                     Verified
                   </span>
                 </div>
-                <div className="text-xs text-indigo-200 mt-1 flex flex-wrap gap-x-3 gap-y-0.5 font-mono">
+                <div className="text-xs text-indigo-200 mt-1 flex flex-wrap gap-x-3 gap-y-0.5 tabular-nums">
                   {company.gstin && <span>GSTIN: {company.gstin}</span>}
                   {company.phone && <span>📞 {company.phone}</span>}
                   {company.address && <span>📍 {company.address}</span>}
@@ -198,13 +198,13 @@ export default function PublicSharedLedgerPortalPage({
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                 Statement Issued For
               </span>
-              <h2 className="text-xl font-bold text-slate-900 mt-0.5 flex items-center gap-2">
+              <h2 className="text-[15px] font-semibold text-[#182230] mt-0.5 flex items-center gap-2">
                 {party.name}
                 <span className="text-xs font-semibold px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-full">
                   {party.type || "CUSTOMER"}
                 </span>
               </h2>
-              <div className="text-xs text-slate-500 mt-1 font-mono">
+              <div className="text-xs text-slate-500 mt-1 tabular-nums">
                 {party.phone && <span>Registered Mobile: {party.phone}</span>}
                 {party.gstin && <span> • GST: {party.gstin}</span>}
               </div>
@@ -214,7 +214,7 @@ export default function PublicSharedLedgerPortalPage({
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                 Current Net Balance
               </span>
-              <div className="text-2xl sm:text-3xl font-extrabold mt-0.5">
+              <div className="text-2xl sm:text-3xl font-semibold mt-0.5">
                 {isPendingPay ? (
                   <span className="text-emerald-600">
                     ₹{balance.toLocaleString("en-IN")}{" "}
@@ -242,7 +242,7 @@ export default function PublicSharedLedgerPortalPage({
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">⚡</span>
-                  <h3 className="font-bold text-slate-900 text-sm">
+                  <h3 className="font-semibold text-slate-900 text-[15px]">
                     Instant Online Settlement
                   </h3>
                 </div>
@@ -252,7 +252,7 @@ export default function PublicSharedLedgerPortalPage({
                 </p>
                 {company.upiId && (
                   <div className="flex items-center gap-2 mt-2 pt-1">
-                    <span className="text-[11px] font-mono bg-white px-2.5 py-1 rounded-lg border border-slate-200 font-bold text-slate-800">
+                    <span className="text-[11px] tabular-nums bg-white px-2.5 py-1 rounded-lg border border-slate-200 font-bold text-slate-800">
                       UPI ID: {company.upiId}
                     </span>
                     <button
@@ -270,7 +270,7 @@ export default function PublicSharedLedgerPortalPage({
                 {upiPayUrl && (
                   <a
                     href={upiPayUrl}
-                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center gap-1.5"
+                    className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white font-medium text-[13px] rounded-xl shadow-md transition-all flex items-center gap-1.5"
                   >
                     <span>📱</span> Pay ₹{balance.toLocaleString("en-IN")} via UPI
                   </a>
@@ -285,7 +285,7 @@ export default function PublicSharedLedgerPortalPage({
               <div className="flex items-center gap-2 font-bold text-slate-800">
                 <span>🏦</span> Bank Transfer (NEFT/RTGS/IMPS):
               </div>
-              <div className="flex flex-wrap items-center gap-3 font-mono">
+              <div className="flex flex-wrap items-center gap-3 tabular-nums">
                 <span>
                   <strong>A/C:</strong> {company.bankDetails.accountNo}
                 </span>
@@ -318,7 +318,7 @@ Bank: ${company.bankDetails?.bankName}`,
         <div className="bg-white rounded-3xl p-6 shadow-md border border-slate-200/80 space-y-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
             <div>
-              <h3 className="font-extrabold text-slate-900 text-base">
+              <h3 className="font-semibold text-slate-900 text-[15px]">
                 Transaction History & Ledger Statement
               </h3>
               <p className="text-xs text-slate-500">
@@ -351,7 +351,7 @@ Bank: ${company.bankDetails?.bankName}`,
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer flex items-center gap-1"
+                className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-[13px] rounded-xl transition-all cursor-pointer flex items-center gap-1"
                 title="Print or Save as PDF"
               >
                 🖨️ Print
@@ -387,16 +387,16 @@ Bank: ${company.bankDetails?.bankName}`,
                           year: "numeric",
                         })}
                       </td>
-                      <td className="p-3.5 font-mono font-bold text-slate-900">
+                      <td className="p-3.5 tabular-nums font-medium text-slate-900">
                         {t.voucherNumber}
                       </td>
                       <td className="p-3.5 text-slate-700">
                         {t.typeLabel || t.type}
                       </td>
-                      <td className="p-3.5 text-right font-bold text-slate-900">
+                      <td className="p-3.5 text-right font-medium text-slate-900">
                         {t.debit > 0 ? `₹${t.debit.toLocaleString("en-IN")}` : "—"}
                       </td>
-                      <td className="p-3.5 text-right font-bold text-emerald-600">
+                      <td className="p-3.5 text-right font-medium text-emerald-600">
                         {t.credit > 0 ? `₹${t.credit.toLocaleString("en-IN")}` : "—"}
                       </td>
                       <td className="p-3.5 text-right">

@@ -114,7 +114,7 @@ export default function ChartOfAccountsPage() {
       accessorKey: "code",
       sortable: true,
       cell: (g) => (
-        <span className="font-mono font-bold text-slate-800">{g.code}</span>
+        <span className="tabular-nums font-bold text-slate-800">{g.code}</span>
       ),
     },
     {
@@ -162,7 +162,7 @@ export default function ChartOfAccountsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
               {lang === "gu"
                 ? "ખાતાવહી માળખું (Chart of Accounts)"
                 : "Chart of Accounts (COA)"}
@@ -179,7 +179,7 @@ export default function ChartOfAccountsPage() {
           <button
             onClick={handleSeedStandard}
             disabled={seeding}
-            className="inline-flex items-center gap-2 px-3.5 py-2.5 bg-saffron-light hover:bg-[#FFE6D0] text-primary border border-primary/25 text-xs font-bold rounded-xl transition-all shadow-sm"
+            className="inline-flex items-center gap-2 h-9 px-3.5 bg-saffron-light hover:bg-[#FFE6D0] text-primary border border-primary/25 text-[13px] font-medium rounded-xl transition-all shadow-sm"
           >
             {seeding ? (
               <span className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -204,7 +204,7 @@ export default function ChartOfAccountsPage() {
               setFormError(null);
               setIsModalOpen(true);
             }}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
+            className="inline-flex items-center gap-2 h-9 px-3.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-[13px] font-medium rounded-xl shadow-card hover:shadow-hover transition-all"
           >
             <svg
               className="w-4 h-4"
@@ -265,7 +265,7 @@ export default function ChartOfAccountsPage() {
             className="space-y-2 cursor-pointer hover:bg-slate-50 transition-colors p-2 rounded-lg"
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono font-bold text-slate-800">{g.code}</span>
+              <span className="tabular-nums font-bold text-slate-800">{g.code}</span>
               <Badge variant={classificationColor[g.classification] || "neutral"}>
                 {g.classification}
               </Badge>
@@ -298,7 +298,7 @@ export default function ChartOfAccountsPage() {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               Group Code *
             </label>
             <input
@@ -308,12 +308,12 @@ export default function ChartOfAccountsPage() {
               onChange={(e) =>
                 setFormData({ ...formData, code: e.target.value })
               }
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono focus:bg-white"
+              className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums focus:bg-white h-10"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               Group Name *
             </label>
             <input
@@ -324,13 +324,13 @@ export default function ChartOfAccountsPage() {
                 setFormData({ ...formData, name: e.target.value })
               }
               placeholder="e.g. Current Assets"
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
+              className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white h-10"
             />
           </div>
 
           {lang === "gu" && (
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 નામ ગુજરાતીમાં (વૈકલ્પિક)
               </label>
               <input
@@ -340,13 +340,13 @@ export default function ChartOfAccountsPage() {
                   setFormData({ ...formData, nameGujarati: e.target.value })
                 }
                 placeholder="ચાલુ મિલકતો"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white h-10"
               />
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               Accounting Classification *
             </label>
             <select
@@ -354,7 +354,7 @@ export default function ChartOfAccountsPage() {
               onChange={(e: any) =>
                 setFormData({ ...formData, classification: e.target.value })
               }
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
+              className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white h-10"
             >
               <option value="ASSET">{lang === "gu" ? "ASSET (મિલકત)" : "ASSET"}</option>
               <option value="LIABILITY">{lang === "gu" ? "LIABILITY (દેવું)" : "LIABILITY"}</option>
@@ -368,14 +368,14 @@ export default function ChartOfAccountsPage() {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 rounded-lg"
+              className="h-9 px-3.5 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] disabled:opacity-50 rounded-lg"
             >
               {isSubmitting ? "Saving..." : "Save Group"}
             </button>

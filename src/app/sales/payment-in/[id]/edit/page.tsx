@@ -401,7 +401,7 @@ export default function EditPaymentInPage() {
     return (
       <div className="flex h-96 items-center justify-center font-sans bg-[#F4F5F7]">
         <div className="flex items-center gap-2 text-slate-500 text-sm">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#174B43] border-t-transparent" />
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#0F172A] border-t-transparent" />
           <span>Loading payment for editing...</span>
         </div>
       </div>
@@ -426,7 +426,7 @@ export default function EditPaymentInPage() {
                 />
               </svg>
             </Link>
-            <h1 className="text-base font-bold text-slate-900">
+            <h1 className="text-[15px] font-semibold text-[#182230]">
               Record Payment In #{paymentNumber}
             </h1>
           </div>
@@ -440,7 +440,7 @@ export default function EditPaymentInPage() {
             </button>
             <button
               type="button"
-              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
             >
               <span>⚙</span>
               <span>Settings</span>
@@ -448,14 +448,14 @@ export default function EditPaymentInPage() {
             <button
               type="button"
               onClick={() => router.push(`/sales/payment-in/${voucherId}`)}
-              className="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              className="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-lg bg-[#174B43] px-5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-[#123B35] transition-colors disabled:opacity-50 cursor-pointer"
+              className="rounded-lg bg-[#0F172A] px-5 py-1.5 text-[13px] font-medium text-white shadow-xs hover:bg-[#1268D3] transition-colors disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? "Saving..." : "Save Changes"}
             </button>
@@ -481,7 +481,7 @@ export default function EditPaymentInPage() {
             {/* Left Box: Party Name, Current Balance, Amount Received, Discount */}
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-2xs space-y-3">
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">
+                <label className="block text-[12px] font-medium text-slate-500 mb-1">
                   Party Name
                 </label>
                 <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-800">
@@ -494,7 +494,7 @@ export default function EditPaymentInPage() {
 
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">
+                  <label className="block text-[12px] font-medium text-slate-500 mb-1">
                     Amount Received
                   </label>
                   <input
@@ -503,11 +503,11 @@ export default function EditPaymentInPage() {
                     value={amountReceived}
                     onChange={(e) => handleAmountReceivedChange(e.target.value)}
                     placeholder="0"
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 focus:border-teal-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-normal text-slate-900 focus:border-[#1677E8] focus:outline-none h-10"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1 flex items-center gap-1">
+                  <label className="block text-[12px] font-medium text-slate-500 mb-1 flex items-center gap-1">
                     <span>Payment In Discount</span>
                     <span className="text-slate-400">ⓘ</span>
                   </label>
@@ -517,7 +517,7 @@ export default function EditPaymentInPage() {
                     value={paymentInDiscount}
                     onChange={(e) => setPaymentInDiscount(e.target.value)}
                     placeholder="0"
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-10"
                   />
                 </div>
               </div>
@@ -527,7 +527,7 @@ export default function EditPaymentInPage() {
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-2xs space-y-3">
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">
+                  <label className="block text-[12px] font-medium text-slate-500 mb-1">
                     Payment Date
                   </label>
                   <div className="relative">
@@ -535,19 +535,19 @@ export default function EditPaymentInPage() {
                       type="date"
                       value={voucherDate}
                       onChange={(e) => setVoucherDate(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-10"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">
+                  <label className="block text-[12px] font-medium text-slate-500 mb-1">
                     Payment Mode
                   </label>
                   <select
                     value={paymentMode}
                     onChange={(e) => setPaymentMode(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-10"
                   >
                     {PAYMENT_MODES.map((m) => (
                       <option key={m.value} value={m.value}>
@@ -558,20 +558,20 @@ export default function EditPaymentInPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">
+                  <label className="block text-[12px] font-medium text-slate-500 mb-1">
                     Payment In Number
                   </label>
                   <input
                     type="text"
                     value={paymentNumber}
                     onChange={(e) => setPaymentNumber(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-10"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">
+                <label className="block text-[12px] font-medium text-slate-500 mb-1">
                   Notes
                 </label>
                 <textarea
@@ -579,7 +579,7 @@ export default function EditPaymentInPage() {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Enter Notes"
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none resize-none"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none resize-none"
                 />
               </div>
             </div>
@@ -588,7 +588,7 @@ export default function EditPaymentInPage() {
           {/* 3. Lower Section: Settle invoices with this payment matching screenshot */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-bold text-slate-800">
+              <h2 className="text-xs font-semibold text-[#182230]">
                 Settle invoices with this payment
               </h2>
 
@@ -612,14 +612,14 @@ export default function EditPaymentInPage() {
                     value={invoiceSearchQuery}
                     onChange={(e) => setInvoiceSearchQuery(e.target.value)}
                     placeholder="Search invoice..."
-                    className="w-full rounded-lg border border-slate-200 bg-white py-1 pl-7 pr-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 bg-white py-1 pl-7 pr-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-10"
                   />
                   <span className="absolute left-2.5 top-1.5 text-xs text-slate-400">🔍</span>
                 </div>
 
                 <button
                   type="button"
-                  className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                  className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
                 >
                   <span>Select Date Range</span>
                   <span className="text-xs">📅</span>
@@ -666,7 +666,7 @@ export default function EditPaymentInPage() {
                               type="checkbox"
                               checked={inv.isSelected}
                               onChange={() => toggleInvoiceSelect(idx)}
-                              className="rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                              className="rounded border-slate-300 text-teal-600 focus:ring-[#1677E8]"
                             />
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap text-slate-700">
@@ -691,7 +691,7 @@ export default function EditPaymentInPage() {
                               value={inv.discount}
                               onChange={(e) => handleInvoiceDiscountChange(idx, e.target.value)}
                               placeholder="Apply Discount"
-                              className="w-24 rounded border border-slate-200 px-2 py-1 text-right text-xs focus:border-teal-500 focus:outline-none"
+                              className="w-24 rounded border border-slate-200 px-2 py-1 text-right text-[13px] focus:border-[#1677E8] focus:outline-none h-10"
                             />
                           </td>
                           <td className="px-4 py-3 text-right whitespace-nowrap">
@@ -701,7 +701,7 @@ export default function EditPaymentInPage() {
                               value={inv.settle}
                               onChange={(e) => handleInvoiceSettleChange(idx, e.target.value)}
                               placeholder="0.00"
-                              className="w-24 rounded border border-slate-200 px-2 py-1 text-right text-xs font-semibold text-slate-900 focus:border-teal-500 focus:outline-none"
+                              className="w-24 rounded border border-slate-200 px-2 py-1 text-right text-[13px] font-normal text-slate-900 focus:border-[#1677E8] focus:outline-none h-10"
                             />
                           </td>
                         </tr>

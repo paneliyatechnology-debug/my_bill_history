@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useMemo } from "react";
-import Link from "next/link";
-import { formatInr } from "@/components/design-system/tokens";
 
 export interface DashboardWelcomeBannerProps {
   userName?: string;
   companyName?: string;
+  financialYear?: string;
   lastUpdated?: string;
   isRefreshing?: boolean;
   onRefresh?: () => void;
@@ -17,14 +16,12 @@ export interface DashboardWelcomeBannerProps {
 }
 
 export function DashboardWelcomeBanner({
-  userName,
-  companyName = "My Business",
-  lastUpdated,
+  userName = "",
+  companyName = "",
+  financialYear = "",
+  lastUpdated = "",
   isRefreshing = false,
   onRefresh,
-  onOpenAnnouncements,
-  onOpenScanner,
-  onOpenDesktopModal,
   lang = "en",
 }: DashboardWelcomeBannerProps) {
   // Determine greeting based on current local hour
@@ -39,102 +36,66 @@ export function DashboardWelcomeBanner({
     return lang === "gu" ? "શુભ સાંજ" : "Good Evening";
   }, [lang]);
 
-  const displayName = userName ? userName.split(" ")[0] : "Jaydip";
+  const displayName = userName ? userName.split(" ")[0] : "";
 
   return (
-    <div className="space-y-3.5">
-      {/* Upper Hero Welcome Card with 3D Illustration matching Reference */}
-      <div className="relative overflow-hidden rounded-2xl border border-[#E1EAF0] bg-gradient-to-r from-[#FFFFFF] via-[#F8FCFA] to-[#E8F8F3] p-5 sm:p-6 shadow-[0_4px_18px_rgba(16,35,63,0.045)]">
-        {/* Soft mint ambient glow in top right */}
-        <div className="pointer-events-none absolute -right-12 -top-12 h-56 w-56 rounded-full bg-[#20B99A]/10 blur-3xl" />
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 pb-1">
+      {/* Left: Heading & Subtitle */}
+      <div>
+        <h1 className="text-[20px] sm:text-[22px] font-semibold text-[#182230] tracking-tight flex items-center gap-2">
+          <span>{greeting}{displayName ? `, ${displayName}` : ""}!</span>
+          <span className="inline-block text-xl sm:text-2xl select-none">👋</span>
+        </h1>
+        <p className="mt-0.5 text-xs sm:text-sm text-slate-500 font-medium">
+          {lang === "gu"
+            ? `${financialYear || "ચાલુ નાણાકીય વર્ષ"} માટે તમારા વેપારનો સારાંશ.`
+            : `Here's your business summary for ${financialYear || "the current financial year"}.`}
+        </p>
+      </div>
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
-          {/* Left: 3D Bill Illustration + Greeting */}
-          <div className="flex items-center gap-4 sm:gap-5 min-w-0">
-            {/* 3D Decorative Invoice / Growth Graphic */}
-            <div className="relative w-16 h-16 sm:w-20 sm:h-20 shrink-0 select-none">
-              <svg viewBox="0 0 88 88" className="w-full h-full drop-shadow-md overflow-visible">
-                {/* Back document sheet */}
-                <rect x="18" y="12" width="46" height="58" rx="7" fill="#E2F4EE" stroke="#A7E4D3" strokeWidth="1.5" />
-                <line x1="26" y1="24" x2="44" y2="24" stroke="#71C9B3" strokeWidth="2.5" strokeLinecap="round" />
-                <line x1="26" y1="32" x2="52" y2="32" stroke="#A7E4D3" strokeWidth="2" strokeLinecap="round" />
-                <line x1="26" y1="40" x2="48" y2="40" stroke="#A7E4D3" strokeWidth="2" strokeLinecap="round" />
-
-                {/* Front prominent document sheet */}
-                <g transform="translate(6, 6)">
-                  <rect x="8" y="10" width="50" height="62" rx="8" fill="#FFFFFF" stroke="#C5ECE1" strokeWidth="1.5" />
-                  
-                  {/* INVOICE text tag */}
-                  <rect x="16" y="18" width="28" height="6" rx="3" fill="#0DAA8A" />
-                  <text x="20" y="23" fill="#FFFFFF" fontSize="4.5" fontWeight="900" fontFamily="sans-serif">INVOICE</text>
-
-                  {/* Growth chart bars inside invoice */}
-                  <rect x="16" y="52" width="5" height="10" rx="1.5" fill="#C5ECE1" />
-                  <rect x="23" y="46" width="5" height="16" rx="1.5" fill="#8CE1CC" />
-                  <rect x="30" y="38" width="5" height="24" rx="1.5" fill="#20B99A" />
-                  <rect x="37" y="30" width="5" height="32" rx="1.5" fill="#0CA678" />
-
-                  {/* Upward trending green arrow */}
-                  <path d="M 16 50 Q 28 42, 38 24 L 46 16" fill="none" stroke="#0CA678" strokeWidth="2.5" strokeLinecap="round" />
-                  <path d="M 40 16 L 46 16 L 46 22" fill="none" stroke="#0CA678" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </g>
-
-                {/* Floating shiny coin/check shield */}
-                <circle cx="68" cy="62" r="12" fill="#0CA678" stroke="#FFFFFF" strokeWidth="2" />
-                <path d="M 64 62 L 67 65 L 73 59" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-
-            {/* Personalized greeting copy */}
-            <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl font-black text-[#10233F] tracking-tight truncate flex items-center gap-1.5">
-                <span>{greeting}, {displayName}!</span>
-                <span className="inline-block text-xl sm:text-2xl animate-pulse">👋</span>
-              </h1>
-              <p className="mt-1 text-xs sm:text-sm text-[#526780] font-medium leading-relaxed truncate">
-                {lang === "gu"
-                  ? "આ નાણાકીય વર્ષ માટે તમારા વેપારનું લાઇવ વિહંગાવલોકન."
-                  : "Here's your business overview for this financial year."}
-              </p>
-            </div>
-          </div>
-
-          {/* Right: Last Updated Status & Refresh Trigger */}
-          <div className="flex items-center gap-3 shrink-0 self-start md:self-center">
-            {lastUpdated && (
-              <div className="flex items-center gap-1.5 text-xs text-[#526780] bg-white/80 border border-[#E1EAF0] px-3 py-1.5 rounded-full shadow-2xs font-medium">
-                <span className="w-2 h-2 rounded-full bg-[#0DAA8A] shrink-0" />
-                <span>Last Updated:</span>
-                <span className="font-mono font-bold text-[#10233F]">{lastUpdated}</span>
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={onRefresh}
-              disabled={isRefreshing}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-[#D5E4DF] bg-white px-3.5 py-1.5 text-xs font-bold text-[#10233F] shadow-2xs hover:bg-[#F2FAF7] hover:border-[#0DAA8A] transition-all cursor-pointer disabled:opacity-60"
-              title="Refresh all business metrics and tables"
-            >
-              <svg
-                className={`w-3.5 h-3.5 text-[#0DAA8A] ${isRefreshing ? "animate-spin" : ""}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.4}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
-              <span>{lang === "gu" ? "રીફ્રેશ" : "Refresh"}</span>
-            </button>
-          </div>
+      {/* Right: Last Updated pill + Refresh button */}
+      <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200/90 rounded-xl shadow-2xs text-xs font-semibold text-slate-700">
+          <svg
+            className="w-4 h-4 text-slate-500 shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.8}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+          <span className="font-normal text-slate-500">Last Updated:</span>
+          <span className="font-bold text-slate-800">{lastUpdated || "—"}</span>
         </div>
+
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={isRefreshing}
+          aria-label="Refresh dashboard data"
+          title="Refresh dashboard data"
+          className="p-2 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl shadow-2xs text-slate-600 hover:text-slate-900 transition-all cursor-pointer disabled:opacity-50 active:scale-95"
+        >
+          <svg
+            className={`w-4 h-4 ${isRefreshing ? "animate-spin text-blue-600" : ""}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+        </button>
       </div>
     </div>
   );
 }
-

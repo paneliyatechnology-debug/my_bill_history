@@ -322,7 +322,7 @@ export default function AllTransactionsPage() {
       {/* Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
             All Transactions
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -335,7 +335,7 @@ export default function AllTransactionsPage() {
           <button
             type="button"
             onClick={handleExportExcel}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
           >
             <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -346,7 +346,7 @@ export default function AllTransactionsPage() {
           <button
             type="button"
             onClick={handleExportPDF}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
           >
             <svg className="w-3.5 h-3.5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -356,7 +356,7 @@ export default function AllTransactionsPage() {
 
           <Link
             href="/sales/invoices/new"
-            className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-indigo-700 shadow-sm transition-colors"
+            className="flex items-center gap-1.5 rounded-lg bg-indigo-600 h-9 px-3 text-[13px] font-medium text-white hover:bg-indigo-700 shadow-sm transition-colors"
           >
             <span>+ Create Invoice</span>
           </Link>
@@ -380,7 +380,7 @@ export default function AllTransactionsPage() {
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Search by Txn No, Party Name, Type..."
-            className="w-full rounded-lg border border-slate-200 bg-slate-50/70 py-2 pl-9 pr-3 text-xs font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="w-full rounded-lg border border-slate-200 bg-slate-50/70 py-2 pl-9 pr-3 text-[13px] font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 h-10"
           />
         </div>
 
@@ -389,7 +389,7 @@ export default function AllTransactionsPage() {
           <button
             type="button"
             onClick={() => setShowDateDropdown(!showDateDropdown)}
-            className="flex items-center justify-between gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer w-full sm:w-auto"
+            className="flex items-center justify-between gap-2 rounded-lg border border-slate-300 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer w-full sm:w-auto"
           >
             <div className="flex items-center gap-2">
               <svg className="h-3.5 w-3.5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -485,7 +485,7 @@ export default function AllTransactionsPage() {
                     </td>
 
                     {/* Transaction Number with Shared Ledger Badge if connected */}
-                    <td className="py-3 px-4 font-mono font-medium text-slate-800 whitespace-nowrap">
+                    <td className="py-3 px-4 tabular-nums font-medium text-slate-800 whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
                         <Link
                           href={tx.link}
@@ -550,7 +550,7 @@ export default function AllTransactionsPage() {
               <select
                 value={pageSize}
                 onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer"
+                className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[13px] font-normal text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer h-10"
               >
                 {[10, 15, 25, 50, 100].map((s) => (
                   <option key={s} value={s}>
@@ -595,7 +595,7 @@ export default function AllTransactionsPage() {
               type="button"
               disabled={page >= totalPages || isLoading}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              className="h-8 px-2.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer text-xs font-semibold flex items-center gap-1"
+              className="h-8 px-2.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer text-[13px] font-medium flex items-center gap-1"
             >
               <span className="hidden sm:inline">Next</span>
               <span>›</span>
@@ -606,7 +606,7 @@ export default function AllTransactionsPage() {
               type="button"
               disabled={page >= totalPages || isLoading}
               onClick={() => setPage(totalPages)}
-              className="h-8 px-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer text-xs font-bold"
+              className="h-8 px-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer text-[13px] font-medium"
               title="Last Page"
             >
               »
@@ -620,7 +620,7 @@ export default function AllTransactionsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <h3 className="text-sm font-bold text-slate-900">Select Date Range</h3>
+              <h3 className="text-[15px] font-semibold text-slate-900">Select Date Range</h3>
               <button
                 type="button"
                 onClick={() => setShowCustomModal(false)}
@@ -632,22 +632,22 @@ export default function AllTransactionsPage() {
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">From Date</label>
+                <label className="block text-slate-600 font-medium mb-1">From Date</label>
                 <input
                   type="date"
                   value={customStartDate}
                   onChange={(e) => setCustomStartDate(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-800 focus:bg-white focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] font-medium text-slate-800 focus:bg-white focus:border-indigo-500 focus:outline-none h-10"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">To Date</label>
+                <label className="block text-slate-600 font-medium mb-1">To Date</label>
                 <input
                   type="date"
                   value={customEndDate}
                   onChange={(e) => setCustomEndDate(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-800 focus:bg-white focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] font-medium text-slate-800 focus:bg-white focus:border-indigo-500 focus:outline-none h-10"
                 />
               </div>
             </div>
@@ -656,7 +656,7 @@ export default function AllTransactionsPage() {
               <button
                 type="button"
                 onClick={() => setShowCustomModal(false)}
-                className="rounded-lg border border-slate-200 px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                className="rounded-lg border border-slate-200 h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -668,7 +668,7 @@ export default function AllTransactionsPage() {
                   setPage(1);
                   setShowCustomModal(false);
                 }}
-                className="rounded-lg bg-indigo-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-indigo-700 transition-colors cursor-pointer disabled:opacity-50"
+                className="rounded-lg bg-indigo-600 px-4 py-1.5 text-[13px] font-medium text-white hover:bg-indigo-700 transition-colors cursor-pointer disabled:opacity-50"
               >
                 Apply
               </button>

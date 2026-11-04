@@ -18,7 +18,7 @@ export default function EinvoicePage() {
         <p className="text-slate-600 mb-4">Redirecting to statutory E-Invoices module...</p>
         <Link
           href="/sales/e-invoices"
-          className="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors"
+          className="inline-flex items-center h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg text-[13px] font-medium transition-colors"
         >
           Go to E-Invoices
         </Link>

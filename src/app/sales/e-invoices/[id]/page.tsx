@@ -125,11 +125,11 @@ export default function EInvoiceDetailsPage() {
     return (
       <div className="mx-auto max-w-4xl p-6">
         <div className="rounded-xl border border-rose-200 bg-rose-50 p-6 text-center text-rose-900">
-          <h2 className="text-base font-bold">Could not load E-Invoice</h2>
+          <h2 className="text-[15px] font-semibold">Could not load E-Invoice</h2>
           <p className="mt-1 text-xs">{error || "Invoice not found"}</p>
           <Link
             href="/sales/e-invoices"
-            className="mt-4 inline-block rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700"
+            className="mt-4 inline-block rounded-lg bg-[#1677E8] h-9 px-3 text-[13px] font-medium text-white hover:bg-[#1268D3]"
           >
             ← Return to E-Invoices
           </Link>
@@ -170,7 +170,7 @@ export default function EInvoiceDetailsPage() {
             <span className="font-semibold text-slate-800">{invoice.invoiceNumber}</span>
           </div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-black text-slate-900">{invoice.invoiceNumber}</h1>
+            <h1 className="text-[22px] font-semibold text-[#182230]">{invoice.invoiceNumber}</h1>
             {isRegistered && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
                 <span className="h-2 w-2 rounded-full bg-emerald-600"></span>
@@ -193,7 +193,7 @@ export default function EInvoiceDetailsPage() {
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/sales/e-invoices/${id}/preview`}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 shadow-xs hover:bg-slate-50 transition"
           >
             Live Preview
           </Link>
@@ -201,7 +201,7 @@ export default function EInvoiceDetailsPage() {
           <Link
             href={`/e-invoices/${id}/pdf`}
             target="_blank"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 transition"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#1677E8] h-9 px-3 text-[13px] font-medium text-white shadow-xs hover:bg-[#1268D3] transition"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -212,7 +212,7 @@ export default function EInvoiceDetailsPage() {
           {canCancel && (
             <button
               onClick={() => setShowCancelModal(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-rose-300 bg-white px-3.5 py-2 text-xs font-semibold text-rose-700 shadow-xs hover:bg-rose-50 transition"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-rose-300 bg-white h-9 px-3 text-[13px] font-medium text-rose-700 shadow-xs hover:bg-rose-50 transition"
             >
               Cancel IRN
             </button>
@@ -236,11 +236,11 @@ export default function EInvoiceDetailsPage() {
 
               {/* IRN Display */}
               <div>
-                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                <label className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
                   Invoice Reference Number (IRN)
                 </label>
                 <div className="mt-1 flex items-center gap-2">
-                  <span className="rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-xs font-bold text-slate-900 break-all select-all shadow-2xs">
+                  <span className="rounded-lg border border-slate-200 bg-white px-3 py-2 tabular-nums text-xs font-bold text-slate-900 break-all select-all shadow-2xs">
                     {eInvoice.irn}
                   </span>
                   <button
@@ -259,11 +259,11 @@ export default function EInvoiceDetailsPage() {
               <div className="grid grid-cols-2 gap-4 text-xs sm:grid-cols-3">
                 <div>
                   <span className="text-slate-500">Ack Number:</span>
-                  <div className="font-mono font-bold text-slate-900">{eInvoice.ackNo}</div>
+                  <div className="tabular-nums font-bold text-slate-900">{eInvoice.ackNo}</div>
                 </div>
                 <div>
                   <span className="text-slate-500">Ack Date & Time:</span>
-                  <div className="font-mono font-bold text-slate-900">
+                  <div className="tabular-nums font-bold text-slate-900">
                     {new Date(eInvoice.ackDate).toLocaleString("en-IN")}
                   </div>
                 </div>
@@ -321,7 +321,7 @@ export default function EInvoiceDetailsPage() {
           <div className="mt-2 space-y-1 text-xs text-slate-600">
             <div>
               <span className="font-semibold text-slate-700">GSTIN:</span>{" "}
-              <span className="font-mono font-bold text-emerald-800">{company?.gstin || "—"}</span>
+              <span className="tabular-nums font-bold text-emerald-800">{company?.gstin || "—"}</span>
             </div>
             <div>
               <span className="font-semibold text-slate-700">State:</span> Code {company?.stateCode || "24"}
@@ -348,14 +348,14 @@ export default function EInvoiceDetailsPage() {
             <div>
               <span className="font-semibold text-slate-700">GSTIN:</span>{" "}
               {invoice.party?.gstin ? (
-                <span className="font-mono font-bold text-slate-900">{invoice.party.gstin}</span>
+                <span className="tabular-nums font-bold text-slate-900">{invoice.party.gstin}</span>
               ) : (
                 <span className="text-amber-700 font-semibold">Unregistered (URP)</span>
               )}
             </div>
             <div>
               <span className="font-semibold text-slate-700">Place of Supply:</span>{" "}
-              <span className="font-mono font-semibold">Code {String(invoice.placeOfSupply || "24")}</span>
+              <span className="tabular-nums font-semibold">Code {String(invoice.placeOfSupply || "24")}</span>
             </div>
             <div>
               {formatAddress(invoice.billingAddress) ||
@@ -380,17 +380,17 @@ export default function EInvoiceDetailsPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Invoice Date:</span>
-              <span className="font-mono font-semibold text-slate-900">{invoice.invoiceDate}</span>
+              <span className="tabular-nums font-semibold text-slate-900">{invoice.invoiceDate}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Payment Mode:</span>
               <span className="font-semibold text-slate-800">{invoice.paymentMode || "Cash / Bank"}</span>
             </div>
-            <div className="flex justify-between border-t border-slate-100 pt-2 font-mono">
+            <div className="flex justify-between border-t border-slate-100 pt-2 tabular-nums">
               <span className="text-slate-500 font-sans">Taxable Amount:</span>
               <span className="font-semibold text-slate-900">₹{formatInr(invoice.taxableAmount)}</span>
             </div>
-            <div className="flex justify-between font-mono font-bold text-slate-900 text-sm">
+            <div className="flex justify-between tabular-nums font-bold text-slate-900 text-sm">
               <span className="font-sans">Grand Total:</span>
               <span className="text-emerald-700">₹{formatInr(invoice.grandTotal)}</span>
             </div>
@@ -423,17 +423,17 @@ export default function EInvoiceDetailsPage() {
                 const tax = Number(item.cgstAmount || 0) + Number(item.sgstAmount || 0) + Number(item.igstAmount || 0);
                 return (
                   <tr key={item.id || i} className="hover:bg-slate-50/50">
-                    <td className="py-2.5 px-4 text-slate-400 font-mono">{i + 1}</td>
+                    <td className="py-2.5 px-4 text-slate-400 tabular-nums">{i + 1}</td>
                     <td className="py-2.5 px-4 font-semibold text-slate-900">
                       {item.description || item.item?.name}
                     </td>
-                    <td className="py-2.5 px-4 font-mono text-slate-600">{item.hsnCode || "-"}</td>
-                    <td className="py-2.5 px-4 text-right font-mono">{item.quantity}</td>
-                    <td className="py-2.5 px-4 text-right font-mono">₹{formatInr(item.unitPrice)}</td>
-                    <td className="py-2.5 px-4 text-right font-mono">₹{formatInr(item.taxableAmount)}</td>
-                    <td className="py-2.5 px-4 text-right font-mono">{item.taxRate}%</td>
-                    <td className="py-2.5 px-4 text-right font-mono text-slate-700">₹{formatInr(tax)}</td>
-                    <td className="py-2.5 px-4 text-right font-mono font-bold text-slate-900">
+                    <td className="py-2.5 px-4 tabular-nums text-slate-600">{item.hsnCode || "-"}</td>
+                    <td className="py-2.5 px-4 text-right tabular-nums">{item.quantity}</td>
+                    <td className="py-2.5 px-4 text-right tabular-nums">₹{formatInr(item.unitPrice)}</td>
+                    <td className="py-2.5 px-4 text-right tabular-nums">₹{formatInr(item.taxableAmount)}</td>
+                    <td className="py-2.5 px-4 text-right tabular-nums">{item.taxRate}%</td>
+                    <td className="py-2.5 px-4 text-right tabular-nums text-slate-700">₹{formatInr(tax)}</td>
+                    <td className="py-2.5 px-4 text-right tabular-nums font-medium text-slate-900">
                       ₹{formatInr(item.totalAmount)}
                     </td>
                   </tr>
@@ -447,7 +447,7 @@ export default function EInvoiceDetailsPage() {
       {/* Audit & Submission History Timeline */}
       <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
         <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
-          <h3 className="font-bold text-slate-900 text-sm">
+          <h3 className="font-semibold text-slate-900 text-[15px]">
             Statutory Audit & Submission History
           </h3>
           <button
@@ -476,7 +476,7 @@ export default function EInvoiceDetailsPage() {
                 <div className="flex-1 space-y-0.5">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-slate-800">{log.operation}</span>
-                    <span className="text-[11px] text-slate-400 font-mono">
+                    <span className="text-[11px] text-slate-400 tabular-nums">
                       {new Date(log.createdAt).toLocaleString("en-IN")}
                     </span>
                   </div>
@@ -488,7 +488,7 @@ export default function EInvoiceDetailsPage() {
                       {log.errorCode ? `[${log.errorCode}] ` : ""}{log.errorMessage}
                     </div>
                   )}
-                  <div className="text-[10px] text-slate-400 font-mono">
+                  <div className="text-[10px] text-slate-400 tabular-nums">
                     Idempotency Key: {log.idempotencyKey}
                   </div>
                 </div>
@@ -503,20 +503,20 @@ export default function EInvoiceDetailsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
           <div className="w-full max-w-2xl rounded-xl bg-white shadow-2xl overflow-hidden border border-slate-200">
             <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-4">
-              <h3 className="font-bold text-slate-900 text-sm">
+              <h3 className="font-semibold text-slate-900 text-[15px]">
                 IRP Registration Raw Response
               </h3>
               <button onClick={() => setShowRawPayload(false)} className="text-slate-400 hover:text-slate-700">
                 ✕
               </button>
             </div>
-            <div className="max-h-[60vh] overflow-y-auto p-5 font-mono text-[11px] bg-slate-900 text-emerald-400">
+            <div className="max-h-[60vh] overflow-y-auto p-5 tabular-nums text-[11px] bg-slate-900 text-emerald-400">
               <pre>{JSON.stringify(eInvoice || { message: "No stored record" }, null, 2)}</pre>
             </div>
             <div className="flex justify-end border-t border-slate-200 bg-slate-50 px-5 py-3">
               <button
                 onClick={() => setShowRawPayload(false)}
-                className="rounded-lg bg-slate-800 px-4 py-1.5 text-xs font-semibold text-white hover:bg-slate-900"
+                className="rounded-lg bg-slate-800 px-4 py-1.5 text-[13px] font-medium text-white hover:bg-slate-900"
               >
                 Close
               </button>
@@ -530,7 +530,7 @@ export default function EInvoiceDetailsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
           <div className="w-full max-w-md rounded-xl bg-white shadow-2xl overflow-hidden border border-slate-200">
             <div className="border-b border-slate-200 bg-rose-50/50 px-5 py-4">
-              <h3 className="font-bold text-rose-950 text-sm">
+              <h3 className="font-semibold text-rose-950 text-[15px]">
                 Cancel Registered E-Invoice (IRN)
               </h3>
               <p className="text-[11px] text-slate-500">
@@ -547,13 +547,13 @@ export default function EInvoiceDetailsPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-800 mb-1">
+                <label className="block font-medium text-slate-800 mb-1">
                   Cancellation Reason Code *
                 </label>
                 <select
                   value={cancelReasonCode}
                   onChange={(e) => setCancelReasonCode(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs focus:border-rose-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] focus:border-rose-500 focus:outline-none h-10"
                 >
                   <option value="1">1 - Duplicate Invoice</option>
                   <option value="2">2 - Data Entry Mistake</option>
@@ -563,7 +563,7 @@ export default function EInvoiceDetailsPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-800 mb-1">
+                <label className="block font-medium text-slate-800 mb-1">
                   Cancellation Remarks (min 10 characters) *
                 </label>
                 <textarea
@@ -571,7 +571,7 @@ export default function EInvoiceDetailsPage() {
                   onChange={(e) => setCancelRemarks(e.target.value)}
                   rows={3}
                   placeholder="Explain why this e-invoice is being cancelled..."
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs focus:border-rose-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] focus:border-rose-500 focus:outline-none"
                 />
               </div>
 
@@ -586,14 +586,14 @@ export default function EInvoiceDetailsPage() {
               <button
                 onClick={() => setShowCancelModal(false)}
                 disabled={isCancelling}
-                className="rounded-lg border border-slate-300 px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition disabled:opacity-50"
+                className="rounded-lg border border-slate-300 h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-100 transition disabled:opacity-50"
               >
                 Close
               </button>
               <button
                 onClick={handleConfirmCancel}
                 disabled={isCancelling}
-                className="rounded-lg bg-rose-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition disabled:opacity-50 shadow-xs"
+                className="rounded-lg bg-rose-600 px-4 py-1.5 text-[13px] font-medium text-white hover:bg-rose-700 transition disabled:opacity-50 shadow-xs"
               >
                 {isCancelling ? "Cancelling..." : "Confirm IRP Cancellation"}
               </button>

@@ -417,7 +417,7 @@ export function ItemStepModal({
                 </svg>
               </div>
               <div>
-                <h2 className="text-lg font-bold text-slate-900 tracking-tight">
+                <h2 className="text-[15px] font-semibold text-[#182230] tracking-tight">
                   {isEditMode
                     ? lang === "gu"
                       ? "વસ્તુ સુધારો (Edit Item)"
@@ -489,7 +489,7 @@ export function ItemStepModal({
               </button>
 
               {/* Section Header: Advance Details */}
-              <div className="hidden md:block pt-4 pb-1.5 px-3.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+              <div className="hidden md:block pt-4 pb-1.5 px-3.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                 {lang === "gu" ? "અદ્યતન વિગતો" : "Advance Details"}
               </div>
 
@@ -532,7 +532,7 @@ export function ItemStepModal({
                     <span className="text-[10px] uppercase font-bold text-indigo-700 block tracking-wider mb-1">
                       {lang === "gu" ? "તૈયાર બારકોડ" : "Active Barcode"}
                     </span>
-                    <span className="font-mono text-xs font-bold text-slate-800 bg-white px-2 py-0.5 rounded border border-indigo-200 inline-block">
+                    <span className="tabular-nums text-xs font-bold text-slate-800 bg-white px-2 py-0.5 rounded border border-indigo-200 inline-block">
                       {form.barcode}
                     </span>
                     <button
@@ -559,7 +559,7 @@ export function ItemStepModal({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Item Type Radio */}
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                        <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
                           {lang === "gu" ? "વસ્તુનો પ્રકાર *" : "Item Type *"}
                         </label>
                         <div className="flex items-center gap-3">
@@ -600,7 +600,7 @@ export function ItemStepModal({
                       {/* Category Selection */}
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
-                          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide">
+                          <label className="block text-[12px] font-medium text-slate-700 uppercase tracking-wide">
                             {lang === "gu" ? "કેટેગરી" : "Category"}
                           </label>
                           {onAddCategory && !isCreatingCategory && (
@@ -621,13 +621,13 @@ export function ItemStepModal({
                               value={newCatName}
                               onChange={(e) => setNewCatName(e.target.value)}
                               placeholder="e.g. Clothing, Groceries"
-                              className="flex-1 text-xs p-2 bg-white border border-purple-300 rounded-lg focus:ring-1 focus:ring-purple-500"
+                              className="flex-1 text-[13px] p-2 bg-white border border-purple-300 rounded-lg focus:ring-1 focus:ring-purple-500 h-10"
                               autoFocus
                             />
                             <button
                               type="button"
                               onClick={handleCreateNewCategory}
-                              className="px-2.5 py-2 bg-purple-600 text-white rounded-lg text-xs font-bold hover:bg-purple-700 cursor-pointer"
+                              className="px-2.5 py-2 bg-purple-600 text-white rounded-lg text-[13px] font-medium hover:bg-purple-700 cursor-pointer"
                             >
                               ✓
                             </button>
@@ -637,7 +637,7 @@ export function ItemStepModal({
                                 setIsCreatingCategory(false);
                                 setNewCatName("");
                               }}
-                              className="px-2 py-2 bg-slate-200 text-slate-600 rounded-lg text-xs hover:bg-slate-300 cursor-pointer"
+                              className="px-2 py-2 bg-slate-200 text-slate-600 rounded-lg text-[13px] hover:bg-slate-300 cursor-pointer"
                             >
                               ✕
                             </button>
@@ -646,7 +646,7 @@ export function ItemStepModal({
                           <select
                             value={form.categoryId}
                             onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
-                            className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-medium text-slate-800"
+                            className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-medium text-slate-800 h-10"
                           >
                             <option value="">{lang === "gu" ? "-- કેટેગરી પસંદ કરો --" : "Search Categories..."}</option>
                             {categories.map((c) => (
@@ -663,10 +663,10 @@ export function ItemStepModal({
                     <div className="space-y-3">
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
-                          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide">
+                          <label className="block text-[12px] font-medium text-slate-700 uppercase tracking-wide">
                             {lang === "gu" ? "વસ્તુનું નામ (અંગ્રેજી) *" : "Item Name *"}
                           </label>
-                          <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-600">
+                          <label className="flex items-center gap-2 cursor-pointer text-[12px] text-slate-600">
                             <input
                               type="checkbox"
                               checked={form.showInOnlineStore}
@@ -684,13 +684,13 @@ export function ItemStepModal({
                           value={form.name}
                           onChange={(e) => setForm({ ...form, name: e.target.value })}
                           placeholder={lang === "gu" ? "દા.ત. Pants, Basmati Rice 25kg Bag" : "e.g. Pants, Basmati Rice 25kg"}
-                          className="w-full text-xs sm:text-sm p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-medium text-slate-900"
+                          className="w-full text-[13px] sm:text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-medium text-slate-900 h-10"
                         />
                       </div>
 
                       {lang === "gu" && (
                         <div>
-                          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
+                          <label className="block text-[12px] font-medium text-slate-600 mb-1.5 uppercase tracking-wide">
                             નામ ગુજરાતીમાં (વૈકલ્પિક)
                           </label>
                           <input
@@ -698,7 +698,7 @@ export function ItemStepModal({
                             value={form.nameGujarati}
                             onChange={(e) => setForm({ ...form, nameGujarati: e.target.value })}
                             placeholder="દા.ત. પેન્ટ્સ, બાસમતી ચોખા ૨૫ કિલો"
-                            className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-medium text-slate-800"
+                            className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-medium text-slate-800 h-10"
                           />
                         </div>
                       )}
@@ -708,7 +708,7 @@ export function ItemStepModal({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Sales Price */}
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                        <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
                           {lang === "gu" ? "વેચાણ ભાવ *" : "Sales Price"}
                         </label>
                         <div className="flex rounded-xl border border-slate-300 bg-slate-50 overflow-hidden focus-within:ring-2 focus-within:ring-purple-500 focus-within:bg-white">
@@ -721,14 +721,14 @@ export function ItemStepModal({
                             value={form.retailPrice}
                             onChange={(e) => setForm({ ...form, retailPrice: e.target.value })}
                             placeholder="ex: 1500"
-                            className="flex-1 text-xs p-2 bg-transparent focus:outline-none font-semibold text-slate-900"
+                            className="flex-1 text-[13px] p-2 bg-transparent focus:outline-none font-normal text-slate-900 h-10"
                           />
                           <select
                             value={form.isTaxInclusive ? "WITH" : "WITHOUT"}
                             onChange={(e) =>
                               setForm({ ...form, isTaxInclusive: e.target.value === "WITH" })
                             }
-                            className="text-[11px] font-semibold text-slate-700 bg-slate-100 border-l border-slate-300 px-2.5 py-1 focus:outline-none cursor-pointer"
+                            className="text-[11px] font-normal text-slate-700 bg-slate-100 border-l border-slate-300 px-2.5 py-1 focus:outline-none cursor-pointer h-10"
                           >
                             <option value="WITH">{lang === "gu" ? "કર સહિત (With Tax)" : "With Tax"}</option>
                             <option value="WITHOUT">{lang === "gu" ? "કર વગર (Without Tax)" : "Without Tax"}</option>
@@ -738,7 +738,7 @@ export function ItemStepModal({
 
                       {/* GST Tax Rate */}
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                        <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
                           {lang === "gu" ? "જીએસટી કર દર (%) *" : "GST Tax Rate (%)"}
                         </label>
                         <div className="relative flex items-center">
@@ -751,7 +751,7 @@ export function ItemStepModal({
                             value={form.taxRate}
                             onChange={(e) => setForm({ ...form, taxRate: Number(e.target.value) || 0 })}
                             placeholder="ex: 5, 12, 18, 28"
-                            className="w-full text-xs p-2.5 pr-8 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-semibold text-slate-900"
+                            className="w-full text-[13px] p-2.5 pr-8 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-normal text-slate-900 h-10"
                           />
                           <span className="absolute right-3 text-xs font-bold text-slate-400 pointer-events-none">%</span>
                         </div>
@@ -771,13 +771,13 @@ export function ItemStepModal({
                     {/* Measuring Unit & Opening Stock Row */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                        <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
                           {lang === "gu" ? "માપન એકમ (Unit) *" : "Measuring Unit *"}
                         </label>
                         <select
                           value={form.primaryUomId}
                           onChange={(e) => setForm({ ...form, primaryUomId: e.target.value })}
-                          className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-semibold text-slate-800"
+                          className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-normal text-slate-800 h-10"
                         >
                           {units.map((u) => (
                             <option key={u.id} value={u.id}>
@@ -789,7 +789,7 @@ export function ItemStepModal({
 
                       {form.type === "PRODUCT" && (
                         <div>
-                          <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                          <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
                             {lang === "gu" ? "પ્રારંભિક સ્ટોક (Opening Stock)" : "Opening Stock"}
                           </label>
                           <div className="flex rounded-xl border border-slate-300 bg-slate-50 overflow-hidden focus-within:ring-2 focus-within:ring-purple-500 focus-within:bg-white">
@@ -799,7 +799,7 @@ export function ItemStepModal({
                               value={form.openingStock}
                               onChange={(e) => setForm({ ...form, openingStock: e.target.value })}
                               placeholder="ex: 150"
-                              className="flex-1 text-xs p-2.5 bg-transparent focus:outline-none font-semibold text-slate-900"
+                              className="flex-1 text-[13px] p-2.5 bg-transparent focus:outline-none font-normal text-slate-900 h-10"
                             />
                             <span className="px-3 py-2 text-xs font-bold text-slate-600 bg-slate-100 border-l border-slate-300 flex items-center">
                               {uomCode}
@@ -862,7 +862,7 @@ export function ItemStepModal({
                       {/* Item Code / Barcode Input with Generate & View Buttons */}
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
-                          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide">
+                          <label className="block text-[12px] font-medium text-slate-700 uppercase tracking-wide">
                             {lang === "gu" ? "આઇટમ કોડ / બારકોડ" : "Item Code / Barcode"}
                           </label>
                         </div>
@@ -879,7 +879,7 @@ export function ItemStepModal({
                               })
                             }
                             placeholder="ex: 63611559163"
-                            className="w-full text-xs p-2.5 pr-28 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-mono font-bold text-slate-800"
+                            className="w-full text-[13px] p-2.5 pr-28 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 tabular-nums font-normal text-slate-800 h-10"
                           />
 
                           {/* Action Button inside / right of input matching Video (Generate Barcode / View Barcode) */}
@@ -890,7 +890,7 @@ export function ItemStepModal({
                                   type="button"
                                   id="view-barcode-btn"
                                   onClick={() => setIsBarcodeModalOpen(true)}
-                                  className="px-2.5 py-1 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors cursor-pointer"
+                                  className="px-2.5 py-1 text-[13px] font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors cursor-pointer"
                                   title="View and print scannable barcode sticker"
                                 >
                                   {lang === "gu" ? "બારકોડ જુઓ" : "View Barcode"}
@@ -910,7 +910,7 @@ export function ItemStepModal({
                                 type="button"
                                 id="generate-barcode-btn"
                                 onClick={handleGenerateBarcode}
-                                className="px-2.5 py-1 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors cursor-pointer"
+                                className="px-2.5 py-1 text-[13px] font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors cursor-pointer"
                                 title="Auto generate unique barcode number"
                               >
                                 {lang === "gu" ? "બારકોડ બનાવો" : "Generate Barcode"}
@@ -928,7 +928,7 @@ export function ItemStepModal({
                       {/* HSN Code & Finder */}
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
-                          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide">
+                          <label className="block text-[12px] font-medium text-slate-700 uppercase tracking-wide">
                             {lang === "gu" ? "એચએસએન કોડ (HSN/SAC) *" : "HSN code *"}
                           </label>
                           <button
@@ -962,7 +962,7 @@ export function ItemStepModal({
                             value={form.hsnCode}
                             onChange={(e) => setForm({ ...form, hsnCode: e.target.value })}
                             placeholder="ex: 1006 or 2443"
-                            className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-mono font-bold text-slate-800"
+                            className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 tabular-nums font-normal text-slate-800 h-10"
                           />
                         )}
                       </div>
@@ -971,13 +971,13 @@ export function ItemStepModal({
                     {/* Measuring Unit & Alternative Unit Row */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                        <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
                           {lang === "gu" ? "પ્રાથમિક માપન એકમ *" : "Measuring Unit *"}
                         </label>
                         <select
                           value={form.primaryUomId}
                           onChange={(e) => setForm({ ...form, primaryUomId: e.target.value })}
-                          className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-semibold text-slate-800"
+                          className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-normal text-slate-800 h-10"
                         >
                           {units.map((u) => (
                             <option key={u.id} value={u.id}>
@@ -992,7 +992,7 @@ export function ItemStepModal({
                           <button
                             type="button"
                             onClick={() => setShowAlternativeUnit(true)}
-                            className="text-left text-xs font-bold text-indigo-600 hover:text-indigo-800 py-2.5 flex items-center gap-1 cursor-pointer"
+                            className="text-left text-[13px] font-medium text-indigo-600 hover:text-indigo-800 py-2.5 flex items-center gap-1 cursor-pointer"
                           >
                             <span>+</span>
                             <span>{lang === "gu" ? "વૈકલ્પિક એકમ ઉમેરો (Alternative Unit)" : "Alternative Unit"}</span>
@@ -1002,7 +1002,7 @@ export function ItemStepModal({
                             <select
                               value={form.secondaryUomId}
                               onChange={(e) => setForm({ ...form, secondaryUomId: e.target.value })}
-                              className="text-xs p-2 bg-slate-50 border border-slate-300 rounded-lg flex-1"
+                              className="text-[13px] p-2 bg-slate-50 border border-slate-300 rounded-lg flex-1 h-10"
                             >
                               <option value="">-- {lang === "gu" ? "ગૌણ એકમ" : "Select Secondary Unit"} --</option>
                               {units
@@ -1020,7 +1020,7 @@ export function ItemStepModal({
                               onChange={(e) =>
                                 setForm({ ...form, conversionFactor: Number(e.target.value) || 1 })
                               }
-                              className="w-24 text-xs p-2 bg-slate-50 border border-slate-300 rounded-lg"
+                              className="w-24 text-[13px] p-2 bg-slate-50 border border-slate-300 rounded-lg h-10"
                               title="Conversion factor: 1 Primary UOM = X Secondary UOM"
                             />
                             <button
@@ -1043,13 +1043,13 @@ export function ItemStepModal({
                       <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
                           <div>
-                            <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase">
+                            <label className="block text-[11px] font-medium text-slate-600 mb-1 uppercase">
                               {lang === "gu" ? "ગોડાઉન / વેરહાઉસ" : "Godowns"}
                             </label>
                             <select
                               value={form.warehouseId}
                               onChange={(e) => setForm({ ...form, warehouseId: e.target.value })}
-                              className="w-full text-xs p-2.5 bg-white border border-slate-300 rounded-lg font-medium text-slate-800"
+                              className="w-full text-[13px] p-2.5 bg-white border border-slate-300 rounded-lg font-medium text-slate-800 h-10"
                             >
                               {warehouses.map((w) => (
                                 <option key={w.id} value={w.id}>
@@ -1060,7 +1060,7 @@ export function ItemStepModal({
                           </div>
 
                           <div>
-                            <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase">
+                            <label className="block text-[11px] font-medium text-slate-600 mb-1 uppercase">
                               {lang === "gu" ? "પ્રારંભિક સ્ટોક" : "Opening Stock"}
                             </label>
                             <div className="flex rounded-lg border border-slate-300 bg-white overflow-hidden">
@@ -1070,7 +1070,7 @@ export function ItemStepModal({
                                 value={form.openingStock}
                                 onChange={(e) => setForm({ ...form, openingStock: e.target.value })}
                                 placeholder="ex: 150 PCS"
-                                className="flex-1 text-xs p-2 focus:outline-none font-bold text-slate-900"
+                                className="flex-1 text-[13px] p-2 focus:outline-none font-normal text-slate-900 h-10"
                               />
                               <span className="px-2.5 py-1.5 text-xs font-bold text-slate-500 bg-slate-100 border-l border-slate-300 flex items-center">
                                 {uomCode}
@@ -1079,14 +1079,14 @@ export function ItemStepModal({
                           </div>
 
                           <div>
-                            <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase">
+                            <label className="block text-[11px] font-medium text-slate-600 mb-1 uppercase">
                               {lang === "gu" ? "તારીખ અનુસાર (As of Date)" : "As of Date"}
                             </label>
                             <input
                               type="date"
                               value={form.asOfDate}
                               onChange={(e) => setForm({ ...form, asOfDate: e.target.value })}
-                              className="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-800"
+                              className="w-full text-[13px] p-2 bg-white border border-slate-300 rounded-lg font-medium text-slate-800 h-10"
                             />
                           </div>
                         </div>
@@ -1095,7 +1095,7 @@ export function ItemStepModal({
                         {form.trackBatches && (
                           <div className="pt-2 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div>
-                              <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase">
+                              <label className="block text-[11px] font-medium text-slate-600 mb-1 uppercase">
                                 {lang === "gu" ? "બેચ નંબર" : "Batch Number"}
                               </label>
                               <input
@@ -1103,29 +1103,29 @@ export function ItemStepModal({
                                 value={form.openingBatchNumber}
                                 onChange={(e) => setForm({ ...form, openingBatchNumber: e.target.value })}
                                 placeholder="e.g. BATCH-01"
-                                className="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg font-mono font-medium"
+                                className="w-full text-[13px] p-2 bg-white border border-slate-300 rounded-lg tabular-nums font-medium h-10"
                               />
                             </div>
                             <div>
-                              <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase">
+                              <label className="block text-[11px] font-medium text-slate-600 mb-1 uppercase">
                                 {lang === "gu" ? "ઉત્પાદન તારીખ (Mfg Date)" : "Mfg Date"}
                               </label>
                               <input
                                 type="date"
                                 value={form.openingMfgDate}
                                 onChange={(e) => setForm({ ...form, openingMfgDate: e.target.value })}
-                                className="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg"
+                                className="w-full text-[13px] p-2 bg-white border border-slate-300 rounded-lg h-10"
                               />
                             </div>
                             <div>
-                              <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase">
+                              <label className="block text-[11px] font-medium text-slate-600 mb-1 uppercase">
                                 {lang === "gu" ? "એક્સપાયરી તારીખ (Expiry Date)" : "Expiry Date"}
                               </label>
                               <input
                                 type="date"
                                 value={form.openingExpiryDate}
                                 onChange={(e) => setForm({ ...form, openingExpiryDate: e.target.value })}
-                                className="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg"
+                                className="w-full text-[13px] p-2 bg-white border border-slate-300 rounded-lg h-10"
                               />
                             </div>
                           </div>
@@ -1169,7 +1169,7 @@ export function ItemStepModal({
                               type="number"
                               value={form.minStockLevel}
                               onChange={(e) => setForm({ ...form, minStockLevel: e.target.value })}
-                              className="w-20 text-xs p-1.5 bg-white border border-amber-300 rounded-lg font-bold text-center"
+                              className="w-20 text-[13px] p-1.5 bg-white border border-amber-300 rounded-lg font-normal text-center h-10"
                             />
                             <span className="text-xs font-bold text-amber-800">{uomCode}</span>
                           </div>
@@ -1188,7 +1188,7 @@ export function ItemStepModal({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Sales Price */}
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                        <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
                           {lang === "gu" ? "વેચાણ ભાવ (Sales Price)" : "Sales Price"}
                         </label>
                         <div className="flex rounded-xl border border-slate-300 bg-slate-50 overflow-hidden focus-within:ring-2 focus-within:ring-purple-500 focus-within:bg-white">
@@ -1201,14 +1201,14 @@ export function ItemStepModal({
                             value={form.retailPrice}
                             onChange={(e) => setForm({ ...form, retailPrice: e.target.value })}
                             placeholder="ex: 1500"
-                            className="flex-1 text-xs p-2 bg-transparent focus:outline-none font-bold text-slate-900"
+                            className="flex-1 text-[13px] p-2 bg-transparent focus:outline-none font-normal text-slate-900 h-10"
                           />
                           <select
                             value={form.isTaxInclusive ? "WITH" : "WITHOUT"}
                             onChange={(e) =>
                               setForm({ ...form, isTaxInclusive: e.target.value === "WITH" })
                             }
-                            className="text-[11px] font-semibold text-slate-700 bg-slate-100 border-l border-slate-300 px-2 py-1 focus:outline-none cursor-pointer"
+                            className="text-[11px] font-normal text-slate-700 bg-slate-100 border-l border-slate-300 px-2 py-1 focus:outline-none cursor-pointer h-10"
                           >
                             <option value="WITHOUT">{lang === "gu" ? "Without Tax" : "Without Tax"}</option>
                             <option value="WITH">{lang === "gu" ? "With Tax" : "With Tax"}</option>
@@ -1218,7 +1218,7 @@ export function ItemStepModal({
 
                       {/* Purchase Price */}
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                        <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
                           {lang === "gu" ? "ખરીદ ભાવ (Purchase Price)" : "Purchase Price"}
                         </label>
                         <div className="flex rounded-xl border border-slate-300 bg-slate-50 overflow-hidden focus-within:ring-2 focus-within:ring-purple-500 focus-within:bg-white">
@@ -1231,7 +1231,7 @@ export function ItemStepModal({
                             value={form.purchaseRate}
                             onChange={(e) => setForm({ ...form, purchaseRate: e.target.value })}
                             placeholder="ex: 1200"
-                            className="flex-1 text-xs p-2 bg-transparent focus:outline-none font-bold text-slate-900"
+                            className="flex-1 text-[13px] p-2 bg-transparent focus:outline-none font-normal text-slate-900 h-10"
                           />
                           <select
                             value={form.isPurchaseTaxInclusive ? "WITH" : "WITHOUT"}
@@ -1241,7 +1241,7 @@ export function ItemStepModal({
                                 isPurchaseTaxInclusive: e.target.value === "WITH",
                               })
                             }
-                            className="text-[11px] font-semibold text-slate-700 bg-slate-100 border-l border-slate-300 px-2 py-1 focus:outline-none cursor-pointer"
+                            className="text-[11px] font-normal text-slate-700 bg-slate-100 border-l border-slate-300 px-2 py-1 focus:outline-none cursor-pointer h-10"
                           >
                             <option value="WITHOUT">{lang === "gu" ? "Without Tax" : "Without Tax"}</option>
                             <option value="WITH">{lang === "gu" ? "With Tax" : "With Tax"}</option>
@@ -1254,11 +1254,11 @@ export function ItemStepModal({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Maximum Retail Price (MRP) */}
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide flex items-center justify-between">
+                        <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide flex items-center justify-between">
                           <span>
                             {lang === "gu" ? "મહત્તમ છૂટક કિંમત (MRP)" : "Maximum Retail Price (MRP)"}
                           </span>
-                          <span className="text-[11px] font-bold text-emerald-600 font-mono">
+                          <span className="text-[11px] font-bold text-emerald-600 tabular-nums">
                             Disc. on MRP: {mrpDiscountText}
                           </span>
                         </label>
@@ -1272,14 +1272,14 @@ export function ItemStepModal({
                             value={form.mrp}
                             onChange={(e) => setForm({ ...form, mrp: e.target.value })}
                             placeholder="ex: 2000"
-                            className="flex-1 text-xs p-2 bg-transparent focus:outline-none font-bold text-slate-900"
+                            className="flex-1 text-[13px] p-2 bg-transparent focus:outline-none font-normal text-slate-900 h-10"
                           />
                         </div>
                       </div>
 
                       {/* GST Tax Rate */}
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                        <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
                           {lang === "gu" ? "જીએસટી દર (%)" : "GST Tax Rate(%)"}
                         </label>
                         <div className="relative flex items-center">
@@ -1292,7 +1292,7 @@ export function ItemStepModal({
                             value={form.taxRate}
                             onChange={(e) => setForm({ ...form, taxRate: Number(e.target.value) || 0 })}
                             placeholder="ex: 5, 12, 18, 28"
-                            className="w-full text-xs p-2.5 pr-8 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-semibold text-slate-900"
+                            className="w-full text-[13px] p-2.5 pr-8 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-normal text-slate-900 h-10"
                           />
                           <span className="absolute right-3 text-xs font-bold text-slate-400 pointer-events-none">%</span>
                         </div>
@@ -1312,7 +1312,7 @@ export function ItemStepModal({
                     {/* Discount on Sales Price Row */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                        <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
                           {lang === "gu" ? "વેચાણ ભાવ પર ડિસ્કાઉન્ટ" : "Discount on Sales Price"}
                         </label>
                         <div className="flex rounded-xl border border-slate-300 bg-slate-50 overflow-hidden focus-within:ring-2 focus-within:ring-purple-500 focus-within:bg-white">
@@ -1322,7 +1322,7 @@ export function ItemStepModal({
                             value={form.discountPercent}
                             onChange={(e) => setForm({ ...form, discountPercent: e.target.value })}
                             placeholder="ex: 10"
-                            className="flex-1 text-xs p-2 bg-transparent focus:outline-none font-bold text-slate-900"
+                            className="flex-1 text-[13px] p-2 bg-transparent focus:outline-none font-normal text-slate-900 h-10"
                           />
                           <span className="px-3 py-2 text-xs font-bold text-slate-500 bg-slate-100 border-l border-slate-300 flex items-center">
                             %
@@ -1336,7 +1336,7 @@ export function ItemStepModal({
                           <button
                             type="button"
                             onClick={() => setShowWholesaleRate(true)}
-                            className="text-left text-xs font-bold text-indigo-600 hover:text-indigo-800 py-2.5 flex items-center gap-1 cursor-pointer"
+                            className="text-left text-[13px] font-medium text-indigo-600 hover:text-indigo-800 py-2.5 flex items-center gap-1 cursor-pointer"
                           >
                             <span>+</span>
                             <span>{lang === "gu" ? "જથ્થાબંધ ભાવ (Wholesale Rate)" : "Wholesale Rate"}</span>
@@ -1353,7 +1353,7 @@ export function ItemStepModal({
                                 onChange={(e) =>
                                   setForm({ ...form, wholesalePrice: e.target.value })
                                 }
-                                className="w-full text-xs p-1.5 bg-transparent focus:outline-none font-semibold"
+                                className="w-full text-[13px] p-1.5 bg-transparent focus:outline-none font-normal h-10"
                               />
                             </div>
                             <input
@@ -1363,7 +1363,7 @@ export function ItemStepModal({
                               onChange={(e) =>
                                 setForm({ ...form, minWholesaleQty: e.target.value })
                               }
-                              className="w-24 text-xs p-1.5 bg-slate-50 border border-slate-300 rounded-lg"
+                              className="w-24 text-[13px] p-1.5 bg-slate-50 border border-slate-300 rounded-lg h-10"
                               title="Minimum wholesale order quantity"
                             />
                             <button
@@ -1388,7 +1388,7 @@ export function ItemStepModal({
                 {/* ============================================================ */}
                 {activeTab === "party_pricing" && (
                   <div className="space-y-4 animate-in fade-in duration-150">
-                    <h3 className="text-sm font-bold text-slate-800">
+                    <h3 className="text-[15px] font-semibold text-slate-800">
                       {lang === "gu" ? "પાર્ટી મુજબ ભાવ ઉમેરો" : "Add Party Wise Prices"}
                     </h3>
 
@@ -1396,7 +1396,7 @@ export function ItemStepModal({
                     <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end p-3.5 bg-slate-50/80 border border-slate-200 rounded-xl">
                       {/* Select Party */}
                       <div className="sm:col-span-6">
-                        <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                        <label className="block text-[12px] font-medium text-slate-600 mb-1.5">
                           {lang === "gu" ? "પાર્ટી પસંદ કરો" : "Select Party"}
                         </label>
                         <select
@@ -1407,7 +1407,7 @@ export function ItemStepModal({
                               setPartyPriceInput(String(form.retailPrice));
                             }
                           }}
-                          className="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500 font-medium text-slate-700 cursor-pointer shadow-2xs"
+                          className="w-full text-[13px] p-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500 font-medium text-slate-700 cursor-pointer shadow-2xs h-10"
                         >
                           <option value="">{lang === "gu" ? "પાર્ટી શોધો..." : "Search Party"}</option>
                           {partiesList.map((p) => (
@@ -1420,7 +1420,7 @@ export function ItemStepModal({
 
                       {/* Sales Price with With Tax Toggle */}
                       <div className="sm:col-span-4">
-                        <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                        <label className="block text-[12px] font-medium text-slate-600 mb-1.5">
                           {lang === "gu" ? "વેચાણ ભાવ" : "Sales Price"}
                         </label>
                         <div className="flex items-center rounded-lg border border-slate-300 bg-white overflow-hidden shadow-2xs focus-within:ring-1 focus-within:ring-purple-500">
@@ -1433,7 +1433,7 @@ export function ItemStepModal({
                             placeholder="0.00"
                             value={partyPriceInput}
                             onChange={(e) => setPartyPriceInput(e.target.value)}
-                            className="w-full text-xs p-1.5 font-mono font-semibold text-slate-800 focus:outline-none"
+                            className="w-full text-[13px] p-1.5 tabular-nums font-normal text-slate-800 focus:outline-none h-10"
                           />
                           <button
                             type="button"
@@ -1497,10 +1497,10 @@ export function ItemStepModal({
                       <table className="w-full text-xs text-left">
                         <thead className="bg-[#FAFBFD] border-b border-slate-200 text-slate-600 font-bold">
                           <tr>
-                            <th className="py-2.5 px-4 font-bold text-slate-700">
+                            <th className="py-2.5 px-4 font-medium text-slate-700">
                               {lang === "gu" ? "પાર્ટીનું નામ" : "Party Name"}
                             </th>
-                            <th className="py-2.5 px-4 font-bold text-slate-700">
+                            <th className="py-2.5 px-4 font-medium text-slate-700">
                               {lang === "gu" ? "વેચાણ ભાવ" : "Sales Price"}
                             </th>
                             <th className="py-2.5 px-4 text-right w-16"></th>
@@ -1513,7 +1513,7 @@ export function ItemStepModal({
                               <span>🌐</span>
                               <span>{lang === "gu" ? "બધી પાર્ટીઓ માટે ભાવ" : "All Parties Price"}</span>
                             </td>
-                            <td className="py-3 px-4 font-mono font-bold text-slate-900">
+                            <td className="py-3 px-4 tabular-nums font-medium text-slate-900">
                               ₹ {Number(form.retailPrice || 0).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                             </td>
                             <td className="py-3 px-4 text-right text-[11px] text-slate-400 font-medium italic">
@@ -1528,7 +1528,7 @@ export function ItemStepModal({
                                 <span className="text-purple-600">👤</span>
                                 <span>{pp.partyName}</span>
                               </td>
-                              <td className="py-3 px-4 font-mono font-bold text-purple-900">
+                              <td className="py-3 px-4 tabular-nums font-medium text-purple-900">
                                 ₹ {Number(pp.price).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                                 <span className="ml-1.5 text-[10px] text-slate-500 font-sans font-normal">
                                   {pp.isTaxInclusive ? "(With Tax)" : "(Without Tax)"}
@@ -1571,7 +1571,7 @@ export function ItemStepModal({
                   <div className="space-y-4 animate-in fade-in duration-150">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                        <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
                           {lang === "gu" ? "બ્રાન્ડ / ઉત્પાદક" : "Brand / Manufacturer"}
                         </label>
                         <input
@@ -1579,12 +1579,12 @@ export function ItemStepModal({
                           value={form.brand}
                           onChange={(e) => setForm({ ...form, brand: e.target.value })}
                           placeholder="e.g. Raymond, Tata, Amul, Samsung"
-                          className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-medium text-slate-800"
+                          className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-medium text-slate-800 h-10"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                        <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
                           {lang === "gu" ? "મોડેલ / વેરિઅન્ટ" : "Model / Variant"}
                         </label>
                         <input
@@ -1592,13 +1592,13 @@ export function ItemStepModal({
                           value={form.model}
                           onChange={(e) => setForm({ ...form, model: e.target.value })}
                           placeholder="e.g. Slim Fit, Series 5, XL"
-                          className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-medium text-slate-800"
+                          className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-medium text-slate-800 h-10"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                      <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
                         {lang === "gu" ? "કદ / રંગ / સ્પેસિફિકેશન" : "Size / Color / Specification"}
                       </label>
                       <input
@@ -1606,12 +1606,12 @@ export function ItemStepModal({
                         value={form.sizeColor}
                         onChange={(e) => setForm({ ...form, sizeColor: e.target.value })}
                         placeholder="e.g. Size: 32 / Color: Navy Blue"
-                        className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-medium text-slate-800"
+                        className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-medium text-slate-800 h-10"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                      <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
                         {lang === "gu" ? "વર્ણન / નોંધ (Description / Bill Remarks)" : "Item Description / Bill Notes"}
                       </label>
                       <textarea
@@ -1619,7 +1619,7 @@ export function ItemStepModal({
                         value={form.description}
                         onChange={(e) => setForm({ ...form, description: e.target.value })}
                         placeholder={lang === "gu" ? "ઇન્વોઇસ પર દર્શાવવા માટે વિશેષ નોંધ..." : "Additional item specifications or bill notes..."}
-                        className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-medium text-slate-800"
+                        className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-medium text-slate-800"
                       />
                     </div>
 
@@ -1653,7 +1653,7 @@ export function ItemStepModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-200/60 rounded-xl border border-slate-300 transition-colors cursor-pointer"
+                  className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-200/60 rounded-xl border border-slate-300 transition-colors cursor-pointer"
                 >
                   {lang === "gu" ? "રદ કરો (Cancel)" : "Cancel"}
                 </button>
@@ -1664,7 +1664,7 @@ export function ItemStepModal({
                     <button
                       type="button"
                       onClick={() => setActiveTab(tabs[currentTabIndex - 1].id)}
-                      className="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl transition-colors cursor-pointer"
+                      className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl transition-colors cursor-pointer"
                     >
                       ← {lang === "gu" ? "પાછળ" : "Previous"}
                     </button>
@@ -1675,7 +1675,7 @@ export function ItemStepModal({
                     <button
                       type="button"
                       onClick={() => setActiveTab(tabs[currentTabIndex + 1].id)}
-                      className="px-4 py-2 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-xl transition-colors cursor-pointer"
+                      className="h-9 px-3 text-[13px] font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-xl transition-colors cursor-pointer"
                     >
                       {lang === "gu" ? "આગળ" : "Next"} →
                     </button>
@@ -1685,7 +1685,7 @@ export function ItemStepModal({
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-5 py-2 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 active:bg-purple-800 rounded-xl shadow-xs transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                    className="h-9 px-3.5 text-[13px] font-medium text-white bg-purple-600 hover:bg-purple-700 active:bg-purple-800 rounded-xl shadow-xs transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     {isSubmitting ? (
                       <>

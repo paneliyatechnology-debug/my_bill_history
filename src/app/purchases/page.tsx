@@ -564,25 +564,25 @@ export default function PurchasesPage() {
         {/* Left: Identity, Title, and Segmented Tabs */}
         <div>
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#26A58A]">
+            <span className="text-[11px] font-medium uppercase tracking-wide text-[#1677E8]">
               {lang === "gu" ? "ખરીદી અને સ્ટોક ઈનવર્ડ" : "PURCHASES & EXPENSES"}
             </span>
             <span className="text-slate-300">•</span>
-            <span className="text-[10px] font-bold text-slate-500 font-mono">
+            <span className="text-[11px] font-normal text-[#64748B]">
               {filteredInvoices.length} {lang === "gu" ? "બિલ" : "Bills"}
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <h1 className="text-xl sm:text-2xl font-black text-[#1A2E2B] tracking-tight">
+            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight leading-tight">
               {lang === "gu" ? "ખરીદી બિલ (Purchase Bills)" : "Purchase Invoices"}
             </h1>
             <button
               type="button"
               onClick={fetchPurchases}
               title="Refresh Purchases"
-              className="p-1 text-slate-400 hover:text-[#174B43] rounded-md transition-colors"
+              className="p-1 text-slate-400 hover:text-[#0F172A] rounded-md transition-colors"
             >
-              <svg className={`w-3.5 h-3.5 ${isLoading ? "animate-spin text-[#26A58A]" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className={`w-3.5 h-3.5 ${isLoading ? "animate-spin text-[#1677E8]" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </button>
@@ -590,17 +590,17 @@ export default function PurchasesPage() {
         </div>
 
         {/* Center: Segmented View Switcher */}
-        <div className="inline-flex items-center bg-[#F2FAF7] p-1 rounded-xl border border-[#BCEADF] self-start sm:self-center">
+        <div className="inline-flex items-center bg-[#F8FAFC] p-1 rounded-xl border border-[#BFDBFE] self-start sm:self-center">
           <button
             type="button"
             onClick={() => setActiveTab("ALL")}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
               activeTab === "ALL"
-                ? "bg-white text-[#174B43] shadow-xs border border-[#85D5C2]/50 font-bold"
-                : "text-[#5A6B66] hover:text-[#174B43]"
+                ? "bg-white text-[#0F172A] shadow-xs border border-[#93C5FD]/50 font-bold"
+                : "text-[#5A6B66] hover:text-[#0F172A]"
             }`}
           >
-            <svg className="w-3.5 h-3.5 text-[#26A58A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="w-3.5 h-3.5 text-[#1677E8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
               <polyline points="14 2 14 8 20 8" />
               <line x1="16" y1="13" x2="8" y2="13" />
@@ -615,7 +615,7 @@ export default function PurchasesPage() {
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
               activeTab === "INCOMPLETE_SCANS"
                 ? "bg-white text-amber-800 shadow-xs border border-amber-300 font-bold"
-                : "text-[#5A6B66] hover:text-[#174B43]"
+                : "text-[#5A6B66] hover:text-[#0F172A]"
             }`}
           >
             <svg className="w-3.5 h-3.5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -640,9 +640,9 @@ export default function PurchasesPage() {
                 setIsReportsMenuOpen(!isReportsMenuOpen);
                 setActiveActionMenuId(null);
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 border border-[#E2E8E5] bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-[#174B43] text-xs font-semibold rounded-xl transition-colors cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1.5 h-9 px-3 border border-[#E2E8F0] bg-white hover:bg-[#F8FBFF] hover:border-[#1677E8] text-[#182230] text-[13px] font-medium rounded-[10px] transition-colors cursor-pointer"
             >
-              <svg className="w-3.5 h-3.5 text-[#26A58A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg className="w-3.5 h-3.5 text-[#1677E8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="18" y1="20" x2="18" y2="10" />
                 <line x1="12" y1="20" x2="12" y2="4" />
                 <line x1="6" y1="20" x2="6" y2="14" />
@@ -653,7 +653,7 @@ export default function PurchasesPage() {
 
             {isReportsMenuOpen && (
               <div
-                className="absolute right-0 top-11 z-50 w-52 bg-white border border-[#E2E8E5] rounded-xl shadow-xl py-1 text-xs animate-in fade-in zoom-in-95 duration-100"
+                className="absolute right-0 top-11 z-50 w-52 bg-white border border-[#E2E8F0] rounded-xl shadow-xl py-1 text-[13px] font-normal text-[#182230] animate-in fade-in zoom-in-95 duration-100"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="px-3 py-1.5 text-[10px] font-bold text-[#8E9F9A] uppercase tracking-wider border-b border-slate-100">
@@ -661,27 +661,27 @@ export default function PurchasesPage() {
                 </div>
                 <Link
                   href="/reports?tab=purchase-summary"
-                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors"
                 >
-                  <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <svg className="w-3.5 h-3.5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   <span>Purchase Summary</span>
                 </Link>
                 <Link
                   href="/reports?tab=gstr-2b"
-                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors"
                 >
-                  <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <svg className="w-3.5 h-3.5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span>GSTR-2B vs Purchases</span>
                 </Link>
                 <Link
                   href="/reports?tab=outstanding&partyType=SUPPLIER"
-                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors"
                 >
-                  <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <svg className="w-3.5 h-3.5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                   <span>Supplier Outstanding</span>
@@ -694,7 +694,7 @@ export default function PurchasesPage() {
           <button
             type="button"
             onClick={() => setIsScannerModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold rounded-xl shadow-2xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3 bg-[#FFF5E5] hover:bg-[#FFF8EE] text-[#B45309] border border-[#FDE68A] text-[13px] font-medium rounded-[10px] transition-colors cursor-pointer"
             title="Scan Bills with AI OCR"
           >
             <svg className="w-3.5 h-3.5 text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -724,9 +724,9 @@ export default function PurchasesPage() {
           <button
             type="button"
             onClick={() => setIsImportModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#F2FAF7] hover:bg-[#E6F7F2] text-[#174B43] border border-[#85D5C2] text-xs font-bold rounded-xl shadow-2xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3 bg-white hover:bg-[#F8FBFF] text-[#182230] border border-[#E2E8F0] text-[13px] font-medium rounded-[10px] transition-colors cursor-pointer"
           >
-            <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-3.5 h-3.5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
             </svg>
             <span>{lang === "gu" ? "આયાત" : "Import"}</span>
@@ -736,7 +736,7 @@ export default function PurchasesPage() {
           <button
             type="button"
             onClick={() => setIsQuickSettingsOpen(true)}
-            className="p-2 border border-[#E2E8E5] bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-[#5A6B66] hover:text-[#174B43] rounded-xl transition-colors cursor-pointer shadow-2xs relative"
+            className="p-2 border border-[#E2E8E5] bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-[#5A6B66] hover:text-[#0F172A] rounded-xl transition-colors cursor-pointer shadow-2xs relative"
             title="Purchase Settings"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -749,9 +749,9 @@ export default function PurchasesPage() {
           {/* Primary CTA */}
           <Link
             href="/purchases/new"
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#174B43] hover:bg-[#123B35] active:bg-[#0D2A26] text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-[10px] transition-colors cursor-pointer"
           >
-            <svg className="w-3.5 h-3.5 text-[#85D5C2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
+            <svg className="w-3.5 h-3.5 text-[#93C5FD]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
             <span>{lang === "gu" ? "+ નવું ખરીદી બિલ" : "+ New Purchase Bill"}</span>
@@ -801,7 +801,7 @@ export default function PurchasesPage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={lang === "gu" ? "વેન્ડર, બિલ #, GSTIN કે ફોન શોધો..." : "Search vendor, bill #, GSTIN, phone..."}
-                    className="w-full pl-8 pr-7 py-2 bg-[#F8FAFC] border border-[#E2E8E5] rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#26A58A] transition-colors"
+                    className="w-full pl-8 pr-7 py-2 bg-[#F8FAFC] border border-[#E2E8E5] rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#1677E8] transition-colors"
                   />
                   {searchQuery && (
                     <button
@@ -818,7 +818,7 @@ export default function PurchasesPage() {
                 <select
                   value={dateRangePreset}
                   onChange={(e) => setDateRangePreset(e.target.value as DateRangePreset)}
-                  className="px-3 py-2 bg-[#F8FAFC] border border-[#E2E8E5] text-xs font-semibold rounded-xl text-slate-800 focus:bg-white focus:outline-none focus:border-[#26A58A] cursor-pointer"
+                  className="px-3 py-2 bg-[#F8FAFC] border border-[#E2E8E5] text-xs font-semibold rounded-xl text-slate-800 focus:bg-white focus:outline-none focus:border-[#1677E8] cursor-pointer"
                 >
                   {Object.entries(DATE_PRESET_LABELS).map(([key, labelObj]) => (
                     <option key={key} value={key}>
@@ -836,7 +836,7 @@ export default function PurchasesPage() {
                       onClick={() => setStatusFilter(st)}
                       className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                         statusFilter === st
-                          ? "bg-white text-[#174B43] shadow-xs border border-[#85D5C2]"
+                          ? "bg-white text-[#0F172A] shadow-xs border border-[#93C5FD]"
                           : "text-slate-600 hover:text-slate-900"
                       }`}
                     >
@@ -854,14 +854,14 @@ export default function PurchasesPage() {
                       type="date"
                       value={customStartDate}
                       onChange={(e) => setCustomStartDate(e.target.value)}
-                      className="px-2 py-1.5 bg-[#F8FAFC] border border-[#E2E8E5] rounded-lg text-xs font-mono"
+                      className="px-2 py-1.5 bg-[#F8FAFC] border border-[#E2E8E5] rounded-lg text-xs tabular-nums"
                     />
                     <span className="text-xs text-slate-400">to</span>
                     <input
                       type="date"
                       value={customEndDate}
                       onChange={(e) => setCustomEndDate(e.target.value)}
-                      className="px-2 py-1.5 bg-[#F8FAFC] border border-[#E2E8E5] rounded-lg text-xs font-mono"
+                      className="px-2 py-1.5 bg-[#F8FAFC] border border-[#E2E8E5] rounded-lg text-xs tabular-nums"
                     />
                   </div>
                 )}
@@ -911,7 +911,7 @@ export default function PurchasesPage() {
           <div className="bg-white border border-[#E2E8E5] rounded-2xl shadow-xs overflow-hidden">
             <div className="overflow-x-auto min-h-[400px]">
               <table className="w-full text-left text-xs border-collapse min-w-[800px]">
-                <thead className="bg-[#FAFBFD] text-[#5A6B66] uppercase tracking-wider font-extrabold border-b border-[#E2E8E5] text-[11px]">
+                <thead className="bg-[#FAFBFD] text-[#5A6B66] uppercase tracking-wider font-semibold border-b border-[#E2E8E5] text-[11px]">
                   <tr>
                     <th className="py-3 px-4 min-w-[110px]">{lang === "gu" ? "તારીખ" : "DATE"}</th>
                     <th className="py-3 px-4 min-w-[140px]">{lang === "gu" ? "વેન્ડર બિલ #" : "PURCHASE BILL #"}</th>
@@ -927,8 +927,8 @@ export default function PurchasesPage() {
                   {isLoading ? (
                     <tr>
                       <td colSpan={7} className="py-20 text-center text-slate-400">
-                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-[#26A58A] border-t-transparent mb-2" />
-                        <p className="text-xs font-bold text-[#174B43]">
+                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-[#1677E8] border-t-transparent mb-2" />
+                        <p className="text-xs font-bold text-[#0F172A]">
                           {lang === "gu" ? "ખરીદી બિલ લોડ થઈ રહ્યાં છે..." : "Loading purchase bills..."}
                         </p>
                       </td>
@@ -937,7 +937,7 @@ export default function PurchasesPage() {
                     <tr>
                       <td colSpan={7} className="py-20 px-4 text-center">
                         <div className="max-w-sm mx-auto space-y-3">
-                          <div className="w-14 h-14 mx-auto bg-[#E6F7F2] border border-[#85D5C2] rounded-2xl flex items-center justify-center text-[#26A58A] shadow-inner">
+                          <div className="w-14 h-14 mx-auto bg-[#EFF6FF] border border-[#93C5FD] rounded-2xl flex items-center justify-center text-[#1677E8] shadow-inner">
                             <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                             </svg>
@@ -958,7 +958,7 @@ export default function PurchasesPage() {
                             </button>
                             <Link
                               href="/purchases/new"
-                              className="px-4 py-1.5 bg-[#174B43] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                              className="px-4 py-1.5 bg-[#0F172A] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
                             >
                               {lang === "gu" ? "+ નવું ખરીદી બિલ" : "+ Create Purchase"}
                             </Link>
@@ -991,7 +991,7 @@ export default function PurchasesPage() {
                           <td className="py-3 px-4 whitespace-nowrap">
                             <Link
                               href={`/purchases/invoices/${inv.id}`}
-                              className="font-bold text-[#174B43] hover:text-[#26A58A] transition-colors font-mono"
+                              className="font-bold text-[#0F172A] hover:text-[#1677E8] transition-colors tabular-nums"
                             >
                               {inv.vendorInvoiceNumber}
                             </Link>
@@ -1000,14 +1000,14 @@ export default function PurchasesPage() {
                           {/* Party Name with avatar chip */}
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-lg bg-[#E6F7F2] text-[#174B43] border border-[#BCEADF] flex items-center justify-center font-bold text-xs shrink-0">
+                              <div className="w-7 h-7 rounded-lg bg-[#EFF6FF] text-[#0F172A] border border-[#BFDBFE] flex items-center justify-center font-bold text-xs shrink-0">
                                 {(inv.party?.name || "V")[0].toUpperCase()}
                               </div>
                               <div className="min-w-0">
                                 <p className="font-bold text-[#1A2E2B] leading-tight truncate">
                                   {inv.party?.name || "Direct Vendor"}
                                 </p>
-                                <div className="flex items-center gap-1.5 text-[10px] text-[#8E9F9A] font-mono mt-0.5">
+                                <div className="flex items-center gap-1.5 text-[10px] text-[#8E9F9A] tabular-nums mt-0.5">
                                   {inv.party?.gstin && (
                                     <span className="text-slate-600 font-semibold">
                                       GSTIN: {inv.party.gstin}
@@ -1037,8 +1037,8 @@ export default function PurchasesPage() {
                           </td>
 
                           {/* Amount */}
-                          <td className="py-3 px-4 text-right whitespace-nowrap font-mono">
-                            <div className="font-black text-[#1A2E2B] text-xs">
+                          <td className="py-3 px-4 text-right whitespace-nowrap tabular-nums">
+                            <div className="font-semibold text-[#1A2E2B] text-xs">
                               {formatInr(total)}
                             </div>
                             {balance > 0.01 ? (
@@ -1073,7 +1073,7 @@ export default function PurchasesPage() {
                               {/* Quick View */}
                               <Link
                                 href={`/purchases/invoices/${inv.id}`}
-                                className="p-1 text-slate-400 hover:text-[#174B43] hover:bg-slate-100 rounded-md transition-colors"
+                                className="p-1 text-slate-400 hover:text-[#0F172A] hover:bg-slate-100 rounded-md transition-colors"
                                 title="View Details"
                               >
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -1136,9 +1136,9 @@ export default function PurchasesPage() {
                               >
                                 <Link
                                   href={`/purchases/invoices/${inv.id}`}
-                                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors"
+                                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors"
                                 >
-                                  <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                  <svg className="w-3.5 h-3.5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                   </svg>
@@ -1161,9 +1161,9 @@ export default function PurchasesPage() {
                                 <button
                                   type="button"
                                   onClick={() => handleDuplicatePurchase(inv)}
-                                  className="w-full text-left flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors cursor-pointer"
+                                  className="w-full text-left flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors cursor-pointer"
                                 >
-                                  <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                  <svg className="w-3.5 h-3.5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                   </svg>
                                   <span>Duplicate Bill</span>
@@ -1230,7 +1230,7 @@ export default function PurchasesPage() {
                   setLastRefreshedTime("Just now");
                   fetchPurchases();
                 }}
-                className="text-[#26A58A] hover:text-[#174B43] transition-colors p-0.5 cursor-pointer"
+                className="text-[#1677E8] hover:text-[#0F172A] transition-colors p-0.5 cursor-pointer"
                 title="Refresh"
               >
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1311,22 +1311,22 @@ export default function PurchasesPage() {
       >
         {payBill ? (
           <form onSubmit={submitPayment} className="space-y-3.5">
-            <div className="bg-[#E6F7F2]/50 p-3 rounded-xl border border-[#85D5C2] text-xs text-slate-600 space-y-1">
+            <div className="bg-[#EFF6FF]/50 p-3 rounded-xl border border-[#93C5FD] text-xs text-slate-600 space-y-1">
               <div className="flex justify-between">
                 <span>Vendor Bill #:</span>
-                <strong className="text-slate-900 font-mono">{payBill.vendorInvoiceNumber}</strong>
+                <strong className="text-slate-900 tabular-nums">{payBill.vendorInvoiceNumber}</strong>
               </div>
               <div className="flex justify-between">
                 <span>Original Total:</span>
-                <span className="font-mono">{formatInr(payBill.grandTotal)}</span>
+                <span className="tabular-nums">{formatInr(payBill.grandTotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Already Paid:</span>
-                <span className="font-mono text-emerald-700">{formatInr(payBill.paidAmount || 0)}</span>
+                <span className="tabular-nums text-emerald-700">{formatInr(payBill.paidAmount || 0)}</span>
               </div>
-              <div className="flex justify-between border-t border-[#85D5C2] pt-1 font-bold text-slate-900">
+              <div className="flex justify-between border-t border-[#93C5FD] pt-1 font-bold text-slate-900">
                 <span>Remaining Due:</span>
-                <span className="font-mono text-rose-700">
+                <span className="tabular-nums text-rose-700">
                   {formatInr(payBill.balanceAmount ?? payBill.grandTotal)}
                 </span>
               </div>
@@ -1345,7 +1345,7 @@ export default function PurchasesPage() {
                   type="number"
                   step="0.01"
                   required
-                  className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm font-mono font-bold focus:ring-2 focus:ring-[#26A58A] focus:outline-none"
+                  className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm tabular-nums font-bold focus:ring-2 focus:ring-[#1677E8] focus:outline-none"
                   value={payAmount}
                   onChange={(e) => setPayAmount(e.target.value)}
                 />
@@ -1356,7 +1356,7 @@ export default function PurchasesPage() {
                 <input
                   type="date"
                   required
-                  className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm focus:ring-2 focus:ring-[#26A58A] focus:outline-none"
+                  className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm focus:ring-2 focus:ring-[#1677E8] focus:outline-none"
                   value={payDate}
                   onChange={(e) => setPayDate(e.target.value)}
                 />
@@ -1365,7 +1365,7 @@ export default function PurchasesPage() {
               <label className="text-slate-600 font-semibold">
                 Payment Mode
                 <select
-                  className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm focus:ring-2 focus:ring-[#26A58A] focus:outline-none"
+                  className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm focus:ring-2 focus:ring-[#1677E8] focus:outline-none"
                   value={payMode}
                   onChange={(e) => setPayMode(e.target.value)}
                 >
@@ -1379,7 +1379,7 @@ export default function PurchasesPage() {
               <label className="text-slate-600 font-semibold">
                 Paid From Account
                 <select
-                  className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm focus:ring-2 focus:ring-[#26A58A] focus:outline-none"
+                  className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm focus:ring-2 focus:ring-[#1677E8] focus:outline-none"
                   value={payAccountId}
                   onChange={(e) => setPayAccountId(e.target.value)}
                 >
@@ -1396,7 +1396,7 @@ export default function PurchasesPage() {
             <label className="block text-xs text-slate-600 font-semibold">
               Reference / UTR / Cheque No.
               <input
-                className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm focus:ring-2 focus:ring-[#26A58A] focus:outline-none"
+                className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm focus:ring-2 focus:ring-[#1677E8] focus:outline-none"
                 value={payReference}
                 onChange={(e) => setPayReference(e.target.value)}
                 placeholder="e.g. UTR-9928120"
@@ -1406,7 +1406,7 @@ export default function PurchasesPage() {
             <label className="block text-xs text-slate-600 font-semibold">
               Notes
               <input
-                className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm focus:ring-2 focus:ring-[#26A58A] focus:outline-none"
+                className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm focus:ring-2 focus:ring-[#1677E8] focus:outline-none"
                 value={payNotes}
                 onChange={(e) => setPayNotes(e.target.value)}
                 placeholder="e.g. Paid in full against supplier voucher"
@@ -1424,7 +1424,7 @@ export default function PurchasesPage() {
               <button
                 type="submit"
                 disabled={paySubmitting}
-                className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50"
+                className="px-5 py-2 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50"
               >
                 {paySubmitting ? "Saving..." : "Record Payment"}
               </button>
@@ -1467,7 +1467,7 @@ export default function PurchasesPage() {
             <button
               type="button"
               onClick={() => setPurchaseToDelete(null)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
+              className="h-9 px-4 text-[13px] font-medium text-[#64748B] hover:bg-[#F1F5F9] rounded-[10px] cursor-pointer"
             >
               Cancel
             </button>
@@ -1475,7 +1475,7 @@ export default function PurchasesPage() {
               type="button"
               onClick={handleDeleteSinglePurchase}
               disabled={isDeletingSingle}
-              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-xl shadow-xs cursor-pointer"
+              className="h-9 px-4 text-[13px] font-medium text-white bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-50 rounded-[10px] cursor-pointer"
             >
               {isDeletingSingle ? "Deleting..." : "Confirm Delete"}
             </button>

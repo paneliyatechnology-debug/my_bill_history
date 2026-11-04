@@ -33,7 +33,7 @@ export function StockMovementCard({ movements = [], isLoading = false }: StockMo
             </svg>
           </div>
           <div>
-            <h2 className="text-sm font-bold text-[#111827]">
+            <h2 className="text-sm font-semibold text-[#111827]">
               {lang === "gu" ? "સ્ટોક હલનચલન" : "Stock Movement"}
             </h2>
             <p className="text-[11px] text-[#6B7280]">
@@ -44,7 +44,7 @@ export function StockMovementCard({ movements = [], isLoading = false }: StockMo
 
         <Link
           href="/inventory/stock"
-          className="text-xs font-semibold text-[#174B43] hover:text-[#123B35] flex items-center gap-1 hover:underline shrink-0"
+          className="text-xs font-semibold text-[#0F172A] hover:text-[#123B35] flex items-center gap-1 hover:underline shrink-0"
         >
           <span>{lang === "gu" ? "બધા જુઓ" : "View All"}</span>
           <span aria-hidden="true">&rarr;</span>
@@ -94,7 +94,7 @@ export function StockMovementCard({ movements = [], isLoading = false }: StockMo
               {/* Right quantity & item */}
               <div className="text-right shrink-0">
                 <div
-                  className={`font-mono font-bold text-xs ${
+                  className={`tabular-nums font-bold text-xs ${
                     it.type === "IN" ? "text-[#16A34A]" : "text-[#DC2626]"
                   }`}
                 >

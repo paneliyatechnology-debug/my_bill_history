@@ -236,7 +236,7 @@ export default function PaymentInViewPage() {
       const phone = user?.phone || "";
 
       // 1. Top Brand Accent Line (Teal / Forest theme)
-      doc.setFillColor(23, 75, 67); // #174B43
+      doc.setFillColor(23, 75, 67); // #0F172A
       doc.rect(margin, 10, pageWidth - margin * 2, 2.5, "F");
 
       // 2. Company Information (Left)
@@ -563,7 +563,7 @@ export default function PaymentInViewPage() {
     return (
       <div className="flex h-96 items-center justify-center font-sans bg-[#F4F5F7]">
         <div className="flex items-center gap-2 text-slate-500 text-sm">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#174B43] border-t-transparent" />
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#0F172A] border-t-transparent" />
           <span>Loading payment details...</span>
         </div>
       </div>
@@ -573,11 +573,11 @@ export default function PaymentInViewPage() {
   if (!payment) {
     return (
       <div className="max-w-2xl mx-auto py-16 px-6 text-center font-sans bg-[#F4F5F7]">
-        <h2 className="text-base font-bold text-slate-800">Payment In Voucher Not Found</h2>
+        <h2 className="text-[15px] font-semibold text-[#182230]">Payment In Voucher Not Found</h2>
         <p className="text-xs text-slate-500 mt-1 mb-4">{error || "The requested voucher does not exist."}</p>
         <Link
           href="/sales/payment-in"
-          className="rounded-lg bg-[#174B43] px-4 py-2 text-xs font-semibold text-white hover:bg-teal-800"
+          className="rounded-lg bg-[#0F172A] h-9 px-3 text-[13px] font-medium text-white hover:bg-teal-800"
         >
           Back to Payment In
         </Link>
@@ -607,7 +607,7 @@ export default function PaymentInViewPage() {
             </svg>
           </Link>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold text-slate-900">Payment In #{vNum}</h1>
+            <h1 className="text-[22px] font-semibold text-[#182230]">Payment In #{vNum}</h1>
             {payment.isCancelled && (
               <span className="rounded bg-rose-100 px-2 py-0.5 text-[11px] font-bold text-rose-700">
                 CANCELLED
@@ -621,7 +621,7 @@ export default function PaymentInViewPage() {
           {!payment.isCancelled && (
             <Link
               href={`/sales/payment-in/${payment.id}/edit`}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+              className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
             >
               <svg className="w-3.5 h-3.5 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path
@@ -688,10 +688,10 @@ export default function PaymentInViewPage() {
             type="button"
             disabled={isDownloadingPdf}
             onClick={handleDownloadPdf}
-            className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors disabled:opacity-60 cursor-pointer"
+            className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors disabled:opacity-60 cursor-pointer"
           >
             {isDownloadingPdf ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#174B43] border-t-transparent" />
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#0F172A] border-t-transparent" />
             ) : (
               <svg className="w-4 h-4 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -703,7 +703,7 @@ export default function PaymentInViewPage() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
+            className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
           >
             <svg className="w-4 h-4 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -729,7 +729,7 @@ export default function PaymentInViewPage() {
             <button
               type="button"
               onClick={() => setIsShareOpen(!isShareOpen)}
-              className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors"
+              className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors"
             >
               <svg className="w-3.5 h-3.5 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
@@ -746,7 +746,7 @@ export default function PaymentInViewPage() {
                 <button
                   type="button"
                   onClick={handleShareCopy}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50 cursor-pointer"
+                  className="flex w-full items-center gap-2 h-9 px-3 text-slate-700 hover:bg-slate-50 cursor-pointer"
                 >
                   <span>📋</span>
                   <span>Copy Link</span>
@@ -756,7 +756,7 @@ export default function PaymentInViewPage() {
                   onClick={() => {
                     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(window.location.href)}`, "_blank");
                   }}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50 cursor-pointer"
+                  className="flex w-full items-center gap-2 h-9 px-3 text-slate-700 hover:bg-slate-50 cursor-pointer"
                 >
                   <span>💬</span>
                   <span>WhatsApp</span>
@@ -769,7 +769,7 @@ export default function PaymentInViewPage() {
         {/* 3. Card 1: Payment Details - exact match of Payment Out layout */}
         <div className="rounded-xl border border-slate-200 bg-white shadow-2xs overflow-hidden">
           <div className="bg-[#F8FAFC] border-b border-slate-200 px-6 py-3">
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+            <h2 className="text-xs font-semibold text-[#182230] uppercase tracking-wider">
               Payment Details
             </h2>
           </div>
@@ -812,7 +812,7 @@ export default function PaymentInViewPage() {
         {/* 4. Card 2: Invoices settled with this payment - exact match of Payment Out table */}
         <div className="rounded-xl border border-slate-200 bg-white shadow-2xs overflow-hidden">
           <div className="bg-[#F8FAFC] border-b border-slate-200 px-6 py-3">
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+            <h2 className="text-xs font-semibold text-[#182230] uppercase tracking-wider">
               Invoices settled with this payment
             </h2>
           </div>
@@ -879,7 +879,7 @@ export default function PaymentInViewPage() {
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-2xs p-4 animate-fade-in">
           <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl p-6">
-            <h3 className="text-base font-bold text-slate-900">Delete Payment In</h3>
+            <h3 className="text-[15px] font-semibold text-slate-900">Delete Payment In</h3>
             <p className="mt-2 text-xs text-slate-600 leading-relaxed">
               Are you sure you want to delete payment voucher <strong>#{vNum}</strong> of{" "}
               <strong>{formatInr(payment.amountReceived ?? payment.amount ?? 0)}</strong>?
@@ -892,7 +892,7 @@ export default function PaymentInViewPage() {
                 type="button"
                 disabled={isDeleting}
                 onClick={() => setShowDeleteModal(false)}
-                className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                className="rounded-lg border border-slate-200 h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
               >
                 Cancel
               </button>
@@ -900,7 +900,7 @@ export default function PaymentInViewPage() {
                 type="button"
                 disabled={isDeleting}
                 onClick={handleDeletePayment}
-                className="rounded-lg bg-rose-600 px-4 py-2 text-xs font-semibold text-white hover:bg-rose-700 disabled:opacity-50"
+                className="rounded-lg bg-rose-600 h-9 px-3 text-[13px] font-medium text-white hover:bg-rose-700 disabled:opacity-50"
               >
                 {isDeleting ? "Deleting..." : "Delete"}
               </button>
@@ -915,7 +915,7 @@ export default function PaymentInViewPage() {
           <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white shadow-2xl overflow-hidden">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5">
-              <h3 className="text-sm font-semibold text-slate-800">Thermal Print Margin Settings</h3>
+              <h3 className="text-[15px] font-semibold text-slate-800">Thermal Print Margin Settings</h3>
               <button
                 type="button"
                 onClick={() => setShowThermalModal(false)}
@@ -941,7 +941,7 @@ export default function PaymentInViewPage() {
                         max="50"
                         value={thermalMargins.left}
                         onChange={(e) => setThermalMargins({ ...thermalMargins, left: Number(e.target.value) || 0 })}
-                        className="w-full px-3 py-1.5 text-xs text-slate-800 outline-none"
+                        className="w-full px-3 py-1.5 text-[13px] text-slate-800 outline-none h-10"
                       />
                       <span className="bg-slate-50 border-l border-slate-200 px-2.5 py-1.5 text-[11px] font-medium text-slate-500">
                         mm
@@ -958,7 +958,7 @@ export default function PaymentInViewPage() {
                         max="50"
                         value={thermalMargins.right}
                         onChange={(e) => setThermalMargins({ ...thermalMargins, right: Number(e.target.value) || 0 })}
-                        className="w-full px-3 py-1.5 text-xs text-slate-800 outline-none"
+                        className="w-full px-3 py-1.5 text-[13px] text-slate-800 outline-none h-10"
                       />
                       <span className="bg-slate-50 border-l border-slate-200 px-2.5 py-1.5 text-[11px] font-medium text-slate-500">
                         mm
@@ -974,14 +974,14 @@ export default function PaymentInViewPage() {
               <button
                 type="button"
                 onClick={() => setShowThermalModal(false)}
-                className="rounded-lg border border-slate-300 bg-white px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+                className="rounded-lg border border-slate-300 bg-white px-4 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSaveThermalMargins}
-                className="rounded-lg bg-[#174B43] px-5 py-1.5 text-xs font-semibold text-white hover:bg-teal-700 transition-colors shadow-2xs cursor-pointer"
+                className="rounded-lg bg-[#0F172A] px-5 py-1.5 text-[13px] font-medium text-white hover:bg-[#1268D3] transition-colors shadow-2xs cursor-pointer"
               >
                 Save
               </button>

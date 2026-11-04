@@ -35,14 +35,14 @@ export function ListPageHeader({
   lang = "en",
 }: ListPageHeaderProps) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:px-6 sm:py-4 rounded-2xl border border-[#E2E8E5] shadow-xs">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white px-4 py-3.5 rounded-xl border border-[#E3EAF3] shadow-card">
       <div>
         <div className="flex items-center gap-2.5 flex-wrap">
-          <h1 className="text-lg sm:text-xl font-extrabold text-[#1A2E2B] tracking-tight">
+          <h1 className="text-[20px] sm:text-[22px] font-semibold text-[#182230] tracking-tight">
             {title}
           </h1>
           {count !== undefined && (
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#E6F7F2] text-[#174B43] border border-[#BCEADF]">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#EFF6FF] text-[#0F172A] border border-[#BFDBFE]">
               {count} {countLabel}
             </span>
           )}
@@ -62,7 +62,7 @@ export function ListPageHeader({
             key={act.id}
             type="button"
             onClick={act.onClick}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-[#E2E8E5] rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3 bg-white hover:bg-[#F8FBFF] hover:border-[#1677E8] text-[#182230] border border-[#E3EAF3] rounded-[10px] text-[13px] font-medium transition-colors cursor-pointer"
           >
             {act.icon}
             <span>{act.label}</span>
@@ -73,7 +73,7 @@ export function ListPageHeader({
           primaryAction.href ? (
             <Link
               href={primaryAction.href}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-[10px] transition-colors cursor-pointer"
             >
               {primaryAction.icon || (
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -86,7 +86,7 @@ export function ListPageHeader({
             <button
               type="button"
               onClick={primaryAction.onClick}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-[10px] transition-colors cursor-pointer"
             >
               {primaryAction.icon || (
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

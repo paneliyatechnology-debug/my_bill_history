@@ -51,10 +51,10 @@ export function MetricCardsGroup({
         };
       case "primary":
         return {
-          bg: "bg-[#F2FAF7]",
-          border: "border-[#BCEADF]",
-          text: "text-[#174B43]",
-          iconBg: "bg-[#E6F7F2] text-[#174B43]",
+          bg: "bg-[#F8FAFC]",
+          border: "border-[#BFDBFE]",
+          text: "text-[#0F172A]",
+          iconBg: "bg-[#EFF6FF] text-[#0F172A]",
         };
       default:
         return {
@@ -98,7 +98,7 @@ export function MetricCardsGroup({
               )}
             </div>
 
-            <div className={`text-xl sm:text-2xl font-black font-mono tracking-tight ${styles.text}`}>
+            <div className={`text-xl sm:text-2xl font-semibold tabular-nums tracking-tight ${styles.text}`}>
               {displayValue}
             </div>
 

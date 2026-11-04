@@ -666,12 +666,12 @@ const [notes, setNotes] = useState("");
               <button
                 type="button"
                 onClick={() => setActiveMode("edit")}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[13px] font-medium transition-colors inline-flex items-center gap-1.5 cursor-pointer"
               >
                 <span>← {lang === "gu" ? "એડિટ મોડ પર પાછા જાઓ" : "Back to Edit Mode"}</span>
               </button>
               <div>
-                <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-[#182230] flex items-center gap-2">
                   <span>
                     {isDebitNote
                       ? lang === "gu"
@@ -683,7 +683,7 @@ const [notes, setNotes] = useState("");
                   </span>
                   <span
                     className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-                    style={{ backgroundColor: activeInvoiceTheme.accentColor || "#174B43" }}
+                    style={{ backgroundColor: activeInvoiceTheme.accentColor || "#0F172A" }}
                   >
                     {activeInvoiceTheme.uniqueThemeKey || activeInvoiceTheme.themeId}
                   </span>
@@ -697,7 +697,7 @@ const [notes, setNotes] = useState("");
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
               >
                 <span>🖨️ {lang === "gu" ? "પ્રિન્ટ" : `Print ${isDebitNote ? "Debit Note" : "Credit Note"}`}</span>
               </button>
@@ -919,7 +919,7 @@ const [notes, setNotes] = useState("");
                             <button
                               type="button"
                               onClick={() => setIsAddItemsModalOpen(true)}
-                              className="px-3.5 py-1.5 bg-[#174B43] text-white rounded-xl text-xs font-bold shadow-2xs cursor-pointer"
+                              className="h-9 px-3 bg-[#0F172A] text-white rounded-xl text-[13px] font-medium shadow-2xs cursor-pointer"
                             >
                               + Add Item
                             </button>
@@ -929,7 +929,7 @@ const [notes, setNotes] = useState("");
                     ) : (
                       itemCalculations.map((item, idx) => (
                         <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
-                          <td className="py-3 px-3 text-center text-slate-400 font-mono text-[11px]">
+                          <td className="py-3 px-3 text-center text-slate-400 tabular-nums text-[11px]">
                             {idx + 1}
                           </td>
 
@@ -939,7 +939,7 @@ const [notes, setNotes] = useState("");
                               value={item.name}
                               onChange={(e) => updateLineItem(item.id, { name: e.target.value })}
                               placeholder="Item name / description"
-                              className="w-full text-xs py-1.5 px-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl font-bold text-slate-800"
+                              className="w-full text-[13px] py-1.5 px-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#1677E8] rounded-xl font-normal text-slate-800 h-10"
                             />
                           </td>
 
@@ -948,7 +948,7 @@ const [notes, setNotes] = useState("");
                               type="text"
                               value={item.hsn}
                               onChange={(e) => updateLineItem(item.id, { hsn: e.target.value })}
-                              className="w-full text-xs py-1.5 px-2 text-center font-mono bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white"
+                              className="w-full text-[13px] py-1.5 px-2 text-center tabular-nums bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white h-10"
                               placeholder="HSN"
                             />
                           </td>
@@ -961,7 +961,7 @@ const [notes, setNotes] = useState("");
                                 step="any"
                                 value={item.quantity}
                                 onChange={(e) => updateLineItem(item.id, { quantity: Number(e.target.value) || 0 })}
-                                className="w-full text-xs text-right font-mono font-bold text-slate-800 bg-transparent focus:outline-none"
+                                className="w-full text-[13px] text-right tabular-nums font-normal text-slate-800 bg-transparent focus:outline-none h-10"
                               />
                             </div>
                           </td>
@@ -973,7 +973,7 @@ const [notes, setNotes] = useState("");
                               step="any"
                               value={item.unitPrice}
                               onChange={(e) => updateLineItem(item.id, { unitPrice: Number(e.target.value) || 0 })}
-                              className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white"
+                              className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
                             />
                           </td>
 
@@ -985,7 +985,7 @@ const [notes, setNotes] = useState("");
                                 value={item.discountValue}
                                 onChange={(e) => updateLineItem(item.id, { discountValue: Number(e.target.value) || 0 })}
                                 placeholder="0"
-                                className="w-full text-xs text-right font-mono bg-transparent focus:outline-none"
+                                className="w-full text-[13px] text-right tabular-nums bg-transparent focus:outline-none h-10"
                               />
                               <span className="text-[10px] text-slate-400">%</span>
                             </div>
@@ -995,7 +995,7 @@ const [notes, setNotes] = useState("");
                             <select
                               value={item.taxRate}
                               onChange={(e) => updateLineItem(item.id, { taxRate: Number(e.target.value) || 0 })}
-                              className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white"
+                              className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
                             >
                               {GST_RATES.map((r) => (
                                 <option key={r.label} value={r.value}>
@@ -1005,7 +1005,7 @@ const [notes, setNotes] = useState("");
                             </select>
                           </td>
 
-                          <td className="py-3 px-3 text-right font-mono font-black text-slate-900 text-xs">
+                          <td className="py-3 px-3 text-right tabular-nums font-semibold text-slate-900 text-[13px]">
                             {formatInr(item.totalAmount)}
                           </td>
 
@@ -1117,7 +1117,7 @@ const [notes, setNotes] = useState("");
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="font-bold text-slate-900 text-sm">Create New Customer</h3>
+              <h3 className="font-semibold text-slate-900 text-[15px]">Create New Customer</h3>
               <button
                 type="button"
                 onClick={() => setIsCreatePartyModalOpen(false)}
@@ -1129,7 +1129,7 @@ const [notes, setNotes] = useState("");
 
             <form onSubmit={handleCreatePartySubmit} className="space-y-3 pt-3 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-medium text-slate-700 mb-1">
                   Customer / Business Name <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -1138,41 +1138,41 @@ const [notes, setNotes] = useState("");
                   value={newPartyName}
                   onChange={(e) => setNewPartyName(e.target.value)}
                   placeholder="e.g. NIRAJBHAI"
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none"
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none text-[13px] font-normal h-10"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Mobile No.</label>
+                  <label className="block font-medium text-slate-700 mb-1">Mobile No.</label>
                   <input
                     type="tel"
                     value={newPartyPhone}
                     onChange={(e) => setNewPartyPhone(e.target.value)}
                     placeholder="98XXXXXXXX"
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none font-mono"
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none tabular-nums text-[13px] font-normal h-10"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">GSTIN (Optional)</label>
+                  <label className="block font-medium text-slate-700 mb-1">GSTIN (Optional)</label>
                   <input
                     type="text"
                     value={newPartyGstin}
                     onChange={(e) => setNewPartyGstin(e.target.value.toUpperCase())}
                     placeholder="24AAAAA0000A1Z5"
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none font-mono uppercase"
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none tabular-nums uppercase text-[13px] font-normal h-10"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Address</label>
+                <label className="block font-medium text-slate-700 mb-1">Address</label>
                 <input
                   type="text"
                   value={newPartyAddress}
                   onChange={(e) => setNewPartyAddress(e.target.value)}
                   placeholder="Address..."
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none"
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none text-[13px] font-normal h-10"
                 />
               </div>
 
@@ -1180,14 +1180,14 @@ const [notes, setNotes] = useState("");
                 <button
                   type="button"
                   onClick={() => setIsCreatePartyModalOpen(false)}
-                  className="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 font-bold hover:bg-slate-50 cursor-pointer"
+                  className="h-9 px-3 border border-slate-200 rounded-lg text-slate-600 font-medium hover:bg-slate-50 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreatingParty || !newPartyName.trim()}
-                  className="px-5 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-lg font-bold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+                  className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg font-medium shadow-xs transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {isCreatingParty ? "Saving..." : "Save Customer"}
                 </button>

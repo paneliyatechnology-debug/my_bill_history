@@ -360,7 +360,7 @@ function StylishInvoice(props: {
     >
       {bill && (
         <div
-          className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg text-sm font-extrabold text-white"
+          className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg text-sm font-semibold text-white"
           style={{ background: color }}
         >
           {props.companyName.slice(0, 1)}
@@ -379,7 +379,7 @@ function StylishInvoice(props: {
         onClick={() => props.onFocus("invoice-details", "invoice-details")}
       >
         <div
-          className={`${bill ? "text-[28px]" : simple ? "text-[18px] font-semibold" : "text-[22px] font-extrabold"} leading-none`}
+          className={`${bill ? "text-[28px]" : simple ? "text-[18px] font-semibold" : "text-[22px] font-semibold"} leading-none`}
           style={{ color: simple ? "#111" : color }}
         >
           {props.companyName}
@@ -500,7 +500,7 @@ function LuxuryInvoice(props: {
           </p>
         </div>
         <div className="text-right">
-          <div className="text-[16px] font-extrabold tracking-wide">TAX INVOICE</div>
+          <div className="text-[16px] font-semibold tracking-wide">TAX INVOICE</div>
           <div className="mt-1 inline-block border border-slate-300 px-1.5 py-0.5 text-[9px] tracking-wide text-slate-500">
             ORIGINAL FOR RECIPIENT
           </div>
@@ -611,7 +611,7 @@ function TallyInvoice(props: {
       </div>
       <div className="grid grid-cols-2" onClick={() => props.onFocus("invoice-details", "invoice-details")}>
         <div className={`${box} p-2`}>
-          <div className="text-[16px] font-extrabold">{props.companyName}</div>
+          <div className="text-[16px] font-semibold">{props.companyName}</div>
           <div>{props.companyAddress}</div>
           {state.showPhoneNumber && <div>Mobile: {props.companyPhone}</div>}
         </div>
@@ -637,7 +637,7 @@ function TallyInvoice(props: {
       <div className="grid grid-cols-2" onClick={() => props.onFocus("party-details", "party-details")}>
         <div className={`${box} border-t-0 p-2`}>
           <div className="font-bold">BILL TO</div>
-          <div className="font-extrabold">SAMPLE PARTY</div>
+          <div className="font-semibold">SAMPLE PARTY</div>
           <div>Address: No F2, Outer Circle, Connaught Circus, New Delhi, DELHI, 110001</div>
           <div>GSTIN: 07ABCCH2702H4ZZ</div>
           {state.showPhoneNumber && <div>Mobile: 7400417400</div>}
@@ -1152,13 +1152,13 @@ function YourLogoInvoice(props: {
                 <span className="h-2 w-2 rounded-full bg-slate-900" />
                 <span className="h-2 w-2 rounded-full bg-[#5346F5]" />
               </div>
-              <div className="text-[9px] font-black tracking-wider text-slate-800">
+              <div className="text-[9px] font-semibold tracking-wider text-slate-800">
                 YOUR LOGO
               </div>
             </div>
           </div>
           <div>
-            <div className="text-[20px] font-black tracking-tight text-slate-900">
+            <div className="text-[20px] font-semibold tracking-tight text-slate-900">
               {props.companyName}
             </div>
             {state.showPhoneNumber && (
@@ -1172,7 +1172,7 @@ function YourLogoInvoice(props: {
         </div>
 
         <div className="text-right">
-          <div className="inline-block rounded-md bg-[#5346F5] px-2.5 py-1 text-[11px] font-black uppercase tracking-wider text-white shadow-2xs">
+          <div className="inline-block rounded-md bg-[#5346F5] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-white shadow-2xs">
             TAX INVOICE
           </div>
           <div className="text-[8px] font-semibold text-slate-400 mt-1 uppercase">Original For Recipient</div>
@@ -1192,7 +1192,7 @@ function YourLogoInvoice(props: {
         onClick={() => props.onFocus("party-details", "party-details")}
       >
         <div className="rounded-lg bg-slate-50/70 p-2.5 border border-slate-200">
-          <div className="text-[10px] font-black uppercase tracking-wider text-slate-500">Bill To</div>
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Bill To</div>
           <div className="font-bold text-[12px] text-slate-900 mt-0.5">Sample Party</div>
           <div className="text-[11px] text-slate-600">No F2, Outer Circle, Connaught Circus, New Delhi</div>
           {state.showPhoneNumber && <div className="text-[11px] text-slate-600">Mobile: 7400417400</div>}
@@ -1200,7 +1200,7 @@ function YourLogoInvoice(props: {
           {state.showPartyBalance && <div className="text-[11px] font-semibold text-rose-600 mt-0.5">Balance: ₹ 14,250.00</div>}
         </div>
         <div className="rounded-lg bg-slate-50/70 p-2.5 border border-slate-200 text-right">
-          <div className="text-[10px] font-black uppercase tracking-wider text-slate-500">Ship To</div>
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Ship To</div>
           <div className="text-[11px] text-slate-600 mt-1">
             {state.showShippingAddress ? "1234123 324324234, Bengaluru, Karnataka" : props.companyAddress}
           </div>
@@ -1313,7 +1313,7 @@ export function FestiveBackgroundSvg({
   if (skinId === "logo" || skinId === "your_logo" || resolved.baseTheme === "your_logo") {
     return (
       <div className="absolute inset-0 w-full h-full pointer-events-none select-none flex items-center justify-center bg-white z-0">
-        <div className="text-[56px] font-black tracking-widest text-slate-200/50 uppercase select-none -rotate-12">
+        <div className="text-[56px] font-semibold tracking-widest text-slate-200/50 uppercase select-none -rotate-12">
           YOUR LOGO
         </div>
       </div>
@@ -1357,8 +1357,8 @@ export function FestiveMiniIllustration({
   if (id === "logo" || id === "your_logo") {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center bg-amber-50/60 p-1 border border-dashed border-amber-300">
-        <span className="text-[9px] font-black tracking-wider text-slate-400">YOUR</span>
-        <span className="text-[9px] font-black tracking-wider text-slate-400">LOGO</span>
+        <span className="text-[9px] font-semibold tracking-wider text-slate-400">YOUR</span>
+        <span className="text-[9px] font-semibold tracking-wider text-slate-400">LOGO</span>
       </div>
     );
   }
@@ -1424,7 +1424,7 @@ function FestivalInvoice(props: {
           {/* Top Header Row */}
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-[13px] tracking-wide text-slate-900">
+              <span className="font-semibold text-[13px] tracking-wide text-slate-900">
                 TAX INVOICE
               </span>
               <span className="rounded-[2px] border border-slate-500 bg-white/90 px-2 py-0.5 text-[9px] font-bold text-slate-700 uppercase">
@@ -1446,7 +1446,7 @@ function FestivalInvoice(props: {
                 className="col-span-7 p-3 border-r border-black cursor-pointer"
                 onClick={() => props.onFocus("company-info", "theme-settings")}
               >
-                <div className="text-[18px] font-extrabold tracking-tight text-slate-950">
+                <div className="text-[18px] font-semibold tracking-tight text-slate-950">
                   {props.companyName}
                 </div>
                 <div className="text-[11px] text-slate-800 leading-tight mt-1 font-medium">
@@ -1491,7 +1491,7 @@ function FestivalInvoice(props: {
               onClick={() => props.onFocus("party-details", "party-details")}
             >
               <div className="col-span-7 p-3 border-r border-black">
-                <div className="font-extrabold uppercase tracking-wider text-[10px] text-slate-700">
+                <div className="font-semibold uppercase tracking-wider text-[10px] text-slate-700">
                   BILL TO
                 </div>
                 <div className="font-bold text-[13px] text-slate-950 mt-0.5">
@@ -1514,7 +1514,7 @@ function FestivalInvoice(props: {
               </div>
 
               <div className="col-span-5 p-3 text-[11px] bg-transparent">
-                <div className="font-extrabold uppercase tracking-wider text-[10px] text-slate-700">
+                <div className="font-semibold uppercase tracking-wider text-[10px] text-slate-700">
                   SHIP TO / DELIVERY
                 </div>
                 <div className="text-slate-800 mt-1 leading-snug">
@@ -1532,7 +1532,7 @@ function FestivalInvoice(props: {
                 onClick={() => props.onFocus("item-table", "item-table")}
               >
                 <thead>
-                  <tr className="border-b border-black bg-amber-500/15 text-slate-900 font-extrabold text-[10.5px]">
+                  <tr className="border-b border-black bg-amber-500/15 text-slate-900 font-semibold text-[10.5px]">
                     <th className="py-2 px-2.5 border-r border-black w-10 text-center">
                       S.NO.
                     </th>
@@ -1613,7 +1613,7 @@ function FestivalInvoice(props: {
                     </div>
                   </>
                 )}
-                <div className="flex justify-between border-t border-black pt-1.5 text-[12px] font-black text-slate-950">
+                <div className="flex justify-between border-t border-black pt-1.5 text-[12px] font-semibold text-slate-950">
                   <span>Total Amount</span>
                   <span className="font-mono">₹ 12,853.89</span>
                 </div>
@@ -1661,7 +1661,7 @@ export function ThemeMiniCard({ kind }: { kind: PreviewLayout | "stylish" | "lux
   if (kind === "luxury") {
     return (
       <div className="relative h-[84px] w-full overflow-hidden rounded border border-amber-200 bg-white p-1 shadow-2xs">
-        <span className="absolute top-0 right-0 z-10 rounded-bl bg-rose-500 px-1 py-0.5 text-[7px] font-black uppercase text-white">
+        <span className="absolute top-0 right-0 z-10 rounded-bl bg-rose-500 px-1 py-0.5 text-[7px] font-semibold uppercase text-white">
           NEW
         </span>
         <div className="h-full border-[2px] border-double border-amber-400 p-1 flex flex-col justify-between">
@@ -1858,7 +1858,7 @@ export function FestiveThumb({
                 <span className="h-1.5 w-1.5 rounded-full bg-slate-900" />
                 <span className="h-1.5 w-1.5 rounded-full bg-[#5346F5]" />
               </div>
-              <div className="text-[6.5px] font-black text-slate-800 tracking-wider">
+              <div className="text-[6.5px] font-semibold text-slate-800 tracking-wider">
                 YOUR LOGO
               </div>
             </div>

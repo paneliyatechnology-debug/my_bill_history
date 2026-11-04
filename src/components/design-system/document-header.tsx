@@ -112,8 +112,8 @@ export function DocumentHeader({
         );
       case "ISSUED":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase bg-teal-50 text-[#174B43] border border-teal-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#26A58A]" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase bg-teal-50 text-[#0F172A] border border-teal-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#1677E8]" />
             <span>{lang === "gu" ? "ઇશ્યૂ કરેલ" : "Issued"}</span>
           </span>
         );
@@ -129,7 +129,7 @@ export function DocumentHeader({
         <div className="flex items-center gap-3 flex-wrap min-w-0">
           <Link
             href={backHref}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-[#174B43] hover:bg-[#F2FAF7] rounded-xl border border-[#E2E8E5] transition-colors shadow-2xs shrink-0"
+            className="inline-flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-slate-700 hover:text-[#0F172A] hover:bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] transition-colors shadow-2xs shrink-0"
             title={backLabel || "Back"}
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -142,12 +142,12 @@ export function DocumentHeader({
 
           <div className="min-w-0">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="font-extrabold text-[#1A2E2B] text-base sm:text-lg tracking-tight truncate">
+              <h1 className="font-semibold text-[#182230] text-base sm:text-lg tracking-tight truncate">
                 {title}
               </h1>
 
               {documentNumber && (
-                <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                <span className="tabular-nums text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
                   {documentNumber}
                 </span>
               )}
@@ -160,12 +160,12 @@ export function DocumentHeader({
           {totalAmount !== undefined && (
             <div className="hidden md:flex items-center gap-2 bg-[#F6F8F7] px-3 py-1 rounded-xl border border-[#E2E8E5] text-xs shadow-2xs">
               <span className="text-slate-500 font-medium">{lang === "gu" ? "કુલ:" : "Total:"}</span>
-              <span className="font-mono font-bold text-slate-900">{formatInr(totalAmount)}</span>
+              <span className="tabular-nums font-bold text-slate-900">{formatInr(totalAmount)}</span>
               {balanceDue !== undefined && (
                 <>
                   <span className="text-slate-300">•</span>
                   <span className="text-slate-500 font-medium">{lang === "gu" ? "બાકી:" : "Due:"}</span>
-                  <span className={`font-mono font-bold ${balanceDue > 0 ? "text-rose-600" : "text-emerald-700"}`}>
+                  <span className={`tabular-nums font-bold ${balanceDue > 0 ? "text-rose-600" : "text-emerald-700"}`}>
                     {formatInr(balanceDue)}
                   </span>
                 </>
@@ -186,7 +186,7 @@ export function DocumentHeader({
               onClick={act.onClick}
               disabled={act.disabled}
               title={act.title || act.label}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-[#E2E8E5] rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-[#E2E8F0] rounded-xl text-[13px] font-medium shadow-2xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
             >
               {act.icon}
               <span>{act.label}</span>
@@ -199,7 +199,7 @@ export function DocumentHeader({
               <button
                 type="button"
                 onClick={() => setIsMoreOpen(!isMoreOpen)}
-                className="p-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-600 hover:text-[#174B43] border border-[#E2E8E5] rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer shrink-0"
+                className="p-2 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-600 hover:text-[#0F172A] border border-[#E2E8F0] rounded-xl text-[13px] font-medium shadow-2xs transition-colors cursor-pointer shrink-0"
                 title="More Actions"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -217,7 +217,7 @@ export function DocumentHeader({
                         setIsMoreOpen(false);
                         act.onClick();
                       }}
-                      className={`w-full text-left px-3.5 py-2 text-xs flex items-center gap-2 hover:bg-[#F2FAF7] transition-colors cursor-pointer ${
+                      className={`w-full text-left px-3.5 py-2 text-xs flex items-center gap-2 hover:bg-[#F8FAFC] transition-colors cursor-pointer ${
                         act.danger ? "text-rose-600 hover:bg-rose-50" : "text-slate-700"
                       }`}
                     >
@@ -236,7 +236,7 @@ export function DocumentHeader({
               type="button"
               onClick={primaryAction.onClick}
               disabled={primaryAction.disabled || primaryAction.loading}
-              className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
             >
               {primaryAction.loading ? (
                 <>

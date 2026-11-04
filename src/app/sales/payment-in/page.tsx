@@ -448,25 +448,25 @@ export default function PaymentInPage() {
         {/* Left: Module identity & title */}
         <div>
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#26A58A]">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#1677E8]">
               {lang === "gu" ? "રોકડ અને બેંક જમા (CASH & BANK)" : "RECEIPTS & CASH INFLOW"}
             </span>
             <span className="text-slate-300">•</span>
-            <span className="text-[10px] font-bold text-slate-500 font-mono">
+            <span className="text-[10px] font-bold text-slate-500 tabular-nums">
               {displayedRows.length} {lang === "gu" ? "રસીદો" : "Receipts"}
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <h1 className="text-xl sm:text-2xl font-black text-[#1A2E2B] tracking-tight">
+            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
               {lang === "gu" ? "આવક ચૂકવણી (Payment In)" : "Payment In Receipts"}
             </h1>
             <button
               type="button"
               onClick={fetchReceipts}
               title="Refresh Receipts"
-              className="p-1 text-slate-400 hover:text-[#174B43] rounded-md transition-colors"
+              className="p-1 text-slate-400 hover:text-[#0F172A] rounded-md transition-colors"
             >
-              <svg className={`w-4 h-4 ${isLoading ? "animate-spin text-[#26A58A]" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+              <svg className={`w-4 h-4 ${isLoading ? "animate-spin text-[#1677E8]" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </button>
@@ -479,7 +479,7 @@ export default function PaymentInPage() {
             type="button"
             onClick={handleExportCsv}
             disabled={displayedRows.length === 0}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8E5] bg-white text-xs font-semibold text-[#1A2E2B] hover:bg-[#F2FAF7] hover:border-[#85D5C2] disabled:opacity-50 transition-colors shadow-2xs"
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#E2E8F0] bg-white text-[13px] font-medium text-[#182230] hover:bg-[#F8FAFC] hover:border-[#93C5FD] disabled:opacity-50 transition-colors shadow-2xs"
             title="Export to CSV"
           >
             <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -491,7 +491,7 @@ export default function PaymentInPage() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8E5] bg-white text-xs font-semibold text-[#1A2E2B] hover:bg-[#F2FAF7] hover:border-[#85D5C2] transition-colors shadow-2xs"
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#E2E8F0] bg-white text-[13px] font-medium text-[#182230] hover:bg-[#F8FAFC] hover:border-[#93C5FD] transition-colors shadow-2xs"
             title="Print Ledger"
           >
             <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -502,7 +502,7 @@ export default function PaymentInPage() {
 
           <Link
             href="/sales/payment-in/new"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold shadow-md shadow-[#174B43]/20 hover:shadow-lg hover:shadow-[#174B43]/30 transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium shadow-md shadow-[#0F172A]/20 hover:shadow-lg hover:shadow-[#0F172A]/30 transition-all cursor-pointer"
           >
             <svg className="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -531,7 +531,7 @@ export default function PaymentInPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={lang === "gu" ? "શોધો: પાર્ટી, વાઉચર નંબર, મોડ..." : "Search by party, voucher no, mode..."}
-              className="w-full rounded-xl border border-[#E2E8E5] bg-[#F6F7F1] py-2 pl-9 pr-8 text-xs text-[#1A2E2B] placeholder-slate-400 focus:bg-white focus:border-[#26A58A] focus:ring-1 focus:ring-[#26A58A] focus:outline-none transition-colors"
+              className="w-full rounded-xl border border-[#E2E8F0] bg-[#F6F7F1] py-2 pl-9 pr-8 text-[13px] text-[#182230] placeholder-slate-400 focus:bg-white focus:border-[#1677E8] focus:ring-1 focus:ring-[#1677E8] focus:outline-none transition-colors h-10"
             />
             {searchQuery && (
               <button
@@ -552,9 +552,9 @@ export default function PaymentInPage() {
                 e.stopPropagation();
                 setIsDatePickerOpen(!isDatePickerOpen);
               }}
-              className="flex items-center gap-2 rounded-xl border border-[#E2E8E5] bg-white px-3 py-2 text-xs font-semibold text-[#174B43] hover:bg-[#F2FAF7] hover:border-[#85D5C2] transition-colors shadow-2xs"
+              className="flex items-center gap-2 rounded-xl border border-[#E2E8F0] bg-white h-9 px-3 text-[13px] font-medium text-[#0F172A] hover:bg-[#F8FAFC] hover:border-[#93C5FD] transition-colors shadow-2xs"
             >
-              <svg className="w-4 h-4 text-[#26A58A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-4 h-4 text-[#1677E8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                 <line x1="16" y1="2" x2="16" y2="6" />
                 <line x1="8" y1="2" x2="8" y2="6" />
@@ -581,11 +581,11 @@ export default function PaymentInPage() {
                         if (key !== "CUSTOM") setIsDatePickerOpen(false);
                       }}
                       className={`flex w-full items-center justify-between px-3 py-2 text-left transition-colors ${
-                        dateRangePreset === key ? "font-bold text-[#174B43] bg-[#E6F7F2]" : "text-[#1A2E2B] hover:bg-[#F2FAF7]"
+                        dateRangePreset === key ? "font-bold text-[#0F172A] bg-[#EFF6FF]" : "text-[#1A2E2B] hover:bg-[#F8FAFC]"
                       }`}
                     >
                       <span>{label}</span>
-                      {dateRangePreset === key && <span className="text-[#26A58A] font-bold">✓</span>}
+                      {dateRangePreset === key && <span className="text-[#1677E8] font-bold">✓</span>}
                     </button>
                   ))}
                 </div>
@@ -593,27 +593,27 @@ export default function PaymentInPage() {
                 {dateRangePreset === "CUSTOM" && (
                   <div className="border-t border-[#E2E8E5] p-3 space-y-2 bg-[#F6F7F1] rounded-b-xl">
                     <div>
-                      <label className="block text-[10px] font-semibold text-[#5A6B66] mb-0.5">Start Date</label>
+                      <label className="block text-[10px] font-medium text-[#5A6B66] mb-0.5">Start Date</label>
                       <input
                         type="date"
                         value={customStartDate}
                         onChange={(e) => setCustomStartDate(e.target.value)}
-                        className="w-full rounded-lg border border-[#E2E8E5] bg-white px-2 py-1 text-xs text-[#1A2E2B] focus:border-[#26A58A] focus:outline-none"
+                        className="w-full rounded-lg border border-[#E2E8F0] bg-white px-2 py-1 text-[13px] text-[#182230] focus:border-[#1677E8] focus:outline-none h-10"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-semibold text-[#5A6B66] mb-0.5">End Date</label>
+                      <label className="block text-[10px] font-medium text-[#5A6B66] mb-0.5">End Date</label>
                       <input
                         type="date"
                         value={customEndDate}
                         onChange={(e) => setCustomEndDate(e.target.value)}
-                        className="w-full rounded-lg border border-[#E2E8E5] bg-white px-2 py-1 text-xs text-[#1A2E2B] focus:border-[#26A58A] focus:outline-none"
+                        className="w-full rounded-lg border border-[#E2E8F0] bg-white px-2 py-1 text-[13px] text-[#182230] focus:border-[#1677E8] focus:outline-none h-10"
                       />
                     </div>
                     <button
                       type="button"
                       onClick={() => setIsDatePickerOpen(false)}
-                      className="w-full mt-1 rounded-lg bg-[#26A58A] hover:bg-[#208E76] py-1.5 text-center font-bold text-white shadow-jade transition-colors cursor-pointer"
+                      className="w-full mt-1 rounded-lg bg-[#1677E8] hover:bg-[#1268D3] py-1.5 text-center font-medium text-white shadow-blue-500/20 transition-colors cursor-pointer"
                     >
                       Apply Range
                     </button>
@@ -640,7 +640,7 @@ export default function PaymentInPage() {
               onClick={() => setStatusFilter(tab.key)}
               className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${
                 statusFilter === tab.key
-                  ? "bg-white text-[#174B43] shadow-xs font-bold"
+                  ? "bg-white text-[#0F172A] shadow-xs font-bold"
                   : "text-slate-500 hover:text-slate-900"
               }`}
             >
@@ -663,27 +663,27 @@ export default function PaymentInPage() {
           <table className="min-w-full text-left text-xs border-collapse">
             <thead className="bg-[#F8FAF9] border-b border-[#E2E8E5] text-[#5A6B66] font-semibold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="px-4 py-3.5 whitespace-nowrap font-bold">
+                <th className="px-4 py-3.5 whitespace-nowrap font-medium">
                   <div className="flex items-center gap-1">
                     <span>{lang === "gu" ? "તારીખ" : "Date"}</span>
                     <span className="text-slate-300 text-[10px]">⇅</span>
                   </div>
                 </th>
-                <th className="px-4 py-3.5 whitespace-nowrap font-bold">{lang === "gu" ? "વાઉચર / રસીદ નંબર" : "Voucher / Receipt No"}</th>
-                <th className="px-4 py-3.5 whitespace-nowrap font-bold">{lang === "gu" ? "પાર્ટી નામ" : "Customer / Party Name"}</th>
-                <th className="px-4 py-3.5 text-right whitespace-nowrap font-bold">{lang === "gu" ? "સેટલ રકમ" : "Settled on Bills"}</th>
-                <th className="px-4 py-3.5 text-right whitespace-nowrap font-bold">{lang === "gu" ? "મળેલી રકમ" : "Total Inflow"}</th>
-                <th className="px-4 py-3.5 whitespace-nowrap font-bold">{lang === "gu" ? "ચુકવણી પદ્ધતિ" : "Payment Mode"}</th>
-                <th className="px-4 py-3.5 text-center whitespace-nowrap font-bold">Status</th>
-                <th className="px-4 py-3.5 w-10 text-center whitespace-nowrap font-bold">Actions</th>
+                <th className="px-4 py-3.5 whitespace-nowrap font-medium">{lang === "gu" ? "વાઉચર / રસીદ નંબર" : "Voucher / Receipt No"}</th>
+                <th className="px-4 py-3.5 whitespace-nowrap font-medium">{lang === "gu" ? "પાર્ટી નામ" : "Customer / Party Name"}</th>
+                <th className="px-4 py-3.5 text-right whitespace-nowrap font-medium">{lang === "gu" ? "સેટલ રકમ" : "Settled on Bills"}</th>
+                <th className="px-4 py-3.5 text-right whitespace-nowrap font-medium">{lang === "gu" ? "મળેલી રકમ" : "Total Inflow"}</th>
+                <th className="px-4 py-3.5 whitespace-nowrap font-medium">{lang === "gu" ? "ચુકવણી પદ્ધતિ" : "Payment Mode"}</th>
+                <th className="px-4 py-3.5 text-center whitespace-nowrap font-medium">Status</th>
+                <th className="px-4 py-3.5 w-10 text-center whitespace-nowrap font-medium">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E8E5]">
               {isLoading && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-16 text-center text-xs text-[#5A6B66]">
+                  <td colSpan={8} className="px-4 py-16 text-center text-[13px] text-[#5A6B66]">
                     <div className="flex items-center justify-center gap-2">
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#26A58A] border-t-transparent" />
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#1677E8] border-t-transparent" />
                       <span>{lang === "gu" ? "લોડ થઈ રહ્યું છે..." : "Loading receipts..."}</span>
                     </div>
                   </td>
@@ -694,8 +694,8 @@ export default function PaymentInPage() {
                 <tr>
                   <td colSpan={8} className="px-4 py-20 text-center text-[#5A6B66]">
                     <div className="flex flex-col items-center justify-center max-w-md mx-auto">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#E6F7F2] text-[#174B43] mb-3 shadow-inner">
-                        <svg className="w-7 h-7 text-[#26A58A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75}>
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#EFF6FF] text-[#0F172A] mb-3 shadow-inner">
+                        <svg className="w-7 h-7 text-[#1677E8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75}>
                           <rect x="2" y="5" width="20" height="14" rx="2" />
                           <line x1="2" y1="10" x2="22" y2="10" />
                         </svg>
@@ -710,7 +710,7 @@ export default function PaymentInPage() {
                       </p>
                       <Link
                         href="/sales/payment-in/new"
-                        className="mt-4 rounded-xl bg-[#174B43] px-4 py-2 text-xs font-bold text-white shadow-jade hover:bg-[#123B35] transition-colors"
+                        className="mt-4 rounded-xl bg-[#0F172A] h-9 px-3 text-[13px] font-medium text-white shadow-blue-500/20 hover:bg-[#1268D3] transition-colors"
                       >
                         {lang === "gu" ? "+ નવી આવક ચૂકવણી" : "+ Record Payment In"}
                       </Link>
@@ -724,12 +724,12 @@ export default function PaymentInPage() {
                   <tr
                     key={row.id}
                     onClick={() => row?.id && router.push(`/sales/payment-in/${row.id}`)}
-                    className={`hover:bg-[#F2FAF7]/70 transition-colors group cursor-pointer ${
+                    className={`hover:bg-[#F8FAFC]/70 transition-colors group cursor-pointer ${
                       row.isCancelled ? "opacity-60 bg-slate-50/50" : ""
                     }`}
                   >
                     {/* Date */}
-                    <td className="px-4 py-3 text-[#1A2E2B] whitespace-nowrap font-medium text-xs">
+                    <td className="px-4 py-3 text-[#182230] whitespace-nowrap font-medium text-[13px]">
                       {formatPaymentDate(row.paymentDate)}
                     </td>
 
@@ -737,7 +737,7 @@ export default function PaymentInPage() {
                     <td className="px-4 py-3 whitespace-nowrap">
                       <button
                         type="button"
-                        className="text-[#174B43] hover:text-[#26A58A] hover:underline transition-colors font-mono font-bold text-xs"
+                        className="text-[#0F172A] hover:text-[#1677E8] hover:underline transition-colors tabular-nums font-bold text-xs"
                         onClick={() => router.push(`/sales/payment-in/${row.id}`)}
                       >
                         {row.paymentNumber || row.voucherNumber || "RCPT"}
@@ -745,12 +745,12 @@ export default function PaymentInPage() {
                     </td>
 
                     {/* Party Name */}
-                    <td className="px-4 py-3 font-semibold text-[#1A2E2B] whitespace-nowrap">
+                    <td className="px-4 py-3 font-semibold text-[#182230] whitespace-nowrap">
                       {row.partyId ? (
                         <Link
                           href={`/parties/${row.partyId}`}
                           onClick={(e) => e.stopPropagation()}
-                          className="hover:text-[#174B43] hover:underline transition-colors"
+                          className="hover:text-[#0F172A] hover:underline transition-colors"
                         >
                           {row.partyName}
                         </Link>
@@ -760,12 +760,12 @@ export default function PaymentInPage() {
                     </td>
 
                     {/* Total Settled */}
-                    <td className="px-4 py-3 text-right font-medium text-slate-600 whitespace-nowrap font-mono">
+                    <td className="px-4 py-3 text-right font-medium text-slate-600 whitespace-nowrap tabular-nums">
                       {formatInr(row.totalSettled)}
                     </td>
 
                     {/* Total Inflow Received */}
-                    <td className="px-4 py-3 text-right font-bold text-[#1A2E2B] whitespace-nowrap font-mono text-[13px]">
+                    <td className="px-4 py-3 text-right font-medium text-[#182230] whitespace-nowrap tabular-nums text-[13px]">
                       {formatInr(row.amountReceived)}
                     </td>
 
@@ -795,7 +795,7 @@ export default function PaymentInPage() {
                     <td className="relative px-4 py-3 text-center whitespace-nowrap overflow-visible" onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
-                        className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors cursor-pointer"
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors cursor-pointer"
                         onClick={(e) => {
                           e.stopPropagation();
                           setActiveActionMenuId(activeActionMenuId === row.id ? null : row.id);
@@ -811,7 +811,7 @@ export default function PaymentInPage() {
                         >
                           <button
                             type="button"
-                            className="flex w-full items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] transition-colors cursor-pointer"
+                            className="flex w-full items-center gap-2 h-9 px-3 text-[#182230] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
                             onClick={() => {
                               setActiveActionMenuId(null);
                               router.push(`/sales/payment-in/${row.id}`);
@@ -825,7 +825,7 @@ export default function PaymentInPage() {
                           </button>
                           <button
                             type="button"
-                            className="flex w-full items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] transition-colors cursor-pointer"
+                            className="flex w-full items-center gap-2 h-9 px-3 text-[#182230] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
                             onClick={() => {
                               setActiveActionMenuId(null);
                               router.push(`/sales/payment-in/${row.id}?print=1`);
@@ -839,7 +839,7 @@ export default function PaymentInPage() {
                           {!row.isCancelled && (
                             <button
                               type="button"
-                              className="flex w-full items-center gap-2 px-3 py-2 text-rose-600 hover:bg-rose-50 transition-colors border-t border-slate-100 cursor-pointer"
+                              className="flex w-full items-center gap-2 h-9 px-3 text-rose-600 hover:bg-rose-50 transition-colors border-t border-slate-100 cursor-pointer"
                               onClick={() => {
                                 setActiveActionMenuId(null);
                                 setReverseTarget(row);
@@ -874,7 +874,7 @@ export default function PaymentInPage() {
                 </svg>
               </div>
               <div>
-                <h2 className="text-base font-bold text-[#1A2E2B]">
+                <h2 className="text-[15px] font-semibold text-[#182230]">
                   Reverse Payment #{reverseTarget.paymentNumber || reverseTarget.voucherNumber}
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -888,14 +888,14 @@ export default function PaymentInPage() {
             </p>
 
             <div>
-              <label className="block text-xs font-semibold text-[#1A2E2B] mb-1">
+              <label className="block text-[12px] font-medium text-[#182230] mb-1">
                 Reversal Reason <span className="text-rose-500">*</span>
               </label>
               <textarea
                 value={reverseReason}
                 onChange={(e) => setReverseReason(e.target.value)}
                 placeholder="e.g. Customer cancelled transaction, bounced cheque, or duplicate entry"
-                className="w-full rounded-xl border border-[#E2E8E5] bg-[#F6F7F1] p-3 text-xs text-[#1A2E2B] placeholder-slate-400 focus:bg-white focus:border-[#26A58A] focus:ring-1 focus:ring-[#26A58A] focus:outline-none transition-colors"
+                className="w-full rounded-xl border border-[#E2E8F0] bg-[#F6F7F1] p-3 text-[13px] text-[#182230] placeholder-slate-400 focus:bg-white focus:border-[#1677E8] focus:ring-1 focus:ring-[#1677E8] focus:outline-none transition-colors"
                 rows={3}
               />
             </div>
@@ -909,7 +909,7 @@ export default function PaymentInPage() {
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
               <button
                 type="button"
-                className="rounded-xl border border-[#E2E8E5] px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                className="rounded-xl border border-[#E2E8F0] h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                 onClick={() => setReverseTarget(null)}
               >
                 Cancel
@@ -917,7 +917,7 @@ export default function PaymentInPage() {
               <button
                 type="button"
                 disabled={isReversing || !reverseReason.trim()}
-                className="rounded-xl bg-rose-600 px-5 py-2 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50 shadow-xs transition-colors cursor-pointer"
+                className="rounded-xl bg-rose-600 h-9 px-3.5 text-[13px] font-medium text-white hover:bg-rose-700 disabled:opacity-50 shadow-xs transition-colors cursor-pointer"
                 onClick={confirmReverse}
               >
                 {isReversing ? "Reversing..." : "Confirm Reversal"}

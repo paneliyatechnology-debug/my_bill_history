@@ -254,7 +254,7 @@ export default function ExpenseDetailsPage() {
         <p className="text-sm font-semibold text-rose-600 mb-4">{error || "Expense not found."}</p>
         <Link
           href="/finance/expenses"
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-semibold"
+          className="h-9 px-3 bg-indigo-600 text-white rounded-lg text-[13px] font-medium"
         >
           ← Back to Expenses
         </Link>
@@ -279,7 +279,7 @@ export default function ExpenseDetailsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </Link>
-          <h1 className="text-lg font-bold text-slate-800 tracking-tight">
+          <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
             Expense #{cleanNumber}
           </h1>
           {voucher.isCancelled && (
@@ -294,7 +294,7 @@ export default function ExpenseDetailsPage() {
           <button
             type="button"
             onClick={handleDownloadPDF}
-            className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+            className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <span>📄</span>
             <span>PDF</span>
@@ -304,7 +304,7 @@ export default function ExpenseDetailsPage() {
           {!voucher.isCancelled && (
             <Link
               href={`/finance/expenses/create?id=${voucher.id}`}
-              className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+              className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <svg className="w-3.5 h-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
@@ -354,7 +354,7 @@ export default function ExpenseDetailsPage() {
               </div>
               <div>
                 <span className="text-slate-400 font-medium block mb-1">Date</span>
-                <span className="text-slate-800 font-semibold block font-mono">
+                <span className="text-slate-800 font-semibold block tabular-nums">
                   {voucher.voucherDate ? voucher.voucherDate.split("T")[0] : "-"}
                 </span>
               </div>
@@ -410,13 +410,13 @@ export default function ExpenseDetailsPage() {
                 {parsedDetails.items.map((item, idx) => (
                   <tr key={idx} className="hover:bg-slate-50/50">
                     <td className="py-3.5 px-4 font-semibold text-slate-900">{item.name}</td>
-                    <td className="py-3.5 px-3 font-mono text-slate-600">{item.hsn}</td>
+                    <td className="py-3.5 px-3 tabular-nums text-slate-600">{item.hsn}</td>
                     <td className="py-3.5 px-3 font-semibold text-slate-800">{item.qty}</td>
-                    <td className="py-3.5 px-3 font-mono text-slate-800">
+                    <td className="py-3.5 px-3 tabular-nums text-slate-800">
                       ₹ {item.price.toLocaleString("en-IN", { minimumFractionDigits: 0 })}
                     </td>
-                    <td className="py-3.5 px-3 font-mono text-slate-600">₹ {item.discount}</td>
-                    <td className="py-3.5 px-3 font-mono text-slate-800">
+                    <td className="py-3.5 px-3 tabular-nums text-slate-600">₹ {item.discount}</td>
+                    <td className="py-3.5 px-3 tabular-nums text-slate-800">
                       ₹ {item.tax.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                     </td>
                     <td className="py-3.5 px-3">
@@ -424,7 +424,7 @@ export default function ExpenseDetailsPage() {
                         Eligible
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-right font-mono font-bold text-slate-900 text-sm">
+                    <td className="py-3.5 px-4 text-right tabular-nums font-medium text-slate-900 text-[13px]">
                       ₹ {item.total.toLocaleString("en-IN", { minimumFractionDigits: 0 })}
                     </td>
                   </tr>
@@ -437,11 +437,11 @@ export default function ExpenseDetailsPage() {
           <div className="flex flex-col items-end border-t border-slate-100 pt-4 space-y-2 text-xs">
             <div className="flex items-center justify-between w-64 text-slate-600">
               <span>Total Discount</span>
-              <span className="font-mono">₹ 0</span>
+              <span className="tabular-nums">₹ 0</span>
             </div>
             <div className="flex items-center justify-between w-64 text-slate-900 font-bold text-sm pt-1 border-t border-slate-100">
               <span>Total Expense Amount</span>
-              <span className="font-mono text-base">
+              <span className="tabular-nums text-base">
                 ₹ {parsedDetails.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 0 })}
               </span>
             </div>
@@ -463,7 +463,7 @@ export default function ExpenseDetailsPage() {
                   <th className="py-2.5 px-3 text-right">Credit (₹)</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 font-mono">
+              <tbody className="divide-y divide-slate-100 tabular-nums">
                 {(voucher.journalEntries || voucher.lines || []).map((l, i) => (
                   <tr key={l.id || i}>
                     <td className="py-2.5 px-3 font-sans font-semibold text-slate-800">
@@ -472,10 +472,10 @@ export default function ExpenseDetailsPage() {
                     <td className="py-2.5 px-3 font-sans text-slate-500">
                       {l.account?.group?.name || "-"}
                     </td>
-                    <td className="py-2.5 px-3 text-right font-bold text-slate-900">
+                    <td className="py-2.5 px-3 text-right font-medium text-slate-900">
                       {Number(l.debitAmount) > 0 ? Number(l.debitAmount).toFixed(2) : "-"}
                     </td>
-                    <td className="py-2.5 px-3 text-right font-bold text-slate-900">
+                    <td className="py-2.5 px-3 text-right font-medium text-slate-900">
                       {Number(l.creditAmount) > 0 ? Number(l.creditAmount).toFixed(2) : "-"}
                     </td>
                   </tr>
@@ -510,7 +510,7 @@ export default function ExpenseDetailsPage() {
               <button
                 type="button"
                 onClick={() => setIsDeleteModalOpen(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+                className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
               >
                 Cancel
               </button>
@@ -518,7 +518,7 @@ export default function ExpenseDetailsPage() {
                 type="button"
                 disabled={isDeleting}
                 onClick={handleDeleteExpense}
-                className="px-5 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-all"
+                className="h-9 px-3.5 text-[13px] font-medium text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-all"
               >
                 {isDeleting ? "Deleting..." : "Delete"}
               </button>

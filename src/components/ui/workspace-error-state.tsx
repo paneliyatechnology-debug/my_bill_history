@@ -64,7 +64,7 @@ export function WorkspaceErrorState({
 
   return (
     <div
-      className="min-h-[100dvh] w-full relative flex flex-col items-center justify-between p-4 sm:p-6 overflow-x-hidden selection:bg-[#26A58A]/20"
+      className="min-h-[100dvh] w-full relative flex flex-col items-center justify-between p-4 sm:p-6 overflow-x-hidden selection:bg-[#1677E8]/20"
       style={{
         backgroundColor: "#F8FAFC",
         fontFamily: isGu
@@ -75,7 +75,7 @@ export function WorkspaceErrorState({
       {/* Ambient background decoration */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
         {/* Soft radial glow orbs */}
-        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[650px] h-[400px] bg-gradient-to-b from-[#26A58A]/10 via-[#174B43]/5 to-transparent rounded-full blur-3xl" />
+        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[650px] h-[400px] bg-gradient-to-b from-[#1677E8]/10 via-[#0F172A]/5 to-transparent rounded-full blur-3xl" />
         <div className="absolute top-1/3 -right-28 w-[400px] h-[400px] bg-amber-500/5 rounded-full blur-3xl" />
         <div className="absolute -bottom-24 -left-20 w-[450px] h-[350px] bg-emerald-600/5 rounded-full blur-3xl" />
 
@@ -112,7 +112,7 @@ export function WorkspaceErrorState({
             <button
               type="button"
               onClick={() => onToggleLang(isGu ? "en" : "gu")}
-              className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+              className="px-2.5 py-1 text-[13px] font-medium rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
             >
               {isGu ? "English" : "ગુજરાતી"}
             </button>
@@ -169,7 +169,7 @@ export function WorkspaceErrorState({
           </div>
 
           {/* Headline Title */}
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
             {title || (isGu ? "વર્કસ્પેસ લોડ કરવામાં સમસ્યા" : "Unable to Load Workspace")}
           </h1>
 
@@ -183,7 +183,7 @@ export function WorkspaceErrorState({
 
           {/* Error Details Highlight Pill */}
           {errorMessage && (
-            <div className="mt-4 inline-flex items-center gap-2 max-w-full px-3.5 py-1.5 rounded-lg bg-rose-50/80 border border-rose-200/80 text-rose-700 text-xs font-mono font-medium truncate">
+            <div className="mt-4 inline-flex items-center gap-2 max-w-full px-3.5 py-1.5 rounded-lg bg-rose-50/80 border border-rose-200/80 text-rose-700 text-xs tabular-nums font-medium truncate">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
               <span className="truncate">{errorMessage}</span>
             </div>
@@ -197,7 +197,7 @@ export function WorkspaceErrorState({
                 type="button"
                 onClick={handleRetry}
                 disabled={isRetrying}
-                className="w-full sm:w-auto min-w-[150px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-gradient-to-r from-[#174B43] to-[#26A58A] hover:from-[#133E37] hover:to-[#208E76] active:scale-[0.98] transition-all shadow-md shadow-emerald-950/15 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full sm:w-auto min-w-[150px] inline-flex items-center justify-center gap-2 h-9 px-3.5 rounded-xl font-medium text-[13px] text-white bg-gradient-to-r from-[#0F172A] to-[#1677E8] hover:from-[#1E293B] hover:to-[#125CC0] active:scale-[0.98] transition-all shadow-md shadow-emerald-950/15 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
               >
                 {/* Spinning icon during retry */}
                 <svg
@@ -228,7 +228,7 @@ export function WorkspaceErrorState({
               <button
                 type="button"
                 onClick={onLogout}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-700 bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-200 transition-all cursor-pointer shadow-2xs"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-9 px-3.5 rounded-xl font-medium text-[13px] text-slate-700 bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-200 transition-all cursor-pointer shadow-2xs"
               >
                 <svg
                   className="w-4 h-4 text-slate-500"
@@ -251,7 +251,7 @@ export function WorkspaceErrorState({
             <button
               type="button"
               onClick={handleReload}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl font-medium text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-100/70 transition-colors cursor-pointer"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-xl font-medium text-[13px] text-slate-500 hover:text-slate-800 hover:bg-slate-100/70 transition-colors cursor-pointer"
               title={isGu ? "પેજ રીલોડ કરો" : "Reload current page"}
             >
               <svg
@@ -272,7 +272,7 @@ export function WorkspaceErrorState({
             <button
               type="button"
               onClick={() => setShowDiagnostics((prev) => !prev)}
-              className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700 transition-colors font-medium group cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-[13px] text-slate-500 hover:text-slate-700 transition-colors font-medium group cursor-pointer"
             >
               <svg
                 className={`w-3.5 h-3.5 text-slate-400 transition-transform ${
@@ -297,7 +297,7 @@ export function WorkspaceErrorState({
             </button>
 
             {showDiagnostics && (
-              <div className="mt-3 p-3.5 bg-slate-50/90 rounded-xl border border-slate-200/80 text-left text-xs text-slate-600 font-mono transition-all">
+              <div className="mt-3 p-3.5 bg-slate-50/90 rounded-xl border border-slate-200/80 text-left text-xs text-slate-600 tabular-nums transition-all">
                 <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-200/60">
                   <span className="font-semibold text-slate-700 text-[11px] uppercase tracking-wider">
                     Diagnostic Report

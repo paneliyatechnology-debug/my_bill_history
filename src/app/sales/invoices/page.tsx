@@ -571,25 +571,25 @@ export default function SalesInvoicesDashboardPage() {
         {/* Left: Module identity & title */}
         <div>
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#26A58A]">
+            <span className="text-[11px] font-medium uppercase tracking-wide text-[#1677E8]">
               {lang === "gu" ? "વેચાણ અને બિલિંગ" : "SALES & INVOICING"}
             </span>
             <span className="text-slate-300">•</span>
-            <span className="text-[10px] font-bold text-slate-500 font-mono">
+            <span className="text-[11px] font-normal text-[#64748B]">
               {filteredInvoices.length} {lang === "gu" ? "બિલ" : "Invoices"}
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <h1 className="text-xl sm:text-2xl font-black text-[#1A2E2B] tracking-tight">
+            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight leading-tight">
               {lang === "gu" ? "વેચાણ બિલ (Sales Invoices)" : "Sales Invoices"}
             </h1>
             <button
               type="button"
               onClick={fetchData}
               title="Refresh Invoices"
-              className="p-1 text-slate-400 hover:text-[#174B43] rounded-md transition-colors"
+              className="p-1 text-slate-400 hover:text-[#0F172A] rounded-md transition-colors"
             >
-              <svg className={`w-3.5 h-3.5 ${isLoading ? "animate-spin text-[#26A58A]" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className={`w-3.5 h-3.5 ${isLoading ? "animate-spin text-[#1677E8]" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </button>
@@ -608,9 +608,9 @@ export default function SalesInvoicesDashboardPage() {
                 setIsBulkActionsMenuOpen(false);
                 setActiveActionMenuId(null);
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 border border-[#E2E8E5] bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-[#174B43] text-xs font-semibold rounded-xl transition-colors cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1.5 h-9 px-3 border border-[#E2E8F0] bg-white hover:bg-[#F8FBFF] hover:border-[#1677E8] text-[#182230] text-[13px] font-medium rounded-[10px] transition-colors cursor-pointer"
             >
-              <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-3.5 h-3.5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
               <span>{lang === "gu" ? "રિપોર્ટ્સ" : "Reports"}</span>
@@ -627,27 +627,27 @@ export default function SalesInvoicesDashboardPage() {
                 </div>
                 <Link
                   href="/reports?tab=sales-summary"
-                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors"
                 >
-                  <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <svg className="w-3.5 h-3.5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   <span>{lang === "gu" ? "વેચાણ સારાંશ (Summary)" : "Sales Summary"}</span>
                 </Link>
                 <Link
                   href="/reports?tab=gstr-1"
-                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors"
                 >
-                  <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <svg className="w-3.5 h-3.5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span>GSTR-1 Excel Bundle</span>
                 </Link>
                 <Link
                   href="/reports?tab=profit-loss"
-                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors"
                 >
-                  <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <svg className="w-3.5 h-3.5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span>{lang === "gu" ? "બિલ વાઇઝ નફો (Profit)" : "Bill Wise Profit"}</span>
@@ -666,9 +666,9 @@ export default function SalesInvoicesDashboardPage() {
                 setIsReportsMenuOpen(false);
                 setActiveActionMenuId(null);
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 border border-[#E2E8E5] bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-[#174B43] text-xs font-semibold rounded-xl transition-colors cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1.5 h-9 px-3 border border-[#E2E8F0] bg-white hover:bg-[#F8FBFF] hover:border-[#1677E8] text-[#182230] text-[13px] font-medium rounded-[10px] transition-colors cursor-pointer"
             >
-              <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <svg className="w-3.5 h-3.5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
               <span>{lang === "gu" ? "જથ્થાબંધ ક્રિયાઓ" : "Bulk Actions"}</span>
@@ -686,9 +686,9 @@ export default function SalesInvoicesDashboardPage() {
                     setIsBulkActionsMenuOpen(false);
                     setIsBulkDownloadOpen(true);
                   }}
-                  className="w-full text-left flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors cursor-pointer"
+                  className="w-full text-left flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors cursor-pointer"
                 >
-                  <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <svg className="w-3.5 h-3.5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
                   <span>{lang === "gu" ? "બધા બિલ ડાઉનલોડ" : "Bulk Download / CA Bundle"}</span>
@@ -716,9 +716,9 @@ export default function SalesInvoicesDashboardPage() {
           <button
             type="button"
             onClick={() => setIsImportModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#F2FAF7] hover:bg-[#E6F7F2] text-[#174B43] border border-[#85D5C2] text-xs font-bold rounded-xl shadow-2xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3 bg-white hover:bg-[#F8FBFF] text-[#182230] border border-[#E2E8F0] text-[13px] font-medium rounded-[10px] transition-colors cursor-pointer"
           >
-            <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-3.5 h-3.5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
             </svg>
             <span>{lang === "gu" ? "આયાત (Import)" : "Import"}</span>
@@ -728,7 +728,7 @@ export default function SalesInvoicesDashboardPage() {
           <button
             type="button"
             onClick={() => setIsQuickSettingsOpen(true)}
-            className="p-2 border border-[#E2E8E5] bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-[#5A6B66] hover:text-[#174B43] rounded-xl transition-colors cursor-pointer shadow-2xs"
+            className="p-2 border border-[#E2E8E5] bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-[#5A6B66] hover:text-[#0F172A] rounded-xl transition-colors cursor-pointer shadow-2xs"
             title="Invoice Document Settings"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -740,9 +740,9 @@ export default function SalesInvoicesDashboardPage() {
           {/* Primary CTA: Create Sales Invoice */}
           <Link
             href="/sales/invoices/new"
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#174B43] hover:bg-[#123B35] active:bg-[#0D2A26] text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-[10px] transition-colors cursor-pointer"
           >
-            <svg className="w-3.5 h-3.5 text-[#85D5C2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
+            <svg className="w-3.5 h-3.5 text-[#93C5FD]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
             <span>{lang === "gu" ? "+ નવું વેચાણ બિલ" : "+ New Sales Invoice"}</span>
@@ -770,7 +770,7 @@ export default function SalesInvoicesDashboardPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={lang === "gu" ? "ગ્રાહક, બિલ નંબર કે ફોન શોધો..." : "Search party, invoice #, phone, GSTIN..."}
-                className="w-full pl-8 pr-7 py-2 bg-[#F8FAFC] border border-[#E2E8E5] rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#26A58A] transition-colors"
+                className="w-full h-10 pl-8 pr-7 bg-[#F8FBFF] border border-[#E2E8F0] rounded-[10px] text-[13px] font-normal text-[#182230] placeholder:text-[#94A3B8] focus:bg-white focus:outline-none focus:border-[#1677E8] transition-colors"
               />
               {searchQuery && (
                 <button
@@ -787,7 +787,7 @@ export default function SalesInvoicesDashboardPage() {
             <select
               value={dateRangePreset}
               onChange={(e) => setDateRangePreset(e.target.value as DateRangePreset)}
-              className="px-3 py-2 bg-[#F8FAFC] border border-[#E2E8E5] text-xs font-semibold rounded-xl text-slate-800 focus:bg-white focus:outline-none focus:border-[#26A58A] cursor-pointer"
+              className="px-3 py-2 bg-[#F8FAFC] border border-[#E2E8E5] text-xs font-semibold rounded-xl text-slate-800 focus:bg-white focus:outline-none focus:border-[#1677E8] cursor-pointer"
             >
               {Object.entries(DATE_PRESET_LABELS).map(([key, labelObj]) => (
                 <option key={key} value={key}>
@@ -805,7 +805,7 @@ export default function SalesInvoicesDashboardPage() {
                   onClick={() => setStatusFilter(st)}
                   className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                     statusFilter === st
-                      ? "bg-white text-[#174B43] shadow-xs border border-[#85D5C2]"
+                      ? "bg-white text-[#0F172A] shadow-xs border border-[#93C5FD]"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
@@ -824,14 +824,14 @@ export default function SalesInvoicesDashboardPage() {
                   type="date"
                   value={customStartDate}
                   onChange={(e) => setCustomStartDate(e.target.value)}
-                  className="px-2 py-1.5 bg-[#F8FAFC] border border-[#E2E8E5] rounded-lg text-xs font-mono"
+                  className="px-2 py-1.5 bg-[#F8FAFC] border border-[#E2E8E5] rounded-lg text-xs tabular-nums"
                 />
                 <span className="text-xs text-slate-400">to</span>
                 <input
                   type="date"
                   value={customEndDate}
                   onChange={(e) => setCustomEndDate(e.target.value)}
-                  className="px-2 py-1.5 bg-[#F8FAFC] border border-[#E2E8E5] rounded-lg text-xs font-mono"
+                  className="px-2 py-1.5 bg-[#F8FAFC] border border-[#E2E8E5] rounded-lg text-xs tabular-nums"
                 />
               </div>
             )}
@@ -839,8 +839,8 @@ export default function SalesInvoicesDashboardPage() {
 
           {/* Right: Selected records action bar */}
           {selectedIds.size > 0 && (
-            <div className="flex items-center gap-2 self-end md:self-auto shrink-0 bg-[#E6F7F2] border border-[#85D5C2] px-3 py-1.5 rounded-xl">
-              <span className="text-xs font-bold text-[#174B43]">
+            <div className="flex items-center gap-2 self-end md:self-auto shrink-0 bg-[#EFF6FF] border border-[#93C5FD] px-3 py-1.5 rounded-xl">
+              <span className="text-xs font-bold text-[#0F172A]">
                 {selectedIds.size} {lang === "gu" ? "પસંદ કરેલ" : "Selected"}
               </span>
               <button
@@ -904,14 +904,14 @@ export default function SalesInvoicesDashboardPage() {
       <div className="bg-white border border-[#E2E8E5] rounded-2xl shadow-xs overflow-hidden">
         <div className="overflow-x-auto min-h-[400px]">
           <table className="w-full text-left text-xs border-collapse min-w-[800px]">
-            <thead className="bg-[#FAFBFD] text-[#5A6B66] uppercase tracking-wider font-extrabold border-b border-[#E2E8E5] text-[11px]">
+            <thead className="bg-[#FAFBFD] text-[#5A6B66] uppercase tracking-wider font-semibold border-b border-[#E2E8E5] text-[11px]">
               <tr>
                 <th className="py-3 px-3.5 w-10 text-center">
                   <input
                     type="checkbox"
                     checked={isAllSelected}
                     onChange={handleSelectAll}
-                    className="w-4 h-4 text-[#174B43] rounded cursor-pointer accent-[#174B43]"
+                    className="w-4 h-4 text-[#0F172A] rounded cursor-pointer accent-[#0F172A]"
                   />
                 </th>
                 <th className="py-3 px-3 min-w-[100px]">{lang === "gu" ? "તારીખ" : "DATE"}</th>
@@ -928,8 +928,8 @@ export default function SalesInvoicesDashboardPage() {
               {isLoading ? (
                 <tr>
                   <td colSpan={8} className="py-20 text-center text-slate-400">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-[#26A58A] border-t-transparent mb-2" />
-                    <p className="text-xs font-bold text-[#174B43]">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-[#1677E8] border-t-transparent mb-2" />
+                    <p className="text-xs font-bold text-[#0F172A]">
                       {lang === "gu" ? "વેચાણ બિલ લોડ થઈ રહ્યાં છે..." : "Loading sales invoices..."}
                     </p>
                   </td>
@@ -939,7 +939,7 @@ export default function SalesInvoicesDashboardPage() {
                 <tr>
                   <td colSpan={8} className="py-20 px-4 text-center">
                     <div className="max-w-sm mx-auto space-y-3">
-                      <div className="w-14 h-14 mx-auto bg-[#E6F7F2] border border-[#85D5C2] rounded-2xl flex items-center justify-center text-[#26A58A] shadow-inner">
+                      <div className="w-14 h-14 mx-auto bg-[#EFF6FF] border border-[#93C5FD] rounded-2xl flex items-center justify-center text-[#1677E8] shadow-inner">
                         <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
@@ -966,7 +966,7 @@ export default function SalesInvoicesDashboardPage() {
                         </button>
                         <Link
                           href="/sales/invoices/new"
-                          className="px-4 py-1.5 bg-[#174B43] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                          className="px-4 py-1.5 bg-[#0F172A] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
                         >
                           {lang === "gu" ? "+ નવું બિલ" : "+ Create Invoice"}
                         </Link>
@@ -988,7 +988,7 @@ export default function SalesInvoicesDashboardPage() {
                       key={inv.id}
                       onClick={() => inv?.id && router.push(`/sales/invoices/${inv.id}`)}
                       className={`hover:bg-[#F8FAF9] transition-colors group cursor-pointer ${
-                        isSelected ? "bg-[#E6F7F2]/40" : ""
+                        isSelected ? "bg-[#EFF6FF]/40" : ""
                       }`}
                     >
                       {/* Checkbox */}
@@ -997,7 +997,7 @@ export default function SalesInvoicesDashboardPage() {
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => handleSelectOne(inv.id)}
-                          className="w-4 h-4 text-[#174B43] rounded cursor-pointer accent-[#174B43]"
+                          className="w-4 h-4 text-[#0F172A] rounded cursor-pointer accent-[#0F172A]"
                         />
                       </td>
 
@@ -1017,12 +1017,12 @@ export default function SalesInvoicesDashboardPage() {
                         <div className="flex items-center gap-1.5">
                           <Link
                             href={`/sales/invoices/${inv.id}`}
-                            className="font-bold text-[#174B43] hover:text-[#26A58A] transition-colors font-mono"
+                            className="text-[13px] font-normal text-[#182230] hover:text-[#1677E8] transition-colors"
                           >
                             {inv.invoiceNumber}
                           </Link>
                           {inv.isB2B && (
-                            <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
                               B2B
                             </span>
                           )}
@@ -1032,14 +1032,14 @@ export default function SalesInvoicesDashboardPage() {
                       {/* Party Name with avatar chip */}
                       <td className="py-3 px-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-[#E6F7F2] text-[#174B43] border border-[#BCEADF] flex items-center justify-center font-bold text-xs shrink-0">
+                          <div className="w-7 h-7 rounded-lg bg-[#EFF6FF] text-[#0F172A] border border-[#BFDBFE] flex items-center justify-center font-bold text-xs shrink-0">
                             {(inv.party?.name || "C")[0].toUpperCase()}
                           </div>
                           <div className="min-w-0">
-                            <p className="font-bold text-[#1A2E2B] leading-tight truncate">
+                            <p className="text-[13px] font-normal text-[#182230] leading-tight truncate">
                               {inv.party?.name || "Cash Customer"}
                             </p>
-                            <div className="flex items-center gap-1.5 text-[10px] text-[#8E9F9A] font-mono mt-0.5">
+                            <div className="flex items-center gap-1.5 text-[11px] text-[#94A3B8] font-normal mt-0.5">
                               {inv.party?.gstin && (
                                 <span className="text-slate-600 font-semibold">
                                   GSTIN: {inv.party.gstin}
@@ -1069,8 +1069,8 @@ export default function SalesInvoicesDashboardPage() {
                       </td>
 
                       {/* Amount */}
-                      <td className="py-3 px-3 text-right whitespace-nowrap font-mono">
-                        <div className="font-black text-[#1A2E2B] text-xs">
+                      <td className="py-3 px-3 text-right whitespace-nowrap">
+                        <div className="bb-amount text-[13px] text-[#182230]">
                           {formatInr(total)}
                         </div>
                         {unpaid > 0.01 ? (
@@ -1118,7 +1118,7 @@ export default function SalesInvoicesDashboardPage() {
                           {/* Quick Link to View */}
                           <Link
                             href={`/sales/invoices/${inv.id}`}
-                            className="p-1 text-slate-400 hover:text-[#174B43] hover:bg-slate-100 rounded-md transition-colors"
+                            className="p-1 text-slate-400 hover:text-[#0F172A] hover:bg-slate-100 rounded-md transition-colors"
                             title="View Details"
                           >
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -1188,9 +1188,9 @@ export default function SalesInvoicesDashboardPage() {
                             {inv.status !== "CANCELLED" && (
                               <Link
                                 href={`/sales/invoices/${inv.id}/edit`}
-                                className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors"
+                                className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors"
                               >
-                                <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                <svg className="w-3.5 h-3.5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
                                 <span>{lang === "gu" ? "સુધારો (Edit)" : "Edit Invoice"}</span>
@@ -1205,9 +1205,9 @@ export default function SalesInvoicesDashboardPage() {
                                 setIsHistoryModalOpen(true);
                                 setActiveActionMenuId(null);
                               }}
-                              className="w-full text-left flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors cursor-pointer"
+                              className="w-full text-left flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors cursor-pointer"
                             >
-                              <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                              <svg className="w-3.5 h-3.5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                               </svg>
                               <span>{lang === "gu" ? "ઇતિહાસ (History)" : "Edit History"}</span>
@@ -1217,9 +1217,9 @@ export default function SalesInvoicesDashboardPage() {
                             <button
                               type="button"
                               onClick={() => handleDuplicateInvoice(inv)}
-                              className="w-full text-left flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F2FAF7] hover:text-[#174B43] transition-colors cursor-pointer"
+                              className="w-full text-left flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors cursor-pointer"
                             >
-                              <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                              <svg className="w-3.5 h-3.5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                               </svg>
                               <span>{lang === "gu" ? "નકલ બનાવો (Duplicate)" : "Duplicate"}</span>
@@ -1350,7 +1350,7 @@ export default function SalesInvoicesDashboardPage() {
                     type="checkbox"
                     checked={bulkDownloadSendToCa}
                     onChange={(e) => setBulkDownloadSendToCa(e.target.checked)}
-                    className="w-4 h-4 text-[#174B43] rounded accent-[#174B43]"
+                    className="w-4 h-4 text-[#0F172A] rounded accent-[#0F172A]"
                   />
                   <span className="font-bold text-slate-800">
                     {lang === "gu" ? "સીધા CA / એકાઉન્ટન્ટને મોકલો" : "Send Directly to CA / Tax Auditor"}
@@ -1375,7 +1375,7 @@ export default function SalesInvoicesDashboardPage() {
             </div>
 
             <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-500 font-mono">
+              <span className="text-xs font-semibold text-slate-500 tabular-nums">
                 {filteredInvoices.length} {lang === "gu" ? "બિલ તૈયાર" : "Invoices in Scope"}
               </span>
               <div className="flex items-center gap-2">
@@ -1390,7 +1390,7 @@ export default function SalesInvoicesDashboardPage() {
                   type="button"
                   onClick={handleBulkDownloadSubmit}
                   disabled={isExporting}
-                  className="px-6 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
+                  className="px-6 py-2 bg-[#0F172A] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
                 >
                   {isExporting ? "Generating..." : bulkDownloadSendToCa ? "Email Bundle" : "Download Bundle"}
                 </button>
@@ -1417,7 +1417,7 @@ export default function SalesInvoicesDashboardPage() {
                 <h2 className="text-sm font-bold text-slate-900">
                   {lang === "gu" ? "પેમેન્ટ નોંધો (Record Payment)" : "Record Payment"}
                 </h2>
-                <p className="text-[11px] text-slate-500 font-mono">
+                <p className="text-[11px] text-slate-500 tabular-nums">
                   Invoice #{paymentInvoice.invoiceNumber} • {paymentInvoice.party?.name || "Cash Customer"}
                 </p>
               </div>
@@ -1431,11 +1431,11 @@ export default function SalesInvoicesDashboardPage() {
             </div>
 
             <div className="p-6 space-y-3.5 text-xs">
-              <div className="p-3 bg-[#E6F7F2]/50 border border-[#85D5C2] rounded-xl flex items-center justify-between">
-                <span className="text-[#174B43] font-semibold">
+              <div className="p-3 bg-[#EFF6FF]/50 border border-[#93C5FD] rounded-xl flex items-center justify-between">
+                <span className="text-[#0F172A] font-semibold">
                   {lang === "gu" ? "કુલ બાકી રકમ:" : "Total Outstanding Balance:"}
                 </span>
-                <span className="font-mono font-bold text-[#174B43] text-sm">
+                <span className="tabular-nums font-bold text-[#0F172A] text-sm">
                   {formatInr(paymentInvoice.outstandingBalance)}
                 </span>
               </div>
@@ -1450,7 +1450,7 @@ export default function SalesInvoicesDashboardPage() {
                   step="any"
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value === "" ? "" : Number(e.target.value))}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono text-sm font-bold focus:bg-white focus:outline-none"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 tabular-nums text-sm font-bold focus:bg-white focus:outline-none"
                 />
               </div>
 
@@ -1478,7 +1478,7 @@ export default function SalesInvoicesDashboardPage() {
                     type="date"
                     value={paymentDate}
                     onChange={(e) => setPaymentDate(e.target.value)}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono focus:bg-white focus:outline-none"
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 tabular-nums focus:bg-white focus:outline-none"
                   />
                 </div>
               </div>
@@ -1509,7 +1509,7 @@ export default function SalesInvoicesDashboardPage() {
                 type="button"
                 onClick={handleRecordPaymentSubmit}
                 disabled={isSubmittingPayment}
-                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
+                className="px-5 py-2 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
               >
                 {isSubmittingPayment ? "Recording..." : "Record Payment"}
               </button>
@@ -1527,7 +1527,7 @@ export default function SalesInvoicesDashboardPage() {
                 <h2 className="text-sm font-bold text-slate-900">
                   {lang === "gu" ? "બિલ ઇતિહાસ અને ક્રિયાઓ" : "Invoice Activity & Audit Log"}
                 </h2>
-                <p className="text-[11px] text-slate-500 font-mono">#{historyInvoice.invoiceNumber}</p>
+                <p className="text-[11px] text-slate-500 tabular-nums">#{historyInvoice.invoiceNumber}</p>
               </div>
               <button
                 type="button"
@@ -1539,14 +1539,14 @@ export default function SalesInvoicesDashboardPage() {
             </div>
 
             <div className="p-6 space-y-4 text-xs">
-              <div className="relative pl-6 space-y-4 border-l-2 border-[#85D5C2] ml-2">
+              <div className="relative pl-6 space-y-4 border-l-2 border-[#93C5FD] ml-2">
                 <div className="relative">
-                  <div className="absolute -left-[31px] top-0.5 w-3.5 h-3.5 rounded-full bg-[#174B43] border-2 border-white ring-2 ring-[#BCEADF]" />
+                  <div className="absolute -left-[31px] top-0.5 w-3.5 h-3.5 rounded-full bg-[#0F172A] border-2 border-white ring-2 ring-[#BFDBFE]" />
                   <p className="font-bold text-slate-900">Invoice Created</p>
                   <p className="text-[11px] text-slate-500">
                     Created on {new Date(historyInvoice.invoiceDate).toLocaleDateString()}
                   </p>
-                  <p className="text-[10px] font-mono text-slate-400 mt-0.5">
+                  <p className="text-[10px] tabular-nums text-slate-400 mt-0.5">
                     Total: {formatInr(historyInvoice.grandTotal)} • Party: {historyInvoice.party?.name || "Cash Customer"}
                   </p>
                 </div>
@@ -1558,7 +1558,7 @@ export default function SalesInvoicesDashboardPage() {
                     <p className="text-[11px] text-slate-500">
                       Amount: {formatInr(historyInvoice.paidAmount)}
                     </p>
-                    <p className="text-[10px] font-mono text-slate-400 mt-0.5">
+                    <p className="text-[10px] tabular-nums text-slate-400 mt-0.5">
                       Status: {historyInvoice.status}
                     </p>
                   </div>
@@ -1607,7 +1607,7 @@ export default function SalesInvoicesDashboardPage() {
             <div className="p-6 space-y-3 text-xs">
               <p className="text-slate-700">
                 Are you sure you want to cancel invoice{" "}
-                <strong className="font-mono text-slate-900">#{cancelInvoice.invoiceNumber}</strong>?
+                <strong className="tabular-nums text-slate-900">#{cancelInvoice.invoiceNumber}</strong>?
               </p>
               <p className="text-[11px] text-slate-500">
                 Cancelling this invoice will reverse inventory deductions and mark the bill as void.

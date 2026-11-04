@@ -386,7 +386,7 @@ export default function AICollectionsPage() {
               </svg>
             </div>
             <div>
-              <h1 className="text-lg font-bold text-[#1F2937] leading-tight">
+              <h1 className="text-[22px] font-semibold text-[#182230] leading-tight">
                 AI Collections
               </h1>
               <p className="text-[11px] text-[#9CA3AF] font-medium">
@@ -399,7 +399,7 @@ export default function AICollectionsPage() {
           <button
             type="button"
             onClick={() => setIsDemoModalOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-[#5C56DF] bg-white hover:bg-indigo-50/60 rounded-lg border border-[#C7D2FE] transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-[#5C56DF] bg-white hover:bg-indigo-50/60 rounded-lg border border-[#C7D2FE] transition-colors cursor-pointer"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -459,10 +459,10 @@ export default function AICollectionsPage() {
                   </span>
                 </p>
 
-                <h2 className="text-3xl font-extrabold text-[#111827] leading-tight mb-2">
+                <h2 className="text-3xl font-semibold text-[#111827] leading-tight mb-2">
                   Stuck payments due to
                 </h2>
-                <h2 className="text-3xl font-extrabold leading-tight mb-5">
+                <h2 className="text-3xl font-semibold leading-tight mb-5">
                   <span className="text-[#5C56DF] underline decoration-[#5C56DF]/30 underline-offset-4">
                     missed follow-ups?
                   </span>
@@ -476,7 +476,7 @@ export default function AICollectionsPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("schedule")}
-                  className="px-8 py-3 bg-[#5C56DF] hover:bg-[#4D47CB] text-white font-bold text-sm rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer"
+                  className="px-8 py-3 bg-[#5C56DF] hover:bg-[#4D47CB] text-white font-medium text-[13px] rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer"
                 >
                   Start AI Collections
                 </button>
@@ -524,7 +524,7 @@ export default function AICollectionsPage() {
                           </span>
                         </div>
                         <div className="text-center mr-2 min-w-[24px]">
-                          <span className="text-lg font-extrabold text-[#1F2937]">02</span>
+                          <span className="text-lg font-semibold text-[#1F2937]">02</span>
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-[#1F2937]">Will pay on Friday</p>
@@ -725,11 +725,11 @@ export default function AICollectionsPage() {
                   <p className="text-sm font-semibold text-[#065F46]">
                     <span className="inline-block w-2 h-2 rounded-full bg-[#10B981] mr-2 animate-pulse" />
                     myCashFlo recovered{" "}
-                    <span className="font-extrabold text-[#059669]">
+                    <span className="font-semibold text-[#059669]">
                       ₹{stats.totalRecovered > 0 ? (stats.totalRecovered / 100).toFixed(0) + " Lakh" : "10 Cr+"}
                     </span>{" "}
                     from{" "}
-                    <span className="font-extrabold text-[#059669]">
+                    <span className="font-semibold text-[#059669]">
                       {stats.partiesCalled > 0 ? stats.partiesCalled.toLocaleString("en-IN") : "1,73,221"}
                     </span>{" "}
                     parties
@@ -743,19 +743,19 @@ export default function AICollectionsPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm">
                   <p className="text-[11px] text-[#9CA3AF] font-medium mb-1">Total Calls</p>
-                  <p className="text-2xl font-extrabold text-[#1F2937]">{stats.totalCalls}</p>
+                  <p className="text-2xl font-semibold text-[#1F2937]">{stats.totalCalls}</p>
                 </div>
                 <div className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm">
                   <p className="text-[11px] text-[#9CA3AF] font-medium mb-1">Successful</p>
-                  <p className="text-2xl font-extrabold text-[#10B981]">{stats.successfulCalls}</p>
+                  <p className="text-2xl font-semibold text-[#10B981]">{stats.successfulCalls}</p>
                 </div>
                 <div className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm">
                   <p className="text-[11px] text-[#9CA3AF] font-medium mb-1">Promises Recorded</p>
-                  <p className="text-2xl font-extrabold text-[#5C56DF]">{stats.promisesRecorded}</p>
+                  <p className="text-2xl font-semibold text-[#5C56DF]">{stats.promisesRecorded}</p>
                 </div>
                 <div className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-sm">
                   <p className="text-[11px] text-[#9CA3AF] font-medium mb-1">Recovered</p>
-                  <p className="text-2xl font-extrabold text-[#059669]">
+                  <p className="text-2xl font-semibold text-[#059669]">
                     ₹{stats.totalRecovered.toLocaleString("en-IN")}
                   </p>
                 </div>
@@ -789,7 +789,7 @@ export default function AICollectionsPage() {
             <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
               <div className="px-5 py-3 border-b border-[#E5E7EB] flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <h3 className="text-sm font-bold text-[#1F2937]">
+                  <h3 className="text-[15px] font-semibold text-[#1F2937]">
                     Parties with Pending Dues
                   </h3>
                   <span className="text-[11px] text-[#9CA3AF] bg-slate-100 px-2 py-0.5 rounded-full font-semibold">
@@ -802,7 +802,7 @@ export default function AICollectionsPage() {
                     value={partySearchTerm}
                     onChange={(e) => setPartySearchTerm(e.target.value)}
                     placeholder="Search parties..."
-                    className="px-3 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-md outline-none focus:border-[#5C56DF] w-52"
+                    className="px-3 py-1.5 text-[13px] bg-slate-50 border border-[#E5E7EB] rounded-md outline-none focus:border-[#5C56DF] w-52 h-10"
                   />
                   {selectedParties.size > 0 && (
                     <button
@@ -810,7 +810,7 @@ export default function AICollectionsPage() {
                       onClick={() => {
                         setIsScheduleModalOpen(true);
                       }}
-                      className="flex items-center gap-1.5 px-4 py-1.5 bg-[#5C56DF] hover:bg-[#4D47CB] text-white text-xs font-bold rounded-md transition-colors cursor-pointer"
+                      className="flex items-center gap-1.5 px-4 py-1.5 bg-[#5C56DF] hover:bg-[#4D47CB] text-white text-[13px] font-medium rounded-md transition-colors cursor-pointer"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -837,13 +837,13 @@ export default function AICollectionsPage() {
                           className="w-3.5 h-3.5 accent-[#5C56DF] cursor-pointer"
                         />
                       </th>
-                      <th className="py-2.5 px-3 text-left font-bold text-[#6B7280] uppercase tracking-wider text-[10px]">
+                      <th className="py-2.5 px-3 text-left font-medium text-[#6B7280] uppercase tracking-wider text-[10px]">
                         Party Name
                       </th>
-                      <th className="py-2.5 px-3 text-left font-bold text-[#6B7280] uppercase tracking-wider text-[10px]">
+                      <th className="py-2.5 px-3 text-left font-medium text-[#6B7280] uppercase tracking-wider text-[10px]">
                         Mobile
                       </th>
-                      <th className="py-2.5 px-3 text-right font-bold text-[#6B7280] uppercase tracking-wider text-[10px]">
+                      <th className="py-2.5 px-3 text-right font-medium text-[#6B7280] uppercase tracking-wider text-[10px]">
                         Outstanding (₹)
                       </th>
                     </tr>
@@ -851,7 +851,7 @@ export default function AICollectionsPage() {
                   <tbody className="divide-y divide-[#F1F5F9]">
                     {filteredParties.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="py-12 text-center text-[#9CA3AF] text-sm">
+                        <td colSpan={4} className="py-12 text-center text-[#9CA3AF] text-[13px]">
                           {overdueParties.length === 0 ? (
                             <div>
                               <p className="font-semibold text-[#6B7280] mb-1">No parties with pending dues</p>
@@ -884,11 +884,11 @@ export default function AICollectionsPage() {
                           <td className="py-3 px-3">
                             <p className="font-bold text-[#1F2937]">{party.name}</p>
                           </td>
-                          <td className="py-3 px-3 text-[#6B7280] font-mono">
+                          <td className="py-3 px-3 text-[#6B7280] tabular-nums">
                             {party.mobile || "—"}
                           </td>
                           <td className="py-3 px-3 text-right">
-                            <span className="font-bold text-[#DC2626] font-mono">
+                            <span className="font-bold text-[#DC2626] tabular-nums">
                               ₹{Number(party.outstandingBalance || 0).toLocaleString("en-IN")}
                             </span>
                           </td>
@@ -921,7 +921,7 @@ export default function AICollectionsPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("schedule")}
-                  className="px-5 py-2 bg-[#5C56DF] hover:bg-[#4D47CB] text-white font-bold text-xs rounded-md transition-colors cursor-pointer"
+                  className="h-9 px-3.5 bg-[#5C56DF] hover:bg-[#4D47CB] text-white font-medium text-[13px] rounded-md transition-colors cursor-pointer"
                 >
                   Schedule Calls
                 </button>
@@ -929,7 +929,7 @@ export default function AICollectionsPage() {
             ) : (
               <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
                 <div className="px-5 py-3 border-b border-[#E5E7EB] flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-[#1F2937]">
+                  <h3 className="text-[15px] font-semibold text-[#1F2937]">
                     Collection Call History
                   </h3>
                   <span className="text-[11px] text-[#9CA3AF] font-semibold">
@@ -941,25 +941,25 @@ export default function AICollectionsPage() {
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="bg-[#F8FAFC] border-b border-[#E5E7EB]">
-                        <th className="py-2.5 px-3 text-left font-bold text-[#6B7280] uppercase tracking-wider text-[10px]">
+                        <th className="py-2.5 px-3 text-left font-medium text-[#6B7280] uppercase tracking-wider text-[10px]">
                           Party
                         </th>
-                        <th className="py-2.5 px-3 text-left font-bold text-[#6B7280] uppercase tracking-wider text-[10px]">
+                        <th className="py-2.5 px-3 text-left font-medium text-[#6B7280] uppercase tracking-wider text-[10px]">
                           Mobile
                         </th>
-                        <th className="py-2.5 px-3 text-left font-bold text-[#6B7280] uppercase tracking-wider text-[10px]">
+                        <th className="py-2.5 px-3 text-left font-medium text-[#6B7280] uppercase tracking-wider text-[10px]">
                           Status
                         </th>
-                        <th className="py-2.5 px-3 text-left font-bold text-[#6B7280] uppercase tracking-wider text-[10px]">
+                        <th className="py-2.5 px-3 text-left font-medium text-[#6B7280] uppercase tracking-wider text-[10px]">
                           Duration
                         </th>
-                        <th className="py-2.5 px-3 text-right font-bold text-[#6B7280] uppercase tracking-wider text-[10px]">
+                        <th className="py-2.5 px-3 text-right font-medium text-[#6B7280] uppercase tracking-wider text-[10px]">
                           Amount
                         </th>
-                        <th className="py-2.5 px-3 text-left font-bold text-[#6B7280] uppercase tracking-wider text-[10px]">
+                        <th className="py-2.5 px-3 text-left font-medium text-[#6B7280] uppercase tracking-wider text-[10px]">
                           Promise
                         </th>
-                        <th className="py-2.5 px-3 text-center font-bold text-[#6B7280] uppercase tracking-wider text-[10px]">
+                        <th className="py-2.5 px-3 text-center font-medium text-[#6B7280] uppercase tracking-wider text-[10px]">
                           Actions
                         </th>
                       </tr>
@@ -967,19 +967,19 @@ export default function AICollectionsPage() {
                     <tbody className="divide-y divide-[#F1F5F9]">
                       {calls.map((call) => (
                         <tr key={call.id} className="hover:bg-slate-50/70 transition-colors">
-                          <td className="py-3 px-3 font-bold text-[#1F2937]">
+                          <td className="py-3 px-3 font-medium text-[#1F2937]">
                             {call.partyName}
                           </td>
-                          <td className="py-3 px-3 text-[#6B7280] font-mono">
+                          <td className="py-3 px-3 text-[#6B7280] tabular-nums">
                             {call.partyMobile}
                           </td>
                           <td className="py-3 px-3">
                             {getStatusBadge(call.status)}
                           </td>
-                          <td className="py-3 px-3 text-[#6B7280] font-mono">
+                          <td className="py-3 px-3 text-[#6B7280] tabular-nums">
                             {formatDuration(call.duration)}
                           </td>
-                          <td className="py-3 px-3 text-right font-bold text-[#DC2626] font-mono">
+                          <td className="py-3 px-3 text-right font-medium text-[#DC2626] tabular-nums">
                             {call.amount ? `₹${call.amount.toLocaleString("en-IN")}` : "—"}
                           </td>
                           <td className="py-3 px-3">
@@ -999,7 +999,7 @@ export default function AICollectionsPage() {
                               <button
                                 type="button"
                                 onClick={() => handleSimulateCall(call.id)}
-                                className="px-3 py-1 bg-[#5C56DF] hover:bg-[#4D47CB] text-white text-[10px] font-bold rounded-md transition-colors cursor-pointer"
+                                className="px-3 py-1 bg-[#5C56DF] hover:bg-[#4D47CB] text-white text-[10px] font-medium rounded-md transition-colors cursor-pointer"
                               >
                                 Simulate Call
                               </button>
@@ -1027,7 +1027,7 @@ export default function AICollectionsPage() {
           <div className="max-w-2xl space-y-5">
             <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
               <div className="px-5 py-4 border-b border-[#E5E7EB]">
-                <h3 className="text-sm font-bold text-[#1F2937]">AI Call Settings</h3>
+                <h3 className="text-[15px] font-semibold text-[#1F2937]">AI Call Settings</h3>
                 <p className="text-[11px] text-[#9CA3AF] mt-0.5">
                   Configure how AI makes collection calls on your behalf
                 </p>
@@ -1036,7 +1036,7 @@ export default function AICollectionsPage() {
               <div className="p-5 space-y-5 text-xs">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[#6B7280] font-semibold mb-1">
+                    <label className="block text-[#6B7280] font-medium mb-1">
                       Call Language
                     </label>
                     <select
@@ -1044,7 +1044,7 @@ export default function AICollectionsPage() {
                       onChange={(e) =>
                         setAiSettings({ ...aiSettings, language: e.target.value })
                       }
-                      className="w-full p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-md outline-none focus:border-[#5C56DF] text-xs"
+                      className="w-full p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-md outline-none focus:border-[#5C56DF] text-[13px] h-10"
                     >
                       <option value="hindi">Hindi</option>
                       <option value="english">English</option>
@@ -1057,7 +1057,7 @@ export default function AICollectionsPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[#6B7280] font-semibold mb-1">
+                    <label className="block text-[#6B7280] font-medium mb-1">
                       Preferred Call Time
                     </label>
                     <input
@@ -1066,14 +1066,14 @@ export default function AICollectionsPage() {
                       onChange={(e) =>
                         setAiSettings({ ...aiSettings, callTime: e.target.value })
                       }
-                      className="w-full p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-md outline-none focus:border-[#5C56DF] text-xs font-mono"
+                      className="w-full p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-md outline-none focus:border-[#5C56DF] text-[13px] tabular-nums h-10"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[#6B7280] font-semibold mb-1">
+                    <label className="block text-[#6B7280] font-medium mb-1">
                       Max Retries (if no answer)
                     </label>
                     <input
@@ -1087,11 +1087,11 @@ export default function AICollectionsPage() {
                           maxRetries: parseInt(e.target.value) || 3,
                         })
                       }
-                      className="w-full p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-md outline-none focus:border-[#5C56DF] text-xs font-mono"
+                      className="w-full p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-md outline-none focus:border-[#5C56DF] text-[13px] tabular-nums h-10"
                     />
                   </div>
                   <div>
-                    <label className="block text-[#6B7280] font-semibold mb-1">
+                    <label className="block text-[#6B7280] font-medium mb-1">
                       Follow-up After (days)
                     </label>
                     <input
@@ -1105,7 +1105,7 @@ export default function AICollectionsPage() {
                           followUpDays: parseInt(e.target.value) || 3,
                         })
                       }
-                      className="w-full p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-md outline-none focus:border-[#5C56DF] text-xs font-mono"
+                      className="w-full p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-md outline-none focus:border-[#5C56DF] text-[13px] tabular-nums h-10"
                     />
                   </div>
                 </div>
@@ -1161,7 +1161,7 @@ export default function AICollectionsPage() {
                     <p className="font-bold text-[#374151] text-xs">Bank Account Details</p>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[#6B7280] font-semibold mb-1">
+                        <label className="block text-[#6B7280] font-medium mb-1">
                           Account Number
                         </label>
                         <input
@@ -1174,11 +1174,11 @@ export default function AICollectionsPage() {
                             })
                           }
                           placeholder="Enter account number"
-                          className="w-full p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-md outline-none focus:border-[#5C56DF] text-xs font-mono"
+                          className="w-full p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-md outline-none focus:border-[#5C56DF] text-[13px] tabular-nums h-10"
                         />
                       </div>
                       <div>
-                        <label className="block text-[#6B7280] font-semibold mb-1">
+                        <label className="block text-[#6B7280] font-medium mb-1">
                           IFSC Code
                         </label>
                         <input
@@ -1191,13 +1191,13 @@ export default function AICollectionsPage() {
                             })
                           }
                           placeholder="e.g. HDFC0001234"
-                          className="w-full p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-md outline-none focus:border-[#5C56DF] text-xs font-mono"
+                          className="w-full p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-md outline-none focus:border-[#5C56DF] text-[13px] tabular-nums h-10"
                         />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[#6B7280] font-semibold mb-1">
+                        <label className="block text-[#6B7280] font-medium mb-1">
                           Bank Name
                         </label>
                         <input
@@ -1210,11 +1210,11 @@ export default function AICollectionsPage() {
                             })
                           }
                           placeholder="e.g. HDFC Bank"
-                          className="w-full p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-md outline-none focus:border-[#5C56DF] text-xs"
+                          className="w-full p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-md outline-none focus:border-[#5C56DF] text-[13px] h-10"
                         />
                       </div>
                       <div>
-                        <label className="block text-[#6B7280] font-semibold mb-1">
+                        <label className="block text-[#6B7280] font-medium mb-1">
                           UPI ID
                         </label>
                         <input
@@ -1227,7 +1227,7 @@ export default function AICollectionsPage() {
                             })
                           }
                           placeholder="e.g. merchant@upi"
-                          className="w-full p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-md outline-none focus:border-[#5C56DF] text-xs font-mono"
+                          className="w-full p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-md outline-none focus:border-[#5C56DF] text-[13px] tabular-nums h-10"
                         />
                       </div>
                     </div>
@@ -1239,7 +1239,7 @@ export default function AICollectionsPage() {
                 <button
                   type="button"
                   onClick={handleSaveSettings}
-                  className="w-full py-2.5 bg-[#5C56DF] hover:bg-[#4D47CB] text-white font-bold text-xs rounded-md shadow-sm transition-colors cursor-pointer"
+                  className="w-full py-2.5 bg-[#5C56DF] hover:bg-[#4D47CB] text-white font-medium text-[13px] rounded-md shadow-sm transition-colors cursor-pointer"
                 >
                   Save Settings
                 </button>
@@ -1258,7 +1258,7 @@ export default function AICollectionsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200">
             <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-[#1F2937]">Schedule AI Calls</h2>
+              <h2 className="text-sm font-semibold text-[#182230]">Schedule AI Calls</h2>
               <button
                 type="button"
                 onClick={() => setIsScheduleModalOpen(false)}
@@ -1280,7 +1280,7 @@ export default function AICollectionsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[#6B7280] font-semibold mb-1">
+                  <label className="block text-[#6B7280] font-medium mb-1">
                     Call Date
                   </label>
                   <input
@@ -1288,18 +1288,18 @@ export default function AICollectionsPage() {
                     value={scheduleDate}
                     onChange={(e) => setScheduleDate(e.target.value)}
                     min={new Date().toISOString().split("T")[0]}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-md text-xs outline-none focus:border-[#5C56DF] font-mono"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-md text-[13px] outline-none focus:border-[#5C56DF] tabular-nums h-10"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#6B7280] font-semibold mb-1">
+                  <label className="block text-[#6B7280] font-medium mb-1">
                     Call Time
                   </label>
                   <input
                     type="time"
                     value={scheduleTime}
                     onChange={(e) => setScheduleTime(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-md text-xs outline-none focus:border-[#5C56DF] font-mono"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-md text-[13px] outline-none focus:border-[#5C56DF] tabular-nums h-10"
                   />
                 </div>
               </div>
@@ -1319,14 +1319,14 @@ export default function AICollectionsPage() {
                 type="button"
                 onClick={handleScheduleCalls}
                 disabled={isScheduling}
-                className="w-full py-2.5 bg-[#5C56DF] hover:bg-[#4D47CB] text-white font-bold text-xs rounded-md shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+                className="w-full py-2.5 bg-[#5C56DF] hover:bg-[#4D47CB] text-white font-medium text-[13px] rounded-md shadow-sm transition-colors cursor-pointer disabled:opacity-50"
               >
                 {isScheduling ? "Scheduling..." : "Schedule Calls"}
               </button>
               <button
                 type="button"
                 onClick={() => setIsScheduleModalOpen(false)}
-                className="w-full py-2 text-slate-600 hover:text-slate-900 font-semibold text-xs transition-colors cursor-pointer"
+                className="w-full py-2 text-slate-600 hover:text-slate-900 font-medium text-[13px] transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -1340,7 +1340,7 @@ export default function AICollectionsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="w-full max-w-sm bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200">
             <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-[#1F2937]">Book Your Free Demo</h2>
+              <h2 className="text-sm font-semibold text-[#182230]">Book Your Free Demo</h2>
               <button
                 type="button"
                 onClick={() => setIsDemoModalOpen(false)}
@@ -1365,7 +1365,7 @@ export default function AICollectionsPage() {
             ) : (
               <form onSubmit={handleBookDemo} className="p-5 space-y-3 text-xs">
                 <div>
-                  <label className="block text-[#6B7280] font-semibold mb-1">Name</label>
+                  <label className="block text-[#6B7280] font-medium mb-1">Name</label>
                   <input
                     type="text"
                     value={demoForm.name}
@@ -1374,11 +1374,11 @@ export default function AICollectionsPage() {
                     }
                     placeholder="Your name"
                     required
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-md outline-none focus:border-[#5C56DF]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-md outline-none focus:border-[#5C56DF] text-[13px] font-normal h-10"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#6B7280] font-semibold mb-1">Phone</label>
+                  <label className="block text-[#6B7280] font-medium mb-1">Phone</label>
                   <input
                     type="tel"
                     value={demoForm.phone}
@@ -1387,11 +1387,11 @@ export default function AICollectionsPage() {
                     }
                     placeholder="Your phone number"
                     required
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-md outline-none focus:border-[#5C56DF] font-mono"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-md outline-none focus:border-[#5C56DF] tabular-nums text-[13px] font-normal h-10"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#6B7280] font-semibold mb-1">Email</label>
+                  <label className="block text-[#6B7280] font-medium mb-1">Email</label>
                   <input
                     type="email"
                     value={demoForm.email}
@@ -1399,14 +1399,14 @@ export default function AICollectionsPage() {
                       setDemoForm({ ...demoForm, email: e.target.value })
                     }
                     placeholder="Your email (optional)"
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-md outline-none focus:border-[#5C56DF]"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-md outline-none focus:border-[#5C56DF] text-[13px] font-normal h-10"
                   />
                 </div>
 
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="w-full py-2.5 bg-[#5C56DF] hover:bg-[#4D47CB] text-white font-bold text-xs rounded-md shadow-sm transition-colors cursor-pointer"
+                    className="w-full py-2.5 bg-[#5C56DF] hover:bg-[#4D47CB] text-white font-medium text-[13px] rounded-md shadow-sm transition-colors cursor-pointer"
                   >
                     Book Free Demo
                   </button>

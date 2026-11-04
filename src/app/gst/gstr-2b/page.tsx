@@ -104,7 +104,7 @@ function Body() {
         <input type="file" accept=".json,.csv,text/csv,application/json" onChange={(event) => event.target.files?.[0] && onFile(event.target.files[0])} />
         {preview ? <p className="text-sm text-slate-600">{preview}</p> : null}
         {canWrite ? (
-          <button type="button" className="px-3 py-1.5 rounded bg-slate-900 text-white text-sm" disabled={!fileText} onClick={importFile}>
+          <button type="button" className="h-9 px-3 rounded bg-slate-900 text-white text-[13px]" disabled={!fileText} onClick={importFile}>
             Import for {period.returnPeriod}
           </button>
         ) : (
@@ -143,13 +143,13 @@ function Body() {
           <p>{(selected.explanation?.rules || []).join(" ")}</p>
           {canWrite ? (
             <div className="space-y-2">
-              <select className="border rounded px-2 py-1" value={decision} onChange={(event) => setDecision(event.target.value)}>
+              <select className="border rounded px-2 py-1 text-[13px] font-normal h-10" value={decision} onChange={(event) => setDecision(event.target.value)}>
                 <option>ACCEPTED</option>
                 <option>REJECTED</option>
                 <option>DEFERRED</option>
               </select>
-              <textarea className="w-full border rounded p-2" placeholder="Reason, at least 10 characters" value={reason} onChange={(event) => setReason(event.target.value)} />
-              <button type="button" className="px-3 py-1.5 rounded bg-slate-900 text-white" onClick={review}>
+              <textarea className="w-full border rounded p-2 text-[13px] font-normal" placeholder="Reason, at least 10 characters" value={reason} onChange={(event) => setReason(event.target.value)} />
+              <button type="button" className="h-9 px-3 rounded bg-slate-900 text-white" onClick={review}>
                 Save review
               </button>
             </div>

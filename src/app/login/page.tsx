@@ -290,7 +290,7 @@ function LoginContent() {
         <button
           type="button"
           onClick={() => router.push("/")}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-[#F2FAF7] text-xs font-bold text-[#5A6B66] hover:text-[#174B43] rounded-xl border border-[#E2E8E5] shadow-xs transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-[#F8FAFC] text-xs font-bold text-[#5A6B66] hover:text-[#0F172A] rounded-xl border border-[#E2E8E5] shadow-xs transition-all"
         >
           <span>←</span>
           <span>{lang === "gu" ? "મુખ્ય પૃષ્ઠ" : "Home"}</span>
@@ -303,7 +303,7 @@ function LoginContent() {
           type="button"
           onClick={() => setLang("en")}
           className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-            lang === "en" ? "bg-[#E6F7F2] text-[#174B43]" : "text-[#5A6B66] hover:text-[#1A2E2B]"
+            lang === "en" ? "bg-[#EFF6FF] text-[#0F172A]" : "text-[#5A6B66] hover:text-[#1A2E2B]"
           }`}
         >
           English
@@ -312,14 +312,14 @@ function LoginContent() {
           type="button"
           onClick={() => setLang("gu")}
           className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all font-gujarati ${
-            lang === "gu" ? "bg-[#E6F7F2] text-[#174B43]" : "text-[#5A6B66] hover:text-[#1A2E2B]"
+            lang === "gu" ? "bg-[#EFF6FF] text-[#0F172A]" : "text-[#5A6B66] hover:text-[#1A2E2B]"
           }`}
         >
           ગુજરાતી
         </button>
       </div>
 
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-[#E2E8E5] p-6 sm:p-8 space-y-5 relative z-10 border-t-4 border-t-[#26A58A] my-8">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-[#E2E8E5] p-6 sm:p-8 space-y-5 relative z-10 border-t-4 border-t-[#1677E8] my-8">
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <div className="w-16 h-16 relative mx-auto flex items-center justify-center">
@@ -332,9 +332,9 @@ function LoginContent() {
               priority
             />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-            <span className="text-[#174B43]">MyOwn</span>
-            <span className="text-[#26A58A]">BillBook</span>
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
+            <span className="text-[#0F172A]">MyOwn</span>
+            <span className="text-[#1677E8]">BillBook</span>
           </h1>
           <p className="text-xs text-[#5A6B66] font-medium max-w-xs mx-auto">
             {lang === "gu"
@@ -353,7 +353,7 @@ function LoginContent() {
             }}
             className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
               mode === "login"
-                ? "bg-white text-[#174B43] shadow-xs"
+                ? "bg-white text-[#0F172A] shadow-xs"
                 : "text-[#5A6B66] hover:text-[#1A2E2B]"
             }`}
           >
@@ -367,7 +367,7 @@ function LoginContent() {
             }}
             className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
               mode === "signup"
-                ? "bg-white text-[#174B43] shadow-xs"
+                ? "bg-white text-[#0F172A] shadow-xs"
                 : "text-[#5A6B66] hover:text-[#1A2E2B]"
             }`}
           >
@@ -490,7 +490,7 @@ function LoginContent() {
                   setSuccessMsg(null);
                   setDevOtp(null);
                 }}
-                className="text-[11px] font-semibold text-[#26A58A] hover:underline"
+                className="text-[11px] font-semibold text-[#1677E8] hover:underline"
               >
                 {lang === "gu" ? "પાસવર્ડ ભૂલી ગયા?" : "Forgot password?"}
               </button>
@@ -499,7 +499,7 @@ function LoginContent() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 rounded-xl text-sm font-bold text-white shadow-jade bg-[#26A58A] hover:bg-[#208E76] transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 cursor-pointer"
+              className="w-full py-3 px-4 rounded-xl text-sm font-bold text-white shadow-blue-500/20 bg-[#1677E8] hover:bg-[#1268D3] transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 cursor-pointer"
             >
               {isLoading ? (
                 <>
@@ -543,7 +543,7 @@ function LoginContent() {
                     value={resetOtp}
                     onChange={(e) => setResetOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                     placeholder="000000"
-                    className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm font-mono tracking-[0.3em] text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#C24E1D] focus:outline-none transition-all"
+                    className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm tabular-nums tracking-[0.3em] text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#C24E1D] focus:outline-none transition-all"
                   />
                 </div>
                 <div>
@@ -565,13 +565,13 @@ function LoginContent() {
             {devOtp && (
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
                 {lang === "gu" ? "સ્થાનિક કોડ (SMTP બંધ છે): " : "Local code (SMTP is off): "}
-                <strong className="font-mono tracking-widest">{devOtp}</strong>
+                <strong className="tabular-nums tracking-widest">{devOtp}</strong>
               </div>
             )}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 rounded-xl text-sm font-bold text-white shadow-jade bg-[#26A58A] hover:bg-[#208E76] transition-all disabled:opacity-50"
+              className="w-full py-3 px-4 rounded-xl text-sm font-bold text-white shadow-blue-500/20 bg-[#1677E8] hover:bg-[#1268D3] transition-all disabled:opacity-50"
             >
               {isLoading
                 ? lang === "gu" ? "રાહ જુઓ..." : "Please wait..."
@@ -619,7 +619,7 @@ function LoginContent() {
                   value={signupData.phone}
                   onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
                   placeholder="98980 00000"
-                  className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm font-mono text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#C24E1D] focus:outline-none transition-all"
+                  className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm tabular-nums text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#C24E1D] focus:outline-none transition-all"
                 />
               </div>
 
@@ -667,7 +667,7 @@ function LoginContent() {
                 value={signupData.gstin}
                 onChange={(e) => setSignupData({ ...signupData, gstin: e.target.value.toUpperCase() })}
                 placeholder="24AAAAA0000A1Z5"
-                className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm font-mono uppercase text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#C24E1D] focus:outline-none transition-all"
+                className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm tabular-nums uppercase text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#C24E1D] focus:outline-none transition-all"
               />
             </div>
 
@@ -699,7 +699,7 @@ function LoginContent() {
                   value={signupOtp}
                   onChange={(e) => setSignupOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   placeholder="000000"
-                  className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm font-mono tracking-[0.3em] text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#C24E1D] focus:outline-none transition-all"
+                  className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm tabular-nums tracking-[0.3em] text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#C24E1D] focus:outline-none transition-all"
                 />
                 <button
                   type="button"
@@ -717,14 +717,14 @@ function LoginContent() {
             {devOtp && mode === "signup" && (
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
                 {lang === "gu" ? "સ્થાનિક કોડ (SMTP બંધ છે): " : "Local code (SMTP is off): "}
-                <strong className="font-mono tracking-widest">{devOtp}</strong>
+                <strong className="tabular-nums tracking-widest">{devOtp}</strong>
               </div>
             )}
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 rounded-xl text-sm font-bold text-white shadow-jade bg-[#26A58A] hover:bg-[#208E76] transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 cursor-pointer mt-2"
+              className="w-full py-3 px-4 rounded-xl text-sm font-bold text-white shadow-blue-500/20 bg-[#1677E8] hover:bg-[#1268D3] transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 cursor-pointer mt-2"
             >
               {isLoading ? (
                 <>
@@ -753,7 +753,7 @@ function LoginContent() {
           <button
             type="button"
             onClick={handleFillDemoBusiness}
-            className="text-[11px] text-[#5A6B66] hover:text-[#174B43] hover:underline font-semibold"
+            className="text-[11px] text-[#5A6B66] hover:text-[#0F172A] hover:underline font-semibold"
           >
             {lang === "gu" ? "ડેમો બિઝનેસ ભરો" : "Demo Business User"}
           </button>
@@ -769,7 +769,7 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-[#F6F7F1] flex flex-col justify-center items-center p-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#174B43] to-[#26A58A] flex items-center justify-center text-white font-bold text-3xl shadow-jade animate-pulse">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#0F172A] to-[#1677E8] flex items-center justify-center text-white font-bold text-3xl shadow-blue-500/20 animate-pulse">
             ₹
           </div>
         </div>

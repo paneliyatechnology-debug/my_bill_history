@@ -84,3 +84,68 @@ self.addEventListener("fetch", (event) => {
   // Default: Let browser handle network request natively without interception
   return;
 });
+
+// -----------------------------------------------------------------------------
+// Web Push Notifications Handling
+// -----------------------------------------------------------------------------
+self.addEventListener("push", (event) => {
+  let data = {
+    title: "MyOwn BillBook Notification",
+    body: "You have a new update in MyOwn BillBook.",
+    icon: "/icon-192.png",
+    badge: "/logo-icon.png",
+    data: { url: "/" },
+  };
+
+  if (event.data) {
+    try {
+      const payload = event.data.json();
+      data = {
+        title: payload.title || data.title,
+        body: payload.body || payload.message || data.body,
+        icon: payload.icon || "/icon-192.png",
+        badge: "/logo-icon.png",
+        tag: payload.tag || payload.notificationId || "default",
+        data: {
+          url: payload.deepLink || payload.data?.deepLink || "/",
+          notificationId: payload.notificationId,
+        },
+      };
+    } catch (e) {
+      data.body = event.data.text();
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: data.icon,
+      badge: data.badge,
+      tag: data.tag,
+      data: data.data,
+      vibrate: [200, 100, 200],
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const targetUrl = event.notification.data?.url || "/";
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
+      for (const client of windowClients) {
+        if (client.url.includes(self.location.origin) && "focus" in client) {
+          if ("navigate" in client) {
+            client.navigate(targetUrl);
+          }
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(targetUrl);
+      }
+    })
+  );
+});
+

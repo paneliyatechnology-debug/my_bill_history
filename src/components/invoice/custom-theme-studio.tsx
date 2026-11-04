@@ -301,7 +301,7 @@ export function CustomThemeStudio() {
           <div className="w-full max-w-[850px] bg-white rounded-lg shadow-xl border border-slate-200 overflow-hidden text-[11px] p-8 min-h-[920px] transition-all">
             {/* Top TAX INVOICE header */}
             <div className="flex justify-between items-center mb-2">
-              <span className="font-extrabold text-[12px] tracking-wide text-slate-900">
+              <span className="font-semibold text-[12px] tracking-wide text-slate-900">
                 {documentTitle}
               </span>
               <span className="border border-slate-400 bg-white px-2 py-0.5 text-[9px] font-semibold text-slate-700 rounded-xs">
@@ -324,7 +324,7 @@ export function CustomThemeStudio() {
 
               <div className="grid grid-cols-12 divide-x divide-slate-900">
                 <div className="col-span-7 p-3">
-                  <div className="text-[18px] font-black text-slate-950">
+                  <div className="text-[18px] font-semibold text-slate-950">
                     {companyName}
                   </div>
                   {showSlogan && (
@@ -389,7 +389,7 @@ export function CustomThemeStudio() {
 
               <div className="grid grid-cols-12 divide-x divide-slate-900">
                 <div className="col-span-7 p-3">
-                  <div className="font-extrabold uppercase text-[10px] text-slate-700">
+                  <div className="font-semibold uppercase text-[10px] text-slate-700">
                     {billToLabel}
                   </div>
                   <div className="font-bold text-[12px] text-slate-950 mt-0.5">
@@ -410,7 +410,7 @@ export function CustomThemeStudio() {
                 <div className="col-span-5 p-3 text-[10.5px]">
                   {showShipTo && (
                     <>
-                      <div className="font-extrabold uppercase text-[10px] text-slate-700">
+                      <div className="font-semibold uppercase text-[10px] text-slate-700">
                         {shipToLabel}
                       </div>
                       <div className="text-slate-700 mt-1 leading-snug">
@@ -438,7 +438,7 @@ export function CustomThemeStudio() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr
-                    className="border-b-2 border-slate-900 text-slate-950 font-extrabold text-[10px] uppercase"
+                    className="border-b-2 border-slate-900 text-slate-950 font-semibold text-[10px] uppercase"
                     style={{ backgroundColor: `${themeColor}12` }}
                   >
                     {columns
@@ -524,7 +524,7 @@ export function CustomThemeStudio() {
                   </tr>
                   {/* Total Row */}
                   <tr
-                    className="border-t-2 border-b-2 border-slate-900 font-black text-[11px]"
+                    className="border-t-2 border-b-2 border-slate-900 font-semibold text-[11px]"
                     style={{ backgroundColor: `${themeColor}08` }}
                   >
                     <td colSpan={columns.filter((c) => c.enabled).length - 3} className="py-2 px-2.5 text-left uppercase tracking-wider">
@@ -716,7 +716,7 @@ export function CustomThemeStudio() {
                       style={{ backgroundColor: c.id }}
                       title={c.name}
                     >
-                      {themeColor === c.id && <span className="text-white text-xs font-black">✓</span>}
+                      {themeColor === c.id && <span className="text-white text-xs font-semibold">✓</span>}
                     </button>
                   ))}
                 </div>

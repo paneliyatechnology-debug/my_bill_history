@@ -153,7 +153,7 @@ export function ItemBarcodeModal({
                 />
               </svg>
             </div>
-            <h3 className="text-base font-bold text-slate-800">
+            <h3 className="text-[15px] font-semibold text-slate-800">
               {lang === "gu" ? "બારકોડ સ્ટીકર જુઓ" : "View Barcode"}
             </h3>
           </div>
@@ -192,7 +192,7 @@ export function ItemBarcodeModal({
 
             {/* Sales Price */}
             {salesPrice !== undefined && salesPrice !== null && (
-              <div className="mt-1 text-sm font-extrabold text-emerald-700 font-mono">
+              <div className="mt-1 text-sm font-semibold text-emerald-700 tabular-nums">
                 SP: ₹{Number(salesPrice).toFixed(2)}
               </div>
             )}
@@ -201,14 +201,14 @@ export function ItemBarcodeModal({
 
         {/* Footer Actions */}
         <div className="flex items-center justify-between gap-3 px-5 py-3.5 bg-white border-t border-slate-100">
-          <span className="text-xs font-mono text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
+          <span className="text-xs tabular-nums text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
             Code: {barcode}
           </span>
 
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="px-3.5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="h-9 px-3 text-[13px] font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -218,7 +218,7 @@ export function ItemBarcodeModal({
 
             <button
               onClick={onClose}
-              className="px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 border border-slate-300 rounded-lg transition-colors cursor-pointer"
+              className="h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-100 border border-slate-300 rounded-lg transition-colors cursor-pointer"
             >
               {lang === "gu" ? "બંધ કરો" : "Close"}
             </button>

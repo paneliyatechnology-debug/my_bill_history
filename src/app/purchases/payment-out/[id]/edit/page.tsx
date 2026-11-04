@@ -395,7 +395,7 @@ export default function EditPaymentOutPage() {
                 <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 1.414L5.414 9H16a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
               </svg>
             </Link>
-            <h1 className="text-base font-bold text-slate-900">
+            <h1 className="text-[15px] font-semibold text-[#182230]">
               Record Payment Out #{paymentNumber}
             </h1>
           </div>
@@ -409,7 +409,7 @@ export default function EditPaymentOutPage() {
             </button>
             <button
               type="button"
-              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
             >
               <span>⚙</span>
               <span>Settings</span>
@@ -417,14 +417,14 @@ export default function EditPaymentOutPage() {
             <button
               type="button"
               onClick={() => router.push(`/purchases/payment-out/${voucherId}`)}
-              className="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              className="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-lg bg-[#174B43] px-5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-[#123B35] transition-colors disabled:opacity-50"
+              className="rounded-lg bg-[#0F172A] px-5 py-1.5 text-[13px] font-medium text-white shadow-xs hover:bg-[#1268D3] transition-colors disabled:opacity-50"
             >
               {isSubmitting ? "Saving..." : "Save Changes"}
             </button>
@@ -444,7 +444,7 @@ export default function EditPaymentOutPage() {
             {/* Left Box: Party Name, Current Balance, Amount Paid, Discount */}
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-2xs space-y-3">
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">
+                <label className="block text-[12px] font-medium text-slate-500 mb-1">
                   Party Name
                 </label>
                 <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-800">
@@ -457,7 +457,7 @@ export default function EditPaymentOutPage() {
 
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">
+                  <label className="block text-[12px] font-medium text-slate-500 mb-1">
                     Amount Paid
                   </label>
                   <input
@@ -466,11 +466,11 @@ export default function EditPaymentOutPage() {
                     value={amountPaid}
                     onChange={(e) => handleAmountPaidChange(e.target.value)}
                     placeholder="0"
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 focus:border-teal-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-normal text-slate-900 focus:border-[#1677E8] focus:outline-none h-10"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1 flex items-center gap-1">
+                  <label className="block text-[12px] font-medium text-slate-500 mb-1 flex items-center gap-1">
                     <span>Payment Out Discount</span>
                     <span className="text-slate-400">ⓘ</span>
                   </label>
@@ -480,7 +480,7 @@ export default function EditPaymentOutPage() {
                     value={paymentOutDiscount}
                     onChange={(e) => setPaymentOutDiscount(e.target.value)}
                     placeholder="0"
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-10"
                   />
                 </div>
               </div>
@@ -490,7 +490,7 @@ export default function EditPaymentOutPage() {
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-2xs space-y-3">
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">
+                  <label className="block text-[12px] font-medium text-slate-500 mb-1">
                     Payment Date
                   </label>
                   <div className="relative">
@@ -498,19 +498,19 @@ export default function EditPaymentOutPage() {
                       type="date"
                       value={voucherDate}
                       onChange={(e) => setVoucherDate(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-10"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">
+                  <label className="block text-[12px] font-medium text-slate-500 mb-1">
                     Payment Mode
                   </label>
                   <select
                     value={paymentMode}
                     onChange={(e) => setPaymentMode(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-10"
                   >
                     {PAYMENT_MODES.map((m) => (
                       <option key={m.value} value={m.value}>
@@ -521,20 +521,20 @@ export default function EditPaymentOutPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">
+                  <label className="block text-[12px] font-medium text-slate-500 mb-1">
                     Payment Out Number
                   </label>
                   <input
                     type="text"
                     value={paymentNumber}
                     onChange={(e) => setPaymentNumber(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-10"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">
+                <label className="block text-[12px] font-medium text-slate-500 mb-1">
                   Notes
                 </label>
                 <textarea
@@ -542,7 +542,7 @@ export default function EditPaymentOutPage() {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Enter Notes"
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none resize-none"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none resize-none"
                 />
               </div>
             </div>
@@ -551,7 +551,7 @@ export default function EditPaymentOutPage() {
           {/* 3. Lower Section: Settle invoices with this payment matching screenshot */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-bold text-slate-800">
+              <h2 className="text-xs font-semibold text-[#182230]">
                 Settle invoices with this payment
               </h2>
 
@@ -575,14 +575,14 @@ export default function EditPaymentOutPage() {
                     value={billSearchQuery}
                     onChange={(e) => setBillSearchQuery(e.target.value)}
                     placeholder="Search invoice..."
-                    className="w-full rounded-lg border border-slate-200 bg-white py-1 pl-7 pr-2 text-xs text-slate-800 focus:border-teal-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-200 bg-white py-1 pl-7 pr-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-10"
                   />
                   <span className="absolute left-2.5 top-1.5 text-xs text-slate-400">🔍</span>
                 </div>
 
                 <button
                   type="button"
-                  className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                  className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
                 >
                   <span>Select Date Range</span>
                   <span className="text-xs">📅</span>
@@ -629,7 +629,7 @@ export default function EditPaymentOutPage() {
                               type="checkbox"
                               checked={bill.isSelected}
                               onChange={() => toggleBillSelect(idx)}
-                              className="rounded border-slate-300 text-indigo-600 focus:ring-teal-500"
+                              className="rounded border-slate-300 text-indigo-600 focus:ring-[#1677E8]"
                             />
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap text-slate-700">
@@ -654,7 +654,7 @@ export default function EditPaymentOutPage() {
                               value={bill.discount}
                               onChange={(e) => handleBillDiscountChange(idx, e.target.value)}
                               placeholder="Apply Discount"
-                              className="w-24 rounded border border-slate-200 px-2 py-1 text-right text-xs focus:border-teal-500 focus:outline-none"
+                              className="w-24 rounded border border-slate-200 px-2 py-1 text-right text-[13px] focus:border-[#1677E8] focus:outline-none h-10"
                             />
                           </td>
                           <td className="px-4 py-3 text-right whitespace-nowrap">
@@ -664,7 +664,7 @@ export default function EditPaymentOutPage() {
                               value={bill.settle}
                               onChange={(e) => handleBillSettleChange(idx, e.target.value)}
                               placeholder="0.00"
-                              className="w-24 rounded border border-slate-200 px-2 py-1 text-right text-xs font-semibold text-slate-900 focus:border-teal-500 focus:outline-none"
+                              className="w-24 rounded border border-slate-200 px-2 py-1 text-right text-[13px] font-normal text-slate-900 focus:border-[#1677E8] focus:outline-none h-10"
                             />
                           </td>
                         </tr>

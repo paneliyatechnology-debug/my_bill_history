@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useAuth } from "../../context/auth-context";
+import { apiClient, extractList } from "../../lib/api-client";
 
 // ============================================================================
 // Types
@@ -48,6 +49,22 @@ export interface PaymentTransaction {
   amount: number;
   paymentMode: "CASH" | "BANK_TRANSFER" | "UPI" | "CHEQUE";
   note?: string;
+  paidFromAccountId?: string;
+  paidFromAccountName?: string;
+  voucherId?: string;
+  voucherNumber?: string;
+  isCancelled?: boolean;
+}
+
+export interface LedgerAccountOption {
+  id: string;
+  name: string;
+  code: string;
+  currentBalance?: number;
+  isCashLedger?: boolean;
+  isBankLedger?: boolean;
+  bankAccountNo?: string;
+  isActive?: boolean;
 }
 
 export interface PayrollSettings {
@@ -116,12 +133,19 @@ export default function StaffAttendancePayrollView() {
   const [checkInInput, setCheckInInput] = useState("");
   const [checkOutInput, setCheckOutInput] = useState("");
 
-  // Payment modal
+  // Payment modal state
   const [paymentStaff, setPaymentStaff] = useState<StaffMember | null>(null);
   const [paymentAmount, setPaymentAmount] = useState<string>("");
   const [paymentType, setPaymentType] = useState<"SALARY" | "ADVANCE" | "BONUS" | "DEDUCTION">("SALARY");
   const [paymentMode, setPaymentMode] = useState<"CASH" | "BANK_TRANSFER" | "UPI" | "CHEQUE">("CASH");
   const [paymentNote, setPaymentNote] = useState("");
+  const [cashAccounts, setCashAccounts] = useState<LedgerAccountOption[]>([]);
+  const [bankAccounts, setBankAccounts] = useState<LedgerAccountOption[]>([]);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>("");
+  const [isSubmittingPayment, setIsSubmittingPayment] = useState<boolean>(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [paymentSuccess, setPaymentSuccess] = useState<string | null>(null);
+  const [cancellingPaymentId, setCancellingPaymentId] = useState<string | null>(null);
 
   // Staff details & salary slip modal
   const [detailStaff, setDetailStaff] = useState<StaffMember | null>(null);
@@ -207,6 +231,89 @@ export default function StaffAttendancePayrollView() {
       console.error(e);
     }
   };
+
+  // Fetch active Cash and Bank ledger accounts from backend
+  const fetchLedgerAccounts = useCallback(async () => {
+    try {
+      const res: any = await apiClient.get("/accounting/ledgers");
+      const list = extractList<any>(res);
+      const cashList: LedgerAccountOption[] = [];
+      const bankList: LedgerAccountOption[] = [];
+
+      list.forEach((acc) => {
+        if (acc.isActive === false) return;
+        const gName = (acc.group?.name || "").toLowerCase();
+        const aName = (acc.name || "").toLowerCase();
+        const isCash =
+          Boolean(acc.isCashLedger) ||
+          gName.includes("cash") ||
+          aName.includes("cash") ||
+          acc.name.includes("રોકડ");
+        const isBank =
+          Boolean(acc.isBankLedger) ||
+          gName.includes("bank") ||
+          aName.includes("bank") ||
+          acc.name.includes("બેંક");
+
+        const item: LedgerAccountOption = {
+          id: acc.id,
+          name: acc.name,
+          code: acc.code,
+          currentBalance: Number(acc.currentBalance ?? acc.openingBalance ?? 0),
+          isCashLedger: acc.isCashLedger,
+          isBankLedger: acc.isBankLedger,
+          bankAccountNo: acc.bankAccountNo,
+          isActive: acc.isActive,
+        };
+
+        if (isCash) cashList.push(item);
+        if (isBank) bankList.push(item);
+      });
+
+      setCashAccounts(cashList);
+      setBankAccounts(bankList);
+    } catch (err) {
+      console.warn("Could not load cash & bank ledger accounts:", err);
+    }
+  }, []);
+
+  // Fetch recorded staff payments from backend
+  const fetchStaffPayments = useCallback(async () => {
+    try {
+      const res: any = await apiClient.get("/vouchers/staff-payments");
+      const list = extractList<any>(res);
+      if (Array.isArray(list) && list.length > 0) {
+        const mapped: PaymentTransaction[] = list.map((item) => ({
+          id: item.id,
+          staffId: item.staffId,
+          staffName: item.staffName,
+          date: item.paymentDate ? String(item.paymentDate).split("T")[0] : getTodayStr(),
+          type: item.paymentType,
+          amount: Number(item.amount),
+          paymentMode: item.paymentMode,
+          note: item.note || undefined,
+          paidFromAccountId: item.paidFromAccountId,
+          paidFromAccountName: item.paidFromAccount?.name,
+          voucherId: item.voucherId,
+          voucherNumber: item.voucher?.voucherNumber,
+          isCancelled: Boolean(item.isCancelled),
+        }));
+        setPayments(mapped);
+        try {
+          localStorage.setItem(PAYMENTS_KEY, JSON.stringify(mapped));
+        } catch (e) {}
+      }
+    } catch (err) {
+      console.warn("Could not sync staff payments from server:", err);
+    }
+  }, [PAYMENTS_KEY]);
+
+  useEffect(() => {
+    if (tenantContext?.companyId) {
+      fetchLedgerAccounts();
+      fetchStaffPayments();
+    }
+  }, [tenantContext?.companyId, fetchLedgerAccounts, fetchStaffPayments]);
 
   // Close menus on outside click
   useEffect(() => {
@@ -425,50 +532,203 @@ export default function StaffAttendancePayrollView() {
   };
 
   // Record Payment / Advance
-  const handleRecordPayment = (e: React.FormEvent) => {
+  const handleRecordPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!paymentStaff) return;
+    setPaymentError(null);
+
     const amt = parseFloat(paymentAmount) || 0;
-    if (amt <= 0) return;
+    if (amt <= 0) {
+      setPaymentError(lang === "gu" ? "રકમ 0 કરતાં વધુ હોવી જોઈએ" : "Payment amount must be greater than 0");
+      return;
+    }
 
-    const newPayment: PaymentTransaction = {
-      id: `pay_${Date.now()}`,
-      staffId: paymentStaff.id,
-      staffName: paymentStaff.name,
-      date: selectedDate,
-      type: paymentType,
-      amount: amt,
-      paymentMode,
-      note: paymentNote,
-    };
+    if (paymentType !== "DEDUCTION" && !selectedAccountId) {
+      setPaymentError(
+        paymentMode === "CASH"
+          ? (lang === "gu" ? "કૃપા કરીને માન્ય કેશ એકાઉન્ટ પસંદ કરો" : "Please select an active Cash account for this payment.")
+          : (lang === "gu" ? "કૃપા કરીને માન્ય બેંક એકાઉન્ટ પસંદ કરો" : "Please select an active Bank account for this payment.")
+      );
+      return;
+    }
 
-    savePayments([newPayment, ...payments]);
+    setIsSubmittingPayment(true);
 
-    // Adjust balance
-    const updated = staffList.map((s) => {
-      if (s.id === paymentStaff.id) {
-        let newBalance = s.currentBalance;
-        if (paymentType === "SALARY" || paymentType === "BONUS") {
-          // Paying balance down
-          newBalance = Math.max(0, newBalance - amt);
-        } else if (paymentType === "ADVANCE") {
-          // Advance given increases what employee has received or reduces payable
-          newBalance = newBalance - amt;
-        } else if (paymentType === "DEDUCTION") {
-          newBalance = Math.max(0, newBalance - amt);
+    try {
+      const idempotencyKey = `staff_pay_${paymentStaff.id}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+      const payload = {
+        staffId: paymentStaff.id,
+        staffName: paymentStaff.name,
+        paymentType,
+        amount: amt,
+        paymentMode,
+        paymentDate: selectedDate,
+        paidFromAccountId: paymentType === "DEDUCTION" ? undefined : selectedAccountId,
+        note: paymentNote ? paymentNote.trim() : undefined,
+      };
+
+      const res: any = await apiClient.post(
+        "/vouchers/staff-payment",
+        payload,
+        undefined,
+        idempotencyKey,
+      );
+
+      const staffPayment = res?.staffPayment;
+      const voucher = res?.voucher;
+
+      const accountObj =
+        cashAccounts.find((a) => a.id === selectedAccountId) ||
+        bankAccounts.find((a) => a.id === selectedAccountId);
+
+      const newPayment: PaymentTransaction = {
+        id: staffPayment?.id || `pay_${Date.now()}`,
+        staffId: paymentStaff.id,
+        staffName: paymentStaff.name,
+        date: selectedDate,
+        type: paymentType,
+        amount: amt,
+        paymentMode,
+        note: paymentNote ? paymentNote.trim() : undefined,
+        paidFromAccountId: staffPayment?.paidFromAccountId || (paymentType === "DEDUCTION" ? undefined : selectedAccountId),
+        paidFromAccountName: accountObj?.name,
+        voucherId: staffPayment?.voucherId || voucher?.id,
+        voucherNumber: voucher?.voucherNumber,
+        isCancelled: false,
+      };
+
+      savePayments([newPayment, ...payments]);
+
+      // Adjust balance
+      const updated = staffList.map((s) => {
+        if (s.id === paymentStaff.id) {
+          let newBalance = s.currentBalance;
+          if (paymentType === "SALARY" || paymentType === "BONUS") {
+            newBalance = Math.max(0, newBalance - amt);
+          } else if (paymentType === "ADVANCE") {
+            newBalance = newBalance - amt;
+          } else if (paymentType === "DEDUCTION") {
+            newBalance = Math.max(0, newBalance - amt);
+          }
+          return {
+            ...s,
+            currentBalance: Math.round(newBalance * 100) / 100,
+          };
         }
-        return {
-          ...s,
-          currentBalance: Math.round(newBalance * 100) / 100,
-        };
-      }
-      return s;
-    });
+        return s;
+      });
 
-    saveStaffList(updated);
-    setPaymentStaff(null);
-    setPaymentAmount("");
-    setPaymentNote("");
+      saveStaffList(updated);
+
+      // Refresh ledger account balances immediately so cash/bank reflects deduction
+      await fetchLedgerAccounts();
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("accounting-entry-created"));
+        window.dispatchEvent(new CustomEvent("staff-payment-recorded", { detail: newPayment }));
+      }
+
+      setPaymentSuccess(
+        paymentType === "DEDUCTION"
+          ? (lang === "gu" ? `કપાત ₹${formatInr(amt)} સફળતાપૂર્વક નોંધાઈ ગઈ.` : `Deduction of ₹${formatInr(amt)} recorded successfully.`)
+          : (lang === "gu" ? `ચૂકવણી ₹${formatInr(amt)} સફળતાપૂર્વક નોંધાઈ અને કેશ/બેંક બેલેન્સ ઘટી ગયું.` : `${paymentType} payment of ₹${formatInr(amt)} recorded and ${paymentMode === "CASH" ? "Cash" : "Bank"} balance deducted successfully!`)
+      );
+      setTimeout(() => setPaymentSuccess(null), 5000);
+
+      setPaymentStaff(null);
+      setPaymentAmount("");
+      setPaymentNote("");
+      setPaymentError(null);
+    } catch (err: any) {
+      console.error("Staff payment submission failed:", err);
+      const errorMsg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to record staff payment. Please verify the account and amount.";
+      setPaymentError(Array.isArray(errorMsg) ? errorMsg.join(", ") : errorMsg);
+    } finally {
+      setIsSubmittingPayment(false);
+    }
+  };
+
+  // Cancel / Reverse Staff Payment
+  const handleCancelPayment = async (p: PaymentTransaction) => {
+    if (
+      !confirm(
+        lang === "gu"
+          ? `શું તમે ખરેખર ₹${formatInr(p.amount)} ની ચૂકવણી રદ કરવા માંગો છો? કેશ/બેંક બેલેન્સ પુનઃસ્થાપિત થશે.`
+          : `Are you sure you want to cancel this ${p.type} payment of ₹${formatInr(
+              p.amount
+            )}? The accounting voucher will be reversed and the Cash/Bank balance restored.`
+      )
+    ) {
+      return;
+    }
+
+    setCancellingPaymentId(p.id);
+    try {
+      if (p.voucherId || p.id.length > 20) {
+        await apiClient.post(`/vouchers/staff-payment/${p.id}/cancel`, {
+          reason: "Cancelled by user from Staff Payroll view",
+        });
+      }
+
+      // Mark payment cancelled in state & local storage
+      const updatedPayments = payments.map((item) =>
+        item.id === p.id ? { ...item, isCancelled: true } : item
+      );
+      savePayments(updatedPayments);
+
+      // Restore staff balance
+      const updatedStaff = staffList.map((s) => {
+        if (s.id === p.staffId) {
+          let restored = s.currentBalance;
+          if (p.type === "SALARY" || p.type === "BONUS" || p.type === "ADVANCE" || p.type === "DEDUCTION") {
+            restored = restored + p.amount;
+          }
+          return {
+            ...s,
+            currentBalance: Math.round(restored * 100) / 100,
+          };
+        }
+        return s;
+      });
+      saveStaffList(updatedStaff);
+
+      if (detailStaff && detailStaff.id === p.staffId) {
+        setDetailStaff((prev) =>
+          prev
+            ? {
+                ...prev,
+                currentBalance: Math.round((prev.currentBalance + p.amount) * 100) / 100,
+              }
+            : null
+        );
+      }
+
+      await fetchLedgerAccounts();
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("accounting-entry-created"));
+      }
+
+      setPaymentSuccess(
+        lang === "gu"
+          ? "ચૂકવણી રદ થઈ ગઈ અને કેશ/બેંક બેલેન્સ પુનઃસ્થાપિત થયું."
+          : `Payment cancelled and Cash/Bank balance restored successfully!`
+      );
+      setTimeout(() => setPaymentSuccess(null), 5000);
+    } catch (err: any) {
+      console.error("Failed to cancel payment:", err);
+      const errorMsg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to cancel payment.";
+      alert(Array.isArray(errorMsg) ? errorMsg.join(", ") : errorMsg);
+    } finally {
+      setCancellingPaymentId(null);
+    }
   };
 
   // Filtered staff list
@@ -505,7 +765,7 @@ export default function StaffAttendancePayrollView() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
                 {lang === "gu" ? "સ્ટાફ હાજરી અને પગાર (Attendance & Payroll)" : "Staff Attendance and Payroll"}
               </h1>
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
@@ -550,7 +810,7 @@ export default function StaffAttendancePayrollView() {
             <div className="text-xs sm:text-sm font-semibold text-emerald-600">
               {lang === "gu" ? "હાજર (P)" : "Present (P)"}
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-slate-800 mt-2 font-mono">
+            <div className="text-2xl sm:text-3xl font-bold text-slate-800 mt-2 tabular-nums">
               {summaryMetrics.present}
             </div>
           </div>
@@ -567,7 +827,7 @@ export default function StaffAttendancePayrollView() {
             <div className="text-xs sm:text-sm font-semibold text-rose-600">
               {lang === "gu" ? "ગેરહાજર (A)" : "Absent (A)"}
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-slate-800 mt-2 font-mono">
+            <div className="text-2xl sm:text-3xl font-bold text-slate-800 mt-2 tabular-nums">
               {summaryMetrics.absent}
             </div>
           </div>
@@ -584,7 +844,7 @@ export default function StaffAttendancePayrollView() {
             <div className="text-xs sm:text-sm font-semibold text-amber-600">
               {lang === "gu" ? "અડધો દિવસ (HD)" : "Half Day (HD)"}
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-slate-800 mt-2 font-mono">
+            <div className="text-2xl sm:text-3xl font-bold text-slate-800 mt-2 tabular-nums">
               {summaryMetrics.halfDay}
             </div>
           </div>
@@ -601,7 +861,7 @@ export default function StaffAttendancePayrollView() {
             <div className="text-xs sm:text-sm font-semibold text-blue-600">
               {lang === "gu" ? "પગાર સાથે રજા (PL)" : "Paid Leave (PL)"}
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-slate-800 mt-2 font-mono">
+            <div className="text-2xl sm:text-3xl font-bold text-slate-800 mt-2 tabular-nums">
               {summaryMetrics.paidLeave}
             </div>
           </div>
@@ -618,7 +878,7 @@ export default function StaffAttendancePayrollView() {
             <div className="text-xs sm:text-sm font-semibold text-slate-600">
               {lang === "gu" ? "સાપ્તાહિક રજા (WO)" : "Weekly Off (WO)"}
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-slate-800 mt-2 font-mono">
+            <div className="text-2xl sm:text-3xl font-bold text-slate-800 mt-2 tabular-nums">
               {summaryMetrics.weeklyOff}
             </div>
           </div>
@@ -640,7 +900,7 @@ export default function StaffAttendancePayrollView() {
               <button
                 type="button"
                 onClick={() => setShowDatePickerDropdown(!showDatePickerDropdown)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50 shadow-2xs"
+                className="flex items-center gap-2 h-9 px-3 bg-white border border-slate-300 rounded-lg text-[13px] font-medium text-slate-700 hover:bg-slate-50 shadow-2xs"
               >
                 <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -676,7 +936,7 @@ export default function StaffAttendancePayrollView() {
                         setSelectedDate(getTodayStr());
                         setShowDatePickerDropdown(false);
                       }}
-                      className="w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded font-medium"
+                      className="w-full text-left h-9 px-3 text-[13px] text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded font-medium"
                     >
                       📅 {lang === "gu" ? "આજનો દિવસ (Today)" : "Today"}
                     </button>
@@ -685,7 +945,7 @@ export default function StaffAttendancePayrollView() {
                         changeDateByDays(-1);
                         setShowDatePickerDropdown(false);
                       }}
-                      className="w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded font-medium"
+                      className="w-full text-left h-9 px-3 text-[13px] text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded font-medium"
                     >
                       ⏮ {lang === "gu" ? "ગઈકાલ (Yesterday)" : "Yesterday"}
                     </button>
@@ -702,7 +962,7 @@ export default function StaffAttendancePayrollView() {
                             setShowDatePickerDropdown(false);
                           }
                         }}
-                        className="w-full text-xs px-2 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        className="w-full text-[13px] px-2 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 h-10"
                       />
                     </div>
                   </div>
@@ -714,14 +974,14 @@ export default function StaffAttendancePayrollView() {
             <div className="flex items-center border border-slate-300 rounded-lg overflow-hidden bg-white">
               <button
                 onClick={() => changeDateByDays(-1)}
-                className="px-2 py-1 hover:bg-slate-100 text-slate-600 border-r border-slate-200 text-xs"
+                className="px-2 py-1 hover:bg-slate-100 text-slate-600 border-r border-slate-200 text-[13px]"
                 title={lang === "gu" ? "અગાઉનો દિવસ" : "Previous Day"}
               >
                 ◀
               </button>
               <button
                 onClick={() => changeDateByDays(1)}
-                className="px-2 py-1 hover:bg-slate-100 text-slate-600 text-xs"
+                className="px-2 py-1 hover:bg-slate-100 text-slate-600 text-[13px]"
                 title={lang === "gu" ? "આગામી દિવસ" : "Next Day"}
               >
                 ▶
@@ -733,7 +993,7 @@ export default function StaffAttendancePayrollView() {
           <div className="flex items-center gap-2.5">
             <button
               onClick={markAllPresent}
-              className="px-3.5 py-2 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors flex items-center gap-1.5 shadow-2xs"
+              className="h-9 px-3 text-[13px] font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors flex items-center gap-1.5 shadow-2xs"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -747,7 +1007,7 @@ export default function StaffAttendancePayrollView() {
                 setFormError("");
                 setShowAddStaffModal(true);
               }}
-              className="px-4 py-2 bg-[#4c3cce] hover:bg-[#3f31b5] text-white rounded-lg text-xs sm:text-sm font-semibold transition-colors flex items-center gap-2 shadow-xs"
+              className="h-9 px-3 bg-[#4c3cce] hover:bg-[#3f31b5] text-white rounded-lg text-[13px] font-medium transition-colors flex items-center gap-2 shadow-xs"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -775,7 +1035,7 @@ export default function StaffAttendancePayrollView() {
               placeholder={lang === "gu" ? "સ્ટાફ નામ અથવા મોબાઈલ શોધો..." : "Search staff by name, mobile..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white"
+              className="w-full pl-9 pr-3 py-1.5 text-[13px] bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white h-10"
             />
             {searchTerm && (
               <button
@@ -877,7 +1137,7 @@ export default function StaffAttendancePayrollView() {
                               >
                                 <span>{staff.name}</span>
                               </button>
-                              <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+                              <div className="text-[11px] text-slate-500 tabular-nums mt-0.5">
                                 {staff.mobile}
                               </div>
                             </div>
@@ -885,7 +1145,7 @@ export default function StaffAttendancePayrollView() {
                         </td>
 
                         {/* 2. Balance (e.g. ₹ 1,000 ↑) */}
-                        <td className="py-4 px-4 font-mono font-medium text-right sm:text-left">
+                        <td className="py-4 px-4 tabular-nums font-medium text-right sm:text-left">
                           <div className="inline-flex items-center gap-1.5">
                             <span className="text-slate-900 font-semibold">
                               ₹ {formatInr(staff.currentBalance)}
@@ -1000,7 +1260,7 @@ export default function StaffAttendancePayrollView() {
                                   <div className="border-t border-slate-100 my-1"></div>
                                   <button
                                     onClick={() => setAttendanceStatus(staff.id, "NONE")}
-                                    className="w-full px-3 py-1.5 text-xs text-left text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                                    className="w-full h-9 px-3 text-[13px] text-left text-slate-500 hover:bg-slate-50 hover:text-slate-700"
                                   >
                                     ✕ Clear Attendance
                                   </button>
@@ -1023,7 +1283,7 @@ export default function StaffAttendancePayrollView() {
                               setCheckInInput(att.checkIn === "--:--" ? settings.defaultCheckInTime : att.checkIn || "");
                               setCheckOutInput(att.checkOut === "--:--" ? settings.defaultCheckOutTime : att.checkOut || "");
                             }}
-                            className="inline-flex items-center gap-2 font-mono text-xs text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/50 px-2.5 py-1 rounded-md transition-colors"
+                            className="inline-flex items-center gap-2 tabular-nums text-[13px] text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/50 px-2.5 py-1 rounded-md transition-colors"
                             title="Click to update check-in / check-out times"
                           >
                             <span>{att.checkIn || "--:--"}</span>
@@ -1056,8 +1316,10 @@ export default function StaffAttendancePayrollView() {
                                 setPaymentType("SALARY");
                                 setPaymentMode("CASH");
                                 setPaymentNote("");
+                                setPaymentError(null);
+                                setSelectedAccountId(cashAccounts[0]?.id || "");
                               }}
-                              className="px-2.5 py-1 rounded-md text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition-colors"
+                              className="px-2.5 py-1 rounded-md text-[13px] font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition-colors"
                             >
                               {lang === "gu" ? "ચુકવણી" : "Pay"}
                             </button>
@@ -1117,7 +1379,7 @@ export default function StaffAttendancePayrollView() {
             
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <h2 className="text-base sm:text-lg font-bold text-slate-900">
+              <h2 className="text-[15px] sm:text-[15px] font-semibold text-[#182230]">
                 {lang === "gu" ? "સ્ટાફ ઉમેરો" : "Add Staff"}
               </h2>
               <button
@@ -1140,7 +1402,7 @@ export default function StaffAttendancePayrollView() {
                 
                 {/* 1. Name * */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1.5">
                     {lang === "gu" ? "નામ *" : "Name *"}
                   </label>
                   <input
@@ -1149,17 +1411,17 @@ export default function StaffAttendancePayrollView() {
                     placeholder={lang === "gu" ? "કર્મચારીનું નામ દાખલ કરો" : "Enter employee name"}
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4c3cce]/20 focus:border-[#4c3cce]"
+                    className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4c3cce]/20 focus:border-[#4c3cce] h-10"
                   />
                 </div>
 
                 {/* 2. Mobile Number * */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1.5">
                     {lang === "gu" ? "મોબાઇલ નંબર *" : "Mobile Number *"}
                   </label>
                   <div className="flex rounded-lg border border-slate-300 overflow-hidden focus-within:ring-2 focus-within:ring-[#4c3cce]/20 focus-within:border-[#4c3cce]">
-                    <span className="px-3 py-2 bg-slate-50 text-slate-500 text-xs sm:text-sm border-r border-slate-300 font-mono">
+                    <span className="px-3 py-2 bg-slate-50 text-slate-500 text-xs sm:text-sm border-r border-slate-300 tabular-nums">
                       +91
                     </span>
                     <input
@@ -1169,20 +1431,20 @@ export default function StaffAttendancePayrollView() {
                       placeholder="9999999999"
                       value={formData.mobile}
                       onChange={(e) => setFormData({ ...formData, mobile: e.target.value.replace(/\D/g, "") })}
-                      className="w-full text-xs sm:text-sm px-3 py-2 focus:outline-none font-mono"
+                      className="w-full text-[13px] sm:text-[13px] px-3 py-2 focus:outline-none tabular-nums h-10"
                     />
                   </div>
                 </div>
 
                 {/* 3. Salary Payout Type * */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1.5">
                     {lang === "gu" ? "પગાર ચૂકવણીનો પ્રકાર *" : "Salary Payout Type *"}
                   </label>
                   <select
                     value={formData.salaryPayoutType}
                     onChange={(e) => setFormData({ ...formData, salaryPayoutType: e.target.value as PayoutType })}
-                    className="w-full text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4c3cce]/20 focus:border-[#4c3cce] bg-white"
+                    className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4c3cce]/20 focus:border-[#4c3cce] bg-white h-10"
                   >
                     <option value="Monthly">{lang === "gu" ? "માસિક (Monthly)" : "Monthly"}</option>
                     <option value="Daily">{lang === "gu" ? "દૈનિક (Daily)" : "Daily"}</option>
@@ -1193,7 +1455,7 @@ export default function StaffAttendancePayrollView() {
 
                 {/* 4. Salary * */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1.5">
                     {lang === "gu" ? "પગાર *" : "Salary *"}
                   </label>
                   <div className="relative">
@@ -1208,20 +1470,20 @@ export default function StaffAttendancePayrollView() {
                       placeholder="0"
                       value={formData.salary}
                       onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
-                      className="w-full text-xs sm:text-sm pl-7 pr-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4c3cce]/20 focus:border-[#4c3cce] font-mono"
+                      className="w-full text-[13px] sm:text-[13px] pl-7 pr-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4c3cce]/20 focus:border-[#4c3cce] tabular-nums h-10"
                     />
                   </div>
                 </div>
 
                 {/* 5. Salary Cycle */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1.5">
                     {lang === "gu" ? "પગાર સાયકલ" : "Salary Cycle"}
                   </label>
                   <select
                     value={formData.salaryCycle}
                     onChange={(e) => setFormData({ ...formData, salaryCycle: e.target.value })}
-                    className="w-full text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4c3cce]/20 focus:border-[#4c3cce] bg-white"
+                    className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4c3cce]/20 focus:border-[#4c3cce] bg-white h-10"
                   >
                     <option value="Date 1 of every month">Date 1 of every month</option>
                     <option value="Date 5 of every month">Date 5 of every month</option>
@@ -1236,7 +1498,7 @@ export default function StaffAttendancePayrollView() {
                 {/* 6. Outstanding/Opening Balance ⓘ */}
                 <div>
                   <div className="flex items-center gap-1 mb-1.5">
-                    <label className="block text-xs font-semibold text-slate-700">
+                    <label className="block text-[12px] font-medium text-slate-700">
                       {lang === "gu" ? "બાકી / પ્રારંભિક સિલક" : "Outstanding/Opening Balance"}
                     </label>
                     <span
@@ -1257,12 +1519,12 @@ export default function StaffAttendancePayrollView() {
                       min="0"
                       value={formData.openingBalance}
                       onChange={(e) => setFormData({ ...formData, openingBalance: e.target.value })}
-                      className="w-full text-xs sm:text-sm px-2.5 py-2 focus:outline-none font-mono"
+                      className="w-full text-[13px] sm:text-[13px] px-2.5 py-2 focus:outline-none tabular-nums h-10"
                     />
                     <select
                       value={formData.balanceType}
                       onChange={(e) => setFormData({ ...formData, balanceType: e.target.value as BalanceType })}
-                      className="bg-slate-50 border-l border-slate-300 text-xs px-2.5 py-2 text-slate-700 focus:outline-none"
+                      className="bg-slate-50 border-l border-slate-300 text-[13px] px-2.5 py-2 text-slate-700 focus:outline-none h-10"
                     >
                       <option value="TO_PAY">{lang === "gu" ? "ચૂકવવાના (To Pay)" : "To Pay"}</option>
                       <option value="TO_RECEIVE">{lang === "gu" ? "લેવાના (To Receive)" : "To Receive"}</option>
@@ -1277,13 +1539,13 @@ export default function StaffAttendancePayrollView() {
                 <button
                   type="button"
                   onClick={() => setShowAddStaffModal(false)}
-                  className="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg text-xs sm:text-sm font-semibold transition-colors"
+                  className="h-9 px-3 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg text-[13px] font-medium transition-colors"
                 >
                   {lang === "gu" ? "રદ કરો" : "Cancel"}
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-[#4c3cce] hover:bg-[#3f31b5] text-white rounded-lg text-xs sm:text-sm font-semibold transition-colors shadow-xs"
+                  className="px-6 py-2 bg-[#4c3cce] hover:bg-[#3f31b5] text-white rounded-lg text-[13px] font-medium transition-colors shadow-xs"
                 >
                   {lang === "gu" ? "સાચવો" : "Save"}
                 </button>
@@ -1301,7 +1563,7 @@ export default function StaffAttendancePayrollView() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <h2 className="text-base font-bold text-slate-900">
+              <h2 className="text-[15px] font-semibold text-[#182230]">
                 {lang === "gu" ? "સ્ટાફ માહિતી સંપાદિત કરો" : "Edit Staff Member"}
               </h2>
               <button
@@ -1317,34 +1579,34 @@ export default function StaffAttendancePayrollView() {
 
             <form onSubmit={handleEditStaffSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Name</label>
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">Name</label>
                 <input
                   type="text"
                   required
                   value={editingStaff.name}
                   onChange={(e) => setEditingStaff({ ...editingStaff, name: e.target.value })}
-                  className="w-full text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4c3cce]/20 focus:border-[#4c3cce]"
+                  className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4c3cce]/20 focus:border-[#4c3cce] h-10"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Mobile</label>
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">Mobile</label>
                 <input
                   type="tel"
                   required
                   value={editingStaff.mobile}
                   onChange={(e) => setEditingStaff({ ...editingStaff, mobile: e.target.value })}
-                  className="w-full text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4c3cce]/20 focus:border-[#4c3cce] font-mono"
+                  className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4c3cce]/20 focus:border-[#4c3cce] tabular-nums h-10"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Salary Payout Type</label>
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1">Salary Payout Type</label>
                   <select
                     value={editingStaff.salaryPayoutType}
                     onChange={(e) => setEditingStaff({ ...editingStaff, salaryPayoutType: e.target.value as PayoutType })}
-                    className="w-full text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-lg focus:outline-none bg-white"
+                    className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none bg-white h-10"
                   >
                     <option value="Monthly">Monthly</option>
                     <option value="Daily">Daily</option>
@@ -1353,34 +1615,34 @@ export default function StaffAttendancePayrollView() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Salary Amount (₹)</label>
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1">Salary Amount (₹)</label>
                   <input
                     type="number"
                     step="any"
                     value={editingStaff.salary}
                     onChange={(e) => setEditingStaff({ ...editingStaff, salary: parseFloat(e.target.value) || 0 })}
-                    className="w-full text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-lg focus:outline-none font-mono"
+                    className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none tabular-nums h-10"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Current Balance (₹)</label>
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1">Current Balance (₹)</label>
                   <input
                     type="number"
                     step="any"
                     value={editingStaff.currentBalance}
                     onChange={(e) => setEditingStaff({ ...editingStaff, currentBalance: parseFloat(e.target.value) || 0 })}
-                    className="w-full text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-lg focus:outline-none font-mono"
+                    className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none tabular-nums h-10"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Balance Direction</label>
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1">Balance Direction</label>
                   <select
                     value={editingStaff.balanceType}
                     onChange={(e) => setEditingStaff({ ...editingStaff, balanceType: e.target.value as BalanceType })}
-                    className="w-full text-xs sm:text-sm px-3 py-2 border border-slate-300 rounded-lg focus:outline-none bg-white"
+                    className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none bg-white h-10"
                   >
                     <option value="TO_PAY">To Pay (Payable)</option>
                     <option value="TO_RECEIVE">To Receive (Advance)</option>
@@ -1395,13 +1657,13 @@ export default function StaffAttendancePayrollView() {
                     setShowEditStaffModal(false);
                     setEditingStaff(null);
                   }}
-                  className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold"
+                  className="h-9 px-3 border border-slate-300 text-slate-700 rounded-lg text-[13px] font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#4c3cce] hover:bg-[#3f31b5] text-white rounded-lg text-xs font-semibold"
+                  className="h-9 px-3.5 bg-[#4c3cce] hover:bg-[#3f31b5] text-white rounded-lg text-[13px] font-medium"
                 >
                   Save Changes
                 </button>
@@ -1418,7 +1680,7 @@ export default function StaffAttendancePayrollView() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-              <h2 className="text-sm font-bold text-slate-900">
+              <h2 className="text-sm font-semibold text-[#182230]">
                 Check In / Check Out — {editingTimeStaff.name}
               </h2>
               <button
@@ -1431,7 +1693,7 @@ export default function StaffAttendancePayrollView() {
 
             <form onSubmit={handleSaveTimes} className="p-5 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">
                   Check-In Time
                 </label>
                 <input
@@ -1439,12 +1701,12 @@ export default function StaffAttendancePayrollView() {
                   placeholder="09:30 AM"
                   value={checkInInput}
                   onChange={(e) => setCheckInInput(e.target.value)}
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full text-[13px] px-3 py-2 border border-slate-300 rounded-lg tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500/20 h-10"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">
                   Check-Out Time
                 </label>
                 <input
@@ -1452,7 +1714,7 @@ export default function StaffAttendancePayrollView() {
                   placeholder="06:30 PM"
                   value={checkOutInput}
                   onChange={(e) => setCheckOutInput(e.target.value)}
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full text-[13px] px-3 py-2 border border-slate-300 rounded-lg tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500/20 h-10"
                 />
               </div>
 
@@ -1467,7 +1729,7 @@ export default function StaffAttendancePayrollView() {
                     const formatted = `${hours % 12 || 12}:${minutes} ${ampm}`;
                     setCheckInInput(formatted);
                   }}
-                  className="flex-1 py-1.5 text-[11px] font-semibold text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100"
+                  className="flex-1 py-1.5 text-[11px] font-medium text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100"
                 >
                   Clock In Now
                 </button>
@@ -1481,7 +1743,7 @@ export default function StaffAttendancePayrollView() {
                     const formatted = `${hours % 12 || 12}:${minutes} ${ampm}`;
                     setCheckOutInput(formatted);
                   }}
-                  className="flex-1 py-1.5 text-[11px] font-semibold text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200"
+                  className="flex-1 py-1.5 text-[11px] font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200"
                 >
                   Clock Out Now
                 </button>
@@ -1491,13 +1753,13 @@ export default function StaffAttendancePayrollView() {
                 <button
                   type="button"
                   onClick={() => setEditingTimeStaff(null)}
-                  className="px-3 py-1.5 border border-slate-300 text-slate-700 rounded-lg text-xs"
+                  className="h-9 px-3 border border-slate-300 text-slate-700 rounded-lg text-[13px]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-[#4c3cce] text-white rounded-lg text-xs font-semibold"
+                  className="px-4 py-1.5 bg-[#4c3cce] text-white rounded-lg text-[13px] font-medium"
                 >
                   Save Times
                 </button>
@@ -1512,34 +1774,45 @@ export default function StaffAttendancePayrollView() {
       {/* ================================================================= */}
       {paymentStaff && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
               <div>
-                <h2 className="text-base font-bold text-slate-900">
+                <h2 className="text-[15px] font-semibold text-[#182230]">
                   {lang === "gu" ? "પગાર ચૂકવણી / એડવાન્સ નોંધણી" : "Record Salary Payment / Advance"}
                 </h2>
                 <p className="text-xs text-slate-500">{paymentStaff.name} ({paymentStaff.mobile})</p>
               </div>
               <button
-                onClick={() => setPaymentStaff(null)}
-                className="text-slate-400 hover:text-slate-600"
+                type="button"
+                onClick={() => {
+                  setPaymentStaff(null);
+                  setPaymentError(null);
+                }}
+                className="text-slate-400 hover:text-slate-600 transition-colors"
               >
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleRecordPayment} className="p-6 space-y-4">
+              {/* Error banner */}
+              {paymentError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-start gap-2">
+                  <span className="font-bold text-red-500 mt-0.5">⚠</span>
+                  <div className="flex-1">{paymentError}</div>
+                </div>
+              )}
               
               {/* Current balance card */}
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between">
                 <span className="text-xs text-slate-500">Current Outstanding:</span>
-                <span className="font-mono font-bold text-sm text-slate-900">
+                <span className="tabular-nums font-bold text-sm text-slate-900">
                   ₹ {formatInr(paymentStaff.currentBalance)} {paymentStaff.balanceType === "TO_PAY" ? "↑ (To Pay)" : "↓ (Advance)"}
                 </span>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">
                   Payment Type
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -1547,7 +1820,17 @@ export default function StaffAttendancePayrollView() {
                     <button
                       key={t}
                       type="button"
-                      onClick={() => setPaymentType(t)}
+                      onClick={() => {
+                        setPaymentType(t);
+                        setPaymentError(null);
+                        if (t !== "DEDUCTION" && !selectedAccountId) {
+                          if (paymentMode === "CASH" && cashAccounts.length > 0) {
+                            setSelectedAccountId(cashAccounts[0].id);
+                          } else if (paymentMode !== "CASH" && bankAccounts.length > 0) {
+                            setSelectedAccountId(bankAccounts[0].id);
+                          }
+                        }
+                      }}
                       className={`py-1.5 px-3 rounded-lg text-xs font-semibold transition-colors border ${
                         paymentType === t
                           ? "bg-[#4c3cce] text-white border-[#4c3cce]"
@@ -1561,7 +1844,7 @@ export default function StaffAttendancePayrollView() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">
                   Amount (₹) *
                 </label>
                 <div className="relative">
@@ -1574,18 +1857,26 @@ export default function StaffAttendancePayrollView() {
                     placeholder="Enter amount"
                     value={paymentAmount}
                     onChange={(e) => setPaymentAmount(e.target.value)}
-                    className="w-full text-xs sm:text-sm pl-7 pr-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4c3cce]/20 font-mono"
+                    className="w-full text-[13px] sm:text-[13px] pl-7 pr-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4c3cce]/20 tabular-nums h-10"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Payment Mode</label>
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1">Payment Mode</label>
                   <select
                     value={paymentMode}
-                    onChange={(e) => setPaymentMode(e.target.value as any)}
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none bg-white"
+                    onChange={(e) => {
+                      const mode = e.target.value as any;
+                      setPaymentMode(mode);
+                      if (mode === "CASH") {
+                        setSelectedAccountId(cashAccounts[0]?.id || "");
+                      } else {
+                        setSelectedAccountId(bankAccounts[0]?.id || "");
+                      }
+                    }}
+                    className="w-full text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none bg-white h-10"
                   >
                     <option value="CASH">Cash</option>
                     <option value="BANK_TRANSFER">Bank Transfer / NEFT</option>
@@ -1594,40 +1885,98 @@ export default function StaffAttendancePayrollView() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Payment Date</label>
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1">Payment Date</label>
                   <input
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none"
+                    className="w-full text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none h-10"
                   />
                 </div>
               </div>
 
+              {/* Paid From Account selection */}
+              {paymentType === "DEDUCTION" ? (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-[11px] text-blue-800 leading-relaxed">
+                  <strong>Internal Deduction:</strong> Adjusts staff salary liability directly without deducting funds from Cash or Bank accounts.
+                </div>
+              ) : (
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[12px] font-medium text-slate-700">
+                      {paymentMode === "CASH" ? "Paid From Cash Account *" : "Paid From Bank Account *"}
+                    </label>
+                    {selectedAccountId && (
+                      <span className="text-[11px] text-slate-500 font-mono">
+                        Bal: ₹{formatInr(
+                          (paymentMode === "CASH" ? cashAccounts : bankAccounts).find((a) => a.id === selectedAccountId)?.currentBalance ?? 0
+                        )}
+                      </span>
+                    )}
+                  </div>
+                  <select
+                    required
+                    value={selectedAccountId}
+                    onChange={(e) => setSelectedAccountId(e.target.value)}
+                    className="w-full text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none bg-white h-10"
+                  >
+                    <option value="">
+                      {paymentMode === "CASH" ? "-- Select Cash Account --" : "-- Select Bank Account --"}
+                    </option>
+                    {(paymentMode === "CASH" ? cashAccounts : bankAccounts).map((acc) => (
+                      <option key={acc.id} value={acc.id}>
+                        {acc.name} {acc.bankAccountNo ? `(${acc.bankAccountNo})` : ""} — ₹{formatInr(acc.currentBalance ?? 0)}
+                      </option>
+                    ))}
+                  </select>
+                  {paymentMode !== "CASH" && bankAccounts.length === 0 && (
+                    <p className="text-[11px] text-amber-600 mt-1">
+                      No active bank accounts found. Please configure a bank account in Cash & Bank.
+                    </p>
+                  )}
+                  {paymentMode === "CASH" && cashAccounts.length === 0 && (
+                    <p className="text-[11px] text-amber-600 mt-1">
+                      No cash account found. Standard cash account will be loaded.
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Note / Reference</label>
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">Note / Reference</label>
                 <input
                   type="text"
                   placeholder="e.g. October Salary Payout / Diwali Advance"
                   value={paymentNote}
                   onChange={(e) => setPaymentNote(e.target.value)}
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none"
+                  className="w-full text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none h-10"
                 />
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setPaymentStaff(null)}
-                  className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold"
+                  onClick={() => {
+                    setPaymentStaff(null);
+                    setPaymentError(null);
+                  }}
+                  className="h-9 px-3 border border-slate-300 text-slate-700 rounded-lg text-[13px] font-medium hover:bg-slate-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#4c3cce] hover:bg-[#3f31b5] text-white rounded-lg text-xs font-semibold"
+                  disabled={isSubmittingPayment}
+                  className="h-9 px-4 bg-[#4c3cce] hover:bg-[#3f31b5] disabled:opacity-50 text-white rounded-lg text-[13px] font-medium flex items-center gap-1.5 transition-colors shadow-2xs"
                 >
-                  Record Payment
+                  {isSubmittingPayment ? (
+                    <>
+                      <span className="inline-block w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Recording...</span>
+                    </>
+                  ) : (
+                    <span>Record Payment</span>
+                  )}
                 </button>
               </div>
 
@@ -1648,8 +1997,8 @@ export default function StaffAttendancePayrollView() {
                   {detailStaff.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-slate-900">{detailStaff.name}</h2>
-                  <p className="text-xs text-slate-500 font-mono">{detailStaff.mobile} • {detailStaff.location || "Office"}</p>
+                  <h2 className="text-[15px] font-semibold text-[#182230]">{detailStaff.name}</h2>
+                  <p className="text-xs text-slate-500 tabular-nums">{detailStaff.mobile} • {detailStaff.location || "Office"}</p>
                 </div>
               </div>
               <button
@@ -1666,11 +2015,11 @@ export default function StaffAttendancePayrollView() {
               <div className="grid grid-cols-3 gap-3">
                 <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
                   <div className="text-[11px] text-slate-500 font-semibold uppercase">Monthly Base Salary</div>
-                  <div className="text-lg font-bold text-slate-900 mt-1 font-mono">₹ {formatInr(detailStaff.salary)}</div>
+                  <div className="text-lg font-bold text-slate-900 mt-1 tabular-nums">₹ {formatInr(detailStaff.salary)}</div>
                 </div>
                 <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
                   <div className="text-[11px] text-slate-500 font-semibold uppercase">Current Balance</div>
-                  <div className="text-lg font-bold text-rose-600 mt-1 font-mono">
+                  <div className="text-lg font-bold text-rose-600 mt-1 tabular-nums">
                     ₹ {formatInr(detailStaff.currentBalance)} ↑
                   </div>
                 </div>
@@ -1682,26 +2031,55 @@ export default function StaffAttendancePayrollView() {
 
               {/* Transactions History for this staff */}
               <div>
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">
+                <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-2">
                   Recent Payments & Advances
                 </h3>
                 {payments.filter((p) => p.staffId === detailStaff.id).length === 0 ? (
                   <p className="text-xs text-slate-400 italic">No payments recorded yet.</p>
                 ) : (
-                  <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100">
+                  <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100 max-h-60 overflow-y-auto">
                     {payments
                       .filter((p) => p.staffId === detailStaff.id)
-                      .slice(0, 5)
+                      .slice(0, 10)
                       .map((p) => (
-                        <div key={p.id} className="p-3 flex items-center justify-between text-xs">
-                          <div>
-                            <span className="font-semibold text-slate-800">{p.type}</span>
-                            <span className="text-slate-400 ml-2">via {p.paymentMode}</span>
-                            {p.note && <p className="text-[11px] text-slate-500 mt-0.5">{p.note}</p>}
+                        <div key={p.id} className="p-3 flex items-center justify-between text-xs hover:bg-slate-50/50 transition-colors">
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-semibold text-slate-800">{p.type}</span>
+                              <span className="text-slate-400">via {p.paymentMode}</span>
+                              {p.paidFromAccountName && (
+                                <span className="text-[10px] text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded font-medium">
+                                  {p.paidFromAccountName}
+                                </span>
+                              )}
+                              {p.isCancelled && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] bg-red-100 text-red-700 font-semibold">
+                                  Cancelled
+                                </span>
+                              )}
+                            </div>
+                            {p.voucherNumber && (
+                              <div className="text-[10px] text-[#4c3cce] font-mono">
+                                Voucher #{p.voucherNumber}
+                              </div>
+                            )}
+                            {p.note && <p className="text-[11px] text-slate-500">{p.note}</p>}
                           </div>
-                          <div className="text-right">
-                            <span className="font-mono font-bold text-slate-900">₹ {formatInr(p.amount)}</span>
+                          <div className="text-right flex flex-col items-end gap-1">
+                            <span className={`tabular-nums font-bold ${p.isCancelled ? "line-through text-slate-400" : "text-slate-900"}`}>
+                              ₹ {formatInr(p.amount)}
+                            </span>
                             <div className="text-[10px] text-slate-400">{p.date}</div>
+                            {!p.isCancelled && (
+                              <button
+                                type="button"
+                                disabled={cancellingPaymentId === p.id}
+                                onClick={() => handleCancelPayment(p)}
+                                className="text-[11px] text-red-600 hover:text-red-800 hover:underline font-medium disabled:opacity-50 transition-colors"
+                              >
+                                {cancellingPaymentId === p.id ? "Cancelling..." : "Cancel Payment"}
+                              </button>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -1777,15 +2155,21 @@ export default function StaffAttendancePayrollView() {
                   <button
                     onClick={() => {
                       setPaymentStaff(detailStaff);
+                      setPaymentAmount("");
+                      setPaymentType("SALARY");
+                      setPaymentMode("CASH");
+                      setPaymentNote("");
+                      setPaymentError(null);
+                      setSelectedAccountId(cashAccounts[0]?.id || "");
                       setDetailStaff(null);
                     }}
-                    className="px-4 py-2 bg-[#4c3cce] hover:bg-[#3f31b5] text-white rounded-lg text-xs font-semibold shadow-xs"
+                    className="h-9 px-3 bg-[#4c3cce] hover:bg-[#3f31b5] text-white rounded-lg text-[13px] font-medium shadow-xs"
                   >
                     Pay Salary
                   </button>
                   <button
                     onClick={() => setDetailStaff(null)}
-                    className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold hover:bg-slate-50"
+                    className="h-9 px-3 border border-slate-300 text-slate-700 rounded-lg text-[13px] font-medium hover:bg-slate-50"
                   >
                     Close
                   </button>
@@ -1804,7 +2188,7 @@ export default function StaffAttendancePayrollView() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <h2 className="text-base font-bold text-slate-900">
+              <h2 className="text-[15px] font-semibold text-[#182230]">
                 {lang === "gu" ? "હાજરી અને પેરોલ સેટિંગ્સ" : "Attendance & Payroll Settings"}
               </h2>
               <button
@@ -1818,37 +2202,37 @@ export default function StaffAttendancePayrollView() {
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1">
                     Default Check-In
                   </label>
                   <input
                     type="text"
                     value={settings.defaultCheckInTime}
                     onChange={(e) => setSettings({ ...settings, defaultCheckInTime: e.target.value })}
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg font-mono focus:outline-none"
+                    className="w-full text-[13px] px-3 py-2 border border-slate-300 rounded-lg tabular-nums focus:outline-none h-10"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1">
                     Default Check-Out
                   </label>
                   <input
                     type="text"
                     value={settings.defaultCheckOutTime}
                     onChange={(e) => setSettings({ ...settings, defaultCheckOutTime: e.target.value })}
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg font-mono focus:outline-none"
+                    className="w-full text-[13px] px-3 py-2 border border-slate-300 rounded-lg tabular-nums focus:outline-none h-10"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">
                   Salary Calculation Basis
                 </label>
                 <select
                   value={settings.salaryCalculationBasis}
                   onChange={(e) => setSettings({ ...settings, salaryCalculationBasis: e.target.value as any })}
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none bg-white"
+                  className="w-full text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none bg-white h-10"
                 >
                   <option value="CALENDAR_DAYS">Actual Calendar Days (e.g. 30/31 days)</option>
                   <option value="TWENTY_SIX_DAYS">26 Working Days (excluding Sundays)</option>
@@ -1857,13 +2241,13 @@ export default function StaffAttendancePayrollView() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">
                   Weekly Off Day
                 </label>
                 <select
                   value={settings.weeklyOffDay}
                   onChange={(e) => setSettings({ ...settings, weeklyOffDay: parseInt(e.target.value, 10) })}
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none bg-white"
+                  className="w-full text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none bg-white h-10"
                 >
                   <option value={0}>Sunday (રવિવાર)</option>
                   <option value={1}>Monday (સોમવાર)</option>
@@ -1876,7 +2260,7 @@ export default function StaffAttendancePayrollView() {
                 <button
                   type="button"
                   onClick={() => setShowSettingsModal(false)}
-                  className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold"
+                  className="h-9 px-3 border border-slate-300 text-slate-700 rounded-lg text-[13px] font-medium"
                 >
                   Cancel
                 </button>
@@ -1886,13 +2270,30 @@ export default function StaffAttendancePayrollView() {
                     saveSettings(settings);
                     setShowSettingsModal(false);
                   }}
-                  className="px-5 py-2 bg-[#4c3cce] hover:bg-[#3f31b5] text-white rounded-lg text-xs font-semibold"
+                  className="h-9 px-3.5 bg-[#4c3cce] hover:bg-[#3f31b5] text-white rounded-lg text-[13px] font-medium"
                 >
                   Save Settings
                 </button>
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Floating Success Toast */}
+      {paymentSuccess && (
+        <div className="fixed bottom-5 right-5 z-50 bg-[#12B76A] text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 text-xs font-semibold animate-in slide-in-from-bottom-5">
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          </svg>
+          <span>{paymentSuccess}</span>
+          <button
+            type="button"
+            onClick={() => setPaymentSuccess(null)}
+            className="ml-2 hover:opacity-80 p-0.5"
+          >
+            ✕
+          </button>
         </div>
       )}
 

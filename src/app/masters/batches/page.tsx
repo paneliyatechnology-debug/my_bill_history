@@ -178,7 +178,7 @@ export default function BatchesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
             {lang === "gu"
               ? "વસ્તુ બેચ વ્યવસ્થા (Item Batches)"
               : "Item Batches & Expiry"}
@@ -192,7 +192,7 @@ export default function BatchesPage() {
 
         <button
           onClick={handleOpenModal}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
+          className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-[13px] font-medium rounded-xl shadow-card hover:shadow-hover transition-all"
         >
           <svg
             className="w-4 h-4"
@@ -226,7 +226,7 @@ export default function BatchesPage() {
             accessorKey: "batchNumber",
             sortable: true,
             cell: (b) => (
-              <span className="font-mono font-bold text-slate-900">
+              <span className="tabular-nums font-bold text-slate-900">
                 {b.batchNumber}
               </span>
             ),
@@ -246,7 +246,7 @@ export default function BatchesPage() {
             accessorKey: "mfgDate",
             sortable: true,
             cell: (b) => (
-              <span className="font-mono text-slate-600">
+              <span className="tabular-nums text-slate-600">
                 {b.mfgDate
                   ? new Date(b.mfgDate).toLocaleDateString("en-IN")
                   : "—"}
@@ -258,7 +258,7 @@ export default function BatchesPage() {
             accessorKey: "expiryDate",
             sortable: true,
             cell: (b) => (
-              <span className="font-mono text-amber-700">
+              <span className="tabular-nums text-amber-700">
                 {b.expiryDate
                   ? new Date(b.expiryDate).toLocaleDateString("en-IN")
                   : "—"}
@@ -269,21 +269,21 @@ export default function BatchesPage() {
             header: lang === "gu" ? "ખરીદ કિંમત (₹)" : "Purchase Rate (₹)",
             accessorKey: "purchaseRate",
             sortable: true,
-            className: "text-right font-mono text-slate-600",
+            className: "text-right tabular-nums text-slate-600",
             cell: (b) => <span>₹{Number(b.purchaseRate || 0).toFixed(2)}</span>,
           },
           {
             header: lang === "gu" ? "એમઆરપી (₹)" : "MRP (₹)",
             accessorKey: "mrp",
             sortable: true,
-            className: "text-right font-mono text-slate-800",
+            className: "text-right tabular-nums text-slate-800",
             cell: (b) => <span>₹{Number(b.mrp || 0).toFixed(2)}</span>,
           },
           {
             header: lang === "gu" ? "વેચાણ દર (₹)" : "Sale Rate (₹)",
             accessorKey: "salePrice",
             sortable: true,
-            className: "text-right font-mono font-bold text-emerald-700",
+            className: "text-right tabular-nums font-bold text-emerald-700",
             cell: (b) => (
               <span>₹{Number(b.salePrice ?? b.saleRate ?? 0).toFixed(2)}</span>
             ),
@@ -313,17 +313,17 @@ export default function BatchesPage() {
             className="space-y-1.5 cursor-pointer hover:bg-slate-50 transition-colors p-2 rounded-lg"
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono font-bold text-slate-900">
+              <span className="tabular-nums font-bold text-slate-900">
                 {b.batchNumber}
               </span>
-              <span className="font-mono font-bold text-emerald-700 text-xs">
+              <span className="tabular-nums font-bold text-emerald-700 text-xs">
                 Sale: ₹{Number(b.salePrice ?? b.saleRate ?? 0).toFixed(2)}
               </span>
             </div>
             <div className="text-xs font-medium text-slate-800">
               {b.item?.name || "—"}
             </div>
-            <div className="flex items-center justify-between text-xs text-slate-500 font-mono">
+            <div className="flex items-center justify-between text-xs text-slate-500 tabular-nums">
               <span>
                 Mfg: {b.mfgDate ? new Date(b.mfgDate).toLocaleDateString("en-IN") : "—"}
               </span>
@@ -331,7 +331,7 @@ export default function BatchesPage() {
                 Exp: {b.expiryDate ? new Date(b.expiryDate).toLocaleDateString("en-IN") : "—"}
               </span>
             </div>
-            <div className="flex items-center justify-between text-xs text-slate-600 pt-1 border-t border-slate-100 font-mono">
+            <div className="flex items-center justify-between text-xs text-slate-600 pt-1 border-t border-slate-100 tabular-nums">
               <span>Pur: ₹{Number(b.purchaseRate || 0).toFixed(2)}</span>
               <span>MRP: ₹{Number(b.mrp || 0).toFixed(2)}</span>
             </div>
@@ -354,7 +354,7 @@ export default function BatchesPage() {
                 <span className="text-xs text-emerald-700 font-semibold uppercase tracking-wider block">
                   {lang === "gu" ? "બેચ નંબર" : "Batch Number"}
                 </span>
-                <span className="text-lg font-bold font-mono text-emerald-950">
+                <span className="text-lg font-bold tabular-nums text-emerald-950">
                   {selectedBatchForView.batchNumber}
                 </span>
               </div>
@@ -362,7 +362,7 @@ export default function BatchesPage() {
                 <span className="text-xs text-slate-500 block">
                   {lang === "gu" ? "વર્તમાન સ્ટોક" : "Current Stock"}
                 </span>
-                <span className="text-base font-bold font-mono text-slate-800">
+                <span className="text-base font-bold tabular-nums text-slate-800">
                   {selectedBatchForView.currentStock ?? 0}
                 </span>
               </div>
@@ -381,7 +381,7 @@ export default function BatchesPage() {
                 <span className="text-slate-500 block mb-1">
                   {lang === "gu" ? "બનાવટ તારીખ (Mfg)" : "Mfg Date"}
                 </span>
-                <span className="font-mono font-semibold text-slate-800">
+                <span className="tabular-nums font-semibold text-slate-800">
                   {selectedBatchForView.mfgDate
                     ? new Date(selectedBatchForView.mfgDate).toLocaleDateString("en-IN")
                     : "—"}
@@ -391,7 +391,7 @@ export default function BatchesPage() {
                 <span className="text-slate-500 block mb-1">
                   {lang === "gu" ? "એક્સપાયરી તારીખ" : "Expiry Date"}
                 </span>
-                <span className="font-mono font-bold text-amber-700">
+                <span className="tabular-nums font-bold text-amber-700">
                   {selectedBatchForView.expiryDate
                     ? new Date(selectedBatchForView.expiryDate).toLocaleDateString("en-IN")
                     : "—"}
@@ -401,7 +401,7 @@ export default function BatchesPage() {
                 <span className="text-slate-500 block mb-1">
                   {lang === "gu" ? "ખરીદ કિંમત" : "Purchase Rate"}
                 </span>
-                <span className="font-mono font-bold text-slate-800">
+                <span className="tabular-nums font-bold text-slate-800">
                   ₹{Number(selectedBatchForView.purchaseRate || 0).toFixed(2)}
                 </span>
               </div>
@@ -409,7 +409,7 @@ export default function BatchesPage() {
                 <span className="text-slate-500 block mb-1">
                   {lang === "gu" ? "એમઆરપી" : "MRP"}
                 </span>
-                <span className="font-mono font-bold text-slate-800">
+                <span className="tabular-nums font-bold text-slate-800">
                   ₹{Number(selectedBatchForView.mrp || 0).toFixed(2)}
                 </span>
               </div>
@@ -417,7 +417,7 @@ export default function BatchesPage() {
                 <span className="text-emerald-700 block mb-1 font-semibold">
                   {lang === "gu" ? "વેચાણ કિંમત (Sale Rate)" : "Sale Rate"}
                 </span>
-                <span className="font-mono font-bold text-emerald-800 text-sm">
+                <span className="tabular-nums font-bold text-emerald-800 text-sm">
                   ₹{Number(selectedBatchForView.salePrice ?? selectedBatchForView.saleRate ?? 0).toFixed(2)}
                 </span>
               </div>
@@ -427,7 +427,7 @@ export default function BatchesPage() {
               <button
                 type="button"
                 onClick={() => setSelectedBatchForView(null)}
-                className="px-5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                className="h-9 px-3.5 text-[13px] font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
               >
                 {lang === "gu" ? "બંધ કરો" : "Close"}
               </button>
@@ -451,13 +451,13 @@ export default function BatchesPage() {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               {lang === "gu" ? "વસ્તુ પસંદ કરો *" : "Select Item *"}
             </label>
             <select
               value={formData.itemId}
               onChange={(e) => handleItemSelect(e.target.value)}
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
+              className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
             >
               {items.map((it) => (
                 <option key={it.id} value={it.id}>
@@ -468,7 +468,7 @@ export default function BatchesPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               {lang === "gu" ? "બેચ નંબર *" : "Batch Number *"}
             </label>
             <input
@@ -479,13 +479,13 @@ export default function BatchesPage() {
                 setFormData({ ...formData, batchNumber: e.target.value })
               }
               placeholder="BATCH-2026-A1"
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono uppercase focus:bg-white focus:ring-1 focus:ring-emerald-500"
+              className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums uppercase focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 {lang === "gu" ? "બનાવટ તારીખ (Mfg Date)" : "Mfg Date"}
               </label>
               <input
@@ -494,12 +494,12 @@ export default function BatchesPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, mfgDate: e.target.value })
                 }
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono focus:bg-white"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums focus:bg-white h-10"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 {lang === "gu" ? "એક્સપાયરી તારીખ (Expiry Date)" : "Expiry Date"}
               </label>
               <input
@@ -508,7 +508,7 @@ export default function BatchesPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, expiryDate: e.target.value })
                 }
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono focus:bg-white"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums focus:bg-white h-10"
               />
             </div>
           </div>
@@ -516,7 +516,7 @@ export default function BatchesPage() {
           {/* Pricing Grid: Purchase Rate, MRP, and Sale Rate */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 {lang === "gu" ? "ખરીદ કિંમત (₹) *" : "Purchase Rate (₹) *"}
               </label>
               <input
@@ -532,12 +532,12 @@ export default function BatchesPage() {
                   })
                 }
                 placeholder="80.00"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono font-medium focus:bg-white focus:ring-1 focus:ring-emerald-500"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums font-medium focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 {lang === "gu" ? "એમઆરપી (₹) *" : "Batch MRP (₹) *"}
               </label>
               <input
@@ -553,12 +553,12 @@ export default function BatchesPage() {
                   })
                 }
                 placeholder="100.00"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono focus:bg-white focus:ring-1 focus:ring-emerald-500"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 {lang === "gu" ? "વેચાણ દર (₹) *" : "Batch Sale Rate (₹) *"}
               </label>
               <input
@@ -574,7 +574,7 @@ export default function BatchesPage() {
                   })
                 }
                 placeholder="90.00"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono font-bold text-emerald-700 focus:bg-white focus:ring-1 focus:ring-emerald-500"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums font-normal text-emerald-700 focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
               />
             </div>
           </div>
@@ -583,14 +583,14 @@ export default function BatchesPage() {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
             >
               {lang === "gu" ? "રદ કરો" : "Cancel"}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-[#174B43] hover:bg-[#123B35] disabled:bg-[#174B43]/50 rounded-lg shadow-sm transition-colors"
+              className="h-9 px-3.5 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] disabled:bg-[#0F172A]/50 rounded-lg shadow-sm transition-colors"
             >
               {isSubmitting
                 ? lang === "gu"

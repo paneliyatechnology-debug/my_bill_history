@@ -165,7 +165,7 @@ export function FinancialSummaryCards({ asOfDate }: FinancialSummaryCardsProps =
 
         <button
           onClick={fetchSummary}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow transition-colors shrink-0"
+          className="inline-flex items-center gap-2 h-9 px-3 bg-rose-600 hover:bg-rose-700 text-white text-[13px] font-medium rounded-xl shadow transition-colors shrink-0"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -220,7 +220,7 @@ export function FinancialSummaryCards({ asOfDate }: FinancialSummaryCardsProps =
 
         {/* Middle: Huge Amount */}
         <div className="my-2 sm:my-2.5">
-          <div className="text-2xl sm:text-3xl lg:text-4xl font-extrabold font-mono text-[#15803D] tracking-tight truncate">
+          <div className="text-2xl sm:text-3xl lg:text-4xl font-semibold tabular-nums text-[#15803D] tracking-tight truncate">
             {formatInrCurrency(toCollect)}
           </div>
         </div>
@@ -280,7 +280,7 @@ export function FinancialSummaryCards({ asOfDate }: FinancialSummaryCardsProps =
 
         {/* Middle: Huge Amount */}
         <div className="my-2 sm:my-2.5">
-          <div className="text-2xl sm:text-3xl lg:text-4xl font-extrabold font-mono text-[#DC2626] tracking-tight truncate">
+          <div className="text-2xl sm:text-3xl lg:text-4xl font-semibold tabular-nums text-[#DC2626] tracking-tight truncate">
             {formatInrCurrency(toPay)}
           </div>
         </div>
@@ -340,7 +340,7 @@ export function FinancialSummaryCards({ asOfDate }: FinancialSummaryCardsProps =
 
         {/* Middle: Huge Amount */}
         <div className="my-2 sm:my-2.5">
-          <div className="text-2xl sm:text-3xl lg:text-4xl font-extrabold font-mono text-[#0284C7] tracking-tight truncate">
+          <div className="text-2xl sm:text-3xl lg:text-4xl font-semibold tabular-nums text-[#0284C7] tracking-tight truncate">
             {formatInrCurrency(totalCashBank)}
           </div>
         </div>

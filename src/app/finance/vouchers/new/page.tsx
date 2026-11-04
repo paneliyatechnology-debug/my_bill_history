@@ -178,7 +178,7 @@ export default function FinanceNewVoucherPage() {
               <span>{lang === "gu" ? "પાછા વાઉચરો પર જાઓ" : "Back to Vouchers & Cash Book"}</span>
             </Link>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
             {lang === "gu"
               ? "નવું દ્વિનોંધી વાઉચર લખો (New Journal Voucher)"
               : "Record New Journal Voucher"}
@@ -202,13 +202,13 @@ export default function FinanceNewVoucherPage() {
         {/* Voucher Meta Card */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-subtle grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase tracking-wider mb-1.5">
               {lang === "gu" ? "વાઉચર પ્રકાર *" : "Voucher Type *"}
             </label>
             <select
               value={voucherType}
               onChange={(e: any) => setVoucherType(e.target.value)}
-              className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+              className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-normal text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none h-10"
             >
               <option value="JOURNAL">{lang === "gu" ? "જર્નલ નોંધ (JOURNAL)" : "JOURNAL"}</option>
               <option value="RECEIPT">{lang === "gu" ? "પહોંચ / આવક (RECEIPT)" : "RECEIPT"}</option>
@@ -218,7 +218,7 @@ export default function FinanceNewVoucherPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase tracking-wider mb-1.5">
               {lang === "gu" ? "વાઉચર નંબર *" : "Voucher Number *"}
             </label>
             <input
@@ -226,12 +226,12 @@ export default function FinanceNewVoucherPage() {
               required
               value={voucherNumber}
               onChange={(e) => setVoucherNumber(e.target.value)}
-              className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+              className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl tabular-nums font-normal text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none h-10"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase tracking-wider mb-1.5">
               {lang === "gu" ? "તારીખ *" : "Voucher Date *"}
             </label>
             <input
@@ -239,12 +239,12 @@ export default function FinanceNewVoucherPage() {
               required
               value={voucherDate}
               onChange={(e) => setVoucherDate(e.target.value)}
-              className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+              className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl tabular-nums text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none h-10"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase tracking-wider mb-1.5">
               {lang === "gu" ? "ચેક / રેફરન્સ નં." : "Reference / Cheque No."}
             </label>
             <input
@@ -252,7 +252,7 @@ export default function FinanceNewVoucherPage() {
               value={referenceNo}
               onChange={(e) => setReferenceNo(e.target.value)}
               placeholder="CHQ-104928"
-              className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+              className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl tabular-nums text-slate-900 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none h-10"
             />
           </div>
         </div>
@@ -260,7 +260,7 @@ export default function FinanceNewVoucherPage() {
         {/* Journal Lines Table */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-subtle overflow-hidden">
           <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+            <h2 className="text-xs font-semibold text-[#182230] uppercase tracking-wider">
               {lang === "gu"
                 ? "નામા લાઈનો (Journal Lines)"
                 : "Journal Lines (Double-Entry Debit / Credit)"}
@@ -268,7 +268,7 @@ export default function FinanceNewVoucherPage() {
             <button
               type="button"
               onClick={handleAddLine}
-              className="text-xs text-primary hover:text-primary-hover font-bold flex items-center gap-1 bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-xl border border-primary/20 transition-all"
+              className="text-[13px] text-primary hover:text-primary-hover font-medium flex items-center gap-1 bg-primary/10 hover:bg-primary/20 h-9 px-3 rounded-xl border border-primary/20 transition-all"
             >
               <span>+ {lang === "gu" ? "નવી લાઇન ઉમેરો" : "Add Row"}</span>
             </button>
@@ -297,7 +297,7 @@ export default function FinanceNewVoucherPage() {
               <tbody className="divide-y divide-slate-100">
                 {lines.map((line, idx) => (
                   <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3 px-3 text-slate-400 font-mono text-center">
+                    <td className="py-3 px-3 text-slate-400 tabular-nums text-center">
                       {idx + 1}
                     </td>
                     <td className="py-3 px-3">
@@ -306,7 +306,7 @@ export default function FinanceNewVoucherPage() {
                         onChange={(e) =>
                           handleLineChange(idx, "accountId", e.target.value)
                         }
-                        className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-800 focus:bg-white focus:border-primary outline-none"
+                        className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-800 focus:bg-white focus:border-primary outline-none h-10"
                       >
                         {accounts.map((acc) => (
                           <option key={acc.id} value={acc.id}>
@@ -323,7 +323,7 @@ export default function FinanceNewVoucherPage() {
                           handleLineChange(idx, "lineNarration", e.target.value)
                         }
                         placeholder={lang === "gu" ? "વિગત..." : "Line narration..."}
-                        className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-primary outline-none"
+                        className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-primary outline-none h-10"
                       />
                     </td>
                     <td className="py-3 px-3 text-right">
@@ -340,7 +340,7 @@ export default function FinanceNewVoucherPage() {
                             handleLineChange(idx, "creditAmount", 0);
                         }}
                         placeholder="0.00"
-                        className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded-xl text-right font-mono font-semibold text-slate-900 focus:bg-white focus:border-primary outline-none"
+                        className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded-xl text-right tabular-nums font-normal text-slate-900 focus:bg-white focus:border-primary outline-none h-10"
                       />
                     </td>
                     <td className="py-3 px-3 text-right">
@@ -357,7 +357,7 @@ export default function FinanceNewVoucherPage() {
                             handleLineChange(idx, "debitAmount", 0);
                         }}
                         placeholder="0.00"
-                        className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded-xl text-right font-mono font-semibold text-slate-900 focus:bg-white focus:border-primary outline-none"
+                        className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded-xl text-right tabular-nums font-normal text-slate-900 focus:bg-white focus:border-primary outline-none h-10"
                       />
                     </td>
                     <td className="py-3 px-3 text-center">
@@ -377,17 +377,17 @@ export default function FinanceNewVoucherPage() {
               </tbody>
               {/* Footer Totals */}
               <tfoot>
-                <tr className="bg-slate-50/90 font-mono font-bold border-t border-slate-200">
+                <tr className="bg-slate-50/90 tabular-nums font-bold border-t border-slate-200">
                   <td
                     colSpan={3}
-                    className="py-3.5 px-4 text-right uppercase text-slate-600 tracking-wider text-xs"
+                    className="py-3.5 px-4 text-right uppercase text-slate-600 tracking-wider text-[13px]"
                   >
                     {lang === "gu" ? "કુલ સરવાળો (Totals):" : "Totals:"}
                   </td>
-                  <td className="py-3.5 px-3 text-right text-slate-900 font-bold text-sm">
+                  <td className="py-3.5 px-3 text-right text-slate-900 font-medium text-[13px]">
                     ₹{totalDebit.toFixed(2)}
                   </td>
-                  <td className="py-3.5 px-3 text-right text-slate-900 font-bold text-sm">
+                  <td className="py-3.5 px-3 text-right text-slate-900 font-medium text-[13px]">
                     ₹{totalCredit.toFixed(2)}
                   </td>
                   <td></td>
@@ -397,35 +397,66 @@ export default function FinanceNewVoucherPage() {
           </div>
 
           {/* Balance status banner */}
-          <div
-            className={`px-5 py-3.5 border-t flex items-center justify-between text-xs font-semibold ${
-              isBalanced
-                ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                : "bg-amber-50 text-amber-800 border-amber-200"
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-base">{isBalanced ? "✓" : "⚠️"}</span>
-              <span>
-                {isBalanced
-                  ? lang === "gu"
-                    ? "વાઉચર સંતુલિત છે (કુલ ઉધાર == કુલ જમા)"
-                    : "Voucher is balanced (Total Debits == Total Credits)"
-                  : lang === "gu"
-                    ? `રૂ. ${difference.toFixed(2)} નો તફાવત છે. કૃપા કરીને ઉધાર અને જમા સરખા કરો.`
-                    : `Out of balance by ₹${difference.toFixed(2)}. Adjust lines before posting.`}
-              </span>
-            </div>
-            <div>
-              {lang === "gu" ? "તફાવત: " : "Difference: "}
-              <span className="font-mono font-bold">₹{difference.toFixed(2)}</span>
-            </div>
-          </div>
+          {(() => {
+            const hasAmounts = totalDebit > 0 || totalCredit > 0;
+            if (isBalanced) {
+              return (
+                <div className="px-5 py-3.5 border-t flex items-center justify-between text-xs font-semibold bg-emerald-50 text-emerald-800 border-emerald-200">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">✓</span>
+                    <span>
+                      {lang === "gu"
+                        ? "વાઉચર સંતુલિત છે (કુલ ઉધાર == કુલ જમા)"
+                        : "Voucher is balanced (Total Debits == Total Credits)"}
+                    </span>
+                  </div>
+                  <div>
+                    {lang === "gu" ? "તફાવત: " : "Difference: "}
+                    <span className="tabular-nums font-bold">₹0.00</span>
+                  </div>
+                </div>
+              );
+            }
+            if (hasAmounts && difference >= 0.01) {
+              return (
+                <div className="px-5 py-3.5 border-t flex items-center justify-between text-xs font-semibold bg-amber-50 text-amber-800 border-amber-200">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">⚠️</span>
+                    <span>
+                      {lang === "gu"
+                        ? `રૂ. ${difference.toFixed(2)} નો તફાવત છે. કૃપા કરીને ઉધાર અને જમા સરખા કરો.`
+                        : `Out of balance by ₹${difference.toFixed(2)}. Adjust lines before posting.`}
+                    </span>
+                  </div>
+                  <div>
+                    {lang === "gu" ? "તફાવત: " : "Difference: "}
+                    <span className="tabular-nums font-bold">₹{difference.toFixed(2)}</span>
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <div className="px-5 py-3.5 border-t flex items-center justify-between text-xs font-medium bg-slate-50 text-slate-600 border-slate-200">
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-400">ℹ️</span>
+                  <span>
+                    {lang === "gu"
+                      ? "કૃપા કરીને દરેક લાઇન માટે ઉધાર અને જમા રકમ દાખલ કરો (કુલ ઉધાર અને જમા સરખા હોવા જોઈએ)."
+                      : "Enter debit and credit amounts for each line (must be > ₹0 and balanced)."}
+                  </span>
+                </div>
+                <div>
+                  {lang === "gu" ? "તફાવત: " : "Difference: "}
+                  <span className="tabular-nums">₹0.00</span>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Global Narration */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-subtle">
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+          <label className="block text-[12px] font-medium text-slate-700 uppercase tracking-wider mb-1.5">
             {lang === "gu" ? "સામાન્ય વિગત / શેરો (General Narration)" : "General Narration"}
           </label>
           <textarea
@@ -437,7 +468,7 @@ export default function FinanceNewVoucherPage() {
                 ? "વાઉચરની મુખ્ય વિગત જેમકે બેંક ટ્રાન્સફર અથવા વેચાણ જમા ખાતાવહી..."
                 : "Enter general narration or transaction remarks..."
             }
-            className="w-full text-xs p-3 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-primary outline-none"
+            className="w-full text-[13px] p-3 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-primary outline-none"
           />
         </div>
 
@@ -445,14 +476,18 @@ export default function FinanceNewVoucherPage() {
         <div className="flex items-center justify-end gap-3 pt-2">
           <Link
             href="/finance/vouchers"
-            className="px-5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-200 bg-slate-100 rounded-xl transition-all"
+            className="h-9 px-3.5 text-[13px] font-medium text-slate-700 hover:bg-slate-200 bg-slate-100 rounded-xl transition-all"
           >
             {lang === "gu" ? "રદ કરો" : "Cancel"}
           </Link>
           <button
             type="submit"
             disabled={!isBalanced || isSubmitting}
-            className="px-6 py-2.5 text-xs font-bold text-white bg-primary hover:bg-primary-hover active:bg-primary-pressed disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed rounded-xl shadow-card hover:shadow-hover transition-all flex items-center gap-2"
+            className={`px-6 py-2.5 text-[13px] font-medium rounded-xl transition-all flex items-center gap-2 ${
+              isBalanced && !isSubmitting
+                ? "bg-primary text-white hover:bg-primary-hover active:bg-primary-pressed shadow-card hover:shadow-hover cursor-pointer"
+                : "bg-slate-200 text-slate-400 cursor-not-allowed opacity-75 shadow-none"
+            }`}
           >
             {isSubmitting ? (
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

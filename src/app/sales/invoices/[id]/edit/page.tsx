@@ -316,7 +316,7 @@ export default function EditInvoicePage() {
               {lang === "gu" ? "સેલ્સ ઇન્વોઇસ" : "Sales Invoices"}
             </Link>
             <span>/</span>
-            <Link href={`/sales/invoices/${id}`} className="hover:text-primary font-mono">
+            <Link href={`/sales/invoices/${id}`} className="hover:text-primary tabular-nums">
               {invoiceNumber}
             </Link>
             <span>/</span>
@@ -324,7 +324,7 @@ export default function EditInvoicePage() {
               {lang === "gu" ? "સુધારો (Edit)" : "Edit"}
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+          <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight flex items-center gap-2">
             <span>✏️</span>
             <span>
               {lang === "gu" ? "વેચાણ બિલ સુધારો" : "Edit Sales Invoice"} #{invoiceNumber}
@@ -340,14 +340,14 @@ export default function EditInvoicePage() {
         <div className="flex items-center gap-3">
           <Link
             href={`/sales/invoices/${id}`}
-            className="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold rounded-xl transition-all"
+            className="h-9 px-3 border border-slate-300 text-slate-700 hover:bg-slate-50 text-[13px] font-medium rounded-xl transition-all"
           >
             {lang === "gu" ? "← બહાર નીકળો" : "← Exit / Cancel"}
           </Link>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs font-bold rounded-xl shadow-saffron transition-all flex items-center gap-2 disabled:opacity-50"
+            className="h-9 px-3.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-[13px] font-medium rounded-xl shadow-xs transition-all flex items-center gap-2 disabled:opacity-50"
           >
             {isSubmitting ? (
               <>
@@ -373,19 +373,19 @@ export default function EditInvoicePage() {
 
       {/* 2. Customer & Basic Meta Card */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-subtle space-y-4">
-        <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-2">
+        <h2 className="text-xs font-semibold text-[#182230] uppercase tracking-wider border-b border-slate-100 pb-2">
           {lang === "gu" ? "૧. ગ્રાહક અને બિલિંગ વિગતો" : "1. Customer & Invoice Details"}
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "ગ્રાહક (Customer / Party) *" : "Customer / Party *"}
             </label>
             <select
               value={partyId}
               onChange={(e) => handlePartyChange(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none h-10"
             >
               <option value="">{lang === "gu" ? "-- ગ્રાહક પસંદ કરો --" : "-- Select Customer --"}</option>
               {parties.map((p) => (
@@ -397,13 +397,13 @@ export default function EditInvoicePage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "બિલ પ્રકાર (Document Category)" : "Document Category"}
             </label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value as any)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none h-10"
             >
               <option value="TAX_INVOICE">Tax Invoice</option>
               <option value="BILL_OF_SUPPLY">Bill of Supply</option>
@@ -413,25 +413,25 @@ export default function EditInvoicePage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "તારીખ (Invoice Date)" : "Invoice Date"}
             </label>
             <input
               type="date"
               value={invoiceDate}
               onChange={(e) => setInvoiceDate(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none font-mono"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none tabular-nums h-10"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "ચુકવણી મોડ (Payment Mode)" : "Payment Mode"}
             </label>
             <select
               value={paymentMode}
               onChange={(e) => setPaymentMode(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none h-10"
             >
               <option value="UNPAID_CREDIT">{lang === "gu" ? "Unpaid / Credit (બાકી)" : "Unpaid / Credit"}</option>
               <option value="CASH">{lang === "gu" ? "Cash (રોકડ)" : "Cash"}</option>
@@ -444,7 +444,7 @@ export default function EditInvoicePage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "પુરવઠાનું સ્થળ (Place of Supply)" : "Place of Supply"}
             </label>
             <input
@@ -452,7 +452,7 @@ export default function EditInvoicePage() {
               value={placeOfSupply}
               onChange={(e) => setPlaceOfSupply(e.target.value)}
               placeholder="24"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] tabular-nums font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none h-10"
             />
             <span className="text-[10px] text-slate-400 mt-0.5 block">
               {isInterState ? "⚠️ Inter-State (IGST Applicable)" : "✓ Intra-State (CGST + SGST Applicable)"}
@@ -460,7 +460,7 @@ export default function EditInvoicePage() {
           </div>
 
           <div className="sm:col-span-2">
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "ખાસ નોંધ (Notes / Instructions)" : "Notes / Remarks"}
             </label>
             <input
@@ -468,7 +468,7 @@ export default function EditInvoicePage() {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="e.g. Thanks for your business!"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none h-10"
             />
           </div>
         </div>
@@ -477,11 +477,11 @@ export default function EditInvoicePage() {
       {/* 3. Line Items Table Card */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-subtle space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-          <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+          <h2 className="text-xs font-semibold text-[#182230] uppercase tracking-wider">
             {lang === "gu" ? "૨. વસ્તુઓ / સેવાઓ (Line Items)" : "2. Items / Products & Services"}
           </h2>
           <div className="flex items-center gap-3">
-            <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-slate-700">
+            <label className="flex items-center gap-1.5 cursor-pointer text-[12px] font-medium text-slate-700">
               <input
                 type="checkbox"
                 checked={isTaxInclusive}
@@ -493,7 +493,7 @@ export default function EditInvoicePage() {
             <button
               type="button"
               onClick={handleAddRow}
-              className="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-lg transition-all flex items-center gap-1"
+              className="h-9 px-3 bg-primary/10 hover:bg-primary/20 text-primary text-[13px] font-medium rounded-lg transition-all flex items-center gap-1"
             >
               <span>+ Add Item</span>
             </button>
@@ -527,12 +527,12 @@ export default function EditInvoicePage() {
 
                 return (
                   <tr key={idx} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-2 px-3 text-slate-400 font-mono">{idx + 1}</td>
+                    <td className="py-2 px-3 text-slate-400 tabular-nums">{idx + 1}</td>
                     <td className="py-2 px-3">
                       <select
                         value={row.itemId}
                         onChange={(e) => handleItemSelect(idx, e.target.value)}
-                        className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                        className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-[13px] font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none h-10"
                       >
                         <option value="">-- Select Item --</option>
                         {items.map((it) => (
@@ -547,7 +547,7 @@ export default function EditInvoicePage() {
                         type="text"
                         value={row.hsnCode}
                         onChange={(e) => handleRowChange(idx, "hsnCode", e.target.value)}
-                        className="w-full px-2 py-1.5 border border-slate-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                        className="w-full px-2 py-1.5 border border-slate-300 rounded-lg text-[13px] tabular-nums focus:ring-2 focus:ring-primary/20 focus:outline-none h-10"
                       />
                     </td>
                     <td className="py-2 px-3">
@@ -556,7 +556,7 @@ export default function EditInvoicePage() {
                         min="1"
                         value={row.quantity}
                         onChange={(e) => handleRowChange(idx, "quantity", e.target.value === "" ? "" : Number(e.target.value))}
-                        className="w-full px-2 py-1.5 border border-slate-300 rounded-lg text-xs font-mono text-right focus:ring-2 focus:ring-primary/20 focus:outline-none font-bold"
+                        className="w-full px-2 py-1.5 border border-slate-300 rounded-lg text-[13px] tabular-nums text-right focus:ring-2 focus:ring-primary/20 focus:outline-none font-normal h-10"
                       />
                     </td>
                     <td className="py-2 px-3">
@@ -566,7 +566,7 @@ export default function EditInvoicePage() {
                         step="0.01"
                         value={row.unitPrice}
                         onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))}
-                        className="w-full px-2 py-1.5 border border-slate-300 rounded-lg text-xs font-mono text-right focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                        className="w-full px-2 py-1.5 border border-slate-300 rounded-lg text-[13px] tabular-nums text-right focus:ring-2 focus:ring-primary/20 focus:outline-none h-10"
                       />
                     </td>
                     <td className="py-2 px-3">
@@ -576,7 +576,7 @@ export default function EditInvoicePage() {
                         max="100"
                         value={row.discountPercent}
                         onChange={(e) => handleRowChange(idx, "discountPercent", e.target.value === "" ? "" : Number(e.target.value))}
-                        className="w-full px-2 py-1.5 border border-slate-300 rounded-lg text-xs font-mono text-right focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                        className="w-full px-2 py-1.5 border border-slate-300 rounded-lg text-[13px] tabular-nums text-right focus:ring-2 focus:ring-primary/20 focus:outline-none h-10"
                       />
                     </td>
                     <td className="py-2 px-3">
@@ -590,7 +590,7 @@ export default function EditInvoicePage() {
                           value={row.taxRate}
                           onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value) || 0)}
                           placeholder="0"
-                          className="w-full px-2 py-1.5 pr-4 border border-slate-300 rounded-lg text-xs font-mono text-right focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                          className="w-full px-2 py-1.5 pr-4 border border-slate-300 rounded-lg text-[13px] tabular-nums text-right focus:ring-2 focus:ring-primary/20 focus:outline-none h-10"
                         />
                         <span className="absolute right-1 text-[11px] font-bold text-slate-400 pointer-events-none">%</span>
                       </div>
@@ -605,7 +605,7 @@ export default function EditInvoicePage() {
                         <option value="28">28%</option>
                       </datalist>
                     </td>
-                    <td className="py-2 px-3 text-right font-mono font-bold text-slate-900">
+                    <td className="py-2 px-3 text-right tabular-nums font-medium text-slate-900">
                       ₹{lineTotal.toFixed(2)}
                     </td>
                     <td className="py-2 px-3 text-center">
@@ -647,54 +647,54 @@ export default function EditInvoicePage() {
         <div className="w-full md:w-80 space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
           <div className="flex justify-between text-slate-700">
             <span>{lang === "gu" ? "કરપાત્ર રકમ (Taxable):" : "Taxable Value:"}</span>
-            <span className="font-mono font-semibold text-slate-900">₹{totalTaxable.toFixed(2)}</span>
+            <span className="tabular-nums font-semibold text-slate-900">₹{totalTaxable.toFixed(2)}</span>
           </div>
 
           {!isInterState ? (
             <>
               <div className="flex justify-between text-slate-700">
                 <span>CGST:</span>
-                <span className="font-mono text-slate-900">₹{totalCgst.toFixed(2)}</span>
+                <span className="tabular-nums text-slate-900">₹{totalCgst.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-slate-700">
                 <span>SGST:</span>
-                <span className="font-mono text-slate-900">₹{totalSgst.toFixed(2)}</span>
+                <span className="tabular-nums text-slate-900">₹{totalSgst.toFixed(2)}</span>
               </div>
             </>
           ) : (
             <div className="flex justify-between text-slate-700">
               <span>IGST:</span>
-              <span className="font-mono text-slate-900">₹{totalIgst.toFixed(2)}</span>
+              <span className="tabular-nums text-slate-900">₹{totalIgst.toFixed(2)}</span>
             </div>
           )}
 
           <div className="flex justify-between text-slate-700">
             <span>Total GST Tax:</span>
-            <span className="font-mono text-slate-900">₹{totalTax.toFixed(2)}</span>
+            <span className="tabular-nums text-slate-900">₹{totalTax.toFixed(2)}</span>
           </div>
 
           {roundOff !== 0 && (
             <div className="flex justify-between text-slate-700">
               <span>Round-off:</span>
-              <span className="font-mono text-slate-900">₹{roundOff.toFixed(2)}</span>
+              <span className="tabular-nums text-slate-900">₹{roundOff.toFixed(2)}</span>
             </div>
           )}
 
           <div className="flex justify-between font-bold text-slate-900 pt-2 border-t border-slate-200 text-sm">
             <span>{lang === "gu" ? "કુલ બિલ રકમ (Grand Total):" : "Grand Total:"}</span>
-            <span className="font-mono text-primary text-base">₹{grandTotal.toFixed(2)}</span>
+            <span className="tabular-nums text-primary text-base">₹{grandTotal.toFixed(2)}</span>
           </div>
 
           {existingPaidAmount > 0 && (
             <div className="flex justify-between text-emerald-700 font-semibold pt-1">
               <span>Less: Paid:</span>
-              <span className="font-mono">-₹{existingPaidAmount.toFixed(2)}</span>
+              <span className="tabular-nums">-₹{existingPaidAmount.toFixed(2)}</span>
             </div>
           )}
 
           <div className="flex justify-between font-bold text-amber-900 pt-1 border-t border-slate-200">
             <span>{lang === "gu" ? "ચોખ્ખી બાકી રકમ (Balance):" : "Outstanding Balance:"}</span>
-            <span className="font-mono">₹{pendingBalance.toFixed(2)}</span>
+            <span className="tabular-nums">₹{pendingBalance.toFixed(2)}</span>
           </div>
         </div>
       </div>
@@ -703,14 +703,14 @@ export default function EditInvoicePage() {
       <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
         <Link
           href={`/sales/invoices/${id}`}
-          className="px-5 py-2.5 border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold rounded-xl transition-all"
+          className="h-9 px-3.5 border border-slate-300 text-slate-700 hover:bg-slate-50 text-[13px] font-medium rounded-xl transition-all"
         >
           {lang === "gu" ? "રદ કરો (Cancel)" : "Cancel"}
         </Link>
         <button
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="px-6 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs font-bold rounded-xl shadow-saffron transition-all flex items-center gap-2 disabled:opacity-50"
+          className="px-6 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-[13px] font-medium rounded-xl shadow-xs transition-all flex items-center gap-2 disabled:opacity-50"
         >
           {isSubmitting ? (
             <>

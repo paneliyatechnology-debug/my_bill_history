@@ -112,7 +112,7 @@ function ReportPagination({
               onPageSizeChange(Number(e.target.value));
               onPageChange(1);
             }}
-            className="px-2 py-1 rounded-lg border border-[#E5E7EB] bg-slate-50 text-[#202124] font-semibold text-xs focus:ring-1 focus:ring-[#174B43] cursor-pointer"
+            className="px-2 py-1 rounded-lg border border-[#E5E7EB] bg-slate-50 text-[#182230] font-normal text-[13px] focus:ring-1 focus:ring-[#0F172A] cursor-pointer h-10"
           >
             <option value={10}>10</option>
             <option value={25}>25</option>
@@ -145,7 +145,7 @@ function ReportPagination({
             type="button"
             onClick={() => onPageChange(1)}
             disabled={safePage === 1}
-            className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#202124] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-all font-semibold cursor-pointer shadow-2xs"
+            className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#182230] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-all font-medium cursor-pointer shadow-2xs"
             title={lang === "gu" ? "પ્રથમ પેજ" : "First Page"}
           >
             «
@@ -154,20 +154,20 @@ function ReportPagination({
             type="button"
             onClick={() => onPageChange(Math.max(1, safePage - 1))}
             disabled={safePage === 1}
-            className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#202124] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-all font-semibold cursor-pointer shadow-2xs"
+            className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#182230] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-all font-medium cursor-pointer shadow-2xs"
             title={lang === "gu" ? "અગાઉનું પેજ" : "Previous Page"}
           >
             {lang === "gu" ? "અગાઉનું" : "Previous"}
           </button>
 
-          <span className="sm:hidden font-mono font-bold text-[#202124] px-1.5 text-xs">
+          <span className="sm:hidden tabular-nums font-bold text-[#202124] px-1.5 text-xs">
             {safePage} / {totalPages}
           </span>
 
           <div className="hidden sm:flex items-center gap-1">
             {getPageNumbers().map((p, idx) =>
               p === "ellipsis" ? (
-                <span key={`ellipsis-${idx}`} className="px-2 text-slate-400 font-mono">
+                <span key={`ellipsis-${idx}`} className="px-2 text-slate-400 tabular-nums">
                   …
                 </span>
               ) : (
@@ -177,7 +177,7 @@ function ReportPagination({
                   onClick={() => onPageChange(p)}
                   className={`min-w-[32px] h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     safePage === p
-                      ? "bg-[#174B43] text-white shadow-2xs"
+                      ? "bg-[#0F172A] text-white shadow-2xs"
                       : "bg-white border border-[#E5E7EB] text-[#202124] hover:bg-slate-50"
                   }`}
                 >
@@ -191,7 +191,7 @@ function ReportPagination({
             type="button"
             onClick={() => onPageChange(Math.min(totalPages, safePage + 1))}
             disabled={safePage === totalPages}
-            className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#202124] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-all font-semibold cursor-pointer shadow-2xs"
+            className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#182230] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-all font-medium cursor-pointer shadow-2xs"
             title={lang === "gu" ? "આગળનું પેજ" : "Next Page"}
           >
             {lang === "gu" ? "આગળનું" : "Next"}
@@ -200,7 +200,7 @@ function ReportPagination({
             type="button"
             onClick={() => onPageChange(totalPages)}
             disabled={safePage === totalPages}
-            className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#202124] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-all font-semibold cursor-pointer shadow-2xs"
+            className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#182230] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-all font-medium cursor-pointer shadow-2xs"
             title={lang === "gu" ? "છેલ્લું પેજ" : "Last Page"}
           >
             »
@@ -231,7 +231,7 @@ export default function ReportsPage({
     "profit-loss",
     "sales-summary",
   ]);
-  const [selectedDatePreset, setSelectedDatePreset] = useState<string>("This Week");
+  const [selectedDatePreset, setSelectedDatePreset] = useState<string>("This FY");
   const [filterPartyQuery, setFilterPartyQuery] = useState<string>("");
   const [filterStaff, setFilterStaff] = useState<string>("ALL");
   const [filterInvoiceType, setFilterInvoiceType] = useState<string>("ALL");
@@ -252,11 +252,8 @@ export default function ReportsPage({
   }, []);
   const [startDate, setStartDate] = useState(() => {
     const now = new Date();
-    const d = new Date(now);
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(d.setDate(diff));
-    return monday.toISOString().split("T")[0];
+    const year = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
+    return `${year}-04-01`;
   });
   const [endDate, setEndDate] = useState(() => {
     return new Date().toISOString().split("T")[0];
@@ -368,6 +365,13 @@ export default function ReportsPage({
     } else if (preset === "This Month") {
       setStartDate(`${yyyy}-${mm}-01`);
       setEndDate(todayStr);
+    } else if (preset === "Last Month") {
+      const first = new Date(yyyy, now.getMonth() - 1, 1);
+      const last = new Date(yyyy, now.getMonth(), 0);
+      const local = (date: Date) =>
+        `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      setStartDate(local(first));
+      setEndDate(local(last));
     } else if (preset === "Last 30 Days") {
       const past = new Date(now);
       past.setDate(now.getDate() - 30);
@@ -380,6 +384,16 @@ export default function ReportsPage({
     } else if (preset === "This FY") {
       setStartDate(currentFY?.startDate ? currentFY.startDate.split("T")[0] : "2026-04-01");
       setEndDate(todayStr);
+    } else if (preset === "Last FY") {
+      const start = currentFY?.startDate ? new Date(currentFY.startDate) : new Date(yyyy, 3, 1);
+      const lastStart = new Date(start);
+      lastStart.setFullYear(lastStart.getFullYear() - 1);
+      const lastEnd = new Date(start);
+      lastEnd.setDate(lastEnd.getDate() - 1);
+      const local = (date: Date) =>
+        `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      setStartDate(local(lastStart));
+      setEndDate(local(lastEnd));
     }
   };
 
@@ -723,6 +737,17 @@ export default function ReportsPage({
           lang={lang}
           onSelectReport={handleSelectReport}
           onOpenCaSharing={() => setIsCaModalOpen(true)}
+          startDate={startDate}
+          endDate={endDate}
+          preset={selectedDatePreset}
+          onPreset={handleSelectDatePreset}
+          onCustomRange={(from, to) => {
+            setSelectedDatePreset("Custom");
+            setStartDate(from);
+            setEndDate(to);
+          }}
+          companyName={currentCompany?.tradeName || currentCompany?.legalName || ""}
+          financialYear={currentFY?.name || ""}
         />
       ) : (
         <>
@@ -740,7 +765,9 @@ export default function ReportsPage({
                 </svg>
               </button>
 
-              <h1 className="text-lg font-bold text-[#0F172A] tracking-tight truncate">
+              <div className="min-w-0">
+              <p className="text-[11px] text-[#64748B]">Reports / {currentTabMeta.label}</p>
+              <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight truncate">
                 {activeTab === "gst-purchase-hsn"
                   ? "GST Purchase (With HSN)"
                   : activeTab === "gst-sales-hsn"
@@ -761,28 +788,8 @@ export default function ReportsPage({
                   ? "Stock Summary"
                   : currentTabMeta.label}
               </h1>
-
-              {activeTab === "balance-sheet" && (
-                <button
-                  type="button"
-                  onClick={() => alert("Balance Sheet Guide: Summarizes company assets, current liabilities, and real-time net equity balance.")}
-                  className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-[#3B82F6] text-[#2563EB] hover:bg-blue-50 text-xs font-semibold transition-colors cursor-pointer"
-                >
-                  <span className="text-[10px]">▶</span>
-                  <span>Watch how to use Balance Sheet</span>
-                </button>
-              )}
-
-              {activeTab === "gstr-1" && (
-                <button
-                  type="button"
-                  onClick={() => alert("GSTR-1 JSON Guide: Download official Table 4-12 government compliant JSON file and upload directly to GST portal.")}
-                  className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-[#3B82F6] text-[#2563EB] hover:bg-blue-50 text-xs font-semibold transition-colors cursor-pointer"
-                >
-                  <span className="text-[10px]">▶</span>
-                  <span>How to use JSON file</span>
-                </button>
-              )}
+              <p className="text-[12px] text-[#64748B]">{startDate} to {endDate}{currentCompany?.tradeName || currentCompany?.legalName ? ` · ${currentCompany.tradeName || currentCompany.legalName}` : ""}</p>
+              </div>
 
               {/* Favourite Pill Button */}
               <button
@@ -807,7 +814,7 @@ export default function ReportsPage({
             <div className="p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl text-amber-900 text-xs font-medium flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span>ℹ</span>
-                <span>Balance sheet is updated once per day. Last updated at: {new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}, 05:06 PM</span>
+                <span>Balance sheet figures come from the accounting report for the selected period. Missing sections stay at zero instead of sample amounts.</span>
               </div>
             </div>
           )}
@@ -859,15 +866,17 @@ export default function ReportsPage({
                 <select
                   value={selectedDatePreset}
                   onChange={(e) => handleSelectDatePreset(e.target.value)}
-                  className="px-3.5 py-1.5 text-xs bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:bg-white focus:outline-none cursor-pointer shadow-2xs hover:bg-[#F8FAFC]"
+                  className="px-3.5 py-1.5 text-[13px] bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:bg-white focus:outline-none cursor-pointer shadow-2xs hover:bg-[#F8FAFC] h-10"
                 >
                   <option value="Today">📅 Today</option>
                   <option value="Yesterday">📅 Yesterday</option>
                   <option value="This Week">📅 This Week</option>
                   <option value="This Month">📅 This Month</option>
+                  <option value="Last Month">📅 Last Month</option>
                   <option value="Last 30 Days">📅 Last 30 Days</option>
                   <option value="This Quarter">📅 This Quarter</option>
                   <option value="This FY">📅 This FY</option>
+                  <option value="Last FY">📅 Last FY</option>
                   <option value="Custom">📅 Custom Range</option>
                 </select>
 
@@ -877,14 +886,14 @@ export default function ReportsPage({
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      className="px-2 py-1 text-xs bg-white border border-[#CBD5E1] rounded-md font-mono text-slate-700"
+                      className="px-2 py-1 text-[13px] bg-white border border-[#CBD5E1] rounded-md tabular-nums text-slate-700 h-10"
                     />
                     <span className="text-xs text-slate-400">-</span>
                     <input
                       type="date"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
-                      className="px-2 py-1 text-xs bg-white border border-[#CBD5E1] rounded-md font-mono text-slate-700"
+                      className="px-2 py-1 text-[13px] bg-white border border-[#CBD5E1] rounded-md tabular-nums text-slate-700 h-10"
                     />
                   </div>
                 )}
@@ -901,7 +910,7 @@ export default function ReportsPage({
                     placeholder={getSearchPlaceholder(activeTab)}
                     value={filterPartyQuery}
                     onChange={(e) => setFilterPartyQuery(e.target.value)}
-                    className="w-full pl-7 pr-6 py-1.5 text-xs bg-white border border-[#CBD5E1] rounded-md focus:outline-none focus:ring-1 focus:ring-slate-400 placeholder:text-slate-400 text-slate-700 shadow-2xs"
+                    className="w-full pl-7 pr-6 py-1.5 text-[13px] bg-white border border-[#CBD5E1] rounded-md focus:outline-none focus:ring-1 focus:ring-slate-400 placeholder:text-slate-400 text-slate-700 shadow-2xs h-10"
                   />
                   <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none">
                     🔍
@@ -924,7 +933,7 @@ export default function ReportsPage({
                 <select
                   value={filterStaff}
                   onChange={(e) => setFilterStaff(e.target.value)}
-                  className="px-3 py-1.5 text-xs bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:outline-none cursor-pointer"
+                  className="px-3 py-1.5 text-[13px] bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:outline-none cursor-pointer h-10"
                 >
                   <option value="ALL">All Staff</option>
                   <option value="Admin">Admin</option>
@@ -938,7 +947,7 @@ export default function ReportsPage({
                 <select
                   value={filterInvoiceType}
                   onChange={(e) => setFilterInvoiceType(e.target.value)}
-                  className="px-3 py-1.5 text-xs bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:outline-none cursor-pointer"
+                  className="px-3 py-1.5 text-[13px] bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:outline-none cursor-pointer h-10"
                 >
                   <option value="ALL">Invoice Type: All</option>
                   <option value="credit">Credit</option>
@@ -955,7 +964,7 @@ export default function ReportsPage({
                 <select
                   value={filterInvoiceStatus}
                   onChange={(e) => setFilterInvoiceStatus(e.target.value)}
-                  className="px-3 py-1.5 text-xs bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:outline-none cursor-pointer"
+                  className="px-3 py-1.5 text-[13px] bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:outline-none cursor-pointer h-10"
                 >
                   <option value="ALL">Status: All</option>
                   <option value="Paid">{activeTab === "quotations" ? "Accepted" : "Paid"}</option>
@@ -969,7 +978,7 @@ export default function ReportsPage({
                 <select
                   value={filterTransactionType}
                   onChange={(e) => setFilterTransactionType(e.target.value)}
-                  className="px-3 py-1.5 text-xs bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:outline-none cursor-pointer"
+                  className="px-3 py-1.5 text-[13px] bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:outline-none cursor-pointer h-10"
                 >
                   <option value="ALL">All Transactions</option>
                   <option value="Sales Invoices">Sales Invoices</option>
@@ -989,7 +998,7 @@ export default function ReportsPage({
                 <select
                   value={selectedPartyId}
                   onChange={(e) => setSelectedPartyId(e.target.value)}
-                  className="px-3 py-1.5 text-xs bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:outline-none cursor-pointer min-w-[200px]"
+                  className="px-3 py-1.5 text-[13px] bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:outline-none cursor-pointer min-w-[200px] h-10"
                 >
                   <option value="">Select party by name...</option>
                   {partiesList.map((p) => (
@@ -1005,7 +1014,7 @@ export default function ReportsPage({
                 <select
                   value={outstandingPartyFilter}
                   onChange={(e) => setOutstandingPartyFilter(e.target.value)}
-                  className="px-3 py-1.5 text-xs bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:outline-none cursor-pointer"
+                  className="px-3 py-1.5 text-[13px] bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:outline-none cursor-pointer h-10"
                 >
                   <option value="ALL">All (Debtors & Creditors)</option>
                   <option value="CUSTOMER">Customers Only (Debtors)</option>
@@ -1019,7 +1028,7 @@ export default function ReportsPage({
               <button
                 type="button"
                 onClick={() => setIsEmailModalOpen(true)}
-                className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] rounded-md shadow-2xs transition-colors flex items-center gap-2 cursor-pointer"
+                className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] rounded-md shadow-2xs transition-colors flex items-center gap-2 cursor-pointer"
               >
                 <span>Email Excel</span>
                 <span className="text-slate-400 text-xs">✉</span>
@@ -1029,7 +1038,7 @@ export default function ReportsPage({
                 <button
                   type="button"
                   onClick={() => handleExportReport("json" as any)}
-                  className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] rounded-md shadow-2xs transition-colors flex items-center gap-2 cursor-pointer"
+                  className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] rounded-md shadow-2xs transition-colors flex items-center gap-2 cursor-pointer"
                 >
                   <span>Download JSON</span>
                   <span className="text-slate-400 text-xs">📥</span>
@@ -1038,7 +1047,7 @@ export default function ReportsPage({
                 <button
                   type="button"
                   onClick={() => handleExportReport("xlsx")}
-                  className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] rounded-md shadow-2xs transition-colors flex items-center gap-2 cursor-pointer"
+                  className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] rounded-md shadow-2xs transition-colors flex items-center gap-2 cursor-pointer"
                 >
                   <span>Download Excel</span>
                   <span className="text-slate-400 text-[10px]">▼</span>
@@ -1048,7 +1057,7 @@ export default function ReportsPage({
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] rounded-md shadow-2xs transition-colors flex items-center gap-2 cursor-pointer"
+                className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] rounded-md shadow-2xs transition-colors flex items-center gap-2 cursor-pointer"
               >
                 <span className="hidden sm:inline">Print PDF</span>
                 <span className="text-slate-400 text-xs">🖨</span>
@@ -1069,7 +1078,7 @@ export default function ReportsPage({
               </div>
               <button
                 onClick={handleResetDates}
-                className="px-2.5 py-1 bg-amber-200 hover:bg-amber-300 text-amber-900 rounded font-bold text-xs"
+                className="px-2.5 py-1 bg-amber-200 hover:bg-amber-300 text-amber-900 rounded font-medium text-[13px]"
               >
                 Reset
               </button>
@@ -1087,7 +1096,7 @@ export default function ReportsPage({
                 </div>
                 <button
                   onClick={fetchReport}
-                  className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg transition-colors shrink-0 self-end sm:self-auto"
+                  className="h-9 px-3 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-lg transition-colors shrink-0 self-end sm:self-auto"
                 >
                   Retry
                 </button>
@@ -1097,7 +1106,7 @@ export default function ReportsPage({
             {/* Loading State with Saffron Spinner */}
             {isLoading ? (
               <div className="py-24 text-center text-[#667085]">
-                <div className="inline-block w-9 h-9 border-3 border-[#174B43] border-t-transparent rounded-full animate-spin mb-3" />
+                <div className="inline-block w-9 h-9 border-3 border-[#0F172A] border-t-transparent rounded-full animate-spin mb-3" />
                 <p className="text-sm font-semibold text-[#202124]">
                   {lang === "gu" ? "અહેવાલ લોડ થઈ રહ્યો છે..." : "Computing authoritative report from backend database..."}
                 </p>
@@ -1174,7 +1183,7 @@ export default function ReportsPage({
                             setFilterInvoiceStatus("ALL");
                             setFilterInvoiceType("ALL");
                           }}
-                          className="mt-3 px-3.5 py-1.5 text-xs font-semibold text-[#0047BA] hover:text-[#00358A] bg-blue-50/80 hover:bg-blue-100/80 border border-blue-200 rounded-lg transition-colors cursor-pointer"
+                          className="mt-3 h-9 px-3 text-[13px] font-medium text-[#0047BA] hover:text-[#00358A] bg-blue-50/80 hover:bg-blue-100/80 border border-blue-200 rounded-lg transition-colors cursor-pointer"
                         >
                           Clear Filters
                         </button>
@@ -1270,7 +1279,7 @@ export default function ReportsPage({
                       {/* MyBillBook Clean Inline KPI Metric */}
                       <div className="py-1">
                         <span className="text-xs font-semibold text-slate-700">Net Profit: </span>
-                        <span className={`font-mono font-bold text-sm ${totalProfit >= 0 ? "text-[#16834A]" : "text-[#DC2626]"}`}>
+                        <span className={`tabular-nums font-bold text-sm ${totalProfit >= 0 ? "text-[#16834A]" : "text-[#DC2626]"}`}>
                           {totalProfit < 0
                             ? `- ₹ ${Math.abs(totalProfit).toLocaleString("en-IN", { minimumFractionDigits: 0 })}`
                             : `₹ ${totalProfit.toLocaleString("en-IN", { minimumFractionDigits: 0 })}`}
@@ -1312,19 +1321,19 @@ export default function ReportsPage({
                                       onClick={() => inv.id && router.push(`/sales/invoices/${inv.id}`)}
                                       className={`hover:bg-[#F8FAFC] transition-colors ${inv.id ? "cursor-pointer" : ""}`}
                                     >
-                                      <td className="py-2.5 px-3 font-mono text-[#64748B]">{inv.invoiceDate}</td>
-                                      <td className="py-2.5 px-3 font-mono font-bold text-[#0F172A]">{inv.invoiceNumber}</td>
+                                      <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{inv.invoiceDate}</td>
+                                      <td className="py-2.5 px-3 tabular-nums font-medium text-[#0F172A]">{inv.invoiceNumber}</td>
                                       <td className="py-2.5 px-3 font-medium text-[#0F172A]">{inv.partyName || inv.party?.name || "Cash Sale"}</td>
-                                      <td className="py-2.5 px-3 text-right font-mono font-semibold text-[#0F172A]">
+                                      <td className="py-2.5 px-3 text-right tabular-nums font-semibold text-[#0F172A]">
                                         ₹{Number(inv.invoiceTotal || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                                       </td>
-                                      <td className="py-2.5 px-3 text-right font-mono text-slate-700">
+                                      <td className="py-2.5 px-3 text-right tabular-nums text-slate-700">
                                         ₹{Number(inv.taxableAmount || inv.invoiceTotal || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                                       </td>
-                                      <td className="py-2.5 px-3 text-right font-mono text-rose-700">
+                                      <td className="py-2.5 px-3 text-right tabular-nums text-rose-700">
                                         ₹{Number(inv.costOfGoodsSold || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                                       </td>
-                                      <td className={`py-2.5 px-3 text-right font-mono font-bold ${profit >= 0 ? "text-[#16834A]" : "text-rose-700"}`}>
+                                      <td className={`py-2.5 px-3 text-right tabular-nums font-bold ${profit >= 0 ? "text-[#16834A]" : "text-rose-700"}`}>
                                         ₹{profit.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                                       </td>
                                     </tr>
@@ -1353,19 +1362,19 @@ export default function ReportsPage({
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 min-w-0">
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Unique Items</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalUniqueItems || 0}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalUniqueItems || 0}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Qty Sold</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalQuantity || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalQuantity || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Tax (₹)</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">₹{reportData.summary?.totalTax || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">₹{reportData.summary?.totalTax || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Sales (₹)</span>
-                    <p className="font-mono font-bold text-lg text-[#16834A] mt-1">₹{reportData.summary?.totalSales || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#16834A] mt-1">₹{reportData.summary?.totalSales || "0.00"}</p>
                   </div>
                 </div>
 
@@ -1409,13 +1418,13 @@ export default function ReportsPage({
                               paginatedList.map((it: any, idx: number) => (
                                 <tr key={it.itemId || it.id || `item-sale-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
                                   <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{it.itemName || it.name}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{it.itemCode || it.sku} / {it.hsnCode || "—"}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{it.itemCode || it.sku} / {it.hsnCode || "—"}</td>
                                   <td className="py-2.5 px-3 text-[#64748B]">{it.category || "—"}</td>
-                                  <td className="py-2.5 px-3 font-mono">{it.uom || "PCS"}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold">{it.totalQuantity}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono">₹{it.avgRate}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono">₹{it.totalTaxable}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#16834A]">₹{it.totalSales}</td>
+                                  <td className="py-2.5 px-3 tabular-nums">{it.uom || "PCS"}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium">{it.totalQuantity}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums">₹{it.avgRate}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums">₹{it.totalTaxable}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#16834A]">₹{it.totalSales}</td>
                                 </tr>
                               ))
                             )}
@@ -1440,19 +1449,19 @@ export default function ReportsPage({
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 min-w-0">
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Parties</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalParties || 0}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalParties || 0}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Sales</span>
-                    <p className="font-mono font-bold text-lg text-[#16834A] mt-1">₹{reportData.summary?.totalSales || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#16834A] mt-1">₹{reportData.summary?.totalSales || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Paid</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">₹{reportData.summary?.totalPaid || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">₹{reportData.summary?.totalPaid || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Balance Due</span>
-                    <p className="font-mono font-bold text-lg text-[#DC2626] mt-1">₹{reportData.summary?.totalBalance || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#DC2626] mt-1">₹{reportData.summary?.totalBalance || "0.00"}</p>
                   </div>
                 </div>
 
@@ -1494,12 +1503,12 @@ export default function ReportsPage({
                               paginatedList.map((p: any, idx: number) => (
                                 <tr key={p.partyId || p.id || `party-sale-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
                                   <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{p.partyName || p.name}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{p.phone || "—"}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{p.gstin || "—"}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold">{p.invoiceCount || 0}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#16834A]">₹{p.totalSales}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono">₹{p.totalPaid}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#DC2626]">₹{p.balanceDue}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{p.phone || "—"}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{p.gstin || "—"}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium">{p.invoiceCount || 0}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#16834A]">₹{p.totalSales}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums">₹{p.totalPaid}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#DC2626]">₹{p.balanceDue}</td>
                                 </tr>
                               ))
                             )}
@@ -1524,19 +1533,19 @@ export default function ReportsPage({
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 min-w-0">
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Returns</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalReturns || 0}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalReturns || 0}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Taxable Reversal</span>
-                    <p className="font-mono font-bold text-lg text-[#DC2626] mt-1">₹{reportData.summary?.totalTaxable || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#DC2626] mt-1">₹{reportData.summary?.totalTaxable || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Tax Reversal</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">₹{reportData.summary?.totalTax || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">₹{reportData.summary?.totalTax || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Refund / Credit</span>
-                    <p className="font-mono font-bold text-lg text-amber-700 mt-1">₹{reportData.summary?.grandTotal || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-amber-700 mt-1">₹{reportData.summary?.grandTotal || "0.00"}</p>
                   </div>
                 </div>
 
@@ -1580,12 +1589,12 @@ export default function ReportsPage({
                                   onClick={() => r.id && router.push(`/sales/credit-note/${r.id}`)}
                                   className={`hover:bg-[#F8FAFC] transition-colors ${r.id ? "cursor-pointer" : ""}`}
                                 >
-                                  <td className="py-2.5 px-3 font-mono font-bold text-[#0F172A]">{r.creditNoteNumber || r.returnNumber}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{r.returnDate}</td>
+                                  <td className="py-2.5 px-3 tabular-nums font-medium text-[#0F172A]">{r.creditNoteNumber || r.returnNumber}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{r.returnDate}</td>
                                   <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{r.partyName || r.party?.name}</td>
                                   <td className="py-2.5 px-3 text-[#64748B]">{r.reason || "—"}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono">₹{r.taxableAmount}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#DC2626]">₹{r.grandTotal}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums">₹{r.taxableAmount}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#DC2626]">₹{r.grandTotal}</td>
                                 </tr>
                               ))
                             )}
@@ -1610,11 +1619,11 @@ export default function ReportsPage({
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 min-w-0">
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Quotations</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalQuotations || 0}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalQuotations || 0}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Pipeline Value</span>
-                    <p className="font-mono font-bold text-lg text-[#0047BA] mt-1">₹{reportData.summary?.totalValue || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0047BA] mt-1">₹{reportData.summary?.totalValue || "0.00"}</p>
                   </div>
                 </div>
 
@@ -1665,11 +1674,11 @@ export default function ReportsPage({
                                   onClick={() => qRow.id && router.push(`/sales/quotations/${qRow.id}`)}
                                   className={`hover:bg-[#F8FAFC] transition-colors ${qRow.id ? "cursor-pointer" : ""}`}
                                 >
-                                  <td className="py-2.5 px-3 font-mono font-bold text-[#0F172A]">{qRow.quoteNumber || qRow.quotationNumber}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{qRow.date}</td>
+                                  <td className="py-2.5 px-3 tabular-nums font-medium text-[#0F172A]">{qRow.quoteNumber || qRow.quotationNumber}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{qRow.date}</td>
                                   <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{qRow.partyName || qRow.party?.name}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{qRow.phone || "—"}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#16834A]">₹{qRow.totalAmount}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{qRow.phone || "—"}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#16834A]">₹{qRow.totalAmount}</td>
                                   <td className="py-2.5 px-3"><StatusBadge status={qRow.status} /></td>
                                 </tr>
                               ))
@@ -1694,7 +1703,7 @@ export default function ReportsPage({
               <div className="space-y-6">
                 <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs max-w-xs">
                   <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Challans Dispatched</span>
-                  <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalChallans || 0}</p>
+                  <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalChallans || 0}</p>
                 </div>
 
                 {(() => {
@@ -1737,11 +1746,11 @@ export default function ReportsPage({
                                   onClick={() => c.id && router.push(`/sales/delivery-challan/${c.id}`)}
                                   className={`hover:bg-[#F8FAFC] transition-colors ${c.id ? "cursor-pointer" : ""}`}
                                 >
-                                  <td className="py-2.5 px-3 font-mono font-bold text-[#0F172A]">{c.challanNumber}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{c.date}</td>
+                                  <td className="py-2.5 px-3 tabular-nums font-medium text-[#0F172A]">{c.challanNumber}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{c.date}</td>
                                   <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{c.partyName || c.party?.name}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{c.phone || "—"}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold">{c.itemsCount}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{c.phone || "—"}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium">{c.itemsCount}</td>
                                   <td className="py-2.5 px-3"><StatusBadge status={c.status} /></td>
                                 </tr>
                               ))
@@ -2084,7 +2093,7 @@ export default function ReportsPage({
                             setFilterPartyQuery("");
                             setFilterInvoiceStatus("ALL");
                           }}
-                          className="mt-3 px-3.5 py-1.5 text-xs font-semibold text-[#0047BA] hover:text-[#00358A] bg-blue-50/80 hover:bg-blue-100/80 border border-blue-200 rounded-lg transition-colors cursor-pointer"
+                          className="mt-3 h-9 px-3 text-[13px] font-medium text-[#0047BA] hover:text-[#00358A] bg-blue-50/80 hover:bg-blue-100/80 border border-blue-200 rounded-lg transition-colors cursor-pointer"
                         >
                           Clear Filters
                         </button>
@@ -2149,15 +2158,15 @@ export default function ReportsPage({
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 min-w-0">
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Unique Items</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalUniqueItems || 0}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalUniqueItems || 0}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Inward Qty</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalQuantity || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalQuantity || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Purchases (₹)</span>
-                    <p className="font-mono font-bold text-lg text-[#16834A] mt-1">₹{reportData.summary?.totalPurchases || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#16834A] mt-1">₹{reportData.summary?.totalPurchases || "0.00"}</p>
                   </div>
                 </div>
 
@@ -2199,12 +2208,12 @@ export default function ReportsPage({
                               paginatedList.map((it: any, idx: number) => (
                                 <tr key={it.itemId || it.id || `item-purch-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
                                   <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{it.itemName || it.name}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{it.itemCode || it.sku}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{it.itemCode || it.sku}</td>
                                   <td className="py-2.5 px-3 text-[#64748B]">{it.category || "—"}</td>
-                                  <td className="py-2.5 px-3 font-mono">{it.uom || "PCS"}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold">{it.totalQuantity}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono">₹{it.avgRate}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#16834A]">₹{it.totalPurchases}</td>
+                                  <td className="py-2.5 px-3 tabular-nums">{it.uom || "PCS"}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium">{it.totalQuantity}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums">₹{it.avgRate}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#16834A]">₹{it.totalPurchases}</td>
                                 </tr>
                               ))
                             )}
@@ -2229,19 +2238,19 @@ export default function ReportsPage({
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 min-w-0">
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Suppliers</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalSuppliers || 0}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalSuppliers || 0}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Purchases</span>
-                    <p className="font-mono font-bold text-lg text-[#16834A] mt-1">₹{reportData.summary?.totalPurchases || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#16834A] mt-1">₹{reportData.summary?.totalPurchases || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Paid</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">₹{reportData.summary?.totalPaid || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">₹{reportData.summary?.totalPaid || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Balance Payable</span>
-                    <p className="font-mono font-bold text-lg text-[#DC2626] mt-1">₹{reportData.summary?.totalPayable || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#DC2626] mt-1">₹{reportData.summary?.totalPayable || "0.00"}</p>
                   </div>
                 </div>
 
@@ -2283,12 +2292,12 @@ export default function ReportsPage({
                               paginatedList.map((p: any, idx: number) => (
                                 <tr key={p.partyId || p.id || `party-purch-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
                                   <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{p.partyName || p.name}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{p.phone || "—"}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{p.gstin || "—"}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold">{p.billCount || 0}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#16834A]">₹{p.totalPurchases}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono">₹{p.totalPaid}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#DC2626]">₹{p.balancePayable}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{p.phone || "—"}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{p.gstin || "—"}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium">{p.billCount || 0}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#16834A]">₹{p.totalPurchases}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums">₹{p.totalPaid}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#DC2626]">₹{p.balancePayable}</td>
                                 </tr>
                               ))
                             )}
@@ -2313,15 +2322,15 @@ export default function ReportsPage({
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 min-w-0">
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Returns</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalReturns || 0}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalReturns || 0}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Taxable Reversal</span>
-                    <p className="font-mono font-bold text-lg text-[#DC2626] mt-1">₹{reportData.summary?.totalTaxable || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#DC2626] mt-1">₹{reportData.summary?.totalTaxable || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Debit Note Amount</span>
-                    <p className="font-mono font-bold text-lg text-amber-700 mt-1">₹{reportData.summary?.grandTotal || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-amber-700 mt-1">₹{reportData.summary?.grandTotal || "0.00"}</p>
                   </div>
                 </div>
 
@@ -2361,12 +2370,12 @@ export default function ReportsPage({
                             ) : (
                               paginatedList.map((r: any, idx: number) => (
                                 <tr key={r.id || `debit-note-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
-                                  <td className="py-2.5 px-3 font-mono font-bold text-[#0F172A]">{r.debitNoteNumber || r.returnNumber}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{r.returnDate}</td>
+                                  <td className="py-2.5 px-3 tabular-nums font-medium text-[#0F172A]">{r.debitNoteNumber || r.returnNumber}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{r.returnDate}</td>
                                   <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{r.partyName || r.party?.name}</td>
                                   <td className="py-2.5 px-3 text-[#64748B]">{r.reason || "—"}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono">₹{r.taxableAmount}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-amber-700">₹{r.grandTotal}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums">₹{r.taxableAmount}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-amber-700">₹{r.grandTotal}</td>
                                 </tr>
                               ))
                             )}
@@ -2462,18 +2471,18 @@ export default function ReportsPage({
                                 paginatedList.map((it: any, idx: number) => (
                                   <tr key={it.id || it.itemId || it.sku || `stock-item-${idx}`} className="hover:bg-slate-50 transition-colors">
                                     <td className="py-2.5 px-3 font-semibold text-slate-900">{it.name || it.itemName}</td>
-                                    <td className="py-2.5 px-3 font-mono text-slate-500">{it.batchNumber || "—"}</td>
-                                    <td className="py-2.5 px-3 font-mono text-slate-500">{it.sku || it.barcode || it.itemCode || "—"}</td>
-                                    <td className="py-2.5 px-3 text-right font-mono">
+                                    <td className="py-2.5 px-3 tabular-nums text-slate-500">{it.batchNumber || "—"}</td>
+                                    <td className="py-2.5 px-3 tabular-nums text-slate-500">{it.sku || it.barcode || it.itemCode || "—"}</td>
+                                    <td className="py-2.5 px-3 text-right tabular-nums">
                                       {Number(it.purchaseRate || 0) > 0 ? `₹ ${Number(it.purchaseRate).toLocaleString("en-IN")}` : "—"}
                                     </td>
-                                    <td className="py-2.5 px-3 text-right font-mono">
+                                    <td className="py-2.5 px-3 text-right tabular-nums">
                                       {Number(it.retailPrice || it.salePrice || 0) > 0 ? `₹ ${Number(it.retailPrice || it.salePrice).toLocaleString("en-IN")}` : "—"}
                                     </td>
-                                    <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">
+                                    <td className="py-2.5 px-3 text-right tabular-nums font-medium text-slate-900">
                                       {Number(it.currentStockQuantity ?? it.currentStock ?? 0).toFixed(1)} {it.uomSymbol || it.uom || "PCS"}
                                     </td>
-                                    <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">
+                                    <td className="py-2.5 px-3 text-right tabular-nums font-medium text-slate-900">
                                       ₹ {Number(it.totalValuation ?? it.valuation ?? 0).toLocaleString("en-IN")}
                                     </td>
                                   </tr>
@@ -2501,15 +2510,15 @@ export default function ReportsPage({
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 min-w-0">
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Transactions</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">{(reportData.transactions || []).length}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">{(reportData.transactions || []).length}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Inward Qty</span>
-                    <p className="font-mono font-bold text-lg text-[#16834A] mt-1">{reportData.totalInward || 0}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#16834A] mt-1">{reportData.totalInward || 0}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Outward Qty</span>
-                    <p className="font-mono font-bold text-lg text-[#DC2626] mt-1">{reportData.totalOutward || 0}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#DC2626] mt-1">{reportData.totalOutward || 0}</p>
                   </div>
                 </div>
 
@@ -2550,13 +2559,13 @@ export default function ReportsPage({
                             ) : (
                               paginatedList.map((t: any, idx: number) => (
                                 <tr key={t.id || `tx-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{t.date ? String(t.date).slice(0, 10) : "—"}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{t.date ? String(t.date).slice(0, 10) : "—"}</td>
                                   <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{t.docType}</td>
                                   <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{t.item || t.itemName}</td>
                                   <td className="py-2.5 px-3 text-[#64748B]">{t.warehouse || "Default"}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold">{t.quantity}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono">₹{t.rate}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#16834A]">₹{t.valuation}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium">{t.quantity}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums">₹{t.rate}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#16834A]">₹{t.valuation}</td>
                                 </tr>
                               ))
                             )}
@@ -2581,15 +2590,15 @@ export default function ReportsPage({
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 min-w-0">
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Batches</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalBatches || 0}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalBatches || 0}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Expiring Soon (30d)</span>
-                    <p className="font-mono font-bold text-lg text-amber-700 mt-1">{reportData.summary?.expiringSoonCount || 0}</p>
+                    <p className="tabular-nums font-bold text-lg text-amber-700 mt-1">{reportData.summary?.expiringSoonCount || 0}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Expired Batches</span>
-                    <p className="font-mono font-bold text-lg text-[#DC2626] mt-1">{reportData.summary?.expiredCount || 0}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#DC2626] mt-1">{reportData.summary?.expiredCount || 0}</p>
                   </div>
                 </div>
 
@@ -2631,14 +2640,14 @@ export default function ReportsPage({
                               paginatedList.map((b: any, idx: number) => (
                                 <tr key={b.id || `batch-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
                                   <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{b.itemName}</td>
-                                  <td className="py-2.5 px-3 font-mono font-bold text-[#0047BA]">{b.batchNumber}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{b.mfgDate}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{b.expiryDate}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold">
+                                  <td className="py-2.5 px-3 tabular-nums font-medium text-[#0047BA]">{b.batchNumber}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{b.mfgDate}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{b.expiryDate}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium">
                                     {b.daysToExpiry !== null ? `${b.daysToExpiry}d` : "—"}
                                   </td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold">{b.currentStock} {b.uom}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono text-[#16834A]">₹{b.valuation}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium">{b.currentStock} {b.uom}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums text-[#16834A]">₹{b.valuation}</td>
                                   <td className="py-2.5 px-3">
                                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                                       b.status === "EXPIRED" ? "bg-rose-50 text-rose-700 border border-rose-200" : b.status === "EXPIRING_SOON" ? "bg-amber-50 text-amber-700 border border-amber-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"
@@ -2669,7 +2678,7 @@ export default function ReportsPage({
               <div className="space-y-6">
                 <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs max-w-xs">
                   <span className="text-[11px] text-[#DC2626] uppercase font-bold block">Items Below Reorder Level</span>
-                  <p className="font-mono font-bold text-lg text-[#DC2626] mt-1">{reportData.summary?.totalLowStockCount || 0}</p>
+                  <p className="tabular-nums font-bold text-lg text-[#DC2626] mt-1">{reportData.summary?.totalLowStockCount || 0}</p>
                 </div>
 
                 {(() => {
@@ -2710,11 +2719,11 @@ export default function ReportsPage({
                                 <tr key={it.id || it.itemId || `low-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
                                   <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{it.name}</td>
                                   <td className="py-2.5 px-3 text-[#64748B]">{it.category || "—"}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#DC2626]">{it.currentStock} {it.uom}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">{it.minStockLevel}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-rose-800">{it.deficit}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-indigo-700">{it.reorderQuantity}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono">₹{it.purchaseRate}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#DC2626]">{it.currentStock} {it.uom}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">{it.minStockLevel}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-rose-800">{it.deficit}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-indigo-700">{it.reorderQuantity}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums">₹{it.purchaseRate}</td>
                                 </tr>
                               ))
                             )}
@@ -2743,7 +2752,7 @@ export default function ReportsPage({
                       <span>🔄</span>
                       <span>Total Receivable</span>
                     </span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">
                       {selectedPartyId ? `₹ ${Number(reportData?.summary?.totalReceivable || reportData?.summary?.closingBalance || 0).toLocaleString("en-IN")}` : "—"}
                     </p>
                   </div>
@@ -2753,7 +2762,7 @@ export default function ReportsPage({
                       <span>⏳</span>
                       <span>Overdue Amount</span>
                     </span>
-                    <p className="font-mono font-bold text-lg text-amber-700 mt-1">
+                    <p className="tabular-nums font-bold text-lg text-amber-700 mt-1">
                       {selectedPartyId ? `₹ ${Number(reportData?.summary?.overdueAmount || 0).toLocaleString("en-IN")}` : "—"}
                     </p>
                   </div>
@@ -2763,7 +2772,7 @@ export default function ReportsPage({
                       <span>📈</span>
                       <span>Total Sales</span>
                     </span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">
                       {selectedPartyId ? `₹ ${Number(reportData?.summary?.totalDebits || reportData?.summary?.totalSales || 0).toLocaleString("en-IN")}` : "—"}
                     </p>
                   </div>
@@ -2773,7 +2782,7 @@ export default function ReportsPage({
                       <span>💳</span>
                       <span>Total Received</span>
                     </span>
-                    <p className="font-mono font-bold text-lg text-[#16834A] mt-1">
+                    <p className="tabular-nums font-bold text-lg text-[#16834A] mt-1">
                       {selectedPartyId ? `₹ ${Number(reportData?.summary?.totalCredits || reportData?.summary?.totalReceived || 0).toLocaleString("en-IN")}` : "—"}
                     </p>
                   </div>
@@ -2827,13 +2836,13 @@ export default function ReportsPage({
                           <tbody className="divide-y divide-[#E2E8F0]">
                             {paginatedList.map((t: any, idx: number) => (
                               <tr key={t.id || `txn-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
-                                <td className="py-2.5 px-3 font-mono text-[#64748B]">{t.date || t.voucherDate}</td>
+                                <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{t.date || t.voucherDate}</td>
                                 <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{t.voucherType || t.type}</td>
-                                <td className="py-2.5 px-3 font-mono font-bold text-[#0047BA]">{t.refNo || t.voucherNumber}</td>
+                                <td className="py-2.5 px-3 tabular-nums font-medium text-[#0047BA]">{t.refNo || t.voucherNumber}</td>
                                 <td className="py-2.5 px-3 text-[#64748B]">{t.narration || "—"}</td>
-                                <td className="py-2.5 px-3 text-right font-mono text-rose-700 font-bold">{t.debit ? `₹ ${Number(t.debit).toLocaleString("en-IN")}` : "—"}</td>
-                                <td className="py-2.5 px-3 text-right font-mono text-emerald-700 font-bold">{t.credit ? `₹ ${Number(t.credit).toLocaleString("en-IN")}` : "—"}</td>
-                                <td className="py-2.5 px-3 text-right font-mono font-bold text-[#0F172A]">₹ {Number(t.balance || t.runningBalance || 0).toLocaleString("en-IN")}</td>
+                                <td className="py-2.5 px-3 text-right tabular-nums text-rose-700 font-medium">{t.debit ? `₹ ${Number(t.debit).toLocaleString("en-IN")}` : "—"}</td>
+                                <td className="py-2.5 px-3 text-right tabular-nums text-emerald-700 font-medium">{t.credit ? `₹ ${Number(t.credit).toLocaleString("en-IN")}` : "—"}</td>
+                                <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#0F172A]">₹ {Number(t.balance || t.runningBalance || 0).toLocaleString("en-IN")}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -2857,19 +2866,19 @@ export default function ReportsPage({
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 min-w-0">
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Receivables</span>
-                    <p className="font-mono font-bold text-lg text-[#16834A] mt-1">₹{reportData.summary?.totalReceivable || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#16834A] mt-1">₹{reportData.summary?.totalReceivable || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Not Due</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">₹{reportData.summary?.notDue || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">₹{reportData.summary?.notDue || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-amber-600 uppercase font-semibold block">0 - 30 Days Overdue</span>
-                    <p className="font-mono font-bold text-lg text-amber-700 mt-1">₹{reportData.summary?.overdue0to30 || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-amber-700 mt-1">₹{reportData.summary?.overdue0to30 || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#DC2626] uppercase font-semibold block">60+ Days Overdue</span>
-                    <p className="font-mono font-bold text-lg text-[#DC2626] mt-1">₹{reportData.summary?.overdue90Plus || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#DC2626] mt-1">₹{reportData.summary?.overdue90Plus || "0.00"}</p>
                   </div>
                 </div>
 
@@ -2911,14 +2920,14 @@ export default function ReportsPage({
                               paginatedList.map((p: any, idx: number) => (
                                 <tr key={p.partyId || p.id || `party-aging-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
                                   <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{p.partyName}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{p.phone || "—"}</td>
-                                  <td className="py-2.5 px-3 text-center font-mono">{p.creditDays || 0}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono">₹{p.notDue}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono text-amber-700">₹{p.overdue0to30}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono text-orange-700">₹{p.overdue31to60}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono text-rose-600">₹{p.overdue61to90}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#DC2626]">₹{p.overdue90Plus}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#16834A]">₹{p.totalDue}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{p.phone || "—"}</td>
+                                  <td className="py-2.5 px-3 text-center tabular-nums">{p.creditDays || 0}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums">₹{p.notDue}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums text-amber-700">₹{p.overdue0to30}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums text-orange-700">₹{p.overdue31to60}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums text-rose-600">₹{p.overdue61to90}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#DC2626]">₹{p.overdue90Plus}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#16834A]">₹{p.totalDue}</td>
                                 </tr>
                               ))
                             )}
@@ -2943,19 +2952,19 @@ export default function ReportsPage({
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 min-w-0">
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Parties</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalParties || 0}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalParties || 0}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#16834A] uppercase font-semibold block">Total Receivables (Debtors)</span>
-                    <p className="font-mono font-bold text-lg text-[#16834A] mt-1">₹{reportData.summary?.totalReceivables || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#16834A] mt-1">₹{reportData.summary?.totalReceivables || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#DC2626] uppercase font-semibold block">Total Payables (Creditors)</span>
-                    <p className="font-mono font-bold text-lg text-[#DC2626] mt-1">₹{reportData.summary?.totalPayables || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#DC2626] mt-1">₹{reportData.summary?.totalPayables || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#0047BA] uppercase font-semibold block">Net Outstanding</span>
-                    <p className="font-mono font-bold text-lg text-[#0047BA] mt-1">₹{reportData.summary?.netOutstanding || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0047BA] mt-1">₹{reportData.summary?.netOutstanding || "0.00"}</p>
                   </div>
                 </div>
 
@@ -3003,12 +3012,12 @@ export default function ReportsPage({
                                       {b.partyType}
                                     </span>
                                   </td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{b.phone || "—"}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{b.gstin || "—"}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono">{b.unpaidInvoicesCount}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono">₹{b.salesOutstanding}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono">₹{b.purchaseOutstanding}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#0F172A]">
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{b.phone || "—"}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{b.gstin || "—"}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums">{b.unpaidInvoicesCount}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums">₹{b.salesOutstanding}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums">₹{b.purchaseOutstanding}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#0F172A]">
                                     ₹{b.ledgerBalance} <span className="text-[10px] font-normal text-[#64748B]">{b.balanceType}</span>
                                   </td>
                                 </tr>
@@ -3035,25 +3044,25 @@ export default function ReportsPage({
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 min-w-0">
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Gross Profit</span>
-                    <p className="font-mono font-bold text-lg text-[#16834A] mt-1">
+                    <p className="tabular-nums font-bold text-lg text-[#16834A] mt-1">
                       ₹{Number(reportData.grossProfit ?? reportData.summary?.grossProfit ?? 0).toFixed(2)}
                     </p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Net Profit</span>
-                    <p className="font-mono font-bold text-lg text-[#16834A] mt-1">
+                    <p className="tabular-nums font-bold text-lg text-[#16834A] mt-1">
                       ₹{Number(reportData.netProfit ?? reportData.summary?.netProfit ?? 0).toFixed(2)}
                     </p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Cost of Goods Sold</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">
                       ₹{Number(reportData.tradingAccount?.costOfGoodsSold ?? reportData.costOfGoodsSold ?? 0).toFixed(2)}
                     </p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Closing Stock Valuation</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">
                       ₹{Number(reportData.tradingAccount?.closingStockValuation ?? reportData.closingStockValuation ?? 0).toFixed(2)}
                     </p>
                   </div>
@@ -3063,13 +3072,13 @@ export default function ReportsPage({
                   <div className="border border-[#E2E8F0] rounded-xl p-4 bg-white shadow-2xs">
                     <div className="flex justify-between items-center pb-2.5 mb-3 border-b border-[#E2E8F0] font-bold text-[#DC2626] text-xs">
                       <span className="tracking-wider uppercase">EXPENSES (DEBIT)</span>
-                      <span className="font-mono">₹{Number(reportData.summary?.totalExpenses ?? reportData.totalExpenses ?? 0).toFixed(2)}</span>
+                      <span className="tabular-nums">₹{Number(reportData.summary?.totalExpenses ?? reportData.totalExpenses ?? 0).toFixed(2)}</span>
                     </div>
                     <div className="space-y-3 text-xs">
                       <div>
                         <div className="flex justify-between font-semibold text-[#0F172A]">
                           <span>Direct Expenses</span>
-                          <span className="font-mono text-[#DC2626]">
+                          <span className="tabular-nums text-[#DC2626]">
                             ₹{Number(reportData.directExpenses?.total ?? reportData.summary?.directExpenses ?? (typeof reportData.directExpenses === "number" ? reportData.directExpenses : 0)).toFixed(2)}
                           </span>
                         </div>
@@ -3078,7 +3087,7 @@ export default function ReportsPage({
                             {reportData.directExpenses.accounts.map((acc: any) => (
                               <div key={acc.id || acc.name} className="flex justify-between text-[11px] text-[#64748B]">
                                 <span>{acc.name}</span>
-                                <span className="font-mono">₹{Number(acc.amount || 0).toFixed(2)}</span>
+                                <span className="tabular-nums">₹{Number(acc.amount || 0).toFixed(2)}</span>
                               </div>
                             ))}
                           </div>
@@ -3088,7 +3097,7 @@ export default function ReportsPage({
                       <div>
                         <div className="flex justify-between font-semibold text-[#0F172A]">
                           <span>Indirect Expenses</span>
-                          <span className="font-mono text-[#DC2626]">
+                          <span className="tabular-nums text-[#DC2626]">
                             ₹{Number(reportData.indirectExpenses?.total ?? reportData.summary?.indirectExpenses ?? (typeof reportData.indirectExpenses === "number" ? reportData.indirectExpenses : 0)).toFixed(2)}
                           </span>
                         </div>
@@ -3097,7 +3106,7 @@ export default function ReportsPage({
                             {reportData.indirectExpenses.accounts.map((acc: any) => (
                               <div key={acc.id || acc.name} className="flex justify-between text-[11px] text-[#64748B]">
                                 <span>{acc.name}</span>
-                                <span className="font-mono">₹{Number(acc.amount || 0).toFixed(2)}</span>
+                                <span className="tabular-nums">₹{Number(acc.amount || 0).toFixed(2)}</span>
                               </div>
                             ))}
                           </div>
@@ -3109,13 +3118,13 @@ export default function ReportsPage({
                   <div className="border border-[#E2E8F0] rounded-xl p-4 bg-white shadow-2xs">
                     <div className="flex justify-between items-center pb-2.5 mb-3 border-b border-[#E2E8F0] font-bold text-[#16834A] text-xs">
                       <span className="tracking-wider uppercase">INCOME (CREDIT)</span>
-                      <span className="font-mono">₹{Number(reportData.summary?.totalIncome ?? reportData.totalIncome ?? 0).toFixed(2)}</span>
+                      <span className="tabular-nums">₹{Number(reportData.summary?.totalIncome ?? reportData.totalIncome ?? 0).toFixed(2)}</span>
                     </div>
                     <div className="space-y-3 text-xs">
                       <div>
                         <div className="flex justify-between font-semibold text-[#0F172A]">
                           <span>Direct Income / Sales</span>
-                          <span className="font-mono text-[#16834A]">
+                          <span className="tabular-nums text-[#16834A]">
                             ₹{Number(reportData.directIncome?.total ?? reportData.summary?.directIncome ?? (typeof reportData.directIncome === "number" ? reportData.directIncome : 0)).toFixed(2)}
                           </span>
                         </div>
@@ -3124,7 +3133,7 @@ export default function ReportsPage({
                             {reportData.directIncome.accounts.map((acc: any) => (
                               <div key={acc.id || acc.name} className="flex justify-between text-[11px] text-[#64748B]">
                                 <span>{acc.name}</span>
-                                <span className="font-mono">₹{Number(acc.amount || 0).toFixed(2)}</span>
+                                <span className="tabular-nums">₹{Number(acc.amount || 0).toFixed(2)}</span>
                               </div>
                             ))}
                           </div>
@@ -3134,7 +3143,7 @@ export default function ReportsPage({
                       <div>
                         <div className="flex justify-between font-semibold text-[#0F172A]">
                           <span>Indirect Income</span>
-                          <span className="font-mono text-[#16834A]">
+                          <span className="tabular-nums text-[#16834A]">
                             ₹{Number(reportData.indirectIncome?.total ?? reportData.summary?.indirectIncome ?? (typeof reportData.indirectIncome === "number" ? reportData.indirectIncome : 0)).toFixed(2)}
                           </span>
                         </div>
@@ -3143,7 +3152,7 @@ export default function ReportsPage({
                             {reportData.indirectIncome.accounts.map((acc: any) => (
                               <div key={acc.id || acc.name} className="flex justify-between text-[11px] text-[#64748B]">
                                 <span>{acc.name}</span>
-                                <span className="font-mono">₹{Number(acc.amount || 0).toFixed(2)}</span>
+                                <span className="tabular-nums">₹{Number(acc.amount || 0).toFixed(2)}</span>
                               </div>
                             ))}
                           </div>
@@ -3154,261 +3163,481 @@ export default function ReportsPage({
                 </div>
               </div>
             ) : activeTab === "balance-sheet" ? (
-              /* Balance Sheet matching MyBillBook exact layout */
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#E2E8F0] border border-[#E2E8F0] rounded-xl overflow-hidden bg-white shadow-2xs">
-                  {/* LIABILITIES COLUMN */}
-                  <div className="flex flex-col justify-between">
-                    <div>
-                      <div className="bg-[#F8FAFC] px-4 py-2.5 border-b border-[#E2E8F0]">
-                        <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
-                          LIABILITIES
-                        </span>
+              /* Balance Sheet matching MyBillBook exact layout with live dynamic accounting data */
+              (() => {
+                const equityAccs = Array.isArray(reportData.equity?.accounts)
+                  ? reportData.equity.accounts
+                  : [];
+                const liabilityAccs = Array.isArray(reportData.liabilities?.accounts)
+                  ? reportData.liabilities.accounts
+                  : [];
+                const assetAccs = Array.isArray(reportData.assets?.accounts)
+                  ? reportData.assets.accounts
+                  : [];
+
+                // Liabilities & Equity mapping
+                const capitalAccounts = equityAccs.filter((a: any) =>
+                  (a.groupName || "").toLowerCase().includes("capital") ||
+                  (a.name || "").toLowerCase().includes("capital")
+                );
+                const capitalTotal = capitalAccounts.reduce(
+                  (sum: number, a: any) => sum + Number(a.amount || 0),
+                  0
+                );
+
+                const creditorsAccounts = liabilityAccs.filter((a: any) =>
+                  (a.groupName || "").toLowerCase().includes("creditor") ||
+                  (a.groupName || "").toLowerCase().includes("payable")
+                );
+                const creditorsTotal = creditorsAccounts.reduce(
+                  (sum: number, a: any) => sum + Number(a.amount || 0),
+                  0
+                );
+
+                const taxPayableAccounts = liabilityAccs.filter((a: any) =>
+                  (a.groupName || "").toLowerCase().includes("tax") ||
+                  (a.groupName || "").toLowerCase().includes("duties")
+                );
+                const taxPayableTotal = taxPayableAccounts.reduce(
+                  (sum: number, a: any) => sum + Number(a.amount || 0),
+                  0
+                );
+
+                const loanAccounts = liabilityAccs.filter((a: any) =>
+                  (a.groupName || "").toLowerCase().includes("loan") ||
+                  (a.groupName || "").toLowerCase().includes("borrowing")
+                );
+                const loansTotal = loanAccounts.reduce(
+                  (sum: number, a: any) => sum + Number(a.amount || 0),
+                  0
+                );
+
+                const otherLiabilities = liabilityAccs.filter(
+                  (a: any) =>
+                    !creditorsAccounts.includes(a) &&
+                    !taxPayableAccounts.includes(a) &&
+                    !loanAccounts.includes(a)
+                );
+                const otherLiabilitiesTotal = otherLiabilities.reduce(
+                  (sum: number, a: any) => sum + Number(a.amount || 0),
+                  0
+                );
+
+                const currentLiabilitiesTotal =
+                  creditorsTotal + taxPayableTotal + otherLiabilitiesTotal;
+
+                const netIncomeTotal = Number(
+                  reportData.equity?.netProfitOrLoss ??
+                  reportData.netIncome ??
+                  reportData.netProfit ??
+                  0
+                );
+
+                const totalLiabilitiesAndEquity = Number(
+                  reportData.totalLiabilitiesAndEquity ??
+                  (Number(reportData.liabilities?.total || 0) +
+                    Number(reportData.equity?.total || 0) +
+                    netIncomeTotal)
+                );
+
+                // Assets mapping
+                const cashInHandAccounts = assetAccs.filter(
+                  (a: any) =>
+                    (a.groupName || "").toLowerCase().includes("cash") ||
+                    (a.name || "").toLowerCase().includes("cash")
+                );
+                const cashInHandTotal = cashInHandAccounts.reduce(
+                  (sum: number, a: any) => sum + Number(a.amount || 0),
+                  0
+                );
+
+                const bankAccounts = assetAccs.filter(
+                  (a: any) =>
+                    ((a.groupName || "").toLowerCase().includes("bank") ||
+                     (a.name || "").toLowerCase().includes("bank")) &&
+                    !cashInHandAccounts.includes(a)
+                );
+                const bankTotal = bankAccounts.reduce(
+                  (sum: number, a: any) => sum + Number(a.amount || 0),
+                  0
+                );
+
+                const debtorAccounts = assetAccs.filter(
+                  (a: any) =>
+                    (a.groupName || "").toLowerCase().includes("debtor") ||
+                    (a.groupName || "").toLowerCase().includes("receivable")
+                );
+                const debtorsTotal = debtorAccounts.reduce(
+                  (sum: number, a: any) => sum + Number(a.amount || 0),
+                  0
+                );
+
+                const taxReceivableAccounts = assetAccs.filter(
+                  (a: any) =>
+                    (a.groupName || "").toLowerCase().includes("tax") ||
+                    (a.groupName || "").toLowerCase().includes("duties") ||
+                    (a.groupName || "").toLowerCase().includes("itc")
+                );
+                const taxReceivableTotal = taxReceivableAccounts.reduce(
+                  (sum: number, a: any) => sum + Number(a.amount || 0),
+                  0
+                );
+
+                const fixedAssetAccounts = assetAccs.filter((a: any) =>
+                  (a.groupName || "").toLowerCase().includes("fixed")
+                );
+                const fixedAssetsTotal = fixedAssetAccounts.reduce(
+                  (sum: number, a: any) => sum + Number(a.amount || 0),
+                  0
+                );
+
+                const investmentAccounts = assetAccs.filter((a: any) =>
+                  (a.groupName || "").toLowerCase().includes("invest")
+                );
+                const investmentsTotal = investmentAccounts.reduce(
+                  (sum: number, a: any) => sum + Number(a.amount || 0),
+                  0
+                );
+
+                const loanAdvanceAccounts = assetAccs.filter((a: any) =>
+                  (a.groupName || "").toLowerCase().includes("advance")
+                );
+                const loanAdvancesTotal = loanAdvanceAccounts.reduce(
+                  (sum: number, a: any) => sum + Number(a.amount || 0),
+                  0
+                );
+
+                const inventoryAccounts = assetAccs.filter(
+                  (a: any) =>
+                    (a.groupName || "").toLowerCase().includes("stock") ||
+                    (a.groupName || "").toLowerCase().includes("inventory")
+                );
+                const inventoryInAssetsTotal = inventoryAccounts.reduce(
+                  (sum: number, a: any) => sum + Number(a.amount || 0),
+                  0
+                );
+
+                const totalAssets = Number(
+                  reportData.assets?.total ?? reportData.totalAssets ?? 0
+                );
+
+                const differenceAmount = Number(
+                  reportData.difference ??
+                  Math.abs(totalAssets - totalLiabilitiesAndEquity)
+                );
+                const isBalanced =
+                  reportData.isBalanced ?? (differenceAmount < 0.01);
+
+                return (
+                  <div className="space-y-4">
+                    {!isBalanced && differenceAmount > 0.01 && (
+                      <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl text-amber-900 text-xs flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span>⚠️</span>
+                          <span>
+                            <strong>Unbalanced Books Notice:</strong> There is an accounting difference of ₹{differenceAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })} between Total Assets (₹{totalAssets.toLocaleString("en-IN", { minimumFractionDigits: 2 })}) and Total Liabilities & Equity (₹{totalLiabilitiesAndEquity.toLocaleString("en-IN", { minimumFractionDigits: 2 })}). This difference originates from unbalanced opening balances in the General Ledger.
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#E2E8F0] border border-[#E2E8F0] rounded-xl overflow-hidden bg-white shadow-2xs">
+                      {/* LIABILITIES COLUMN */}
+                      <div className="flex flex-col justify-between">
+                        <div>
+                          <div className="bg-[#F8FAFC] px-4 py-2.5 border-b border-[#E2E8F0]">
+                            <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
+                              LIABILITIES & CAPITAL
+                            </span>
+                          </div>
+
+                          <div className="divide-y divide-[#E2E8F0] text-xs">
+                            {/* Capital */}
+                            <div className="p-3.5 space-y-1">
+                              <div className="flex items-center justify-between font-bold text-[#0F172A]">
+                                <span className="flex items-center gap-1.5">
+                                  <span>Capital & Owner Equity</span>
+                                  <span className="text-slate-400 font-normal text-[10px]">ℹ</span>
+                                </span>
+                                <span className="tabular-nums">
+                                  ₹ {capitalTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  router.push(
+                                    "/accounting/vouchers/new?type=JOURNAL&accountName=Proprietor+Capital+Account&narration=Owner+Capital+Investment"
+                                  )
+                                }
+                                className="text-[11px] text-[#0047BA] hover:underline font-medium cursor-pointer"
+                              >
+                                + Add New Entry
+                              </button>
+                            </div>
+
+                            {/* Current Liability */}
+                            <div className="p-3.5 space-y-2">
+                              <div className="flex items-center justify-between font-bold text-[#0F172A]">
+                                <span className="flex items-center gap-1.5">
+                                  <span>Current Liabilities</span>
+                                  <span className="text-slate-400 font-normal text-[10px]">ℹ</span>
+                                </span>
+                                <span className="tabular-nums">
+                                  ₹ {currentLiabilitiesTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                                </span>
+                              </div>
+                              <div className="pl-3 space-y-1.5 text-[#64748B] text-[11px]">
+                                <div className="flex justify-between">
+                                  <span>Duties & Taxes (Tax Payable)</span>
+                                  <span className="tabular-nums">
+                                    ₹ {taxPayableTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Accounts Payable (Sundry Creditors)</span>
+                                  <span className="tabular-nums">
+                                    ₹ {creditorsTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                                  </span>
+                                </div>
+                                {otherLiabilitiesTotal !== 0 && (
+                                  <div className="flex justify-between">
+                                    <span>Other Current Liabilities</span>
+                                    <span className="tabular-nums">
+                                      ₹ {otherLiabilitiesTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  router.push(
+                                    "/accounting/vouchers/new?type=JOURNAL&narration=Record+Current+Liability"
+                                  )
+                                }
+                                className="text-[11px] text-[#0047BA] hover:underline font-medium cursor-pointer"
+                              >
+                                + Add New Entry
+                              </button>
+                            </div>
+
+                            {/* Loans */}
+                            <div className="p-3.5 space-y-1">
+                              <div className="flex items-center justify-between font-bold text-[#0F172A]">
+                                <span className="flex items-center gap-1.5">
+                                  <span>Loans & Borrowings</span>
+                                  <span className="text-slate-400 font-normal text-[10px]">ℹ</span>
+                                </span>
+                                <span className="tabular-nums">
+                                  ₹ {loansTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  router.push(
+                                    "/accounting/vouchers/new?type=RECEIPT&narration=Bank+or+Director+Loan+Received"
+                                  )
+                                }
+                                className="text-[11px] text-[#0047BA] hover:underline font-medium cursor-pointer"
+                              >
+                                + Add New Entry
+                              </button>
+                            </div>
+
+                            {/* Net Income */}
+                            <div className="p-3.5 flex items-center justify-between font-bold text-[#0F172A] bg-[#F8FAFC]">
+                              <span className="flex items-center gap-1.5">
+                                <span>Net Profit / (Loss) for the Period</span>
+                                <span className="text-slate-400 font-normal text-[10px]">ℹ</span>
+                              </span>
+                              <span
+                                className={`tabular-nums ${
+                                  netIncomeTotal >= 0 ? "text-[#16834A]" : "text-[#DC2626]"
+                                }`}
+                              >
+                                ₹ {netIncomeTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Total Liabilities & Equity Footer */}
+                        <div className="bg-[#F8FAFC] px-4 py-3 border-t border-[#E2E8F0] flex items-center justify-between font-bold text-[#0F172A] text-xs sm:text-sm">
+                          <span>Total Liabilities & Equity</span>
+                          <span className="tabular-nums">
+                            ₹ {totalLiabilitiesAndEquity.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="divide-y divide-[#E2E8F0] text-xs">
-                        {/* Capital */}
-                        <div className="p-3.5 space-y-1">
-                          <div className="flex items-center justify-between font-bold text-[#0F172A]">
-                            <span className="flex items-center gap-1.5">
-                              <span>Capital</span>
-                              <span className="text-slate-400 font-normal text-[10px]">ℹ</span>
-                            </span>
-                            <span className="font-mono">
-                              ₹ {Number(reportData.equity?.capital || 0).toLocaleString("en-IN")}
+                      {/* ASSETS COLUMN */}
+                      <div className="flex flex-col justify-between">
+                        <div>
+                          <div className="bg-[#F8FAFC] px-4 py-2.5 border-b border-[#E2E8F0]">
+                            <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
+                              ASSETS
                             </span>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => alert("Add Capital entry: Feature available in Masters / Journal entries.")}
-                            className="text-[11px] text-[#0047BA] hover:underline font-medium cursor-pointer"
-                          >
-                            + Add New Entry
-                          </button>
-                        </div>
 
-                        {/* Current Liability */}
-                        <div className="p-3.5 space-y-2">
-                          <div className="flex items-center justify-between font-bold text-[#0F172A]">
-                            <span className="flex items-center gap-1.5">
-                              <span>Current Liability</span>
-                              <span className="text-slate-400 font-normal text-[10px]">ℹ</span>
-                            </span>
-                            <span className="font-mono">
-                              ₹ {Number(reportData.liabilities?.current || 0).toLocaleString("en-IN")}
-                            </span>
-                          </div>
-                          <div className="pl-3 space-y-1.5 text-[#64748B] text-[11px]">
-                            <div className="flex justify-between">
-                              <span>Tax Payable</span>
-                              <span className="font-mono">₹ 0</span>
+                          <div className="divide-y divide-[#E2E8F0] text-xs">
+                            {/* Current Assets */}
+                            <div className="p-3.5 space-y-2">
+                              <div className="flex items-center justify-between font-bold text-[#0F172A]">
+                                <span className="flex items-center gap-1.5">
+                                  <span>Current Assets</span>
+                                  <span className="text-slate-400 font-normal text-[10px]">ℹ</span>
+                                </span>
+                                <span className="tabular-nums">
+                                  ₹ {(cashInHandTotal + bankTotal + debtorsTotal + taxReceivableTotal + inventoryInAssetsTotal).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                                </span>
+                              </div>
+
+                              <div className="pl-3 space-y-1.5 text-[#64748B] text-[11px]">
+                                <div className="flex justify-between">
+                                  <span>Cash In Hand</span>
+                                  <span className="tabular-nums">
+                                    ₹ {cashInHandTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Cash In Bank</span>
+                                  <span className="tabular-nums">
+                                    ₹ {bankTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Accounts Receivables (Sundry Debtors)</span>
+                                  <span className="tabular-nums">
+                                    ₹ {debtorsTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Duties & Taxes (ITC Tax Receivable)</span>
+                                  <span className="tabular-nums">
+                                    ₹ {taxReceivableTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span title="In periodic inventory mode, physical stock valuation is maintained in Inventory/Stock module.">
+                                    Stock-in-hand (General Ledger Asset)
+                                  </span>
+                                  <span className="tabular-nums">
+                                    ₹ {inventoryInAssetsTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                                  </span>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  router.push(
+                                    "/accounting/vouchers/new?type=JOURNAL&narration=Record+Current+Asset"
+                                  )
+                                }
+                                className="text-[11px] text-[#0047BA] hover:underline font-medium cursor-pointer block pt-0.5"
+                              >
+                                + Add New Entry
+                              </button>
                             </div>
-                            <div className="flex justify-between">
-                              <span>Tcs Payable</span>
-                              <span className="font-mono">₹ 0</span>
+
+                            {/* Fixed Assets */}
+                            <div className="p-3.5 space-y-1">
+                              <div className="flex items-center justify-between font-bold text-[#0F172A]">
+                                <span className="flex items-center gap-1.5">
+                                  <span>Fixed Assets</span>
+                                  <span className="text-slate-400 font-normal text-[10px]">ℹ</span>
+                                </span>
+                                <span className="tabular-nums">
+                                  ₹ {fixedAssetsTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  router.push(
+                                    "/accounting/vouchers/new?type=PAYMENT&narration=Purchase+of+Fixed+Asset"
+                                  )
+                                }
+                                className="text-[11px] text-[#0047BA] hover:underline font-medium cursor-pointer"
+                              >
+                                + Add New Entry
+                              </button>
                             </div>
-                            <div className="flex justify-between">
-                              <span>Tds Payable</span>
-                              <span className="font-mono">₹ 0</span>
+
+                            {/* Investments */}
+                            <div className="p-3.5 space-y-1">
+                              <div className="flex items-center justify-between font-bold text-[#0F172A]">
+                                <span className="flex items-center gap-1.5">
+                                  <span>Investments</span>
+                                  <span className="text-slate-400 font-normal text-[10px]">ℹ</span>
+                                </span>
+                                <span className="tabular-nums">
+                                  ₹ {investmentsTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  router.push(
+                                    "/accounting/vouchers/new?type=PAYMENT&narration=Investment+Purchase"
+                                  )
+                                }
+                                className="text-[11px] text-[#0047BA] hover:underline font-medium cursor-pointer"
+                              >
+                                + Add New Entry
+                              </button>
+                            </div>
+
+                            {/* Loans Advance */}
+                            <div className="p-3.5 space-y-1">
+                              <div className="flex items-center justify-between font-bold text-[#0F172A]">
+                                <span className="flex items-center gap-1.5">
+                                  <span>Loans & Advances</span>
+                                  <span className="text-slate-400 font-normal text-[10px]">ℹ</span>
+                                </span>
+                                <span className="tabular-nums">
+                                  ₹ {loanAdvancesTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  router.push(
+                                    "/accounting/vouchers/new?type=PAYMENT&narration=Staff+Advance+or+Security+Deposit"
+                                  )
+                                }
+                                className="text-[11px] text-[#0047BA] hover:underline font-medium cursor-pointer"
+                              >
+                                + Add New Entry
+                              </button>
                             </div>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => alert("Add Liability entry: Open Journal voucher to record liabilities.")}
-                            className="text-[11px] text-[#0047BA] hover:underline font-medium cursor-pointer"
-                          >
-                            + Add New Entry
-                          </button>
                         </div>
 
-                        {/* Account Payable */}
-                        <div className="p-3.5 flex items-center justify-between font-semibold text-[#0F172A]">
-                          <span>Account Payable</span>
-                          <span className="font-mono">
-                            ₹ {Number(reportData.liabilities?.payables || 0).toLocaleString("en-IN")}
-                          </span>
-                        </div>
-
-                        {/* Loans */}
-                        <div className="p-3.5 space-y-1">
-                          <div className="flex items-center justify-between font-bold text-[#0F172A]">
-                            <span className="flex items-center gap-1.5">
-                              <span>Loans</span>
-                              <span className="text-slate-400 font-normal text-[10px]">ℹ</span>
-                            </span>
-                            <span className="font-mono">
-                              ₹ {Number(reportData.liabilities?.loans || 0).toLocaleString("en-IN")}
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => alert("Add Loan entry: Record bank or director loan voucher.")}
-                            className="text-[11px] text-[#0047BA] hover:underline font-medium cursor-pointer"
-                          >
-                            + Add New Entry
-                          </button>
-                        </div>
-
-                        {/* Net Income */}
-                        <div className="p-3.5 flex items-center justify-between font-bold text-[#0F172A] bg-[#F8FAFC]">
-                          <span className="flex items-center gap-1.5">
-                            <span>Net Income</span>
-                            <span className="text-slate-400 font-normal text-[10px]">ℹ</span>
-                          </span>
-                          <span className="font-mono text-[#16834A]">
-                            ₹ {Number(reportData.netIncome ?? reportData.netProfit ?? 10652.56).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                        {/* Total Assets Footer */}
+                        <div className="bg-[#F8FAFC] px-4 py-3 border-t border-[#E2E8F0] flex items-center justify-between font-bold text-[#0F172A] text-xs sm:text-sm">
+                          <span>Total Assets</span>
+                          <span className="tabular-nums">
+                            ₹ {totalAssets.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                           </span>
                         </div>
                       </div>
-                    </div>
-
-                    {/* Total Liabilities Footer */}
-                    <div className="bg-[#F8FAFC] px-4 py-3 border-t border-[#E2E8F0] flex items-center justify-between font-bold text-[#0F172A] text-xs sm:text-sm">
-                      <span>Total Liabilities</span>
-                      <span className="font-mono">
-                        ₹ {Number(reportData.liabilities?.total ?? reportData.totalLiabilities ?? 10652.56).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                      </span>
                     </div>
                   </div>
-
-                  {/* ASSETS COLUMN */}
-                  <div className="flex flex-col justify-between">
-                    <div>
-                      <div className="bg-[#F8FAFC] px-4 py-2.5 border-b border-[#E2E8F0]">
-                        <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
-                          ASSETS
-                        </span>
-                      </div>
-
-                      <div className="divide-y divide-[#E2E8F0] text-xs">
-                        {/* Current Assets */}
-                        <div className="p-3.5 space-y-2">
-                          <div className="flex items-center justify-between font-bold text-[#0F172A]">
-                            <span className="flex items-center gap-1.5">
-                              <span>Current Assets</span>
-                              <span className="text-slate-400 font-normal text-[10px]">ℹ</span>
-                            </span>
-                            <span className="font-mono">
-                              ₹ {Number(reportData.assets?.currentTotal ?? reportData.totalAssets ?? 12570).toLocaleString("en-IN")}
-                            </span>
-                          </div>
-
-                          <div className="pl-3 space-y-1.5 text-[#64748B] text-[11px]">
-                            <div className="flex justify-between">
-                              <span>Tax Receivable</span>
-                              <span className="font-mono">₹ 0</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Tcs Receivable</span>
-                              <span className="font-mono">₹ 0</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Tds Receivable</span>
-                              <span className="font-mono">₹ 0</span>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => alert("Add New Current Asset Entry.")}
-                              className="text-[11px] text-[#0047BA] hover:underline font-medium cursor-pointer block pt-0.5"
-                            >
-                              + Add New Entry
-                            </button>
-                            <div className="flex justify-between pt-1">
-                              <span>Cash In Hand</span>
-                              <span className="font-mono">₹ 10,000</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Cash In Bank</span>
-                              <span className="font-mono">₹ 0</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Accounts Receivables</span>
-                              <span className="font-mono">₹ 2,570</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Inventory In Hand</span>
-                              <span className="font-mono">₹ 0</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Fixed Assets */}
-                        <div className="p-3.5 space-y-1">
-                          <div className="flex items-center justify-between font-bold text-[#0F172A]">
-                            <span className="flex items-center gap-1.5">
-                              <span>Fixed Assets</span>
-                              <span className="text-slate-400 font-normal text-[10px]">ℹ</span>
-                            </span>
-                            <span className="font-mono">₹ 0</span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => alert("Add Fixed Asset (e.g. Machinery, Computer, Office).")}
-                            className="text-[11px] text-[#0047BA] hover:underline font-medium cursor-pointer"
-                          >
-                            + Add New Entry
-                          </button>
-                        </div>
-
-                        {/* Investments */}
-                        <div className="p-3.5 space-y-1">
-                          <div className="flex items-center justify-between font-bold text-[#0F172A]">
-                            <span className="flex items-center gap-1.5">
-                              <span>Investments</span>
-                              <span className="text-slate-400 font-normal text-[10px]">ℹ</span>
-                            </span>
-                            <span className="font-mono">₹ 0</span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => alert("Add Investment record (e.g. Mutual Funds, Fixed Deposits).")}
-                            className="text-[11px] text-[#0047BA] hover:underline font-medium cursor-pointer"
-                          >
-                            + Add New Entry
-                          </button>
-                        </div>
-
-                        {/* Loans Advance */}
-                        <div className="p-3.5 space-y-1">
-                          <div className="flex items-center justify-between font-bold text-[#0F172A]">
-                            <span className="flex items-center gap-1.5">
-                              <span>Loans Advance</span>
-                              <span className="text-slate-400 font-normal text-[10px]">ℹ</span>
-                            </span>
-                            <span className="font-mono">₹ 0</span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => alert("Add Loan Advance (e.g. Advance to staff, security deposit).")}
-                            className="text-[11px] text-[#0047BA] hover:underline font-medium cursor-pointer"
-                          >
-                            + Add New Entry
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Total Assets Footer */}
-                    <div className="bg-[#F8FAFC] px-4 py-3 border-t border-[#E2E8F0] flex items-center justify-between font-bold text-[#0F172A] text-xs sm:text-sm">
-                      <span>Total Assets</span>
-                      <span className="font-mono">
-                        ₹ {Number(reportData.assets?.total ?? reportData.totalAssets ?? 12570).toLocaleString("en-IN", { minimumFractionDigits: 0 })}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                );
+              })()
             ) : activeTab === "expense-category" ? (
               /* Expense Category Report */
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4 max-w-md">
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Expense Categories</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalCategories || 0}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalCategories || 0}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#DC2626] uppercase font-semibold block">Total Expenses</span>
-                    <p className="font-mono font-bold text-lg text-[#DC2626] mt-1">₹{reportData.summary?.totalExpenseAmount || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#DC2626] mt-1">₹{reportData.summary?.totalExpenseAmount || "0.00"}</p>
                   </div>
                 </div>
 
@@ -3446,8 +3675,8 @@ export default function ReportsPage({
                                 <tr key={c.id || `exp-cat-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
                                   <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{c.categoryName}</td>
                                   <td className="py-2.5 px-3 text-[#64748B]">{c.groupName}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#0F172A]">{c.voucherCount}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#DC2626]">₹{c.totalAmount}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#0F172A]">{c.voucherCount}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#DC2626]">₹{c.totalAmount}</td>
                                 </tr>
                               ))
                             )}
@@ -3472,19 +3701,19 @@ export default function ReportsPage({
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 min-w-0">
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total HSN Codes</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalHsns || 0}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalHsns || 0}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Qty Sold</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalQuantity || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalQuantity || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Taxable Amount</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">₹{reportData.summary?.totalTaxable || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">₹{reportData.summary?.totalTaxable || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#16834A] uppercase font-semibold block">Total Outward Value</span>
-                    <p className="font-mono font-bold text-lg text-[#16834A] mt-1">₹{reportData.summary?.totalValue || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#16834A] mt-1">₹{reportData.summary?.totalValue || "0.00"}</p>
                   </div>
                 </div>
 
@@ -3525,15 +3754,15 @@ export default function ReportsPage({
                             ) : (
                               paginatedList.map((h: any, idx: number) => (
                                 <tr key={h.hsnCode || `hsn-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
-                                  <td className="py-2.5 px-3 font-mono font-bold text-[#0047BA]">{h.hsnCode}</td>
+                                  <td className="py-2.5 px-3 tabular-nums font-medium text-[#0047BA]">{h.hsnCode}</td>
                                   <td className="py-2.5 px-3 font-medium text-[#0F172A]">{h.description}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{h.uom}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#0F172A]">{h.totalQuantity}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono text-[#0F172A]">₹{h.totalTaxable}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">₹{h.cgstAmount}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">₹{h.sgstAmount}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">₹{h.igstAmount}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#16834A]">₹{h.totalValue}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{h.uom}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#0F172A]">{h.totalQuantity}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums text-[#0F172A]">₹{h.totalTaxable}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">₹{h.cgstAmount}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">₹{h.sgstAmount}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">₹{h.igstAmount}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#16834A]">₹{h.totalValue}</td>
                                 </tr>
                               ))
                             )}
@@ -3558,19 +3787,19 @@ export default function ReportsPage({
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 min-w-0">
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#16834A] uppercase font-semibold block">Total Receipts (Inflows)</span>
-                    <p className="font-mono font-bold text-lg text-[#16834A] mt-1">₹{reportData.summary?.totalReceipts || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#16834A] mt-1">₹{reportData.summary?.totalReceipts || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#DC2626] uppercase font-semibold block">Total Payments (Outflows)</span>
-                    <p className="font-mono font-bold text-lg text-[#DC2626] mt-1">₹{reportData.summary?.totalPayments || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#DC2626] mt-1">₹{reportData.summary?.totalPayments || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Contra</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">₹{reportData.summary?.totalContra || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">₹{reportData.summary?.totalContra || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#0047BA] uppercase font-semibold block">Net Cash Movement</span>
-                    <p className="font-mono font-bold text-lg text-[#0047BA] mt-1">₹{reportData.summary?.netCashMovement || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0047BA] mt-1">₹{reportData.summary?.netCashMovement || "0.00"}</p>
                   </div>
                 </div>
 
@@ -3611,8 +3840,8 @@ export default function ReportsPage({
                             ) : (
                               paginatedList.map((v: any, idx: number) => (
                                 <tr key={v.id || v.voucherNumber || `vouch-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
-                                  <td className="py-2.5 px-3 font-mono font-semibold text-[#0047BA]">{v.voucherNumber}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{v.voucherDate}</td>
+                                  <td className="py-2.5 px-3 tabular-nums font-semibold text-[#0047BA]">{v.voucherNumber}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{v.voucherDate}</td>
                                   <td className="py-2.5 px-3">
                                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                                       v.voucherType === "RECEIPT"
@@ -3625,9 +3854,9 @@ export default function ReportsPage({
                                     </span>
                                   </td>
                                   <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{v.partyOrAccountName}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{v.bankCashAccount}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{v.bankCashAccount}</td>
                                   <td className="py-2.5 px-3 text-[#64748B] max-w-xs truncate">{v.narration || "—"}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#0F172A]">₹{v.totalAmount}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#0F172A]">₹{v.totalAmount}</td>
                                 </tr>
                               ))
                             )}
@@ -3652,19 +3881,19 @@ export default function ReportsPage({
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 min-w-0">
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Period Debits</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">₹{reportData.totals?.totalPeriodDebit || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">₹{reportData.totals?.totalPeriodDebit || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Period Credits</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">₹{reportData.totals?.totalPeriodCredit || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">₹{reportData.totals?.totalPeriodCredit || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#16834A] uppercase font-semibold block">Closing Debit Total</span>
-                    <p className="font-mono font-bold text-lg text-[#16834A] mt-1">₹{reportData.totals?.totalClosingDebit || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#16834A] mt-1">₹{reportData.totals?.totalClosingDebit || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#16834A] uppercase font-semibold block">Closing Credit Total</span>
-                    <p className="font-mono font-bold text-lg text-[#16834A] mt-1">₹{reportData.totals?.totalClosingCredit || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#16834A] mt-1">₹{reportData.totals?.totalClosingCredit || "0.00"}</p>
                   </div>
                 </div>
 
@@ -3705,7 +3934,7 @@ export default function ReportsPage({
                             ) : (
                               paginatedList.map((a: any, idx: number) => (
                                 <tr key={a.accountCode || a.accountName || `acc-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{a.accountCode || "—"}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{a.accountCode || "—"}</td>
                                   <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{a.accountName}</td>
                                   <td className="py-2.5 px-3 text-[#64748B]">{a.groupName}</td>
                                   <td className="py-2.5 px-3">
@@ -3713,10 +3942,10 @@ export default function ReportsPage({
                                       {a.nature}
                                     </span>
                                   </td>
-                                  <td className="py-2.5 px-3 text-right font-mono text-[#0F172A]">₹{a.periodDebit}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono text-[#0F172A]">₹{a.periodCredit}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#0F172A]">₹{a.closingDebit}</td>
-                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#0F172A]">₹{a.closingCredit}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums text-[#0F172A]">₹{a.periodDebit}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums text-[#0F172A]">₹{a.periodCredit}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#0F172A]">₹{a.closingDebit}</td>
+                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#0F172A]">₹{a.closingCredit}</td>
                                 </tr>
                               ))
                             )}
@@ -3786,13 +4015,13 @@ export default function ReportsPage({
                       <div className="bg-white border border-[#E2E8F0] rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3 text-xs font-medium text-[#0F172A] shadow-2xs">
                         <div className="flex items-center gap-2">
                           <span className="text-[#64748B]">Net Amount:</span>
-                          <span className={`font-mono font-bold text-sm ${netAmount >= 0 ? "text-[#16834A]" : "text-[#DC2626]"}`}>
+                          <span className={`tabular-nums font-bold text-sm ${netAmount >= 0 ? "text-[#16834A]" : "text-[#DC2626]"}`}>
                             {netAmount < 0
                               ? `- ₹ ${Math.abs(netAmount).toLocaleString("en-IN", { minimumFractionDigits: 1 })}`
                               : `₹ ${netAmount.toLocaleString("en-IN", { minimumFractionDigits: 1 })}`}
                           </span>
                         </div>
-                        <div className="text-[11px] text-[#64748B] font-mono">
+                        <div className="text-[11px] text-[#64748B] tabular-nums">
                           Closing Cash: <span className="font-bold text-[#0F172A]">₹ {Number(reportData.closingCashBalance || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
                         </div>
                       </div>
@@ -3841,7 +4070,7 @@ export default function ReportsPage({
                                       onClick={() => targetLink && router.push(targetLink)}
                                       className={`hover:bg-[#F8FAFC] transition-colors ${targetLink ? "cursor-pointer" : ""}`}
                                     >
-                                      <td className="py-2.5 px-3 font-mono text-[#64748B]">{e.date || reportData.date || "—"}</td>
+                                      <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{e.date || reportData.date || "—"}</td>
                                       <td className="py-2.5 px-3 font-medium text-[#0F172A]">{party}</td>
                                       <td className="py-2.5 px-3">
                                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
@@ -3852,17 +4081,17 @@ export default function ReportsPage({
                                           {e.voucherType || e.type || "Transaction"}
                                         </span>
                                       </td>
-                                      <td className="py-2.5 px-3 font-mono font-semibold text-[#0047BA]">{e.voucherNumber || "—"}</td>
-                                      <td className="py-2.5 px-3 text-right font-mono font-bold text-[#0F172A]">
+                                      <td className="py-2.5 px-3 tabular-nums font-semibold text-[#0047BA]">{e.voucherNumber || "—"}</td>
+                                      <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#0F172A]">
                                         ₹{totalAmt.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                                       </td>
-                                      <td className="py-2.5 px-3 text-right font-mono text-[#16834A] font-semibold">
+                                      <td className="py-2.5 px-3 text-right tabular-nums text-[#16834A] font-semibold">
                                         {moneyIn > 0 ? `₹${moneyIn.toLocaleString("en-IN", { minimumFractionDigits: 2 })}` : "—"}
                                       </td>
-                                      <td className="py-2.5 px-3 text-right font-mono text-[#DC2626] font-semibold">
+                                      <td className="py-2.5 px-3 text-right tabular-nums text-[#DC2626] font-semibold">
                                         {moneyOut > 0 ? `₹${moneyOut.toLocaleString("en-IN", { minimumFractionDigits: 2 })}` : "—"}
                                       </td>
-                                      <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">
+                                      <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">
                                         ₹{Number(e.balanceAmount || reportData.closingCashBalance || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                                       </td>
                                     </tr>
@@ -3891,21 +4120,21 @@ export default function ReportsPage({
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 min-w-0">
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Opening Cash & Bank</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">₹{reportData.openingCashAndBank || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">₹{reportData.openingCashAndBank || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#16834A] uppercase font-semibold block">Net Operating Cash</span>
-                    <p className="font-mono font-bold text-lg text-[#16834A] mt-1">₹{reportData.operatingActivities?.netOperatingCashFlow || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#16834A] mt-1">₹{reportData.operatingActivities?.netOperatingCashFlow || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#0047BA] uppercase font-semibold block">Net Investing & Financing</span>
-                    <p className="font-mono font-bold text-lg text-[#0047BA] mt-1">
+                    <p className="tabular-nums font-bold text-lg text-[#0047BA] mt-1">
                       ₹{(Number(reportData.investingActivities?.netInvestingCashFlow || 0) + Number(reportData.financingActivities?.netFinancingCashFlow || 0)).toFixed(2)}
                     </p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#16834A] uppercase font-semibold block">Closing Cash & Bank</span>
-                    <p className="font-mono font-bold text-lg text-[#16834A] mt-1">₹{reportData.closingCashAndBank || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#16834A] mt-1">₹{reportData.closingCashAndBank || "0.00"}</p>
                   </div>
                 </div>
 
@@ -3922,32 +4151,32 @@ export default function ReportsPage({
                       <tbody className="divide-y divide-[#E2E8F0]">
                         <tr className="bg-[#F8FAFC] font-bold text-[#0F172A]">
                           <td colSpan={2} className="py-2.5 px-3">1. CASH FLOW FROM OPERATING ACTIVITIES</td>
-                          <td className="py-2.5 px-3 text-right font-mono">₹{reportData.operatingActivities?.netOperatingCashFlow}</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums">₹{reportData.operatingActivities?.netOperatingCashFlow}</td>
                         </tr>
                         <tr>
                           <td className="py-2 px-3 text-[#64748B] pl-6">Inflow</td>
                           <td className="py-2 px-3 text-[#0F172A]">Receipts from Customers & Sales</td>
-                          <td className="py-2 px-3 text-right font-mono text-[#16834A] font-semibold">₹{reportData.operatingActivities?.inflows?.totalInflows || "0.00"}</td>
+                          <td className="py-2 px-3 text-right tabular-nums text-[#16834A] font-semibold">₹{reportData.operatingActivities?.inflows?.totalInflows || "0.00"}</td>
                         </tr>
                         <tr>
                           <td className="py-2 px-3 text-[#64748B] pl-6">Outflow</td>
                           <td className="py-2 px-3 text-[#0F172A]">Payments to Suppliers & Operating Expenses</td>
-                          <td className="py-2 px-3 text-right font-mono text-[#DC2626] font-semibold">(₹{reportData.operatingActivities?.outflows?.totalOutflows || "0.00"})</td>
+                          <td className="py-2 px-3 text-right tabular-nums text-[#DC2626] font-semibold">(₹{reportData.operatingActivities?.outflows?.totalOutflows || "0.00"})</td>
                         </tr>
 
                         <tr className="bg-[#F8FAFC] font-bold text-[#0F172A]">
                           <td colSpan={2} className="py-2.5 px-3">2. CASH FLOW FROM INVESTING ACTIVITIES</td>
-                          <td className="py-2.5 px-3 text-right font-mono">₹{reportData.investingActivities?.netInvestingCashFlow || "0.00"}</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums">₹{reportData.investingActivities?.netInvestingCashFlow || "0.00"}</td>
                         </tr>
 
                         <tr className="bg-[#F8FAFC] font-bold text-[#0F172A]">
                           <td colSpan={2} className="py-2.5 px-3">3. CASH FLOW FROM FINANCING ACTIVITIES</td>
-                          <td className="py-2.5 px-3 text-right font-mono">₹{reportData.financingActivities?.netFinancingCashFlow || "0.00"}</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums">₹{reportData.financingActivities?.netFinancingCashFlow || "0.00"}</td>
                         </tr>
 
                         <tr className="bg-[#F8FAFC] font-bold text-[#0F172A] border-t-2 border-[#CBD5E1]">
                           <td colSpan={2} className="py-2.5 px-3">NET INCREASE / (DECREASE) IN CASH & CASH EQUIVALENTS</td>
-                          <td className="py-2.5 px-3 text-right font-mono font-bold text-sm text-[#16834A]">₹{reportData.netChangeInCashAndBank || "0.00"}</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[13px] text-[#16834A]">₹{reportData.netChangeInCashAndBank || "0.00"}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -3959,7 +4188,7 @@ export default function ReportsPage({
               <div className="space-y-6">
                 <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs max-w-xs">
                   <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Security Audit Events</span>
-                  <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalLogs || 0}</p>
+                  <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalLogs || 0}</p>
                 </div>
 
                 {(() => {
@@ -3998,16 +4227,16 @@ export default function ReportsPage({
                             ) : (
                               paginatedList.map((l: any, idx: number) => (
                                 <tr key={l.id || `audit-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{new Date(l.timestamp).toLocaleString("en-IN")}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{new Date(l.timestamp).toLocaleString("en-IN")}</td>
                                   <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{l.userName || "System"}</td>
                                   <td className="py-2.5 px-3">
                                     <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
                                       {l.action}
                                     </span>
                                   </td>
-                                  <td className="py-2.5 px-3 font-mono text-[#0F172A]">{l.entityName}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{l.entityId}</td>
-                                  <td className="py-2.5 px-3 font-mono text-[#64748B]">{l.ipAddress || "—"}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#0F172A]">{l.entityName}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{l.entityId}</td>
+                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{l.ipAddress || "—"}</td>
                                 </tr>
                               ))
                             )}
@@ -4035,7 +4264,7 @@ export default function ReportsPage({
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block truncate">
                       {lang === "gu" ? "કુલ ઇનવોઇસ" : "Total Invoices"}
                     </span>
-                    <p className="font-mono font-bold text-base sm:text-lg text-[#0F172A] mt-1 truncate">
+                    <p className="tabular-nums font-bold text-base sm:text-lg text-[#0F172A] mt-1 truncate">
                       {reportData.summary?.totalInvoices ?? reportData.salesInvoices?.length ?? 0}
                     </p>
                   </div>
@@ -4043,7 +4272,7 @@ export default function ReportsPage({
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block truncate">
                       {lang === "gu" ? "કરપાત્ર કિંમત" : "Taxable Value"}
                     </span>
-                    <p className="font-mono font-bold text-base sm:text-lg text-[#0F172A] mt-1 truncate">
+                    <p className="tabular-nums font-bold text-base sm:text-lg text-[#0F172A] mt-1 truncate">
                       ₹{Number(reportData.summary?.totalTaxable ?? reportData.totalTaxable ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                   </div>
@@ -4051,10 +4280,10 @@ export default function ReportsPage({
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block truncate">
                       {lang === "gu" ? "કુલ જીએસટી કર" : "Total GST Tax"}
                     </span>
-                    <p className="font-mono font-bold text-base sm:text-lg text-[#0F172A] mt-1 truncate">
+                    <p className="tabular-nums font-bold text-base sm:text-lg text-[#0F172A] mt-1 truncate">
                       ₹{Number(reportData.summary?.totalTax ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
-                    <span className="text-[10px] text-[#64748B] font-mono block mt-0.5 truncate">
+                    <span className="text-[10px] text-[#64748B] tabular-nums block mt-0.5 truncate">
                       C: ₹{Number(reportData.summary?.totalCgst ?? reportData.totalCgst ?? 0).toFixed(2)} | S: ₹{Number(reportData.summary?.totalSgst ?? reportData.totalSgst ?? 0).toFixed(2)} | I: ₹{Number(reportData.summary?.totalIgst ?? reportData.totalIgst ?? 0).toFixed(2)}
                     </span>
                   </div>
@@ -4062,7 +4291,7 @@ export default function ReportsPage({
                     <span className="text-[11px] text-[#16834A] uppercase font-semibold block truncate">
                       {lang === "gu" ? "કુલ ટર્નઓવર" : "Gross Turnover"}
                     </span>
-                    <p className="font-mono font-bold text-base sm:text-lg text-[#16834A] mt-1 truncate">
+                    <p className="tabular-nums font-bold text-base sm:text-lg text-[#16834A] mt-1 truncate">
                       ₹{Number(reportData.summary?.grossTurnover ?? reportData.grossTurnover ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                   </div>
@@ -4084,7 +4313,7 @@ export default function ReportsPage({
                       }`}
                     >
                       <span>📑 {lang === "gu" ? "વેચાણ" : "Sales"}</span>
-                      <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                      <span className={`px-1.5 py-0.2 rounded-full text-[10px] tabular-nums ${
                         gstr1SubTab === "sales" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
                       }`}>
                         {reportData.salesInvoices?.length || 0}
@@ -4104,7 +4333,7 @@ export default function ReportsPage({
                       }`}
                     >
                       <span>↩️ {lang === "gu" ? "વેચાણ પરત / ક્રેડિટ નોટ" : "Sales Return / Credit Note"}</span>
-                      <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                      <span className={`px-1.5 py-0.2 rounded-full text-[10px] tabular-nums ${
                         gstr1SubTab === "credit-notes" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
                       }`}>
                         {reportData.creditNotes?.length || 0}
@@ -4124,7 +4353,7 @@ export default function ReportsPage({
                       }`}
                     >
                       <span>↪️ {lang === "gu" ? "ખરીદ પરત / ડેબિટ નોટ" : "Purchase Return / Debit Note"}</span>
-                      <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                      <span className={`px-1.5 py-0.2 rounded-full text-[10px] tabular-nums ${
                         gstr1SubTab === "debit-notes" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
                       }`}>
                         {reportData.debitNotes?.length || 0}
@@ -4196,14 +4425,14 @@ export default function ReportsPage({
                                 <th className="py-2.5 px-3 min-w-[160px] border-r border-[#E2E8F0]">{lang === "gu" ? "ગ્રાહકનું નામ" : "Customer Name"}</th>
                                 <th className="py-2.5 px-3 text-center w-[70px]">{lang === "gu" ? "સ્ટેટ કોડ" : "State Code"}</th>
                                 <th className="py-2.5 px-3 min-w-[120px] border-r border-[#E2E8F0]">{lang === "gu" ? "રાજ્યનું નામ" : "State Name"}</th>
-                                <th className="py-2.5 px-3 font-mono">{lang === "gu" ? "ઇનવોઇસ નંબર" : "Invoice Number"}</th>
-                                <th className="py-2.5 px-3 font-mono">{lang === "gu" ? "તારીખ" : "Invoice Date"}</th>
-                                <th className="py-2.5 px-3 text-right font-mono">{lang === "gu" ? "કુલ રકમ (₹)" : "Invoice Value"}</th>
-                                <th className="py-2.5 px-3 text-center font-mono">{lang === "gu" ? "કર દર (%)" : "Total Tax(%)"}</th>
-                                <th className="py-2.5 px-3 text-right font-mono">{lang === "gu" ? "કરપાત્ર (₹)" : "Taxable Value"}</th>
-                                <th className="py-2.5 px-3 text-right font-mono">CGST</th>
-                                <th className="py-2.5 px-3 text-right font-mono">SGST / UTGST</th>
-                                <th className="py-2.5 px-3 text-right font-mono">IGST</th>
+                                <th className="py-2.5 px-3 tabular-nums">{lang === "gu" ? "ઇનવોઇસ નંબર" : "Invoice Number"}</th>
+                                <th className="py-2.5 px-3 tabular-nums">{lang === "gu" ? "તારીખ" : "Invoice Date"}</th>
+                                <th className="py-2.5 px-3 text-right tabular-nums">{lang === "gu" ? "કુલ રકમ (₹)" : "Invoice Value"}</th>
+                                <th className="py-2.5 px-3 text-center tabular-nums">{lang === "gu" ? "કર દર (%)" : "Total Tax(%)"}</th>
+                                <th className="py-2.5 px-3 text-right tabular-nums">{lang === "gu" ? "કરપાત્ર (₹)" : "Taxable Value"}</th>
+                                <th className="py-2.5 px-3 text-right tabular-nums">CGST</th>
+                                <th className="py-2.5 px-3 text-right tabular-nums">SGST / UTGST</th>
+                                <th className="py-2.5 px-3 text-right tabular-nums">IGST</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-[#E2E8F0] bg-white">
@@ -4215,7 +4444,7 @@ export default function ReportsPage({
 
                                 return (
                                   <tr key={r.id || idx} className="hover:bg-[#F8FAFC] transition-colors">
-                                    <td className="py-2.5 px-3 font-mono text-[#64748B] font-semibold">
+                                    <td className="py-2.5 px-3 tabular-nums text-[#64748B] font-semibold">
                                       {r.gstin ? (
                                         <span className="text-[#0047BA]">{r.gstin}</span>
                                       ) : (
@@ -4225,34 +4454,34 @@ export default function ReportsPage({
                                     <td className="py-2.5 px-3 font-semibold text-[#0F172A] border-r border-[#E2E8F0]">
                                       {r.customerName}
                                     </td>
-                                    <td className="py-2.5 px-3 text-center font-mono text-[#64748B]">
+                                    <td className="py-2.5 px-3 text-center tabular-nums text-[#64748B]">
                                       {r.stateCode || "—"}
                                     </td>
                                     <td className="py-2.5 px-3 text-[#64748B] border-r border-[#E2E8F0]">
                                       {r.stateName || "—"}
                                     </td>
-                                    <td className="py-2.5 px-3 font-mono font-bold text-[#0047BA]">
+                                    <td className="py-2.5 px-3 tabular-nums font-medium text-[#0047BA]">
                                       {r.invoiceNumber}
                                     </td>
-                                    <td className="py-2.5 px-3 font-mono text-[#64748B]">
+                                    <td className="py-2.5 px-3 tabular-nums text-[#64748B]">
                                       {dateFormatted}
                                     </td>
-                                    <td className="py-2.5 px-3 text-right font-mono font-bold text-[#0F172A]">
+                                    <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#0F172A]">
                                       ₹{Number(r.invoiceValue || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
-                                    <td className="py-2.5 px-3 text-center font-mono text-[#64748B]">
+                                    <td className="py-2.5 px-3 text-center tabular-nums text-[#64748B]">
                                       {r.taxRate}%
                                     </td>
-                                    <td className="py-2.5 px-3 text-right font-mono text-[#0F172A]">
+                                    <td className="py-2.5 px-3 text-right tabular-nums text-[#0F172A]">
                                       ₹{Number(r.taxableValue || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
-                                    <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">
+                                    <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">
                                       ₹{Number(r.cgst || 0).toFixed(2)}
                                     </td>
-                                    <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">
+                                    <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">
                                       ₹{Number(r.sgst || 0).toFixed(2)}
                                     </td>
-                                    <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">
+                                    <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">
                                       ₹{Number(r.igst || 0).toFixed(2)}
                                     </td>
                                   </tr>
@@ -4265,21 +4494,21 @@ export default function ReportsPage({
                                 <td colSpan={4} className="py-3 px-3 border-r border-[#E2E8F0]">
                                   {lang === "gu" ? "કુલ વેચાણ સમરી" : "Total Outward Supplies"} ({totalEntries} {lang === "gu" ? "રેકોર્ડ" : "records"})
                                 </td>
-                                <td colSpan={2} className="py-3 px-3 font-mono text-slate-500">—</td>
-                                <td className="py-3 px-3 text-right font-mono text-[#16834A]">
+                                <td colSpan={2} className="py-3 px-3 tabular-nums text-slate-500">—</td>
+                                <td className="py-3 px-3 text-right tabular-nums text-[#16834A]">
                                   ₹{totalInvVal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </td>
-                                <td className="py-3 px-3 text-center font-mono text-slate-400">—</td>
-                                <td className="py-3 px-3 text-right font-mono text-[#0F172A]">
+                                <td className="py-3 px-3 text-center tabular-nums text-slate-400">—</td>
+                                <td className="py-3 px-3 text-right tabular-nums text-[#0F172A]">
                                   ₹{totalTaxable.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </td>
-                                <td className="py-3 px-3 text-right font-mono">
+                                <td className="py-3 px-3 text-right tabular-nums">
                                   ₹{totalCgst.toFixed(2)}
                                 </td>
-                                <td className="py-3 px-3 text-right font-mono">
+                                <td className="py-3 px-3 text-right tabular-nums">
                                   ₹{totalSgst.toFixed(2)}
                                 </td>
-                                <td className="py-3 px-3 text-right font-mono">
+                                <td className="py-3 px-3 text-right tabular-nums">
                                   ₹{totalIgst.toFixed(2)}
                                 </td>
                               </tr>
@@ -4360,14 +4589,14 @@ export default function ReportsPage({
                                 <th className="py-2.5 px-3 min-w-[160px] border-r border-[#E2E8F0]">{lang === "gu" ? "ગ્રાહકનું નામ" : "Customer Name"}</th>
                                 <th className="py-2.5 px-3 text-center w-[70px]">{lang === "gu" ? "સ્ટેટ કોડ" : "State Code"}</th>
                                 <th className="py-2.5 px-3 min-w-[120px] border-r border-[#E2E8F0]">{lang === "gu" ? "રાજ્યનું નામ" : "State Name"}</th>
-                                <th className="py-2.5 px-3 font-mono">{lang === "gu" ? "ક્રેડિટ નોટ #" : "Credit Note #"}</th>
-                                <th className="py-2.5 px-3 font-mono">{lang === "gu" ? "તારીખ" : "Date"}</th>
-                                <th className="py-2.5 px-3 font-mono">{lang === "gu" ? "મૂળ બિલ #" : "Orig Invoice #"}</th>
-                                <th className="py-2.5 px-3 text-right font-mono">{lang === "gu" ? "નોટ વેલ્યુ (₹)" : "Note Value"}</th>
-                                <th className="py-2.5 px-3 text-right font-mono">{lang === "gu" ? "કરપાત્ર (₹)" : "Taxable Value"}</th>
-                                <th className="py-2.5 px-3 text-right font-mono">CGST</th>
-                                <th className="py-2.5 px-3 text-right font-mono">SGST</th>
-                                <th className="py-2.5 px-3 text-right font-mono">IGST</th>
+                                <th className="py-2.5 px-3 tabular-nums">{lang === "gu" ? "ક્રેડિટ નોટ #" : "Credit Note #"}</th>
+                                <th className="py-2.5 px-3 tabular-nums">{lang === "gu" ? "તારીખ" : "Date"}</th>
+                                <th className="py-2.5 px-3 tabular-nums">{lang === "gu" ? "મૂળ બિલ #" : "Orig Invoice #"}</th>
+                                <th className="py-2.5 px-3 text-right tabular-nums">{lang === "gu" ? "નોટ વેલ્યુ (₹)" : "Note Value"}</th>
+                                <th className="py-2.5 px-3 text-right tabular-nums">{lang === "gu" ? "કરપાત્ર (₹)" : "Taxable Value"}</th>
+                                <th className="py-2.5 px-3 text-right tabular-nums">CGST</th>
+                                <th className="py-2.5 px-3 text-right tabular-nums">SGST</th>
+                                <th className="py-2.5 px-3 text-right tabular-nums">IGST</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-[#E2E8F0] bg-white">
@@ -4379,22 +4608,22 @@ export default function ReportsPage({
 
                                 return (
                                   <tr key={r.id || idx} className="hover:bg-[#F8FAFC] transition-colors">
-                                    <td className="py-2.5 px-3 font-mono text-[#64748B] font-semibold">{r.gstin || "—"}</td>
+                                    <td className="py-2.5 px-3 tabular-nums text-[#64748B] font-semibold">{r.gstin || "—"}</td>
                                     <td className="py-2.5 px-3 font-semibold text-[#0F172A] border-r border-[#E2E8F0]">{r.customerName}</td>
-                                    <td className="py-2.5 px-3 text-center font-mono text-[#64748B]">{r.stateCode || "—"}</td>
+                                    <td className="py-2.5 px-3 text-center tabular-nums text-[#64748B]">{r.stateCode || "—"}</td>
                                     <td className="py-2.5 px-3 text-[#64748B] border-r border-[#E2E8F0]">{r.stateName || "—"}</td>
-                                    <td className="py-2.5 px-3 font-mono font-bold text-[#DC2626]">{r.noteNumber}</td>
-                                    <td className="py-2.5 px-3 font-mono text-[#64748B]">{dateFormatted}</td>
-                                    <td className="py-2.5 px-3 font-mono text-[#64748B]">{r.originalInvoiceNumber || "—"}</td>
-                                    <td className="py-2.5 px-3 text-right font-mono font-bold text-[#DC2626]">
+                                    <td className="py-2.5 px-3 tabular-nums font-medium text-[#DC2626]">{r.noteNumber}</td>
+                                    <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{dateFormatted}</td>
+                                    <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{r.originalInvoiceNumber || "—"}</td>
+                                    <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#DC2626]">
                                       ₹{Number(r.noteValue || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
-                                    <td className="py-2.5 px-3 text-right font-mono text-[#0F172A]">
+                                    <td className="py-2.5 px-3 text-right tabular-nums text-[#0F172A]">
                                       ₹{Number(r.taxableValue || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
-                                    <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">₹{Number(r.cgst || 0).toFixed(2)}</td>
-                                    <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">₹{Number(r.sgst || 0).toFixed(2)}</td>
-                                    <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">₹{Number(r.igst || 0).toFixed(2)}</td>
+                                    <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">₹{Number(r.cgst || 0).toFixed(2)}</td>
+                                    <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">₹{Number(r.sgst || 0).toFixed(2)}</td>
+                                    <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">₹{Number(r.igst || 0).toFixed(2)}</td>
                                   </tr>
                                 );
                               })}
@@ -4404,16 +4633,16 @@ export default function ReportsPage({
                                 <td colSpan={4} className="py-3 px-3 border-r border-[#E2E8F0]">
                                   {lang === "gu" ? "કુલ ક્રેડિટ નોટ્સ સમરી" : "Total Credit Notes"} ({totalEntries} {lang === "gu" ? "રેકોર્ડ" : "records"})
                                 </td>
-                                <td colSpan={3} className="py-3 px-3 font-mono text-slate-500">—</td>
-                                <td className="py-3 px-3 text-right font-mono text-[#DC2626]">
+                                <td colSpan={3} className="py-3 px-3 tabular-nums text-slate-500">—</td>
+                                <td className="py-3 px-3 text-right tabular-nums text-[#DC2626]">
                                   ₹{totalVal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </td>
-                                <td className="py-3 px-3 text-right font-mono text-[#0F172A]">
+                                <td className="py-3 px-3 text-right tabular-nums text-[#0F172A]">
                                   ₹{totalTaxable.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </td>
-                                <td className="py-3 px-3 text-right font-mono">₹{totalCgst.toFixed(2)}</td>
-                                <td className="py-3 px-3 text-right font-mono">₹{totalSgst.toFixed(2)}</td>
-                                <td className="py-3 px-3 text-right font-mono">₹{totalIgst.toFixed(2)}</td>
+                                <td className="py-3 px-3 text-right tabular-nums">₹{totalCgst.toFixed(2)}</td>
+                                <td className="py-3 px-3 text-right tabular-nums">₹{totalSgst.toFixed(2)}</td>
+                                <td className="py-3 px-3 text-right tabular-nums">₹{totalIgst.toFixed(2)}</td>
                               </tr>
                             </tfoot>
                           </table>
@@ -4492,14 +4721,14 @@ export default function ReportsPage({
                                 <th className="py-2.5 px-3 min-w-[160px] border-r border-[#E2E8F0]">{lang === "gu" ? "વેપારીનું નામ" : "Supplier Name"}</th>
                                 <th className="py-2.5 px-3 text-center w-[70px]">{lang === "gu" ? "સ્ટેટ કોડ" : "State Code"}</th>
                                 <th className="py-2.5 px-3 min-w-[120px] border-r border-[#E2E8F0]">{lang === "gu" ? "રાજ્યનું નામ" : "State Name"}</th>
-                                <th className="py-2.5 px-3 font-mono">{lang === "gu" ? "ડેબિટ નોટ #" : "Debit Note #"}</th>
-                                <th className="py-2.5 px-3 font-mono">{lang === "gu" ? "તારીખ" : "Date"}</th>
-                                <th className="py-2.5 px-3 font-mono">{lang === "gu" ? "મૂળ બિલ #" : "Orig Bill #"}</th>
-                                <th className="py-2.5 px-3 text-right font-mono">{lang === "gu" ? "નોટ વેલ્યુ (₹)" : "Note Value"}</th>
-                                <th className="py-2.5 px-3 text-right font-mono">{lang === "gu" ? "કરપાત્ર (₹)" : "Taxable Value"}</th>
-                                <th className="py-2.5 px-3 text-right font-mono">CGST</th>
-                                <th className="py-2.5 px-3 text-right font-mono">SGST</th>
-                                <th className="py-2.5 px-3 text-right font-mono">IGST</th>
+                                <th className="py-2.5 px-3 tabular-nums">{lang === "gu" ? "ડેબિટ નોટ #" : "Debit Note #"}</th>
+                                <th className="py-2.5 px-3 tabular-nums">{lang === "gu" ? "તારીખ" : "Date"}</th>
+                                <th className="py-2.5 px-3 tabular-nums">{lang === "gu" ? "મૂળ બિલ #" : "Orig Bill #"}</th>
+                                <th className="py-2.5 px-3 text-right tabular-nums">{lang === "gu" ? "નોટ વેલ્યુ (₹)" : "Note Value"}</th>
+                                <th className="py-2.5 px-3 text-right tabular-nums">{lang === "gu" ? "કરપાત્ર (₹)" : "Taxable Value"}</th>
+                                <th className="py-2.5 px-3 text-right tabular-nums">CGST</th>
+                                <th className="py-2.5 px-3 text-right tabular-nums">SGST</th>
+                                <th className="py-2.5 px-3 text-right tabular-nums">IGST</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-[#E2E8F0] bg-white">
@@ -4511,22 +4740,22 @@ export default function ReportsPage({
 
                                 return (
                                   <tr key={r.id || idx} className="hover:bg-[#F8FAFC] transition-colors">
-                                    <td className="py-2.5 px-3 font-mono text-[#64748B] font-semibold">{r.gstin || "—"}</td>
+                                    <td className="py-2.5 px-3 tabular-nums text-[#64748B] font-semibold">{r.gstin || "—"}</td>
                                     <td className="py-2.5 px-3 font-semibold text-[#0F172A] border-r border-[#E2E8F0]">{r.supplierName || r.customerName}</td>
-                                    <td className="py-2.5 px-3 text-center font-mono text-[#64748B]">{r.stateCode || "—"}</td>
+                                    <td className="py-2.5 px-3 text-center tabular-nums text-[#64748B]">{r.stateCode || "—"}</td>
                                     <td className="py-2.5 px-3 text-[#64748B] border-r border-[#E2E8F0]">{r.stateName || "—"}</td>
-                                    <td className="py-2.5 px-3 font-mono font-bold text-[#0047BA]">{r.noteNumber}</td>
-                                    <td className="py-2.5 px-3 font-mono text-[#64748B]">{dateFormatted}</td>
-                                    <td className="py-2.5 px-3 font-mono text-[#64748B]">{r.originalInvoiceNumber || "—"}</td>
-                                    <td className="py-2.5 px-3 text-right font-mono font-bold text-[#0047BA]">
+                                    <td className="py-2.5 px-3 tabular-nums font-medium text-[#0047BA]">{r.noteNumber}</td>
+                                    <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{dateFormatted}</td>
+                                    <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{r.originalInvoiceNumber || "—"}</td>
+                                    <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#0047BA]">
                                       ₹{Number(r.noteValue || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
-                                    <td className="py-2.5 px-3 text-right font-mono text-[#0F172A]">
+                                    <td className="py-2.5 px-3 text-right tabular-nums text-[#0F172A]">
                                       ₹{Number(r.taxableValue || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
-                                    <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">₹{Number(r.cgst || 0).toFixed(2)}</td>
-                                    <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">₹{Number(r.sgst || 0).toFixed(2)}</td>
-                                    <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">₹{Number(r.igst || 0).toFixed(2)}</td>
+                                    <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">₹{Number(r.cgst || 0).toFixed(2)}</td>
+                                    <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">₹{Number(r.sgst || 0).toFixed(2)}</td>
+                                    <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">₹{Number(r.igst || 0).toFixed(2)}</td>
                                   </tr>
                                 );
                               })}
@@ -4536,16 +4765,16 @@ export default function ReportsPage({
                                 <td colSpan={4} className="py-3 px-3 border-r border-[#E2E8F0]">
                                   {lang === "gu" ? "કુલ ડેબિટ નોટ્સ સમરી" : "Total Debit Notes"} ({totalEntries} {lang === "gu" ? "રેકોર્ડ" : "records"})
                                 </td>
-                                <td colSpan={3} className="py-3 px-3 font-mono text-slate-500">—</td>
-                                <td className="py-3 px-3 text-right font-mono text-[#0047BA]">
+                                <td colSpan={3} className="py-3 px-3 tabular-nums text-slate-500">—</td>
+                                <td className="py-3 px-3 text-right tabular-nums text-[#0047BA]">
                                   ₹{totalVal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </td>
-                                <td className="py-3 px-3 text-right font-mono text-[#0F172A]">
+                                <td className="py-3 px-3 text-right tabular-nums text-[#0F172A]">
                                   ₹{totalTaxable.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </td>
-                                <td className="py-3 px-3 text-right font-mono">₹{totalCgst.toFixed(2)}</td>
-                                <td className="py-3 px-3 text-right font-mono">₹{totalSgst.toFixed(2)}</td>
-                                <td className="py-3 px-3 text-right font-mono">₹{totalIgst.toFixed(2)}</td>
+                                <td className="py-3 px-3 text-right tabular-nums">₹{totalCgst.toFixed(2)}</td>
+                                <td className="py-3 px-3 text-right tabular-nums">₹{totalSgst.toFixed(2)}</td>
+                                <td className="py-3 px-3 text-right tabular-nums">₹{totalIgst.toFixed(2)}</td>
                               </tr>
                             </tfoot>
                           </table>
@@ -4587,11 +4816,11 @@ export default function ReportsPage({
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#16834A] uppercase font-semibold block">Taxable Outward Supplies</span>
-                    <p className="font-mono font-bold text-lg text-[#16834A] mt-1">₹{reportData.table3_1_outwardSupplies?.taxableAmount || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#16834A] mt-1">₹{reportData.table3_1_outwardSupplies?.taxableAmount || "0.00"}</p>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Outward Tax</span>
-                    <p className="font-mono font-bold text-lg text-[#0F172A] mt-1">
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">
                       ₹{(Number(reportData.table3_1_outwardSupplies?.cgst || 0) + Number(reportData.table3_1_outwardSupplies?.sgst || 0) + Number(reportData.table3_1_outwardSupplies?.igst || 0)).toFixed(2)}
                     </p>
                   </div>
@@ -4613,19 +4842,19 @@ export default function ReportsPage({
                       <tbody className="divide-y divide-[#E2E8F0]">
                         <tr className="hover:bg-[#F8FAFC]">
                           <td className="py-2.5 px-3 font-semibold text-[#0F172A]">3.1 (a) Outward Taxable Supplies</td>
-                          <td className="py-2.5 px-3 text-right font-mono font-bold text-[#0F172A]">₹{reportData.table3_1_outwardSupplies?.taxableAmount || "0.00"}</td>
-                          <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">₹{reportData.table3_1_outwardSupplies?.igst || "0.00"}</td>
-                          <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">₹{reportData.table3_1_outwardSupplies?.cgst || "0.00"}</td>
-                          <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">₹{reportData.table3_1_outwardSupplies?.sgst || "0.00"}</td>
-                          <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">₹{reportData.table3_1_outwardSupplies?.cess || "0.00"}</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#0F172A]">₹{reportData.table3_1_outwardSupplies?.taxableAmount || "0.00"}</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">₹{reportData.table3_1_outwardSupplies?.igst || "0.00"}</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">₹{reportData.table3_1_outwardSupplies?.cgst || "0.00"}</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">₹{reportData.table3_1_outwardSupplies?.sgst || "0.00"}</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">₹{reportData.table3_1_outwardSupplies?.cess || "0.00"}</td>
                         </tr>
                         <tr className="hover:bg-[#F8FAFC]">
                           <td className="py-2.5 px-3 font-semibold text-[#0F172A]">4 (A) (5) All Other Eligible ITC</td>
-                          <td className="py-2.5 px-3 text-right font-mono text-slate-400">—</td>
-                          <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">₹{reportData.table4_eligibleItc?.allOtherItc?.igst || "0.00"}</td>
-                          <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">₹{reportData.table4_eligibleItc?.allOtherItc?.cgst || "0.00"}</td>
-                          <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">₹{reportData.table4_eligibleItc?.allOtherItc?.sgst || "0.00"}</td>
-                          <td className="py-2.5 px-3 text-right font-mono text-[#64748B]">₹{reportData.table4_eligibleItc?.allOtherItc?.cess || "0.00"}</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums text-slate-400">—</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">₹{reportData.table4_eligibleItc?.allOtherItc?.igst || "0.00"}</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">₹{reportData.table4_eligibleItc?.allOtherItc?.cgst || "0.00"}</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">₹{reportData.table4_eligibleItc?.allOtherItc?.sgst || "0.00"}</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums text-[#64748B]">₹{reportData.table4_eligibleItc?.allOtherItc?.cess || "0.00"}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -4637,7 +4866,7 @@ export default function ReportsPage({
               <div className="space-y-6">
                 <div className="p-4 bg-white border border-[#E2E8F0] rounded-xl flex items-center justify-between shadow-2xs">
                   <div>
-                    <h3 className="font-bold text-[#0F172A] text-sm">{currentTabMeta.label}</h3>
+                    <h3 className="font-semibold text-[#0F172A] text-[15px]">{currentTabMeta.label}</h3>
                     <p className="text-xs text-[#64748B] mt-0.5">Authoritative financial records for {startDate} to {endDate}</p>
                   </div>
                   <span className="px-2.5 py-1 bg-emerald-50 text-[#16834A] border border-emerald-200 rounded-lg text-xs font-bold">
@@ -4661,8 +4890,8 @@ export default function ReportsPage({
                           .map(([key, value]: any) => (
                             <tr key={key} className="hover:bg-[#F8FAFC] transition-colors">
                               <td className="py-2.5 px-3 font-semibold text-[#0F172A] capitalize">{key.replace(/([A-Z])/g, " $1")}</td>
-                              <td className="py-2.5 px-3 text-right font-mono text-slate-400">—</td>
-                              <td className="py-2.5 px-3 text-right font-mono font-bold text-[#0F172A]">
+                              <td className="py-2.5 px-3 text-right tabular-nums text-slate-400">—</td>
+                              <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#0F172A]">
                                 {typeof value === "number" ? `₹${Number(value).toFixed(2)}` : String(value)}
                               </td>
                             </tr>

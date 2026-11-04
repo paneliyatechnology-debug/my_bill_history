@@ -207,18 +207,18 @@ export default function EditAutomatedBillingPage() {
               Automated Billing
             </Link>
             <span>/</span>
-            <Link href={`/sales/automated-billing/${scheduleId}`} className="hover:text-emerald-700 font-mono">
+            <Link href={`/sales/automated-billing/${scheduleId}`} className="hover:text-emerald-700 tabular-nums">
               {scheduleId?.slice(0, 8)}
             </Link>
             <span>/</span>
             <span className="text-gray-800 font-semibold">Edit</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Edit Automated Schedule</h1>
+          <h1 className="text-[22px] font-semibold text-[#182230]">Edit Automated Schedule</h1>
         </div>
 
         <Link
           href={`/sales/automated-billing/${scheduleId}`}
-          className="px-4 py-2 text-xs font-semibold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition"
+          className="h-9 px-3 text-[13px] font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition"
         >
           Cancel
         </Link>
@@ -232,27 +232,27 @@ export default function EditAutomatedBillingPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-4">
-          <h2 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">
+          <h2 className="text-sm font-semibold text-[#182230] border-b border-gray-100 pb-2">
             Schedule Settings
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Schedule Name</label>
+              <label className="block text-[12px] font-medium text-gray-700 mb-1">Schedule Name</label>
               <input
                 type="text"
                 value={scheduleName}
                 onChange={(e) => setScheduleName(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1677E8] h-10"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Repeat Frequency</label>
+              <label className="block text-[12px] font-medium text-gray-700 mb-1">Repeat Frequency</label>
               <select
                 value={frequency}
                 onChange={(e) => setFrequency(e.target.value as any)}
-                className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold"
+                className="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1677E8] font-normal h-10"
               >
                 <option value="DAILY">Daily</option>
                 <option value="WEEKLY">Weekly</option>
@@ -262,23 +262,23 @@ export default function EditAutomatedBillingPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Start Date</label>
+              <label className="block text-[12px] font-medium text-gray-700 mb-1">Start Date</label>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+                className="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1677E8] tabular-nums h-10"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">End Date</label>
+              <label className="block text-[12px] font-medium text-gray-700 mb-1">End Date</label>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+                className="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1677E8] tabular-nums h-10"
               />
             </div>
           </div>
@@ -287,11 +287,11 @@ export default function EditAutomatedBillingPage() {
         {/* Line Items */}
         <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-            <h2 className="text-sm font-bold text-gray-900">Line Items & Services</h2>
+            <h2 className="text-sm font-semibold text-[#182230]">Line Items & Services</h2>
             <button
               type="button"
               onClick={handleAddLine}
-              className="text-xs font-bold text-[#174B43] hover:text-[#123B35]"
+              className="text-xs font-bold text-[#0F172A] hover:text-[#123B35]"
             >
               + Add Item
             </button>
@@ -326,7 +326,7 @@ export default function EditAutomatedBillingPage() {
                           type="text"
                           value={line.description}
                           onChange={(e) => handleLineChange(index, "description", e.target.value)}
-                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs"
+                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-[13px] h-10"
                           required
                         />
                       </td>
@@ -335,7 +335,7 @@ export default function EditAutomatedBillingPage() {
                           type="text"
                           value={line.hsnCode}
                           onChange={(e) => handleLineChange(index, "hsnCode", e.target.value)}
-                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-mono"
+                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-[13px] tabular-nums h-10"
                         />
                       </td>
                       <td className="py-2 px-2">
@@ -344,7 +344,7 @@ export default function EditAutomatedBillingPage() {
                           step="any"
                           value={line.quantity}
                           onChange={(e) => handleLineChange(index, "quantity", Number(e.target.value))}
-                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-mono"
+                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-[13px] tabular-nums h-10"
                           required
                         />
                       </td>
@@ -354,7 +354,7 @@ export default function EditAutomatedBillingPage() {
                           step="any"
                           value={line.rate}
                           onChange={(e) => handleLineChange(index, "rate", Number(e.target.value))}
-                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-mono text-right"
+                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-[13px] tabular-nums text-right h-10"
                           required
                         />
                       </td>
@@ -364,14 +364,14 @@ export default function EditAutomatedBillingPage() {
                           step="any"
                           value={line.discountPercent}
                           onChange={(e) => handleLineChange(index, "discountPercent", Number(e.target.value))}
-                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-mono text-right"
+                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-[13px] tabular-nums text-right h-10"
                         />
                       </td>
                       <td className="py-2 px-2">
                         <select
                           value={line.taxRate}
                           onChange={(e) => handleLineChange(index, "taxRate", Number(e.target.value))}
-                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-mono"
+                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-[13px] tabular-nums h-10"
                         >
                           <option value={0}>0%</option>
                           <option value={5}>5%</option>
@@ -380,7 +380,7 @@ export default function EditAutomatedBillingPage() {
                           <option value={28}>28%</option>
                         </select>
                       </td>
-                      <td className="py-2 px-3 text-right font-mono font-bold text-gray-900">
+                      <td className="py-2 px-3 text-right tabular-nums font-medium text-gray-900">
                         {formatCurrency(lineTotal)}
                       </td>
                       <td className="py-2 px-2 text-center">
@@ -409,14 +409,14 @@ export default function EditAutomatedBillingPage() {
         <div className="flex items-center justify-end gap-3">
           <Link
             href={`/sales/automated-billing/${scheduleId}`}
-            className="px-5 py-2.5 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition"
+            className="h-9 px-3.5 text-[13px] font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition"
           >
             Cancel
           </Link>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-6 py-2.5 text-xs font-bold text-white bg-[#174B43] hover:bg-[#123B35] rounded-xl shadow-sm transition disabled:opacity-50"
+            className="px-6 py-2.5 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] rounded-xl shadow-sm transition disabled:opacity-50"
           >
             {isSubmitting ? "Saving..." : "Save Changes"}
           </button>

@@ -32,23 +32,23 @@ function CopyCodeContent() {
     <div className="min-h-[100dvh] bg-[#F8F9FB] flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white border border-[#E5E7EB] rounded-2xl shadow-sm overflow-hidden">
         <div className="bg-[#1E589D] px-6 py-5">
-          <p className="text-2xl font-black tracking-tight">
+          <p className="text-2xl font-semibold tracking-tight">
             <span className="text-white">myown</span>
             <span className="text-[#FFB067]">billbook</span>
           </p>
         </div>
         <div className="h-1 bg-[#EA580C]" />
         <div className="p-6 space-y-4">
-          <h1 className="text-xl font-black text-slate-900">Copy verification code</h1>
+          <h1 className="text-xl font-semibold text-[#182230]">Copy verification code</h1>
           <p className="text-sm text-slate-600">કોડ કોપી કરો, પછી નોંધણી અથવા પાસવર્ડ સ્ક્રીન પર પેસ્ટ કરો.</p>
-          <p className="font-mono text-3xl font-black tracking-[0.35em] text-[#C2410C] bg-[#FFF7ED] border border-dashed border-[#FDBA74] rounded-xl px-4 py-3 text-center">
+          <p className="tabular-nums text-3xl font-semibold tracking-[0.35em] text-[#C2410C] bg-[#FFF7ED] border border-dashed border-[#FDBA74] rounded-xl px-4 py-3 text-center">
             {code || "------"}
           </p>
           <button
             type="button"
             onClick={copy}
             disabled={code.length !== 6}
-            className="w-full py-3 rounded-xl text-sm font-black text-white bg-[#EA580C] hover:bg-[#C2410C] disabled:opacity-50"
+            className="w-full py-3 rounded-xl text-[13px] font-medium text-white bg-[#EA580C] hover:bg-[#C2410C] disabled:opacity-50"
           >
             {copied ? "Copied" : "Copy code"}
           </button>

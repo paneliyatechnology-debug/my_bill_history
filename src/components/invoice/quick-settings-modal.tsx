@@ -226,7 +226,7 @@ export function QuickSettingsModal({
       >
         {/* Header (Exact MyBillBook Design) */}
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-white">
-          <h2 className="text-base font-bold text-slate-900">Quick Settings</h2>
+          <h2 className="text-[15px] font-semibold text-[#182230]">Quick Settings</h2>
           <button
             type="button"
             onClick={onClose}
@@ -317,7 +317,7 @@ export function QuickSettingsModal({
                     <div className="pt-2 border-t border-slate-100 space-y-2.5">
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                          <label className="block text-[10px] font-medium text-slate-600 uppercase mb-1">
                             {inputPrefixLabel}
                           </label>
                           <input
@@ -327,11 +327,11 @@ export function QuickSettingsModal({
                               setFormData({ ...formData, invoicePrefix: e.target.value })
                             }
                             placeholder={inputPrefixPlaceholder}
-                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-slate-900 text-xs focus:bg-white focus:outline-none focus:border-blue-500"
+                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg tabular-nums text-slate-900 text-[13px] focus:bg-white focus:outline-none focus:border-blue-500 h-10"
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                          <label className="block text-[10px] font-medium text-slate-600 uppercase mb-1">
                             Sequence / Starting No.
                           </label>
                           <input
@@ -341,11 +341,11 @@ export function QuickSettingsModal({
                               setFormData({ ...formData, invoiceSequence: e.target.value })
                             }
                             placeholder="e.g. 0014"
-                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-slate-900 text-xs focus:bg-white focus:outline-none focus:border-blue-500"
+                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg tabular-nums text-slate-900 text-[13px] focus:bg-white focus:outline-none focus:border-blue-500 h-10"
                           />
                         </div>
                       </div>
-                      <p className="text-[10px] text-slate-500 font-mono">
+                      <p className="text-[10px] text-slate-500 tabular-nums">
                         Live Preview: <strong className="text-blue-600">{formData.invoicePrefix}{formData.invoiceSequence}</strong>
                       </p>
                     </div>
@@ -354,7 +354,7 @@ export function QuickSettingsModal({
 
                 {/* Show or Hide Invoice Custom Fields */}
                 <div className="space-y-2.5">
-                  <h3 className="font-bold text-slate-900 text-xs">
+                  <h3 className="font-semibold text-slate-900 text-xs">
                     {customFieldsHeading}
                   </h3>
                   
@@ -458,7 +458,7 @@ export function QuickSettingsModal({
                         value={newInvoiceFieldName}
                         onChange={(e) => setNewInvoiceFieldName(e.target.value)}
                         placeholder="e.g. Challan No, Delivery Note, Agent"
-                        className="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-blue-500"
+                        className="w-full p-2 bg-white border border-slate-300 rounded-lg text-[13px] focus:outline-none focus:border-blue-500 h-10"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") handleAddCustomField("invoice");
                         }}
@@ -470,14 +470,14 @@ export function QuickSettingsModal({
                             setIsAddingInvoiceField(false);
                             setNewInvoiceFieldName("");
                           }}
-                          className="px-3 py-1 text-slate-600 hover:text-slate-800 text-xs font-semibold"
+                          className="px-3 py-1 text-slate-600 hover:text-slate-800 text-[13px] font-medium"
                         >
                           Cancel
                         </button>
                         <button
                           type="button"
                           onClick={() => handleAddCustomField("invoice")}
-                          className="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-bold hover:bg-blue-700"
+                          className="px-3 py-1 bg-blue-600 text-white rounded-md text-[13px] font-medium hover:bg-blue-700"
                         >
                           Add Field
                         </button>
@@ -487,7 +487,7 @@ export function QuickSettingsModal({
                     <button
                       type="button"
                       onClick={() => setIsAddingInvoiceField(true)}
-                      className="w-full py-2.5 border-2 border-dashed border-blue-400 rounded-xl text-xs font-bold text-blue-600 hover:bg-blue-50/50 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full py-2.5 border-2 border-dashed border-blue-400 rounded-xl text-[13px] font-medium text-blue-600 hover:bg-blue-50/50 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <span>+</span>
                       <span>Add New Field</span>
@@ -501,7 +501,7 @@ export function QuickSettingsModal({
             {activeTab === "party" && (
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-bold text-slate-900 text-xs">Party Display Options</h3>
+                  <h3 className="font-semibold text-slate-900 text-xs">Party Display Options</h3>
                   <p className="text-[11px] text-slate-500 mb-3">
                     Configure customer balance, shipping address & contact information
                   </p>
@@ -612,7 +612,7 @@ export function QuickSettingsModal({
                       value={newPartyFieldName}
                       onChange={(e) => setNewPartyFieldName(e.target.value)}
                       placeholder="e.g. GST Type, Route Name, Credit Limit"
-                      className="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-blue-500"
+                      className="w-full p-2 bg-white border border-slate-300 rounded-lg text-[13px] focus:outline-none focus:border-blue-500 h-10"
                       onKeyDown={(e) => {
                         if (e.key === "Enter") handleAddCustomField("party");
                       }}
@@ -624,14 +624,14 @@ export function QuickSettingsModal({
                           setIsAddingPartyField(false);
                           setNewPartyFieldName("");
                         }}
-                        className="px-3 py-1 text-slate-600 hover:text-slate-800 text-xs font-semibold"
+                        className="px-3 py-1 text-slate-600 hover:text-slate-800 text-[13px] font-medium"
                       >
                         Cancel
                       </button>
                       <button
                         type="button"
                         onClick={() => handleAddCustomField("party")}
-                        className="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-bold hover:bg-blue-700"
+                        className="px-3 py-1 bg-blue-600 text-white rounded-md text-[13px] font-medium hover:bg-blue-700"
                       >
                         Add Field
                       </button>
@@ -641,7 +641,7 @@ export function QuickSettingsModal({
                   <button
                     type="button"
                     onClick={() => setIsAddingPartyField(true)}
-                    className="w-full py-2.5 border-2 border-dashed border-blue-400 rounded-xl text-xs font-bold text-blue-600 hover:bg-blue-50/50 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2.5 border-2 border-dashed border-blue-400 rounded-xl text-[13px] font-medium text-blue-600 hover:bg-blue-50/50 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <span>+</span>
                     <span>Add New Field</span>
@@ -733,7 +733,7 @@ export function QuickSettingsModal({
 
                 {/* Show or Hide Item Table Columns */}
                 <div className="space-y-2 pt-2 border-t border-slate-100">
-                  <h3 className="font-bold text-slate-900 text-xs">
+                  <h3 className="font-semibold text-slate-900 text-xs">
                     Show or Hide Item Table Columns
                   </h3>
 
@@ -807,7 +807,7 @@ export function QuickSettingsModal({
 
                 {/* Tax Configuration */}
                 <div className="space-y-3 pt-2 border-t border-slate-100">
-                  <h3 className="font-bold text-slate-900 text-xs">Tax Configuration</h3>
+                  <h3 className="font-semibold text-slate-900 text-xs">Tax Configuration</h3>
 
                   <div className="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-white">
                     <div>
@@ -832,7 +832,7 @@ export function QuickSettingsModal({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                    <label className="block text-[11px] font-medium text-slate-600 mb-1">
                       Default GST Rate for New Rows
                     </label>
                     <div className="relative flex items-center">
@@ -850,7 +850,7 @@ export function QuickSettingsModal({
                           })
                         }
                         placeholder="e.g. 5, 12, 18, 28"
-                        className="w-full p-2 pr-6 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 font-mono text-right focus:bg-white focus:outline-none"
+                        className="w-full p-2 pr-6 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 tabular-nums text-right focus:bg-white focus:outline-none text-[13px] font-normal h-10"
                       />
                       <span className="absolute right-2 text-xs font-bold text-slate-400 pointer-events-none">%</span>
                     </div>
@@ -901,7 +901,7 @@ export function QuickSettingsModal({
                       value={newItemFieldName}
                       onChange={(e) => setNewItemFieldName(e.target.value)}
                       placeholder="e.g. Serial No, Batch, Expiry, Model"
-                      className="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-blue-500"
+                      className="w-full p-2 bg-white border border-slate-300 rounded-lg text-[13px] focus:outline-none focus:border-blue-500 h-10"
                       onKeyDown={(e) => {
                         if (e.key === "Enter") handleAddCustomField("items");
                       }}
@@ -913,14 +913,14 @@ export function QuickSettingsModal({
                           setIsAddingItemField(false);
                           setNewItemFieldName("");
                         }}
-                        className="px-3 py-1 text-slate-600 hover:text-slate-800 text-xs font-semibold"
+                        className="px-3 py-1 text-slate-600 hover:text-slate-800 text-[13px] font-medium"
                       >
                         Cancel
                       </button>
                       <button
                         type="button"
                         onClick={() => handleAddCustomField("items")}
-                        className="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-bold hover:bg-blue-700"
+                        className="px-3 py-1 bg-blue-600 text-white rounded-md text-[13px] font-medium hover:bg-blue-700"
                       >
                         Add Field
                       </button>
@@ -930,7 +930,7 @@ export function QuickSettingsModal({
                   <button
                     type="button"
                     onClick={() => setIsAddingItemField(true)}
-                    className="w-full py-2.5 border-2 border-dashed border-blue-400 rounded-xl text-xs font-bold text-blue-600 hover:bg-blue-50/50 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2.5 border-2 border-dashed border-blue-400 rounded-xl text-[13px] font-medium text-blue-600 hover:bg-blue-50/50 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <span>+</span>
                     <span>Add New Field</span>
@@ -946,14 +946,14 @@ export function QuickSettingsModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2 border border-slate-300 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-700 transition-colors cursor-pointer"
+            className="h-9 px-3.5 border border-slate-300 hover:bg-slate-100 rounded-xl text-[13px] font-medium text-slate-700 transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors cursor-pointer"
           >
             Save
           </button>

@@ -12,8 +12,8 @@ export function QuickActionsBar() {
       title: lang === "gu" ? "નવી વસ્તુ" : "Add Item",
       subtext: lang === "gu" ? "પ્રોડક્ટ માસ્ટર" : "Item Master",
       href: "/masters/items",
-      iconBg: "bg-[#E6F7F2] text-[#174B43]",
-      hoverBorder: "hover:border-[#174B43]",
+      iconBg: "bg-[#EFF6FF] text-[#0F172A]",
+      hoverBorder: "hover:border-[#0F172A]",
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 4v16m8-8H4" />
@@ -92,7 +92,7 @@ export function QuickActionsBar() {
           </svg>
         </div>
         <div>
-          <h2 className="text-sm font-bold text-[#111827]">
+          <h2 className="text-sm font-semibold text-[#111827]">
             {lang === "gu" ? "ઝડપી ક્રિયાઓ (Quick Actions)" : "Quick Actions"}
           </h2>
           <p className="text-[11px] sm:text-xs text-[#6B7280]">
@@ -113,7 +113,7 @@ export function QuickActionsBar() {
               {act.icon}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-xs font-bold text-[#111827] truncate group-hover:text-[#174B43] transition-colors">
+              <div className="text-xs font-bold text-[#111827] truncate group-hover:text-[#0F172A] transition-colors">
                 {act.title}
               </div>
               <div className="text-[10px] text-[#6B7280] truncate font-medium">

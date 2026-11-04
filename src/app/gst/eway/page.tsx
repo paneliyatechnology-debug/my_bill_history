@@ -79,7 +79,7 @@ function Body() {
         </div>
         <Link
           href="/sales/eway-bills"
-          className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-sm whitespace-nowrap transition-colors"
+          className="h-9 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-sm whitespace-nowrap transition-colors"
         >
           Open E-Way Bill Register →
         </Link>
@@ -98,9 +98,9 @@ function Body() {
           {selected.eWayBill ? <p>Stored number {selected.eWayBill.ewbNumber}, valid until {selected.eWayBill.validUpto}, vehicle {selected.eWayBill.vehicleNumber || "—"}.</p> : <p>No e-way number is stored.</p>}
           {canWrite && !selected.utgstBlockedForEway ? (
             <div className="flex flex-wrap gap-2">
-              <input className="border rounded px-2 py-1 w-24" value={distance} onChange={(event) => setDistance(event.target.value)} />
-              <input className="border rounded px-2 py-1" placeholder="Vehicle number" value={vehicle} onChange={(event) => setVehicle(event.target.value)} />
-              <button type="button" className="px-3 py-1.5 rounded bg-slate-900 text-white" onClick={generate}>Generate</button>
+              <input className="border rounded px-2 py-1 w-24 text-[13px] font-normal h-10" value={distance} onChange={(event) => setDistance(event.target.value)} />
+              <input className="border rounded px-2 py-1 text-[13px] font-normal h-10" placeholder="Vehicle number" value={vehicle} onChange={(event) => setVehicle(event.target.value)} />
+              <button type="button" className="h-9 px-3 rounded bg-slate-900 text-white" onClick={generate}>Generate</button>
             </div>
           ) : null}
           {selected.eWayBill ? <button type="button" className="underline" onClick={lookup}>Look up stored bill</button> : null}

@@ -97,16 +97,18 @@ export default function VouchersPage() {
     }
   };
 
-  const typeColor: Record<
+  const typeStyles: Record<
     string,
-    "info" | "success" | "warning" | "danger" | "purple"
+    { dot: string; text: string }
   > = {
-    JOURNAL: "purple",
-    RECEIPT: "success",
-    PAYMENT: "warning",
-    CONTRA: "info",
-    SALES: "info",
-    PURCHASE: "danger",
+    JOURNAL: { dot: "bg-purple-500", text: "text-purple-700" },
+    RECEIPT: { dot: "bg-emerald-500", text: "text-emerald-700" },
+    PAYMENT: { dot: "bg-amber-500", text: "text-amber-700" },
+    CONTRA: { dot: "bg-sky-500", text: "text-sky-700" },
+    SALES: { dot: "bg-blue-600", text: "text-blue-700" },
+    PURCHASE: { dot: "bg-rose-500", text: "text-rose-700" },
+    DEBIT_NOTE: { dot: "bg-indigo-500", text: "text-indigo-700" },
+    CREDIT_NOTE: { dot: "bg-teal-500", text: "text-teal-700" },
   };
 
   const columns: ColumnDef<Voucher>[] = [
@@ -115,7 +117,7 @@ export default function VouchersPage() {
       accessorKey: "voucherNumber",
       sortable: true,
       cell: (v) => (
-        <span className="font-mono font-bold text-slate-900">
+        <span className="tabular-nums font-bold text-slate-900">
           {v.voucherNumber}
         </span>
       ),
@@ -125,7 +127,7 @@ export default function VouchersPage() {
       accessorKey: "voucherDate",
       sortable: true,
       cell: (v) => (
-        <span className="font-mono text-slate-600">
+        <span className="tabular-nums text-slate-600">
           {new Date(v.voucherDate).toLocaleDateString("en-IN")}
         </span>
       ),
@@ -134,11 +136,20 @@ export default function VouchersPage() {
       header: lang === "gu" ? "પ્રકાર" : "Type",
       accessorKey: "voucherType",
       sortable: true,
-      cell: (v) => (
-        <Badge variant={typeColor[v.voucherType] || "neutral"}>
-          {v.voucherType}
-        </Badge>
-      ),
+      cell: (v) => {
+        const style = typeStyles[v.voucherType] || {
+          dot: "bg-slate-400",
+          text: "text-slate-700",
+        };
+        return (
+          <span
+            className={`inline-flex items-center gap-1.5 text-xs font-semibold ${style.text}`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
+            <span>{v.voucherType}</span>
+          </span>
+        );
+      },
     },
     {
       header: lang === "gu" ? "વિગત / લખાણ" : "Narration",
@@ -155,7 +166,7 @@ export default function VouchersPage() {
       sortable: true,
       className: "text-right",
       cell: (v) => (
-        <span className="font-mono font-bold text-slate-900">
+        <span className="tabular-nums font-bold text-slate-900">
           ₹{Number(v.totalAmount).toFixed(2)}
         </span>
       ),
@@ -174,7 +185,7 @@ export default function VouchersPage() {
         <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => setSelectedVoucher(v)}
-            className="text-xs text-[#174B43] hover:text-[#123B35] font-semibold"
+            className="text-xs text-[#0F172A] hover:text-[#123B35] font-semibold"
           >
             View Lines
           </button>
@@ -201,7 +212,7 @@ export default function VouchersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl lg:text-[1.75rem] font-bold text-[#202124] tracking-tight leading-tight">
+            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight leading-tight">
               {lang === "gu"
                 ? "નામા વાઉચર રજિસ્ટર (Vouchers Register)"
                 : "Double-Entry Voucher Register"}
@@ -216,7 +227,7 @@ export default function VouchersPage() {
 
         <Link
           href="/accounting/vouchers/new"
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#174B43] hover:bg-[#123B35] active:bg-[#B94B0A] text-white text-xs sm:text-sm font-bold rounded-xl shadow-saffron transition-all w-full sm:w-auto shrink-0"
+          className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] text-white text-[13px] font-medium rounded-xl shadow-xs transition-all w-full sm:w-auto shrink-0"
         >
           <svg
             className="w-4 h-4"
@@ -267,7 +278,7 @@ export default function VouchersPage() {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="text-xs bg-[#F8FAFC] border border-[#E5E7EB] text-[#202124] rounded-xl px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-[#174B43]/20 focus:border-[#174B43] transition-all cursor-pointer"
+              className="text-[13px] bg-[#F8FAFC] border border-[#E5E7EB] text-[#182230] rounded-xl px-3 py-2 font-normal focus:outline-none focus:ring-2 focus:ring-[#0F172A]/20 focus:border-[#0F172A] transition-all cursor-pointer h-10"
             >
               <option value="ALL">{lang === "gu" ? "તમામ વાઉચર (All Types)" : "All Voucher Types"}</option>
               <option value="JOURNAL">{lang === "gu" ? "જર્નલ (JOURNAL)" : "JOURNAL"}</option>
@@ -281,30 +292,39 @@ export default function VouchersPage() {
         mobileCardRender={(v) => (
           <div key={v.id} onClick={() => setSelectedVoucher(v)} className="space-y-2 cursor-pointer hover:bg-slate-50 transition-colors p-2 rounded-lg">
             <div className="flex items-center justify-between">
-              <span className="font-mono font-bold text-slate-900">
+              <span className="tabular-nums font-bold text-slate-900">
                 {v.voucherNumber}
               </span>
               <StatusBadge status={v.isCancelled ? "REVERSED" : "POSTED"} />
             </div>
             <div className="flex items-center justify-between text-xs text-slate-500">
               <span>{new Date(v.voucherDate).toLocaleDateString("en-IN")}</span>
-              <Badge variant={typeColor[v.voucherType] || "neutral"}>
-                {v.voucherType}
-              </Badge>
+              <span
+                className={`inline-flex items-center gap-1.5 text-xs font-semibold ${
+                  (typeStyles[v.voucherType] || { text: "text-slate-700" }).text
+                }`}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    (typeStyles[v.voucherType] || { dot: "bg-slate-400" }).dot
+                  }`}
+                />
+                <span>{v.voucherType}</span>
+              </span>
             </div>
             {v.narration && (
               <p className="text-xs text-slate-600 italic">{v.narration}</p>
             )}
             <div className="flex items-center justify-between pt-2 border-t border-slate-100">
               <span className="text-xs text-slate-500">Total:</span>
-              <span className="font-mono font-bold text-slate-900">
+              <span className="tabular-nums font-bold text-slate-900">
                 ₹{Number(v.totalAmount).toFixed(2)}
               </span>
             </div>
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 onClick={() => setSelectedVoucher(v)}
-                className="text-xs text-[#174B43] font-semibold"
+                className="text-xs text-[#0F172A] font-semibold"
               >
                 View Lines
               </button>
@@ -338,7 +358,7 @@ export default function VouchersPage() {
             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg text-xs">
               <div>
                 <span className="font-semibold text-slate-700">Date: </span>
-                <span className="font-mono text-slate-900">
+                <span className="tabular-nums text-slate-900">
                   {new Date(selectedVoucher.voucherDate).toLocaleDateString(
                     "en-IN",
                   )}
@@ -346,15 +366,22 @@ export default function VouchersPage() {
               </div>
               <div>
                 <span className="font-semibold text-slate-700">Type: </span>
-                <Badge
-                  variant={typeColor[selectedVoucher.voucherType] || "neutral"}
+                <span
+                  className={`inline-flex items-center gap-1.5 text-xs font-semibold ${
+                    (typeStyles[selectedVoucher.voucherType] || { text: "text-slate-700" }).text
+                  }`}
                 >
-                  {selectedVoucher.voucherType}
-                </Badge>
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      (typeStyles[selectedVoucher.voucherType] || { dot: "bg-slate-400" }).dot
+                    }`}
+                  />
+                  <span>{selectedVoucher.voucherType}</span>
+                </span>
               </div>
               <div>
                 <span className="font-semibold text-slate-700">Total: </span>
-                <span className="font-mono font-bold text-slate-900">
+                <span className="tabular-nums font-bold text-slate-900">
                   ₹{Number(selectedVoucher.totalAmount).toFixed(2)}
                 </span>
               </div>
@@ -386,12 +413,12 @@ export default function VouchersPage() {
                       <td className="py-2.5 px-3 text-slate-500">
                         {line.narration || "—"}
                       </td>
-                      <td className="py-2.5 px-3 text-right font-mono font-semibold text-slate-900">
+                      <td className="py-2.5 px-3 text-right tabular-nums font-semibold text-slate-900">
                         {Number(line.debitAmount) > 0
                           ? `₹${Number(line.debitAmount).toFixed(2)}`
                           : "—"}
                       </td>
-                      <td className="py-2.5 px-3 text-right font-mono font-semibold text-slate-900">
+                      <td className="py-2.5 px-3 text-right tabular-nums font-semibold text-slate-900">
                         {Number(line.creditAmount) > 0
                           ? `₹${Number(line.creditAmount).toFixed(2)}`
                           : "—"}
@@ -405,7 +432,7 @@ export default function VouchersPage() {
             <div className="flex justify-end pt-3">
               <button
                 onClick={() => setSelectedVoucher(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg"
+                className="h-9 px-3 text-[13px] font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg"
               >
                 Close
               </button>
@@ -436,7 +463,7 @@ export default function VouchersPage() {
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 Reason for Reversal *
               </label>
               <textarea
@@ -445,7 +472,7 @@ export default function VouchersPage() {
                 value={reversalReason}
                 onChange={(e) => setReversalReason(e.target.value)}
                 placeholder="e.g. Incorrect ledger allocation or cancelled transaction"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
               />
             </div>
 
@@ -453,14 +480,14 @@ export default function VouchersPage() {
               <button
                 type="button"
                 onClick={() => setReversalTarget(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+                className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isReversing}
-                className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm"
+                className="h-9 px-3.5 text-[13px] font-medium text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm"
               >
                 {isReversing ? "Reversing..." : "Confirm Reversal"}
               </button>

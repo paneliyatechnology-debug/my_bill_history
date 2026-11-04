@@ -72,7 +72,7 @@ export default function DataImportCenterPage() {
                 <span>⚡</span> {lang === "gu" ? "સંપૂર્ણ એકાઉન્ટિંગ ડેટા માઈગ્રેશન" : "Production Data Import Center"}
               </div>
 
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+              <h1 className="text-[22px] font-semibold tracking-tight text-white">
                 {lang === "gu"
                   ? "એક્સેલ અને CSV માંથી ડેટા આયાત કરો"
                   : "Import Excel / CSV Data into MyOwnBill History"}
@@ -89,7 +89,7 @@ export default function DataImportCenterPage() {
               <button
                 type="button"
                 onClick={() => openImportForModule(undefined)}
-                className="px-6 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.02]"
+                className="inline-flex items-center justify-center gap-2 h-9 px-3.5 whitespace-nowrap bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-[10px] text-[13px] font-medium transition-colors cursor-pointer"
               >
                 <span>🚀</span>
                 <span>{lang === "gu" ? "નવી આયાત શરૂ કરો" : "Start New Data Import"}</span>
@@ -129,7 +129,7 @@ export default function DataImportCenterPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={lang === "gu" ? "મોડ્યુલ શોધો..." : "Search modules..."}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 shadow-sm"
+              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 shadow-sm h-10"
             />
             <span className="absolute left-3 top-2.5 text-slate-400 text-xs">🔍</span>
           </div>
@@ -158,7 +158,7 @@ export default function DataImportCenterPage() {
                     </span>
                   </div>
 
-                  <h3 className="text-base font-bold text-slate-900 group-hover:text-orange-600 transition-colors mb-1">
+                  <h3 className="text-[15px] font-semibold text-slate-900 group-hover:text-orange-600 transition-colors mb-1">
                     {lang === "gu" ? m.titleGujarati : m.title}
                   </h3>
 
@@ -172,7 +172,7 @@ export default function DataImportCenterPage() {
                     <button
                       type="button"
                       onClick={() => importApi.downloadTemplate(m.module, "xlsx")}
-                      className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                      className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[13px] font-medium flex items-center gap-1 transition-colors cursor-pointer"
                       title="Download sample Excel template"
                     >
                       <span>📗</span> .XLSX
@@ -180,7 +180,7 @@ export default function DataImportCenterPage() {
                     <button
                       type="button"
                       onClick={() => importApi.downloadTemplate(m.module, "csv")}
-                      className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                      className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[13px] font-medium flex items-center gap-1 transition-colors cursor-pointer"
                       title="Download sample CSV template"
                     >
                       <span>📄</span> .CSV
@@ -190,7 +190,7 @@ export default function DataImportCenterPage() {
                   <button
                     type="button"
                     onClick={() => openImportForModule(m.module)}
-                    className="px-4 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-xs font-bold shadow-sm transition-colors cursor-pointer flex items-center gap-1"
+                    className="px-4 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-[13px] font-medium shadow-sm transition-colors cursor-pointer flex items-center gap-1"
                   >
                     <span>📥</span>
                     <span>{lang === "gu" ? "આયાત કરો" : "Import"}</span>
@@ -205,7 +205,7 @@ export default function DataImportCenterPage() {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base font-bold text-slate-900">
+              <h2 className="text-[15px] font-semibold text-[#182230]">
                 {lang === "gu" ? "તાજેતરનો આયાત ઇતિહાસ" : "Recent Import History & Logs"}
               </h2>
               <p className="text-xs text-slate-500">
@@ -218,7 +218,7 @@ export default function DataImportCenterPage() {
             <button
               type="button"
               onClick={loadData}
-              className="px-3 py-1.5 border border-slate-200 hover:bg-slate-50 rounded-lg text-xs font-semibold text-slate-600 flex items-center gap-1 cursor-pointer"
+              className="h-9 px-3 border border-slate-200 hover:bg-slate-50 rounded-lg text-[13px] font-medium text-slate-600 flex items-center gap-1 cursor-pointer"
             >
               <span>🔄</span> {lang === "gu" ? "રીફ્રેશ" : "Refresh"}
             </button>
@@ -248,7 +248,7 @@ export default function DataImportCenterPage() {
                 <tbody className="divide-y divide-slate-100">
                   {jobs.map((job) => (
                     <tr key={job.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="p-3 font-mono font-bold text-slate-700">{job.id.slice(0, 8)}</td>
+                      <td className="p-3 tabular-nums font-medium text-slate-700">{job.id.slice(0, 8)}</td>
                       <td className="p-3 font-semibold text-slate-900 uppercase">{job.module}</td>
                       <td className="p-3 text-slate-600 truncate max-w-[150px]">{job.fileName}</td>
                       <td className="p-3">
@@ -264,10 +264,10 @@ export default function DataImportCenterPage() {
                           {job.status}
                         </span>
                       </td>
-                      <td className="p-3 text-right font-mono">{job.totalRows}</td>
-                      <td className="p-3 text-right font-mono text-emerald-700 font-bold">{job.importedRows}</td>
-                      <td className="p-3 text-right font-mono text-blue-700 font-bold">{job.updatedRows}</td>
-                      <td className="p-3 text-right font-mono text-rose-700 font-bold">{job.failedRows}</td>
+                      <td className="p-3 text-right tabular-nums">{job.totalRows}</td>
+                      <td className="p-3 text-right tabular-nums text-emerald-700 font-medium">{job.importedRows}</td>
+                      <td className="p-3 text-right tabular-nums text-blue-700 font-medium">{job.updatedRows}</td>
+                      <td className="p-3 text-right tabular-nums text-rose-700 font-medium">{job.failedRows}</td>
                       <td className="p-3 text-slate-500">
                         {new Date(job.createdAt).toLocaleDateString()}
                       </td>
@@ -276,7 +276,7 @@ export default function DataImportCenterPage() {
                           <button
                             type="button"
                             onClick={() => importApi.downloadErrorReport(job.id, "xlsx")}
-                            className="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded text-[11px] font-bold cursor-pointer transition-colors"
+                            className="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded text-[11px] font-medium cursor-pointer transition-colors"
                           >
                             📥 Error Report
                           </button>

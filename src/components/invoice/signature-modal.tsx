@@ -159,7 +159,7 @@ export function SignatureModal({
           <div className="flex items-center gap-2">
             <span className="text-xl">✍️</span>
             <div>
-              <h2 className="text-base font-bold text-slate-900">
+              <h2 className="text-[15px] font-semibold text-[#182230]">
                 Add Signature
               </h2>
               <p className="text-xs text-slate-500">
@@ -283,7 +283,7 @@ export function SignatureModal({
           {tab === "text" && (
             <div className="space-y-3">
               <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                <label className="block text-[11px] font-medium text-slate-600 mb-1">
                   Signatory Name *
                 </label>
                 <input
@@ -291,11 +291,11 @@ export function SignatureModal({
                   placeholder="e.g. Rajesh Sharma"
                   value={textName}
                   onChange={(e) => setTextName(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-bold"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[13px] text-slate-900 font-normal h-10"
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                <label className="block text-[11px] font-medium text-slate-600 mb-1">
                   Designation
                 </label>
                 <input
@@ -303,7 +303,7 @@ export function SignatureModal({
                   placeholder="e.g. Authorized Signatory / Director"
                   value={textDesignation}
                   onChange={(e) => setTextDesignation(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[13px] text-slate-700 h-10"
                 />
               </div>
             </div>
@@ -315,7 +315,7 @@ export function SignatureModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 border border-slate-300 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-700 transition-colors"
+            className="h-9 px-3 border border-slate-300 hover:bg-slate-100 rounded-xl text-[13px] font-medium text-slate-700 transition-colors"
           >
             Cancel
           </button>
@@ -323,7 +323,7 @@ export function SignatureModal({
             type="button"
             onClick={handleSave}
             disabled={tab === "draw" && !hasDrawn}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-40"
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors disabled:opacity-40"
           >
             Save Signature
           </button>

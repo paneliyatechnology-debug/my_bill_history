@@ -249,7 +249,7 @@ export default function EWayBillsPage() {
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => setSelectedEwbForSlip(item.ewbNumber)}
-              className="font-mono font-bold text-indigo-700 hover:text-indigo-900 hover:underline text-xs"
+              className="tabular-nums font-bold text-indigo-700 hover:text-indigo-900 hover:underline text-xs"
               title="Click to view & print Form GST EWB-01 slip"
             >
               {item.ewbNumber}
@@ -299,7 +299,7 @@ export default function EWayBillsPage() {
             <div>
               <Link
                 href={linkHref}
-                className="font-mono text-xs font-semibold text-slate-800 hover:text-indigo-600 hover:underline block"
+                className="tabular-nums text-xs font-semibold text-slate-800 hover:text-indigo-600 hover:underline block"
               >
                 {item.docNumber}
               </Link>
@@ -316,7 +316,7 @@ export default function EWayBillsPage() {
           <div className="font-semibold text-xs text-slate-900 truncate max-w-[180px]">
             {item.partyName}
           </div>
-          <div className="text-[10px] font-mono text-slate-500">
+          <div className="text-[10px] tabular-nums text-slate-500">
             {item.partyGstin ? `GSTIN: ${item.partyGstin}` : "Unregistered (URP)"}
           </div>
         </div>
@@ -328,7 +328,7 @@ export default function EWayBillsPage() {
       cell: (item: EWayBillListItem) => (
         <div className="space-y-1">
           <div className="flex items-center gap-1.5">
-            <span className="font-mono font-bold text-slate-800 text-xs bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 uppercase">
+            <span className="tabular-nums font-bold text-slate-800 text-xs bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 uppercase">
               {item.vehicleNumber || "NOT ASSIGNED"}
             </span>
             {item.status === "ACT" && !item.isExpired && (
@@ -395,10 +395,10 @@ export default function EWayBillsPage() {
       accessorKey: "totalAmount",
       cell: (item: EWayBillListItem) => (
         <div className="text-right">
-          <div className="font-mono font-bold text-xs text-slate-900">
+          <div className="tabular-nums font-bold text-xs text-slate-900">
             ₹{Number(item.totalAmount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </div>
-          <div className="text-[10px] text-slate-500 font-mono">
+          <div className="text-[10px] text-slate-500 tabular-nums">
             Taxable: ₹{Number(item.taxableAmount).toLocaleString("en-IN", { minimumFractionDigits: 0 })}
           </div>
         </div>
@@ -413,7 +413,7 @@ export default function EWayBillsPage() {
         >
           <button
             onClick={() => setSelectedEwbForSlip(item.ewbNumber)}
-            className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded shadow-sm flex items-center gap-1 transition-colors"
+            className="px-2.5 py-1 text-[11px] font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded shadow-sm flex items-center gap-1 transition-colors"
             title="Print Form GST EWB-01 Slip"
           >
             <svg className="w-3 h-3 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -445,7 +445,7 @@ export default function EWayBillsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
               {lang === "gu" ? "ઈ-વે બિલ રજીસ્ટર અને પાલન" : "E-Way Bills Register"}
             </h1>
             <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-orange-100 text-orange-800 border border-orange-200">
@@ -462,7 +462,7 @@ export default function EWayBillsPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={handleOpenLinkModal}
-            className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-lg text-xs font-semibold shadow-sm flex items-center gap-1.5 transition-colors"
+            className="h-9 px-3 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-lg text-[13px] font-medium shadow-sm flex items-center gap-1.5 transition-colors"
           >
             <svg className="w-4 h-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -472,7 +472,7 @@ export default function EWayBillsPage() {
 
           <Link
             href="/sales/delivery-challans"
-            className="px-3.5 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-lg text-xs font-semibold shadow-sm flex items-center gap-1.5 transition-colors"
+            className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg text-[13px] font-medium shadow-sm flex items-center gap-1.5 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -496,7 +496,7 @@ export default function EWayBillsPage() {
               </svg>
             </span>
           </div>
-          <div className="mt-2 text-2xl font-bold text-slate-900 font-mono">
+          <div className="mt-2 text-2xl font-bold text-slate-900 tabular-nums">
             {summary.activeCount}
           </div>
           <p className="text-[11px] text-emerald-600 mt-1 font-medium">
@@ -516,7 +516,7 @@ export default function EWayBillsPage() {
               </svg>
             </span>
           </div>
-          <div className="mt-2 text-xl sm:text-2xl font-bold text-slate-900 font-mono truncate">
+          <div className="mt-2 text-xl sm:text-2xl font-bold text-slate-900 tabular-nums truncate">
             ₹{Number(summary.inTransitValue).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
           </div>
           <p className="text-[11px] text-slate-500 mt-1">
@@ -536,7 +536,7 @@ export default function EWayBillsPage() {
               </svg>
             </span>
           </div>
-          <div className="mt-2 text-2xl font-bold text-amber-700 font-mono">
+          <div className="mt-2 text-2xl font-bold text-amber-700 tabular-nums">
             {summary.expiringSoonCount}
           </div>
           <p className="text-[11px] text-amber-700 mt-1 font-medium">
@@ -556,7 +556,7 @@ export default function EWayBillsPage() {
               </svg>
             </span>
           </div>
-          <div className="mt-2 text-2xl font-bold text-slate-700 font-mono">
+          <div className="mt-2 text-2xl font-bold text-slate-700 tabular-nums">
             {summary.cancelledCount + summary.expiredCount}
           </div>
           <p className="text-[11px] text-slate-500 mt-1">
@@ -632,7 +632,7 @@ export default function EWayBillsPage() {
                 ? "EWB નંબર, બિલ, વાહન અથવા ગ્રાહક..."
                 : "Search EWB, Bill No, Vehicle, Party..."
             }
-            className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500"
+            className="w-full pl-8 pr-3 py-1.5 text-[13px] bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500 h-10"
           />
           <svg
             className="w-4 h-4 text-slate-400 absolute left-2.5 top-2"
@@ -668,7 +668,7 @@ export default function EWayBillsPage() {
                 <div>
                   <button
                     onClick={() => setSelectedEwbForSlip(item.ewbNumber)}
-                    className="font-mono font-bold text-xs text-indigo-700 underline"
+                    className="tabular-nums font-bold text-xs text-indigo-700 underline"
                   >
                     {item.ewbNumber}
                   </button>
@@ -688,8 +688,8 @@ export default function EWayBillsPage() {
               </div>
               <div className="text-xs font-semibold text-slate-900">{item.partyName}</div>
               <div className="flex items-center justify-between text-xs text-slate-600">
-                <span>Vehicle: <strong className="font-mono">{item.vehicleNumber || "—"}</strong></span>
-                <span className="font-mono font-bold">₹{Number(item.totalAmount).toLocaleString("en-IN")}</span>
+                <span>Vehicle: <strong className="tabular-nums">{item.vehicleNumber || "—"}</strong></span>
+                <span className="tabular-nums font-bold">₹{Number(item.totalAmount).toLocaleString("en-IN")}</span>
               </div>
               <div 
                 className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100"
@@ -739,7 +739,7 @@ export default function EWayBillsPage() {
             <button
               type="button"
               onClick={() => setIsLinkModalOpen(false)}
-              className="px-3.5 py-1.5 text-xs text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50"
+              className="h-9 px-3 text-[13px] text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50"
             >
               Cancel
             </button>
@@ -747,7 +747,7 @@ export default function EWayBillsPage() {
               type="submit"
               form="link-ewb-form"
               disabled={isLinking}
-              className="px-4 py-1.5 text-xs font-semibold text-white bg-orange-600 hover:bg-orange-700 rounded-lg shadow-sm"
+              className="px-4 py-1.5 text-[13px] font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-lg shadow-sm"
             >
               {isLinking ? "Linking..." : "Link E-Way Bill"}
             </button>
@@ -767,7 +767,7 @@ export default function EWayBillsPage() {
 
           {/* Document Type Selector */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Document Type to Link
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -804,14 +804,14 @@ export default function EWayBillsPage() {
 
           {/* Select Specific Document */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Select {linkDocType === "INVOICE" ? "Sales Invoice" : "Delivery Challan"} <span className="text-rose-500">*</span>
             </label>
             <select
               required
               value={selectedDocId}
               onChange={(e) => setSelectedDocId(e.target.value)}
-              className="w-full px-2.5 py-2 border border-slate-300 rounded-lg text-xs focus:ring-1 focus:ring-orange-500"
+              className="w-full px-2.5 py-2 border border-slate-300 rounded-lg text-[13px] focus:ring-1 focus:ring-orange-500 h-10"
             >
               <option value="">-- Choose document --</option>
               {linkDocType === "INVOICE"
@@ -830,7 +830,7 @@ export default function EWayBillsPage() {
 
           {/* E-Way Bill Number */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Official 12-Digit E-Way Bill Number <span className="text-rose-500">*</span>
             </label>
             <input
@@ -840,14 +840,14 @@ export default function EWayBillsPage() {
               value={linkForm.ewbNumber}
               onChange={(e) => setLinkForm({ ...linkForm, ewbNumber: e.target.value.replace(/\D/g, "") })}
               placeholder="e.g. 241088219920"
-              className="w-full px-2.5 py-2 border border-slate-300 rounded-lg text-xs font-mono tracking-widest text-base focus:ring-1 focus:ring-orange-500"
+              className="w-full px-2.5 py-2 border border-slate-300 rounded-lg text-[13px] tabular-nums tracking-widest text-[13px] focus:ring-1 focus:ring-orange-500 h-10"
             />
           </div>
 
           {/* Transport Info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 Vehicle Number
               </label>
               <input
@@ -855,11 +855,11 @@ export default function EWayBillsPage() {
                 value={linkForm.vehicleNumber}
                 onChange={(e) => setLinkForm({ ...linkForm, vehicleNumber: e.target.value.toUpperCase() })}
                 placeholder="e.g. GJ01AB1234"
-                className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs font-mono uppercase"
+                className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-[13px] tabular-nums uppercase h-10"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 Approx Distance (KM) <span className="text-rose-500">*</span>
               </label>
               <input
@@ -868,7 +868,7 @@ export default function EWayBillsPage() {
                 required
                 value={linkForm.distanceKm}
                 onChange={(e) => setLinkForm({ ...linkForm, distanceKm: parseInt(e.target.value) || 0 })}
-                className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs font-mono"
+                className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-[13px] tabular-nums h-10"
               />
               <span className="text-[10px] text-slate-500 block mt-0.5">
                 Rule 138: 1 day validity per 200 KM
@@ -878,7 +878,7 @@ export default function EWayBillsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 Transporter ID (GSTIN / TRANSIN)
               </label>
               <input
@@ -886,11 +886,11 @@ export default function EWayBillsPage() {
                 value={linkForm.transporterId}
                 onChange={(e) => setLinkForm({ ...linkForm, transporterId: e.target.value })}
                 placeholder="e.g. 24AABCT1234F1Z0"
-                className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs font-mono uppercase"
+                className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-[13px] tabular-nums uppercase h-10"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 Transporter Name
               </label>
               <input
@@ -898,7 +898,7 @@ export default function EWayBillsPage() {
                 value={linkForm.transporterName}
                 onChange={(e) => setLinkForm({ ...linkForm, transporterName: e.target.value })}
                 placeholder="e.g. Gujarat Express Logistics"
-                className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs"
+                className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-[13px] h-10"
               />
             </div>
           </div>
@@ -916,7 +916,7 @@ export default function EWayBillsPage() {
             <button
               type="button"
               onClick={() => setVehicleUpdateTarget(null)}
-              className="px-3 py-1.5 text-xs text-slate-600 border border-slate-200 rounded"
+              className="h-9 px-3 text-[13px] text-slate-600 border border-slate-200 rounded"
             >
               Cancel
             </button>
@@ -924,7 +924,7 @@ export default function EWayBillsPage() {
               type="submit"
               form="quick-vehicle-form"
               disabled={isQuickUpdatingVehicle}
-              className="px-3.5 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded"
+              className="h-9 px-3 text-[13px] font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded"
             >
               {isQuickUpdatingVehicle ? "Updating..." : "Update"}
             </button>
@@ -933,7 +933,7 @@ export default function EWayBillsPage() {
       >
         <form id="quick-vehicle-form" onSubmit={handleQuickVehicleSubmit} className="space-y-3">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               New Vehicle Number
             </label>
             <input
@@ -942,17 +942,17 @@ export default function EWayBillsPage() {
               value={quickVehicleNum}
               onChange={(e) => setQuickVehicleNum(e.target.value.toUpperCase())}
               placeholder="e.g. GJ01AB1234"
-              className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs font-mono uppercase"
+              className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-[13px] tabular-nums uppercase h-10"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Reason Code
             </label>
             <select
               value={quickVehicleReason}
               onChange={(e) => setQuickVehicleReason(e.target.value)}
-              className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs"
+              className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-[13px] h-10"
             >
               <option value="1">1 - Breakdown</option>
               <option value="2">2 - Transshipment</option>
@@ -973,7 +973,7 @@ export default function EWayBillsPage() {
             <button
               type="button"
               onClick={() => setCancelTarget(null)}
-              className="px-3 py-1.5 text-xs text-slate-600 border border-slate-200 rounded"
+              className="h-9 px-3 text-[13px] text-slate-600 border border-slate-200 rounded"
             >
               Back
             </button>
@@ -981,7 +981,7 @@ export default function EWayBillsPage() {
               type="submit"
               form="quick-cancel-form"
               disabled={isQuickCancelling}
-              className="px-3.5 py-1.5 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded"
+              className="h-9 px-3 text-[13px] font-medium text-white bg-rose-600 hover:bg-rose-700 rounded"
             >
               {isQuickCancelling ? "Cancelling..." : "Cancel EWB"}
             </button>
@@ -993,13 +993,13 @@ export default function EWayBillsPage() {
             Confirm cancellation of E-Way Bill <strong>{cancelTarget?.ewbNumber}</strong>. Must be within 24 hours of generation.
           </p>
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Cancellation Reason
             </label>
             <select
               value={quickCancelReasonCode}
               onChange={(e) => setQuickCancelReasonCode(e.target.value)}
-              className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs"
+              className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-[13px] h-10"
             >
               <option value="1">1 - Duplicate E-Way Bill</option>
               <option value="2">2 - Order Cancelled</option>
@@ -1008,7 +1008,7 @@ export default function EWayBillsPage() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Remarks
             </label>
             <input
@@ -1017,7 +1017,7 @@ export default function EWayBillsPage() {
               value={quickCancelRemarks}
               onChange={(e) => setQuickCancelRemarks(e.target.value)}
               placeholder="State cancellation reason..."
-              className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs"
+              className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-[13px] h-10"
             />
           </div>
         </form>

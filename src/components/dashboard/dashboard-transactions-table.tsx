@@ -2,7 +2,6 @@
 
 import React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { formatInr } from "@/components/design-system/tokens";
 
 export interface TransactionRow {
@@ -18,30 +17,54 @@ export interface TransactionRow {
 }
 
 export interface DashboardTransactionsTableProps {
-  transactions: TransactionRow[];
+  transactions?: TransactionRow[];
   isLoading?: boolean;
   lang?: "en" | "gu";
 }
 
-// Map transaction type to pastel badge colors matching reference image Section 2
-function getTypeBadgeStyle(type: string) {
-  const norm = type.toLowerCase();
+// Color badges matching reference design
+function getTypeBadge(type: string) {
+  const norm = (type || "").toLowerCase();
   if (norm.includes("payment in") || norm.includes("receipt")) {
-    return "bg-[#E7FAF3] text-[#08765C] border-[#B9EBDD]";
+    return {
+      label: "Payment In",
+      className: "bg-[#DCFCE7] text-[#16A34A] border border-[#BBF7D0]",
+    };
   }
-  if (norm.includes("challan")) {
-    return "bg-[#EEF4FF] text-[#172C55] border-[#D9E6FF]";
+  if (norm.includes("sales invoice") || (norm.includes("sales") && !norm.includes("return"))) {
+    return {
+      label: "Sales Invoice",
+      className: "bg-[#DBEAFE] text-[#1677E8] border border-[#BFDBFE]",
+    };
   }
-  if (norm.includes("return") || norm.includes("credit note")) {
-    return "bg-[#F5EEFD] text-[#6E389C] border-[#E6D5F7]";
+  if (norm.includes("purchase return") || norm.includes("debit memo")) {
+    return {
+      label: "Purchase Return",
+      className: "bg-[#FEE2E2] text-[#DC2626] border border-[#FECACA]",
+    };
   }
-  if (norm.includes("sales") || norm.includes("invoice")) {
-    return "bg-[#E8F8F4] text-[#064E4A] border-[#BFECE0]";
+  if (norm.includes("sales return") || norm.includes("credit note")) {
+    return {
+      label: "Sales Return",
+      className: "bg-[#FFEDD5] text-[#EA580C] border border-[#FED7AA]",
+    };
   }
-  if (norm.includes("quotation") || norm.includes("estimate") || norm.includes("proforma")) {
-    return "bg-[#FFF4DF] text-[#A85B0B] border-[#FFE3B2]";
+  if (norm.includes("purchase invoice") || norm.includes("purchase")) {
+    return {
+      label: "Purchase Invoice",
+      className: "bg-[#E0E7FF] text-[#4F46E5] border border-[#C7D2FE]",
+    };
   }
-  return "bg-[#F1F5F9] text-[#334155] border-[#E2E8F0]";
+  if (norm.includes("expense")) {
+    return {
+      label: "Expenses",
+      className: "bg-[#F3E8FF] text-[#7E22CE] border border-[#E9D5FF]",
+    };
+  }
+  return {
+    label: type || "Transaction",
+    className: "bg-slate-100 text-slate-700 border border-slate-200",
+  };
 }
 
 export function DashboardTransactionsTable({
@@ -49,135 +72,118 @@ export function DashboardTransactionsTable({
   isLoading = false,
   lang = "en",
 }: DashboardTransactionsTableProps) {
-  const router = useRouter();
+  const rows = transactions ?? [];
 
   return (
-    <div className="bg-white border border-[#E1EAF0] rounded-2xl shadow-[0_4px_18px_rgba(16,35,63,0.045)] overflow-hidden flex flex-col justify-between">
+    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden flex flex-col justify-between h-full">
       <div>
-        {/* Table Header Row */}
-        <div className="px-5 py-4 border-b border-[#E1EAF0] flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#0CA678]" />
-            <h3 className="text-sm font-extrabold text-[#10233F] tracking-tight">
-              {lang === "gu" ? "તાજેતરના વ્યવહારો" : "Recent Transaction Stream"}
-            </h3>
+        {/* Table Header: Clock Icon, Title, and View All link */}
+        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h2 className="text-[15px] font-semibold text-[#182230] tracking-tight">
+              {lang === "gu" ? "તાજેતરના વ્યવહારો" : "Recent Transactions"}
+            </h2>
           </div>
 
           <Link
             href="/app/home/vouchers/all_transactions"
-            className="text-xs font-bold text-[#08765C] hover:text-[#0CA678] transition-colors flex items-center gap-1"
+            className="text-xs font-bold text-[#1677E8] hover:text-[#125CC0] flex items-center gap-1 group transition-colors"
           >
-            <span>{lang === "gu" ? "બધા જુઓ" : "View All"}</span>
-            <span>→</span>
+            <span>{lang === "gu" ? "બધા વ્યવહારો જુઓ" : "View All Transactions"}</span>
+            <span className="group-hover:translate-x-0.5 transition-transform">→</span>
           </Link>
         </div>
 
-        {/* High-density Transaction Table matching Reference */}
-        <div className="overflow-x-auto min-h-[290px]">
+        {/* Transactions Table */}
+        <div className="overflow-x-auto min-h-[260px]">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-[#E1EAF0] bg-[#FAFBFD] text-[11px] font-bold text-[#526780] uppercase tracking-wider">
-                <th className="px-5 py-3.5">{lang === "gu" ? "તારીખ" : "Date"}</th>
-                <th className="px-4 py-3.5">{lang === "gu" ? "પ્રકાર" : "Type"}</th>
-                <th className="px-4 py-3.5">{lang === "gu" ? "વાઉચર #" : "Voucher #"}</th>
-                <th className="px-5 py-3.5">{lang === "gu" ? "પાર્ટી" : "Party"}</th>
-                <th className="px-5 py-3.5 text-right">{lang === "gu" ? "રકમ" : "Amount"}</th>
-                <th className="px-4 py-3.5 text-center">{lang === "gu" ? "સ્થિતિ" : "Status"}</th>
+              <tr className="border-b border-slate-100 bg-[#FAFBFD] text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <th className="px-5 py-3.5 whitespace-nowrap">{lang === "gu" ? "તારીખ" : "Date"}</th>
+                <th className="px-4 py-3.5 whitespace-nowrap">{lang === "gu" ? "પ્રકાર" : "Type"}</th>
+                <th className="px-4 py-3.5 whitespace-nowrap">{lang === "gu" ? "વાઉચર #" : "Voucher No."}</th>
+                <th className="px-5 py-3.5 whitespace-nowrap">{lang === "gu" ? "પાર્ટી" : "Party"}</th>
+                <th className="px-5 py-3.5 text-right whitespace-nowrap">{lang === "gu" ? "રકમ" : "Amount"}</th>
+                <th className="px-5 py-3.5 text-center whitespace-nowrap">{lang === "gu" ? "સ્થિતિ" : "Status"}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#F1F5F9] text-[#10233F]">
+            <tbody className="divide-y divide-slate-100 text-slate-800">
               {isLoading ? (
-                Array.from({ length: 6 }).map((_, i) => (
+                Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td className="px-5 py-3.5"><div className="h-4 w-20 bg-slate-100 rounded" /></td>
-                    <td className="px-4 py-3.5"><div className="h-4 w-16 bg-slate-100 rounded-md" /></td>
+                    <td className="px-4 py-3.5"><div className="h-5 w-24 bg-slate-100 rounded-full" /></td>
                     <td className="px-4 py-3.5"><div className="h-4 w-20 bg-slate-100 rounded" /></td>
-                    <td className="px-5 py-3.5"><div className="h-4 w-32 bg-slate-100 rounded" /></td>
-                    <td className="px-5 py-3.5 text-right"><div className="h-4 w-24 bg-slate-100 rounded ml-auto" /></td>
-                    <td className="px-4 py-3.5 text-center"><div className="h-4 w-12 bg-slate-100 rounded-full mx-auto" /></td>
+                    <td className="px-5 py-3.5"><div className="h-4 w-28 bg-slate-100 rounded" /></td>
+                    <td className="px-5 py-3.5 text-right"><div className="h-4 w-20 bg-slate-100 rounded ml-auto" /></td>
+                    <td className="px-5 py-3.5 text-center"><div className="h-5 w-14 bg-slate-100 rounded-full mx-auto" /></td>
                   </tr>
                 ))
-              ) : transactions.length === 0 ? (
+              ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center text-xs text-[#526780]">
-                    <div className="w-12 h-12 rounded-2xl bg-[#E7FAF3] text-[#08765C] flex items-center justify-center mx-auto mb-2 shadow-inner">
-                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </div>
-                    <p className="font-bold text-[#10233F]">No transactions recorded yet</p>
-                    <p className="text-[11px] text-[#8293A8] mt-0.5">Start billing your clients to see live stream entries here.</p>
-                    <Link
-                      href="/sales/invoices/new"
-                      className="inline-block mt-3 px-4 py-1.5 rounded-xl bg-[#004D40] hover:bg-[#003D35] text-white font-bold text-xs shadow-xs transition-colors"
-                    >
-                      + Create First Sales Invoice
-                    </Link>
+                  <td colSpan={6} className="px-5 py-12 text-center text-[13px] text-[#94A3B8]">
+                    {lang === "gu" ? "હજુ કોઈ વ્યવહાર નથી." : "No transactions yet."}
                   </td>
                 </tr>
               ) : (
-                transactions.map((tx) => (
-                  <tr
-                    key={tx.id}
-                    onClick={() => tx.link && router.push(tx.link)}
-                    className="hover:bg-[#F8FBFA] transition-colors cursor-pointer group"
-                  >
-                    {/* Date */}
-                    <td className="px-5 py-3 whitespace-nowrap text-[#526780] font-medium">
-                      {tx.date}
-                    </td>
+                rows.slice(0, 5).map((row) => {
+                  const badge = getTypeBadge(row.type);
+                  return (
+                    <tr
+                      key={row.id}
+                      className="hover:bg-slate-50/70 transition-colors cursor-pointer group"
+                    >
+                      {/* Date */}
+                      <td className="px-5 py-3.5 text-slate-600 font-medium whitespace-nowrap">
+                        {row.date}
+                      </td>
 
-                    {/* Voucher Type Pastel Pill */}
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span
-                        className={`inline-flex items-center gap-1 font-bold text-[10px] px-2.5 py-0.5 rounded-md border ${getTypeBadgeStyle(
-                          tx.type
-                        )}`}
-                      >
-                        {tx.type}
-                      </span>
-                    </td>
+                      {/* Type Badge */}
+                      <td className="px-4 py-3.5 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-bold shadow-2xs ${badge.className}`}
+                        >
+                          {badge.label}
+                        </span>
+                      </td>
 
-                    {/* Voucher Number in Monospace */}
-                    <td className="px-4 py-3 whitespace-nowrap font-mono text-[#10233F] font-bold group-hover:text-[#0DAA8A] transition-colors">
-                      {tx.txnNo}
-                    </td>
+                      {/* Voucher No. */}
+                      <td className="px-4 py-3.5 font-medium text-slate-700 whitespace-nowrap">
+                        {row.txnNo}
+                      </td>
 
-                    {/* Party Name */}
-                    <td className="px-5 py-3 whitespace-nowrap text-[#10233F] font-bold truncate max-w-[200px]">
-                      {tx.partyName}
-                    </td>
+                      {/* Party */}
+                      <td className="px-5 py-3.5 font-semibold text-slate-900 whitespace-nowrap">
+                        {row.partyName}
+                      </td>
 
-                    {/* Amount formatted */}
-                    <td className="px-5 py-3 whitespace-nowrap text-right font-mono font-black text-[#10233F]">
-                      {formatInr(tx.amount)}
-                    </td>
+                      {/* Amount */}
+                      <td className="px-5 py-3 text-right bb-amount text-[13px] text-[#182230] whitespace-nowrap">
+                        {formatInr(row.amount)}
+                      </td>
 
-                    {/* Status Pill Badge matching Section 2 Reference */}
-                    <td className="px-4 py-3 whitespace-nowrap text-center">
-                      <span className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#E4FBF1] text-[#087A59] border border-[#B8EED8]">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#0CA678]" />
-                        Paid
-                      </span>
-                    </td>
-                  </tr>
-                ))
+                      {/* Status */}
+                      <td className="px-5 py-3.5 text-center whitespace-nowrap">
+                        <span className="inline-flex items-center justify-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#DCFCE7] text-[#16A34A] border border-[#BBF7D0]">
+                          <svg className="w-3 h-3 text-[#16A34A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>{row.status || (lang === "gu" ? "ચૂકવેલ" : "Paid")}</span>
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
       </div>
-
-      {/* Footer Link matching Reference */}
-      <div className="border-t border-[#E1EAF0] p-3 text-center bg-[#FAFBFD]">
-        <Link
-          href="/app/home/vouchers/all_transactions"
-          className="text-xs font-bold text-[#08765C] hover:text-[#0CA678] transition-colors inline-block"
-        >
-          See All Detailed Transactions →
-        </Link>
-      </div>
     </div>
   );
 }
-

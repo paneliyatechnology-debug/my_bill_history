@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../../context/auth-context";
 import { apiClient, extractList } from "../../../../lib/api-client";
@@ -10,6 +10,7 @@ interface AccountOption {
   id: string;
   code: string;
   name: string;
+  group?: { id: string; name: string; nature: string };
 }
 
 interface VoucherLineInput {
@@ -19,9 +20,21 @@ interface VoucherLineInput {
   lineNarration?: string;
 }
 
-export default function NewVoucherPage() {
+const VALID_VOUCHER_TYPES = ["JOURNAL", "RECEIPT", "PAYMENT", "CONTRA"] as const;
+type ValidVoucherType = (typeof VALID_VOUCHER_TYPES)[number];
+
+function NewVoucherForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { lang, tenantContext } = useAuth();
+
+  const paramType = searchParams.get("type")?.toUpperCase();
+  const paramNarration = searchParams.get("narration") || "";
+  const paramAccountName = searchParams.get("accountName") || "";
+
+  const initialType: ValidVoucherType = VALID_VOUCHER_TYPES.includes(paramType as any)
+    ? (paramType as ValidVoucherType)
+    : "JOURNAL";
 
   const [accounts, setAccounts] = useState<AccountOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,14 +42,12 @@ export default function NewVoucherPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Form Fields
-  const [voucherType, setVoucherType] = useState<
-    "JOURNAL" | "RECEIPT" | "PAYMENT" | "CONTRA"
-  >("JOURNAL");
+  const [voucherType, setVoucherType] = useState<ValidVoucherType>(initialType);
   const [voucherNumber, setVoucherNumber] = useState("");
   const [voucherDate, setVoucherDate] = useState(
     new Date().toISOString().split("T")[0],
   );
-  const [narration, setNarration] = useState("");
+  const [narration, setNarration] = useState(paramNarration);
   const [referenceNo, setReferenceNo] = useState("");
 
   const [lines, setLines] = useState<VoucherLineInput[]>([
@@ -51,16 +62,39 @@ export default function NewVoucherPage() {
       const res: any = await apiClient.get("/accounting/ledgers");
       const accList: AccountOption[] = extractList<AccountOption>(res);
       setAccounts(accList);
-      if (accList.length >= 2) {
+      if (accList.length > 0) {
+        let firstAccId = "";
+        if (paramAccountName) {
+          // Exact name/code match first, then specific group/prefix match
+          const exactMatch = accList.find(
+            (a) =>
+              a.name.toLowerCase() === paramAccountName.toLowerCase() ||
+              a.code.toLowerCase() === paramAccountName.toLowerCase(),
+          );
+          if (exactMatch) {
+            firstAccId = exactMatch.id;
+          } else {
+            const prefixMatch = accList.find(
+              (a) =>
+                a.name.toLowerCase().startsWith(paramAccountName.toLowerCase()) ||
+                (a.group?.name && a.group.name.toLowerCase().includes(paramAccountName.toLowerCase())),
+            );
+            if (prefixMatch) {
+              firstAccId = prefixMatch.id;
+            }
+          }
+        }
+
+        // Initialize line 1 with matched account (or empty if unresolved), line 2 clean for user selection
         setLines([
           {
-            accountId: accList[0].id,
+            accountId: firstAccId,
             debitAmount: "",
             creditAmount: "",
             lineNarration: "",
           },
           {
-            accountId: accList[1].id,
+            accountId: "",
             debitAmount: "",
             creditAmount: "",
             lineNarration: "",
@@ -73,7 +107,7 @@ export default function NewVoucherPage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [paramAccountName]);
 
   useEffect(() => {
     if (tenantContext.companyId) {
@@ -175,7 +209,7 @@ export default function NewVoucherPage() {
             </Link>
           </div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
               {lang === "gu"
                 ? "દ્વિનોંધી નામા વાઉચર લખો (New Double-Entry Voucher)"
                 : "Record New Journal / Voucher"}
@@ -200,13 +234,13 @@ export default function NewVoucherPage() {
         {/* Voucher Meta Card */}
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               Voucher Type *
             </label>
             <select
               value={voucherType}
               onChange={(e: any) => setVoucherType(e.target.value)}
-              className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg font-semibold text-slate-900 focus:bg-white focus:ring-1 focus:ring-emerald-500"
+              className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-lg font-normal text-slate-900 focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
             >
               <option value="JOURNAL">{lang === "gu" ? "જર્નલ નોંધ (JOURNAL)" : "JOURNAL"}</option>
               <option value="RECEIPT">{lang === "gu" ? "પહોંચ / આવક (RECEIPT)" : "RECEIPT"}</option>
@@ -216,7 +250,7 @@ export default function NewVoucherPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               Voucher Number *
             </label>
             <input
@@ -224,12 +258,12 @@ export default function NewVoucherPage() {
               required
               value={voucherNumber}
               onChange={(e) => setVoucherNumber(e.target.value)}
-              className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg font-mono font-bold text-slate-900 focus:bg-white"
+              className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-lg tabular-nums font-normal text-slate-900 focus:bg-white h-10"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               Voucher Date *
             </label>
             <input
@@ -237,12 +271,12 @@ export default function NewVoucherPage() {
               required
               value={voucherDate}
               onChange={(e) => setVoucherDate(e.target.value)}
-              className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg font-mono text-slate-900 focus:bg-white"
+              className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-lg tabular-nums text-slate-900 focus:bg-white h-10"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               Reference / Cheque No.
             </label>
             <input
@@ -250,7 +284,7 @@ export default function NewVoucherPage() {
               value={referenceNo}
               onChange={(e) => setReferenceNo(e.target.value)}
               placeholder="CHQ-991202"
-              className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg font-mono text-slate-900 focus:bg-white"
+              className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-lg tabular-nums text-slate-900 focus:bg-white h-10"
             />
           </div>
         </div>
@@ -258,7 +292,7 @@ export default function NewVoucherPage() {
         {/* Journal Lines Table */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+            <h2 className="text-xs font-semibold text-[#182230] uppercase tracking-wider">
               {lang === "gu"
                 ? "નામા લાઈનો (Journal Lines)"
                 : "Journal Lines (Double-Entry Debit / Credit)"}
@@ -266,7 +300,7 @@ export default function NewVoucherPage() {
             <button
               type="button"
               onClick={handleAddLine}
-              className="text-xs text-emerald-700 hover:text-emerald-800 font-semibold flex items-center gap-1 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200"
+              className="text-[13px] text-emerald-700 hover:text-emerald-800 font-medium flex items-center gap-1 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200"
             >
               <span>+ Add Row</span>
             </button>
@@ -295,7 +329,7 @@ export default function NewVoucherPage() {
               <tbody className="divide-y divide-slate-100">
                 {lines.map((line, idx) => (
                   <tr key={idx} className="hover:bg-slate-50">
-                    <td className="py-2.5 px-3 text-slate-400 font-mono">
+                    <td className="py-2.5 px-3 text-slate-400 tabular-nums">
                       {idx + 1}
                     </td>
                     <td className="py-2.5 px-3">
@@ -304,11 +338,16 @@ export default function NewVoucherPage() {
                         onChange={(e) =>
                           handleLineChange(idx, "accountId", e.target.value)
                         }
-                        className="w-full text-xs p-1.5 bg-slate-50 border border-slate-300 rounded font-medium text-slate-800"
+                        className="w-full text-[13px] p-1.5 bg-slate-50 border border-slate-300 rounded font-medium text-slate-800 h-10"
                       >
+                        <option value="">
+                          {lang === "gu"
+                            ? "-- ખાતું પસંદ કરો --"
+                            : "-- Select Ledger Account --"}
+                        </option>
                         {accounts.map((acc) => (
                           <option key={acc.id} value={acc.id}>
-                            {acc.name} ({acc.code})
+                            {acc.name}{acc.code ? ` (${acc.code})` : ""}
                           </option>
                         ))}
                       </select>
@@ -321,7 +360,7 @@ export default function NewVoucherPage() {
                           handleLineChange(idx, "lineNarration", e.target.value)
                         }
                         placeholder="Narration..."
-                        className="w-full text-xs p-1.5 bg-slate-50 border border-slate-300 rounded"
+                        className="w-full text-[13px] p-1.5 bg-slate-50 border border-slate-300 rounded h-10"
                       ></input>
                     </td>
                     <td className="py-2.5 px-3 text-right">
@@ -338,7 +377,7 @@ export default function NewVoucherPage() {
                             handleLineChange(idx, "creditAmount", 0);
                         }}
                         placeholder="0.00"
-                        className="w-full text-xs p-1.5 bg-slate-50 border border-slate-300 rounded text-right font-mono font-semibold"
+                        className="w-full text-[13px] p-1.5 bg-slate-50 border border-slate-300 rounded text-right tabular-nums font-normal h-10"
                       />
                     </td>
                     <td className="py-2.5 px-3 text-right">
@@ -355,7 +394,7 @@ export default function NewVoucherPage() {
                             handleLineChange(idx, "debitAmount", 0);
                         }}
                         placeholder="0.00"
-                        className="w-full text-xs p-1.5 bg-slate-50 border border-slate-300 rounded text-right font-mono font-semibold"
+                        className="w-full text-[13px] p-1.5 bg-slate-50 border border-slate-300 rounded text-right tabular-nums font-normal h-10"
                       />
                     </td>
                     <td className="py-2.5 px-3 text-center">
@@ -374,7 +413,7 @@ export default function NewVoucherPage() {
               </tbody>
               {/* Footer Totals */}
               <tfoot>
-                <tr className="bg-slate-50 font-mono font-bold border-t border-slate-200">
+                <tr className="bg-slate-50 tabular-nums font-bold border-t border-slate-200">
                   <td
                     colSpan={3}
                     className="py-3 px-4 text-right uppercase text-slate-600"
@@ -394,31 +433,66 @@ export default function NewVoucherPage() {
           </div>
 
           {/* Balance status banner */}
-          <div
-            className={`px-4 py-3 border-t flex items-center justify-between text-xs font-semibold ${
-              isBalanced
-                ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                : "bg-amber-50 text-amber-800 border-amber-200"
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <span>{isBalanced ? "✓" : "⚠️"}</span>
-              <span>
-                {isBalanced
-                  ? "Voucher is balanced (Total Debits == Total Credits)"
-                  : `Out of balance by ₹${difference.toFixed(2)}. Adjust lines before posting.`}
-              </span>
-            </div>
-            <div>
-              Difference:{" "}
-              <span className="font-mono">₹{difference.toFixed(2)}</span>
-            </div>
-          </div>
+          {(() => {
+            const hasAmounts = totalDebit > 0 || totalCredit > 0;
+            if (isBalanced) {
+              return (
+                <div className="px-4 py-3 border-t flex items-center justify-between text-xs font-semibold bg-emerald-50 text-emerald-800 border-emerald-200">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">✓</span>
+                    <span>
+                      {lang === "gu"
+                        ? "વાઉચર સંતુલિત છે (કુલ ઉધાર == કુલ જમા)"
+                        : "Voucher is balanced (Total Debits == Total Credits)"}
+                    </span>
+                  </div>
+                  <div>
+                    {lang === "gu" ? "તફાવત: " : "Difference: "}
+                    <span className="tabular-nums font-bold">₹0.00</span>
+                  </div>
+                </div>
+              );
+            }
+            if (hasAmounts && difference >= 0.01) {
+              return (
+                <div className="px-4 py-3 border-t flex items-center justify-between text-xs font-semibold bg-amber-50 text-amber-800 border-amber-200">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">⚠️</span>
+                    <span>
+                      {lang === "gu"
+                        ? `રૂ. ${difference.toFixed(2)} નો તફાવત છે. કૃપા કરીને ઉધાર અને જમા સરખા કરો.`
+                        : `Out of balance by ₹${difference.toFixed(2)}. Adjust lines before posting.`}
+                    </span>
+                  </div>
+                  <div>
+                    {lang === "gu" ? "તફાવત: " : "Difference: "}
+                    <span className="tabular-nums font-bold">₹{difference.toFixed(2)}</span>
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <div className="px-4 py-3 border-t flex items-center justify-between text-xs font-medium bg-slate-50 text-slate-600 border-slate-200">
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-400">ℹ️</span>
+                  <span>
+                    {lang === "gu"
+                      ? "કૃપા કરીને દરેક લાઇન માટે ઉધાર અને જમા રકમ દાખલ કરો (કુલ ઉધાર અને જમા સરખા હોવા જોઈએ)."
+                      : "Enter debit and credit amounts for each line (must be > ₹0 and balanced)."}
+                  </span>
+                </div>
+                <div>
+                  {lang === "gu" ? "તફાવત: " : "Difference: "}
+                  <span className="tabular-nums">₹0.00</span>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Global Narration */}
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-          <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+          <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
             {lang === "gu" ? "શેરો / વિગત (General Narration)" : "General Narration"}
           </label>
           <textarea
@@ -426,7 +500,7 @@ export default function NewVoucherPage() {
             value={narration}
             onChange={(e) => setNarration(e.target.value)}
             placeholder="Being payment received towards sales invoice or general journal adjustment..."
-            className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:bg-white"
+            className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:bg-white"
           />
         </div>
 
@@ -434,26 +508,48 @@ export default function NewVoucherPage() {
         <div className="flex items-center justify-end gap-3">
           <Link
             href="/accounting/vouchers"
-            className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-xl transition-all"
+            className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-xl transition-all"
           >
             Cancel
           </Link>
           <button
             type="submit"
             disabled={!isBalanced || isSubmitting}
-            className="px-6 py-2.5 text-xs font-bold text-white bg-primary hover:bg-primary-hover active:bg-primary-pressed disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed rounded-xl shadow-card hover:shadow-hover transition-all flex items-center gap-2"
+            className={`px-6 py-2.5 text-[13px] font-medium rounded-xl transition-all flex items-center gap-2 ${
+              isBalanced && !isSubmitting
+                ? "bg-primary text-white hover:bg-primary-hover active:bg-primary-pressed shadow-card hover:shadow-hover cursor-pointer"
+                : "bg-slate-200 text-slate-400 cursor-not-allowed opacity-75 shadow-none"
+            }`}
           >
             {isSubmitting ? (
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : null}
             <span>
               {isSubmitting
-                ? "Posting Voucher..."
-                : "Post Double-Entry Voucher"}
+                ? lang === "gu"
+                  ? "વાઉચર નોંધાઈ રહ્યું છે..."
+                  : "Posting Voucher..."
+                : lang === "gu"
+                  ? "વાઉચર નોંધો (Post Voucher)"
+                  : "Post Double-Entry Voucher"}
             </span>
           </button>
         </div>
       </form>
     </div>
+  );
+}
+
+export default function NewVoucherPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 text-center text-slate-400 text-sm">
+          Loading voucher form...
+        </div>
+      }
+    >
+      <NewVoucherForm />
+    </Suspense>
   );
 }

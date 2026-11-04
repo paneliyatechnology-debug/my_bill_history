@@ -74,7 +74,7 @@ export function InvoiceQrCode({
           className="w-full h-full object-contain rounded"
         />
       ) : error ? (
-        <div className="w-full h-full flex items-center justify-center text-[10px] text-rose-500 font-mono">
+        <div className="w-full h-full flex items-center justify-center text-[10px] text-rose-500 tabular-nums">
           {error}
         </div>
       ) : (
@@ -222,11 +222,11 @@ export function InvoiceBarcodeStickerModal({
         {/* Modal Header */}
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100 bg-slate-50/80">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-orange-100 text-[#174B43] flex items-center justify-center text-lg font-bold shadow-xs">
+            <div className="w-9 h-9 rounded-xl bg-orange-100 text-[#0F172A] flex items-center justify-center text-lg font-bold shadow-xs">
               🏷️
             </div>
             <div>
-              <h3 className="text-sm sm:text-base font-bold text-slate-900">
+              <h3 className="text-[15px] sm:text-[15px] font-semibold text-slate-900">
                 {lang === "gu" ? "બારકોડ અને સ્કેનર સ્ટીકર (Barcode Sticker)" : "Barcode & QR Scanner Sticker"}
               </h3>
               <p className="text-xs text-slate-500">
@@ -290,14 +290,14 @@ export function InvoiceBarcodeStickerModal({
             {/* Header: Company & Bill tag */}
             <div className="flex items-center justify-between border-b border-slate-200 pb-2">
               <div>
-                <h4 className="text-xs sm:text-sm font-black text-slate-900 tracking-tight uppercase">
+                <h4 className="text-xs sm:text-sm font-semibold text-slate-900 tracking-tight uppercase">
                   {companyName}
                 </h4>
                 {company?.gstin && (
-                  <p className="text-[10px] font-mono text-slate-500">GSTIN: {company.gstin}</p>
+                  <p className="text-[10px] tabular-nums text-slate-500">GSTIN: {company.gstin}</p>
                 )}
               </div>
-              <span className="px-2 py-0.5 bg-orange-50 text-[#174B43] border border-orange-200 text-[10px] font-bold rounded uppercase">
+              <span className="px-2 py-0.5 bg-orange-50 text-[#0F172A] border border-orange-200 text-[10px] font-bold rounded uppercase">
                 PURCHASE INVOICE
               </span>
             </div>
@@ -318,7 +318,7 @@ export function InvoiceBarcodeStickerModal({
               <div className="flex-1 min-w-0 space-y-1 text-xs">
                 <div>
                   <span className="text-[10px] text-slate-400 block font-semibold">INVOICE NUMBER</span>
-                  <p className="font-mono font-bold text-slate-900 truncate">
+                  <p className="tabular-nums font-bold text-slate-900 truncate">
                     {invoice.vendorInvoiceNumber}
                   </p>
                 </div>
@@ -333,11 +333,11 @@ export function InvoiceBarcodeStickerModal({
                 <div className="flex items-center justify-between pt-1 border-t border-slate-100">
                   <div>
                     <span className="text-[10px] text-slate-400 block">DATE</span>
-                    <strong className="font-mono text-slate-700 text-[11px]">{formattedDate}</strong>
+                    <strong className="tabular-nums text-slate-700 text-[11px]">{formattedDate}</strong>
                   </div>
                   <div className="text-right">
                     <span className="text-[10px] text-slate-400 block">TOTAL</span>
-                    <strong className="font-bold text-[#174B43] text-xs">{formattedTotal}</strong>
+                    <strong className="font-bold text-[#0F172A] text-xs">{formattedTotal}</strong>
                   </div>
                 </div>
               </div>
@@ -351,7 +351,7 @@ export function InvoiceBarcodeStickerModal({
                 width={stickerFormat === "compact" ? 1.2 : 1.4}
                 fontSize={10}
               />
-              <span className="text-[9px] text-slate-400 tracking-wider font-mono mt-0.5">
+              <span className="text-[9px] text-slate-400 tracking-wider tabular-nums mt-0.5">
                 VERIFIED BILL RECORD • {invoice.id.substring(0, 8)}
               </span>
             </div>
@@ -363,11 +363,11 @@ export function InvoiceBarcodeStickerModal({
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                 Direct Scan URL
               </span>
-              <p className="font-mono text-slate-700 text-[11px] truncate">{invoiceUrl}</p>
+              <p className="tabular-nums text-slate-700 text-[11px] truncate">{invoiceUrl}</p>
             </div>
             <button
               onClick={handleCopyLink}
-              className="shrink-0 px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-lg transition-colors flex items-center gap-1 shadow-xs"
+              className="shrink-0 h-9 px-3 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-medium text-[13px] rounded-lg transition-colors flex items-center gap-1 shadow-xs"
             >
               {copied ? "✓ Copied" : "Copy Link"}
             </button>
@@ -378,14 +378,14 @@ export function InvoiceBarcodeStickerModal({
         <div className="p-4 border-t border-slate-200 bg-slate-50/80 flex items-center justify-between gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition-colors"
+            className="h-9 px-3 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-[13px] font-medium rounded-xl transition-colors"
           >
             {lang === "gu" ? "બંધ કરો" : "Close"}
           </button>
 
           <button
             onClick={handlePrintSticker}
-            className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5 active:scale-95"
+            className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-sm transition-all flex items-center gap-1.5 active:scale-95"
           >
             <span>🖨️</span>
             <span>{lang === "gu" ? "સ્ટીકર પ્રિન્ટ કરો" : "Print Sticker"}</span>

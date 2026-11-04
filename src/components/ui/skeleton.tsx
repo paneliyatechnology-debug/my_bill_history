@@ -114,23 +114,23 @@ export function InitialAppLoader({
       <div className="text-center space-y-4">
         {/* Brand Icon with Jade Pulse Ring */}
         <div className="relative inline-block">
-          <div className="w-16 h-16 rounded-2xl bg-[#E6F7F2] border border-[#85D5C2] flex items-center justify-center text-3xl shadow-jade">
-            <span className="select-none text-[#174B43]">🧾</span>
+          <div className="w-16 h-16 rounded-2xl bg-[#EFF6FF] border border-[#93C5FD] flex items-center justify-center text-3xl shadow-blue-500/20">
+            <span className="select-none text-[#0F172A]">🧾</span>
           </div>
-          <div className="absolute -inset-1 rounded-2xl border-2 border-[#26A58A] opacity-40 animate-ping pointer-events-none" />
+          <div className="absolute -inset-1 rounded-2xl border-2 border-[#1677E8] opacity-40 animate-ping pointer-events-none" />
         </div>
 
         <div>
-          <h2 className="text-lg font-black tracking-tight">
-            <span className="text-[#174B43]">MyOwn</span>
-            <span className="text-[#26A58A]">BillBook</span>
+          <h2 className="text-[15px] font-semibold tracking-tight">
+            <span className="text-[#0F172A]">MyOwn</span>
+            <span className="text-[#1677E8]">BillBook</span>
           </h2>
           <p className="text-xs text-[#5A6B66] mt-1">{message}</p>
         </div>
 
         {/* Jade Spinner */}
         <div className="flex justify-center">
-          <div className="w-6 h-6 border-2 border-[#26A58A] border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-[#1677E8] border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     </div>

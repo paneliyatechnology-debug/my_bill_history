@@ -214,7 +214,7 @@ export default function EInvoiceSettingsPage() {
             <span>/</span>
             <span className="font-semibold text-slate-800">Settings</span>
           </div>
-          <h1 className="text-2xl font-black text-slate-900">
+          <h1 className="text-[22px] font-semibold text-[#182230]">
             {lang === "gu" ? "ઈ-ઇનવોઇસ અને IRP લાઈવ સેટિંગ્સ" : "E-Invoice & IRP Provider Configuration"}
           </h1>
           <p className="mt-1 text-xs text-slate-600">
@@ -224,7 +224,7 @@ export default function EInvoiceSettingsPage() {
 
         <Link
           href="/sales/e-invoices"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 shadow-xs"
         >
           ← Back to E-Invoices
         </Link>
@@ -248,36 +248,36 @@ export default function EInvoiceSettingsPage() {
         <div className="space-y-6 lg:col-span-8">
           {/* Company GST Registration Identity */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-2">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-2">
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-[11px] text-slate-700">1</span>
               Company GSTIN Identity
             </h2>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 text-xs">
               <div>
-                <label className="block font-semibold text-slate-600 mb-1">Company Legal Name</label>
+                <label className="block font-medium text-slate-600 mb-1">Company Legal Name</label>
                 <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-2 font-bold text-slate-800">
                   {settings.company?.legalName || currentCompany?.legalName || "Not configured"}
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-600 mb-1">Registered GSTIN</label>
-                <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-2 font-mono font-bold text-emerald-800">
+                <label className="block font-medium text-slate-600 mb-1">Registered GSTIN</label>
+                <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-2 tabular-nums font-bold text-emerald-800">
                   {settings.company?.gstin || currentCompany?.gstin || "No GSTIN on file"}
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-600 mb-1">State Code</label>
-                <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-2 font-mono text-slate-700">
+                <label className="block font-medium text-slate-600 mb-1">State Code</label>
+                <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-2 tabular-nums text-slate-700">
                   {settings.company?.stateCode || currentCompany?.stateCode || "24"}
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-600 mb-1">Registered Pincode</label>
-                <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-2 font-mono text-slate-700">
+                <label className="block font-medium text-slate-600 mb-1">Registered Pincode</label>
+                <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-2 tabular-nums text-slate-700">
                   {settings.company?.pincode || currentCompany?.pincode || "Not set"}
                 </div>
               </div>
@@ -285,7 +285,7 @@ export default function EInvoiceSettingsPage() {
               {/* Dynamic E-Invoicing Applicable Toggle */}
               <div className="sm:col-span-2 pt-3 border-t border-slate-100 flex items-center justify-between">
                 <div>
-                  <label className="block font-semibold text-slate-800 text-xs">Enable Statutory E-Invoicing for this Company</label>
+                  <label className="block font-medium text-slate-800 text-[12px]">Enable Statutory E-Invoicing for this Company</label>
                   <p className="text-[11px] text-slate-500">
                     Activates government IRP IRN generation and signed QR code printing across sales invoices.
                   </p>
@@ -317,7 +317,7 @@ export default function EInvoiceSettingsPage() {
 
           {/* Provider & Environment Configuration */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-2">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-2">
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-[11px] text-slate-700">2</span>
               Government IRP Credentials & API Setup
             </h2>
@@ -325,7 +325,7 @@ export default function EInvoiceSettingsPage() {
             <div className="space-y-4 text-xs">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">IRP / GSP Integration Provider</label>
+                  <label className="block font-medium text-slate-700 mb-1">IRP / GSP Integration Provider</label>
                   <div className="w-full rounded-lg border border-slate-300 p-2 text-xs bg-slate-50 text-slate-700 font-medium">
                     NIC GST Invoice Registration Portal (Authorized Adapter)
                   </div>
@@ -333,7 +333,7 @@ export default function EInvoiceSettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Operating Environment</label>
+                  <label className="block font-medium text-slate-700 mb-1">Operating Environment</label>
                   <div className="w-full rounded-lg border border-emerald-300 bg-emerald-50/70 p-2 text-xs font-bold text-emerald-900 flex items-center justify-between">
                     <span>Government Portal Live (Production)</span>
                     <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] text-white">LIVE</span>
@@ -344,13 +344,13 @@ export default function EInvoiceSettingsPage() {
 
               {/* Base Gateway URL */}
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Government IRP Base URL</label>
+                <label className="block font-medium text-slate-700 mb-1">Government IRP Base URL</label>
                 <input
                   type="text"
                   value={customBaseUrl}
                   onChange={(e) => setCustomBaseUrl(e.target.value)}
                   placeholder="https://api.einvoice1.gst.gov.in"
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs font-mono focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] tabular-nums focus:border-[#1677E8] focus:outline-none h-10"
                 />
                 <p className="mt-1 text-[11px] text-slate-400">Default: https://api.einvoice1.gst.gov.in (IRP Portal 1) or your authorized GSP gateway URL.</p>
               </div>
@@ -358,7 +358,7 @@ export default function EInvoiceSettingsPage() {
               {/* Credentials Fields */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-2">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label className="block font-medium text-slate-700 mb-1">
                     E-Invoice API Client ID <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -367,12 +367,12 @@ export default function EInvoiceSettingsPage() {
                     onChange={(e) => setSettings((prev) => ({ ...prev, einvoiceClientId: e.target.value }))}
                     placeholder="e.g. NIC Client ID"
                     required
-                    className="w-full rounded-lg border border-slate-300 p-2 text-xs font-mono focus:border-emerald-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-300 p-2 text-[13px] tabular-nums focus:border-[#1677E8] focus:outline-none h-10"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label className="block font-medium text-slate-700 mb-1">
                     E-Invoice Portal Username <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -381,12 +381,12 @@ export default function EInvoiceSettingsPage() {
                     onChange={(e) => setSettings((prev) => ({ ...prev, einvoiceUsername: e.target.value }))}
                     placeholder="IRP API username"
                     required
-                    className="w-full rounded-lg border border-slate-300 p-2 text-xs font-mono focus:border-emerald-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-300 p-2 text-[13px] tabular-nums focus:border-[#1677E8] focus:outline-none h-10"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label className="block font-medium text-slate-700 mb-1">
                     E-Invoice Client Secret {settings.secretsPresent && <span className="text-emerald-700 font-normal">(Stored & Encrypted)</span>}
                   </label>
                   <div className="relative">
@@ -395,7 +395,7 @@ export default function EInvoiceSettingsPage() {
                       value={clientSecret}
                       onChange={(e) => setClientSecret(e.target.value)}
                       placeholder={settings.secretsPresent ? "•••••••••••••••• (leave blank to keep current)" : "Enter IRP Client Secret"}
-                      className="w-full rounded-lg border border-slate-300 p-2 pr-9 text-xs font-mono focus:border-emerald-500 focus:outline-none"
+                      className="w-full rounded-lg border border-slate-300 p-2 pr-9 text-[13px] tabular-nums focus:border-[#1677E8] focus:outline-none h-10"
                     />
                     <button
                       type="button"
@@ -408,7 +408,7 @@ export default function EInvoiceSettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label className="block font-medium text-slate-700 mb-1">
                     E-Invoice Portal Password {settings.secretsPresent && <span className="text-emerald-700 font-normal">(Stored & Encrypted)</span>}
                   </label>
                   <div className="relative">
@@ -417,7 +417,7 @@ export default function EInvoiceSettingsPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder={settings.secretsPresent ? "•••••••••••••••• (leave blank to keep current)" : "Enter IRP Portal Password"}
-                      className="w-full rounded-lg border border-slate-300 p-2 pr-9 text-xs font-mono focus:border-emerald-500 focus:outline-none"
+                      className="w-full rounded-lg border border-slate-300 p-2 pr-9 text-[13px] tabular-nums focus:border-[#1677E8] focus:outline-none h-10"
                     />
                     <button
                       type="button"
@@ -430,36 +430,36 @@ export default function EInvoiceSettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">E-Way Bill API Client ID (Optional)</label>
+                  <label className="block font-medium text-slate-700 mb-1">E-Way Bill API Client ID (Optional)</label>
                   <input
                     type="text"
                     value={settings.ewayClientId || ""}
                     onChange={(e) => setSettings((prev) => ({ ...prev, ewayClientId: e.target.value }))}
                     placeholder="E-Way client ID (defaults to E-Invoice Client ID)"
-                    className="w-full rounded-lg border border-slate-300 p-2 text-xs font-mono focus:border-emerald-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-300 p-2 text-[13px] tabular-nums focus:border-[#1677E8] focus:outline-none h-10"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">E-Way Bill Portal Username (Optional)</label>
+                  <label className="block font-medium text-slate-700 mb-1">E-Way Bill Portal Username (Optional)</label>
                   <input
                     type="text"
                     value={settings.ewayUsername || ""}
                     onChange={(e) => setSettings((prev) => ({ ...prev, ewayUsername: e.target.value }))}
                     placeholder="E-Way API username (defaults to E-Invoice Username)"
-                    className="w-full rounded-lg border border-slate-300 p-2 text-xs font-mono focus:border-emerald-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-300 p-2 text-[13px] tabular-nums focus:border-[#1677E8] focus:outline-none h-10"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">E-Way Bill Client Secret (Optional)</label>
+                  <label className="block font-medium text-slate-700 mb-1">E-Way Bill Client Secret (Optional)</label>
                   <div className="relative">
                     <input
                       type={showEwaySecret ? "text" : "password"}
                       value={ewayClientSecret}
                       onChange={(e) => setEwayClientSecret(e.target.value)}
                       placeholder="E-Way Client Secret (optional)"
-                      className="w-full rounded-lg border border-slate-300 p-2 pr-9 text-xs font-mono focus:border-emerald-500 focus:outline-none"
+                      className="w-full rounded-lg border border-slate-300 p-2 pr-9 text-[13px] tabular-nums focus:border-[#1677E8] focus:outline-none h-10"
                     />
                     <button
                       type="button"
@@ -472,14 +472,14 @@ export default function EInvoiceSettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">E-Way Bill Portal Password (Optional)</label>
+                  <label className="block font-medium text-slate-700 mb-1">E-Way Bill Portal Password (Optional)</label>
                   <div className="relative">
                     <input
                       type={showEwayPassword ? "text" : "password"}
                       value={ewayPassword}
                       onChange={(e) => setEwayPassword(e.target.value)}
                       placeholder="E-Way Portal Password (optional)"
-                      className="w-full rounded-lg border border-slate-300 p-2 pr-9 text-xs font-mono focus:border-emerald-500 focus:outline-none"
+                      className="w-full rounded-lg border border-slate-300 p-2 pr-9 text-[13px] tabular-nums focus:border-[#1677E8] focus:outline-none h-10"
                     />
                     <button
                       type="button"
@@ -508,7 +508,7 @@ export default function EInvoiceSettingsPage() {
         <div className="space-y-6 lg:col-span-4">
           {/* Status & Diagnostic Card */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs space-y-4">
-            <h3 className="font-bold text-slate-900 text-sm border-b border-slate-100 pb-2 flex items-center justify-between">
+            <h3 className="font-semibold text-slate-900 text-[15px] border-b border-slate-100 pb-2 flex items-center justify-between">
               <span>Connection Status</span>
               <span className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-700">
                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -532,21 +532,21 @@ export default function EInvoiceSettingsPage() {
 
               <div className="flex justify-between items-center">
                 <span className="text-slate-500">Backend Secrets Present:</span>
-                <span className="font-mono font-semibold text-slate-800">
+                <span className="tabular-nums font-semibold text-slate-800">
                   {settings.secretsPresent ? "YES (AES-256-GCM)" : "NOT CONFIGURED"}
                 </span>
               </div>
 
               <div className="flex justify-between items-center">
                 <span className="text-slate-500">Environment Mode:</span>
-                <span className="font-mono font-semibold text-emerald-700">
+                <span className="tabular-nums font-semibold text-emerald-700">
                   PRODUCTION (LIVE)
                 </span>
               </div>
 
               <div className="flex justify-between items-center">
                 <span className="text-slate-500">IRP Host:</span>
-                <span className="font-mono text-[10px] text-slate-600 truncate max-w-[180px]">
+                <span className="tabular-nums text-[10px] text-slate-600 truncate max-w-[180px]">
                   api.einvoice1.gst.gov.in
                 </span>
               </div>
@@ -558,7 +558,7 @@ export default function EInvoiceSettingsPage() {
                 type="button"
                 onClick={handleTestConnection}
                 disabled={testingPing}
-                className="w-full flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-50/70 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-50/70 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-100 transition disabled:opacity-50"
               >
                 {testingPing ? (
                   <>
@@ -588,7 +588,7 @@ export default function EInvoiceSettingsPage() {
                       <AlertCircleIcon className="h-3.5 w-3.5 text-amber-600" />
                     )}
                     <span>Status: {pingResult.outcome}</span>
-                    {pingResult.status && <span className="font-mono text-[10px]">({pingResult.status})</span>}
+                    {pingResult.status && <span className="tabular-nums text-[10px]">({pingResult.status})</span>}
                   </div>
                   <div className="text-[10px] mt-1 leading-normal">{pingResult.message}</div>
                 </div>
@@ -599,7 +599,7 @@ export default function EInvoiceSettingsPage() {
             <button
               type="submit"
               disabled={saving}
-              className="w-full rounded-lg bg-emerald-600 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full rounded-lg bg-[#1677E8] py-2.5 text-[13px] font-medium text-white shadow-xs hover:bg-[#1268D3] transition disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {saving ? (
                 <>

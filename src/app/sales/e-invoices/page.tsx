@@ -240,7 +240,7 @@ export default function EInvoicesListPage() {
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-black tracking-tight text-slate-900">
+            <h1 className="text-[22px] font-semibold tracking-tight text-[#182230]">
               {lang === "gu" ? "જીએસટી ઈ-ઇન્વોઇસિંગ (IRN)" : "GST E-Invoicing (IRN)"}
             </h1>
             <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
@@ -257,7 +257,7 @@ export default function EInvoicesListPage() {
         <div className="flex flex-wrap items-center gap-2.5">
           <Link
             href="/settings/e-invoice"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 shadow-xs hover:bg-slate-50 transition"
           >
             <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -268,7 +268,7 @@ export default function EInvoicesListPage() {
 
           <Link
             href="/reports/e-invoice-reconciliation"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 shadow-xs hover:bg-slate-50 transition"
           >
             <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -278,7 +278,7 @@ export default function EInvoicesListPage() {
 
           <Link
             href="/sales/e-invoices/new"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 transition"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#1677E8] h-9 px-3 text-[13px] font-medium text-white shadow-xs hover:bg-[#1268D3] transition"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
@@ -300,7 +300,7 @@ export default function EInvoicesListPage() {
           </div>
           <Link
             href="/settings/company"
-            className="inline-flex items-center px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-800 text-white font-semibold text-xs shrink-0 self-start sm:self-auto transition"
+            className="inline-flex items-center h-9 px-3 rounded-lg bg-amber-700 hover:bg-amber-800 text-white font-medium text-[13px] shrink-0 self-start sm:self-auto transition"
           >
             Add GSTIN in Settings &rarr;
           </Link>
@@ -311,32 +311,32 @@ export default function EInvoicesListPage() {
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-xs">
           <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Eligible</div>
-          <div className="mt-1 text-2xl font-black text-slate-900">{summary.total}</div>
+          <div className="mt-1 text-2xl font-semibold text-slate-900">{summary.total}</div>
         </div>
 
         <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3.5 shadow-xs">
           <div className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">Registered (IRN)</div>
-          <div className="mt-1 text-2xl font-black text-emerald-800">{summary.registered}</div>
+          <div className="mt-1 text-2xl font-semibold text-emerald-800">{summary.registered}</div>
         </div>
 
         <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-3.5 shadow-xs">
           <div className="text-[11px] font-bold text-blue-700 uppercase tracking-wider">Ready to Submit</div>
-          <div className="mt-1 text-2xl font-black text-blue-800">{summary.ready}</div>
+          <div className="mt-1 text-2xl font-semibold text-blue-800">{summary.ready}</div>
         </div>
 
         <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-3.5 shadow-xs">
           <div className="text-[11px] font-bold text-amber-700 uppercase tracking-wider">Incomplete Draft</div>
-          <div className="mt-1 text-2xl font-black text-amber-800">{summary.draft}</div>
+          <div className="mt-1 text-2xl font-semibold text-amber-800">{summary.draft}</div>
         </div>
 
         <div className="rounded-xl border border-purple-200 bg-purple-50/50 p-3.5 shadow-xs">
           <div className="text-[11px] font-bold text-purple-700 uppercase tracking-wider">Reconcile Pending</div>
-          <div className="mt-1 text-2xl font-black text-purple-800">{summary.reconcile}</div>
+          <div className="mt-1 text-2xl font-semibold text-purple-800">{summary.reconcile}</div>
         </div>
 
         <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-3.5 shadow-xs">
           <div className="text-[11px] font-bold text-rose-700 uppercase tracking-wider">Failed / Rejected</div>
-          <div className="mt-1 text-2xl font-black text-rose-800">{summary.rejected}</div>
+          <div className="mt-1 text-2xl font-semibold text-rose-800">{summary.rejected}</div>
         </div>
       </div>
 
@@ -362,7 +362,7 @@ export default function EInvoicesListPage() {
                 }}
                 className={`rounded-lg px-3 py-1.5 transition ${
                   statusFilter === tab.id
-                    ? "bg-emerald-600 text-white shadow-xs font-bold"
+                    ? "bg-[#EFF6FF] text-[#1677E8] border border-[#BFDBFE] font-medium"
                     : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
@@ -382,7 +382,7 @@ export default function EInvoicesListPage() {
                   setPage(1);
                 }}
                 placeholder="Search invoice, customer, GSTIN..."
-                className="w-full rounded-lg border border-slate-300 bg-slate-50/50 py-1.5 pl-8 pr-3 text-xs focus:border-emerald-500 focus:bg-white focus:outline-none"
+                className="w-full rounded-lg border border-slate-300 bg-slate-50/50 py-1.5 pl-8 pr-3 text-[13px] focus:border-[#1677E8] focus:bg-white focus:outline-none h-10"
               />
               <svg
                 className="absolute left-2.5 top-2 h-3.5 w-3.5 text-slate-400"
@@ -483,24 +483,24 @@ export default function EInvoicesListPage() {
                       <td className="py-3 px-4">
                         <div className="font-semibold text-slate-900">{row.party?.name || "Cash Customer"}</div>
                         {row.party?.gstin ? (
-                          <div className="font-mono text-[10.5px] text-slate-600">{row.party.gstin}</div>
+                          <div className="tabular-nums text-[10.5px] text-slate-600">{row.party.gstin}</div>
                         ) : (
                           <span className="text-[10px] text-amber-700 font-semibold">Missing GSTIN</span>
                         )}
                       </td>
 
                       {/* POS */}
-                      <td className="py-3 px-4 font-mono text-slate-700">
+                      <td className="py-3 px-4 tabular-nums text-slate-700">
                         {row.placeOfSupply ? `Code ${row.placeOfSupply}` : "-"}
                       </td>
 
                       {/* Taxable */}
-                      <td className="py-3 px-4 text-right font-mono text-slate-700">
+                      <td className="py-3 px-4 text-right tabular-nums text-slate-700">
                         ₹{formatInr(row.taxableAmount)}
                       </td>
 
                       {/* Grand Total */}
-                      <td className="py-3 px-4 text-right font-bold font-mono text-slate-900">
+                      <td className="py-3 px-4 text-right font-medium tabular-nums text-slate-900">
                         ₹{formatInr(row.grandTotal)}
                       </td>
 
@@ -543,7 +543,7 @@ export default function EInvoicesListPage() {
                       <td className="py-3 px-4">
                         {isRegistered && row.eInvoice ? (
                           <div className="flex items-center gap-1.5">
-                            <span className="font-mono text-[10.5px] text-slate-800">
+                            <span className="tabular-nums text-[10.5px] text-slate-800">
                               {row.eInvoice.irn.slice(0, 10)}...{row.eInvoice.irn.slice(-6)}
                             </span>
                             <button
@@ -574,19 +574,19 @@ export default function EInvoicesListPage() {
                             <>
                               <Link
                                 href={`/sales/e-invoices/${row.id}`}
-                                className="rounded px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 transition"
+                                className="rounded px-2 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-100 transition"
                               >
                                 View
                               </Link>
                               <Link
                                 href={`/sales/e-invoices/${row.id}/preview`}
-                                className="rounded px-2 py-1 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-50 transition"
+                                className="rounded px-2 py-1 text-[11px] font-medium text-emerald-700 hover:bg-emerald-50 transition"
                               >
                                 Preview
                               </Link>
                               <button
                                 onClick={() => setCancelInvoice(row)}
-                                className="rounded px-2 py-1 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 transition"
+                                className="rounded px-2 py-1 text-[11px] font-medium text-rose-600 hover:bg-rose-50 transition"
                               >
                                 Cancel
                               </button>
@@ -595,7 +595,7 @@ export default function EInvoicesListPage() {
                             <>
                               <button
                                 onClick={() => handleValidate(row)}
-                                className="rounded px-2 py-1 text-[11px] font-semibold text-slate-600 hover:bg-slate-100 transition"
+                                className="rounded px-2 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-100 transition"
                               >
                                 Validate
                               </button>
@@ -604,14 +604,14 @@ export default function EInvoicesListPage() {
                                 <button
                                   onClick={() => handleReconcile(row)}
                                   disabled={isReconciling === row.id}
-                                  className="rounded bg-purple-600 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-purple-700 transition disabled:opacity-50"
+                                  className="rounded bg-purple-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-purple-700 transition disabled:opacity-50"
                                 >
                                   {isReconciling === row.id ? "Checking..." : "Reconcile"}
                                 </button>
                               ) : (
                                 <button
                                   onClick={() => setGenerateInvoice(row)}
-                                  className="rounded bg-emerald-600 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-emerald-700 transition"
+                                  className="rounded bg-[#1677E8] px-2.5 py-1 text-[11px] font-medium text-white hover:bg-[#1268D3] transition"
                                 >
                                   Generate IRN
                                 </button>
@@ -619,7 +619,7 @@ export default function EInvoicesListPage() {
 
                               <Link
                                 href={`/sales/e-invoices/${row.id}/preview`}
-                                className="rounded px-2 py-1 text-[11px] font-semibold text-slate-600 hover:bg-slate-100 transition"
+                                className="rounded px-2 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-100 transition"
                               >
                                 Preview
                               </Link>
@@ -653,7 +653,7 @@ export default function EInvoicesListPage() {
               <button
                 onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
                 disabled={page >= data.totalPages}
-                className="rounded border border-slate-300 px-2.5 py-1 font-semibold disabled:opacity-40 hover:bg-slate-50 transition"
+                className="rounded border border-slate-300 px-2.5 py-1 font-medium disabled:opacity-40 hover:bg-slate-50 transition"
               >
                 Next
               </button>
@@ -668,7 +668,7 @@ export default function EInvoicesListPage() {
           <div className="w-full max-w-xl rounded-xl bg-white shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-4">
               <div>
-                <h3 className="font-bold text-slate-900 text-sm">
+                <h3 className="font-semibold text-slate-900 text-[15px]">
                   Statutory Pre-Validation Checklist
                 </h3>
                 <p className="text-[11px] text-slate-500">
@@ -725,7 +725,7 @@ export default function EInvoicesListPage() {
                           <span className="text-rose-600 font-bold">•</span>
                           <div>
                             <div className="font-semibold text-rose-900">{err.message}</div>
-                            <div className="text-[10px] font-mono text-rose-700">Field: {err.field}</div>
+                            <div className="text-[10px] tabular-nums text-rose-700">Field: {err.field}</div>
                           </div>
                         </div>
                       ))}
@@ -743,7 +743,7 @@ export default function EInvoicesListPage() {
                           <span className="text-amber-600 font-bold">•</span>
                           <div>
                             <div className="font-semibold text-amber-900">{warn.message}</div>
-                            <div className="text-[10px] font-mono text-amber-700">Field: {warn.field}</div>
+                            <div className="text-[10px] tabular-nums text-amber-700">Field: {warn.field}</div>
                           </div>
                         </div>
                       ))}
@@ -751,7 +751,7 @@ export default function EInvoicesListPage() {
                   )}
 
                   {/* Summary Breakdown */}
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs space-y-1 font-mono text-slate-700">
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs space-y-1 tabular-nums text-slate-700">
                     <div className="flex justify-between">
                       <span>Taxable Amount:</span>
                       <span>₹{formatInr(validationResult.summary.taxableAmount)}</span>
@@ -772,7 +772,7 @@ export default function EInvoicesListPage() {
             <div className="flex justify-end gap-2 border-t border-slate-200 bg-slate-50 px-5 py-3">
               <button
                 onClick={() => setValidationInvoice(null)}
-                className="rounded-lg border border-slate-300 px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition"
+                className="rounded-lg border border-slate-300 h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-100 transition"
               >
                 Close
               </button>
@@ -783,7 +783,7 @@ export default function EInvoicesListPage() {
                     setValidationInvoice(null);
                     setGenerateInvoice(inv);
                   }}
-                  className="rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 transition"
+                  className="rounded-lg bg-[#1677E8] px-4 py-1.5 text-[13px] font-medium text-white hover:bg-[#1268D3] transition"
                 >
                   Proceed to Generate IRN
                 </button>
@@ -798,7 +798,7 @@ export default function EInvoicesListPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
           <div className="w-full max-w-md rounded-xl bg-white shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
             <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
-              <h3 className="font-bold text-slate-900 text-sm">
+              <h3 className="font-semibold text-slate-900 text-[15px]">
                 Confirm Statutory E-Invoice Generation
               </h3>
               <p className="text-[11px] text-slate-500">
@@ -814,7 +814,7 @@ export default function EInvoicesListPage() {
                 </p>
               </div>
 
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-1.5 font-mono">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-1.5 tabular-nums">
                 <div className="flex justify-between">
                   <span className="text-slate-500 font-sans">Document No:</span>
                   <span className="font-bold text-slate-900">{generateInvoice.invoiceNumber}</span>
@@ -855,14 +855,14 @@ export default function EInvoicesListPage() {
               <button
                 onClick={() => setGenerateInvoice(null)}
                 disabled={isGenerating}
-                className="rounded-lg border border-slate-300 px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition disabled:opacity-50"
+                className="rounded-lg border border-slate-300 h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-100 transition disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmGenerate}
                 disabled={isGenerating}
-                className="rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 transition disabled:opacity-50 shadow-xs"
+                className="rounded-lg bg-[#1677E8] px-4 py-1.5 text-[13px] font-medium text-white hover:bg-[#1268D3] transition disabled:opacity-50 shadow-xs"
               >
                 {isGenerating ? "Submitting..." : "Generate E-Invoice Now"}
               </button>
@@ -876,7 +876,7 @@ export default function EInvoicesListPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
           <div className="w-full max-w-md rounded-xl bg-white shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
             <div className="border-b border-slate-200 bg-rose-50/50 px-5 py-4">
-              <h3 className="font-bold text-rose-950 text-sm">
+              <h3 className="font-semibold text-rose-950 text-[15px]">
                 Cancel Registered E-Invoice (IRN)
               </h3>
               <p className="text-[11px] text-slate-500">
@@ -893,13 +893,13 @@ export default function EInvoicesListPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-800 mb-1">
+                <label className="block font-medium text-slate-800 mb-1">
                   Cancellation Reason Code *
                 </label>
                 <select
                   value={cancelReasonCode}
                   onChange={(e) => setCancelReasonCode(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs focus:border-rose-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] focus:border-rose-500 focus:outline-none h-10"
                 >
                   <option value="1">1 - Duplicate Invoice</option>
                   <option value="2">2 - Data Entry Mistake</option>
@@ -909,7 +909,7 @@ export default function EInvoicesListPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-800 mb-1">
+                <label className="block font-medium text-slate-800 mb-1">
                   Cancellation Remarks (min 10 characters) *
                 </label>
                 <textarea
@@ -917,7 +917,7 @@ export default function EInvoicesListPage() {
                   onChange={(e) => setCancelRemarks(e.target.value)}
                   rows={3}
                   placeholder="Explain why this e-invoice is being cancelled..."
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs focus:border-rose-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] focus:border-rose-500 focus:outline-none"
                 />
               </div>
 
@@ -932,14 +932,14 @@ export default function EInvoicesListPage() {
               <button
                 onClick={() => setCancelInvoice(null)}
                 disabled={isCancelling}
-                className="rounded-lg border border-slate-300 px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition disabled:opacity-50"
+                className="rounded-lg border border-slate-300 h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-100 transition disabled:opacity-50"
               >
                 Close
               </button>
               <button
                 onClick={handleConfirmCancel}
                 disabled={isCancelling}
-                className="rounded-lg bg-rose-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition disabled:opacity-50 shadow-xs"
+                className="rounded-lg bg-rose-600 px-4 py-1.5 text-[13px] font-medium text-white hover:bg-rose-700 transition disabled:opacity-50 shadow-xs"
               >
                 {isCancelling ? "Cancelling..." : "Confirm IRP Cancellation"}
               </button>

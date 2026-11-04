@@ -402,7 +402,7 @@ export default function PurchaseReturnViewPage() {
             ←
           </Link>
           <div className="flex items-center gap-2">
-            <h1 className="text-base font-bold text-slate-900">
+            <h1 className="text-[15px] font-semibold text-[#182230]">
               {docTitle} #{returnNumber}
             </h1>
             <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-[#E0F2FE] text-[#0284C7]">
@@ -417,7 +417,7 @@ export default function PurchaseReturnViewPage() {
             type="button"
             onClick={downloadPdf}
             disabled={isGeneratingPdf}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs disabled:opacity-50 cursor-pointer"
           >
             <svg
               className="w-3.5 h-3.5 text-slate-500"
@@ -438,7 +438,7 @@ export default function PurchaseReturnViewPage() {
             <button
               type="button"
               onClick={() => setIsPrintDropdownOpen(!isPrintDropdownOpen)}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
             >
               <svg
                 className="w-3.5 h-3.5 text-slate-500"
@@ -469,14 +469,14 @@ export default function PurchaseReturnViewPage() {
                 <button
                   type="button"
                   onClick={() => handlePrint("A4")}
-                  className="flex w-full items-center px-3 py-2 hover:bg-slate-50 text-slate-700 cursor-pointer"
+                  className="flex w-full items-center h-9 px-3 hover:bg-slate-50 text-slate-700 cursor-pointer"
                 >
                   Standard A4 Print
                 </button>
                 <button
                   type="button"
                   onClick={() => handlePrint("THERMAL_80")}
-                  className="flex w-full items-center px-3 py-2 hover:bg-slate-50 text-slate-700 border-t border-slate-100 cursor-pointer"
+                  className="flex w-full items-center h-9 px-3 hover:bg-slate-50 text-slate-700 border-t border-slate-100 cursor-pointer"
                 >
                   Thermal Print (3 Inch)
                 </button>
@@ -487,7 +487,7 @@ export default function PurchaseReturnViewPage() {
           {/* Theme Settings Shortcut */}
           <Link
             href="/app/settings/invoice/customize"
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
             title={lang === "gu" ? "થીમ સેટિંગ્સ બદલો" : "Invoice Theme Settings"}
           >
             <span>🎨</span>
@@ -499,7 +499,7 @@ export default function PurchaseReturnViewPage() {
             <button
               type="button"
               onClick={() => setIsShareDropdownOpen(!isShareDropdownOpen)}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
             >
               <svg
                 className="w-3.5 h-3.5 text-slate-500"
@@ -532,14 +532,14 @@ export default function PurchaseReturnViewPage() {
                 <button
                   type="button"
                   onClick={handleCopyLink}
-                  className="flex w-full items-center px-3 py-2 hover:bg-slate-50 text-slate-700 cursor-pointer"
+                  className="flex w-full items-center h-9 px-3 hover:bg-slate-50 text-slate-700 cursor-pointer"
                 >
                   Copy Link
                 </button>
                 <button
                   type="button"
                   onClick={handleShareWhatsApp}
-                  className="flex w-full items-center px-3 py-2 hover:bg-slate-50 text-emerald-700 border-t border-slate-100 cursor-pointer"
+                  className="flex w-full items-center h-9 px-3 hover:bg-slate-50 text-emerald-700 border-t border-slate-100 cursor-pointer"
                 >
                   Share via WhatsApp
                 </button>
@@ -560,20 +560,20 @@ export default function PurchaseReturnViewPage() {
               <div className="absolute right-0 top-10 z-40 w-36 rounded-xl border border-slate-200 bg-white py-1 shadow-lg text-xs">
                 <Link
                   href={editHref}
-                  className="flex w-full items-center px-3 py-2 hover:bg-slate-50 text-slate-700"
+                  className="flex w-full items-center h-9 px-3 hover:bg-slate-50 text-slate-700"
                 >
                   Edit
                 </Link>
                 <Link
                   href="/app/settings/invoice/customize"
-                  className="flex w-full items-center px-3 py-2 hover:bg-slate-50 text-slate-700 border-t border-slate-100"
+                  className="flex w-full items-center h-9 px-3 hover:bg-slate-50 text-slate-700 border-t border-slate-100"
                 >
                   Change Theme
                 </Link>
                 <button
                   type="button"
                   onClick={handleDelete}
-                  className="flex w-full items-center px-3 py-2 hover:bg-rose-50 text-rose-600 border-t border-slate-100 cursor-pointer"
+                  className="flex w-full items-center h-9 px-3 hover:bg-rose-50 text-rose-600 border-t border-slate-100 cursor-pointer"
                 >
                   Delete
                 </button>
@@ -604,7 +604,7 @@ export default function PurchaseReturnViewPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 print:hidden">
           <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <h3 className="text-sm font-bold text-slate-900">Thermal Print Margin Settings</h3>
+              <h3 className="text-[15px] font-semibold text-slate-900">Thermal Print Margin Settings</h3>
               <button
                 type="button"
                 onClick={() => setIsMarginModalOpen(false)}
@@ -623,7 +623,7 @@ export default function PurchaseReturnViewPage() {
                   type="number"
                   value={marginTop}
                   onChange={(e) => setMarginTop(Number(e.target.value))}
-                  className="w-full rounded-lg border border-slate-200 px-2 py-1"
+                  className="w-full rounded-lg border border-slate-200 px-2 py-1 text-[13px] font-normal h-10"
                 />
               </div>
               <div>
@@ -632,7 +632,7 @@ export default function PurchaseReturnViewPage() {
                   type="number"
                   value={marginBottom}
                   onChange={(e) => setMarginBottom(Number(e.target.value))}
-                  className="w-full rounded-lg border border-slate-200 px-2 py-1"
+                  className="w-full rounded-lg border border-slate-200 px-2 py-1 text-[13px] font-normal h-10"
                 />
               </div>
               <div>
@@ -641,7 +641,7 @@ export default function PurchaseReturnViewPage() {
                   type="number"
                   value={marginLeft}
                   onChange={(e) => setMarginLeft(Number(e.target.value))}
-                  className="w-full rounded-lg border border-slate-200 px-2 py-1"
+                  className="w-full rounded-lg border border-slate-200 px-2 py-1 text-[13px] font-normal h-10"
                 />
               </div>
               <div>
@@ -650,7 +650,7 @@ export default function PurchaseReturnViewPage() {
                   type="number"
                   value={marginRight}
                   onChange={(e) => setMarginRight(Number(e.target.value))}
-                  className="w-full rounded-lg border border-slate-200 px-2 py-1"
+                  className="w-full rounded-lg border border-slate-200 px-2 py-1 text-[13px] font-normal h-10"
                 />
               </div>
             </div>
@@ -660,7 +660,7 @@ export default function PurchaseReturnViewPage() {
                 setIsMarginModalOpen(false);
                 alert("Thermal print margins saved successfully!");
               }}
-              className="w-full rounded-xl bg-[#174B43] py-2 text-xs font-semibold text-white hover:bg-[#123B35] cursor-pointer"
+              className="w-full rounded-xl bg-[#0F172A] py-2 text-[13px] font-medium text-white hover:bg-[#1268D3] cursor-pointer"
             >
               Save Margins
             </button>

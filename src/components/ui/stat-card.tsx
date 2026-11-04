@@ -28,9 +28,9 @@ export function StatCard({
 
   const borderVariants = {
     default: "border-[#E2E8E5] hover:border-[#CBD5E1] bg-white",
-    primary: "border-[#85D5C2] bg-[#F2FAF7] hover:border-[#26A58A]",
-    saffron: "border-[#85D5C2] bg-[#F2FAF7] hover:border-[#26A58A]",
-    brand: "border-[#85D5C2] bg-[#F2FAF7] hover:border-[#26A58A]",
+    primary: "border-[#93C5FD] bg-[#F8FAFC] hover:border-[#1677E8]",
+    saffron: "border-[#93C5FD] bg-[#F8FAFC] hover:border-[#1677E8]",
+    brand: "border-[#93C5FD] bg-[#F8FAFC] hover:border-[#1677E8]",
     success: "border-emerald-200 bg-emerald-50/20 hover:border-emerald-300",
     warning: "border-amber-200 bg-amber-50/20 hover:border-amber-300",
     danger: "border-rose-200 bg-rose-50/20 hover:border-rose-300",
@@ -38,9 +38,9 @@ export function StatCard({
 
   const iconBgVariants = {
     default: "bg-[#EEF1E8] text-[#5A6B66]",
-    primary: "bg-[#E6F7F2] text-[#26A58A]",
-    saffron: "bg-[#E6F7F2] text-[#26A58A]",
-    brand: "bg-[#E6F7F2] text-[#26A58A]",
+    primary: "bg-[#EFF6FF] text-[#1677E8]",
+    saffron: "bg-[#EFF6FF] text-[#1677E8]",
+    brand: "bg-[#EFF6FF] text-[#1677E8]",
     success: "bg-emerald-100/60 text-emerald-700",
     warning: "bg-amber-100/60 text-amber-700",
     danger: "bg-rose-100/60 text-rose-700",
@@ -55,7 +55,7 @@ export function StatCard({
           <p className="text-xs font-semibold text-[#667085] uppercase tracking-wider truncate">
             {isGu && titleGujarati ? titleGujarati : title}
           </p>
-          <div className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-[#202124] font-mono truncate">
+          <div className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-[#202124] tabular-nums truncate">
             {value}
           </div>
         </div>

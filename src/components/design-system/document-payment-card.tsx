@@ -35,12 +35,12 @@ export function DocumentPaymentCard({
   return (
     <div className="bg-white rounded-2xl border border-[#E2E8E5] p-5 shadow-xs space-y-3.5">
       <div className="flex items-center justify-between border-b border-[#E2E8E5] pb-2.5">
-        <span className="text-xs font-extrabold text-[#1A2E2B] uppercase tracking-wider">
+        <span className="text-xs font-semibold text-[#1A2E2B] uppercase tracking-wider">
           {isPurchase
             ? (lang === "gu" ? "ચુકવણી નિકાલ (Payment Settlement)" : "Payment Settlement")
             : (lang === "gu" ? "રકમ પ્રાપ્તિ (Payment Received)" : "Payment Settlement")}
         </span>
-        <span className="text-xs font-mono font-bold text-slate-900">
+        <span className="text-xs tabular-nums font-bold text-slate-900">
           {isPurchase ? "Paid: " : "Recv: "}{formatInr(isFullyPaid ? grandTotal : amountReceived)}
         </span>
       </div>
@@ -54,7 +54,7 @@ export function DocumentPaymentCard({
             disabled={isFullyPaid}
             onChange={(e) => onAmountReceivedChange(Number(e.target.value) || 0)}
             placeholder="0.00"
-            className="w-full text-xs bg-transparent font-mono font-bold text-slate-900 focus:outline-none disabled:text-slate-500"
+            className="w-full text-[13px] bg-transparent tabular-nums font-normal text-slate-900 focus:outline-none disabled:text-slate-500 h-10"
           />
         </div>
 
@@ -62,7 +62,7 @@ export function DocumentPaymentCard({
           <select
             value={paymentMode}
             onChange={(e) => onPaymentModeChange(e.target.value)}
-            className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-[#26A58A]"
+            className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-normal text-slate-800 focus:outline-none focus:border-[#1677E8] h-10"
           >
             <option value="CASH">{lang === "gu" ? "રોકડ (Cash)" : "Cash"}</option>
             <option value="BANK_TRANSFER">{lang === "gu" ? "બેંક ટ્રાન્સફર (Bank)" : "Bank Transfer"}</option>
@@ -74,7 +74,7 @@ export function DocumentPaymentCard({
       </div>
 
       <div className="flex items-center justify-between text-xs pt-1">
-        <label className="flex items-center gap-2 cursor-pointer font-semibold text-slate-700">
+        <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-700">
           <input
             type="checkbox"
             checked={isFullyPaid}
@@ -84,7 +84,7 @@ export function DocumentPaymentCard({
                 onAmountReceivedChange(grandTotal);
               }
             }}
-            className="rounded text-[#174B43] focus:ring-[#26A58A]"
+            className="rounded text-[#0F172A] focus:ring-[#1677E8]"
           />
           <span>{isPurchase ? "Mark as fully paid" : "Mark as fully paid"}</span>
         </label>
@@ -93,7 +93,7 @@ export function DocumentPaymentCard({
           <button
             type="button"
             onClick={onOpenSplitPayment}
-            className="text-[#174B43] hover:text-[#26A58A] font-bold underline cursor-pointer text-xs"
+            className="text-[#0F172A] hover:text-[#1677E8] font-bold underline cursor-pointer text-xs"
           >
             + Split Payment
           </button>
@@ -123,7 +123,7 @@ export function DocumentPaymentCard({
             </>
           )}
         </span>
-        <span className="text-sm font-black font-mono">
+        <span className="text-sm font-semibold tabular-nums">
           {formatInr(balanceAmount)}
         </span>
       </div>

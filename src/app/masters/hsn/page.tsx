@@ -338,7 +338,7 @@ export default function HsnMasterPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
             {lang === "gu"
               ? "એચએસએન અને એસએસી કોડ માસ્ટર"
               : "HSN & SAC Code Master"}
@@ -364,7 +364,7 @@ export default function HsnMasterPage() {
               setFormError(null);
               setIsCreateOpen(true);
             }}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
+            className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-[13px] font-medium rounded-xl shadow-card hover:shadow-hover transition-all"
           >
             <svg
               className="w-4 h-4"
@@ -515,7 +515,7 @@ export default function HsnMasterPage() {
                 ? "કોડ અથવા વિગત શોધો (દા.ત. 1006, Rice, Software, 9983)..."
                 : "Search by code or description (e.g. 1006, Rice, Software, 9983)..."
             }
-            className="w-full px-3 py-2 pl-9 rounded-lg border border-slate-300 text-xs text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+            className="w-full px-3 py-2 pl-9 rounded-lg border border-slate-300 text-[13px] text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] transition-colors h-10"
           />
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
             <svg
@@ -600,7 +600,7 @@ export default function HsnMasterPage() {
               setStatusFilter(e.target.value as any);
               setPage(1);
             }}
-            className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-[13px] text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
           >
             <option value="ALL">{lang === "gu" ? "બધા સ્ટેટસ" : "All Status"}</option>
             <option value="ACTIVE">{lang === "gu" ? "માત્ર એક્ટિવ" : "Active Only"}</option>
@@ -693,7 +693,7 @@ export default function HsnMasterPage() {
                     {/* Code */}
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-1.5">
-                        <span className="font-mono font-bold text-xs text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                        <span className="tabular-nums font-bold text-xs text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                           {item.code}
                         </span>
                       </div>
@@ -731,7 +731,7 @@ export default function HsnMasterPage() {
 
                     {/* GST Rate */}
                     <td className="py-3 px-3 text-center">
-                      <span className="inline-block px-2 py-0.5 bg-slate-100 text-slate-900 font-mono font-bold text-xs rounded border border-slate-200">
+                      <span className="inline-block px-2 py-0.5 bg-slate-100 text-slate-900 tabular-nums font-bold text-xs rounded border border-slate-200">
                         {Number(item.gstRate)}%
                       </span>
                       {item.cessRate && Number(item.cessRate) > 0 ? (
@@ -927,7 +927,7 @@ export default function HsnMasterPage() {
                 setLimit(Number(e.target.value));
                 setPage(1);
               }}
-              className="px-2 py-1 bg-white border border-slate-300 rounded text-slate-700 font-medium"
+              className="px-2 py-1 bg-white border border-slate-300 rounded text-slate-700 font-medium text-[13px] font-normal h-10"
             >
               <option value={10}>10</option>
               <option value={25}>25</option>
@@ -957,7 +957,7 @@ export default function HsnMasterPage() {
             >
               &larr; Prev
             </button>
-            <span className="px-2 font-mono font-semibold text-slate-700">
+            <span className="px-2 tabular-nums font-semibold text-slate-700">
               {page} / {totalPages}
             </span>
             <button
@@ -990,7 +990,7 @@ export default function HsnMasterPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Type */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 Classification Type <span className="text-rose-500">*</span>
               </label>
               <select
@@ -998,7 +998,7 @@ export default function HsnMasterPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, type: e.target.value as any })
                 }
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
               >
                 <option value="HSN">{lang === "gu" ? "માલસામાન (Goods - HSN)" : "Goods (HSN)"}</option>
                 <option value="SAC">{lang === "gu" ? "સેવાઓ (Services - SAC)" : "Services (SAC)"}</option>
@@ -1007,7 +1007,7 @@ export default function HsnMasterPage() {
 
             {/* Code */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {formData.type} Code <span className="text-rose-500">*</span>
               </label>
               <input
@@ -1019,7 +1019,7 @@ export default function HsnMasterPage() {
                   setFormData({ ...formData, code: e.target.value.replace(/\D/g, "") })
                 }
                 maxLength={8}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono font-bold tracking-wider text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] tabular-nums font-normal tracking-wider text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
               />
               <span className="text-[10px] text-slate-400">
                 2 to 8 numeric digits. Leading zeros are strictly preserved.
@@ -1029,7 +1029,7 @@ export default function HsnMasterPage() {
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Description (English) <span className="text-rose-500">*</span>
             </label>
             <input
@@ -1040,14 +1040,14 @@ export default function HsnMasterPage() {
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
             />
           </div>
 
           {/* Description Gujarati */}
           {lang === "gu" && (
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 ગુજરાતી વિગત (વૈકલ્પિક)
               </label>
               <input
@@ -1057,7 +1057,7 @@ export default function HsnMasterPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, descriptionGujarati: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
               />
             </div>
           )}
@@ -1065,7 +1065,7 @@ export default function HsnMasterPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* GST Rate */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 Applicable GST Rate <span className="text-rose-500">*</span>
               </label>
               <select
@@ -1073,7 +1073,7 @@ export default function HsnMasterPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, gstRate: Number(e.target.value) })
                 }
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white text-slate-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] bg-white text-slate-900 tabular-nums font-normal focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
               >
                 {STATUTORY_GST_RATES.map((r) => (
                   <option key={r} value={r}>
@@ -1085,7 +1085,7 @@ export default function HsnMasterPage() {
 
             {/* Cess Rate */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 Compensation Cess (%)
               </label>
               <input
@@ -1097,14 +1097,14 @@ export default function HsnMasterPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, cessRate: Number(e.target.value) })
                 }
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] tabular-nums text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
               />
             </div>
           </div>
 
           {/* Chapter */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Chapter / Tariff Heading
             </label>
             <input
@@ -1114,13 +1114,13 @@ export default function HsnMasterPage() {
               onChange={(e) =>
                 setFormData({ ...formData, chapter: e.target.value })
               }
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
             />
           </div>
 
           {/* Notes */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Internal Classification Notes
             </label>
             <textarea
@@ -1130,7 +1130,7 @@ export default function HsnMasterPage() {
               onChange={(e) =>
                 setFormData({ ...formData, notes: e.target.value })
               }
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20"
             />
           </div>
 
@@ -1138,14 +1138,14 @@ export default function HsnMasterPage() {
             <button
               type="button"
               onClick={() => setIsCreateOpen(false)}
-              className="px-4 py-2 border border-slate-300 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50"
+              className="h-9 px-3 border border-slate-300 text-slate-700 text-[13px] font-medium rounded-lg hover:bg-slate-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg disabled:opacity-50"
+              className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-lg disabled:opacity-50"
             >
               {isSubmitting ? "Creating..." : "Save HSN Code"}
             </button>
@@ -1171,7 +1171,7 @@ export default function HsnMasterPage() {
           <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between text-xs">
             <div>
               <span className="text-slate-500">Classification:</span>{" "}
-              <strong className="font-mono text-slate-900">{editingItem?.code}</strong>{" "}
+              <strong className="tabular-nums text-slate-900">{editingItem?.code}</strong>{" "}
               ({editingItem?.type})
             </div>
             <span className="text-[11px] text-sky-700 font-medium bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
@@ -1181,7 +1181,7 @@ export default function HsnMasterPage() {
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Description (English) <span className="text-rose-500">*</span>
             </label>
             <input
@@ -1191,14 +1191,14 @@ export default function HsnMasterPage() {
               onChange={(e) =>
                 setEditFormData({ ...editFormData, description: e.target.value })
               }
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
             />
           </div>
 
           {/* Description Gujarati */}
           {lang === "gu" && (
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 ગુજરાતી વિગત (વૈકલ્પિક)
               </label>
               <input
@@ -1210,7 +1210,7 @@ export default function HsnMasterPage() {
                     descriptionGujarati: e.target.value,
                   })
                 }
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
               />
             </div>
           )}
@@ -1218,7 +1218,7 @@ export default function HsnMasterPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* GST Rate */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 GST Rate (%) <span className="text-rose-500">*</span>
               </label>
               <select
@@ -1229,7 +1229,7 @@ export default function HsnMasterPage() {
                     gstRate: Number(e.target.value),
                   })
                 }
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white text-slate-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] bg-white text-slate-900 tabular-nums font-normal focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
               >
                 {STATUTORY_GST_RATES.map((r) => (
                   <option key={r} value={r}>
@@ -1241,7 +1241,7 @@ export default function HsnMasterPage() {
 
             {/* Cess Rate */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 Compensation Cess (%)
               </label>
               <input
@@ -1256,14 +1256,14 @@ export default function HsnMasterPage() {
                     cessRate: Number(e.target.value),
                   })
                 }
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] tabular-nums text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
               />
             </div>
           </div>
 
           {/* Chapter */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Chapter / Heading
             </label>
             <input
@@ -1272,13 +1272,13 @@ export default function HsnMasterPage() {
               onChange={(e) =>
                 setEditFormData({ ...editFormData, chapter: e.target.value })
               }
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
             />
           </div>
 
           {/* Notes */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Notes
             </label>
             <textarea
@@ -1287,7 +1287,7 @@ export default function HsnMasterPage() {
               onChange={(e) =>
                 setEditFormData({ ...editFormData, notes: e.target.value })
               }
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20"
             />
           </div>
 
@@ -1295,14 +1295,14 @@ export default function HsnMasterPage() {
             <button
               type="button"
               onClick={() => setIsEditOpen(false)}
-              className="px-4 py-2 border border-slate-300 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50"
+              className="h-9 px-3 border border-slate-300 text-slate-700 text-[13px] font-medium rounded-lg hover:bg-slate-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg disabled:opacity-50"
+              className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-lg disabled:opacity-50"
             >
               {isSubmitting ? "Updating..." : "Update Code"}
             </button>
@@ -1322,7 +1322,7 @@ export default function HsnMasterPage() {
           <div className="space-y-4 text-xs">
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-base font-bold text-slate-900 bg-white px-2.5 py-1 rounded border border-slate-200">
+                <span className="tabular-nums text-base font-bold text-slate-900 bg-white px-2.5 py-1 rounded border border-slate-200">
                   {viewingItem.code}
                 </span>
                 <span
@@ -1367,7 +1367,7 @@ export default function HsnMasterPage() {
                 <span className="text-slate-500 block text-[11px]">
                   Applicable GST Slab
                 </span>
-                <span className="text-base font-bold font-mono text-emerald-700 mt-0.5 block">
+                <span className="text-base font-bold tabular-nums text-emerald-700 mt-0.5 block">
                   {Number(viewingItem.gstRate)}%
                 </span>
               </div>
@@ -1375,7 +1375,7 @@ export default function HsnMasterPage() {
                 <span className="text-slate-500 block text-[11px]">
                   Compensation Cess
                 </span>
-                <span className="text-base font-bold font-mono text-slate-900 mt-0.5 block">
+                <span className="text-base font-bold tabular-nums text-slate-900 mt-0.5 block">
                   {Number(viewingItem.cessRate || 0)}%
                 </span>
               </div>
@@ -1394,7 +1394,7 @@ export default function HsnMasterPage() {
                 <span className="text-slate-500 block text-[11px]">
                   Linked Catalog Items
                 </span>
-                <span className="text-base font-bold font-mono text-slate-900 mt-0.5 block">
+                <span className="text-base font-bold tabular-nums text-slate-900 mt-0.5 block">
                   {isDetailsLoading
                     ? "..."
                     : viewingItem.itemCount !== undefined
@@ -1417,7 +1417,7 @@ export default function HsnMasterPage() {
               <button
                 type="button"
                 onClick={() => setViewingItem(null)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-xs"
+                className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg text-[13px]"
               >
                 Close
               </button>
@@ -1443,7 +1443,7 @@ export default function HsnMasterPage() {
 
           <p className="text-slate-600">
             Are you sure you want to permanently delete custom HSN code{" "}
-            <strong className="font-mono text-slate-900">
+            <strong className="tabular-nums text-slate-900">
               {deletingItem?.code}
             </strong>
             ?
@@ -1457,7 +1457,7 @@ export default function HsnMasterPage() {
             <button
               type="button"
               onClick={() => setDeletingItem(null)}
-              className="px-3 py-1.5 border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50"
+              className="h-9 px-3 border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50"
             >
               Cancel
             </button>
@@ -1465,7 +1465,7 @@ export default function HsnMasterPage() {
               type="button"
               disabled={isDeleting}
               onClick={handleDeleteSubmit}
-              className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-lg disabled:opacity-50"
+              className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-lg disabled:opacity-50"
             >
               {isDeleting ? "Deleting..." : "Delete Code"}
             </button>

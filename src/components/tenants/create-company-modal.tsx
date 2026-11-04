@@ -139,15 +139,15 @@ export function CreateCompanyModal({
       <div className="fixed inset-0 bg-transparent" onClick={() => !isSubmitting && onClose()} aria-hidden="true" />
       <div className="relative z-10 bg-white rounded-xl shadow-2xl max-w-xl w-full overflow-hidden border border-[#D1D5DB] flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-150 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]">
         {/* Modal Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-[#FFFAF5] to-white border-b border-[#BCEADF]/50 flex items-center justify-between">
+        <div className="px-6 py-4 bg-gradient-to-r from-[#FFFAF5] to-white border-b border-[#BFDBFE]/50 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[#FFFAF5] border border-[#BCEADF] flex items-center justify-center text-[#174B43]">
+            <div className="w-10 h-10 rounded-lg bg-[#FFFAF5] border border-[#BFDBFE] flex items-center justify-center text-[#0F172A]">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
             </div>
             <div>
-              <h2 id="modal-title" className="text-base font-bold text-[#202124]">
+              <h2 id="modal-title" className="text-[15px] font-semibold text-[#182230]">
                 Create New Business / Company
               </h2>
               <p className="text-xs text-[#667085]">
@@ -198,7 +198,7 @@ export function CreateCompanyModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Trade Name */}
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-[#374151] mb-1">
+              <label className="block text-[12px] font-medium text-[#374151] mb-1">
                 {lang === "gu" ? "વેપાર નામ (Trade Name)" : "Trade / Business Name"} <span className="text-red-500">*</span>
               </label>
               <input
@@ -208,13 +208,13 @@ export function CreateCompanyModal({
                 value={tradeName}
                 onChange={(e) => setTradeName(e.target.value)}
                 disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 focus:border-[#174B43] disabled:bg-gray-50"
+                className="w-full px-3 py-2 text-[13px] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F172A]/30 focus:border-[#0F172A] disabled:bg-gray-50 h-10"
               />
             </div>
 
             {/* Legal Name */}
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-[#374151] mb-1">
+              <label className="block text-[12px] font-medium text-[#374151] mb-1">
                 {lang === "gu" ? "કાનૂની નામ (Legal Entity Name - Optional)" : "Legal Entity Name (Optional)"}
               </label>
               <input
@@ -223,13 +223,13 @@ export function CreateCompanyModal({
                 value={legalName}
                 onChange={(e) => setLegalName(e.target.value)}
                 disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 focus:border-[#174B43] disabled:bg-gray-50"
+                className="w-full px-3 py-2 text-[13px] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F172A]/30 focus:border-[#0F172A] disabled:bg-gray-50 h-10"
               />
             </div>
 
             {/* GSTIN */}
             <div>
-              <label className="block text-xs font-semibold text-[#374151] mb-1">
+              <label className="block text-[12px] font-medium text-[#374151] mb-1">
                 GSTIN (15 Digits)
               </label>
               <input
@@ -239,13 +239,13 @@ export function CreateCompanyModal({
                 value={gstin}
                 onChange={handleGstinChange}
                 disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 font-mono text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 focus:border-[#174B43] uppercase disabled:bg-gray-50"
+                className="w-full px-3 py-2 tabular-nums text-[13px] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F172A]/30 focus:border-[#0F172A] uppercase disabled:bg-gray-50 h-10"
               />
             </div>
 
             {/* PAN */}
             <div>
-              <label className="block text-xs font-semibold text-[#374151] mb-1">
+              <label className="block text-[12px] font-medium text-[#374151] mb-1">
                 Permanent Account Number (PAN)
               </label>
               <input
@@ -255,20 +255,20 @@ export function CreateCompanyModal({
                 value={pan}
                 onChange={handlePanChange}
                 disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 font-mono text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 focus:border-[#174B43] uppercase disabled:bg-gray-50"
+                className="w-full px-3 py-2 tabular-nums text-[13px] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F172A]/30 focus:border-[#0F172A] uppercase disabled:bg-gray-50 h-10"
               />
             </div>
 
             {/* State */}
             <div>
-              <label className="block text-xs font-semibold text-[#374151] mb-1">
+              <label className="block text-[12px] font-medium text-[#374151] mb-1">
                 {lang === "gu" ? "રાજ્ય (GST State)" : "GST State"} <span className="text-red-500">*</span>
               </label>
               <select
                 value={stateCode}
                 onChange={(e) => setStateCode(e.target.value)}
                 disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 focus:border-[#174B43] bg-white disabled:bg-gray-50"
+                className="w-full px-3 py-2 text-[13px] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F172A]/30 focus:border-[#0F172A] bg-white disabled:bg-gray-50 h-10"
               >
                 {Object.entries(INDIAN_STATES).map(([code, s]) => (
                   <option key={code} value={code}>
@@ -280,7 +280,7 @@ export function CreateCompanyModal({
 
             {/* City */}
             <div>
-              <label className="block text-xs font-semibold text-[#374151] mb-1">
+              <label className="block text-[12px] font-medium text-[#374151] mb-1">
                 {lang === "gu" ? "શહેર (City / Town)" : "City / Town"}
               </label>
               <input
@@ -289,13 +289,13 @@ export function CreateCompanyModal({
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 focus:border-[#174B43] disabled:bg-gray-50"
+                className="w-full px-3 py-2 text-[13px] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F172A]/30 focus:border-[#0F172A] disabled:bg-gray-50 h-10"
               />
             </div>
 
             {/* Address */}
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-[#374151] mb-1">
+              <label className="block text-[12px] font-medium text-[#374151] mb-1">
                 {lang === "gu" ? "સરનામું (Business Address)" : "Business Address"}
               </label>
               <input
@@ -304,13 +304,13 @@ export function CreateCompanyModal({
                 value={addressLine1}
                 onChange={(e) => setAddressLine1(e.target.value)}
                 disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 focus:border-[#174B43] disabled:bg-gray-50"
+                className="w-full px-3 py-2 text-[13px] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F172A]/30 focus:border-[#0F172A] disabled:bg-gray-50 h-10"
               />
             </div>
 
             {/* Pincode */}
             <div>
-              <label className="block text-xs font-semibold text-[#374151] mb-1">
+              <label className="block text-[12px] font-medium text-[#374151] mb-1">
                 PIN Code
               </label>
               <input
@@ -320,13 +320,13 @@ export function CreateCompanyModal({
                 value={pincode}
                 onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
                 disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 font-mono text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 focus:border-[#174B43] disabled:bg-gray-50"
+                className="w-full px-3 py-2 tabular-nums text-[13px] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F172A]/30 focus:border-[#0F172A] disabled:bg-gray-50 h-10"
               />
             </div>
 
             {/* Phone */}
             <div>
-              <label className="block text-xs font-semibold text-[#374151] mb-1">
+              <label className="block text-[12px] font-medium text-[#374151] mb-1">
                 {lang === "gu" ? "સંપર્ક નંબર (Contact Phone)" : "Contact Phone"}
               </label>
               <input
@@ -336,7 +336,7 @@ export function CreateCompanyModal({
                 value={phone}
                 onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
                 disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 font-mono text-sm border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 focus:border-[#174B43] disabled:bg-gray-50"
+                className="w-full px-3 py-2 tabular-nums text-[13px] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F172A]/30 focus:border-[#0F172A] disabled:bg-gray-50 h-10"
               />
             </div>
           </div>
@@ -356,14 +356,14 @@ export function CreateCompanyModal({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2 text-xs font-semibold text-[#4B5563] bg-white border border-[#D1D5DB] rounded-lg hover:bg-[#F9FAFB] transition-colors disabled:opacity-50"
+              className="h-9 px-3 text-[13px] font-medium text-[#4B5563] bg-white border border-[#D1D5DB] rounded-lg hover:bg-[#F9FAFB] transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !canAdd}
-              className="px-5 py-2 text-xs font-bold text-white bg-[#174B43] hover:bg-[#E06612] rounded-lg shadow-xs transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="h-9 px-3.5 text-[13px] font-medium text-white bg-[#0F172A] hover:bg-[#E06612] rounded-lg shadow-xs transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>

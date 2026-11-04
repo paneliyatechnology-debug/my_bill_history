@@ -233,7 +233,7 @@ function PurchaseInvoiceDetailContent() {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
-        <div className="w-8 h-8 border-3 border-[#174B43] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-3 border-[#0F172A] border-t-transparent rounded-full animate-spin" />
         <p className="text-xs font-semibold text-slate-500">
           {lang === "gu" ? "ખરીદી બિલ વિગતો લોડ થઈ રહી છે..." : "Loading purchase invoice..."}
         </p>
@@ -247,13 +247,13 @@ function PurchaseInvoiceDetailContent() {
         <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto text-xl">
           ⚠️
         </div>
-        <h2 className="text-base font-bold text-slate-900">
+        <h2 className="text-[15px] font-semibold text-[#182230]">
           {lang === "gu" ? "બિલ લોડ કરવામાં ભૂલ આવી" : "Failed to load purchase invoice"}
         </h2>
         <p className="text-xs text-rose-600">{error || "Invoice not found."}</p>
         <Link
           href="/purchases"
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold shadow-sm"
+          className="inline-flex items-center gap-1.5 h-9 px-3 bg-slate-900 text-white rounded-xl text-[13px] font-medium shadow-sm"
         >
           ← {lang === "gu" ? "બધા ખરીદી બિલ પર પાછા જાઓ" : "Back to Purchase Bills"}
         </Link>
@@ -355,7 +355,7 @@ function PurchaseInvoiceDetailContent() {
           <div className="flex items-center gap-3 flex-wrap min-w-0">
             <Link
               href="/purchases"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-[#174B43] hover:bg-[#F2FAF7] rounded-xl border border-slate-200 transition-colors shadow-2xs shrink-0"
+              className="inline-flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-slate-700 hover:text-[#0F172A] hover:bg-[#F8FAFC] rounded-xl border border-slate-200 transition-colors shadow-2xs shrink-0"
               title={lang === "gu" ? "બધા ખરીદી બિલ પર પાછા જાઓ" : "Back to Purchase Invoices"}
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -368,7 +368,7 @@ function PurchaseInvoiceDetailContent() {
 
             <div className="min-w-0">
               <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="font-extrabold text-slate-900 text-base sm:text-lg tracking-tight truncate">
+                <h1 className="font-semibold text-[#182230] text-base sm:text-lg tracking-tight truncate">
                   <span>Purchase #{invoice.vendorInvoiceNumber}</span>
                 </h1>
 
@@ -402,10 +402,10 @@ function PurchaseInvoiceDetailContent() {
             {/* Financial Summary Pill */}
             <div className="hidden md:flex items-center gap-2 bg-[#F6F8F7] px-3 py-1 rounded-xl border border-slate-200 text-xs shadow-2xs">
               <span className="text-slate-500 font-medium">{lang === "gu" ? "કુલ:" : "Total:"}</span>
-              <span className="font-mono font-bold text-slate-900">₹{Number(invoice.grandTotal).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
+              <span className="tabular-nums font-bold text-slate-900">₹{Number(invoice.grandTotal).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
               <span className="text-slate-300">•</span>
               <span className="text-slate-500 font-medium">{lang === "gu" ? "બાકી:" : "Due:"}</span>
-              <span className={`font-mono font-bold ${balance > 0 ? "text-rose-600" : "text-emerald-700"}`}>
+              <span className={`tabular-nums font-bold ${balance > 0 ? "text-rose-600" : "text-emerald-700"}`}>
                 ₹{balance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </span>
             </div>
@@ -416,7 +416,7 @@ function PurchaseInvoiceDetailContent() {
             {/* Print / PDF */}
             <button
               onClick={() => window.print()}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 rounded-xl text-[13px] font-medium shadow-2xs transition-colors cursor-pointer"
               title={lang === "gu" ? "ઇન્વોઇસ પ્રિન્ટ અથવા PDF ડાઉનલોડ કરો" : "Print Invoice or Save as PDF"}
             >
               <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -428,7 +428,7 @@ function PurchaseInvoiceDetailContent() {
             {/* Barcode & QR Sticker Modal Button */}
             <button
               onClick={() => setIsStickerModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 rounded-xl text-[13px] font-medium shadow-2xs transition-colors cursor-pointer"
               title={lang === "gu" ? "બારકોડ અને QR સ્ટીકર પ્રિન્ટ કરો" : "Print Barcode & QR Sticker"}
             >
               <span>🏷️</span>
@@ -446,7 +446,7 @@ function PurchaseInvoiceDetailContent() {
                   : `https://wa.me/?text=${encodeURIComponent(text)}`;
                 window.open(waUrl, "_blank");
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
               title={lang === "gu" ? "વોટ્સએપ પર શેર કરો" : "Share via WhatsApp"}
             >
               <span>💬</span>
@@ -456,7 +456,7 @@ function PurchaseInvoiceDetailContent() {
             {/* Audit Info Button */}
             <button
               onClick={() => setShowInfoModal(true)}
-              className="p-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-600 hover:text-[#174B43] border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer shrink-0"
+              className="p-2 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-600 hover:text-[#0F172A] border border-slate-200 rounded-xl text-[13px] font-medium shadow-2xs transition-colors cursor-pointer shrink-0"
               title={lang === "gu" ? "બિલ ઑડિટ વિગતો" : "Invoice Audit & Details"}
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -472,7 +472,7 @@ function PurchaseInvoiceDetailContent() {
                   setPaymentError(null);
                   setIsPaymentModalOpen(true);
                 }}
-                className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
+                className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
               >
                 <span>💳</span>
                 <span>{lang === "gu" ? "ચુકવણી નોંધો" : "Record Payment"}</span>
@@ -501,14 +501,14 @@ function PurchaseInvoiceDetailContent() {
          ───────────────────────────────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs p-6 space-y-4 print:hidden">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+          <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-2">
             <span>💳</span>
             <span>Supplier Payments & Debit Notes</span>
           </h3>
           <div className="flex items-center gap-2">
             <Link
               href={`/purchases/returns?invoiceId=${invoice.id}`}
-              className="px-3 py-1.5 bg-[#F2FAF7] text-[#174B43] border border-[#BCEADF] rounded-xl text-xs font-bold"
+              className="h-9 px-3 bg-[#F8FAFC] text-[#0F172A] border border-[#BFDBFE] rounded-xl text-[13px] font-medium"
             >
               + Create Debit Note
             </Link>
@@ -529,10 +529,10 @@ function PurchaseInvoiceDetailContent() {
               <tbody className="divide-y divide-slate-100">
                 {payments.map((p, idx) => (
                   <tr key={idx}>
-                    <td className="p-2.5 font-mono">{new Date(p.paymentDate).toLocaleDateString("en-IN")}</td>
-                    <td className="p-2.5 font-bold">{p.paymentMode}</td>
-                    <td className="p-2.5 font-mono text-slate-500">{p.referenceNo || "—"}</td>
-                    <td className="p-2.5 text-right font-mono font-bold text-emerald-700">₹{Number(p.amount).toFixed(2)}</td>
+                    <td className="p-2.5 tabular-nums">{new Date(p.paymentDate).toLocaleDateString("en-IN")}</td>
+                    <td className="p-2.5 font-medium">{p.paymentMode}</td>
+                    <td className="p-2.5 tabular-nums text-slate-500">{p.referenceNo || "—"}</td>
+                    <td className="p-2.5 text-right tabular-nums font-medium text-emerald-700">₹{Number(p.amount).toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -559,7 +559,7 @@ function PurchaseInvoiceDetailContent() {
               </div>
             )}
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Amount (₹) *</label>
+              <label className="block font-medium text-slate-700 mb-1">Amount (₹) *</label>
               <input
                 type="number"
                 min="0.01"
@@ -568,28 +568,28 @@ function PurchaseInvoiceDetailContent() {
                 required
                 value={payAmount}
                 onChange={(e) => setPayAmount(e.target.value === "" ? "" : Number(e.target.value))}
-                className="w-full p-2.5 border border-slate-300 rounded-xl font-mono font-bold text-slate-900"
+                className="w-full p-2.5 border border-slate-300 rounded-xl tabular-nums font-normal text-slate-900 text-[13px] font-normal h-10"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Payment Date *</label>
+                <label className="block font-medium text-slate-700 mb-1">Payment Date *</label>
                 <input
                   type="date"
                   required
                   value={payDate}
                   onChange={(e) => setPayDate(e.target.value)}
-                  className="w-full p-2 border border-slate-300 rounded-xl font-mono"
+                  className="w-full p-2 border border-slate-300 rounded-xl tabular-nums text-[13px] font-normal h-10"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Payment Mode *</label>
+                <label className="block font-medium text-slate-700 mb-1">Payment Mode *</label>
                 <select
                   value={payMode}
                   onChange={(e) => setPaymentMode(e.target.value)}
-                  className="w-full p-2 border border-slate-300 rounded-xl font-semibold"
+                  className="w-full p-2 border border-slate-300 rounded-xl font-normal text-[13px] font-normal h-10"
                 >
                   <option value="CASH">Cash</option>
                   <option value="BANK_TRANSFER">Bank Transfer</option>
@@ -600,11 +600,11 @@ function PurchaseInvoiceDetailContent() {
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Paid From Account</label>
+              <label className="block font-medium text-slate-700 mb-1">Paid From Account</label>
               <select
                 value={payAccountId}
                 onChange={(e) => setPayAccountId(e.target.value)}
-                className="w-full p-2 border border-slate-300 rounded-xl"
+                className="w-full p-2 border border-slate-300 rounded-xl text-[13px] font-normal h-10"
               >
                 <option value="">Default Cash Account</option>
                 {payAccounts.map((acc) => (
@@ -614,13 +614,13 @@ function PurchaseInvoiceDetailContent() {
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Reference / UTR / Cheque No.</label>
+              <label className="block font-medium text-slate-700 mb-1">Reference / UTR / Cheque No.</label>
               <input
                 type="text"
                 value={payReference}
                 onChange={(e) => setPayReference(e.target.value)}
                 placeholder="e.g. UTR-982341"
-                className="w-full p-2 border border-slate-300 rounded-xl font-mono"
+                className="w-full p-2 border border-slate-300 rounded-xl tabular-nums text-[13px] font-normal h-10"
               />
             </div>
 
@@ -628,14 +628,14 @@ function PurchaseInvoiceDetailContent() {
               <button
                 type="button"
                 onClick={() => setIsPaymentModalOpen(false)}
-                className="px-4 py-2 border rounded-xl"
+                className="h-9 px-3 border rounded-xl"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmittingPayment}
-                className="px-5 py-2 bg-[#174B43] hover:bg-[#123B35] text-white font-bold rounded-xl shadow-xs transition-colors cursor-pointer"
+                className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white font-medium rounded-xl shadow-xs transition-colors cursor-pointer"
               >
                 {isSubmittingPayment ? "Recording..." : "Record Payment"}
               </button>
@@ -656,7 +656,7 @@ function PurchaseInvoiceDetailContent() {
           <div className="p-4 space-y-3 text-xs text-slate-700">
             <div className="flex justify-between py-1 border-b">
               <span className="text-slate-500">Invoice ID:</span>
-              <span className="font-mono">{invoice.id}</span>
+              <span className="tabular-nums">{invoice.id}</span>
             </div>
             <div className="flex justify-between py-1 border-b">
               <span className="text-slate-500">Place of Supply:</span>
@@ -699,7 +699,7 @@ export default function PurchaseInvoiceDetailPage() {
       fallback={
         <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center p-8">
           <div className="text-center space-y-3">
-            <div className="w-8 h-8 border-3 border-[#174B43] border-t-transparent rounded-full animate-spin mx-auto" />
+            <div className="w-8 h-8 border-3 border-[#0F172A] border-t-transparent rounded-full animate-spin mx-auto" />
             <p className="text-xs font-semibold text-slate-500">Loading purchase bill details...</p>
           </div>
         </div>

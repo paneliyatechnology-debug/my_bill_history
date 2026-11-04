@@ -147,7 +147,7 @@ export default function InventoryReconciliationPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
               {lang === "gu"
                 ? "ઇન્વેન્ટરી અને ખાતાવહી મેળવણી (Inventory Reconciliation)"
                 : "Inventory & General Ledger Reconciliation"}
@@ -204,7 +204,7 @@ export default function InventoryReconciliationPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H10m4-9h-4a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2V8a2 2 0 00-2-2z" />
             </svg>
           </div>
-          <h3 className="text-base font-bold text-slate-800">
+          <h3 className="text-[15px] font-semibold text-slate-800">
             {lang === "gu" ? "આ અહેવાલ જોવાની પરવાનગી નથી" : "Access Restricted / Permission Denied"}
           </h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
@@ -231,25 +231,25 @@ export default function InventoryReconciliationPage() {
           <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
               <div>
-                <label className="block text-[11px] font-semibold text-slate-500 mb-0.5">
+                <label className="block text-[11px] font-medium text-slate-500 mb-0.5">
                   {lang === "gu" ? "તારીખ સુધી (As of Date)" : "As of Date"}
                 </label>
                 <input
                   type="date"
                   value={asOfDate}
                   onChange={(e) => setAsOfDate(e.target.value)}
-                  className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                  className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] h-10"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-slate-500 mb-0.5">
+                <label className="block text-[11px] font-medium text-slate-500 mb-0.5">
                   {lang === "gu" ? "ગોડાઉન ફિલ્ટર" : "Warehouse Scope"}
                 </label>
                 <select
                   value={warehouseId}
                   onChange={(e) => setWarehouseId(e.target.value)}
-                  className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                  className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] h-10"
                 >
                   <option value="">{lang === "gu" ? "તમામ ગોડાઉન (All Warehouses)" : "All Warehouses"}</option>
                   {warehouses.map((w) => (
@@ -266,7 +266,7 @@ export default function InventoryReconciliationPage() {
               <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">
                 Accounting Policy
               </span>
-              <span className="text-xs font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+              <span className="text-xs tabular-nums font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
                 {stockGlData?.accountingPolicy || "PERIODIC"} TRADING BASIS
               </span>
             </div>
@@ -278,7 +278,7 @@ export default function InventoryReconciliationPage() {
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
                 {lang === "gu" ? "ગોડાઉન સ્ટોક મૂલ્યાંકન" : "Physical Godown Stock"}
               </span>
-              <div className="text-lg font-bold font-mono text-slate-900 mt-1">
+              <div className="text-lg font-bold tabular-nums text-slate-900 mt-1">
                 ₹{Number(stockGlData?.physicalStockValuation || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </div>
               <span className="text-[11px] text-slate-400 mt-0.5 block">
@@ -290,7 +290,7 @@ export default function InventoryReconciliationPage() {
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
                 {lang === "gu" ? "ઇન-ટ્રાન્ઝિટ માલસામાન" : "In-Transit Inventory"}
               </span>
-              <div className="text-lg font-bold font-mono text-indigo-600 mt-1">
+              <div className="text-lg font-bold tabular-nums text-indigo-600 mt-1">
                 ₹{Number(stockGlData?.inTransitValuation || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </div>
               <span className="text-[11px] text-slate-400 mt-0.5 block">
@@ -302,7 +302,7 @@ export default function InventoryReconciliationPage() {
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
                 {lang === "gu" ? "ઉત્પાદન કાર્ય (WIP)" : "Work-in-Progress (WIP)"}
               </span>
-              <div className="text-lg font-bold font-mono text-amber-600 mt-1">
+              <div className="text-lg font-bold tabular-nums text-amber-600 mt-1">
                 ₹{Number(stockGlData?.manufacturingWipValuation || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </div>
               <span className="text-[11px] text-slate-400 mt-0.5 block">
@@ -314,7 +314,7 @@ export default function InventoryReconciliationPage() {
               <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">
                 {lang === "gu" ? "કુલ માલિકી સ્ટોક મૂલ્ય" : "Total Owned Inventory"}
               </span>
-              <div className="text-lg font-bold font-mono text-emerald-900 mt-1">
+              <div className="text-lg font-bold tabular-nums text-emerald-900 mt-1">
                 ₹{totalOwnedValuation.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </div>
               <span className="text-[11px] text-emerald-700 mt-0.5 block">
@@ -329,7 +329,7 @@ export default function InventoryReconciliationPage() {
               onClick={() => setActiveTab("stock-gl")}
               className={`pb-3 px-1 border-b-2 font-semibold transition-colors ${
                 activeTab === "stock-gl"
-                  ? "border-[#174B43] text-[#174B43]"
+                  ? "border-[#0F172A] text-[#0F172A]"
                   : "border-transparent text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -341,7 +341,7 @@ export default function InventoryReconciliationPage() {
               onClick={() => setActiveTab("in-transit")}
               className={`pb-3 px-1 border-b-2 font-semibold transition-colors ${
                 activeTab === "in-transit"
-                  ? "border-[#174B43] text-[#174B43]"
+                  ? "border-[#0F172A] text-[#0F172A]"
                   : "border-transparent text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -353,7 +353,7 @@ export default function InventoryReconciliationPage() {
               onClick={() => setActiveTab("manufacturing")}
               className={`pb-3 px-1 border-b-2 font-semibold transition-colors ${
                 activeTab === "manufacturing"
-                  ? "border-[#174B43] text-[#174B43]"
+                  ? "border-[#0F172A] text-[#0F172A]"
                   : "border-transparent text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -366,7 +366,7 @@ export default function InventoryReconciliationPage() {
           {/* Tab Content */}
           {isLoading ? (
             <div className="p-12 text-center text-slate-400 bg-white rounded-xl border border-slate-200">
-              <svg className="w-8 h-8 animate-spin mx-auto text-[#174B43] mb-2" fill="none" viewBox="0 0 24 24">
+              <svg className="w-8 h-8 animate-spin mx-auto text-[#0F172A] mb-2" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
@@ -379,7 +379,7 @@ export default function InventoryReconciliationPage() {
                 <div className="space-y-6">
                   {/* Detailed Mathematical Audit Card */}
                   <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-4">
-                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                    <h3 className="text-[15px] font-semibold text-slate-900 uppercase tracking-wider">
                       {lang === "gu"
                         ? "પેરીયોડીક અને પરપેચ્યુઅલ ઓડિટ ગણતરી (Audit Formulas)"
                         : "Periodic & Perpetual Inventory Reconciliation Mathematics"}
@@ -392,7 +392,7 @@ export default function InventoryReconciliationPage() {
                           <span className="text-xs font-bold text-slate-700 uppercase">
                             Periodic Trading Reconciliation
                           </span>
-                          <span className="text-[11px] text-slate-500 font-mono">
+                          <span className="text-[11px] text-slate-500 tabular-nums">
                             Opening + Purchases - COGS - Transit Loss
                           </span>
                         </div>
@@ -400,38 +400,38 @@ export default function InventoryReconciliationPage() {
                         <div className="space-y-1.5 text-xs">
                           <div className="flex justify-between py-1 border-b border-slate-200">
                             <span className="text-slate-600">Opening Stock Valuation:</span>
-                            <span className="font-mono text-slate-900">
+                            <span className="tabular-nums text-slate-900">
                               +₹{Number(stockGlData.openingStockValuation || 0).toFixed(2)}
                             </span>
                           </div>
                           <div className="flex justify-between py-1 border-b border-slate-200">
                             <span className="text-slate-600">Net GL Purchases (A/c 5010):</span>
-                            <span className="font-mono text-slate-900">
+                            <span className="tabular-nums text-slate-900">
                               +₹{Number(stockGlData.generalLedgerPurchaseTotal || 0).toFixed(2)}
                             </span>
                           </div>
                           <div className="flex justify-between py-1 border-b border-slate-200">
                             <span className="text-slate-600">Cost of Goods Sold (Dispatches):</span>
-                            <span className="font-mono text-slate-900">
+                            <span className="tabular-nums text-slate-900">
                               -₹{Number(stockGlData.costOfGoodsSoldValuation || 0).toFixed(2)}
                             </span>
                           </div>
                           <div className="flex justify-between py-1 border-b border-slate-200">
                             <span className="text-slate-600">Transit Losses / Shortage:</span>
-                            <span className="font-mono text-slate-900">
+                            <span className="tabular-nums text-slate-900">
                               -₹{Number(stockGlData.transitLossValuation || 0).toFixed(2)}
                             </span>
                           </div>
                           <div className="flex justify-between py-1.5 font-bold text-slate-900 border-b border-slate-300">
                             <span>Expected Periodic Inventory:</span>
-                            <span className="font-mono text-indigo-700">
+                            <span className="tabular-nums text-indigo-700">
                               ₹{Number(stockGlData.expectedPeriodicInventory || 0).toFixed(2)}
                             </span>
                           </div>
                           <div className="flex justify-between py-1.5 font-bold text-slate-900">
                             <span>Periodic Variance:</span>
                             <span
-                              className={`font-mono ${
+                              className={`tabular-nums ${
                                 Math.abs(Number(stockGlData.periodicVariance || 0)) < 0.01
                                   ? "text-emerald-700"
                                   : "text-rose-600"
@@ -449,7 +449,7 @@ export default function InventoryReconciliationPage() {
                           <span className="text-xs font-bold text-slate-700 uppercase">
                             Perpetual Asset Reconciliation
                           </span>
-                          <span className="text-[11px] text-slate-500 font-mono">
+                          <span className="text-[11px] text-slate-500 tabular-nums">
                             Subledger Goods vs GL Asset Ledgers
                           </span>
                         </div>
@@ -457,20 +457,20 @@ export default function InventoryReconciliationPage() {
                         <div className="space-y-1.5 text-xs">
                           <div className="flex justify-between py-1 border-b border-slate-200">
                             <span className="text-slate-600">Total Owned Goods (Physical + Transit + WIP):</span>
-                            <span className="font-mono text-slate-900">
+                            <span className="tabular-nums text-slate-900">
                               ₹{totalOwnedValuation.toFixed(2)}
                             </span>
                           </div>
                           <div className="flex justify-between py-1 border-b border-slate-200">
                             <span className="text-slate-600">GL Stock-in-Hand / Inventory Balance:</span>
-                            <span className="font-mono text-slate-900">
+                            <span className="tabular-nums text-slate-900">
                               ₹{Number(stockGlData.glInventoryAssetBalance || 0).toFixed(2)}
                             </span>
                           </div>
                           <div className="flex justify-between py-1.5 font-bold text-slate-900 border-b border-slate-300">
                             <span>Perpetual Variance:</span>
                             <span
-                              className={`font-mono ${
+                              className={`tabular-nums ${
                                 Math.abs(Number(stockGlData.perpetualVariance || 0)) < 0.01
                                   ? "text-emerald-700"
                                   : "text-amber-700"
@@ -495,14 +495,14 @@ export default function InventoryReconciliationPage() {
                 <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
                   <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                     <div>
-                      <h3 className="text-sm font-bold text-slate-800">
+                      <h3 className="text-[15px] font-semibold text-slate-800">
                         {lang === "gu" ? "રસ્તામાં રહેલ માલસામાન (In-Transit Transfers)" : "Active In-Transit Goods"}
                       </h3>
                       <p className="text-xs text-slate-500">
                         Dispatched from source warehouses awaiting delivery receipt
                       </p>
                     </div>
-                    <span className="text-xs font-mono font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded border border-indigo-200">
+                    <span className="text-xs tabular-nums font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded border border-indigo-200">
                       Total In-Transit: ₹{Number(inTransitData.totalInTransitValuation).toFixed(2)}
                     </span>
                   </div>
@@ -515,7 +515,7 @@ export default function InventoryReconciliationPage() {
                         header: lang === "gu" ? "ટ્રાન્સફર #" : "Transfer #",
                         accessorKey: "transferNumber",
                         sortable: true,
-                        cell: (t) => <span className="font-mono font-medium text-slate-900">{t.transferNumber}</span>,
+                        cell: (t) => <span className="tabular-nums font-medium text-slate-900">{t.transferNumber}</span>,
                       },
                       {
                         id: "route",
@@ -537,7 +537,7 @@ export default function InventoryReconciliationPage() {
                         accessorKey: "itemsCount",
                         sortable: true,
                         align: "right",
-                        cell: (t) => <span className="font-mono text-slate-700">{t.itemsCount}</span>,
+                        cell: (t) => <span className="tabular-nums text-slate-700">{t.itemsCount}</span>,
                       },
                       {
                         id: "inTransitQuantity",
@@ -545,7 +545,7 @@ export default function InventoryReconciliationPage() {
                         accessorKey: "inTransitQuantity",
                         sortable: true,
                         align: "right",
-                        cell: (t) => <span className="font-mono font-bold text-indigo-700">{t.inTransitQuantity}</span>,
+                        cell: (t) => <span className="tabular-nums font-bold text-indigo-700">{t.inTransitQuantity}</span>,
                       },
                       {
                         id: "inTransitValuation",
@@ -553,7 +553,7 @@ export default function InventoryReconciliationPage() {
                         accessorKey: "inTransitValuation",
                         sortable: true,
                         align: "right",
-                        cell: (t) => <span className="font-mono font-bold text-slate-900">₹{Number(t.inTransitValuation).toFixed(2)}</span>,
+                        cell: (t) => <span className="tabular-nums font-bold text-slate-900">₹{Number(t.inTransitValuation).toFixed(2)}</span>,
                       },
                     ]}
                     searchPlaceholder={lang === "gu" ? "ટ્રાન્સફર # અથવા ગોડાઉન શોધો..." : "Search transfer # or warehouse..."}
@@ -573,13 +573,13 @@ export default function InventoryReconciliationPage() {
                         className="p-3 bg-white rounded-xl border border-slate-200 shadow-sm space-y-2 text-xs cursor-pointer hover:border-indigo-400 transition-colors"
                       >
                         <div className="flex justify-between items-start">
-                          <span className="font-mono font-bold text-slate-900">{t.transferNumber}</span>
-                          <span className="font-mono font-bold text-slate-900">₹{Number(t.inTransitValuation).toFixed(2)}</span>
+                          <span className="tabular-nums font-bold text-slate-900">{t.transferNumber}</span>
+                          <span className="tabular-nums font-bold text-slate-900">₹{Number(t.inTransitValuation).toFixed(2)}</span>
                         </div>
                         <div className="text-slate-700 font-medium">{t.fromWarehouse} → {t.toWarehouse}</div>
                         <div className="flex justify-between text-slate-500 pt-1 border-t border-slate-100">
                           <span>Dispatched: {new Date(t.dispatchedAt).toLocaleDateString()}</span>
-                          <span className="font-mono text-indigo-700 font-bold">Qty: {t.inTransitQuantity}</span>
+                          <span className="tabular-nums text-indigo-700 font-bold">Qty: {t.inTransitQuantity}</span>
                         </div>
                       </div>
                     )}
@@ -590,7 +590,7 @@ export default function InventoryReconciliationPage() {
               {/* TAB 3: Manufacturing Cost & WIP */}
               {activeTab === "manufacturing" && mfgCostData && (
                 <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-4">
-                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                  <h3 className="text-[15px] font-semibold text-slate-900 uppercase tracking-wider">
                     {lang === "gu"
                       ? "ઉત્પાદન ખર્ચ સમાવેશ અને પરિણામ મૂલ્ય (Cost Absorption Breakdown)"
                       : "Manufacturing Cost Absorption & Yield Breakdown"}
@@ -599,28 +599,28 @@ export default function InventoryReconciliationPage() {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs">
                       <span className="text-slate-500 block">Raw Material Cost</span>
-                      <span className="text-base font-bold font-mono text-slate-900 mt-1 block">
+                      <span className="text-base font-bold tabular-nums text-slate-900 mt-1 block">
                         ₹{Number(mfgCostData.totalRawMaterialCost).toFixed(2)}
                       </span>
                     </div>
 
                     <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs">
                       <span className="text-slate-500 block">Actual Labor Cost</span>
-                      <span className="text-base font-bold font-mono text-slate-900 mt-1 block">
+                      <span className="text-base font-bold tabular-nums text-slate-900 mt-1 block">
                         ₹{Number(mfgCostData.totalActualLaborCost).toFixed(2)}
                       </span>
                     </div>
 
                     <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs">
                       <span className="text-slate-500 block">Actual Overhead Cost</span>
-                      <span className="text-base font-bold font-mono text-slate-900 mt-1 block">
+                      <span className="text-base font-bold tabular-nums text-slate-900 mt-1 block">
                         ₹{Number(mfgCostData.totalActualOverheadCost).toFixed(2)}
                       </span>
                     </div>
 
                     <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-xs">
                       <span className="text-emerald-800 block">Total Finished Yield</span>
-                      <span className="text-base font-bold font-mono text-emerald-900 mt-1 block">
+                      <span className="text-base font-bold tabular-nums text-emerald-900 mt-1 block">
                         ₹{Number(mfgCostData.totalFinishedValuationYield).toFixed(2)}
                       </span>
                     </div>
@@ -632,7 +632,7 @@ export default function InventoryReconciliationPage() {
                     </span>
                     <span className="text-slate-600">
                       Unabsorbed Cost Variance:{" "}
-                      <strong className="font-mono text-slate-900">
+                      <strong className="tabular-nums text-slate-900">
                         ₹{Number(mfgCostData.unabsorbedVariance).toFixed(2)}
                       </strong>
                     </span>

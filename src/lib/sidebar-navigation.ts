@@ -257,12 +257,36 @@ export function resolveActiveNavigation(rawPath: string): {
   ) {
     activeSectionId = "settings";
   } else if (
+    isPathPrefixMatch(path, "/accounting/vouchers/new") ||
+    isPathPrefixMatch(path, "/finance/vouchers/new")
+  ) {
+    activeSectionId = "vouchers";
+    activeSubItemHref = "/accounting/vouchers/new";
+  } else if (
+    isPathPrefixMatch(path, "/vouchers/all_transactions") ||
+    isPathPrefixMatch(path, "/app/home/vouchers/all_transactions")
+  ) {
+    activeSectionId = "vouchers";
+    activeSubItemHref = "/vouchers/all_transactions";
+  } else if (
+    isPathPrefixMatch(path, "/accounting/ledgers") ||
+    isPathPrefixMatch(path, "/finance/ledgers")
+  ) {
+    activeSectionId = "vouchers";
+    activeSubItemHref = "/accounting/ledgers";
+  } else if (
+    isPathPrefixMatch(path, "/accounting/chart-of-accounts")
+  ) {
+    activeSectionId = "vouchers";
+    activeSubItemHref = "/accounting/chart-of-accounts";
+  } else if (
     isPathPrefixMatch(path, "/accounting") ||
     isPathPrefixMatch(path, "/vouchers") ||
+    isPathPrefixMatch(path, "/finance/vouchers") ||
     isPathPrefixMatch(path, "/app/home/vouchers")
   ) {
-    // General accounting/vouchers map to cash_bank or reports
-    activeSectionId = "cash_bank";
+    activeSectionId = "vouchers";
+    activeSubItemHref = "/accounting/vouchers";
   }
 
   return {

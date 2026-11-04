@@ -69,7 +69,7 @@ export default function StockMovementsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
               {lang === "gu"
                 ? "સ્ટોક આવક-જાવક હિસાબ (Stock Movements)"
                 : "Stock Movement Audit Ledger"}
@@ -98,7 +98,7 @@ export default function StockMovementsPage() {
             accessorKey: "transactionDate",
             sortable: true,
             cell: (m) => (
-              <span className="font-mono text-slate-600">
+              <span className="tabular-nums text-slate-600">
                 {new Date(m.transactionDate).toLocaleDateString("en-IN")}
               </span>
             ),
@@ -145,7 +145,7 @@ export default function StockMovementsPage() {
               ].includes(m.transactionType);
               return (
                 <span
-                  className={`font-mono font-bold ${
+                  className={`tabular-nums font-bold ${
                     isInward ? "text-emerald-700" : "text-amber-700"
                   }`}
                 >
@@ -211,7 +211,7 @@ export default function StockMovementsPage() {
                   {m.item?.name || "Inventory Item"}
                 </span>
                 <span
-                  className={`font-mono font-bold text-sm ${
+                  className={`tabular-nums font-bold text-sm ${
                     isInward ? "text-emerald-700" : "text-amber-700"
                   }`}
                 >
@@ -220,7 +220,7 @@ export default function StockMovementsPage() {
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs text-slate-500">
-                <span className="font-mono">
+                <span className="tabular-nums">
                   {new Date(m.transactionDate).toLocaleDateString("en-IN")}
                 </span>
                 <Badge variant={typeBadgeVariant(m.transactionType)}>

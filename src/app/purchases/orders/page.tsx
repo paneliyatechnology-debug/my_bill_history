@@ -532,7 +532,7 @@ export default function PurchaseOrdersListPage() {
                 </svg>
               </button>
               <div className="flex items-center gap-2">
-                <h1 className="text-base sm:text-lg font-bold text-slate-900">
+                <h1 className="text-base sm:text-[22px] font-semibold text-[#182230]">
                   Purchase Order #{ord.orderNumber}
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FEF6EE] text-[#B93815] border border-[#FECDCA]">
@@ -546,7 +546,7 @@ export default function PurchaseOrdersListPage() {
               <select
                 value={selectedPaperSize}
                 onChange={(e) => setSelectedPaperSize(e.target.value as any)}
-                className="px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+                className="px-2.5 py-1.5 text-[13px] font-normal text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer h-10"
               >
                 <option value="A4">A4 (Standard)</option>
                 <option value="A5">A5 (Half Page)</option>
@@ -558,7 +558,7 @@ export default function PurchaseOrdersListPage() {
               {/* Theme Settings Button */}
               <Link
                 href="/settings/invoice-settings"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs"
+                className="inline-flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs"
                 title="Change Invoice Theme in Settings"
               >
                 <span className="text-sm">🎨</span>
@@ -570,7 +570,7 @@ export default function PurchaseOrdersListPage() {
                 type="button"
                 onClick={handleDownloadPdf}
                 disabled={isGeneratingPdf}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
               >
                 {isGeneratingPdf ? (
                   <span className="inline-block w-3.5 h-3.5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
@@ -587,7 +587,7 @@ export default function PurchaseOrdersListPage() {
                 <button
                   type="button"
                   onClick={() => setIsPrintDropdownOpen((p) => !p)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+                  className="inline-flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
                 >
                   <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -600,7 +600,7 @@ export default function PurchaseOrdersListPage() {
                     <button
                       type="button"
                       onClick={() => handlePrintOrder("A4")}
-                      className="w-full text-left px-3.5 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
+                      className="w-full text-left h-9 px-3 text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
                     >
                       <span>📄</span>
                       <span>Print A4 / Standard</span>
@@ -608,7 +608,7 @@ export default function PurchaseOrdersListPage() {
                     <button
                       type="button"
                       onClick={() => handlePrintOrder("THERMAL_80")}
-                      className="w-full text-left px-3.5 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-t border-slate-100 cursor-pointer"
+                      className="w-full text-left h-9 px-3 text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-t border-slate-100 cursor-pointer"
                     >
                       <span>🧾</span>
                       <span>Print Thermal (80mm)</span>
@@ -622,7 +622,7 @@ export default function PurchaseOrdersListPage() {
                 <button
                   type="button"
                   onClick={() => setIsShareDropdownOpen((p) => !p)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+                  className="inline-flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
                 >
                   <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
@@ -656,7 +656,7 @@ export default function PurchaseOrdersListPage() {
                         navigator.clipboard.writeText(window.location.href);
                         alert("Order link copied to clipboard!");
                       }}
-                      className="w-full text-left px-3.5 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-t border-slate-100 cursor-pointer"
+                      className="w-full text-left h-9 px-3 text-slate-700 hover:bg-slate-50 flex items-center gap-2 border-t border-slate-100 cursor-pointer"
                     >
                       <span>🔗</span>
                       <span>Copy Link</span>
@@ -669,7 +669,7 @@ export default function PurchaseOrdersListPage() {
               <button
                 type="button"
                 onClick={() => handleConvertToBill(ord)}
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-[#4C3CCE] hover:bg-[#4338CA] rounded-md transition-colors shadow-xs cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-medium text-white bg-[#4C3CCE] hover:bg-[#4338CA] rounded-md transition-colors shadow-xs cursor-pointer"
               >
                 <span>Convert to Purchase Invoice</span>
               </button>
@@ -710,7 +710,7 @@ export default function PurchaseOrdersListPage() {
       <div className="max-w-[1550px] mx-auto space-y-4">
         {/* Top Header: Title and Tools */}
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
             Purchase Orders
           </h1>
 
@@ -782,7 +782,7 @@ export default function PurchaseOrdersListPage() {
               <button
                 type="button"
                 onClick={() => setIsDateDropdownOpen(!isDateDropdownOpen)}
-                className="h-9 inline-flex items-center gap-2 px-3 bg-white border border-slate-300 rounded-md text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors"
+                className="h-9 inline-flex items-center gap-2 px-3 bg-white border border-slate-300 rounded-md text-[13px] font-medium text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors"
               >
                 <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -822,7 +822,7 @@ export default function PurchaseOrdersListPage() {
               <button
                 type="button"
                 onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                className="h-9 inline-flex items-center justify-between gap-3 px-3 min-w-[170px] bg-white border border-slate-300 rounded-md text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors"
+                className="h-9 inline-flex items-center justify-between gap-3 px-3 min-w-[170px] bg-white border border-slate-300 rounded-md text-[13px] font-medium text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors"
               >
                 <span>
                   {statusFilter === "ALL"
@@ -887,7 +887,7 @@ export default function PurchaseOrdersListPage() {
           <div>
             <Link
               href="/purchases/orders/create"
-              className="h-9 px-5 inline-flex items-center justify-center font-bold text-xs text-white bg-[#4C3CCE] hover:bg-[#4338CA] active:bg-[#3B2EB8] rounded-md transition-colors shadow-xs"
+              className="h-9 px-5 inline-flex items-center justify-center font-medium text-[13px] text-white bg-[#4C3CCE] hover:bg-[#4338CA] active:bg-[#3B2EB8] rounded-md transition-colors shadow-xs"
             >
               Create Purchase Order
             </Link>
@@ -974,7 +974,7 @@ export default function PurchaseOrdersListPage() {
                       <td className="py-3.5 px-4 text-slate-600 whitespace-nowrap">
                         {ord.validTill || "-"}
                       </td>
-                      <td className="py-3.5 px-4 text-slate-900 font-bold whitespace-nowrap">
+                      <td className="py-3.5 px-4 text-slate-900 font-medium whitespace-nowrap">
                         ₹ {Number(ord.grandTotal || 0).toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
                       </td>
                       <td className="py-3.5 px-4 whitespace-nowrap">
@@ -1019,7 +1019,7 @@ export default function PurchaseOrdersListPage() {
                               onClick={() => {
                                 router.push(`/purchases/orders/create?edit=${ord.id}`);
                               }}
-                              className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium"
+                              className="w-full text-left h-9 px-3 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium"
                             >
                               <span>✏️</span>
                               <span>Edit</span>
@@ -1031,7 +1031,7 @@ export default function PurchaseOrdersListPage() {
                                 setHistoryOrder(ord);
                                 setActiveMenuId(null);
                               }}
-                              className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium"
+                              className="w-full text-left h-9 px-3 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium"
                             >
                               <span>🕒</span>
                               <span>Edit History</span>
@@ -1040,7 +1040,7 @@ export default function PurchaseOrdersListPage() {
                             <button
                               type="button"
                               onClick={() => handleDuplicateOrder(ord)}
-                              className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium"
+                              className="w-full text-left h-9 px-3 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium"
                             >
                               <span>📋</span>
                               <span>Duplicate</span>
@@ -1049,7 +1049,7 @@ export default function PurchaseOrdersListPage() {
                             <button
                               type="button"
                               onClick={() => handleConvertToBill(ord)}
-                              className="w-full text-left px-3.5 py-2 text-xs text-emerald-700 hover:bg-emerald-50 flex items-center gap-2 font-medium border-t border-slate-100"
+                              className="w-full text-left h-9 px-3 text-[13px] text-emerald-700 hover:bg-emerald-50 flex items-center gap-2 font-medium border-t border-slate-100"
                             >
                               <span>📄</span>
                               <span>Convert to Bill</span>
@@ -1058,7 +1058,7 @@ export default function PurchaseOrdersListPage() {
                             <button
                               type="button"
                               onClick={() => handleDeleteOrder(ord.id)}
-                              className="w-full text-left px-3.5 py-2 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2 font-medium border-t border-slate-100"
+                              className="w-full text-left h-9 px-3 text-[13px] text-red-600 hover:bg-red-50 flex items-center gap-2 font-medium border-t border-slate-100"
                             >
                               <span>🗑️</span>
                               <span>Delete</span>
@@ -1081,7 +1081,7 @@ export default function PurchaseOrdersListPage() {
                         </p>
                         <Link
                           href="/purchases/orders/create"
-                          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-[#4C3CCE] hover:bg-[#4338CA] rounded-md transition-colors"
+                          className="inline-flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-white bg-[#4C3CCE] hover:bg-[#4338CA] rounded-md transition-colors"
                         >
                           Create Purchase Order
                         </Link>
@@ -1100,7 +1100,7 @@ export default function PurchaseOrdersListPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
           <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full p-5 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-bold text-slate-900 text-sm">
+              <h3 className="font-semibold text-slate-900 text-[15px]">
                 Edit History — PO #{historyOrder.orderNumber}
               </h3>
               <button
@@ -1129,7 +1129,7 @@ export default function PurchaseOrdersListPage() {
               <button
                 type="button"
                 onClick={() => setHistoryOrder(null)}
-                className="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg"
+                className="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[13px] font-medium rounded-lg"
               >
                 Close
               </button>

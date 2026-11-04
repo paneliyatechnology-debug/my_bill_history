@@ -23,15 +23,15 @@ export function Badge({
 }: BadgeProps) {
   const variantStyles: Record<BadgeVariant, string> = {
     primary:
-      "bg-[#E6F7F2] text-[#174B43] border-[#85D5C2] font-semibold",
+      "bg-[#EAF3FF] text-[#125CC0] border-[#B9D6FF] font-medium",
     saffron:
-      "bg-[#E6F7F2] text-[#174B43] border-[#85D5C2] font-semibold",
+      "bg-[#EAF3FF] text-[#125CC0] border-[#B9D6FF] font-medium",
     success:
-      "bg-emerald-50 text-emerald-800 border-emerald-200 font-medium",
+      "bg-[#EAF8EF] text-[#15803D] border-[#BBF7D0] font-medium",
     warning:
-      "bg-amber-50 text-amber-800 border-amber-200 font-medium",
+      "bg-[#FFF5E5] text-[#B45309] border-[#FDE68A] font-medium",
     danger:
-      "bg-rose-50 text-rose-800 border-rose-200 font-medium",
+      "bg-[#FEF0F0] text-[#DC2626] border-[#FECACA] font-medium",
     info:
       "bg-sky-50 text-sky-800 border-sky-200 font-medium",
     neutral:

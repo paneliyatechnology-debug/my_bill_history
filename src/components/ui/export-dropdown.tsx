@@ -129,16 +129,16 @@ export function ExportDropdown({
 
   const buttonClasses = {
     default:
-      "py-2 px-3.5 bg-white hover:bg-slate-50 text-slate-700 border border-[#E2E8F0] rounded-xl text-xs font-bold transition-all shadow-2xs hover:border-slate-300 active:scale-95",
+      "h-9 px-3 bg-white hover:bg-[#F8FBFF] text-[#182230] border border-[#E2E8F0] rounded-[10px] text-[13px] font-medium transition-colors hover:border-[#1677E8]",
     outline:
-      "py-1.5 px-3 bg-[#FFF3E8] hover:bg-[#FED7AA] text-[#B94B0A] border border-[#FDBA74] rounded-xl text-xs font-bold transition-all shadow-2xs active:scale-95",
+      "h-9 px-3 bg-white hover:bg-[#F8FBFF] text-[#182230] border border-[#E2E8F0] rounded-[10px] text-[13px] font-medium transition-colors hover:border-[#1677E8]",
     compact:
-      "py-1.5 px-2.5 bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 rounded-lg text-[11px] font-semibold transition-all active:scale-95",
+      "h-9 px-3 bg-white hover:bg-[#F8FBFF] text-[#182230] border border-[#E2E8F0] rounded-[10px] text-[13px] font-medium transition-colors hover:border-[#1677E8]",
   }[buttonVariant];
 
   const countBadge =
     selectedCount > 0 ? (
-      <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#E6F7F2] text-[#174B43]">
+      <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#EFF6FF] text-[#0F172A]">
         {selectedCount}
       </span>
     ) : null;
@@ -176,7 +176,7 @@ export function ExportDropdown({
       >
         {isExporting ? (
           <>
-            <div className="w-3.5 h-3.5 border-2 border-[#26A58A] border-t-transparent rounded-full animate-spin shrink-0" />
+            <div className="w-3.5 h-3.5 border-2 border-[#1677E8] border-t-transparent rounded-full animate-spin shrink-0" />
             <span>
               {lang === "gu"
                 ? `${exportingFormat?.toUpperCase()}...`
@@ -228,7 +228,7 @@ export function ExportDropdown({
           {/* Header Info */}
           <div className="px-3.5 py-2 text-[11px] text-slate-500 font-medium">
             {selectedCount > 0 ? (
-              <span className="text-[#174B43] font-semibold">
+              <span className="text-[#0F172A] font-semibold">
                 {lang === "gu"
                   ? `માત્ર પસંદ કરેલ ${selectedCount} રેકોર્ડ્સ એક્સપોર્ટ થશે`
                   : `Exporting ${selectedCount} selected row${selectedCount === 1 ? "" : "s"}`}
@@ -250,7 +250,7 @@ export function ExportDropdown({
             <button
               type="button"
               onClick={() => handleExport("xlsx")}
-              className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-emerald-50 hover:text-emerald-900 transition-colors flex items-center justify-between group cursor-pointer"
+              className="w-full text-left h-9 px-3 text-[13px] text-slate-700 hover:bg-emerald-50 hover:text-emerald-900 transition-colors flex items-center justify-between group cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
                 <span className="w-6 h-6 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0 group-hover:scale-105 transition-transform">
@@ -265,7 +265,7 @@ export function ExportDropdown({
                   </p>
                 </div>
               </div>
-              <span className="text-[10px] font-mono text-slate-400 group-hover:text-emerald-600 font-semibold">
+              <span className="text-[10px] tabular-nums text-slate-400 group-hover:text-emerald-600 font-semibold">
                 .xlsx
               </span>
             </button>
@@ -274,7 +274,7 @@ export function ExportDropdown({
             <button
               type="button"
               onClick={() => handleExport("csv")}
-              className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-sky-50 hover:text-sky-900 transition-colors flex items-center justify-between group cursor-pointer"
+              className="w-full text-left h-9 px-3 text-[13px] text-slate-700 hover:bg-sky-50 hover:text-sky-900 transition-colors flex items-center justify-between group cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
                 <span className="w-6 h-6 rounded-md bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xs shrink-0 group-hover:scale-105 transition-transform">
@@ -289,7 +289,7 @@ export function ExportDropdown({
                   </p>
                 </div>
               </div>
-              <span className="text-[10px] font-mono text-slate-400 group-hover:text-sky-600 font-semibold">
+              <span className="text-[10px] tabular-nums text-slate-400 group-hover:text-sky-600 font-semibold">
                 .csv
               </span>
             </button>
@@ -298,7 +298,7 @@ export function ExportDropdown({
             <button
               type="button"
               onClick={() => handleExport("pdf")}
-              className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-rose-50 hover:text-rose-900 transition-colors flex items-center justify-between group cursor-pointer"
+              className="w-full text-left h-9 px-3 text-[13px] text-slate-700 hover:bg-rose-50 hover:text-rose-900 transition-colors flex items-center justify-between group cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
                 <span className="w-6 h-6 rounded-md bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-xs shrink-0 group-hover:scale-105 transition-transform">
@@ -313,7 +313,7 @@ export function ExportDropdown({
                   </p>
                 </div>
               </div>
-              <span className="text-[10px] font-mono text-slate-400 group-hover:text-rose-600 font-semibold">
+              <span className="text-[10px] tabular-nums text-slate-400 group-hover:text-rose-600 font-semibold">
                 .pdf
               </span>
             </button>

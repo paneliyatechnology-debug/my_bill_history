@@ -290,12 +290,12 @@ export default function CreateAutomatedBillingPage() {
             <span>/</span>
             <span className="text-gray-800 font-semibold">New Schedule</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Create Automated Invoice Schedule</h1>
+          <h1 className="text-[22px] font-semibold text-[#182230]">Create Automated Invoice Schedule</h1>
         </div>
 
         <Link
           href="/sales/automated-billing"
-          className="px-4 py-2 text-xs font-semibold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition"
+          className="h-9 px-3 text-[13px] font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition"
         >
           Cancel
         </Link>
@@ -312,15 +312,15 @@ export default function CreateAutomatedBillingPage() {
         {/* Section 1: Schedule Configuration */}
         <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-4">
           <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
-            <span className="w-6 h-6 rounded-full bg-emerald-100 text-[#174B43] flex items-center justify-center text-xs font-bold">
+            <span className="w-6 h-6 rounded-full bg-emerald-100 text-[#0F172A] flex items-center justify-center text-xs font-bold">
               1
             </span>
-            <h2 className="text-sm font-bold text-gray-900">Schedule & Frequency</h2>
+            <h2 className="text-sm font-semibold text-[#182230]">Schedule & Frequency</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
+              <label className="block text-[12px] font-medium text-gray-700 mb-1">
                 Schedule Name <span className="text-rose-500">*</span>
               </label>
               <input
@@ -328,19 +328,19 @@ export default function CreateAutomatedBillingPage() {
                 placeholder="e.g. Acme Corp - Monthly Retainer"
                 value={scheduleName}
                 onChange={(e) => setScheduleName(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                className="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1677E8] focus:bg-white h-10"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
+              <label className="block text-[12px] font-medium text-gray-700 mb-1">
                 Repeat Frequency <span className="text-rose-500">*</span>
               </label>
               <select
                 value={frequency}
                 onChange={(e) => setFrequency(e.target.value as any)}
-                className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white font-semibold"
+                className="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1677E8] focus:bg-white font-normal h-10"
               >
                 <option value="DAILY">Daily (દરરોજ)</option>
                 <option value="WEEKLY">Weekly (દર અઠવાડિયે)</option>
@@ -350,27 +350,27 @@ export default function CreateAutomatedBillingPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
+              <label className="block text-[12px] font-medium text-gray-700 mb-1">
                 Start Date <span className="text-rose-500">*</span>
               </label>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white font-mono"
+                className="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1677E8] focus:bg-white tabular-nums h-10"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
+              <label className="block text-[12px] font-medium text-gray-700 mb-1">
                 End Date (Optional)
               </label>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white font-mono"
+                className="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1677E8] focus:bg-white tabular-nums h-10"
               />
               <span className="text-[10px] text-gray-400">Leave blank to repeat indefinitely until stopped.</span>
             </div>
@@ -378,11 +378,11 @@ export default function CreateAutomatedBillingPage() {
             {/* Conditional Frequency Rules */}
             {frequency === "WEEKLY" && (
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Run on Weekday</label>
+                <label className="block text-[12px] font-medium text-gray-700 mb-1">Run on Weekday</label>
                 <select
                   value={dayOfWeek}
                   onChange={(e) => setDayOfWeek(Number(e.target.value))}
-                  className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                  className="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1677E8] focus:bg-white h-10"
                 >
                   <option value={1}>Monday</option>
                   <option value={2}>Tuesday</option>
@@ -397,21 +397,21 @@ export default function CreateAutomatedBillingPage() {
 
             {frequency === "MONTHLY" && (
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Day of Month (1 - 31)</label>
+                <label className="block text-[12px] font-medium text-gray-700 mb-1">Day of Month (1 - 31)</label>
                 <input
                   type="number"
                   min={1}
                   max={31}
                   value={dayOfMonth}
                   onChange={(e) => setDayOfMonth(Math.min(31, Math.max(1, Number(e.target.value))))}
-                  className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white font-mono"
+                  className="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1677E8] focus:bg-white tabular-nums h-10"
                 />
                 <span className="text-[10px] text-gray-400">Month-ends (31st) clamp to 28/29/30 automatically.</span>
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Payment Terms</label>
+              <label className="block text-[12px] font-medium text-gray-700 mb-1">Payment Terms</label>
               <select
                 value={paymentTerms}
                 onChange={(e) => {
@@ -421,7 +421,7 @@ export default function CreateAutomatedBillingPage() {
                   if (e.target.value === "Net 30") setDueDays(30);
                   if (e.target.value === "Net 45") setDueDays(45);
                 }}
-                className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                className="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1677E8] focus:bg-white h-10"
               >
                 <option value="Due on Receipt">Due on Receipt (Immediate)</option>
                 <option value="Net 15">Net 15 Days</option>
@@ -445,20 +445,20 @@ export default function CreateAutomatedBillingPage() {
         {/* Section 2: Customer / Party */}
         <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-4">
           <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
-            <span className="w-6 h-6 rounded-full bg-emerald-100 text-[#174B43] flex items-center justify-center text-xs font-bold">
+            <span className="w-6 h-6 rounded-full bg-emerald-100 text-[#0F172A] flex items-center justify-center text-xs font-bold">
               2
             </span>
-            <h2 className="text-sm font-bold text-gray-900">Customer (Party) Details</h2>
+            <h2 className="text-sm font-semibold text-[#182230]">Customer (Party) Details</h2>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label className="block text-[12px] font-medium text-gray-700 mb-1">
               Select Customer / Party <span className="text-rose-500">*</span>
             </label>
             <select
               value={partyId}
               onChange={(e) => setPartyId(e.target.value)}
-              className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+              className="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1677E8] focus:bg-white h-10"
               required
             >
               <option value="">-- Choose from Master Parties --</option>
@@ -494,15 +494,15 @@ export default function CreateAutomatedBillingPage() {
         <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-gray-100 pb-3">
             <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-emerald-100 text-[#174B43] flex items-center justify-center text-xs font-bold">
+              <span className="w-6 h-6 rounded-full bg-emerald-100 text-[#0F172A] flex items-center justify-center text-xs font-bold">
                 3
               </span>
-              <h2 className="text-sm font-bold text-gray-900">Line Items & Services</h2>
+              <h2 className="text-sm font-semibold text-[#182230]">Line Items & Services</h2>
             </div>
             <button
               type="button"
               onClick={handleAddLine}
-              className="text-xs font-bold text-[#174B43] hover:text-[#123B35] flex items-center gap-1"
+              className="text-xs font-bold text-[#0F172A] hover:text-[#123B35] flex items-center gap-1"
             >
               + Add Item
             </button>
@@ -538,7 +538,7 @@ export default function CreateAutomatedBillingPage() {
                         <select
                           value={line.itemId}
                           onChange={(e) => handleLineChange(index, "itemId", e.target.value)}
-                          className="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-xs"
+                          className="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[13px] h-10"
                         >
                           <option value="">-- Choose Item from Catalog --</option>
                           {items.map((it) => (
@@ -552,7 +552,7 @@ export default function CreateAutomatedBillingPage() {
                           placeholder="Item Description"
                           value={line.description}
                           onChange={(e) => handleLineChange(index, "description", e.target.value)}
-                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs"
+                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-[13px] h-10"
                           required
                         />
                       </td>
@@ -563,7 +563,7 @@ export default function CreateAutomatedBillingPage() {
                           type="text"
                           value={line.hsnCode}
                           onChange={(e) => handleLineChange(index, "hsnCode", e.target.value)}
-                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-mono"
+                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-[13px] tabular-nums h-10"
                         />
                       </td>
 
@@ -575,7 +575,7 @@ export default function CreateAutomatedBillingPage() {
                           step="any"
                           value={line.quantity}
                           onChange={(e) => handleLineChange(index, "quantity", Number(e.target.value))}
-                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-mono"
+                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-[13px] tabular-nums h-10"
                           required
                         />
                       </td>
@@ -586,7 +586,7 @@ export default function CreateAutomatedBillingPage() {
                           type="text"
                           value={line.unit}
                           onChange={(e) => handleLineChange(index, "unit", e.target.value)}
-                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs uppercase"
+                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-[13px] uppercase h-10"
                         />
                       </td>
 
@@ -598,7 +598,7 @@ export default function CreateAutomatedBillingPage() {
                           step="any"
                           value={line.rate}
                           onChange={(e) => handleLineChange(index, "rate", Number(e.target.value))}
-                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-mono text-right"
+                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-[13px] tabular-nums text-right h-10"
                           required
                         />
                       </td>
@@ -612,7 +612,7 @@ export default function CreateAutomatedBillingPage() {
                           step="any"
                           value={line.discountPercent}
                           onChange={(e) => handleLineChange(index, "discountPercent", Number(e.target.value))}
-                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-mono text-right"
+                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-[13px] tabular-nums text-right h-10"
                         />
                       </td>
 
@@ -621,7 +621,7 @@ export default function CreateAutomatedBillingPage() {
                         <select
                           value={line.taxRate}
                           onChange={(e) => handleLineChange(index, "taxRate", Number(e.target.value))}
-                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-mono"
+                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-[13px] tabular-nums h-10"
                         >
                           <option value={0}>0%</option>
                           <option value={5}>5%</option>
@@ -632,7 +632,7 @@ export default function CreateAutomatedBillingPage() {
                       </td>
 
                       {/* Line Total */}
-                      <td className="py-2.5 px-3 text-right font-mono font-semibold text-gray-900">
+                      <td className="py-2.5 px-3 text-right tabular-nums font-semibold text-gray-900">
                         {formatCurrency(lineTotal)}
                       </td>
 
@@ -658,38 +658,38 @@ export default function CreateAutomatedBillingPage() {
           {/* Totals Summary */}
           <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-start gap-4">
             <div className="w-full sm:w-1/2 space-y-2">
-              <label className="block text-xs font-semibold text-gray-700">Notes / Remarks</label>
+              <label className="block text-[12px] font-medium text-gray-700">Notes / Remarks</label>
               <textarea
                 rows={3}
                 placeholder="Notes to appear on every generated invoice..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-[#1677E8] focus:bg-white"
               />
             </div>
 
             <div className="w-full sm:w-72 bg-gray-50/70 p-4 rounded-xl border border-gray-200 space-y-2 text-xs">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal:</span>
-                <span className="font-mono">{formatCurrency(calculations.subtotal)}</span>
+                <span className="tabular-nums">{formatCurrency(calculations.subtotal)}</span>
               </div>
               {calculations.totalDiscount > 0 && (
                 <div className="flex justify-between text-emerald-700">
                   <span>Discount:</span>
-                  <span className="font-mono">- {formatCurrency(calculations.totalDiscount)}</span>
+                  <span className="tabular-nums">- {formatCurrency(calculations.totalDiscount)}</span>
                 </div>
               )}
               <div className="flex justify-between text-gray-600">
                 <span>Taxable Value:</span>
-                <span className="font-mono">{formatCurrency(calculations.totalTaxable)}</span>
+                <span className="tabular-nums">{formatCurrency(calculations.totalTaxable)}</span>
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Total GST:</span>
-                <span className="font-mono">{formatCurrency(calculations.totalTax)}</span>
+                <span className="tabular-nums">{formatCurrency(calculations.totalTax)}</span>
               </div>
               <div className="pt-2 border-t border-gray-200 flex justify-between font-bold text-gray-900 text-sm">
                 <span>Est. Grand Total:</span>
-                <span className="font-mono">{formatCurrency(calculations.grandTotal)}</span>
+                <span className="tabular-nums">{formatCurrency(calculations.grandTotal)}</span>
               </div>
             </div>
           </div>
@@ -699,13 +699,13 @@ export default function CreateAutomatedBillingPage() {
         <div className="flex items-center justify-end gap-3 pt-2">
           <Link
             href="/sales/automated-billing"
-            className="px-5 py-2.5 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition"
+            className="h-9 px-3.5 text-[13px] font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition"
           >
             Cancel
           </Link>
           <button
             type="submit"
-            className="px-6 py-2.5 text-xs font-bold text-white bg-[#174B43] hover:bg-[#123B35] rounded-xl shadow-sm transition flex items-center gap-2"
+            className="px-6 py-2.5 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] rounded-xl shadow-sm transition flex items-center gap-2"
           >
             Save & Activate Schedule
           </button>
@@ -716,13 +716,13 @@ export default function CreateAutomatedBillingPage() {
       {showConfirmModal && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-gray-100 space-y-4">
-            <div className="flex items-center gap-3 text-[#174B43]">
+            <div className="flex items-center gap-3 text-[#0F172A]">
               <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-base font-bold text-gray-900">Confirm Schedule Activation</h3>
+              <h3 className="text-[15px] font-semibold text-gray-900">Confirm Schedule Activation</h3>
             </div>
 
             <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200 space-y-2 text-xs">
@@ -736,11 +736,11 @@ export default function CreateAutomatedBillingPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Start Date:</span>
-                <span className="font-mono text-gray-900">{startDate}</span>
+                <span className="tabular-nums text-gray-900">{startDate}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Estimated Amount:</span>
-                <span className="font-mono font-bold text-[#174B43]">{formatCurrency(calculations.grandTotal)}</span>
+                <span className="tabular-nums font-bold text-[#0F172A]">{formatCurrency(calculations.grandTotal)}</span>
               </div>
             </div>
 
@@ -753,7 +753,7 @@ export default function CreateAutomatedBillingPage() {
                 type="button"
                 onClick={() => setShowConfirmModal(false)}
                 disabled={isSubmitting}
-                className="px-4 py-2 border border-gray-200 text-gray-700 rounded-xl text-xs font-semibold hover:bg-gray-50 transition"
+                className="h-9 px-3 border border-gray-200 text-gray-700 rounded-xl text-[13px] font-medium hover:bg-gray-50 transition"
               >
                 Back to Edit
               </button>
@@ -761,7 +761,7 @@ export default function CreateAutomatedBillingPage() {
                 type="button"
                 onClick={handleConfirmSave}
                 disabled={isSubmitting}
-                className="px-5 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold transition flex items-center gap-2"
+                className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium transition flex items-center gap-2"
               >
                 {isSubmitting ? "Creating..." : "Confirm & Save"}
               </button>

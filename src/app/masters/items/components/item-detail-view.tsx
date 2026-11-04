@@ -355,7 +355,7 @@ export function ItemDetailView({
               value={leftSearch}
               onChange={(e) => setLeftSearch(e.target.value)}
               placeholder="Search by HSN / Name..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
+              className="w-full pl-8 pr-3 py-1.5 text-[13px] bg-slate-50 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all h-10"
             />
           </div>
         </div>
@@ -365,7 +365,7 @@ export function ItemDetailView({
           <button
             type="button"
             onClick={onCreateItem}
-            className="w-full py-2 px-3 border border-dashed border-indigo-400 rounded-lg text-xs font-bold text-indigo-600 bg-indigo-50/40 hover:bg-indigo-50 hover:border-indigo-500 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+            className="w-full py-2 px-3 border border-dashed border-indigo-400 rounded-lg text-[13px] font-medium text-indigo-600 bg-indigo-50/40 hover:bg-indigo-50 hover:border-indigo-500 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
           >
             <span>+</span>
             <span>Create Item</span>
@@ -431,7 +431,7 @@ export function ItemDetailView({
                 />
               </svg>
             </button>
-            <h1 className="text-lg font-bold text-slate-900">{item.name}</h1>
+            <h1 className="text-[22px] font-semibold text-[#182230]">{item.name}</h1>
             <span
               className={`px-2 py-0.5 text-[11px] font-bold rounded-md uppercase tracking-wide border ${
                 isOutOfStock
@@ -450,7 +450,7 @@ export function ItemDetailView({
             <button
               type="button"
               onClick={() => onBarcode(item)}
-              className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+              className="h-9 px-3 border border-slate-300 rounded-lg text-[13px] font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
             >
               <span>🏷️</span>
               <span>Print Barcode</span>
@@ -460,7 +460,7 @@ export function ItemDetailView({
               <button
                 type="button"
                 onClick={() => onAdjustStock(item)}
-                className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                className="h-9 px-3 border border-slate-300 rounded-lg text-[13px] font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
               >
                 <span>📦</span>
                 <span>Adjust Stock</span>
@@ -470,7 +470,7 @@ export function ItemDetailView({
             <button
               type="button"
               onClick={() => onEdit(item)}
-              className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+              className="h-9 px-3 border border-slate-300 rounded-lg text-[13px] font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
             >
               <span>✏️</span>
               <span>Edit</span>
@@ -565,7 +565,7 @@ export function ItemDetailView({
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-slate-400">📋</span>
-                    <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                    <h2 className="text-xs font-semibold uppercase tracking-wider text-[#182230]">
                       General Details
                     </h2>
                   </div>
@@ -644,7 +644,7 @@ export function ItemDetailView({
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
                 <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                   <span className="text-slate-400">💳</span>
-                  <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-[#182230]">
                     Pricing Details
                   </h2>
                 </div>
@@ -701,7 +701,7 @@ export function ItemDetailView({
                   <select
                     value={dateRangeKey}
                     onChange={(e) => setDateRangeKey(e.target.value)}
-                    className="text-xs bg-white border border-slate-300 text-slate-700 rounded-lg px-3 py-1.5 font-medium focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer shadow-2xs pr-7 appearance-none"
+                    className="text-[13px] bg-white border border-slate-300 text-slate-700 rounded-lg px-3 py-1.5 font-medium focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer shadow-2xs pr-7 appearance-none h-10"
                   >
                     <option value="today">Today</option>
                     <option value="last-7-days">Last 7 Days</option>
@@ -718,7 +718,7 @@ export function ItemDetailView({
                   <button
                     type="button"
                     onClick={handleExportStockCsv}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+                    className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-slate-300 bg-white text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
                   >
                     <span>📥</span>
                     <span>Download</span>
@@ -728,7 +728,7 @@ export function ItemDetailView({
                   <button
                     type="button"
                     onClick={() => window.print()}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+                    className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-slate-300 bg-white text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
                   >
                     <span>🖨️</span>
                     <span>Print PDF</span>
@@ -803,7 +803,7 @@ export function ItemDetailView({
                                 <Link
                                   href={m.docLink!}
                                   onClick={(e) => e.stopPropagation()}
-                                  className="inline-flex items-center gap-1 font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                                  className="inline-flex items-center gap-1 font-medium text-indigo-600 hover:text-indigo-800 hover:underline"
                                 >
                                   <span>{m.invoiceNumber && m.invoiceNumber !== "-" ? m.invoiceNumber : "Open Invoice"}</span>
                                   <span className="text-[10px]">↗</span>
@@ -821,7 +821,7 @@ export function ItemDetailView({
                                   href={m.docLink!}
                                   onClick={(e) => e.stopPropagation()}
                                   title="Open Invoice / Voucher"
-                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors cursor-pointer"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[13px] font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors cursor-pointer"
                                 >
                                   <span>Open</span>
                                   <span className="text-[10px]">↗</span>
@@ -849,7 +849,7 @@ export function ItemDetailView({
                   <select
                     value={dateRangeKey}
                     onChange={(e) => setDateRangeKey(e.target.value)}
-                    className="text-xs bg-white border border-slate-300 text-slate-700 rounded-lg px-3 py-1.5 font-medium focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer shadow-2xs pr-7 appearance-none"
+                    className="text-[13px] bg-white border border-slate-300 text-slate-700 rounded-lg px-3 py-1.5 font-medium focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer shadow-2xs pr-7 appearance-none h-10"
                   >
                     <option value="today">Today</option>
                     <option value="last-7-days">Last 7 Days</option>
@@ -866,7 +866,7 @@ export function ItemDetailView({
                   <button
                     type="button"
                     onClick={handleExportPartyReportCsv}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+                    className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-slate-300 bg-white text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
                   >
                     <span>📥</span>
                     <span>Download</span>
@@ -876,7 +876,7 @@ export function ItemDetailView({
                   <button
                     type="button"
                     onClick={() => window.print()}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+                    className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-slate-300 bg-white text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
                   >
                     <span>🖨️</span>
                     <span>Print PDF</span>
@@ -952,14 +952,14 @@ export function ItemDetailView({
                     value={partyPriceSearch}
                     onChange={(e) => setPartyPriceSearch(e.target.value)}
                     placeholder="Search Party..."
-                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 shadow-2xs"
+                    className="w-full pl-8 pr-3 py-1.5 text-[13px] bg-white border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 shadow-2xs h-10"
                   />
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setIsEditPartyPricesModalOpen(true)}
-                  className="px-3.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-colors shadow-2xs cursor-pointer flex items-center gap-1.5"
+                  className="h-9 px-3 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-[13px] font-medium text-slate-700 transition-colors shadow-2xs cursor-pointer flex items-center gap-1.5"
                 >
                   <span>✏️</span>
                   <span>Edit Party Wise Prices</span>
@@ -978,10 +978,10 @@ export function ItemDetailView({
                   <tbody className="divide-y divide-slate-100 text-slate-800">
                     {/* All Parties Default Price */}
                     <tr className="hover:bg-slate-50/60 bg-slate-50/30">
-                      <td className="px-5 py-3 whitespace-nowrap font-bold text-slate-900">
+                      <td className="px-5 py-3 whitespace-nowrap font-medium text-slate-900">
                         All Parties Price
                       </td>
-                      <td className="px-5 py-3 whitespace-nowrap font-bold text-indigo-700">
+                      <td className="px-5 py-3 whitespace-nowrap font-medium text-indigo-700">
                         {formatInr(item.retailPrice)}
                       </td>
                     </tr>
@@ -1016,7 +1016,7 @@ export function ItemDetailView({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-2xs p-4 animate-fade-in">
           <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-bold text-slate-900">Edit Party Wise Prices</h3>
+              <h3 className="text-[15px] font-semibold text-slate-900">Edit Party Wise Prices</h3>
               <button
                 type="button"
                 onClick={() => setIsEditPartyPricesModalOpen(false)}
@@ -1028,7 +1028,7 @@ export function ItemDetailView({
 
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">Select Party</label>
+                <label className="block text-[12px] font-medium text-slate-500 mb-1">Select Party</label>
                 <select
                   value={editingPartyPriceId}
                   onChange={(e) => {
@@ -1036,7 +1036,7 @@ export function ItemDetailView({
                     const existingRule = partyPrices.find((r) => r.partyId === e.target.value);
                     setNewPartyPriceVal(existingRule ? String(existingRule.price) : "");
                   }}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-indigo-500"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-[13px] text-slate-800 focus:outline-none focus:border-indigo-500 h-10"
                 >
                   <option value="">-- Choose Party --</option>
                   {parties.map((p) => (
@@ -1048,7 +1048,7 @@ export function ItemDetailView({
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">
+                <label className="block text-[12px] font-medium text-slate-500 mb-1">
                   Custom Sales Price (₹)
                 </label>
                 <input
@@ -1057,7 +1057,7 @@ export function ItemDetailView({
                   value={newPartyPriceVal}
                   onChange={(e) => setNewPartyPriceVal(e.target.value)}
                   placeholder={`Default is ₹ ${item.retailPrice}`}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-indigo-500"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-[13px] text-slate-800 focus:outline-none focus:border-indigo-500 h-10"
                 />
               </div>
             </div>
@@ -1066,7 +1066,7 @@ export function ItemDetailView({
               <button
                 type="button"
                 onClick={() => setIsEditPartyPricesModalOpen(false)}
-                className="rounded-lg border border-slate-200 px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                className="rounded-lg border border-slate-200 px-4 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
               >
                 Cancel
               </button>
@@ -1074,7 +1074,7 @@ export function ItemDetailView({
                 type="button"
                 onClick={handleSavePartyPriceRule}
                 disabled={!editingPartyPriceId}
-                className="rounded-lg bg-indigo-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 cursor-pointer"
+                className="rounded-lg bg-indigo-600 px-4 py-1.5 text-[13px] font-medium text-white hover:bg-indigo-700 disabled:opacity-50 cursor-pointer"
               >
                 Save Price
               </button>

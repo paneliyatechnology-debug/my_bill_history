@@ -314,7 +314,7 @@ export function DataTable<T>({
         >
           <input
             type="checkbox"
-            className="w-4 h-4 rounded border-slate-300 text-[#26A58A] focus:ring-[#26A58A] cursor-pointer accent-[#26A58A]"
+            className="w-4 h-4 rounded border-slate-300 text-[#1677E8] focus:ring-[#1677E8] cursor-pointer accent-[#1677E8]"
             checked={isAllPageSelected}
             ref={(el) => {
               if (el) el.indeterminate = isSomePageSelected;
@@ -336,7 +336,7 @@ export function DataTable<T>({
           >
             <input
               type="checkbox"
-              className="w-4 h-4 rounded border-slate-300 text-[#26A58A] focus:ring-[#26A58A] cursor-pointer accent-[#26A58A]"
+              className="w-4 h-4 rounded border-slate-300 text-[#1677E8] focus:ring-[#1677E8] cursor-pointer accent-[#1677E8]"
               checked={isChecked}
               onChange={() => handleToggleRow(rowKey)}
               aria-label={`Select row ${rowKey}`}
@@ -464,10 +464,10 @@ export function DataTable<T>({
   };
 
   const isSaffron = themeColor === "saffron";
-  const focusRingClass = isSaffron ? "focus:ring-[#26A58A]" : "focus:ring-[#174B43]";
-  const activePageClass = isSaffron ? "bg-[#26A58A] text-white shadow-xs font-bold" : "bg-[#174B43] text-white shadow-xs font-bold";
-  const sortedHeaderClass = isSaffron ? "bg-[#E6F7F2] text-[#174B43]" : "bg-[#EBF2F0] text-[#174B43]";
-  const spinnerClass = isSaffron ? "border-[#26A58A]" : "border-[#174B43]";
+  const focusRingClass = "focus:ring-[#1677E8]";
+  const activePageClass = "bg-[#1677E8] text-white shadow-xs font-semibold";
+  const sortedHeaderClass = isSaffron ? "bg-[#EFF6FF] text-[#0F172A]" : "bg-[#F1F5F9] text-[#0F172A]";
+  const spinnerClass = "border-[#1677E8]";
 
   return (
     <div className="w-full space-y-4">
@@ -511,12 +511,12 @@ export function DataTable<T>({
                 }
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className={`w-full pl-8 pr-7 py-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-1 ${focusRingClass} transition-all`}
+                className={`w-full h-10 pl-8 pr-7 bg-[#F8FBFF] border border-[#E2E8F0] rounded-[10px] text-[13px] font-normal text-[#182230] placeholder:text-[#94A3B8] focus:bg-white focus:outline-none focus:ring-1 ${focusRingClass} transition-all`}
               />
               {searchQuery && (
                 <button
                   onClick={() => handleSearchChange("")}
-                  className="absolute right-2.5 top-2.5 text-xs text-[#98A2B3] hover:text-[#202124]"
+                  className="absolute right-2.5 top-2.5 text-xs text-[#98A2B3] hover:text-[#182230]"
                   title="Clear search"
                 >
                   ✕
@@ -732,7 +732,7 @@ export function DataTable<T>({
               <button
                 onClick={() => setCurrentPage(1)}
                 disabled={safePage === 1}
-                className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#202124] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F3F4F6] transition-all font-semibold cursor-pointer"
+                className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#182230] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F3F4F6] transition-all font-medium cursor-pointer"
                 title="First Page"
               >
                 «
@@ -742,7 +742,7 @@ export function DataTable<T>({
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={safePage === 1}
-                className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#202124] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F3F4F6] transition-all font-semibold cursor-pointer"
+                className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#182230] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F3F4F6] transition-all font-medium cursor-pointer"
                 title="Previous Page"
               >
                 {lang === "gu" ? "અગાઉનું" : "Previous"}
@@ -775,7 +775,7 @@ export function DataTable<T>({
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={safePage === totalPages}
-                className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#202124] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F3F4F6] transition-all font-semibold cursor-pointer"
+                className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#182230] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F3F4F6] transition-all font-medium cursor-pointer"
                 title="Next Page"
               >
                 {lang === "gu" ? "આગળનું" : "Next"}
@@ -785,7 +785,7 @@ export function DataTable<T>({
               <button
                 onClick={() => setCurrentPage(totalPages)}
                 disabled={safePage === totalPages}
-                className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#202124] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F3F4F6] transition-all font-semibold cursor-pointer"
+                className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#182230] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F3F4F6] transition-all font-medium cursor-pointer"
                 title="Last Page"
               >
                 »
@@ -799,7 +799,7 @@ export function DataTable<T>({
       {selectable && effectiveSelectedIds.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#1E293B]/95 backdrop-blur-md text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700/80 flex flex-wrap items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-5 duration-200 min-w-[320px] max-w-[95vw]">
           <div className="flex items-center gap-3">
-            <span className="bg-[#26A58A] text-white text-xs px-2.5 py-1 rounded-full font-bold shadow-xs">
+            <span className="bg-[#1677E8] text-white text-xs px-2.5 py-1 rounded-full font-bold shadow-xs">
               {effectiveSelectedIds.size}
             </span>
             <span className="text-xs sm:text-sm font-semibold tracking-wide">

@@ -3,47 +3,74 @@
 @tailwind utilities;
 
 :root {
-  /* Forest Teal Signature Brand Palette */
-  --primary: #26A58A;
-  --primary-hover: #208E76;
-  --primary-pressed: #1B7864;
-  --forest-teal: #174B43;
-  --forest-teal-hover: #133E37;
-  --forest-teal-dark: #0F322C;
-  --forest-teal-light: #1F5E54;
-  --forest-teal-subtle: #EBF2F0;
+  --color-primary: #1677E8;
+  --color-primary-hover: #1268D3;
+  --color-primary-active: #0D5FC4;
+  --color-primary-light: #EFF6FF;
+  --color-primary-border: #BFDBFE;
+  --color-success: #16A34A;
+  --color-warning: #F59E0B;
+  --color-danger: #DC2626;
+  --color-info: #1677E8;
+  --color-background: #F5F8FC;
+  --color-surface: #FFFFFF;
+  --color-text: #182230;
+  --color-text-secondary: #64748B;
+  --color-border: #E2E8F0;
+  --primary: #1677E8;
+  --primary-hover: #1268D3;
+  --primary-pressed: #0D5FC4;
+  --primary-subtle: #EFF6FF;
 
-  --jade-teal: #26A58A;
-  --jade-teal-hover: #208E76;
-  --jade-teal-pressed: #1B7864;
-  --jade-teal-light: #E6F7F2;
-  --jade-teal-subtle: #F2FAF7;
+  --forest-teal: #182230;
+  --forest-teal-hover: #1268D3;
+  --forest-teal-dark: #101828;
+  --forest-teal-light: #334155;
+  --forest-teal-subtle: #F5F8FC;
 
-  --soft-ivory: #F6F7F1;
-  --soft-ivory-dark: #ECEEE5;
-  --soft-ivory-light: #FAFBF7;
+  --jade-teal: #1677E8;
+  --jade-teal-hover: #1268D3;
+  --jade-teal-pressed: #0D5FC4;
+  --jade-teal-light: #EFF6FF;
+  --jade-teal-subtle: #F8FBFF;
 
-  /* Surfaces & Canvas */
-  --bg-main: #F6F7F1;
+  --soft-ivory: #F5F8FC;
+  --soft-ivory-dark: #E3EAF3;
+  --soft-ivory-light: #FFFFFF;
+
+  --bg-main: #F5F8FC;
   --bg-card: #FFFFFF;
-  --bg-sidebar: #174B43;
+  --bg-sidebar: #FFFFFF;
 
-  /* Typography Colors */
-  --text-main: #1A2E2B;
-  --text-secondary: #5A6B66;
-  --text-muted: #8E9F9A;
+  --text-main: #182230;
+  --text-secondary: #64748B;
+  --text-muted: #94A3B8;
 
-  /* Borders & Dividers */
-  --border-color: #E2E8E5;
+  --border-color: #E3EAF3;
 
-  /* Semantic Feedback */
-  --success: #16834A;
-  --success-bg: #EAF7EF;
-  --warning: #B45309;
-  --warning-bg: #FFF7E6;
-  --danger: #DC3545;
-  --danger-bg: #FFF0F0;
-  --info: #2563EB;
+  --success: #16A34A;
+  --success-bg: #EAF8EF;
+  --warning: #F59E0B;
+  --warning-bg: #FFF5E5;
+  --danger: #DC2626;
+  --danger-bg: #FEF0F0;
+  --info: #1677E8;
+
+  --font-family-base: var(--font-inter), var(--font-noto-gujarati), sans-serif;
+  --font-size-page-title: 22px;
+  --font-size-section-title: 15px;
+  --font-size-card-title: 13px;
+  --font-size-body: 13px;
+  --font-size-table: 13px;
+  --font-size-label: 12px;
+  --font-size-button: 13px;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  --radius-card: 12px;
+  --radius-control: 10px;
+  --shadow-card: 0 1px 2px rgba(24, 34, 48, 0.04), 0 1px 3px rgba(24, 34, 48, 0.04);
 }
 
 /* Hide Next.js dev indicator portal if rendered */
@@ -69,10 +96,24 @@ html {
 body {
   color: var(--text-main);
   background: var(--bg-main);
-  font-family: var(--font-inter), var(--font-noto-gujarati), "Shruti", "Nirmala UI", "Gujarati Sangam MN", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-family-base, var(--font-inter), var(--font-noto-gujarati), "Shruti", "Nirmala UI", "Gujarati Sangam MN", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* Application numerals stay in Inter. The mono utility is reserved for code and print templates outside the workspace. */
+#main-content .font-mono {
+  font-family: var(--font-inter), var(--font-noto-gujarati), sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 /* Gujarati Typography Calibration: Prevent glyph cramping and faux-bold smearing */
@@ -96,23 +137,16 @@ body {
 /* Typography Hierarchy & Tokens for Accounting SaaS */
 .page-title {
   font-size: 1.25rem;
-  line-height: 1.75rem;
-  font-weight: 700;
+  line-height: 1.6rem;
+  font-weight: 600;
   color: var(--text-main);
-  letter-spacing: -0.025em;
-}
-
-@media (min-width: 640px) {
-  .page-title {
-    font-size: 1.5rem;
-    line-height: 2rem;
-  }
+  letter-spacing: -0.02em;
 }
 
 @media (min-width: 1024px) {
   .page-title {
-    font-size: 1.75rem;
-    line-height: 2.25rem;
+    font-size: 1.375rem;
+    line-height: 1.75rem;
   }
 }
 
@@ -132,39 +166,139 @@ body {
 }
 
 .section-heading {
-  font-size: 1rem;
-  line-height: 1.5rem;
+  font-size: 15px;
+  line-height: 1.35;
   font-weight: 600;
   color: var(--text-main);
-  letter-spacing: -0.01em;
-}
-
-@media (min-width: 640px) {
-  .section-heading {
-    font-size: 1.125rem;
-    line-height: 1.625rem;
-  }
+  letter-spacing: -0.015em;
 }
 
 .card-label {
-  font-size: 0.75rem;
-  line-height: 1rem;
+  font-size: 12px;
+  line-height: 1.3;
   font-weight: 500;
   color: var(--text-secondary);
 }
 
-@media (min-width: 640px) {
-  .card-label {
-    font-size: 0.875rem;
-    line-height: 1.25rem;
+.financial-amount,
+.bb-amount {
+  font-family: var(--font-inter), var(--font-noto-gujarati), sans-serif;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+/* App-wide type scale. Weights stay at 400–600 so long working sessions stay readable. */
+#main-content {
+  font-size: 13px;
+  line-height: 1.45;
+  color: #182230;
+}
+
+#main-content .font-semibold,
+#main-content .font-semibold {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+#main-content .font-bold {
+  font-weight: 600;
+}
+
+#main-content h1 {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+@media (max-width: 820px) {
+  #main-content .sticky.top-0 {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  #main-content .sticky.top-0 > div {
+    flex-wrap: wrap;
+    min-width: 0;
   }
 }
 
-.financial-amount {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-weight: 700;
-  color: var(--text-main);
-  letter-spacing: -0.02em;
+#main-content h2 {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.35;
+}
+
+#main-content h3 {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+#main-content label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748B;
+}
+
+#main-content table {
+  font-size: 13px;
+}
+
+#main-content table th {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+#main-content table td {
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Portaled dialogs sit outside #main-content, so they carry the same scale themselves. */
+.bb-overlay {
+  font-family: var(--font-inter), var(--font-noto-gujarati), sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: #182230;
+}
+
+.bb-overlay h1,
+.bb-overlay h2,
+.bb-overlay h3 {
+  font-family: inherit;
+  letter-spacing: -0.015em;
+}
+
+.bb-overlay h3 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.bb-overlay label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748B;
+}
+
+.bb-overlay input,
+.bb-overlay select,
+.bb-overlay textarea,
+.bb-overlay button {
+  font-family: inherit;
+}
+
+.bb-overlay .font-bold,
+.bb-overlay .font-extrabold,
+.bb-overlay .font-black {
+  font-weight: 600;
 }
 
 /* Gujarati Font Adjustment: Prevents matras from clipping */
@@ -192,7 +326,7 @@ body {
 
 /* Focus indicator for keyboard navigation (F2, F4, Tab) */
 *:focus-visible {
-  outline: 2px solid #26A58A;
+  outline: 2px solid #1677E8;
   outline-offset: 1px;
 }
 
@@ -272,7 +406,7 @@ body {
   .saas-card-interactive:hover {
     transform: translateY(-4px);
     box-shadow: 0 14px 28px -6px rgba(23, 75, 67, 0.08), 0 4px 12px -2px rgba(38, 165, 138, 0.08);
-    border-color: #85D5C2;
+    border-color: #93C5FD;
   }
 }
 
@@ -302,8 +436,8 @@ body {
 
 .btn-secondary-interactive:hover {
   transform: translateY(-1.5px);
-  background-color: #F2FAF7;
-  border-color: #26A58A;
+  background-color: #F8FAFC;
+  border-color: #1677E8;
   box-shadow: 0 4px 12px 0 rgba(23, 75, 67, 0.05);
 }
 
@@ -380,25 +514,25 @@ body {
 }
 
 .dropdown-item-smooth:hover {
-  background: linear-gradient(90deg, #F2FAF7 0%, #FFFFFF 100%);
+  background: linear-gradient(90deg, #F8FAFC 0%, #FFFFFF 100%);
   border-color: rgba(188, 234, 223, 0.8);
   box-shadow: 0 2px 8px -2px rgba(38, 165, 138, 0.08);
 }
 
 .dropdown-item-smooth:hover .item-icon-box {
   transform: scale(1.1) rotate(2deg);
-  background-color: #26A58A;
+  background-color: #1677E8;
   color: #FFFFFF;
-  border-color: #26A58A;
+  border-color: #1677E8;
   box-shadow: 0 4px 12px rgba(38, 165, 138, 0.25);
 }
 
 .dropdown-item-smooth:hover .item-title {
-  color: #174B43;
+  color: #0F172A;
 }
 
 .dropdown-item-smooth:hover .item-arrow {
-  color: #26A58A;
+  color: #1677E8;
   transform: translateX(3px);
   opacity: 1;
 }
@@ -683,22 +817,45 @@ body {
 }
 
 /* =========================================================================
-   FOREST TEAL SIGNATURE APPLICATION THEME
-   Sidebar: #174B43 | Active Menu: #26A58A | Text: #FFFFFF | CTA Accent: #26A58A
+   MyOwn BillBook — shared surface applied to every module
+   Primary #1677E8 · Canvas #F5F8FC · Border #E3EAF3
    ========================================================================= */
 :root {
-  --sidebar-bg: #174B43;
-  --sidebar-active: #26A58A;
-  --sidebar-text: #FFFFFF;
-  --cta-accent: #26A58A;
-  --primary: #26A58A;
-  --primary-hover: #208E76;
-  --primary-pressed: #1B7864;
-  --saffron: #26A58A;
-  --saffron-light: #E6F7F2;
+  --sidebar-bg: #FFFFFF;
+  --sidebar-active: #1677E8;
+  --sidebar-text: #182230;
+  --cta-accent: #1677E8;
+  --primary: #1677E8;
+  --primary-hover: #1268D3;
+  --primary-pressed: #0D5FC4;
+  --saffron: #1677E8;
+  --saffron-light: #EFF6FF;
 }
 
-/* Primary Action Buttons across all application pages (Items, Sales, Invoices, Purchases, Settings, etc.) */
+.rounded-2xl {
+  border-radius: 12px;
+}
+
+.rounded-xl {
+  border-radius: 10px;
+}
+
+/* Page canvases */
+.bg-\[\#F4F6FA\],
+.bg-\[\#F4F7FA\],
+.bg-\[\#F4F6F9\],
+.bg-\[\#F6F7F1\],
+.bg-ivory {
+  background-color: #F5F8FC;
+}
+
+.border-\[\#E2E8E5\],
+.border-\[\#E2E8F0\],
+.border-\[\#E5E7EB\] {
+  border-color: #E3EAF3;
+}
+
+/* Primary actions, including older dark-slate and indigo buttons */
 button.btn-primary,
 .btn-primary,
 .bg-\[\#5c56df\],
@@ -708,94 +865,122 @@ button.btn-primary,
 .bg-\[\#4338CA\],
 .bg-\[\#C24E1D\],
 .bg-\[\#F47721\],
-.bg-\[\#EA580C\],
 .bg-\[\#D95F12\],
-.bg-\[\#F97316\],
+.bg-\[\#0F172A\],
+.bg-\[\#123B35\],
+.bg-\[\#1A2E2B\],
+.bg-\[\#202124\],
+.bg-\[\#111827\],
 .bg-primary,
 .bg-primary-500,
 .bg-primary-600,
 .bg-saffron,
 .bg-saffron-500,
 .bg-indigo-600 {
-  background-color: #26A58A !important;
+  background-color: #1677E8 !important;
   color: #FFFFFF !important;
 }
 
-/* Hover states for action buttons */
 .hover\:bg-\[\#4d47d4\]:hover,
 .hover\:bg-\[\#4D47CB\]:hover,
 .hover\:bg-\[\#4F46E5\]:hover,
 .hover\:bg-\[\#3730A3\]:hover,
 .hover\:bg-\[\#D95F12\]:hover,
-.hover\:bg-\[\#C2410C\]:hover,
 .hover\:bg-\[\#B94B0A\]:hover,
 .hover\:bg-\[\#E06612\]:hover,
+.hover\:bg-\[\#123B35\]:hover,
+.hover\:bg-\[\#0F172A\]:hover,
+.hover\:bg-\[\#1A2E2B\]:hover,
+.hover\:bg-\[\#125CC0\]:hover,
+.hover\:bg-\[\#1677E8\]:hover,
 .hover\:bg-primary-hover:hover,
 .hover\:bg-primary-600:hover,
 .hover\:bg-primary-700:hover,
 .hover\:bg-saffron-hover:hover,
 .hover\:bg-indigo-700:hover {
-  background-color: #208E76 !important;
+  background-color: #1268D3 !important;
 }
 
-/* Primary Brand Text Highlights */
 .text-\[\#5c56df\],
 .text-\[\#5C56DF\],
 .text-\[\#6366F1\],
 .text-\[\#4F46E5\],
 .text-\[\#C24E1D\],
 .text-\[\#F47721\],
-.text-\[\#EA580C\],
 .text-\[\#D95F12\],
 .text-primary,
 .text-primary-500,
 .text-primary-600,
 .text-indigo-600,
 .text-saffron {
-  color: #26A58A !important;
+  color: #1677E8 !important;
 }
 
-/* Hover text */
 .hover\:text-indigo-600:hover,
 .hover\:text-primary:hover,
-.hover\:text-\[\#5c56df\]:hover {
-  color: #208E76 !important;
+.hover\:text-\[\#5c56df\]:hover,
+.hover\:text-\[\#123B35\]:hover {
+  color: #1268D3 !important;
 }
 
-/* Primary Borders */
 .border-\[\#5c56df\],
 .border-\[\#5C56DF\],
 .border-\[\#6366F1\],
 .border-\[\#C24E1D\],
 .border-\[\#F47721\],
-.border-\[\#EA580C\],
 .border-primary,
 .border-primary-500,
 .border-indigo-600,
 .border-saffron {
-  border-color: #26A58A !important;
+  border-color: #1677E8 !important;
 }
 
-/* Focus Rings and Focus Borders */
 .focus\:ring-\[\#C24E1D\]:focus,
 .focus\:ring-primary:focus,
 .focus\:ring-indigo-500:focus,
-.focus\:ring-saffron:focus {
-  --tw-ring-color: #26A58A !important;
+.focus\:ring-saffron:focus,
+.focus\:ring-\[\#1677E8\]:focus {
+  --tw-ring-color: #1677E8 !important;
 }
 
 .focus\:border-\[\#5C56DF\]:focus,
-.focus\:border-\[\#5c56df\]:focus {
-  border-color: #26A58A !important;
+.focus\:border-\[\#5c56df\]:focus,
+.focus\:border-\[\#1677E8\]:focus {
+  border-color: #1677E8 !important;
 }
 
-/* Checkboxes and Radios */
 .accent-indigo-600,
 .accent-\[\#5c56df\],
 .accent-\[\#5C56DF\],
-input[type="checkbox"]:focus,
-input[type="radio"]:focus {
-  accent-color: #26A58A !important;
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: #1677E8;
+}
+
+/* Shared form controls inside the application canvas */
+#main-content input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]),
+#main-content select,
+#main-content textarea {
+  border-radius: 10px;
+  border-color: #E3EAF3;
+  font-size: 13px;
+}
+
+#main-content input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):focus,
+#main-content select:focus,
+#main-content textarea:focus {
+  border-color: #1677E8;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(22, 119, 232, 0.12);
+}
+
+#main-content table thead {
+  background: #F8FBFF;
+  color: #64748B;
+}
+
+#main-content table tbody tr:hover {
+  background-color: #F8FBFF;
 }
 
 

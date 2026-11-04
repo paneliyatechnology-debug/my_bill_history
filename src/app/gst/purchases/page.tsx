@@ -58,13 +58,13 @@ function Body() {
   return (
     <Panel loading={loading} error={error} onRetry={load} empty={!tenantContext.companyId ? "Sign in and select a company to see the purchase register." : items.length === 0 ? "No posted purchase bills or returns in this period." : null}>
       <div className="flex flex-wrap gap-2">
-        <input className="border rounded px-2 py-1 text-sm" placeholder="Supplier or GSTIN" value={supplier} onChange={(event) => setSupplier(event.target.value)} />
-        <select className="border rounded px-2 py-1 text-sm" value={kind} onChange={(event) => setKind(event.target.value)}>
+        <input className="border rounded px-2 py-1 text-[13px] h-10" placeholder="Supplier or GSTIN" value={supplier} onChange={(event) => setSupplier(event.target.value)} />
+        <select className="border rounded px-2 py-1 text-[13px] h-10" value={kind} onChange={(event) => setKind(event.target.value)}>
           <option value="">All documents</option>
           <option value="PURCHASE_INVOICE">Bills</option>
           <option value="PURCHASE_RETURN">Returns</option>
         </select>
-        <select className="border rounded px-2 py-1 text-sm" value={itc} onChange={(event) => setItc(event.target.value)}>
+        <select className="border rounded px-2 py-1 text-[13px] h-10" value={itc} onChange={(event) => setItc(event.target.value)}>
           <option value="">All ITC labels</option>
           <option>INPUT</option>
           <option>INELIGIBLE</option>

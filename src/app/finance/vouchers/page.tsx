@@ -353,13 +353,18 @@ export default function FinanceVouchersPage() {
     }
   };
 
-  const typeColor: Record<string, "info" | "success" | "warning" | "danger" | "purple"> = {
-    JOURNAL: "purple",
-    RECEIPT: "success",
-    PAYMENT: "warning",
-    CONTRA: "info",
-    SALES: "info",
-    PURCHASE: "danger",
+  const typeStyles: Record<
+    string,
+    { dot: string; text: string }
+  > = {
+    JOURNAL: { dot: "bg-purple-500", text: "text-purple-700" },
+    RECEIPT: { dot: "bg-emerald-500", text: "text-emerald-700" },
+    PAYMENT: { dot: "bg-amber-500", text: "text-amber-700" },
+    CONTRA: { dot: "bg-sky-500", text: "text-sky-700" },
+    SALES: { dot: "bg-blue-600", text: "text-blue-700" },
+    PURCHASE: { dot: "bg-rose-500", text: "text-rose-700" },
+    DEBIT_NOTE: { dot: "bg-indigo-500", text: "text-indigo-700" },
+    CREDIT_NOTE: { dot: "bg-teal-500", text: "text-teal-700" },
   };
 
   const columns: ColumnDef<Voucher>[] = [
@@ -370,7 +375,7 @@ export default function FinanceVouchersPage() {
       cell: (v) => (
         <button
           onClick={() => setSelectedVoucher(v)}
-          className="font-mono font-bold text-slate-900 hover:text-primary transition-colors text-left"
+          className="tabular-nums font-bold text-slate-900 hover:text-primary transition-colors text-left"
         >
           {v.voucherNumber}
         </button>
@@ -381,7 +386,7 @@ export default function FinanceVouchersPage() {
       accessorKey: "voucherDate",
       sortable: true,
       cell: (v) => (
-        <span className="font-mono text-slate-600 text-xs">
+        <span className="tabular-nums text-slate-600 text-xs">
           {new Date(v.voucherDate).toLocaleDateString("en-IN")}
         </span>
       ),
@@ -390,11 +395,20 @@ export default function FinanceVouchersPage() {
       header: lang === "gu" ? "પ્રકાર" : "Type",
       accessorKey: "voucherType",
       sortable: true,
-      cell: (v) => (
-        <Badge variant={typeColor[v.voucherType] || "neutral"}>
-          {v.voucherType}
-        </Badge>
-      ),
+      cell: (v) => {
+        const style = typeStyles[v.voucherType] || {
+          dot: "bg-slate-400",
+          text: "text-slate-700",
+        };
+        return (
+          <span
+            className={`inline-flex items-center gap-1.5 text-xs font-semibold ${style.text}`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
+            <span>{v.voucherType}</span>
+          </span>
+        );
+      },
     },
     {
       header: lang === "gu" ? "ખાતાઓ (Dr / Cr)" : "Accounts (Dr / Cr)",
@@ -436,7 +450,7 @@ export default function FinanceVouchersPage() {
       sortable: true,
       className: "text-right",
       cell: (v) => (
-        <span className="font-mono font-bold text-slate-900 text-sm">
+        <span className="tabular-nums font-bold text-slate-900 text-sm">
           ₹{Number(v.totalAmount).toFixed(2)}
         </span>
       ),
@@ -455,7 +469,7 @@ export default function FinanceVouchersPage() {
         <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => setSelectedVoucher(v)}
-            className="px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+            className="px-2.5 py-1 text-[13px] font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
           >
             {lang === "gu" ? "વિગત જુઓ" : "View Lines"}
           </button>
@@ -466,7 +480,7 @@ export default function FinanceVouchersPage() {
                 setReversalReason("");
                 setReversalError(null);
               }}
-              className="px-2 py-1 text-xs font-semibold text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+              className="px-2 py-1 text-[13px] font-medium text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
               title="Reverse Voucher"
             >
               {lang === "gu" ? "રદ કરો" : "Reverse"}
@@ -495,7 +509,7 @@ export default function FinanceVouchersPage() {
         <div>
           <div className="flex items-center gap-2">
             <span className="p-2 bg-amber-50 text-amber-700 rounded-xl text-lg">💰</span>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
               {lang === "gu" ? "રોજમેળ & આવક-જાવક વાઉચર" : "Cash Book & Receipts Register"}
             </h1>
           </div>
@@ -510,7 +524,7 @@ export default function FinanceVouchersPage() {
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setIsExpenseModalOpen(true)}
-            className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold rounded-xl transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+            className="h-9 px-3 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[13px] font-medium rounded-xl transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
           >
             <span>💸</span>
             <span>{lang === "gu" ? "+ ખર્ચ / ચુકવણી" : "+ Record Payment"}</span>
@@ -518,7 +532,7 @@ export default function FinanceVouchersPage() {
 
           <button
             onClick={() => setIsContraModalOpen(true)}
-            className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold rounded-xl transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+            className="h-9 px-3 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-[13px] font-medium rounded-xl transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
           >
             <span>🔄</span>
             <span>{lang === "gu" ? "+ બેંક/રોકડ ફેરબદલ" : "+ Contra Transfer"}</span>
@@ -526,7 +540,7 @@ export default function FinanceVouchersPage() {
 
           <Link
             href="/finance/vouchers/new"
-            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5"
+            className="h-9 px-3 bg-slate-900 hover:bg-slate-800 text-white text-[13px] font-medium rounded-xl shadow-xs transition-all flex items-center gap-1.5"
           >
             <span>📝</span>
             <span>{lang === "gu" ? "+ નવું જર્નલ વાઉચર" : "+ New Journal"}</span>
@@ -542,7 +556,7 @@ export default function FinanceVouchersPage() {
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               {lang === "gu" ? "રોકડ સિલક (Cash in Hand)" : "Cash in Hand"}
             </p>
-            <p className="text-xl font-black text-slate-900 font-mono mt-1">
+            <p className="text-xl font-semibold text-slate-900 tabular-nums mt-1">
               ₹{totalCashBalance.toFixed(2)}
             </p>
             <p className="text-[11px] text-slate-400 mt-0.5">
@@ -560,7 +574,7 @@ export default function FinanceVouchersPage() {
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               {lang === "gu" ? "બેંક સિલક (Bank Balance)" : "Bank Balance"}
             </p>
-            <p className="text-xl font-black text-slate-900 font-mono mt-1">
+            <p className="text-xl font-semibold text-slate-900 tabular-nums mt-1">
               ₹{totalBankBalance.toFixed(2)}
             </p>
             <p className="text-[11px] text-slate-400 mt-0.5">
@@ -578,7 +592,7 @@ export default function FinanceVouchersPage() {
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               {lang === "gu" ? "કુલ આવક (Total Receipts)" : "Total Receipts"}
             </p>
-            <p className="text-xl font-black text-emerald-700 font-mono mt-1">
+            <p className="text-xl font-semibold text-emerald-700 tabular-nums mt-1">
               ₹{totalReceipts.toFixed(2)}
             </p>
             <p className="text-[11px] text-emerald-600 mt-0.5 font-medium">
@@ -596,7 +610,7 @@ export default function FinanceVouchersPage() {
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               {lang === "gu" ? "કુલ જાવક (Total Payments)" : "Total Payments"}
             </p>
-            <p className="text-xl font-black text-rose-700 font-mono mt-1">
+            <p className="text-xl font-semibold text-rose-700 tabular-nums mt-1">
               ₹{totalPayments.toFixed(2)}
             </p>
             <p className="text-[11px] text-rose-600 mt-0.5 font-medium">
@@ -666,7 +680,7 @@ export default function FinanceVouchersPage() {
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="text-xs bg-white border border-slate-200 text-slate-700 rounded-xl px-3 py-2 font-bold focus:outline-none cursor-pointer"
+              className="text-[13px] bg-white border border-slate-200 text-slate-700 rounded-xl px-3 py-2 font-normal focus:outline-none cursor-pointer h-10"
             >
               <option value="ALL">{lang === "gu" ? "સમગ્ર સમયગાળો" : "All Dates"}</option>
               <option value="TODAY">{lang === "gu" ? "આજનો દિવસ (Today)" : "Today"}</option>
@@ -689,19 +703,28 @@ export default function FinanceVouchersPage() {
             <div className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
               <div>
                 <span className="font-semibold text-slate-500">Date: </span>
-                <span className="font-mono font-bold text-slate-900">
+                <span className="tabular-nums font-bold text-slate-900">
                   {new Date(selectedVoucher.voucherDate).toLocaleDateString("en-IN")}
                 </span>
               </div>
               <div>
                 <span className="font-semibold text-slate-500">Type: </span>
-                <Badge variant={typeColor[selectedVoucher.voucherType] || "neutral"}>
-                  {selectedVoucher.voucherType}
-                </Badge>
+                <span
+                  className={`inline-flex items-center gap-1.5 text-xs font-semibold ${
+                    (typeStyles[selectedVoucher.voucherType] || { text: "text-slate-700" }).text
+                  }`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      (typeStyles[selectedVoucher.voucherType] || { dot: "bg-slate-400" }).dot
+                    }`}
+                  />
+                  <span>{selectedVoucher.voucherType}</span>
+                </span>
               </div>
               <div>
                 <span className="font-semibold text-slate-500">Total: </span>
-                <span className="font-mono font-bold text-slate-900 text-sm">
+                <span className="tabular-nums font-bold text-slate-900 text-sm">
                   ₹{Number(selectedVoucher.totalAmount).toFixed(2)}
                 </span>
               </div>
@@ -724,18 +747,18 @@ export default function FinanceVouchersPage() {
                     <th className="py-2.5 px-3 text-right">Credit (Cr ₹)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 font-mono">
+                <tbody className="divide-y divide-slate-100 tabular-nums">
                   {(selectedVoucher.journalEntries || selectedVoucher.lines || []).map((line, idx) => (
                     <tr key={idx} className="hover:bg-slate-50">
                       <td className="py-2.5 px-3 font-medium text-slate-900 font-sans">
                         {line.account?.name || "Account"}{" "}
-                        {line.account?.code && <span className="text-slate-400 font-mono">({line.account.code})</span>}
+                        {line.account?.code && <span className="text-slate-400 tabular-nums">({line.account.code})</span>}
                       </td>
                       <td className="py-2.5 px-3 text-slate-500 font-sans">{line.narration || "—"}</td>
-                      <td className="py-2.5 px-3 text-right font-bold text-slate-900">
+                      <td className="py-2.5 px-3 text-right font-medium text-slate-900">
                         {Number(line.debitAmount) > 0 ? `₹${Number(line.debitAmount).toFixed(2)}` : "—"}
                       </td>
-                      <td className="py-2.5 px-3 text-right font-bold text-slate-900">
+                      <td className="py-2.5 px-3 text-right font-medium text-slate-900">
                         {Number(line.creditAmount) > 0 ? `₹${Number(line.creditAmount).toFixed(2)}` : "—"}
                       </td>
                     </tr>
@@ -747,7 +770,7 @@ export default function FinanceVouchersPage() {
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setSelectedVoucher(null)}
-                className="px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl cursor-pointer"
+                className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl cursor-pointer"
               >
                 {lang === "gu" ? "બંધ કરો" : "Close"}
               </button>
@@ -773,14 +796,14 @@ export default function FinanceVouchersPage() {
             )}
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "ખર્ચ ખાતું (Expense Head) *" : "Expense Account *"}
               </label>
               <select
                 required
                 value={expenseForm.expenseAccountId}
                 onChange={(e) => setExpenseForm({ ...expenseForm, expenseAccountId: e.target.value })}
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold"
+                className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-normal h-10"
               >
                 <option value="">-- {lang === "gu" ? "ખર્ચ ખાતું પસંદ કરો" : "Select Expense Account"} --</option>
                 {expenseAccounts.map((acc) => (
@@ -792,13 +815,13 @@ export default function FinanceVouchersPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "ચુકવણી ખાતું (Cash / Bank) *" : "Paid From Account *"}
               </label>
               <select
                 value={expenseForm.paidFromAccountId}
                 onChange={(e) => setExpenseForm({ ...expenseForm, paidFromAccountId: e.target.value })}
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold"
+                className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-normal h-10"
               >
                 <option value="">{lang === "gu" ? "રોકડ ખાતું (Cash Account) - ડિફોલ્ટ" : "Cash Account (Default)"}</option>
                 {[...cashAccounts, ...bankAccounts].map((acc) => (
@@ -811,7 +834,7 @@ export default function FinanceVouchersPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">
                   {lang === "gu" ? "રકમ (₹) *" : "Amount (₹) *"}
                 </label>
                 <input
@@ -822,12 +845,12 @@ export default function FinanceVouchersPage() {
                   value={expenseForm.amount}
                   onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
                   placeholder="0.00"
-                  className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold"
+                  className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-200 rounded-xl tabular-nums font-normal h-10"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">
                   {lang === "gu" ? "તારીખ *" : "Date *"}
                 </label>
                 <input
@@ -835,13 +858,13 @@ export default function FinanceVouchersPage() {
                   type="date"
                   value={expenseForm.voucherDate}
                   onChange={(e) => setExpenseForm({ ...expenseForm, voucherDate: e.target.value })}
-                  className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono"
+                  className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-200 rounded-xl tabular-nums h-10"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "લખાણ / વિગત (Narration)" : "Narration"}
               </label>
               <input
@@ -849,7 +872,7 @@ export default function FinanceVouchersPage() {
                 value={expenseForm.narration}
                 onChange={(e) => setExpenseForm({ ...expenseForm, narration: e.target.value })}
                 placeholder="e.g. Office tea & snacks, delivery charges"
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl"
+                className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-200 rounded-xl h-10"
               />
             </div>
 
@@ -857,14 +880,14 @@ export default function FinanceVouchersPage() {
               <button
                 type="button"
                 onClick={() => setIsExpenseModalOpen(false)}
-                className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
+                className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
               >
                 {lang === "gu" ? "રદ કરો" : "Cancel"}
               </button>
               <button
                 type="submit"
                 disabled={isSubmittingExpense}
-                className="px-5 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-xs disabled:opacity-50 cursor-pointer"
+                className="h-9 px-3.5 text-[13px] font-medium text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-xs disabled:opacity-50 cursor-pointer"
               >
                 {isSubmittingExpense ? "Recording..." : lang === "gu" ? "ખર્ચ નોંધો" : "Record Expense"}
               </button>
@@ -890,14 +913,14 @@ export default function FinanceVouchersPage() {
             )}
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "આ ખાતામાંથી ઉપાડ્યા (From Account) *" : "From Account (Withdrawal) *"}
               </label>
               <select
                 required
                 value={contraForm.fromAccountId}
                 onChange={(e) => setContraForm({ ...contraForm, fromAccountId: e.target.value })}
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold"
+                className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-normal h-10"
               >
                 <option value="">-- {lang === "gu" ? "ખાતું પસંદ કરો" : "Select Source Account"} --</option>
                 {[...cashAccounts, ...bankAccounts].map((acc) => (
@@ -909,14 +932,14 @@ export default function FinanceVouchersPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "આ ખાતામાં જમા કર્યા (To Account) *" : "To Account (Deposit) *"}
               </label>
               <select
                 required
                 value={contraForm.toAccountId}
                 onChange={(e) => setContraForm({ ...contraForm, toAccountId: e.target.value })}
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold"
+                className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-normal h-10"
               >
                 <option value="">-- {lang === "gu" ? "ખાતું પસંદ કરો" : "Select Destination Account"} --</option>
                 {[...cashAccounts, ...bankAccounts].map((acc) => (
@@ -929,7 +952,7 @@ export default function FinanceVouchersPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">
                   {lang === "gu" ? "રકમ (₹) *" : "Amount (₹) *"}
                 </label>
                 <input
@@ -940,12 +963,12 @@ export default function FinanceVouchersPage() {
                   value={contraForm.amount}
                   onChange={(e) => setContraForm({ ...contraForm, amount: e.target.value })}
                   placeholder="0.00"
-                  className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold"
+                  className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-200 rounded-xl tabular-nums font-normal h-10"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">
                   {lang === "gu" ? "તારીખ *" : "Date *"}
                 </label>
                 <input
@@ -953,13 +976,13 @@ export default function FinanceVouchersPage() {
                   type="date"
                   value={contraForm.voucherDate}
                   onChange={(e) => setContraForm({ ...contraForm, voucherDate: e.target.value })}
-                  className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono"
+                  className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-200 rounded-xl tabular-nums h-10"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "વિગત / લખાણ" : "Narration"}
               </label>
               <input
@@ -967,7 +990,7 @@ export default function FinanceVouchersPage() {
                 value={contraForm.narration}
                 onChange={(e) => setContraForm({ ...contraForm, narration: e.target.value })}
                 placeholder="e.g. Cash deposited in bank, ATM withdrawal"
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl"
+                className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-200 rounded-xl h-10"
               />
             </div>
 
@@ -975,14 +998,14 @@ export default function FinanceVouchersPage() {
               <button
                 type="button"
                 onClick={() => setIsContraModalOpen(false)}
-                className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
+                className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
               >
                 {lang === "gu" ? "રદ કરો" : "Cancel"}
               </button>
               <button
                 type="submit"
                 disabled={isSubmittingContra}
-                className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs disabled:opacity-50 cursor-pointer"
+                className="h-9 px-3.5 text-[13px] font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs disabled:opacity-50 cursor-pointer"
               >
                 {isSubmittingContra ? "Posting..." : lang === "gu" ? "ટ્રાન્સફર નોંધો" : "Record Transfer"}
               </button>
@@ -1014,7 +1037,7 @@ export default function FinanceVouchersPage() {
             )}
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "રદ કરવાનું કારણ *" : "Reason for Reversal *"}
               </label>
               <textarea
@@ -1023,7 +1046,7 @@ export default function FinanceVouchersPage() {
                 value={reversalReason}
                 onChange={(e) => setReversalReason(e.target.value)}
                 placeholder="e.g. Incorrect ledger allocation or cancelled transaction"
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl"
+                className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-200 rounded-xl"
               />
             </div>
 
@@ -1031,14 +1054,14 @@ export default function FinanceVouchersPage() {
               <button
                 type="button"
                 onClick={() => setReversalTarget(null)}
-                className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
+                className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
               >
                 {lang === "gu" ? "રદ કરો" : "Cancel"}
               </button>
               <button
                 type="submit"
                 disabled={isReversing}
-                className="px-5 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-xs disabled:opacity-50 cursor-pointer"
+                className="h-9 px-3.5 text-[13px] font-medium text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-xs disabled:opacity-50 cursor-pointer"
               >
                 {isReversing ? "Reversing..." : lang === "gu" ? "ખાતરી કરો" : "Confirm Reversal"}
               </button>

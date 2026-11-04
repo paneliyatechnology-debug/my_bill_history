@@ -84,11 +84,11 @@ export function GstFrame({
       <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl lg:text-[1.75rem] font-bold text-[#202124] tracking-tight leading-tight">{title}</h1>
+            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight leading-tight">{title}</h1>
           </div>
           <p className="text-xs sm:text-sm text-[#667085] mt-1 leading-relaxed break-words font-normal">
             {currentCompany?.tradeName || currentCompany?.legalName || "No company selected"} · GSTIN:{" "}
-            <span className="font-mono font-bold text-[#F47721]">{currentCompany?.gstin || "Not configured"}</span> · {currentFY?.name || "Financial Year"}
+            <span className="tabular-nums font-bold text-[#F47721]">{currentCompany?.gstin || "Not configured"}</span> · {currentFY?.name || "Financial Year"}
           </p>
         </div>
       </div>
@@ -109,10 +109,10 @@ export function GstFrame({
         })}
       </div>
       <div className="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-subtle flex flex-wrap gap-4 items-end">
-        <label className="text-xs font-bold text-[#667085]">
+        <label className="text-[12px] font-medium text-[#667085]">
           {lang === "gu" ? "મહિનો (Month)" : "Month"}
           <select
-            className="mt-1 block border border-[#E5E7EB] rounded-xl px-3 py-1.5 text-xs font-semibold text-[#202124] bg-[#F8FAFC] focus:bg-white focus:ring-2 focus:ring-[#F47721]/20 focus:border-[#F47721] transition-all cursor-pointer"
+            className="mt-1 block border border-[#E5E7EB] rounded-xl px-3 py-1.5 text-[13px] font-normal text-[#182230] bg-[#F8FAFC] focus:bg-white focus:ring-2 focus:ring-[#F47721]/20 focus:border-[#F47721] transition-all cursor-pointer h-10"
             value={period.month}
             onChange={(event) => period.setMonth(Number(event.target.value))}
           >
@@ -123,10 +123,10 @@ export function GstFrame({
             ))}
           </select>
         </label>
-        <label className="text-xs font-bold text-[#667085]">
+        <label className="text-[12px] font-medium text-[#667085]">
           {lang === "gu" ? "વર્ષ (Year)" : "Year"}
           <input
-            className="mt-1 block w-24 border border-[#E5E7EB] rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-[#202124] bg-[#F8FAFC] focus:bg-white focus:ring-2 focus:ring-[#F47721]/20 focus:border-[#F47721] transition-all"
+            className="mt-1 block w-24 border border-[#E5E7EB] rounded-xl px-3 py-1.5 text-[13px] tabular-nums font-normal text-[#182230] bg-[#F8FAFC] focus:bg-white focus:ring-2 focus:ring-[#F47721]/20 focus:border-[#F47721] transition-all h-10"
             type="number"
             value={period.year}
             onChange={(event) => period.setYear(Number(event.target.value))}
@@ -134,9 +134,9 @@ export function GstFrame({
         </label>
         <p className="text-xs text-muted flex items-center gap-1.5 pb-1">
           <span>📅 Period:</span>
-          <span className="font-mono font-bold text-slate-800">{period.fromDate}</span>
+          <span className="tabular-nums font-bold text-slate-800">{period.fromDate}</span>
           <span>to</span>
-          <span className="font-mono font-bold text-slate-800">{period.toDate}</span>
+          <span className="tabular-nums font-bold text-slate-800">{period.toDate}</span>
           <span className="text-[11px] bg-saffron-light text-primary font-bold px-2 py-0.5 rounded-md ml-1">
             GSTR Period: {period.returnPeriod}
           </span>
@@ -200,7 +200,7 @@ export function DataTable({
     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
       <div className="p-3 border-b border-slate-100">
         <input
-          className="w-full sm:w-72 border border-slate-300 rounded px-2 py-1 text-sm"
+          className="w-full sm:w-72 border border-slate-300 rounded px-2 py-1 text-[13px] h-10"
           placeholder="Search this table"
           value={query}
           onChange={(event) => {

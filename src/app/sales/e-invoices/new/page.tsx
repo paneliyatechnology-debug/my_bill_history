@@ -465,7 +465,7 @@ export default function CreateEInvoicePage() {
             <span>/</span>
             <span className="font-semibold text-slate-800">New E-Invoice</span>
           </div>
-          <h1 className="text-2xl font-black text-slate-900">
+          <h1 className="text-[22px] font-semibold text-[#182230]">
             {lang === "gu" ? "નવું ઈ-ઇનવોઇસ બનાવો" : "Create Statutory GST E-Invoice"}
           </h1>
         </div>
@@ -473,7 +473,7 @@ export default function CreateEInvoicePage() {
         <div className="flex items-center gap-2">
           <Link
             href="/sales/e-invoices"
-            className="rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+            className="rounded-lg border border-slate-300 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
           >
             Cancel
           </Link>
@@ -485,18 +485,18 @@ export default function CreateEInvoicePage() {
         <div className="space-y-6 lg:col-span-8">
           {/* SECTION A: Document Details */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-4 flex items-center gap-2">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-emerald-800 mb-4 flex items-center gap-2">
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-[11px] text-emerald-800">1</span>
               A. Document & Supply Details
             </h2>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Document Type *</label>
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">Document Type *</label>
                 <select
                   value={documentType}
                   onChange={(e) => setDocumentType(e.target.value as any)}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] focus:border-[#1677E8] focus:outline-none h-10"
                 >
                   <option value="TAX_INVOICE">Tax Invoice (INV)</option>
                   <option value="CREDIT_NOTE">Credit Note (CRN)</option>
@@ -505,27 +505,27 @@ export default function CreateEInvoicePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Invoice Number *</label>
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">Invoice Number *</label>
                 <input
                   type="text"
                   value={invoiceNumber}
                   onChange={(e) => setInvoiceNumber(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs font-mono font-bold focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] tabular-nums font-normal focus:border-[#1677E8] focus:outline-none h-10"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Invoice Date *</label>
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">Invoice Date *</label>
                 <input
                   type="date"
                   value={invoiceDate}
                   onChange={(e) => setInvoiceDate(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs font-mono focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] tabular-nums focus:border-[#1677E8] focus:outline-none h-10"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Supply Category *</label>
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">Supply Category *</label>
                 <select
                   value={supplyCategory}
                   onChange={(e) => {
@@ -534,7 +534,7 @@ export default function CreateEInvoicePage() {
                       setShowExport(true);
                     }
                   }}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] focus:border-[#1677E8] focus:outline-none h-10"
                 >
                   <option value="B2B">B2B - Regular Business to Business</option>
                   <option value="SEZWP">SEZWP - SEZ with Tax Payment</option>
@@ -546,11 +546,11 @@ export default function CreateEInvoicePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Reverse Charge (RCM)</label>
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">Reverse Charge (RCM)</label>
                 <select
                   value={isReverseCharge ? "Y" : "N"}
                   onChange={(e) => setIsReverseCharge(e.target.value === "Y")}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] focus:border-[#1677E8] focus:outline-none h-10"
                 >
                   <option value="N">No (Normal Tax)</option>
                   <option value="Y">Yes (Reverse Charge)</option>
@@ -559,13 +559,13 @@ export default function CreateEInvoicePage() {
 
               {documentType !== "TAX_INVOICE" && (
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Original Invoice Ref No</label>
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1">Original Invoice Ref No</label>
                   <input
                     type="text"
                     value={originalInvoiceRef}
                     onChange={(e) => setOriginalInvoiceRef(e.target.value)}
                     placeholder="e.g. INV-2026-001"
-                    className="w-full rounded-lg border border-slate-300 p-2 text-xs font-mono focus:border-emerald-500 focus:outline-none"
+                    className="w-full rounded-lg border border-slate-300 p-2 text-[13px] tabular-nums focus:border-[#1677E8] focus:outline-none h-10"
                   />
                 </div>
               )}
@@ -574,18 +574,18 @@ export default function CreateEInvoicePage() {
 
           {/* SECTION B & C: Supplier and Recipient */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-4 flex items-center gap-2">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-emerald-800 mb-4 flex items-center gap-2">
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-[11px] text-emerald-800">2</span>
               B. Recipient (Buyer) & Place of Supply
             </h2>
 
             {/* Buyer Master Selector */}
             <div className="mb-4">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Select Saved Customer / Party</label>
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">Select Saved Customer / Party</label>
               <select
                 value={selectedPartyId}
                 onChange={(e) => handleSelectParty(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 p-2 text-xs focus:border-emerald-500 focus:outline-none bg-slate-50/50"
+                className="w-full rounded-lg border border-slate-300 p-2 text-[13px] focus:border-[#1677E8] focus:outline-none bg-slate-50/50 h-10"
               >
                 <option value="">-- Choose from Master or Enter Details Manually --</option>
                 {parties.map((p) => (
@@ -598,18 +598,18 @@ export default function CreateEInvoicePage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Buyer Legal / Trade Name *</label>
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">Buyer Legal / Trade Name *</label>
                 <input
                   type="text"
                   value={buyerName}
                   onChange={(e) => setBuyerName(e.target.value)}
                   placeholder="Recipient firm name"
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs focus:border-emerald-500 focus:outline-none font-semibold"
+                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] focus:border-[#1677E8] focus:outline-none font-normal h-10"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Buyer GSTIN *</label>
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">Buyer GSTIN *</label>
                 <input
                   type="text"
                   value={buyerGstin}
@@ -622,41 +622,41 @@ export default function CreateEInvoicePage() {
                     }
                   }}
                   placeholder="24AAACB1234F1Z1 or URP"
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs font-mono font-bold focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] tabular-nums font-normal focus:border-[#1677E8] focus:outline-none h-10"
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Billing Address Line *</label>
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">Billing Address Line *</label>
                 <input
                   type="text"
                   value={buyerAddress}
                   onChange={(e) => setBuyerAddress(e.target.value)}
                   placeholder="Street address, building, premises"
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] focus:border-[#1677E8] focus:outline-none h-10"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Location / City *</label>
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">Location / City *</label>
                 <input
                   type="text"
                   value={buyerCity}
                   onChange={(e) => setBuyerCity(e.target.value)}
                   placeholder="City name"
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] focus:border-[#1677E8] focus:outline-none h-10"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">State & State Code *</label>
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">State & State Code *</label>
                 <select
                   value={buyerStateCode}
                   onChange={(e) => {
                     setBuyerStateCode(e.target.value);
                     setPlaceOfSupply(e.target.value);
                   }}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] focus:border-[#1677E8] focus:outline-none h-10"
                 >
                   {Object.entries(INDIAN_STATES).map(([code, st]) => (
                     <option key={code} value={code}>
@@ -667,22 +667,22 @@ export default function CreateEInvoicePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Buyer PIN Code *</label>
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">Buyer PIN Code *</label>
                 <input
                   type="text"
                   value={buyerPincode}
                   onChange={(e) => setBuyerPincode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   placeholder="6-digit PIN"
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs font-mono focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] tabular-nums focus:border-[#1677E8] focus:outline-none h-10"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Place of Supply (POS) *</label>
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">Place of Supply (POS) *</label>
                 <select
                   value={placeOfSupply}
                   onChange={(e) => setPlaceOfSupply(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs font-semibold focus:border-emerald-500 focus:outline-none bg-emerald-50/40"
+                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] font-normal focus:border-[#1677E8] focus:outline-none bg-emerald-50/40 h-10"
                 >
                   {Object.entries(INDIAN_STATES).map(([code, st]) => (
                     <option key={code} value={code}>
@@ -695,22 +695,22 @@ export default function CreateEInvoicePage() {
 
             {/* Address Toggles */}
             <div className="mt-4 flex flex-wrap gap-4 border-t border-slate-100 pt-3 text-xs">
-              <label className="flex items-center gap-2 cursor-pointer text-slate-700 font-semibold">
+              <label className="flex items-center gap-2 cursor-pointer text-slate-700 font-medium">
                 <input
                   type="checkbox"
                   checked={showDispatchFrom}
                   onChange={(e) => setShowDispatchFrom(e.target.checked)}
-                  className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                  className="rounded border-slate-300 text-emerald-600 focus:ring-[#1677E8]"
                 />
                 Dispatch from a different warehouse/location?
               </label>
 
-              <label className="flex items-center gap-2 cursor-pointer text-slate-700 font-semibold">
+              <label className="flex items-center gap-2 cursor-pointer text-slate-700 font-medium">
                 <input
                   type="checkbox"
                   checked={showShipTo}
                   onChange={(e) => setShowShipTo(e.target.checked)}
-                  className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                  className="rounded border-slate-300 text-emerald-600 focus:ring-[#1677E8]"
                 />
                 Ship to a different delivery address?
               </label>
@@ -722,50 +722,50 @@ export default function CreateEInvoicePage() {
                 <div className="text-xs font-bold text-slate-800">Dispatch-From Details</div>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Location Name</label>
+                    <label className="block text-[11px] font-medium text-slate-600 mb-0.5">Location Name</label>
                     <input
                       type="text"
                       value={dispatchName}
                       onChange={(e) => setDispatchName(e.target.value)}
                       placeholder="Warehouse / Plant Name"
-                      className="w-full rounded border border-slate-300 p-1.5 text-xs bg-white"
+                      className="w-full rounded border border-slate-300 p-1.5 text-[13px] bg-white h-10"
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Address</label>
+                    <label className="block text-[11px] font-medium text-slate-600 mb-0.5">Address</label>
                     <input
                       type="text"
                       value={dispatchAddress}
                       onChange={(e) => setDispatchAddress(e.target.value)}
                       placeholder="Dispatch address"
-                      className="w-full rounded border border-slate-300 p-1.5 text-xs bg-white"
+                      className="w-full rounded border border-slate-300 p-1.5 text-[13px] bg-white h-10"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">City</label>
+                    <label className="block text-[11px] font-medium text-slate-600 mb-0.5">City</label>
                     <input
                       type="text"
                       value={dispatchCity}
                       onChange={(e) => setDispatchCity(e.target.value)}
-                      className="w-full rounded border border-slate-300 p-1.5 text-xs bg-white"
+                      className="w-full rounded border border-slate-300 p-1.5 text-[13px] bg-white h-10"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">State Code</label>
+                    <label className="block text-[11px] font-medium text-slate-600 mb-0.5">State Code</label>
                     <input
                       type="text"
                       value={dispatchStateCode}
                       onChange={(e) => setDispatchStateCode(e.target.value)}
-                      className="w-full rounded border border-slate-300 p-1.5 text-xs bg-white font-mono"
+                      className="w-full rounded border border-slate-300 p-1.5 text-[13px] bg-white tabular-nums h-10"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">PIN Code</label>
+                    <label className="block text-[11px] font-medium text-slate-600 mb-0.5">PIN Code</label>
                     <input
                       type="text"
                       value={dispatchPincode}
                       onChange={(e) => setDispatchPincode(e.target.value)}
-                      className="w-full rounded border border-slate-300 p-1.5 text-xs bg-white font-mono"
+                      className="w-full rounded border border-slate-300 p-1.5 text-[13px] bg-white tabular-nums h-10"
                     />
                   </div>
                 </div>
@@ -778,57 +778,57 @@ export default function CreateEInvoicePage() {
                 <div className="text-xs font-bold text-slate-800">Ship-To Details</div>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Consignee Name</label>
+                    <label className="block text-[11px] font-medium text-slate-600 mb-0.5">Consignee Name</label>
                     <input
                       type="text"
                       value={shipName}
                       onChange={(e) => setShipName(e.target.value)}
-                      className="w-full rounded border border-slate-300 p-1.5 text-xs bg-white"
+                      className="w-full rounded border border-slate-300 p-1.5 text-[13px] bg-white h-10"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Consignee GSTIN</label>
+                    <label className="block text-[11px] font-medium text-slate-600 mb-0.5">Consignee GSTIN</label>
                     <input
                       type="text"
                       value={shipGstin}
                       onChange={(e) => setShipGstin(e.target.value.toUpperCase())}
-                      className="w-full rounded border border-slate-300 p-1.5 text-xs bg-white font-mono"
+                      className="w-full rounded border border-slate-300 p-1.5 text-[13px] bg-white tabular-nums h-10"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Address</label>
+                    <label className="block text-[11px] font-medium text-slate-600 mb-0.5">Address</label>
                     <input
                       type="text"
                       value={shipAddress}
                       onChange={(e) => setShipAddress(e.target.value)}
-                      className="w-full rounded border border-slate-300 p-1.5 text-xs bg-white"
+                      className="w-full rounded border border-slate-300 p-1.5 text-[13px] bg-white h-10"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">City</label>
+                    <label className="block text-[11px] font-medium text-slate-600 mb-0.5">City</label>
                     <input
                       type="text"
                       value={shipCity}
                       onChange={(e) => setShipCity(e.target.value)}
-                      className="w-full rounded border border-slate-300 p-1.5 text-xs bg-white"
+                      className="w-full rounded border border-slate-300 p-1.5 text-[13px] bg-white h-10"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">State Code</label>
+                    <label className="block text-[11px] font-medium text-slate-600 mb-0.5">State Code</label>
                     <input
                       type="text"
                       value={shipStateCode}
                       onChange={(e) => setShipStateCode(e.target.value)}
-                      className="w-full rounded border border-slate-300 p-1.5 text-xs bg-white font-mono"
+                      className="w-full rounded border border-slate-300 p-1.5 text-[13px] bg-white tabular-nums h-10"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">PIN Code</label>
+                    <label className="block text-[11px] font-medium text-slate-600 mb-0.5">PIN Code</label>
                     <input
                       type="text"
                       value={shipPincode}
                       onChange={(e) => setShipPincode(e.target.value)}
-                      className="w-full rounded border border-slate-300 p-1.5 text-xs bg-white font-mono"
+                      className="w-full rounded border border-slate-300 p-1.5 text-[13px] bg-white tabular-nums h-10"
                     />
                   </div>
                 </div>
@@ -839,14 +839,14 @@ export default function CreateEInvoicePage() {
           {/* SECTION D: Item Rows */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-2">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-emerald-800 flex items-center gap-2">
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-[11px] text-emerald-800">3</span>
                 C. Item Details & Tax Breakdown
               </h2>
               <button
                 type="button"
                 onClick={handleAddItem}
-                className="inline-flex items-center gap-1 rounded bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition"
+                className="inline-flex items-center gap-1 rounded bg-emerald-50 px-2.5 py-1 text-[13px] font-medium text-emerald-700 hover:bg-emerald-100 transition"
               >
                 + Add Item
               </button>
@@ -878,7 +878,7 @@ export default function CreateEInvoicePage() {
                           value={row.description}
                           onChange={(e) => handleItemChange(idx, "description", e.target.value)}
                           placeholder="Product description"
-                          className="w-full rounded border border-slate-300 p-1 text-xs"
+                          className="w-full rounded border border-slate-300 p-1 text-[13px] h-10"
                         />
                       </td>
 
@@ -889,7 +889,7 @@ export default function CreateEInvoicePage() {
                           value={row.hsnCode}
                           onChange={(e) => handleItemChange(idx, "hsnCode", e.target.value.replace(/\D/g, "").slice(0, 8))}
                           placeholder="HSN code"
-                          className="w-full rounded border border-slate-300 p-1 text-xs font-mono"
+                          className="w-full rounded border border-slate-300 p-1 text-[13px] tabular-nums h-10"
                         />
                       </td>
 
@@ -901,7 +901,7 @@ export default function CreateEInvoicePage() {
                           step="any"
                           value={row.quantity}
                           onChange={(e) => handleItemChange(idx, "quantity", Number(e.target.value))}
-                          className="w-full rounded border border-slate-300 p-1 text-xs font-mono"
+                          className="w-full rounded border border-slate-300 p-1 text-[13px] tabular-nums h-10"
                         />
                       </td>
 
@@ -910,7 +910,7 @@ export default function CreateEInvoicePage() {
                         <select
                           value={row.unit}
                           onChange={(e) => handleItemChange(idx, "unit", e.target.value)}
-                          className="w-full rounded border border-slate-300 p-1 text-xs font-mono"
+                          className="w-full rounded border border-slate-300 p-1 text-[13px] tabular-nums h-10"
                         >
                           {NIC_UNITS.map((u) => (
                             <option key={u.code} value={u.code}>
@@ -928,7 +928,7 @@ export default function CreateEInvoicePage() {
                           step="any"
                           value={row.unitPrice}
                           onChange={(e) => handleItemChange(idx, "unitPrice", Number(e.target.value))}
-                          className="w-full rounded border border-slate-300 p-1 text-xs font-mono text-right"
+                          className="w-full rounded border border-slate-300 p-1 text-[13px] tabular-nums text-right h-10"
                         />
                       </td>
 
@@ -940,12 +940,12 @@ export default function CreateEInvoicePage() {
                           max="100"
                           value={row.discountPercent}
                           onChange={(e) => handleItemChange(idx, "discountPercent", Number(e.target.value))}
-                          className="w-full rounded border border-slate-300 p-1 text-xs font-mono text-right"
+                          className="w-full rounded border border-slate-300 p-1 text-[13px] tabular-nums text-right h-10"
                         />
                       </td>
 
                       {/* Taxable */}
-                      <td className="py-2 px-2 text-right font-mono font-semibold text-slate-800">
+                      <td className="py-2 px-2 text-right tabular-nums font-semibold text-slate-800">
                         ₹{formatInr(row.taxableAmount)}
                       </td>
 
@@ -954,7 +954,7 @@ export default function CreateEInvoicePage() {
                         <select
                           value={row.taxRate}
                           onChange={(e) => handleItemChange(idx, "taxRate", Number(e.target.value))}
-                          className="w-full rounded border border-slate-300 p-1 text-xs font-mono"
+                          className="w-full rounded border border-slate-300 p-1 text-[13px] tabular-nums h-10"
                         >
                           <option value="0">0%</option>
                           <option value="0.1">0.1%</option>
@@ -968,7 +968,7 @@ export default function CreateEInvoicePage() {
                       </td>
 
                       {/* Total */}
-                      <td className="py-2 px-2 text-right font-mono font-bold text-slate-900">
+                      <td className="py-2 px-2 text-right tabular-nums font-medium text-slate-900">
                         ₹{formatInr(row.totalAmount)}
                       </td>
 
@@ -993,12 +993,12 @@ export default function CreateEInvoicePage() {
           {/* SECTION F: Optional Transport & Export Details */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-700 flex items-center gap-2">
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-[11px] text-slate-700">4</span>
                 D. Transport & Export Details (Optional)
               </h2>
               <div className="flex gap-4 text-xs">
-                <label className="flex items-center gap-1.5 cursor-pointer font-semibold text-slate-700">
+                <label className="flex items-center gap-1.5 cursor-pointer font-medium text-slate-700">
                   <input
                     type="checkbox"
                     checked={showTransport}
@@ -1007,7 +1007,7 @@ export default function CreateEInvoicePage() {
                   />
                   Transport / Vehicle Details
                 </label>
-                <label className="flex items-center gap-1.5 cursor-pointer font-semibold text-slate-700">
+                <label className="flex items-center gap-1.5 cursor-pointer font-medium text-slate-700">
                   <input
                     type="checkbox"
                     checked={showExport}
@@ -1022,59 +1022,59 @@ export default function CreateEInvoicePage() {
             {showTransport && (
               <div className="mt-4 pt-3 border-t border-slate-100 grid grid-cols-1 gap-3 sm:grid-cols-3 text-xs">
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Transporter ID</label>
+                  <label className="block text-[11px] font-medium text-slate-600 mb-0.5">Transporter ID</label>
                   <input
                     type="text"
                     value={transporterId}
                     onChange={(e) => setTransporterId(e.target.value.toUpperCase())}
                     placeholder="Transporter GSTIN"
-                    className="w-full rounded border border-slate-300 p-1.5 font-mono"
+                    className="w-full rounded border border-slate-300 p-1.5 tabular-nums text-[13px] font-normal h-10"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Transporter Name</label>
+                  <label className="block text-[11px] font-medium text-slate-600 mb-0.5">Transporter Name</label>
                   <input
                     type="text"
                     value={transporterName}
                     onChange={(e) => setTransporterName(e.target.value)}
-                    className="w-full rounded border border-slate-300 p-1.5"
+                    className="w-full rounded border border-slate-300 p-1.5 text-[13px] font-normal h-10"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Distance (KM) *</label>
+                  <label className="block text-[11px] font-medium text-slate-600 mb-0.5">Distance (KM) *</label>
                   <input
                     type="number"
                     value={distanceKm}
                     onChange={(e) => setDistanceKm(e.target.value ? Number(e.target.value) : "")}
                     placeholder="Distance in KM"
-                    className="w-full rounded border border-slate-300 p-1.5 font-mono"
+                    className="w-full rounded border border-slate-300 p-1.5 tabular-nums text-[13px] font-normal h-10"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Transport Doc No (LR/RR)</label>
+                  <label className="block text-[11px] font-medium text-slate-600 mb-0.5">Transport Doc No (LR/RR)</label>
                   <input
                     type="text"
                     value={transportDocNo}
                     onChange={(e) => setTransportDocNo(e.target.value)}
-                    className="w-full rounded border border-slate-300 p-1.5 font-mono"
+                    className="w-full rounded border border-slate-300 p-1.5 tabular-nums text-[13px] font-normal h-10"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Vehicle Number</label>
+                  <label className="block text-[11px] font-medium text-slate-600 mb-0.5">Vehicle Number</label>
                   <input
                     type="text"
                     value={vehicleNumber}
                     onChange={(e) => setVehicleNumber(e.target.value.toUpperCase())}
                     placeholder="GJ01AB1234"
-                    className="w-full rounded border border-slate-300 p-1.5 font-mono font-bold"
+                    className="w-full rounded border border-slate-300 p-1.5 tabular-nums font-normal text-[13px] font-normal h-10"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Vehicle Type</label>
+                  <label className="block text-[11px] font-medium text-slate-600 mb-0.5">Vehicle Type</label>
                   <select
                     value={vehicleType}
                     onChange={(e) => setVehicleType(e.target.value as any)}
-                    className="w-full rounded border border-slate-300 p-1.5"
+                    className="w-full rounded border border-slate-300 p-1.5 text-[13px] font-normal h-10"
                   >
                     <option value="R">Regular (Normal)</option>
                     <option value="O">Over Dimensional Cargo (ODC)</option>
@@ -1086,41 +1086,41 @@ export default function CreateEInvoicePage() {
             {showExport && (
               <div className="mt-4 pt-3 border-t border-slate-100 grid grid-cols-1 gap-3 sm:grid-cols-4 text-xs">
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Shipping Bill No</label>
+                  <label className="block text-[11px] font-medium text-slate-600 mb-0.5">Shipping Bill No</label>
                   <input
                     type="text"
                     value={shippingBillNo}
                     onChange={(e) => setShippingBillNo(e.target.value)}
-                    className="w-full rounded border border-slate-300 p-1.5 font-mono"
+                    className="w-full rounded border border-slate-300 p-1.5 tabular-nums text-[13px] font-normal h-10"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Shipping Bill Date</label>
+                  <label className="block text-[11px] font-medium text-slate-600 mb-0.5">Shipping Bill Date</label>
                   <input
                     type="date"
                     value={shippingBillDate}
                     onChange={(e) => setShippingBillDate(e.target.value)}
-                    className="w-full rounded border border-slate-300 p-1.5"
+                    className="w-full rounded border border-slate-300 p-1.5 text-[13px] font-normal h-10"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Port Code (6-char)</label>
+                  <label className="block text-[11px] font-medium text-slate-600 mb-0.5">Port Code (6-char)</label>
                   <input
                     type="text"
                     value={portCode}
                     onChange={(e) => setPortCode(e.target.value.toUpperCase())}
                     placeholder="e.g. INMUN1"
-                    className="w-full rounded border border-slate-300 p-1.5 font-mono"
+                    className="w-full rounded border border-slate-300 p-1.5 tabular-nums text-[13px] font-normal h-10"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Country Code (2-char)</label>
+                  <label className="block text-[11px] font-medium text-slate-600 mb-0.5">Country Code (2-char)</label>
                   <input
                     type="text"
                     value={exportCountry}
                     onChange={(e) => setExportCountry(e.target.value.toUpperCase().slice(0, 2))}
                     placeholder="e.g. US"
-                    className="w-full rounded border border-slate-300 p-1.5 font-mono font-bold"
+                    className="w-full rounded border border-slate-300 p-1.5 tabular-nums font-normal text-[13px] font-normal h-10"
                   />
                 </div>
               </div>
@@ -1133,11 +1133,11 @@ export default function CreateEInvoicePage() {
           <div className="sticky top-6 space-y-4">
             {/* Totals Card */}
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-              <h3 className="font-bold text-slate-900 text-sm border-b border-slate-100 pb-2 mb-3">
+              <h3 className="font-semibold text-slate-900 text-[15px] border-b border-slate-100 pb-2 mb-3">
                 Tax & Invoice Summary
               </h3>
 
-              <div className="space-y-2 text-xs font-mono">
+              <div className="space-y-2 text-xs tabular-nums">
                 <div className="flex justify-between text-slate-600">
                   <span className="font-sans">Taxable Value:</span>
                   <span>₹{formatInr(totals.taxable)}</span>
@@ -1173,7 +1173,7 @@ export default function CreateEInvoicePage() {
 
                 <div className="flex justify-between font-bold text-slate-900 text-base border-t border-slate-200 pt-2 font-sans">
                   <span>Grand Total:</span>
-                  <span className="font-mono text-emerald-700">₹{formatInr(totals.grandTotal)}</span>
+                  <span className="tabular-nums text-emerald-700">₹{formatInr(totals.grandTotal)}</span>
                 </div>
               </div>
             </div>
@@ -1191,7 +1191,7 @@ export default function CreateEInvoicePage() {
                 type="button"
                 onClick={handleGenerateEInvoice}
                 disabled={isSubmitting}
-                className="w-full rounded-lg bg-emerald-600 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 transition disabled:opacity-50"
+                className="w-full rounded-lg bg-[#1677E8] py-2.5 text-[13px] font-medium text-white shadow-xs hover:bg-[#1268D3] transition disabled:opacity-50"
               >
                 {isSubmitting ? "Processing..." : "Generate E-Invoice on IRP"}
               </button>
@@ -1200,7 +1200,7 @@ export default function CreateEInvoicePage() {
                 type="button"
                 onClick={handleValidateFields}
                 disabled={isSubmitting}
-                className="w-full rounded-lg border border-emerald-600 bg-emerald-50/50 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition disabled:opacity-50"
+                className="w-full rounded-lg border border-emerald-600 bg-emerald-50/50 py-2 text-[13px] font-medium text-emerald-800 hover:bg-emerald-100 transition disabled:opacity-50"
               >
                 Pre-Validate Statutory Fields
               </button>
@@ -1209,7 +1209,7 @@ export default function CreateEInvoicePage() {
                 type="button"
                 onClick={handleSaveDraft}
                 disabled={isSubmitting}
-                className="w-full rounded-lg border border-slate-300 bg-white py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition disabled:opacity-50"
+                className="w-full rounded-lg border border-slate-300 bg-white py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition disabled:opacity-50"
               >
                 Save as Normal Sales Draft
               </button>
@@ -1223,7 +1223,7 @@ export default function CreateEInvoicePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
           <div className="w-full max-w-lg rounded-xl bg-white shadow-2xl overflow-hidden border border-slate-200">
             <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-4">
-              <h3 className="font-bold text-slate-900 text-sm">
+              <h3 className="font-semibold text-slate-900 text-[15px]">
                 Pre-Validation Results
               </h3>
               <button onClick={() => setShowValidationModal(false)} className="text-slate-400 hover:text-slate-700">
@@ -1247,7 +1247,7 @@ export default function CreateEInvoicePage() {
                   {validationErrors.map((err, i) => (
                     <div key={i} className="rounded-md border border-rose-200 bg-rose-50 p-2.5 text-xs text-rose-950">
                       <div className="font-semibold text-rose-900">{err.message}</div>
-                      <div className="text-[10px] font-mono text-rose-700">Field: {err.field}</div>
+                      <div className="text-[10px] tabular-nums text-rose-700">Field: {err.field}</div>
                     </div>
                   ))}
                 </div>
@@ -1256,7 +1256,7 @@ export default function CreateEInvoicePage() {
             <div className="flex justify-end gap-2 border-t border-slate-200 bg-slate-50 px-5 py-3">
               <button
                 onClick={() => setShowValidationModal(false)}
-                className="rounded-lg border border-slate-300 px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                className="rounded-lg border border-slate-300 h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-100"
               >
                 Close
               </button>

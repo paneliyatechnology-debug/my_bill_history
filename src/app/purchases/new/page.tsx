@@ -1742,12 +1742,12 @@ const [notes, setNotes] = useState("");
               onClick={() => setIsAutofillDrawerOpen(true)}
               aria-expanded={false}
               aria-controls="ai-autofill-panel"
-              className="inline-flex items-center gap-2 px-3.5 py-2.5 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 border border-[#85D5C2] text-[#174B43] rounded-xl text-xs font-bold shadow-2xs transition-all hover:shadow-xs cursor-pointer group"
+              className="inline-flex items-center gap-2 h-9 px-3.5 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 border border-[#93C5FD] text-[#0F172A] rounded-xl text-[13px] font-medium shadow-2xs transition-all hover:shadow-xs cursor-pointer group"
               title="Show AI Assistant to scan bills and auto-fill line items"
             >
               <span className="text-base group-hover:scale-110 transition-transform">✨</span>
               <span>{lang === "gu" ? "AI સહાયક બતાવો" : "Show AI Assistant"}</span>
-              <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-[#174B43] text-white font-extrabold uppercase tracking-wide">
+              <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-[#0F172A] text-white font-semibold uppercase tracking-wide">
                 Scan Bill
               </span>
             </button>
@@ -1758,12 +1758,12 @@ const [notes, setNotes] = useState("");
             {/* Drawer Header */}
             <div className="p-4 border-b border-[#F3F4F6] flex items-center justify-between bg-gradient-to-r from-orange-50/50 to-amber-50/30">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#E6F7F2] text-[#174B43] flex items-center justify-center font-bold text-sm shadow-xs border border-[#BCEADF]">
+                <div className="w-8 h-8 rounded-lg bg-[#EFF6FF] text-[#0F172A] flex items-center justify-center font-bold text-sm shadow-xs border border-[#BFDBFE]">
                   ✨
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <h3 className="text-xs font-bold text-[#111827]">
+                    <h3 className="text-xs font-semibold text-[#111827]">
                       {lang === "gu" ? "આ બિલ ઓટોફિલ કરો" : "Autofill this bill"}
                     </h3>
                     <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
@@ -1771,7 +1771,7 @@ const [notes, setNotes] = useState("");
                     </span>
                   </div>
                   <p className="text-[10px] text-[#6B7280]">
-                    Powered by <strong className="text-[#174B43]">Mira AI</strong>
+                    Powered by <strong className="text-[#0F172A]">Mira AI</strong>
                   </p>
                 </div>
               </div>
@@ -1781,7 +1781,7 @@ const [notes, setNotes] = useState("");
                 onClick={() => setIsAutofillDrawerOpen(false)}
                 aria-expanded={isAutofillDrawerOpen}
                 aria-controls="ai-autofill-panel"
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-white border border-transparent hover:border-slate-200 transition-colors text-xs font-semibold cursor-pointer shadow-2xs"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-white border border-transparent hover:border-slate-200 transition-colors text-[13px] font-medium cursor-pointer shadow-2xs"
                 title="Hide AI Assistant (reclaim workspace width)"
               >
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -1796,7 +1796,7 @@ const [notes, setNotes] = useState("");
               <span className="flex items-center gap-1 font-medium">
                 <span>📄</span> {totalBillsRecorded || 2} bills scanned
               </span>
-              <span className="flex items-center gap-1 font-medium text-[#174B43]">
+              <span className="flex items-center gap-1 font-medium text-[#0F172A]">
                 <span>⏳</span> ~{Math.max(10, Math.round((totalBillsRecorded || 2) * 5))} mins saved
               </span>
             </div>
@@ -1814,7 +1814,7 @@ const [notes, setNotes] = useState("");
                       handleFileUpload(e.dataTransfer.files[0]);
                     }
                   }}
-                  className="border-2 border-dashed border-[#85D5C2] hover:border-[#174B43] bg-[#FFFBF8] hover:bg-[#FFF6EF] rounded-2xl p-6 text-center cursor-pointer transition-all group flex flex-col items-center justify-center min-h-[200px]"
+                  className="border-2 border-dashed border-[#93C5FD] hover:border-[#0F172A] bg-[#FFFBF8] hover:bg-[#FFF6EF] rounded-2xl p-6 text-center cursor-pointer transition-all group flex flex-col items-center justify-center min-h-[200px]"
                 >
                   <input
                     ref={fileInputRef}
@@ -1827,7 +1827,7 @@ const [notes, setNotes] = useState("");
                       }
                     }}
                   />
-                  <div className="w-12 h-12 rounded-full bg-[#E6F7F2] text-[#174B43] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 rounded-full bg-[#EFF6FF] text-[#0F172A] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
@@ -1845,7 +1845,7 @@ const [notes, setNotes] = useState("");
                         e.stopPropagation();
                         fileInputRef.current?.click();
                       }}
-                      className="px-5 py-1.5 bg-[#174B43] hover:bg-[#123B35] text-white rounded-lg text-xs font-bold shadow-xs transition-all active:scale-95"
+                      className="px-5 py-1.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg text-[13px] font-medium shadow-xs transition-all active:scale-95"
                     >
                       {lang === "gu" ? "આગળ વધો (Proceed)" : "Proceed"}
                     </button>
@@ -1855,7 +1855,7 @@ const [notes, setNotes] = useState("");
                         e.stopPropagation();
                         handleOpenSmartScanner();
                       }}
-                      className="px-3 py-1.5 bg-slate-900 hover:bg-black text-white rounded-lg text-xs font-bold shadow-xs transition-all flex items-center gap-1 active:scale-95"
+                      className="h-9 px-3 bg-slate-900 hover:bg-black text-white rounded-lg text-[13px] font-medium shadow-xs transition-all flex items-center gap-1 active:scale-95"
                     >
                       <span>📷</span>
                       <span>{lang === "gu" ? "કેમેરા સ્કેન" : "Camera Scan"}</span>
@@ -1867,7 +1867,7 @@ const [notes, setNotes] = useState("");
                 <div className="space-y-3">
                   <div className="relative rounded-xl border border-[#E5E7EB] bg-slate-900 overflow-hidden shadow-md">
                     {/* Page badge */}
-                    <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-black/75 text-white text-[10px] font-mono font-bold z-30 shadow">
+                    <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-black/75 text-white text-[10px] tabular-nums font-bold z-30 shadow">
                       1/1
                     </div>
 
@@ -1892,24 +1892,24 @@ const [notes, setNotes] = useState("");
                       {isAnalyzingDoc && (
                         <div className="absolute inset-0 z-20 pointer-events-none flex flex-col justify-between">
                           {/* High-tech Corner Crosshairs */}
-                          <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-[#174B43]" />
-                          <div className="absolute top-2 right-12 w-4 h-4 border-t-2 border-r-2 border-[#174B43]" />
-                          <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-[#174B43]" />
-                          <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-[#174B43]" />
+                          <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-[#0F172A]" />
+                          <div className="absolute top-2 right-12 w-4 h-4 border-t-2 border-r-2 border-[#0F172A]" />
+                          <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-[#0F172A]" />
+                          <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-[#0F172A]" />
 
                           {/* Scanner grid pattern */}
                           <div className="scanner-grid-pattern absolute inset-0 opacity-40" />
 
                           {/* Moving Laser Beam with Light Cone */}
                           <div className="absolute inset-x-0 animate-laser-sweep pointer-events-none z-30">
-                            <div className="h-[3px] w-full bg-gradient-to-r from-transparent via-[#174B43] via-amber-400 to-transparent shadow-[0_0_20px_6px_rgba(244,119,33,0.95)]" />
-                            <div className="h-10 w-full bg-gradient-to-b from-[#174B43]/30 to-transparent blur-[1px]" />
+                            <div className="h-[3px] w-full bg-gradient-to-r from-transparent via-[#0F172A] via-amber-400 to-transparent shadow-[0_0_20px_6px_rgba(244,119,33,0.95)]" />
+                            <div className="h-10 w-full bg-gradient-to-b from-[#0F172A]/30 to-transparent blur-[1px]" />
                           </div>
 
                           {/* Center Animated Scanner Status */}
                           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[1px] p-3 text-center z-40">
-                            <div className="px-3.5 py-1.5 rounded-full bg-slate-900/95 border border-[#174B43] shadow-xl flex items-center gap-2 mb-2 animate-scan-tag">
-                              <span className="w-2.5 h-2.5 rounded-full bg-[#174B43] animate-ping" />
+                            <div className="px-3.5 py-1.5 rounded-full bg-slate-900/95 border border-[#0F172A] shadow-xl flex items-center gap-2 mb-2 animate-scan-tag">
+                              <span className="w-2.5 h-2.5 rounded-full bg-[#0F172A] animate-ping" />
                               <span className="text-xs font-bold text-white tracking-wide">
                                 {analysisProgress || (lang === "gu" ? "AI બિલ સ્કેન કરી રહ્યું છે..." : "AI Gemini Vision Scanning...")}
                               </span>
@@ -1933,7 +1933,7 @@ const [notes, setNotes] = useState("");
                     {/* File bottom info strip */}
                     <div className="p-2.5 bg-white border-t border-[#E5E7EB] flex items-center justify-between text-xs relative z-10">
                       <div className="flex items-center gap-1.5 truncate max-w-[180px]">
-                        <span className="px-1.5 py-0.5 rounded bg-orange-100 text-[#174B43] font-bold text-[9px]">
+                        <span className="px-1.5 py-0.5 rounded bg-orange-100 text-[#0F172A] font-bold text-[9px]">
                           {uploadedDocType?.includes("pdf") ? "PDF" : "IMG"}
                         </span>
                         <span className="text-[11px] font-semibold text-slate-700 truncate" title={uploadedDocName || ""}>
@@ -1945,7 +1945,7 @@ const [notes, setNotes] = useState("");
                         <button
                           type="button"
                           onClick={() => setZoomPreviewModal(true)}
-                          className="p-1 text-slate-500 hover:text-[#174B43] rounded"
+                          className="p-1 text-slate-500 hover:text-[#0F172A] rounded"
                           title="Zoom"
                         >
                           🔍
@@ -1969,13 +1969,13 @@ const [notes, setNotes] = useState("");
 
                   {/* Scanning Status Bar or Review Buttons */}
                   {isAnalyzingDoc ? (
-                    <div className="p-3 bg-[#F2FAF7] border border-[#BCEADF] rounded-xl space-y-2">
+                    <div className="p-3 bg-[#F8FAFC] border border-[#BFDBFE] rounded-xl space-y-2">
                       <div className="flex items-center justify-between text-xs text-[#C2410C] font-bold">
                         <span className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-[#174B43] animate-ping" />
+                          <span className="w-2 h-2 rounded-full bg-[#0F172A] animate-ping" />
                           {lang === "gu" ? "AI બિલ વાંચી રહ્યું છે" : "AI Gemini Vision Analyzing"}
                         </span>
-                        <span className="text-[11px] font-mono text-[#174B43]">
+                        <span className="text-[11px] tabular-nums text-[#0F172A]">
                           {scanStepIndex === 0
                             ? "20%"
                             : scanStepIndex === 1
@@ -1989,7 +1989,7 @@ const [notes, setNotes] = useState("");
                       </div>
                       <div className="w-full h-1.5 bg-orange-100 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-[#174B43] to-amber-500 rounded-full transition-all duration-500"
+                          className="h-full bg-gradient-to-r from-[#0F172A] to-amber-500 rounded-full transition-all duration-500"
                           style={{
                             width:
                               scanStepIndex === 0
@@ -2083,7 +2083,7 @@ const [notes, setNotes] = useState("");
                             handleOpenSmartScanner();
                           }
                         }}
-                        className="w-full py-2.5 bg-gradient-to-r from-[#174B43] to-[#123B35] hover:from-[#123B35] hover:to-[#B94B0A] text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                        className="w-full py-2.5 bg-gradient-to-r from-[#0F172A] to-[#123B35] hover:from-[#123B35] hover:to-[#B94B0A] text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5 active:scale-95"
                       >
                         <span>✨</span>
                         <span>
@@ -2096,7 +2096,7 @@ const [notes, setNotes] = useState("");
                       <button
                         type="button"
                         onClick={handleOpenScanReview}
-                        className="w-full py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                        className="w-full py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl text-[13px] font-medium transition-all flex items-center justify-center gap-1.5 active:scale-95"
                       >
                         <span>🔍</span>
                         <span>
@@ -2109,7 +2109,7 @@ const [notes, setNotes] = useState("");
                       <button
                         type="button"
                         onClick={handleOpenSmartScanner}
-                        className="w-full py-2 bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-900 hover:to-black text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-xs active:scale-95"
+                        className="w-full py-2 bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-900 hover:to-black text-white rounded-xl text-[13px] font-medium transition-all flex items-center justify-center gap-1.5 shadow-xs active:scale-95"
                       >
                         <svg className="w-3.5 h-3.5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -2169,7 +2169,7 @@ const [notes, setNotes] = useState("");
                         key={i}
                         type="button"
                         onClick={() => setTipIndex(i)}
-                        className={`h-1.5 rounded-full transition-all ${tipIndex === i ? "bg-[#174B43] w-3" : "bg-slate-300 w-1.5"
+                        className={`h-1.5 rounded-full transition-all ${tipIndex === i ? "bg-[#0F172A] w-3" : "bg-slate-300 w-1.5"
                           }`}
                       />
                     ))}
@@ -2193,16 +2193,16 @@ const [notes, setNotes] = useState("");
                   <button
                     type="button"
                     onClick={() => setActiveMode("EDIT")}
-                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                    className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[13px] font-medium transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                   >
                     <span>← {lang === "gu" ? "એડિટ મોડ પર પાછા જાઓ" : "Back to Edit Mode"}</span>
                   </button>
                   <div>
-                    <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <h2 className="text-sm font-semibold text-[#182230] flex items-center gap-2">
                       <span>{lang === "gu" ? "ખરીદી બિલ પ્રિવ્યૂ" : "Purchase Bill Preview"}</span>
                       <span
                         className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-                        style={{ backgroundColor: activeInvoiceTheme.accentColor || "#174B43" }}
+                        style={{ backgroundColor: activeInvoiceTheme.accentColor || "#0F172A" }}
                       >
                         {activeInvoiceTheme.uniqueThemeKey || activeInvoiceTheme.themeId}
                       </span>
@@ -2216,7 +2216,7 @@ const [notes, setNotes] = useState("");
                   <button
                     type="button"
                     onClick={() => window.print()}
-                    className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                    className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                   >
                     <span>🖨️ {lang === "gu" ? "પ્રિન્ટ" : "Print Voucher"}</span>
                   </button>
@@ -2437,7 +2437,7 @@ const [notes, setNotes] = useState("");
                               <button
                                 type="button"
                                 onClick={() => setIsAddItemModalOpen(true)}
-                                className="px-3.5 py-1.5 bg-[#174B43] text-white rounded-xl text-xs font-bold shadow-2xs cursor-pointer"
+                                className="h-9 px-3 bg-[#0F172A] text-white rounded-xl text-[13px] font-medium shadow-2xs cursor-pointer"
                               >
                                 + Add From Catalog
                               </button>
@@ -2459,7 +2459,7 @@ const [notes, setNotes] = useState("");
 
                           return (
                             <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
-                              <td className="py-3 px-3 text-center text-slate-400 font-mono text-[11px]">
+                              <td className="py-3 px-3 text-center text-slate-400 tabular-nums text-[11px]">
                                 {idx + 1}
                               </td>
 
@@ -2469,7 +2469,7 @@ const [notes, setNotes] = useState("");
                                     <select
                                       value={row.itemId}
                                       onChange={(e) => handleItemSelect(idx, e.target.value)}
-                                      className="w-full text-xs py-1.5 px-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl font-bold text-slate-800"
+                                      className="w-full text-[13px] py-1.5 px-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#1677E8] rounded-xl font-normal text-slate-800 h-10"
                                     >
                                       {items.map((it) => (
                                         <option key={it.id} value={it.id}>
@@ -2486,7 +2486,7 @@ const [notes, setNotes] = useState("");
                                   type="text"
                                   value={row.hsnCode}
                                   onChange={(e) => handleRowChange(idx, "hsnCode", e.target.value)}
-                                  className="w-full text-xs py-1.5 px-2 text-center font-mono bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white"
+                                  className="w-full text-[13px] py-1.5 px-2 text-center tabular-nums bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white h-10"
                                   placeholder="1001"
                                 />
                               </td>
@@ -2499,7 +2499,7 @@ const [notes, setNotes] = useState("");
                                     step="any"
                                     value={row.quantity}
                                     onChange={(e) => handleRowChange(idx, "quantity", e.target.value === "" ? "" : Number(e.target.value))}
-                                    className="w-full text-xs text-right font-mono font-bold text-slate-800 bg-transparent focus:outline-none"
+                                    className="w-full text-[13px] text-right tabular-nums font-normal text-slate-800 bg-transparent focus:outline-none h-10"
                                   />
                                 </div>
                               </td>
@@ -2511,7 +2511,7 @@ const [notes, setNotes] = useState("");
                                   step="any"
                                   value={row.unitPrice}
                                   onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))}
-                                  className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white"
+                                  className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
                                 />
                               </td>
 
@@ -2523,7 +2523,7 @@ const [notes, setNotes] = useState("");
                                     value={row.discountValue}
                                     onChange={(e) => handleRowChange(idx, "discountValue", e.target.value === "" ? "" : Number(e.target.value))}
                                     placeholder="0"
-                                    className="w-full text-xs text-right font-mono bg-transparent focus:outline-none"
+                                    className="w-full text-[13px] text-right tabular-nums bg-transparent focus:outline-none h-10"
                                   />
                                   <span className="text-[10px] text-slate-400">{row.discountType}</span>
                                 </div>
@@ -2536,11 +2536,11 @@ const [notes, setNotes] = useState("");
                                   value={row.taxRate}
                                   onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value) || 0)}
                                   placeholder="18"
-                                  className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white"
+                                  className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
                                 />
                               </td>
 
-                              <td className="py-3 px-3 text-right font-mono font-black text-slate-900 text-xs">
+                              <td className="py-3 px-3 text-right tabular-nums font-semibold text-slate-900 text-[13px]">
                                 ₹ {lineTot.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </td>
 
@@ -2642,7 +2642,7 @@ const [notes, setNotes] = useState("");
           <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
             {lang === "gu" ? "કુલ રકમ (Total)" : "Grand Total"}
           </span>
-          <span className="text-base font-black font-mono text-[#174B43] truncate block">
+          <span className="text-base font-semibold tabular-nums text-[#0F172A] truncate block">
             {formatInr(totals.grandTotal)}
           </span>
         </div>
@@ -2651,7 +2651,7 @@ const [notes, setNotes] = useState("");
           <button
             type="button"
             onClick={handleOpenSmartScanner}
-            className="p-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center gap-1 active:scale-95"
+            className="p-2.5 bg-slate-900 text-white rounded-xl text-[13px] font-medium shadow-xs transition-all flex items-center gap-1 active:scale-95"
             title="Scan Bill"
           >
             <span className="text-sm">📷</span>
@@ -2662,7 +2662,7 @@ const [notes, setNotes] = useState("");
             type="button"
             disabled={isSubmitting || isLoading}
             onClick={() => handleSubmit(false)}
-            className="px-4 py-2.5 bg-gradient-to-r from-[#174B43] to-[#123B35] active:bg-[#C2410C] text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
+            className="h-9 px-3.5 bg-gradient-to-r from-[#0F172A] to-[#123B35] active:bg-[#C2410C] text-white rounded-xl text-[13px] font-medium shadow-sm transition-all flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
           >
             {isSubmitting ? (
               <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -2729,44 +2729,44 @@ const [notes, setNotes] = useState("");
               </div>
             )}
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Party Name *</label>
+              <label className="block font-medium text-slate-700 mb-1">Party Name *</label>
               <input
                 type="text"
                 required
                 value={newSupplierName}
                 onChange={(e) => setNewSupplierName(e.target.value)}
                 placeholder="e.g. Anand Enterprises Pvt Ltd"
-                className="w-full p-2 border border-slate-300 rounded-lg font-bold"
+                className="w-full p-2 border border-slate-300 rounded-lg font-normal text-[13px] font-normal h-10"
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Phone Number</label>
+                <label className="block font-medium text-slate-700 mb-1">Phone Number</label>
                 <input
                   type="text"
                   value={newSupplierPhone}
                   onChange={(e) => setNewSupplierPhone(e.target.value)}
                   placeholder="9876543210"
-                  className="w-full p-2 border border-slate-300 rounded-lg font-mono"
+                  className="w-full p-2 border border-slate-300 rounded-lg tabular-nums text-[13px] font-normal h-10"
                 />
               </div>
               <div>
-                <label className="block font-bold text-slate-700 mb-1">GSTIN</label>
+                <label className="block font-medium text-slate-700 mb-1">GSTIN</label>
                 <input
                   type="text"
                   value={newSupplierGstin}
                   onChange={(e) => setNewSupplierGstin(e.target.value)}
                   placeholder="24AAAAA0000A1Z5"
-                  className="w-full p-2 border border-slate-300 rounded-lg font-mono"
+                  className="w-full p-2 border border-slate-300 rounded-lg tabular-nums text-[13px] font-normal h-10"
                 />
               </div>
             </div>
             <div>
-              <label className="block font-bold text-slate-700 mb-1">State *</label>
+              <label className="block font-medium text-slate-700 mb-1">State *</label>
               <select
                 value={newSupplierStateCode}
                 onChange={(e) => setNewSupplierStateCode(e.target.value)}
-                className="w-full p-2 border border-slate-300 rounded-lg"
+                className="w-full p-2 border border-slate-300 rounded-lg text-[13px] font-normal h-10"
               >
                 {Object.entries(INDIAN_STATES).map(([code, obj]) => (
                   <option key={code} value={code}>{code} - {obj.name}</option>
@@ -2774,27 +2774,27 @@ const [notes, setNotes] = useState("");
               </select>
             </div>
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Billing Address</label>
+              <label className="block font-medium text-slate-700 mb-1">Billing Address</label>
               <input
                 type="text"
                 value={newSupplierAddress}
                 onChange={(e) => setNewSupplierAddress(e.target.value)}
                 placeholder="Street address..."
-                className="w-full p-2 border border-slate-300 rounded-lg"
+                className="w-full p-2 border border-slate-300 rounded-lg text-[13px] font-normal h-10"
               />
             </div>
             <div className="flex justify-end gap-2 pt-2 border-t">
               <button
                 type="button"
                 onClick={() => setIsAddSupplierModalOpen(false)}
-                className="px-4 py-2 border rounded-lg"
+                className="h-9 px-3 border rounded-lg"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSavingSupplier}
-                className="px-5 py-2 bg-[#174B43] text-white font-bold rounded-lg"
+                className="h-9 px-3.5 bg-[#0F172A] text-white font-medium rounded-lg"
               >
                 {isSavingSupplier ? "Saving..." : "Save Supplier"}
               </button>
@@ -2823,7 +2823,7 @@ const [notes, setNotes] = useState("");
             <button
               type="button"
               onClick={() => setShowPhoneUploadModal(false)}
-              className="px-4 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-bold"
+              className="px-4 py-1.5 bg-slate-900 text-white rounded-lg text-[13px] font-medium"
             >
               Close
             </button>
@@ -2847,7 +2847,7 @@ const [notes, setNotes] = useState("");
               value={barcodeInputValue}
               onChange={(e) => setBarcodeInputValue(e.target.value)}
               placeholder="e.g. 890123456789"
-              className="w-full p-2 border border-slate-300 rounded-lg text-xs font-mono font-bold"
+              className="w-full p-2 border border-slate-300 rounded-lg text-[13px] tabular-nums font-normal h-10"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && barcodeInputValue.trim()) {
                   const matched = items.find(
@@ -2884,7 +2884,7 @@ const [notes, setNotes] = useState("");
               <button
                 type="button"
                 onClick={() => setShowBarcodeScannerModal(false)}
-                className="px-3 py-1.5 border rounded-lg text-xs font-bold text-slate-600"
+                className="h-9 px-3 border rounded-lg text-[13px] font-medium text-slate-600"
               >
                 Cancel
               </button>
@@ -2978,7 +2978,7 @@ const [notes, setNotes] = useState("");
         >
           <div className="space-y-3.5 text-xs">
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Party Name</label>
+              <label className="block font-medium text-slate-700 mb-1">Party Name</label>
               <input
                 type="text"
                 value={selectedSupplier.name}
@@ -2988,12 +2988,12 @@ const [notes, setNotes] = useState("");
                     prev.map((s) => (s.id === selectedSupplier.id ? { ...s, name: val } : s))
                   );
                 }}
-                className="w-full p-2 border border-slate-300 rounded-lg font-bold"
+                className="w-full p-2 border border-slate-300 rounded-lg font-normal text-[13px] font-normal h-10"
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Phone</label>
+                <label className="block font-medium text-slate-700 mb-1">Phone</label>
                 <input
                   type="text"
                   value={selectedSupplier.phone || ""}
@@ -3003,11 +3003,11 @@ const [notes, setNotes] = useState("");
                       prev.map((s) => (s.id === selectedSupplier.id ? { ...s, phone: val } : s))
                     );
                   }}
-                  className="w-full p-2 border border-slate-300 rounded-lg font-mono"
+                  className="w-full p-2 border border-slate-300 rounded-lg tabular-nums text-[13px] font-normal h-10"
                 />
               </div>
               <div>
-                <label className="block font-bold text-slate-700 mb-1">GSTIN</label>
+                <label className="block font-medium text-slate-700 mb-1">GSTIN</label>
                 <input
                   type="text"
                   value={selectedSupplier.gstin || ""}
@@ -3017,12 +3017,12 @@ const [notes, setNotes] = useState("");
                       prev.map((s) => (s.id === selectedSupplier.id ? { ...s, gstin: val } : s))
                     );
                   }}
-                  className="w-full p-2 border border-slate-300 rounded-lg font-mono uppercase"
+                  className="w-full p-2 border border-slate-300 rounded-lg tabular-nums uppercase text-[13px] font-normal h-10"
                 />
               </div>
             </div>
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Billing Address</label>
+              <label className="block font-medium text-slate-700 mb-1">Billing Address</label>
               <input
                 type="text"
                 value={selectedSupplier.billingAddress?.line1 || ""}
@@ -3036,14 +3036,14 @@ const [notes, setNotes] = useState("");
                     )
                   );
                 }}
-                className="w-full p-2 border border-slate-300 rounded-lg"
+                className="w-full p-2 border border-slate-300 rounded-lg text-[13px] font-normal h-10"
               />
             </div>
             <div className="flex justify-end gap-2 pt-2 border-t">
               <button
                 type="button"
                 onClick={() => setIsEditSupplierModalOpen(false)}
-                className="px-4 py-2 bg-[#174B43] text-white font-bold rounded-lg"
+                className="h-9 px-3 bg-[#0F172A] text-white font-medium rounded-lg"
               >
                 Done
               </button>
@@ -3061,7 +3061,7 @@ export default function NewPurchaseInvoicePage() {
       fallback={
         <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center p-8">
           <div className="text-center space-y-3">
-            <div className="w-8 h-8 border-3 border-[#174B43] border-t-transparent rounded-full animate-spin mx-auto" />
+            <div className="w-8 h-8 border-3 border-[#0F172A] border-t-transparent rounded-full animate-spin mx-auto" />
             <p className="text-xs font-semibold text-slate-500">Loading purchase bill editor...</p>
           </div>
         </div>

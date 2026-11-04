@@ -11,10 +11,11 @@ import { WaveBackground } from "../ui/wave-background";
 import { BrandLogo } from "../ui/brand-logo";
 import { SettingsSidebar } from "../settings/settings-sidebar";
 import { WorkspaceErrorState } from "../ui/workspace-error-state";
-const SIDEBAR_BG = "#004D40";
-const ACTIVE_MENU_BG = "#16A085";
+import { NotificationCenter } from "../notifications/notification-center";
+const SIDEBAR_BG = "#FFFFFF";
+const ACTIVE_MENU_BG = "#1677E8";
 const TEXT_COLOR = "#FFFFFF";
-const CTA_ACCENT = "#0DAA8A";
+const CTA_ACCENT = "#1677E8";
 import Image from "next/image";
 
 interface SubNavItem {
@@ -27,7 +28,7 @@ interface NavSection {
   id: string;
   name: string;
   nameGujarati: string;
-  group?: "GENERAL" | "ACCOUNTING SOLUTIONS" | "BUSINESS TOOLS";
+  group?: string;
   icon: React.ReactNode;
   href?: string; // If single-item direct link like Dashboard
   items?: SubNavItem[];
@@ -86,6 +87,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     purchases: false,
     items: false,
     parties: false,
+    vouchers: false,
     cash_bank: false,
     reports: false,
     advanced: false,
@@ -297,12 +299,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             priority
           />
         </div>
-        <p className="text-lg font-black tracking-tight">
-          <span className="text-[#174B43]">MyOwn</span>
-          <span className="text-[#26A58A]">BillBook</span>
+        <p className="text-lg font-semibold tracking-tight">
+          <span className="text-[#0F172A]">MyOwn</span>
+          <span className="text-[#1677E8]">BillBook</span>
         </p>
         <p
-          className="text-xs text-[#98A2B3] mt-1 font-mono"
+          className="text-xs text-[#98A2B3] mt-1 tabular-nums"
           style={{ color: "#98A2B3" }}
         >
           {lang === "gu"
@@ -313,11 +315,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Watchdog recovery options if loading is delayed */}
         {loadingWatchdogTriggered && (
           <div
-            className="mt-6 p-4 max-w-sm bg-white rounded-2xl border border-[#BCEADF] shadow-sm flex flex-col items-center"
+            className="mt-6 p-4 max-w-sm bg-white rounded-2xl border border-[#BFDBFE] shadow-sm flex flex-col items-center"
             style={{
               maxWidth: "24rem",
               backgroundColor: "#FFFFFF",
-              border: "1px solid #BCEADF",
+              border: "1px solid #BFDBFE",
               borderRadius: "1rem",
               padding: "1rem",
             }}
@@ -330,9 +332,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => window.location.reload()}
-                className="py-1.5 px-4 bg-[#26A58A] hover:bg-[#208E76] text-white rounded-lg text-xs font-bold transition-all shadow-jade"
+                className="py-1.5 px-4 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg text-[13px] font-medium transition-all shadow-blue-500/20"
                 style={{
-                  backgroundColor: "#26A58A",
+                  backgroundColor: "#1677E8",
                   color: "#FFFFFF",
                   padding: "6px 16px",
                   borderRadius: "8px",
@@ -343,7 +345,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </button>
               <button
                 onClick={() => logout()}
-                className="py-1.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-all"
+                className="py-1.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[13px] font-medium transition-all"
                 style={{
                   backgroundColor: "#F1F5F9",
                   color: "#334155",
@@ -367,14 +369,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
 
 
-  // Exact MyBillBook Hierarchical Menu Structure with 3 Core Sections
+  // Exact MyBillBook Hierarchical Menu Structure
   const navigationSections: NavSection[] = [
-    // --- GROUP 1: GENERAL ---
+    // --- MAIN NAVIGATION ---
     {
       id: "dashboard",
       name: "Dashboard",
       nameGujarati: "મુખ્ય ડેશબોર્ડ",
-      group: "GENERAL",
+      group: "",
       href: "/",
       icon: (
         <svg
@@ -396,7 +398,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       id: "parties",
       name: "Parties",
       nameGujarati: "પાર્ટીઝ (ગ્રાહકો / વેપારીઓ)",
-      group: "GENERAL",
+      group: "",
       icon: (
         <svg
           className="w-5 h-5"
@@ -427,9 +429,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     },
     {
       id: "items",
-      name: "Items",
+      name: "Items / Inventory",
       nameGujarati: "માલસામાન (Items)",
-      group: "GENERAL",
+      group: "",
       icon: (
         <svg
           className="w-5 h-5"
@@ -477,7 +479,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       id: "sales",
       name: "Sales",
       nameGujarati: "વેચાણ (Sales)",
-      group: "GENERAL",
+      group: "",
       icon: (
         <svg
           className="w-5 h-5"
@@ -545,7 +547,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       id: "purchases",
       name: "Purchases",
       nameGujarati: "ખરીદી (Purchases)",
-      group: "GENERAL",
+      group: "",
       icon: (
         <svg
           className="w-5 h-5"
@@ -590,10 +592,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       ],
     },
     {
+      id: "expenses",
+      name: "Expenses",
+      nameGujarati: "દૈનિક ખર્ચા (Expenses)",
+      group: "",
+      href: "/finance/expenses",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.8}
+            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+          />
+        </svg>
+      ),
+    },
+    {
       id: "reports",
       name: "Reports",
       nameGujarati: "રિપોર્ટ્સ (Reports)",
-      group: "GENERAL",
+      group: "",
       href: "/reports",
       icon: (
         <svg
@@ -612,12 +636,60 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       ),
     },
 
-    // --- GROUP 2: ACCOUNTING SOLUTIONS ---
+    // --- ACCOUNTING ---
+    {
+      id: "vouchers",
+      name: "Vouchers",
+      nameGujarati: "વાઉચર્સ (Vouchers)",
+      group: "ACCOUNTING",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.8}
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+          />
+        </svg>
+      ),
+      items: [
+        {
+          name: "Voucher List",
+          nameGujarati: "વાઉચર લિસ્ટ (All Vouchers)",
+          href: "/accounting/vouchers",
+        },
+        {
+          name: "Create Voucher",
+          nameGujarati: "નવું વાઉચર (Create Voucher)",
+          href: "/accounting/vouchers/new",
+        },
+        {
+          name: "All Transactions",
+          nameGujarati: "બધા વ્યવહારો (All Transactions)",
+          href: "/vouchers/all_transactions",
+        },
+        {
+          name: "Account Ledgers",
+          nameGujarati: "ખાતાવહી (Ledgers)",
+          href: "/accounting/ledgers",
+        },
+        {
+          name: "Chart of Accounts",
+          nameGujarati: "ખાતાની યાદી (Chart of Accounts)",
+          href: "/accounting/chart-of-accounts",
+        },
+      ],
+    },
     {
       id: "cash_bank",
       name: "Cash & Bank",
       nameGujarati: "રોકડ અને બેંક",
-      group: "ACCOUNTING SOLUTIONS",
+      group: "ACCOUNTING",
       href: "/finance/cash-bank",
       icon: (
         <svg
@@ -639,7 +711,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       id: "gst_returns",
       name: "GST & Tax Filing",
       nameGujarati: "જીએસટી અને રિટર્ન (GST & Returns)",
-      group: "ACCOUNTING SOLUTIONS",
+      group: "ACCOUNTING",
       href: "/gst",
       icon: (
         <svg
@@ -661,7 +733,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       id: "automated_bills",
       name: "Automated Bills",
       nameGujarati: "ઓટોમેટેડ બિલ્સ",
-      group: "ACCOUNTING SOLUTIONS",
+      group: "ACCOUNTING",
       href: "/sales/automated-billing",
       icon: (
         <svg
@@ -680,32 +752,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       ),
     },
     {
-      id: "expenses",
-      name: "Expenses",
-      nameGujarati: "દૈનિક ખર્ચા (Expenses)",
-      group: "ACCOUNTING SOLUTIONS",
-      href: "/finance/expenses",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.8}
-            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-          />
-        </svg>
-      ),
-    },
-    {
       id: "pos",
       name: "POS Billing",
       nameGujarati: "ઝડપી કાઉન્ટર POS",
-      group: "ACCOUNTING SOLUTIONS",
+      group: "ACCOUNTING",
       href: "/sales/pos",
       icon: (
         <svg
@@ -719,6 +769,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             strokeLinejoin="round"
             strokeWidth={1.8}
             d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: "settings",
+      name: "Settings",
+      nameGujarati: "સેટિંગ્સ",
+      group: "ACCOUNTING",
+      href: "/settings",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={1.8}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
           />
         </svg>
       ),
@@ -865,15 +942,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   ];
 
   const isSettingsPage = pathname.startsWith("/settings") || pathname.startsWith("/pricing-settings");
-  const isStudioSettings =
-    pathname.startsWith("/settings/invoice") ||
-    pathname.startsWith("/settings/thermal-print");
-  const isCashBankPage =
-    pathname === "/finance/cash-bank" ||
-    pathname === "/cash-bank";
 
   return (
-    <div className="h-[100dvh] h-screen w-full flex overflow-hidden bg-[#F6F7F1] print:h-auto print:min-h-0 print:overflow-visible print:bg-white print:block">
+    <div className="h-[100dvh] h-screen w-full flex overflow-hidden bg-[#F5F8FC] print:h-auto print:min-h-0 print:overflow-visible print:bg-white print:block">
       {/* 1. DEDICATED MYBILLBOOK SETTINGS SIDEBAR (When in Settings mode) */}
       {isSettingsPage && (
         <div className="hidden lg:flex shrink-0 h-full print:hidden">
@@ -881,33 +952,37 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      {/* 2. REGULAR DESKTOP MYBILLBOOK DARK SIDEBAR (When in dashboard mode) */}
+      {/* 2. REGULAR DESKTOP MYBILLBOOK SIDEBAR (When in dashboard mode) */}
       {!isSettingsPage && (
         <aside
-          style={{ backgroundColor: SIDEBAR_BG }}
-          className={`hidden lg:flex flex-col shrink-0 h-full border-r border-[#00695C]/40 text-white transition-all duration-300 z-30 select-none print:hidden ${
-            isSidebarCollapsed ? "w-20" : "w-64"
+          className={`hidden lg:flex flex-col shrink-0 h-full border-r border-slate-200/90 bg-white text-slate-800 transition-all duration-300 z-30 select-none print:hidden ${
+            isSidebarCollapsed ? "w-[72px]" : "w-[240px]"
           }`}
         >
           {/* Top Brand Logo matching Reference Image */}
-          <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-white/10">
-            <Link href="/" className="flex items-center gap-2.5 overflow-hidden">
-              <div className="w-8 h-8 rounded-lg bg-[#20B99A]/20 border border-[#20B99A]/40 flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5 text-[#42DCC0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          <div className="shrink-0 flex items-center justify-between px-4 py-3.5 border-b border-slate-100">
+            <Link href="/" className="flex items-center gap-2.5 overflow-hidden group">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
+                <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none">
+                  {/* Back document */}
+                  <rect x="7" y="3" width="16" height="20" rx="3" fill="#38BDF8" />
+                  <path d="M11 8h8M11 12h5" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
+                  {/* Front document */}
+                  <rect x="3" y="9" width="16" height="20" rx="3" fill="#1677E8" />
+                  <path d="M7 14h8M7 18h6M7 22h4" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
               </div>
               {!isSidebarCollapsed && (
                 <div className="flex flex-col leading-tight">
-                  <span className="text-sm font-black tracking-tight text-white">MyOwn</span>
-                  <span className="text-xs font-bold text-[#A7C7C0]">BillBook</span>
+                  <span className="text-[14px] font-semibold tracking-tight text-slate-900">MyOwn</span>
+                  <span className="text-xs font-bold text-slate-900 -mt-0.5">BillBook</span>
                 </div>
               )}
             </Link>
 
             <button
               onClick={toggleSidebarCollapse}
-              className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+              className="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
               title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
@@ -920,7 +995,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* Navigation Item Tree */}
           <nav
             aria-label="Sidebar Navigation"
-            className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-2 py-2 space-y-1 scrollbar-thin scrollbar-thumb-slate-700"
+            className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-2 py-2.5 space-y-1 scrollbar-thin scrollbar-thumb-slate-200"
           >
             {(() => {
               let lastGroup = "";
@@ -942,7 +1017,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   return (
                     <React.Fragment key={section.id}>
                       {showGroupHeader && (
-                        <div className="px-3 pt-3 pb-1 text-[10px] font-bold tracking-wider text-[#90B6AE] uppercase">
+                        <div className="px-3.5 pt-3.5 pb-1 text-[10.5px] font-bold tracking-wider text-slate-400 uppercase">
                           {section.group}
                         </div>
                       )}
@@ -950,21 +1025,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         href={section.href}
                         className={`flex items-center transition-all ${isSidebarCollapsed
                             ? `w-11 h-11 mx-auto justify-center rounded-xl ${isActive
-                              ? "text-white font-bold shadow-xs bg-[#26A58A]"
-                              : "text-[#C4DBD6] hover:text-white hover:bg-white/10"
+                              ? "text-white font-bold shadow-xs bg-[#1677E8]"
+                              : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                             }`
-                            : `gap-3 px-3 py-2 rounded-xl text-xs font-semibold ${isActive
-                              ? "text-white shadow-xs font-bold bg-[#26A58A]"
-                              : "text-[#C4DBD6] hover:text-white hover:bg-white/10"
+                            : `gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold ${isActive
+                              ? "text-white shadow-xs font-bold bg-[#1677E8]"
+                              : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                             }`
                           }`}
-                        style={{ backgroundColor: isActive ? ACTIVE_MENU_BG : undefined, color: isActive ? TEXT_COLOR : undefined }}
                         title={
                           lang === "gu" ? section.nameGujarati : section.name
                         }
                       >
                         <span
-                          className={isActive ? "text-white" : "text-[#A7C7C0]"}
+                          className={isActive ? "text-white" : "text-slate-500"}
                         >
                           {section.icon}
                         </span>
@@ -974,7 +1048,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                           </span>
                         )}
                         {!isSidebarCollapsed && section.badge && (
-                          <span className="px-1.5 py-0.2 bg-[#EF4444] text-white text-[9px] font-bold rounded">
+                          <span className="px-1.5 py-0.5 bg-rose-500 text-white text-[9px] font-bold rounded">
                             {section.badge}
                           </span>
                         )}
@@ -983,9 +1057,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   );
                 }
 
-                // Accordion Section with Submenu (Sales, Purchases, Items, Parties)
-                const isExpanded = expandedSections[section.id];
+                // Accordion Section with Submenu (Sales, Purchases, Items, Parties, Vouchers)
                 const hasActiveChild = activeNav.activeSectionId === section.id;
+                const isExpanded = expandedSections[section.id] || hasActiveChild;
 
                 if (isSidebarCollapsed) {
                   // Collapsed mode: Icon button with hover flyout menu
@@ -994,17 +1068,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       <Link
                         href={section.items?.[0]?.href || "#"}
                         className={`w-11 h-11 mx-auto flex items-center justify-center rounded-xl text-xs font-medium transition-all ${hasActiveChild
-                            ? "text-white font-bold shadow-xs bg-[#26A58A]"
-                            : "text-[#C4DBD6] hover:text-white hover:bg-white/10"
+                            ? "text-white font-bold shadow-xs bg-[#1677E8]"
+                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                           }`}
-                        style={{ backgroundColor: hasActiveChild ? ACTIVE_MENU_BG : undefined, color: hasActiveChild ? TEXT_COLOR : undefined }}
                         title={
                           lang === "gu" ? section.nameGujarati : section.name
                         }
                       >
                         <span
                           className={
-                            hasActiveChild ? "text-white" : "text-[#A7C7C0]"
+                            hasActiveChild ? "text-white" : "text-slate-500"
                           }
                         >
                           {section.icon}
@@ -1013,15 +1086,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
                       {/* Floating Flyout Menu on Hover when Collapsed */}
                       <div
-                        style={{ backgroundColor: SIDEBAR_BG }}
-                        className="hidden group-hover:block absolute left-full top-0 ml-2 w-56 rounded-xl shadow-2xl border border-[#1F5E54] py-2 z-50 animate-fadeIn"
+                        className="hidden group-hover:block absolute left-full top-0 ml-2 w-56 rounded-xl shadow-2xl border border-slate-200 bg-white py-2 z-50 animate-fadeIn"
                       >
-                        <div className="px-3.5 py-1.5 border-b border-[#1F5E54] mb-1">
-                          <p className="text-xs font-bold text-white">
+                        <div className="px-3.5 py-1.5 border-b border-slate-100 mb-1">
+                          <p className="text-xs font-bold text-slate-900">
                             {section.name}
                           </p>
                           {lang === "gu" && (
-                            <p className="text-[10px] text-[#A7C7C0] font-gujarati">
+                            <p className="text-[10px] text-slate-500 font-gujarati">
                               {section.nameGujarati}
                             </p>
                           )}
@@ -1034,10 +1106,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                 key={`${item.name}-${item.href}`}
                                 href={item.href}
                                 className={`block px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${isSubActive
-                                    ? "text-white font-bold bg-[#26A58A]"
-                                    : "text-slate-300 hover:text-white hover:bg-white/10"
+                                    ? "text-white font-bold bg-[#1677E8]"
+                                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                                   }`}
-                                style={{ backgroundColor: isSubActive ? ACTIVE_MENU_BG : undefined, color: isSubActive ? TEXT_COLOR : undefined }}
                               >
                                 <div className="truncate">{item.name}</div>
                                 {lang === "gu" && (
@@ -1058,7 +1129,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 return (
                   <React.Fragment key={section.id}>
                     {showGroupHeader && (
-                      <div className="px-3 pt-3 pb-1 text-[10px] font-bold tracking-wider text-[#90B6AE] uppercase">
+                      <div className="px-3.5 pt-3.5 pb-1 text-[10.5px] font-bold tracking-wider text-slate-400 uppercase">
                         {section.group}
                       </div>
                     )}
@@ -1066,16 +1137,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       <button
                         type="button"
                         onClick={() => toggleSection(section.id)}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${hasActiveChild
-                            ? "text-white font-semibold bg-white/10"
-                            : "text-[#C4DBD6] hover:text-white hover:bg-white/10"
+                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${hasActiveChild
+                            ? "text-[#1677E8] font-bold bg-blue-50/70"
+                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                           }`}
                         title={section.name}
                       >
                         <div className="flex items-center gap-3 truncate">
                           <span
                             className={
-                              hasActiveChild ? "text-[#85D5C2]" : "text-[#A7C7C0]"
+                              hasActiveChild ? "text-[#1677E8]" : "text-slate-500"
                             }
                           >
                             {section.icon}
@@ -1085,7 +1156,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                           </span>
                         </div>
                         <svg
-                          className={`w-3.5 h-3.5 transition-transform duration-200 shrink-0 ${isExpanded ? "rotate-180 text-white" : "text-slate-400"
+                          className={`w-3.5 h-3.5 transition-transform duration-200 shrink-0 ${isExpanded ? "rotate-180 text-slate-700" : "text-slate-400"
                             }`}
                           fill="none"
                           viewBox="0 0 24 24"
@@ -1105,7 +1176,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         <div className="relative ml-[19px] pl-3.5 py-1 space-y-1">
                           {/* Continuous vertical connector line */}
                           <div
-                            className="absolute left-0 top-1.5 bottom-2.5 w-[1.5px] bg-[#26A58A]/35 rounded-full pointer-events-none"
+                            className="absolute left-0 top-1.5 bottom-2.5 w-[1.5px] bg-slate-200 rounded-full pointer-events-none"
                             aria-hidden="true"
                           />
 
@@ -1116,20 +1187,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                 key={`${item.name}-${item.href}`}
                                 href={item.href}
                                 className={`group relative flex items-center justify-between py-2 px-2.5 rounded-xl text-xs font-medium transition-all duration-150 ${isItemActive
-                                    ? "text-white font-bold shadow-xs bg-[#26A58A]"
-                                    : "text-[#C4DBD6] hover:text-white hover:bg-white/10"
+                                    ? "text-white font-bold shadow-xs bg-[#1677E8]"
+                                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                                   }`}
-                                style={{ backgroundColor: isItemActive ? ACTIVE_MENU_BG : undefined, color: isItemActive ? TEXT_COLOR : undefined }}
                               >
-                                {/* Circular node dot on connector line */}
-                                <span
-                                  aria-hidden="true"
-                                  className={`absolute -left-[18px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full border transition-all duration-200 pointer-events-none ${isItemActive
-                                      ? "bg-[#A7F3D0] border-[#174B43] ring-2 ring-[#26A58A] scale-110 shadow-xs z-10"
-                                      : "bg-[#174B43] border-[#377F72] group-hover:border-[#85D5C2]"
-                                    }`}
-                                />
-
                                 <div className="flex items-center gap-2 truncate min-w-0">
                                   {isItemActive && (
                                     <span
@@ -1153,93 +1214,46 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             })()}
           </nav>
 
-          {/* Sidebar Footer: Upgrade to Pro, Help Hotline & Settings */}
-          <div
-            style={{ backgroundColor: SIDEBAR_BG }}
-            className="shrink-0 p-3 border-t border-white/10 flex flex-col gap-1.5"
-          >
-            {/* Upgrade to Pro Card matching Reference Image */}
+          {/* Sidebar Footer: Upgrade to Pro Promotional Card */}
+          <div className="shrink-0 p-3 border-t border-slate-100 bg-white flex flex-col gap-1.5">
             {!isSidebarCollapsed && (
-              <div className="mb-2 p-3.5 rounded-2xl bg-gradient-to-b from-[#00382E] to-[#002B24] border border-[#20B99A]/20 shadow-lg text-center space-y-2">
-                <div className="w-8 h-8 rounded-full bg-amber-400/20 text-amber-300 flex items-center justify-center mx-auto text-base">
-                  👑
+              <div className="p-3.5 rounded-2xl bg-gradient-to-b from-[#EBF3FF] to-[#F5F8FF] border border-[#BFDBFE]/80 shadow-2xs text-left space-y-2.5">
+                <div className="w-8 h-8 rounded-xl bg-blue-100 text-[#1677E8] flex items-center justify-center text-sm shadow-2xs">
+                  <svg className="w-4 h-4 text-[#1677E8]" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
+                  </svg>
                 </div>
-                <div className="text-xs font-black text-white">Upgrade to Pro</div>
-                <p className="text-[10px] text-[#C7E6DF] leading-tight">
-                  Unlock more features for your business
-                </p>
+                <div className="text-xs font-semibold text-slate-900">Upgrade to Pro</div>
+                <div className="space-y-1.5 text-[11px] font-semibold text-slate-600">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[#1677E8] font-bold">✓</span>
+                    <span>Multi-User Access</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[#1677E8] font-bold">✓</span>
+                    <span>Advanced Reports</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[#1677E8] font-bold">✓</span>
+                    <span>Priority Support</span>
+                  </div>
+                </div>
                 <button
                   type="button"
                   onClick={() => router.push("/settings/billing")}
-                  className="w-full py-1.5 px-3 rounded-xl bg-[#20B99A] hover:bg-[#16A085] text-slate-950 font-bold text-[11px] shadow-sm transition-all cursor-pointer"
+                  className="w-full py-2 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white font-medium text-[13px] shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95"
                 >
-                  Upgrade Now →
+                  <span>Upgrade Now</span>
+                  <span>→</span>
                 </button>
               </div>
             )}
-
-            {/* Need Help Support Contact matching Reference Image */}
-            {!isSidebarCollapsed && (
-              <div className="px-2 py-2 flex items-center gap-2.5 text-xs text-[#C7E6DF] border-b border-white/10 mb-1">
-                <svg className="w-5 h-5 text-[#42DCC0] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z" />
-                </svg>
-                <div className="text-[11px] leading-tight">
-                  <div className="text-[#85D5C2] text-[10px] font-medium">Need Help?</div>
-                  <div className="font-mono font-bold text-white tracking-wider">+91 98765 43210</div>
-                </div>
-              </div>
-            )}
-
-            <Link
-              href="/settings/account"
-              className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${(activeNav.activeSectionId === "settings" || pathname.startsWith("/settings"))
-                  ? "text-white shadow-xs font-bold bg-[#26A58A]"
-                  : "text-slate-300 hover:text-white hover:bg-white/10"
-                }`}
-              style={{ backgroundColor: (activeNav.activeSectionId === "settings" || pathname.startsWith("/settings")) ? ACTIVE_MENU_BG : undefined, color: (activeNav.activeSectionId === "settings" || pathname.startsWith("/settings")) ? TEXT_COLOR : undefined }}
-              title="Settings"
-            >
-              <svg
-                className={`w-4 h-4 ${(activeNav.activeSectionId === "settings" || pathname.startsWith("/settings")) ? "text-white" : "text-slate-400"}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.8}
-                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.8}
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-              {!isSidebarCollapsed && (
-                <span>{lang === "gu" ? "સેટિંગ્સ" : "Settings"}</span>
-              )}
-            </Link>
-
-            {/* {!isSidebarCollapsed && (
-              <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 px-1">
-                <span className="flex items-center gap-1">
-                  <span>🛡️</span> 100% Secure
-                </span>
-                <span className="flex items-center gap-1">
-                  <span>✓</span> ISO Certified
-                </span>
-              </div>
-            )} */}
           </div>
         </aside>
       )}
 
       {/* 2. MAIN APPLICATION CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-0 h-full overflow-hidden print:h-auto print:min-h-0 print:overflow-visible print:block print:w-full relative bg-[#F4F7FA]">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 h-full overflow-hidden print:h-auto print:min-h-0 print:overflow-visible print:block print:w-full relative bg-[#F5F8FC]">
         {/* Background treatment: subtle neutral for inner pages, elegant branded depth for dashboard */}
         <WaveBackground variant={pathname === "/" ? "dashboard" : "inner"} />
 
@@ -1247,7 +1261,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {supportSession?.isSupportSession && (
           <div className="shrink-0 bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-900 text-white px-4 py-2 text-xs flex items-center justify-between z-30 shadow-md print:hidden">
             <div className="flex items-center gap-2">
-              <span className="bg-amber-400 text-purple-950 font-bold px-2 py-0.5 rounded text-[10px] uppercase font-mono tracking-wider">
+              <span className="bg-amber-400 text-purple-950 font-bold px-2 py-0.5 rounded text-[10px] uppercase tabular-nums tracking-wider">
                 Support Session
               </span>
               <span className="font-medium text-slate-100">
@@ -1260,7 +1274,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
             <button
               onClick={handleExitSupportSession}
-              className="px-3 py-1 bg-white text-purple-950 hover:bg-purple-100 rounded-lg font-bold text-xs transition-all shadow-xs shrink-0"
+              className="px-3 py-1 bg-white text-purple-950 hover:bg-purple-100 rounded-lg font-medium text-[13px] transition-all shadow-xs shrink-0"
             >
               Exit Support Mode & Return to Console →
             </button>
@@ -1272,7 +1286,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <header className="lg:hidden shrink-0 h-14 bg-white border-b border-[#E5E7EB] px-3 flex items-center justify-between z-20 shadow-xs print:hidden">
             <Link
               href="/"
-              className="flex items-center gap-1.5 text-xs font-bold text-slate-800 hover:text-slate-900 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors shadow-2xs"
+              className="flex items-center gap-1.5 text-[13px] font-medium text-slate-800 hover:text-slate-900 h-9 px-3 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors shadow-2xs"
             >
               <svg className="w-3.5 h-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -1296,9 +1310,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
           </header>
         ) : (
-          <header className="shrink-0 h-14 sm:h-15 bg-white/95 backdrop-blur-xs border-b border-[#E1EAF0] px-3 sm:px-6 flex items-center justify-between z-20 shadow-2xs max-w-full min-w-0 print:hidden">
-            {/* Left: Active Company/Branch Context & Brand Logo */}
-            <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
+          <header className="shrink-0 h-14 bg-white border-b border-[#E3EAF3] px-3 sm:px-5 flex items-center justify-between z-20 max-w-full min-w-0 print:hidden sticky top-0">
+            {/* Left: Active Company Context & Financial Year */}
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
               {/* Menu Drawer Toggle Button (Visible on mobile) */}
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
@@ -1311,149 +1325,63 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </svg>
               </button>
 
-              {/* Brand Logo on mobile (< lg): compact icon on mobile (< sm), full horizontal logo on sm+ */}
-              <div className="lg:hidden flex items-center shrink-0">
-                <div className="hidden sm:block">
-                  <BrandLogo size="md" variant="horizontal" />
-                </div>
-                <div className="block sm:hidden">
-                  <BrandLogo size="sm" variant="icon" />
-                </div>
-              </div>
-
-              {/* Active Company & Branch Context Switchers */}
+              {/* Company Switcher */}
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <CompanySwitcher />
 
-                {/* Branch Pill */}
-                {branches.length > 1 && (
-                  <select
-                    value={currentBranch?.id || ""}
-                    onChange={(e) => switchBranch(e.target.value)}
-                    className="text-xs sm:text-sm font-semibold bg-[#F8F9FB] text-[#4B5563] border border-[#E5E7EB] rounded-lg px-2.5 py-1.5 focus:outline-none cursor-pointer hidden md:block max-w-[130px] truncate"
-                    title={`Branch: ${currentBranch?.name || ""}`}
-                    aria-label="Select branch"
-                  >
-                    {branches.map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
-
-                {/* Financial Year Tag */}
-                <span className="text-xs sm:text-[12px] font-mono font-bold text-[#3B4D47] bg-[#EDF3F1] px-2.5 py-1 rounded-md border border-[#D5E4DF] hidden lg:inline whitespace-nowrap">
-                  {currentFY?.name || "FY 2026-27"}
-                </span>
-
-                {/* Dynamic Breadcrumbs for clear situational context */}
-                {pathname !== "/" && (
-                  <div className="hidden xl:flex items-center gap-1.5 text-xs text-slate-400 pl-3 border-l border-slate-200">
-                    <span className="hover:text-slate-600 transition-colors">App</span>
-                    <span>/</span>
-                    <span className="font-bold text-[#174B43] capitalize">
-                      {pathname
-                        .split("/")
-                        .filter(Boolean)
-                        .slice(-2)
-                        .join(" / ")
-                        .replace(/-/g, " ")}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Right: Quick Action, Language Toggle & User/Logout */}
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto pl-1 sm:pl-2">
-
-              {/* Quick Create Bill (hidden on dashboard and creation pages) */}
-              {pathname !== "/" &&
-                !pathname.startsWith("/sales/invoices") &&
-                !pathname.startsWith("/purchases") &&
-                !pathname.startsWith("/sales/quotations") &&
-                !pathname.startsWith("/sales/pos") &&
-                !pathname.includes("/new") &&
-                !pathname.includes("/edit") && (
-                <Link
-                  href="/sales/invoices/new"
-                  className="flex items-center gap-1.5 sm:gap-2 py-1.5 px-3 sm:px-4 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs transition-all shrink-0 whitespace-nowrap active:scale-95 bg-[#0DAA8A] hover:bg-[#0C987B]"
-                  title={
-                    lang === "gu" ? "નવું વેચાણ બિલ (F2)" : "Create New Bill (F2)"
-                  }
-                  aria-label={
-                    lang === "gu"
-                      ? "નવું બિલ બનાવો (Create New Bill)"
-                      : "Create New Bill"
-                  }
-                >
-                  <svg
-                    className="w-4 h-4 shrink-0"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2.4}
-                      d="M12 4v16m8-8H4"
-                    />
-                  </svg>
-                  <span className="hidden sm:inline font-bold">
-                    {lang === "gu" ? "નવું બિલ" : "Create Bill"}
-                  </span>
-                  <span className="inline sm:hidden font-bold">
-                    {lang === "gu" ? "બિલ" : "Bill"}
-                  </span>
-                </Link>
-              )}
-
-              {/* Notification Bell matching Reference Image */}
-              <button
-                type="button"
-                className="relative p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                title="Notifications"
-              >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500" />
-              </button>
-
-              {/* Language Selector Pill matching Reference Image (EN ⌵) */}
-              <div className="relative inline-flex items-center">
-                <button
-                  type="button"
-                  onClick={() => setLang(lang === "en" ? "gu" : "en")}
-                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-[#E1EAF0] rounded-lg shadow-2xs transition-colors cursor-pointer"
-                  title="Toggle Language"
-                >
+                {/* Financial Year Selector Pill matching Reference */}
+                <div className="hidden sm:flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E2E8F0] rounded-[10px] text-[13px] font-medium text-[#182230] select-none">
                   <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  <span className="uppercase">{lang}</span>
+                  <span>{currentFY?.name || "FY 2026-27"}</span>
                   <svg className="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
-                </button>
+                </div>
               </div>
+            </div>
+
+            {/* Center: Prominent Search Bar matching Reference Image */}
+            <div className="hidden md:flex items-center flex-1 max-w-md mx-4 lg:mx-8">
+              <div className="relative w-full">
+                <svg className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder={lang === "gu" ? "પાર્ટી, ઇનવોઇસ, વસ્તુઓ શોધો..." : "Search parties, invoices, items..."}
+                  className="w-full h-10 pl-9 pr-4 bg-[#F8FBFF] hover:bg-white border border-[#E2E8F0] rounded-[10px] text-[13px] font-normal text-[#182230] placeholder:text-[#94A3B8] focus:bg-white focus:border-[#1677E8] focus:ring-1 focus:ring-[#1677E8] transition-all outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Right: Notifications, Help, User Profile matching Reference Image */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto pl-1 sm:pl-2">
+              {/* Notification Bell Center */}
+              <NotificationCenter />
+
+              {/* Help Circle Icon */}
+              <button
+                type="button"
+                className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                title="Help & Support"
+              >
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
 
               {/* User Profile Pill matching Reference */}
-              <div className="hidden sm:flex items-center gap-2 pl-1 border-l border-slate-200">
-                <div className="w-7 h-7 rounded-full bg-[#004D40] text-white flex items-center justify-center font-bold text-[11px] shadow-2xs uppercase">
+              <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+                <div className="w-8 h-8 rounded-full bg-[#1677E8] text-white flex items-center justify-center font-bold text-xs shadow-2xs uppercase">
                   {user?.fullName
-                    ? user.fullName
-                        .split(" ")
-                        .map((w: string) => w[0])
-                        .slice(0, 2)
-                        .join("")
-                    : "JD"}
+                    ? user.fullName[0]
+                    : "J"}
                 </div>
-                <div className="hidden lg:flex items-center gap-1 text-xs font-bold text-slate-800">
+                <div className="hidden lg:flex items-center gap-1 text-[13px] font-medium text-[#182230]">
                   <span className="truncate max-w-[120px]">
-                    {user?.fullName || user?.name || "Jaydip Khunt"}
+                    {user?.fullName || user?.name || "Jaydeep"}
                   </span>
                   <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -1461,16 +1389,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </div>
               </div>
 
-              {/* Logout / User Trigger: Shown when NOT on dashboard */}
+              {/* Logout button (when not on dashboard) */}
               {pathname !== "/" && (
                 <button
                   onClick={logout}
-                  className="hidden md:inline-flex items-center justify-center p-1 sm:p-1.5 text-[#667085] hover:text-[#DC3545] hover:bg-rose-50 rounded-lg transition-colors shrink-0"
+                  className="hidden md:inline-flex items-center justify-center p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors shrink-0"
                   title={lang === "gu" ? "લોગઆઉટ" : "Logout"}
                   aria-label="Logout"
                 >
                   <svg
-                    className="w-4 h-4 sm:w-5 sm:h-5"
+                    className="w-4 h-4"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -1492,24 +1420,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main
           id="main-content"
           tabIndex={-1}
-          className={`flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden relative z-10 ${pathname === "/" ||
-              pathname.startsWith("/purchases") ||
-              pathname.startsWith("/sales") ||
-              isCashBankPage ||
-              isStudioSettings
-              ? "p-2 sm:p-3 lg:p-4"
-              : "p-3 sm:p-6 lg:p-8"
-            } pb-24 lg:pb-8 overscroll-y-contain focus:outline-none print:p-0 print:m-0 print:overflow-visible print:h-auto print:w-full print:block`}
+          className="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden relative z-10 p-3 sm:p-4 lg:px-5 lg:py-4 pb-24 lg:pb-5 overscroll-y-contain focus:outline-none print:p-0 print:m-0 print:overflow-visible print:h-auto print:w-full print:block"
         >
           <div
-            className={`${pathname === "/" ||
-                pathname.startsWith("/purchases") ||
-                pathname.startsWith("/sales") ||
-                isCashBankPage ||
-                isStudioSettings
-                ? "w-full min-w-0 max-w-none"
-                : "max-w-7xl w-full min-w-0 mx-auto"
-              } print:max-w-none print:w-full print:p-0 print:m-0`}
+            className="w-full min-w-0 max-w-none print:max-w-none print:w-full print:p-0 print:m-0"
           >
             {children}
           </div>
@@ -1529,16 +1443,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             onClick={() => setIsMobileMenuOpen(false)}
             aria-hidden="true"
           />
-          <div className="relative w-72 max-w-[85vw] bg-[#174B43] text-white h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-left duration-200">
+          <div className="relative w-72 max-w-[85vw] bg-white text-slate-800 h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-left duration-200">
             {isSettingsPage ? (
-              <div className="h-full flex flex-col bg-[#174B43] text-white">
-                <div className="h-14 shrink-0 flex items-center justify-between px-4 border-b border-[#1F5E54] bg-[#133E37]">
-                  <span className="text-xs font-bold text-white">
+              <div className="h-full flex flex-col bg-white text-slate-800">
+                <div className="h-14 shrink-0 flex items-center justify-between px-4 border-b border-slate-100 bg-slate-50">
+                  <span className="text-xs font-bold text-slate-800">
                     {lang === "gu" ? "સેટિંગ્સ મેનૂ" : "Settings Menu"}
                   </span>
                   <button
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="p-1.5 text-[#A7C7C0] hover:text-white hover:bg-white/10 rounded-lg text-sm transition-colors"
+                    className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg text-[13px] transition-colors"
                     aria-label="Close settings drawer"
                   >
                     ✕
@@ -1551,11 +1465,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             ) : (
               <>
                 {/* Mobile Header with visible close button */}
-                <div className="h-16 shrink-0 flex items-center justify-between px-4 border-b border-[#1F5E54] bg-[#133E37]">
-                  <BrandLogo size="sm" showSubtitle subtitle={currentCompany?.tradeName || "Billing & Retail"} />
+                <div className="h-16 shrink-0 flex items-center justify-between px-4 border-b border-slate-100 bg-white">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
+                      <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none">
+                        <rect x="7" y="3" width="16" height="20" rx="3" fill="#38BDF8" />
+                        <path d="M11 8h8M11 12h5" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
+                        <rect x="3" y="9" width="16" height="20" rx="3" fill="#1677E8" />
+                        <path d="M7 14h8M7 18h6M7 22h4" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
+                      </svg>
+                    </div>
+                    <div className="flex flex-col leading-tight">
+                      <span className="text-sm font-semibold tracking-tight text-slate-900">MyOwn</span>
+                      <span className="text-xs font-bold text-slate-900 -mt-0.5">BillBook</span>
+                    </div>
+                  </div>
                   <button
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="p-2 text-[#A7C7C0] hover:text-white hover:bg-white/10 rounded-md transition-colors"
+                    className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
                     aria-label="Close navigation drawer"
                   >
                     <svg
@@ -1586,24 +1513,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                           href={sec.href}
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${activeNav.isDirectLinkActive(sec.id, sec.href)
-                              ? "bg-[#26A58A] text-white font-bold shadow-xs"
-                              : "text-[#C4DBD6] hover:text-white hover:bg-white/10"
+                              ? "bg-[#1677E8] text-white font-bold shadow-xs"
+                              : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                             }`}
                         >
-                          <span className={activeNav.isDirectLinkActive(sec.id, sec.href) ? "text-white" : "text-[#A7C7C0]"}>
+                          <span className={activeNav.isDirectLinkActive(sec.id, sec.href) ? "text-white" : "text-slate-500"}>
                             {sec.icon}
                           </span>
                           <span>{lang === "gu" ? sec.nameGujarati : sec.name}</span>
                         </Link>
                       ) : (
                         <div>
-                          <div className="px-3 pt-3 pb-1 text-[11px] font-bold text-[#90B6AE] uppercase tracking-wider">
+                          <div className="px-3 pt-3 pb-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                             {lang === "gu" ? sec.nameGujarati : sec.name}
                           </div>
                           <div className="relative ml-[19px] pl-3.5 py-1 space-y-1">
                             {/* Continuous vertical connector line */}
                             <div
-                              className="absolute left-0 top-1.5 bottom-2.5 w-[1.5px] bg-[#26A58A]/35 rounded-full pointer-events-none"
+                              className="absolute left-0 top-1.5 bottom-2.5 w-[1.5px] bg-slate-200 rounded-full pointer-events-none"
                               aria-hidden="true"
                             />
                             {sec.items?.map((item) => {
@@ -1614,25 +1541,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                   href={item.href}
                                   onClick={() => setIsMobileMenuOpen(false)}
                                   className={`group relative flex items-center justify-between py-2 px-2.5 rounded-xl text-xs font-medium transition-all duration-150 ${isItemActive
-                                      ? "bg-[#26A58A] text-white font-bold shadow-xs"
-                                      : "text-[#C4DBD6] hover:text-white hover:bg-white/10"
+                                      ? "bg-[#1677E8] text-white font-bold shadow-xs"
+                                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                                     }`}
                                 >
-                                  {/* Circular node dot on connector line */}
-                                  <span
-                                    aria-hidden="true"
-                                    className={`absolute -left-[18px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full border transition-all duration-200 pointer-events-none ${isItemActive
-                                        ? "bg-[#A7F3D0] border-[#174B43] ring-2 ring-[#26A58A] scale-110 shadow-xs z-10"
-                                        : "bg-[#174B43] border-[#377F72] group-hover:border-[#85D5C2]"
-                                      }`}
-                                  />
                                   <div className="flex items-center gap-2 truncate min-w-0">
-                                    {isItemActive && (
-                                      <span
-                                        aria-hidden="true"
-                                        className="w-1 h-3.5 bg-white/95 rounded-full shrink-0 -ml-0.5 shadow-2xs"
-                                      />
-                                    )}
                                     <span className="truncate">
                                       {lang === "gu" ? item.nameGujarati : item.name}
                                     </span>
@@ -1648,16 +1561,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </nav>
 
                 {/* Mobile Drawer Footer: Branch switch & user profile & logout */}
-                <div className="p-3 border-t border-[#1F5E54] bg-[#133E37] space-y-2 shrink-0">
+                <div className="p-3 border-t border-slate-100 bg-slate-50/70 space-y-2 shrink-0">
                   {branches.length > 1 && (
                     <div>
-                      <label className="block text-[10px] font-bold text-[#90B6AE] uppercase tracking-wider mb-1">
+                      <label className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">
                         {lang === "gu" ? "શાખા" : "Current Branch"}
                       </label>
                       <select
                         value={currentBranch?.id || ""}
                         onChange={(e) => switchBranch(e.target.value)}
-                        className="w-full text-xs font-medium bg-[#174B43] text-white border border-[#1F5E54] rounded-md px-2 py-1.5 focus:outline-none"
+                        className="w-full text-[13px] font-medium bg-white text-slate-800 border border-slate-200 rounded-md px-2 py-1.5 focus:outline-none h-10"
                         aria-label="Select branch"
                       >
                         {branches.map((b) => (
@@ -1671,14 +1584,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
                   <div className="flex items-center justify-between pt-1">
                     <div className="flex items-center gap-2 truncate">
-                      <div className="w-8 h-8 rounded-full bg-[#26A58A] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
-                        {user?.fullName?.charAt(0) || "U"}
+                      <div className="w-8 h-8 rounded-full bg-[#1677E8] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                        {user?.fullName?.charAt(0) || "J"}
                       </div>
                       <div className="flex flex-col truncate">
-                        <span className="text-xs font-bold text-white truncate">
-                          {user?.fullName || "User"}
+                        <span className="text-xs font-bold text-slate-900 truncate">
+                          {user?.fullName || user?.name || "Jaydeep"}
                         </span>
-                        <span className="text-[10px] text-[#A7C7C0] truncate">
+                        <span className="text-[10px] text-slate-500 truncate">
                           {currentFY?.name || "FY 2026-27"}
                         </span>
                       </div>
@@ -1686,7 +1599,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
                     <button
                       onClick={logout}
-                      className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-[#C4DBD6] hover:text-[#26A58A] hover:bg-white/10 rounded-md transition-colors"
+                      className="flex items-center gap-1 px-2.5 py-1.5 text-[13px] font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"
                       title={lang === "gu" ? "લોગઆઉટ" : "Logout"}
                     >
                       <svg
@@ -1716,14 +1629,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {!isSettingsPage && (
         <nav
           aria-label="Mobile Navigation Bar"
-          className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-[#E5E7EB] z-40 px-2 py-1.5 flex items-center justify-around shadow-lg no-print print:hidden print-hide"
+          className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-40 px-2 py-1.5 flex items-center justify-around shadow-lg no-print print:hidden print-hide"
           data-print-hide="true"
         >
           <Link
             href="/"
             className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${pathname === "/"
-                ? "text-[#26A58A]"
-                : "text-[#667085] hover:text-[#202124]"
+                ? "text-[#1677E8]"
+                : "text-slate-500 hover:text-slate-900"
               }`}
           >
             <svg
@@ -1745,8 +1658,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link
             href="/sales/invoices"
             className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${pathname.startsWith("/sales/invoices")
-                ? "text-[#26A58A]"
-                : "text-[#667085] hover:text-[#202124]"
+                ? "text-[#1677E8]"
+                : "text-slate-500 hover:text-slate-900"
               }`}
           >
             <svg
@@ -1768,11 +1681,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link
             href="/sales/pos"
             className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${pathname === "/sales/pos"
-                ? "text-[#26A58A]"
+                ? "text-[#1677E8]"
                 : "text-[#667085] hover:text-[#202124]"
               }`}
           >
-            <div className="w-8 h-8 -mt-3 rounded-full bg-[#26A58A] text-white flex items-center justify-center shadow-jade">
+            <div className="w-8 h-8 -mt-3 rounded-full bg-[#1677E8] text-white flex items-center justify-center shadow-blue-500/20">
               <svg
                 className="w-4 h-4"
                 fill="none"
@@ -1793,7 +1706,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link
             href="/purchases"
             className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${pathname.startsWith("/purchases")
-                ? "text-[#26A58A]"
+                ? "text-[#1677E8]"
                 : "text-[#667085] hover:text-[#202124]"
               }`}
           >
@@ -1816,7 +1729,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(true)}
-            className="flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold text-[#667085] hover:text-[#202124] transition-colors"
+            className="flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-medium text-[#667085] hover:text-[#182230] transition-colors"
             aria-label="Open full navigation menu"
           >
             <svg

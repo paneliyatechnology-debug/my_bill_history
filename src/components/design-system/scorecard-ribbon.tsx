@@ -41,7 +41,7 @@ export function ScorecardRibbon({
 
         // Active segment styling
         const activeClass = seg.isActive
-          ? "bg-[#F2FAF7] ring-2 ring-inset ring-[#26A58A] shadow-inner"
+          ? "bg-[#F8FAFC] ring-2 ring-inset ring-[#1677E8] shadow-inner"
           : "hover:bg-slate-50/80";
 
         // Dot color based on variant
@@ -53,7 +53,7 @@ export function ScorecardRibbon({
             : seg.variant === "danger"
             ? "bg-rose-500"
             : seg.variant === "primary"
-            ? "bg-[#26A58A]"
+            ? "bg-[#1677E8]"
             : "bg-slate-400";
 
         const textColor =
@@ -64,7 +64,7 @@ export function ScorecardRibbon({
             : seg.variant === "danger"
             ? "text-rose-700"
             : seg.variant === "primary"
-            ? "text-[#174B43]"
+            ? "text-[#0F172A]"
             : "text-slate-800";
 
         return (
@@ -80,7 +80,7 @@ export function ScorecardRibbon({
             <div className="flex items-center justify-between gap-2 mb-2 w-full">
               <div className="flex items-center gap-2 min-w-0">
                 <span className={`w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
-                <span className="text-[11px] sm:text-xs font-bold text-[#5A6B66] uppercase tracking-wider truncate">
+                <span className="text-[12px] font-medium text-[#64748B] truncate">
                   {lang === "gu" && seg.labelGujarati ? seg.labelGujarati : seg.label}
                 </span>
               </div>
@@ -92,7 +92,7 @@ export function ScorecardRibbon({
             </div>
 
             <div className="space-y-1 w-full">
-              <div className={`text-xl sm:text-2xl font-black font-mono tracking-tight truncate ${textColor}`}>
+              <div className={`bb-amount text-[22px] truncate ${textColor}`}>
                 {displayValue}
               </div>
 
@@ -104,7 +104,7 @@ export function ScorecardRibbon({
                       : seg.subtext}
                   </span>
                   {seg.count !== undefined && (
-                    <span className="font-mono text-slate-500 font-bold ml-1">
+                    <span className="text-[#64748B] font-medium ml-1">
                       ({seg.count})
                     </span>
                   )}

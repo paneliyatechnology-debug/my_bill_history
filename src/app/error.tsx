@@ -57,7 +57,7 @@ export default function RootError({
         </div>
 
         {/* Heading */}
-        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+        <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
           {isGu ? "આ પેજ લોડ કરવામાં સમસ્યા આવી" : "Something went wrong on this page"}
         </h1>
 
@@ -70,7 +70,7 @@ export default function RootError({
 
         {/* Technical Error Notice */}
         {error?.message && (
-          <div className="mt-4 inline-flex items-center gap-2 max-w-full px-3.5 py-1.5 rounded-lg bg-rose-50/80 border border-rose-200/80 text-rose-700 text-xs font-mono font-medium truncate">
+          <div className="mt-4 inline-flex items-center gap-2 max-w-full px-3.5 py-1.5 rounded-lg bg-rose-50/80 border border-rose-200/80 text-rose-700 text-xs tabular-nums font-medium truncate">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
             <span className="truncate">{error.message}</span>
           </div>
@@ -82,7 +82,7 @@ export default function RootError({
             <button
               type="button"
               onClick={() => setShowTechnicalDetails((prev) => !prev)}
-              className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700 transition-colors font-medium cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-[13px] text-slate-500 hover:text-slate-700 transition-colors font-medium cursor-pointer"
             >
               <svg
                 className={`w-3.5 h-3.5 text-slate-400 transition-transform ${
@@ -107,7 +107,7 @@ export default function RootError({
             </button>
 
             {showTechnicalDetails && (
-              <div className="mt-3 p-3 bg-slate-50/90 rounded-xl border border-slate-200/80 text-left text-xs font-mono text-slate-700 break-words">
+              <div className="mt-3 p-3 bg-slate-50/90 rounded-xl border border-slate-200/80 text-left text-xs tabular-nums text-slate-700 break-words">
                 <div className="flex items-center justify-between mb-1 pb-1 border-b border-slate-200/60">
                   <span className="text-[11px] font-semibold text-slate-500 uppercase">Diagnostics</span>
                   <button
@@ -132,7 +132,7 @@ export default function RootError({
           <button
             type="button"
             onClick={() => reset()}
-            className="w-full sm:w-auto min-w-[140px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-gradient-to-r from-[#174B43] to-[#26A58A] hover:from-[#133E37] hover:to-[#208E76] active:scale-[0.98] transition-all shadow-md shadow-emerald-950/15 cursor-pointer"
+            className="w-full sm:w-auto min-w-[140px] inline-flex items-center justify-center gap-2 h-9 px-3.5 rounded-xl font-medium text-[13px] text-white bg-gradient-to-r from-[#0F172A] to-[#1677E8] hover:from-[#1E293B] hover:to-[#125CC0] active:scale-[0.98] transition-all shadow-md shadow-emerald-950/15 cursor-pointer"
           >
             <svg
               className="w-4 h-4 shrink-0"
@@ -150,7 +150,7 @@ export default function RootError({
 
           <Link
             href="/"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-slate-700 bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-200 transition-all shadow-2xs"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-9 px-3.5 rounded-xl font-medium text-[13px] text-slate-700 bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-200 transition-all shadow-2xs"
           >
             <svg
               className="w-4 h-4 text-slate-500"

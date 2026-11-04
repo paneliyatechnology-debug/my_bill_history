@@ -281,7 +281,7 @@ export default function DeliveryChallanViewPage() {
         <p className="font-bold text-base">{error || "Delivery Challan not found"}</p>
         <Link
           href="/sales/delivery-challan"
-          className="inline-block rounded-xl bg-white px-4 py-2 text-xs font-semibold text-rose-700 border border-rose-300 hover:bg-rose-100"
+          className="inline-block rounded-xl bg-white h-9 px-3 text-[13px] font-medium text-rose-700 border border-rose-300 hover:bg-rose-100"
         >
           Return to Delivery Challans
         </Link>
@@ -420,7 +420,7 @@ export default function DeliveryChallanViewPage() {
             ←
           </Link>
           <div className="flex items-center gap-2">
-            <h1 className="text-base font-bold text-slate-900">
+            <h1 className="text-[15px] font-semibold text-[#182230]">
               Delivery Challan #{challan.challanNumber}
             </h1>
             {isClosed ? (
@@ -447,7 +447,7 @@ export default function DeliveryChallanViewPage() {
               type="button"
               onClick={handleConvertToInvoice}
               disabled={isConverting}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#174B43] px-3.5 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-[#123B35] transition-colors disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#0F172A] h-9 px-3 text-[13px] font-medium text-white shadow-xs hover:bg-[#1268D3] transition-colors disabled:opacity-50 cursor-pointer"
               title="Convert this challan to a legal Tax Invoice"
             >
               <svg className="w-3.5 h-3.5 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -462,7 +462,7 @@ export default function DeliveryChallanViewPage() {
             type="button"
             onClick={handleDownloadPdf}
             disabled={isGeneratingPdf}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs disabled:opacity-50 cursor-pointer"
           >
             <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -477,7 +477,7 @@ export default function DeliveryChallanViewPage() {
             <button
               type="button"
               onClick={() => setIsPrintDropdownOpen(!isPrintDropdownOpen)}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
             >
               <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="6 9 6 2 18 2 18 9" />
@@ -498,14 +498,14 @@ export default function DeliveryChallanViewPage() {
                 <button
                   type="button"
                   onClick={() => handlePrint("A4")}
-                  className="flex w-full items-center px-3 py-2 hover:bg-slate-50 text-slate-700 cursor-pointer"
+                  className="flex w-full items-center h-9 px-3 hover:bg-slate-50 text-slate-700 cursor-pointer"
                 >
                   Standard A4 Print
                 </button>
                 <button
                   type="button"
                   onClick={() => handlePrint("THERMAL_80")}
-                  className="flex w-full items-center px-3 py-2 hover:bg-slate-50 text-slate-700 border-t border-slate-100 cursor-pointer"
+                  className="flex w-full items-center h-9 px-3 hover:bg-slate-50 text-slate-700 border-t border-slate-100 cursor-pointer"
                 >
                   Thermal Print (3 Inch)
                 </button>
@@ -516,7 +516,7 @@ export default function DeliveryChallanViewPage() {
           {/* Theme Settings Link */}
           <Link
             href="/app/settings/invoice/customize"
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
             title="Invoice Theme Settings"
           >
             <span>🎨</span>
@@ -528,7 +528,7 @@ export default function DeliveryChallanViewPage() {
             <button
               type="button"
               onClick={() => setIsShareDropdownOpen(!isShareDropdownOpen)}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
             >
               <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="18" cy="5" r="3" />
@@ -544,14 +544,14 @@ export default function DeliveryChallanViewPage() {
                 <button
                   type="button"
                   onClick={handleCopyLink}
-                  className="flex w-full items-center px-3 py-2 hover:bg-slate-50 text-slate-700 cursor-pointer"
+                  className="flex w-full items-center h-9 px-3 hover:bg-slate-50 text-slate-700 cursor-pointer"
                 >
                   Copy Link
                 </button>
                 <button
                   type="button"
                   onClick={handleShareWhatsApp}
-                  className="flex w-full items-center px-3 py-2 hover:bg-slate-50 text-emerald-700 border-t border-slate-100 cursor-pointer"
+                  className="flex w-full items-center h-9 px-3 hover:bg-slate-50 text-emerald-700 border-t border-slate-100 cursor-pointer"
                 >
                   Share via WhatsApp
                 </button>
@@ -577,7 +577,7 @@ export default function DeliveryChallanViewPage() {
                       setIsMoreMenuOpen(false);
                       setIsCancelModalOpen(true);
                     }}
-                    className="flex w-full items-center px-3 py-2 hover:bg-amber-50 text-amber-700 cursor-pointer"
+                    className="flex w-full items-center h-9 px-3 hover:bg-amber-50 text-amber-700 cursor-pointer"
                   >
                     Cancel Challan
                   </button>
@@ -588,7 +588,7 @@ export default function DeliveryChallanViewPage() {
                     setIsMoreMenuOpen(false);
                     handleDelete();
                   }}
-                  className="flex w-full items-center px-3 py-2 hover:bg-rose-50 text-rose-600 border-t border-slate-100 cursor-pointer"
+                  className="flex w-full items-center h-9 px-3 hover:bg-rose-50 text-rose-600 border-t border-slate-100 cursor-pointer"
                 >
                   Delete
                 </button>
@@ -622,27 +622,27 @@ export default function DeliveryChallanViewPage() {
             Are you sure you want to cancel delivery challan <strong>#{challan.challanNumber}</strong>?
           </p>
           <div>
-            <label className="block font-bold text-slate-700 mb-1">Cancellation Reason</label>
+            <label className="block font-medium text-slate-700 mb-1">Cancellation Reason</label>
             <input
               type="text"
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               placeholder="e.g. Returned goods, order cancelled"
-              className="w-full p-2.5 border border-[#E2E8E5] rounded-xl text-xs bg-[#F6F7F1] focus:bg-white focus:border-[#26A58A] focus:outline-none"
+              className="w-full p-2.5 border border-[#E2E8F0] rounded-xl text-[13px] bg-[#F6F7F1] focus:bg-white focus:border-[#1677E8] focus:outline-none h-10"
             />
           </div>
           <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
             <button
               type="button"
               onClick={() => setIsCancelModalOpen(false)}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
+              className="rounded-xl border border-slate-200 h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-50 cursor-pointer"
             >
               Close
             </button>
             <button
               type="button"
               onClick={handleCancelSubmit}
-              className="rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white hover:bg-amber-700 cursor-pointer"
+              className="rounded-xl bg-amber-600 h-9 px-3 text-[13px] font-medium text-white hover:bg-amber-700 cursor-pointer"
             >
               Confirm Cancel
             </button>

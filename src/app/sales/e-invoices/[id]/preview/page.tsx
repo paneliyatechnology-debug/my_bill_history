@@ -100,11 +100,11 @@ export default function EInvoicePreviewPage() {
     return (
       <div className="mx-auto max-w-4xl p-6">
         <div className="rounded-xl border border-rose-200 bg-rose-50 p-6 text-center text-rose-900">
-          <h2 className="text-base font-bold">{lang === "gu" ? "પૂર્વાવલોકન લોડ થઈ શક્યું નથી" : "Could not load preview"}</h2>
+          <h2 className="text-[15px] font-semibold">{lang === "gu" ? "પૂર્વાવલોકન લોડ થઈ શક્યું નથી" : "Could not load preview"}</h2>
           <p className="mt-1 text-xs">{error || "Invoice not found"}</p>
           <Link
             href="/sales/e-invoices"
-            className="mt-4 inline-block rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700"
+            className="mt-4 inline-block rounded-lg bg-[#1677E8] h-9 px-3 text-[13px] font-medium text-white hover:bg-[#1268D3]"
           >
             ← {lang === "gu" ? "ઈ-ઇનવોઇસ યાદી પર પાછા જાઓ" : "Return to E-Invoices"}
           </Link>
@@ -150,7 +150,7 @@ export default function EInvoicePreviewPage() {
               E-Invoices
             </Link>
             <span>/</span>
-            <Link href={`/sales/e-invoices/${id}`} className="hover:text-emerald-700 transition font-mono">
+            <Link href={`/sales/e-invoices/${id}`} className="hover:text-emerald-700 transition tabular-nums">
               {invoice.invoiceNumber}
             </Link>
             <span>/</span>
@@ -159,7 +159,7 @@ export default function EInvoicePreviewPage() {
             </span>
           </div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
               {lang === "gu" ? "અધિકૃત સરકારી ઈ-ઇનવોઇસ પૂર્વાવલોકન" : "Official Government E-Invoice Preview"}
             </h1>
             <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 border border-emerald-300">
@@ -201,7 +201,7 @@ export default function EInvoicePreviewPage() {
 
           <button
             onClick={handlePrint}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 shadow-xs hover:bg-slate-50 transition"
           >
             <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -212,7 +212,7 @@ export default function EInvoicePreviewPage() {
           <button
             onClick={handleDownloadPdf}
             disabled={isDownloadingPdf}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 transition disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#1677E8] h-9 px-3 text-[13px] font-medium text-white shadow-xs hover:bg-[#1268D3] transition disabled:opacity-50 cursor-pointer"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -244,7 +244,7 @@ export default function EInvoicePreviewPage() {
           </div>
           <Link
             href={`/sales/e-invoices/${id}`}
-            className="shrink-0 rounded-lg bg-emerald-600 px-3.5 py-1.5 font-bold text-white hover:bg-emerald-700 transition shadow-xs"
+            className="shrink-0 rounded-lg bg-[#1677E8] h-9 px-3 font-medium text-white hover:bg-[#1268D3] transition shadow-xs"
           >
             {lang === "gu" ? "તપાસો અને IRN જનરેટ કરો →" : "Review & Generate IRN →"}
           </Link>

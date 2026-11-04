@@ -281,7 +281,7 @@ export default function BomPage() {
       cell: (bom) => (
         <div className="font-medium text-slate-900">
           <div>{bom.bomName}</div>
-          <span className="text-[11px] text-slate-400 font-mono">
+          <span className="text-[11px] text-slate-400 tabular-nums">
             {new Date(bom.createdAt).toLocaleDateString()}
           </span>
         </div>
@@ -298,7 +298,7 @@ export default function BomPage() {
             {bom.finishedItem?.name || "Item"}
           </div>
           {bom.finishedItem?.sku && (
-            <span className="text-xs text-slate-400 font-mono">
+            <span className="text-xs text-slate-400 tabular-nums">
               SKU: {bom.finishedItem.sku}
             </span>
           )}
@@ -312,7 +312,7 @@ export default function BomPage() {
       sortable: true,
       align: "right",
       cell: (bom) => (
-        <div className="text-right font-mono font-semibold text-slate-700">
+        <div className="text-right tabular-nums font-semibold text-slate-700">
           {Number(bom.batchYieldQty).toLocaleString()}{" "}
           <span className="text-xs font-normal text-slate-500">
             {bom.finishedItem?.primaryUom?.code || "Unit"}
@@ -328,7 +328,7 @@ export default function BomPage() {
       align: "center",
       cell: (bom) => (
         <div className="flex justify-center">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-[#E6F7F2] text-[#174B43] border border-[#174B43]/30">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-[#EFF6FF] text-[#0F172A] border border-[#0F172A]/30">
             {bom.items.length}{" "}
             {lang === "gu" ? "કાચો માલ" : "Raw Materials"}
           </span>
@@ -342,7 +342,7 @@ export default function BomPage() {
       sortable: true,
       align: "right",
       cell: (bom) => (
-        <div className="text-right font-mono text-slate-700">
+        <div className="text-right tabular-nums text-slate-700">
           <div>₹{(Number(bom.laborCostEst || 0) + Number(bom.overheadCostEst || 0)).toFixed(2)}</div>
           <span className="text-[10px] text-slate-400 block">
             L: ₹{Number(bom.laborCostEst || 0).toFixed(0)} | OH: ₹{Number(bom.overheadCostEst || 0).toFixed(0)}
@@ -361,19 +361,19 @@ export default function BomPage() {
         >
           <button
             onClick={() => handleOpenView(bom)}
-            className="text-xs text-slate-600 hover:text-[#174B43] font-medium px-2 py-1 rounded hover:bg-slate-100 transition-colors"
+            className="text-[13px] text-slate-600 hover:text-[#0F172A] font-medium px-2 py-1 rounded hover:bg-slate-100 transition-colors"
           >
             {lang === "gu" ? "વિગતો" : "View"}
           </button>
           <button
             onClick={() => handleOpenEdit(bom)}
-            className="text-xs text-[#174B43] hover:text-[#123B35] font-semibold px-2 py-1 rounded hover:bg-[#E6F7F2] transition-colors"
+            className="text-[13px] text-[#0F172A] hover:text-[#123B35] font-medium px-2 py-1 rounded hover:bg-[#EFF6FF] transition-colors"
           >
             {lang === "gu" ? "સુધારો" : "Edit"}
           </button>
           <button
             onClick={() => setDeleteConfirmId(bom.id)}
-            className="text-xs text-rose-600 hover:text-rose-800 font-medium px-2 py-1 rounded hover:bg-rose-50 transition-colors"
+            className="text-[13px] text-rose-600 hover:text-rose-800 font-medium px-2 py-1 rounded hover:bg-rose-50 transition-colors"
           >
             {lang === "gu" ? "કાઢી નાખો" : "Delete"}
           </button>
@@ -388,7 +388,7 @@ export default function BomPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
               {lang === "gu" ? "બિલ ઓફ મટિરીયલ્સ (BOM / સામગ્રી યાદી)" : "Bill of Materials (BOM)"}
             </h1>
           </div>
@@ -401,7 +401,7 @@ export default function BomPage() {
 
         <button
           onClick={handleOpenCreate}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
+          className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-[13px] font-medium rounded-xl shadow-card hover:shadow-hover transition-all"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -448,7 +448,7 @@ export default function BomPage() {
                 d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
               />
             </svg>
-            <h3 className="text-sm font-semibold text-slate-700">
+            <h3 className="text-[15px] font-semibold text-slate-700">
               {lang === "gu" ? "કોઈ BOM મળ્યું નથી" : "No Bills of Materials found"}
             </h3>
             <p className="text-xs text-slate-500 mt-1">
@@ -458,7 +458,7 @@ export default function BomPage() {
             </p>
             <button
               onClick={handleOpenCreate}
-              className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-[#E6F7F2] text-[#174B43] rounded-lg text-xs font-semibold hover:bg-[#174B43] hover:text-white transition-colors"
+              className="mt-4 inline-flex items-center gap-2 h-9 px-3 bg-[#EFF6FF] text-[#0F172A] rounded-lg text-[13px] font-medium hover:bg-[#0F172A] hover:text-white transition-colors"
             >
               + {lang === "gu" ? "પ્રથમ BOM બનાવો" : "Create First BOM"}
             </button>
@@ -468,27 +468,27 @@ export default function BomPage() {
           <div
             key={bom.id}
             onClick={() => handleOpenView(bom)}
-            className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3 cursor-pointer hover:border-[#174B43]/50 transition-colors"
+            className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3 cursor-pointer hover:border-[#0F172A]/50 transition-colors"
           >
             <div className="flex items-start justify-between">
               <div>
                 <div className="font-semibold text-slate-900">{bom.bomName}</div>
                 <div className="text-xs text-slate-500 font-medium">{bom.finishedItem?.name || "Item"}</div>
               </div>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-[#E6F7F2] text-[#174B43] border border-[#174B43]/30">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-[#EFF6FF] text-[#0F172A] border border-[#0F172A]/30">
                 {bom.items.length} {lang === "gu" ? "કાચો માલ" : "Items"}
               </span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-slate-100">
               <div>
                 <span className="text-slate-400 block text-[10px]">{lang === "gu" ? "બેચ આઉટપુટ" : "Yield Qty"}</span>
-                <span className="font-mono font-medium text-slate-700">
+                <span className="tabular-nums font-medium text-slate-700">
                   {Number(bom.batchYieldQty).toLocaleString()} {bom.finishedItem?.primaryUom?.code || "Unit"}
                 </span>
               </div>
               <div>
                 <span className="text-slate-400 block text-[10px]">{lang === "gu" ? "અંદાજિત ઓવરહેડ" : "Est. Overhead"}</span>
-                <span className="font-mono font-medium text-slate-700">
+                <span className="tabular-nums font-medium text-slate-700">
                   ₹{(Number(bom.laborCostEst || 0) + Number(bom.overheadCostEst || 0)).toFixed(2)}
                 </span>
               </div>
@@ -499,19 +499,19 @@ export default function BomPage() {
             >
               <button
                 onClick={() => handleOpenView(bom)}
-                className="text-xs text-slate-600 hover:text-[#174B43] font-medium px-2 py-1 rounded hover:bg-slate-100 transition-colors"
+                className="text-[13px] text-slate-600 hover:text-[#0F172A] font-medium px-2 py-1 rounded hover:bg-slate-100 transition-colors"
               >
                 {lang === "gu" ? "વિગતો" : "View"}
               </button>
               <button
                 onClick={() => handleOpenEdit(bom)}
-                className="text-xs text-[#174B43] hover:text-[#123B35] font-semibold px-2 py-1 rounded hover:bg-[#E6F7F2] transition-colors"
+                className="text-[13px] text-[#0F172A] hover:text-[#123B35] font-medium px-2 py-1 rounded hover:bg-[#EFF6FF] transition-colors"
               >
                 {lang === "gu" ? "સુધારો" : "Edit"}
               </button>
               <button
                 onClick={() => setDeleteConfirmId(bom.id)}
-                className="text-xs text-rose-600 hover:text-rose-800 font-medium px-2 py-1 rounded hover:bg-rose-50 transition-colors"
+                className="text-[13px] text-rose-600 hover:text-rose-800 font-medium px-2 py-1 rounded hover:bg-rose-50 transition-colors"
               >
                 {lang === "gu" ? "કાઢી નાખો" : "Delete"}
               </button>
@@ -532,7 +532,7 @@ export default function BomPage() {
             <button
               type="button"
               onClick={() => setIsCreateModalOpen(false)}
-              className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition-colors"
+              className="h-9 px-3 border border-slate-200 rounded-lg text-[13px] text-slate-600 hover:bg-slate-100 transition-colors"
             >
               {lang === "gu" ? "રદ કરો" : "Cancel"}
             </button>
@@ -540,7 +540,7 @@ export default function BomPage() {
               type="submit"
               form="create-bom-form"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50"
+              className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg text-[13px] font-medium shadow-sm transition-colors disabled:opacity-50"
             >
               {isSubmitting
                 ? lang === "gu"
@@ -562,14 +562,14 @@ export default function BomPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "તૈયાર માલ (Finished Item) *" : "Finished Item *"}
               </label>
               <select
                 value={formData.finishedItemId}
                 onChange={(e) => setFormData({ ...formData, finishedItemId: e.target.value })}
                 required
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
               >
                 <option value="">{lang === "gu" ? "-- પસંદ કરો --" : "-- Select Finished Item --"}</option>
                 {items.map((it) => (
@@ -581,7 +581,7 @@ export default function BomPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "BOM રેસિપી નામ *" : "BOM Recipe Name *"}
               </label>
               <input
@@ -590,13 +590,13 @@ export default function BomPage() {
                 onChange={(e) => setFormData({ ...formData, bomName: e.target.value })}
                 required
                 placeholder="e.g. Standard 100KG Batch Recipe"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
               >
               </input>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "બેચ ઉત્પાદન જથ્થો (Yield Qty) *" : "Batch Yield Quantity *"}
               </label>
               <input
@@ -606,13 +606,13 @@ export default function BomPage() {
                 value={formData.batchYieldQty}
                 onChange={(e) => setFormData({ ...formData, batchYieldQty: parseFloat(e.target.value) || 0 })}
                 required
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">
                   {lang === "gu" ? "મજૂરી ખર્ચ (₹)" : "Labor Cost (₹)"}
                 </label>
                 <input
@@ -621,11 +621,11 @@ export default function BomPage() {
                   step="0.01"
                   value={formData.laborCostEst}
                   onChange={(e) => setFormData({ ...formData, laborCostEst: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">
                   {lang === "gu" ? "ઓવરહેડ ખર્ચ (₹)" : "Overhead Cost (₹)"}
                 </label>
                 <input
@@ -634,7 +634,7 @@ export default function BomPage() {
                   step="0.01"
                   value={formData.overheadCostEst}
                   onChange={(e) => setFormData({ ...formData, overheadCostEst: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
                 />
               </div>
             </div>
@@ -649,7 +649,7 @@ export default function BomPage() {
               <button
                 type="button"
                 onClick={handleAddRawItem}
-                className="text-xs text-[#174B43] font-semibold hover:text-[#123B35]"
+                className="text-xs text-[#0F172A] font-semibold hover:text-[#123B35]"
               >
                 + {lang === "gu" ? "કાચો માલ ઉમેરો" : "Add Component"}
               </button>
@@ -666,7 +666,7 @@ export default function BomPage() {
                       value={it.rawItemId}
                       onChange={(e) => handleItemChange(idx, "rawItemId", e.target.value)}
                       required
-                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm"
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] h-10"
                     >
                       {items.map((opt) => (
                         <option key={opt.id} value={opt.id}>
@@ -687,7 +687,7 @@ export default function BomPage() {
                       value={it.quantity}
                       onChange={(e) => handleItemChange(idx, "quantity", parseFloat(e.target.value) || 0)}
                       required
-                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono"
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] tabular-nums h-10"
                     />
                   </div>
 
@@ -702,7 +702,7 @@ export default function BomPage() {
                       step="0.01"
                       value={it.wastagePercent}
                       onChange={(e) => handleItemChange(idx, "wastagePercent", parseFloat(e.target.value) || 0)}
-                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono"
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] tabular-nums h-10"
                     />
                   </div>
 
@@ -739,7 +739,7 @@ export default function BomPage() {
             <button
               type="button"
               onClick={() => setIsEditModalOpen(false)}
-              className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition-colors"
+              className="h-9 px-3 border border-slate-200 rounded-lg text-[13px] text-slate-600 hover:bg-slate-100 transition-colors"
             >
               {lang === "gu" ? "રદ કરો" : "Cancel"}
             </button>
@@ -747,7 +747,7 @@ export default function BomPage() {
               type="submit"
               form="edit-bom-form"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50"
+              className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg text-[13px] font-medium shadow-sm transition-colors disabled:opacity-50"
             >
               {isSubmitting
                 ? lang === "gu"
@@ -769,7 +769,7 @@ export default function BomPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "તૈયાર માલ (Finished Item)" : "Finished Item"}
               </label>
               <div className="px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-sm text-slate-700 font-medium">
@@ -778,7 +778,7 @@ export default function BomPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "BOM રેસિપી નામ *" : "BOM Recipe Name *"}
               </label>
               <input
@@ -786,12 +786,12 @@ export default function BomPage() {
                 value={formData.bomName}
                 onChange={(e) => setFormData({ ...formData, bomName: e.target.value })}
                 required
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "બેચ ઉત્પાદન જથ્થો (Yield Qty) *" : "Batch Yield Quantity *"}
               </label>
               <input
@@ -801,13 +801,13 @@ export default function BomPage() {
                 value={formData.batchYieldQty}
                 onChange={(e) => setFormData({ ...formData, batchYieldQty: parseFloat(e.target.value) || 0 })}
                 required
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">
                   {lang === "gu" ? "મજૂરી ખર્ચ (₹)" : "Labor Cost (₹)"}
                 </label>
                 <input
@@ -816,11 +816,11 @@ export default function BomPage() {
                   step="0.01"
                   value={formData.laborCostEst}
                   onChange={(e) => setFormData({ ...formData, laborCostEst: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">
                   {lang === "gu" ? "ઓવરહેડ ખર્ચ (₹)" : "Overhead Cost (₹)"}
                 </label>
                 <input
@@ -829,7 +829,7 @@ export default function BomPage() {
                   step="0.01"
                   value={formData.overheadCostEst}
                   onChange={(e) => setFormData({ ...formData, overheadCostEst: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
                 />
               </div>
             </div>
@@ -844,7 +844,7 @@ export default function BomPage() {
               <button
                 type="button"
                 onClick={handleAddRawItem}
-                className="text-xs text-[#174B43] font-semibold hover:text-[#123B35]"
+                className="text-xs text-[#0F172A] font-semibold hover:text-[#123B35]"
               >
                 + {lang === "gu" ? "કાચો માલ ઉમેરો" : "Add Component"}
               </button>
@@ -861,7 +861,7 @@ export default function BomPage() {
                       value={it.rawItemId}
                       onChange={(e) => handleItemChange(idx, "rawItemId", e.target.value)}
                       required
-                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm"
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] h-10"
                     >
                       {items.map((opt) => (
                         <option key={opt.id} value={opt.id}>
@@ -882,7 +882,7 @@ export default function BomPage() {
                       value={it.quantity}
                       onChange={(e) => handleItemChange(idx, "quantity", parseFloat(e.target.value) || 0)}
                       required
-                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono"
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] tabular-nums h-10"
                     />
                   </div>
 
@@ -897,7 +897,7 @@ export default function BomPage() {
                       step="0.01"
                       value={it.wastagePercent}
                       onChange={(e) => handleItemChange(idx, "wastagePercent", parseFloat(e.target.value) || 0)}
-                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono"
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] tabular-nums h-10"
                     />
                   </div>
 
@@ -932,7 +932,7 @@ export default function BomPage() {
         footer={
           <button
             onClick={() => setIsViewModalOpen(false)}
-            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition-colors"
+            className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[13px] font-medium transition-colors"
           >
             {lang === "gu" ? "બંધ કરો" : "Close"}
           </button>
@@ -953,7 +953,7 @@ export default function BomPage() {
                 <span className="text-xs text-slate-500 block">
                   {lang === "gu" ? "બેચ આઉટપુટ (Yield Quantity)" : "Batch Yield"}
                 </span>
-                <span className="font-semibold font-mono text-slate-800">
+                <span className="font-semibold tabular-nums text-slate-800">
                   {Number(selectedBom.batchYieldQty).toLocaleString()}{" "}
                   {selectedBom.finishedItem?.primaryUom?.code || "Unit"}
                 </span>
@@ -962,7 +962,7 @@ export default function BomPage() {
                 <span className="text-xs text-slate-500 block">
                   {lang === "gu" ? "અંદાજિત મજૂરી ખર્ચ" : "Est. Labor Cost"}
                 </span>
-                <span className="font-mono text-slate-700">
+                <span className="tabular-nums text-slate-700">
                   ₹{Number(selectedBom.laborCostEst || 0).toFixed(2)}
                 </span>
               </div>
@@ -970,7 +970,7 @@ export default function BomPage() {
                 <span className="text-xs text-slate-500 block">
                   {lang === "gu" ? "અંદાજિત ઓવરહેડ ખર્ચ" : "Est. Overhead Cost"}
                 </span>
-                <span className="font-mono text-slate-700">
+                <span className="tabular-nums text-slate-700">
                   ₹{Number(selectedBom.overheadCostEst || 0).toFixed(2)}
                 </span>
               </div>
@@ -983,10 +983,10 @@ export default function BomPage() {
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
                   <tr>
-                    <th className="px-4 py-2 font-semibold">Item</th>
-                    <th className="px-4 py-2 font-semibold text-right">Required Qty</th>
-                    <th className="px-4 py-2 font-semibold text-right">Wastage %</th>
-                    <th className="px-4 py-2 font-semibold text-right">Effective Consumption</th>
+                    <th className="px-4 py-2 font-medium">Item</th>
+                    <th className="px-4 py-2 font-medium text-right">Required Qty</th>
+                    <th className="px-4 py-2 font-medium text-right">Wastage %</th>
+                    <th className="px-4 py-2 font-medium text-right">Effective Consumption</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -999,13 +999,13 @@ export default function BomPage() {
                         <td className="px-4 py-2 font-medium text-slate-800">
                           {it.rawItem?.name || it.rawItemId}
                         </td>
-                        <td className="px-4 py-2 text-right font-mono text-slate-700">
+                        <td className="px-4 py-2 text-right tabular-nums text-slate-700">
                           {reqQty}
                         </td>
-                        <td className="px-4 py-2 text-right font-mono text-slate-600">
+                        <td className="px-4 py-2 text-right tabular-nums text-slate-600">
                           {waste}%
                         </td>
-                        <td className="px-4 py-2 text-right font-mono font-semibold text-indigo-700">
+                        <td className="px-4 py-2 text-right tabular-nums font-semibold text-indigo-700">
                           {effective.toFixed(4)}
                         </td>
                       </tr>
@@ -1028,13 +1028,13 @@ export default function BomPage() {
           <>
             <button
               onClick={() => setDeleteConfirmId(null)}
-              className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-600 hover:bg-slate-100 transition-colors"
+              className="h-9 px-3 border border-slate-200 rounded-lg text-[13px] text-slate-600 hover:bg-slate-100 transition-colors"
             >
               {lang === "gu" ? "રદ કરો" : "Cancel"}
             </button>
             <button
               onClick={() => deleteConfirmId && handleDelete(deleteConfirmId)}
-              className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors"
+              className="h-9 px-3 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[13px] font-medium shadow-sm transition-colors"
             >
               {lang === "gu" ? "હા, કાઢી નાખો" : "Yes, Delete"}
             </button>

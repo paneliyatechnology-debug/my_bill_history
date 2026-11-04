@@ -1066,16 +1066,16 @@ const [notes, setNotes] = useState<string>("");
                 <button
                   type="button"
                   onClick={() => setViewMode("edit")}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                  className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[13px] font-medium transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
                   <span>← {lang === "gu" ? "એડિટ મોડ પર પાછા જાઓ" : "Back to Edit Mode"}</span>
                 </button>
                 <div>
-                  <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <h2 className="text-sm font-semibold text-[#182230] flex items-center gap-2">
                     <span>{voucherLabel} {lang === "gu" ? "પ્રિવ્યૂ" : "Preview"}</span>
                     <span
                       className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-                      style={{ backgroundColor: activeInvoiceTheme.accentColor || "#174B43" }}
+                      style={{ backgroundColor: activeInvoiceTheme.accentColor || "#0F172A" }}
                     >
                       {activeInvoiceTheme.uniqueThemeKey || activeInvoiceTheme.themeId}
                     </span>
@@ -1089,7 +1089,7 @@ const [notes, setNotes] = useState<string>("");
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                  className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
                   <span>🖨️ {lang === "gu" ? "પ્રિન્ટ" : "Print Voucher"}</span>
                 </button>
@@ -1308,7 +1308,7 @@ const [notes, setNotes] = useState<string>("");
                     <tbody className="divide-y divide-slate-100">
                       {items.map((row, idx) => (
                         <tr key={row.id || idx} className="hover:bg-slate-50/70 transition-colors">
-                          <td className="py-3 px-3 text-center text-slate-400 font-mono text-[11px]">
+                          <td className="py-3 px-3 text-center text-slate-400 tabular-nums text-[11px]">
                             {idx + 1}
                           </td>
 
@@ -1319,7 +1319,7 @@ const [notes, setNotes] = useState<string>("");
                                 value={row.name}
                                 onChange={(e) => updateItemLine(idx, "name", e.target.value)}
                                 placeholder="Type item name..."
-                                className="w-full text-xs py-1.5 px-2.5 font-bold text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-[#26A58A]"
+                                className="w-full text-[13px] py-1.5 px-2.5 font-normal text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-[#1677E8] h-10"
                               />
                               {inventoryItems.length > 0 && !row.name && (
                                 <select
@@ -1328,7 +1328,7 @@ const [notes, setNotes] = useState<string>("");
                                     if (itm) handlePickInventoryItem(idx, itm);
                                   }}
                                   defaultValue=""
-                                  className="w-full text-[11px] py-1 px-2 text-slate-500 bg-white border border-dashed border-slate-200 rounded-lg"
+                                  className="w-full text-[11px] py-1 px-2 text-slate-500 bg-white border border-dashed border-slate-200 rounded-lg h-10"
                                 >
                                   <option value="" disabled>Choose from Catalog...</option>
                                   {inventoryItems.map((it) => (
@@ -1345,7 +1345,7 @@ const [notes, setNotes] = useState<string>("");
                               value={row.hsn || ""}
                               onChange={(e) => updateItemLine(idx, "hsn", e.target.value)}
                               placeholder="HSN"
-                              className="w-full text-xs py-1.5 px-2 text-center font-mono bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white"
+                              className="w-full text-[13px] py-1.5 px-2 text-center tabular-nums bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white h-10"
                             />
                           </td>
 
@@ -1355,7 +1355,7 @@ const [notes, setNotes] = useState<string>("");
                               min="1"
                               value={row.quantity}
                               onChange={(e) => updateItemLine(idx, "quantity", Number(e.target.value) || 0)}
-                              className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white"
+                              className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white h-10"
                             />
                           </td>
 
@@ -1366,7 +1366,7 @@ const [notes, setNotes] = useState<string>("");
                               step="any"
                               value={row.unitPrice}
                               onChange={(e) => updateItemLine(idx, "unitPrice", Number(e.target.value) || 0)}
-                              className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white"
+                              className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white h-10"
                             />
                           </td>
 
@@ -1377,7 +1377,7 @@ const [notes, setNotes] = useState<string>("");
                                 min="0"
                                 value={row.discount}
                                 onChange={(e) => updateItemLine(idx, "discount", Number(e.target.value) || 0)}
-                                className="w-full text-xs text-right font-mono bg-transparent focus:outline-none"
+                                className="w-full text-[13px] text-right tabular-nums bg-transparent focus:outline-none h-10"
                               />
                               <span className="text-[10px] text-slate-400 font-bold ml-1">{row.discountType}</span>
                             </div>
@@ -1388,11 +1388,11 @@ const [notes, setNotes] = useState<string>("");
                               type="number"
                               value={row.taxRate}
                               onChange={(e) => updateItemLine(idx, "taxRate", Number(e.target.value) || 0)}
-                              className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white"
+                              className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
                             />
                           </td>
 
-                          <td className="py-3 px-3 text-right font-mono font-black text-slate-900 text-xs">
+                          <td className="py-3 px-3 text-right tabular-nums font-semibold text-slate-900 text-[13px]">
                             ₹ {row.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </td>
 
@@ -1489,58 +1489,58 @@ const [notes, setNotes] = useState<string>("");
       >
         <div className="space-y-3.5 text-xs">
           <div>
-            <label className="block font-bold text-slate-700 mb-1">Party / Vendor Name *</label>
+            <label className="block font-medium text-slate-700 mb-1">Party / Vendor Name *</label>
             <input
               type="text"
               value={editPartyForm.name}
               onChange={(e) => setEditPartyForm({ ...editPartyForm, name: e.target.value })}
-              className="w-full p-2 border border-slate-300 rounded-lg font-bold text-slate-900 focus:outline-none focus:border-[#2563EB]"
+              className="w-full p-2 border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Phone Number</label>
+              <label className="block font-medium text-slate-700 mb-1">Phone Number</label>
               <input
                 type="text"
                 value={editPartyForm.phone}
                 onChange={(e) => setEditPartyForm({ ...editPartyForm, phone: e.target.value })}
                 placeholder="e.g. 9825123456"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 font-mono focus:outline-none focus:border-[#2563EB]"
+                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 tabular-nums focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
               />
             </div>
             <div>
-              <label className="block font-bold text-slate-700 mb-1">GSTIN</label>
+              <label className="block font-medium text-slate-700 mb-1">GSTIN</label>
               <input
                 type="text"
                 value={editPartyForm.gstin}
                 onChange={(e) => setEditPartyForm({ ...editPartyForm, gstin: e.target.value.toUpperCase() })}
                 placeholder="24AAAAA0000A1Z5"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 font-mono uppercase focus:outline-none focus:border-[#2563EB]"
+                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 tabular-nums uppercase focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
               />
             </div>
           </div>
           <div>
-            <label className="block font-bold text-slate-700 mb-1">Billing Address</label>
+            <label className="block font-medium text-slate-700 mb-1">Billing Address</label>
             <textarea
               rows={2}
               value={editPartyForm.billingAddress}
               onChange={(e) => setEditPartyForm({ ...editPartyForm, billingAddress: e.target.value })}
               placeholder="Enter complete billing address"
-              className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:border-[#2563EB]"
+              className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:border-[#2563EB] text-[13px] font-normal"
             />
           </div>
           <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
             <button
               type="button"
               onClick={() => setIsEditPartyModalOpen(false)}
-              className="px-4 py-2 border border-slate-300 rounded-lg font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              className="h-9 px-3 border border-slate-300 rounded-lg font-medium text-slate-700 hover:bg-slate-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleSaveEditParty}
-              className="px-5 py-2 bg-[#174B43] hover:bg-[#123B35] text-white font-bold rounded-lg transition-colors shadow-2xs"
+              className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white font-medium rounded-lg transition-colors shadow-2xs"
             >
               Save Changes
             </button>
@@ -1556,60 +1556,60 @@ const [notes, setNotes] = useState<string>("");
       >
         <div className="space-y-3.5 text-xs">
           <div>
-            <label className="block font-bold text-slate-700 mb-1">Party / Vendor Name *</label>
+            <label className="block font-medium text-slate-700 mb-1">Party / Vendor Name *</label>
             <input
               type="text"
               autoFocus
               value={createPartyForm.name}
               onChange={(e) => setCreatePartyForm({ ...createPartyForm, name: e.target.value })}
               placeholder="e.g. Mahavir Enterprise"
-              className="w-full p-2 border border-slate-300 rounded-lg font-bold text-slate-900 focus:outline-none focus:border-[#2563EB]"
+              className="w-full p-2 border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Phone Number</label>
+              <label className="block font-medium text-slate-700 mb-1">Phone Number</label>
               <input
                 type="text"
                 value={createPartyForm.phone}
                 onChange={(e) => setCreatePartyForm({ ...createPartyForm, phone: e.target.value })}
                 placeholder="10 digit mobile"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 font-mono focus:outline-none focus:border-[#2563EB]"
+                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 tabular-nums focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
               />
             </div>
             <div>
-              <label className="block font-bold text-slate-700 mb-1">GSTIN</label>
+              <label className="block font-medium text-slate-700 mb-1">GSTIN</label>
               <input
                 type="text"
                 value={createPartyForm.gstin}
                 onChange={(e) => setCreatePartyForm({ ...createPartyForm, gstin: e.target.value.toUpperCase() })}
                 placeholder="15-digit GSTIN"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 font-mono uppercase focus:outline-none focus:border-[#2563EB]"
+                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 tabular-nums uppercase focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
               />
             </div>
           </div>
           <div>
-            <label className="block font-bold text-slate-700 mb-1">Billing Address</label>
+            <label className="block font-medium text-slate-700 mb-1">Billing Address</label>
             <textarea
               rows={2}
               value={createPartyForm.billingAddress}
               onChange={(e) => setCreatePartyForm({ ...createPartyForm, billingAddress: e.target.value })}
               placeholder="Enter address"
-              className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:border-[#2563EB]"
+              className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:border-[#2563EB] text-[13px] font-normal"
             />
           </div>
           <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
             <button
               type="button"
               onClick={() => setIsCreatePartyModalOpen(false)}
-              className="px-4 py-2 border border-slate-300 rounded-lg font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              className="h-9 px-3 border border-slate-300 rounded-lg font-medium text-slate-700 hover:bg-slate-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleCreateParty}
-              className="px-5 py-2 bg-[#174B43] hover:bg-[#123B35] text-white font-bold rounded-lg transition-colors shadow-2xs"
+              className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white font-medium rounded-lg transition-colors shadow-2xs"
             >
               Create & Select
             </button>
@@ -1625,40 +1625,40 @@ const [notes, setNotes] = useState<string>("");
       >
         <div className="space-y-3.5 text-xs">
           <div>
-            <label className="block font-bold text-slate-700 mb-1">Item Name *</label>
+            <label className="block font-medium text-slate-700 mb-1">Item Name *</label>
             <input
               type="text"
               autoFocus
               value={createItemForm.name}
               onChange={(e) => setCreateItemForm({ ...createItemForm, name: e.target.value })}
               placeholder="e.g. Parle-G Gold 1kg"
-              className="w-full p-2 border border-slate-300 rounded-lg font-bold text-slate-900 focus:outline-none focus:border-[#2563EB]"
+              className="w-full p-2 border border-slate-300 rounded-lg font-normal text-slate-900 focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
             />
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block font-bold text-slate-700 mb-1">HSN Code</label>
+              <label className="block font-medium text-slate-700 mb-1">HSN Code</label>
               <input
                 type="text"
                 value={createItemForm.hsn}
                 onChange={(e) => setCreateItemForm({ ...createItemForm, hsn: e.target.value })}
                 placeholder="e.g. 1905"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 font-mono focus:outline-none focus:border-[#2563EB]"
+                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 tabular-nums focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
               />
             </div>
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Purchase Rate (₹)</label>
+              <label className="block font-medium text-slate-700 mb-1">Purchase Rate (₹)</label>
               <input
                 type="number"
                 min="0"
                 value={createItemForm.price || ""}
                 onChange={(e) => setCreateItemForm({ ...createItemForm, price: Number(e.target.value) })}
                 placeholder="0"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 font-bold text-right focus:outline-none focus:border-[#2563EB]"
+                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 font-normal text-right focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
               />
             </div>
             <div>
-              <label className="block font-bold text-slate-700 mb-1">GST Tax Rate</label>
+              <label className="block font-medium text-slate-700 mb-1">GST Tax Rate</label>
               <div className="relative flex items-center">
                 <input
                   type="number"
@@ -1669,7 +1669,7 @@ const [notes, setNotes] = useState<string>("");
                   value={createItemForm.taxRate}
                   onChange={(e) => setCreateItemForm({ ...createItemForm, taxRate: Number(e.target.value) || 0 })}
                   placeholder="0"
-                  className="w-full p-2 pr-6 border border-slate-300 rounded-lg text-slate-800 font-semibold text-right font-mono focus:outline-none focus:border-[#2563EB]"
+                  className="w-full p-2 pr-6 border border-slate-300 rounded-lg text-slate-800 font-normal text-right tabular-nums focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
                 />
                 <span className="absolute right-2 text-xs font-bold text-slate-400 pointer-events-none">%</span>
               </div>
@@ -1689,14 +1689,14 @@ const [notes, setNotes] = useState<string>("");
             <button
               type="button"
               onClick={() => setIsCreateItemModalOpen(false)}
-              className="px-4 py-2 border border-slate-300 rounded-lg font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              className="h-9 px-3 border border-slate-300 rounded-lg font-medium text-slate-700 hover:bg-slate-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleCreateItem}
-              className="px-5 py-2 bg-[#174B43] hover:bg-[#123B35] text-white font-bold rounded-lg transition-colors shadow-2xs"
+              className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white font-medium rounded-lg transition-colors shadow-2xs"
             >
               Save Item
             </button>
@@ -1712,11 +1712,11 @@ const [notes, setNotes] = useState<string>("");
       >
         <div className="space-y-3.5 text-xs">
           <div>
-            <label className="block font-bold text-slate-700 mb-1">Select Bank</label>
+            <label className="block font-medium text-slate-700 mb-1">Select Bank</label>
             <select
               value={bankForm.bankName}
               onChange={(e) => setBankForm({ ...bankForm, bankName: e.target.value })}
-              className="w-full p-2 border border-slate-300 rounded-lg font-semibold text-slate-800 focus:outline-none focus:border-[#2563EB]"
+              className="w-full p-2 border border-slate-300 rounded-lg font-normal text-slate-800 focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
             >
               {COMMON_BANKS.map((b) => (
                 <option key={b} value={b}>
@@ -1728,59 +1728,59 @@ const [notes, setNotes] = useState<string>("");
 
           {bankForm.bankName === "Other Bank" && (
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Custom Bank Name *</label>
+              <label className="block font-medium text-slate-700 mb-1">Custom Bank Name *</label>
               <input
                 type="text"
                 value={bankForm.customBankName}
                 onChange={(e) => setBankForm({ ...bankForm, customBankName: e.target.value })}
                 placeholder="Enter bank name"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 font-bold focus:outline-none focus:border-[#2563EB]"
+                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 font-normal focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
               />
             </div>
           )}
 
           <div>
-            <label className="block font-bold text-slate-700 mb-1">Account Number *</label>
+            <label className="block font-medium text-slate-700 mb-1">Account Number *</label>
             <input
               type="text"
               value={bankForm.accountNumber}
               onChange={(e) => setBankForm({ ...bankForm, accountNumber: e.target.value.trim() })}
               placeholder="e.g. 50200012345678"
-              className="w-full p-2 border border-slate-300 rounded-lg text-slate-900 font-mono font-bold focus:outline-none focus:border-[#2563EB]"
+              className="w-full p-2 border border-slate-300 rounded-lg text-slate-900 tabular-nums font-normal focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-slate-700 mb-1">IFSC Code *</label>
+              <label className="block font-medium text-slate-700 mb-1">IFSC Code *</label>
               <input
                 type="text"
                 value={bankForm.ifscCode}
                 onChange={(e) => setBankForm({ ...bankForm, ifscCode: e.target.value.toUpperCase().trim() })}
                 placeholder="e.g. HDFC0000123"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-900 font-mono font-bold uppercase focus:outline-none focus:border-[#2563EB]"
+                className="w-full p-2 border border-slate-300 rounded-lg text-slate-900 tabular-nums font-normal uppercase focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
               />
             </div>
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Branch Name</label>
+              <label className="block font-medium text-slate-700 mb-1">Branch Name</label>
               <input
                 type="text"
                 value={bankForm.branchName}
                 onChange={(e) => setBankForm({ ...bankForm, branchName: e.target.value })}
                 placeholder="e.g. Ahmedabad Main"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 font-semibold focus:outline-none focus:border-[#2563EB]"
+                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 font-normal focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
               />
             </div>
           </div>
 
           <div>
-            <label className="block font-bold text-slate-700 mb-1">Account Holder Name</label>
+            <label className="block font-medium text-slate-700 mb-1">Account Holder Name</label>
             <input
               type="text"
               value={bankForm.accountHolderName}
               onChange={(e) => setBankForm({ ...bankForm, accountHolderName: e.target.value })}
               placeholder={currentCompany?.tradeName || currentCompany?.legalName || "Audit Traders Ahmedabad"}
-              className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-[#2563EB]"
+              className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 font-medium focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
             />
           </div>
 
@@ -1788,14 +1788,14 @@ const [notes, setNotes] = useState<string>("");
             <button
               type="button"
               onClick={() => setIsBankModalOpen(false)}
-              className="px-4 py-2 border border-slate-300 rounded-lg font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              className="h-9 px-3 border border-slate-300 rounded-lg font-medium text-slate-700 hover:bg-slate-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleSaveBank}
-              className="px-5 py-2 bg-[#2563EB] hover:bg-blue-700 text-white font-bold rounded-lg transition-colors shadow-2xs"
+              className="h-9 px-3.5 bg-[#2563EB] hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-2xs"
             >
               Save Bank Account
             </button>
@@ -1811,25 +1811,25 @@ const [notes, setNotes] = useState<string>("");
       >
         <div className="space-y-3.5 text-xs">
           <div>
-            <label className="block font-bold text-slate-700 mb-1">UPI ID / VPA *</label>
+            <label className="block font-medium text-slate-700 mb-1">UPI ID / VPA *</label>
             <input
               type="text"
               autoFocus
               value={qrForm.upiId}
               onChange={(e) => setQrForm({ ...qrForm, upiId: e.target.value.trim() })}
               placeholder="e.g. 9898990001@upi or business@okhdfcbank"
-              className="w-full p-2 border border-slate-300 rounded-lg text-slate-900 font-mono font-bold focus:outline-none focus:border-[#2563EB]"
+              className="w-full p-2 border border-slate-300 rounded-lg text-slate-900 tabular-nums font-normal focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
             />
           </div>
 
           <div>
-            <label className="block font-bold text-slate-700 mb-1">Payee Name</label>
+            <label className="block font-medium text-slate-700 mb-1">Payee Name</label>
             <input
               type="text"
               value={qrForm.payeeName}
               onChange={(e) => setQrForm({ ...qrForm, payeeName: e.target.value })}
               placeholder={currentCompany?.tradeName || currentCompany?.legalName || "Audit Traders"}
-              className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 font-semibold focus:outline-none focus:border-[#2563EB]"
+              className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 font-normal focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
             />
           </div>
 
@@ -1842,7 +1842,7 @@ const [notes, setNotes] = useState<string>("");
               <div className="space-y-1 text-[11px] text-slate-600">
                 <p className="font-bold text-slate-900">Live Scannable QR Preview</p>
                 <p>Accepts payments via GPay, PhonePe, Paytm, BHIM, and banking apps.</p>
-                <p className="font-mono text-teal-700 font-bold">{qrForm.upiId}</p>
+                <p className="tabular-nums text-teal-700 font-bold">{qrForm.upiId}</p>
               </div>
             </div>
           ) : (
@@ -1853,14 +1853,14 @@ const [notes, setNotes] = useState<string>("");
             <button
               type="button"
               onClick={() => setIsQrModalOpen(false)}
-              className="px-4 py-2 border border-slate-300 rounded-lg font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              className="h-9 px-3 border border-slate-300 rounded-lg font-medium text-slate-700 hover:bg-slate-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleSaveQr}
-              className="px-5 py-2 bg-[#2563EB] hover:bg-blue-700 text-white font-bold rounded-lg transition-colors shadow-2xs"
+              className="h-9 px-3.5 bg-[#2563EB] hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-2xs"
             >
               Attach Payment QR
             </button>

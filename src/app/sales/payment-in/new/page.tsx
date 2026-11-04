@@ -510,7 +510,7 @@ export default function CreatePaymentInPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </Link>
-          <h1 className="text-lg font-bold tracking-tight text-slate-900">
+          <h1 className="text-[22px] font-semibold tracking-tight text-[#182230]">
             {lang === "gu" ? "આવક ચૂકવણી રેકોર્ડ કરો" : "Record Payment In"} #{paymentNumber}
           </h1>
         </div>
@@ -537,7 +537,7 @@ export default function CreatePaymentInPage() {
           <button
             type="button"
             onClick={() => router.push("/settings")}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+            className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
           >
             <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -549,7 +549,7 @@ export default function CreatePaymentInPage() {
           {/* Cancel */}
           <Link
             href="/sales/payment-in"
-            className="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+            className="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
           >
             Cancel
           </Link>
@@ -561,8 +561,8 @@ export default function CreatePaymentInPage() {
             onClick={savePayment}
             className={`rounded-lg px-6 py-1.5 text-xs font-semibold shadow-xs transition-colors ${
               isSaveEnabled
-                ? "bg-[#174B43] text-white hover:bg-[#123B35] cursor-pointer"
-                : "bg-[#174B43]/40 text-white/80 cursor-not-allowed"
+                ? "bg-[#0F172A] text-white hover:bg-[#123B35] cursor-pointer"
+                : "bg-[#0F172A]/40 text-white/80 cursor-not-allowed"
             }`}
           >
             {isSaving ? "Saving..." : "Save"}
@@ -583,7 +583,7 @@ export default function CreatePaymentInPage() {
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs space-y-3.5">
           {/* Party Name Searchable Dropdown */}
           <div className="relative" ref={partyDropdownRef}>
-            <label className="block text-xs font-medium text-slate-600 mb-1">
+            <label className="block text-[12px] font-medium text-slate-600 mb-1">
               Party Name <span className="text-rose-500">*</span>
             </label>
 
@@ -596,7 +596,7 @@ export default function CreatePaymentInPage() {
                     setPartyId("");
                     setPartySearchQuery("");
                   }}
-                  className="text-slate-400 hover:text-slate-600 font-bold px-1"
+                  className="text-slate-400 hover:text-slate-600 font-medium px-1"
                 >
                   ✕
                 </button>
@@ -637,7 +637,7 @@ export default function CreatePaymentInPage() {
                     value={partySearchQuery}
                     onChange={(e) => setPartySearchQuery(e.target.value)}
                     placeholder="Search party by name or number"
-                    className="w-full text-xs text-slate-800 placeholder-slate-400 focus:outline-none"
+                    className="w-full text-[13px] text-slate-800 placeholder-slate-400 focus:outline-none h-10"
                   />
                 </div>
 
@@ -648,7 +648,7 @@ export default function CreatePaymentInPage() {
                       setIsPartyDropdownOpen(false);
                       setIsCreatePartyModalOpen(true);
                     }}
-                    className="flex w-full items-center gap-2 rounded-lg bg-teal-50/70 px-3 py-2 text-xs font-semibold text-[#174B43] hover:bg-teal-100/70 transition-colors"
+                    className="flex w-full items-center gap-2 rounded-lg bg-[#EFF6FF]/70 h-9 px-3 text-[13px] font-medium text-[#0F172A] hover:bg-teal-100/70 transition-colors"
                   >
                     <span>+</span>
                     <span>Create New Party</span>
@@ -688,7 +688,7 @@ export default function CreatePaymentInPage() {
           {/* Amount Received & Discount Inputs */}
           <div className="grid grid-cols-2 gap-3 pt-1">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">
+              <label className="block text-[12px] font-medium text-slate-600 mb-1">
                 Amount Received <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
@@ -699,13 +699,13 @@ export default function CreatePaymentInPage() {
                   value={amountReceived}
                   onChange={(e) => handleAmountReceivedChange(e.target.value)}
                   placeholder="0"
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus:border-teal-500 focus:outline-none transition-colors"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-medium text-slate-900 focus:border-[#1677E8] focus:outline-none transition-colors h-10"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1 flex items-center gap-1">
+              <label className="block text-[12px] font-medium text-slate-600 mb-1 flex items-center gap-1">
                 <span>Payment In Discount</span>
                 <span title="Optional discount given on this payment" className="text-slate-400 hover:text-slate-600 cursor-help">ⓘ</span>
               </label>
@@ -717,7 +717,7 @@ export default function CreatePaymentInPage() {
                   value={paymentInDiscount}
                   onChange={(e) => setPaymentInDiscount(e.target.value)}
                   placeholder="0"
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus:border-teal-500 focus:outline-none transition-colors"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-medium text-slate-900 focus:border-[#1677E8] focus:outline-none transition-colors h-10"
                 />
               </div>
             </div>
@@ -729,7 +729,7 @@ export default function CreatePaymentInPage() {
           {/* Row of 3 inputs: Date, Mode, Number */}
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">
+              <label className="block text-[12px] font-medium text-slate-600 mb-1">
                 Payment Date <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
@@ -737,19 +737,19 @@ export default function CreatePaymentInPage() {
                   type="date"
                   value={voucherDate}
                   onChange={(e) => setVoucherDate(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus:border-teal-500 focus:outline-none transition-colors"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-medium text-slate-900 focus:border-[#1677E8] focus:outline-none transition-colors h-10"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">
+              <label className="block text-[12px] font-medium text-slate-600 mb-1">
                 Payment Mode
               </label>
               <select
                 value={paymentMode}
                 onChange={(e) => setPaymentMode(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus:border-teal-500 focus:outline-none transition-colors"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-medium text-slate-900 focus:border-[#1677E8] focus:outline-none transition-colors h-10"
               >
                 {PAYMENT_MODES.map((mode) => (
                   <option key={mode.value} value={mode.value}>
@@ -760,27 +760,27 @@ export default function CreatePaymentInPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">
+              <label className="block text-[12px] font-medium text-slate-600 mb-1">
                 Payment In Number
               </label>
               <input
                 type="text"
                 value={paymentNumber}
                 onChange={(e) => setPaymentNumber(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus:border-teal-500 focus:outline-none transition-colors"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-medium text-slate-900 focus:border-[#1677E8] focus:outline-none transition-colors h-10"
               />
             </div>
           </div>
 
           {/* Notes */}
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Notes</label>
+            <label className="block text-[12px] font-medium text-slate-600 mb-1">Notes</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Enter Notes"
               rows={2}
-              className="w-full rounded-lg border border-slate-200 bg-white p-2.5 text-xs text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:outline-none transition-colors resize-none"
+              className="w-full rounded-lg border border-slate-200 bg-white p-2.5 text-[13px] text-slate-900 placeholder-slate-400 focus:border-[#1677E8] focus:outline-none transition-colors resize-none"
             />
           </div>
         </div>
@@ -823,7 +823,7 @@ export default function CreatePaymentInPage() {
               </svg>
             </div>
 
-            <h3 className="text-sm font-bold text-slate-800">
+            <h3 className="text-[15px] font-semibold text-slate-800">
               {lang === "gu" ? "કોઈ પાર્ટી પસંદ કરી નથી!" : "No party selected!"}
             </h3>
             <p className="text-xs text-slate-400 mt-1 max-w-sm">
@@ -833,11 +833,12 @@ export default function CreatePaymentInPage() {
             </p>
             <button
               type="button"
-              onClick={() => {
+              onClick={(event) => {
+                event.stopPropagation();
                 setIsPartyDropdownOpen(true);
                 setTimeout(() => partySearchInputRef.current?.focus(), 50);
               }}
-              className="mt-4 rounded-lg bg-[#174B43] px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#123B35] transition-colors"
+              className="mt-4 rounded-lg bg-[#0F172A] h-9 px-3.5 text-[13px] font-medium text-white shadow-xs hover:bg-[#1268D3] transition-colors"
             >
               {lang === "gu" ? "પાર્ટી પસંદ કરો" : "Select Party"}
             </button>
@@ -859,7 +860,7 @@ export default function CreatePaymentInPage() {
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
             </div>
-            <h3 className="text-xs font-bold text-slate-800">
+            <h3 className="text-xs font-semibold text-slate-800">
               No pending transactions found for this party
             </h3>
             <p className="text-[11px] text-slate-400 mt-0.5">
@@ -877,7 +878,7 @@ export default function CreatePaymentInPage() {
                 Settle invoices with this payment
               </span>
               {selectedCount > 0 && (
-                <div className="flex items-center gap-1 rounded-md bg-[#EEF2FF] px-2 py-0.5 text-[11px] font-medium text-[#174B43]">
+                <div className="flex items-center gap-1 rounded-md bg-[#EEF2FF] px-2 py-0.5 text-[11px] font-medium text-[#0F172A]">
                   <span>{selectedCount} Invoice Selected</span>
                   <button
                     type="button"
@@ -901,7 +902,7 @@ export default function CreatePaymentInPage() {
                       value={invoiceSearchQuery}
                       onChange={(e) => setInvoiceSearchQuery(e.target.value)}
                       placeholder="Search Invoice #"
-                      className="rounded border border-slate-200 px-2 py-1 text-xs focus:outline-none focus:border-teal-500 w-36"
+                      className="rounded border border-slate-200 px-2 py-1 text-xs focus:outline-none focus:border-[#1677E8] w-36"
                     />
                     <button
                       type="button"
@@ -951,7 +952,7 @@ export default function CreatePaymentInPage() {
                       type="checkbox"
                       checked={areAllSelected}
                       onChange={toggleAllInvoices}
-                      className="h-4 w-4 rounded border-slate-300 text-[#174B43] focus:ring-teal-500 cursor-pointer"
+                      className="h-4 w-4 rounded border-slate-300 text-[#0F172A] focus:ring-[#1677E8] cursor-pointer"
                     />
                   </th>
                   <th className="px-4 py-2.5 whitespace-nowrap">
@@ -986,7 +987,7 @@ export default function CreatePaymentInPage() {
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => toggleInvoiceRow(inv)}
-                          className="h-4 w-4 rounded border-slate-300 text-[#174B43] focus:ring-teal-500 cursor-pointer"
+                          className="h-4 w-4 rounded border-slate-300 text-[#0F172A] focus:ring-[#1677E8] cursor-pointer"
                         />
                       </td>
                       <td className="px-4 py-3 text-slate-700 whitespace-nowrap font-normal">
@@ -1015,7 +1016,7 @@ export default function CreatePaymentInPage() {
                               value={inv.discount}
                               onChange={(e) => updateInvoiceDiscount(inv.id, e.target.value)}
                               placeholder="0"
-                              className="w-16 rounded border border-slate-200 px-1 py-0.5 text-xs text-right"
+                              className="w-16 rounded border border-slate-200 px-1 py-0.5 text-[13px] text-right h-10"
                             />
                             <button
                               type="button"
@@ -1029,7 +1030,7 @@ export default function CreatePaymentInPage() {
                           <button
                             type="button"
                             onClick={() => toggleInvoiceDiscount(inv.id)}
-                            className="font-medium text-[#174B43] hover:underline"
+                            className="font-medium text-[#0F172A] hover:underline"
                           >
                             {formatInr(inv.discount)}
                           </button>
@@ -1037,7 +1038,7 @@ export default function CreatePaymentInPage() {
                           <button
                             type="button"
                             onClick={() => toggleInvoiceDiscount(inv.id)}
-                            className="text-[#174B43] hover:underline font-medium"
+                            className="text-[#0F172A] hover:underline font-medium"
                           >
                             Apply Discount
                           </button>
@@ -1054,7 +1055,7 @@ export default function CreatePaymentInPage() {
                               step="0.01"
                               value={inv.settle}
                               onChange={(e) => updateInvoiceSettle(inv.id, e.target.value)}
-                              className="w-24 rounded border border-slate-200 px-1.5 py-0.5 text-xs font-semibold text-right text-slate-900 focus:border-teal-500 focus:outline-none"
+                              className="w-24 rounded border border-slate-200 px-1.5 py-0.5 text-[13px] font-normal text-right text-slate-900 focus:border-[#1677E8] focus:outline-none h-10"
                             />
                           </div>
                         ) : (
@@ -1079,7 +1080,7 @@ export default function CreatePaymentInPage() {
                   <td className="px-4 py-3 text-center whitespace-nowrap">
                     {formatInr(totalDiscount)}
                   </td>
-                  <td className="px-4 py-3 text-right whitespace-nowrap font-bold text-slate-900">
+                  <td className="px-4 py-3 text-right whitespace-nowrap font-medium text-slate-900">
                     {formatInr(totalSettled)}
                   </td>
                 </tr>
@@ -1094,7 +1095,7 @@ export default function CreatePaymentInPage() {
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="font-bold text-slate-900 text-sm">
+              <h3 className="font-semibold text-slate-900 text-[15px]">
                 Create New Customer / Party
               </h3>
               <button
@@ -1108,7 +1109,7 @@ export default function CreatePaymentInPage() {
 
             <form onSubmit={handleCreateCustomerSubmit} className="space-y-3 pt-3 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
+                <label className="block font-medium text-slate-700 mb-1">
                   Customer / Business Name <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -1117,41 +1118,41 @@ export default function CreatePaymentInPage() {
                   value={partyFormData.name}
                   onChange={(e) => setPartyFormData({ ...partyFormData, name: e.target.value })}
                   placeholder="e.g. NIRAJBHAI"
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none"
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none text-[13px] font-normal h-10"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Mobile No.</label>
+                  <label className="block font-medium text-slate-700 mb-1">Mobile No.</label>
                   <input
                     type="tel"
                     value={partyFormData.phone}
                     onChange={(e) => setPartyFormData({ ...partyFormData, phone: e.target.value })}
                     placeholder="98XXXXXXXX"
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none font-mono"
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none tabular-nums text-[13px] font-normal h-10"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">GSTIN (Optional)</label>
+                  <label className="block font-medium text-slate-700 mb-1">GSTIN (Optional)</label>
                   <input
                     type="text"
                     value={partyFormData.gstin}
                     onChange={(e) => setPartyFormData({ ...partyFormData, gstin: e.target.value.toUpperCase() })}
                     placeholder="24AAAAA0000A1Z5"
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none font-mono uppercase"
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none tabular-nums uppercase text-[13px] font-normal h-10"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Address</label>
+                <label className="block font-medium text-slate-700 mb-1">Address</label>
                 <input
                   type="text"
                   value={partyFormData.billingLine1}
                   onChange={(e) => setPartyFormData({ ...partyFormData, billingLine1: e.target.value })}
                   placeholder="Address..."
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none"
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:bg-white focus:outline-none text-[13px] font-normal h-10"
                 />
               </div>
 
@@ -1159,14 +1160,14 @@ export default function CreatePaymentInPage() {
                 <button
                   type="button"
                   onClick={() => setIsCreatePartyModalOpen(false)}
-                  className="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 font-bold hover:bg-slate-50 cursor-pointer"
+                  className="h-9 px-3 border border-slate-200 rounded-lg text-slate-600 font-medium hover:bg-slate-50 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreatingParty || !partyFormData.name.trim()}
-                  className="px-5 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-lg font-bold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+                  className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg font-medium shadow-xs transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {isCreatingParty ? "Saving..." : "Save Customer"}
                 </button>

@@ -247,7 +247,10 @@ async function request<T>(
     headers["x-idempotency-key"] = idempotencyKey;
   }
 
-  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  let cleanPath = path.startsWith("/") ? path : `/${path}`;
+  if (cleanPath.startsWith("/api/v1/")) {
+    cleanPath = cleanPath.slice(7); // strip redundant "/api/v1"
+  }
   const url = `${resolveApiBase()}${cleanPath}`;
 
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;

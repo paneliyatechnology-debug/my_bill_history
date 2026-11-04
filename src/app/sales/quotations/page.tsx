@@ -325,25 +325,25 @@ export default function QuotationsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:px-6 sm:py-3.5 rounded-2xl border border-[#E2E8E5] shadow-xs">
         <div>
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#26A58A]">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#1677E8]">
               {lang === "gu" ? "વેચાણ અને અંદાજપત્ર" : "SALES & ESTIMATES"}
             </span>
             <span className="text-slate-300">•</span>
-            <span className="text-[10px] font-bold text-slate-500 font-mono">
+            <span className="text-[10px] font-bold text-slate-500 tabular-nums">
               {filteredQuotations.length} {lang === "gu" ? "કવોટેશન" : "Quotations"}
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <h1 className="text-xl sm:text-2xl font-black text-[#1A2E2B] tracking-tight">
+            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
               {lang === "gu" ? "કવોટેશન રજિસ્ટર (Quotations)" : "Quotations & Estimates"}
             </h1>
             <button
               type="button"
               onClick={fetchQuotations}
               title="Refresh Quotations"
-              className="p-1 text-slate-400 hover:text-[#174B43] rounded-md transition-colors"
+              className="p-1 text-slate-400 hover:text-[#0F172A] rounded-md transition-colors"
             >
-              <svg className={`w-4 h-4 ${isLoading ? "animate-spin text-[#26A58A]" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+              <svg className={`w-4 h-4 ${isLoading ? "animate-spin text-[#1677E8]" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </button>
@@ -356,7 +356,7 @@ export default function QuotationsPage() {
             type="button"
             onClick={handleExportCsv}
             disabled={filteredQuotations.length === 0}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8E5] bg-white text-xs font-semibold text-[#1A2E2B] hover:bg-[#F2FAF7] hover:border-[#85D5C2] disabled:opacity-50 transition-colors shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#E2E8F0] bg-white text-[13px] font-medium text-[#182230] hover:bg-[#F8FAFC] hover:border-[#93C5FD] disabled:opacity-50 transition-colors shadow-2xs cursor-pointer"
             title="Export to CSV"
           >
             <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -368,7 +368,7 @@ export default function QuotationsPage() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8E5] bg-white text-xs font-semibold text-[#1A2E2B] hover:bg-[#F2FAF7] hover:border-[#85D5C2] transition-colors shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#E2E8F0] bg-white text-[13px] font-medium text-[#182230] hover:bg-[#F8FAFC] hover:border-[#93C5FD] transition-colors shadow-2xs cursor-pointer"
             title="Print Quotations Register"
           >
             <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -379,7 +379,7 @@ export default function QuotationsPage() {
 
           <Link
             href="/sales/quotations/new"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold shadow-md shadow-[#174B43]/20 hover:shadow-lg hover:shadow-[#174B43]/30 transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium shadow-md shadow-[#0F172A]/20 hover:shadow-lg hover:shadow-[#0F172A]/30 transition-all cursor-pointer"
           >
             <svg className="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -408,7 +408,7 @@ export default function QuotationsPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={lang === "gu" ? "શોધો: કવોટેશન નં, ગ્રાહક..." : "Search quotation #, customer..."}
-              className="w-full rounded-xl border border-[#E2E8E5] bg-[#F6F7F1] py-2 pl-9 pr-8 text-xs text-[#1A2E2B] placeholder-slate-400 focus:bg-white focus:border-[#26A58A] focus:ring-1 focus:ring-[#26A58A] focus:outline-none transition-colors"
+              className="w-full rounded-xl border border-[#E2E8F0] bg-[#F6F7F1] py-2 pl-9 pr-8 text-[13px] text-[#182230] placeholder-slate-400 focus:bg-white focus:border-[#1677E8] focus:ring-1 focus:ring-[#1677E8] focus:outline-none transition-colors h-10"
             />
             {searchTerm && (
               <button
@@ -436,7 +436,7 @@ export default function QuotationsPage() {
                 onClick={() => setDateFilter(d.key)}
                 className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
                   dateFilter === d.key
-                    ? "bg-white text-[#174B43] shadow-xs font-bold"
+                    ? "bg-white text-[#0F172A] shadow-xs font-bold"
                     : "text-slate-500 hover:text-slate-900"
                 }`}
               >
@@ -462,7 +462,7 @@ export default function QuotationsPage() {
               onClick={() => setStatusFilter(tab.key)}
               className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
                 statusFilter === tab.key
-                  ? "bg-white text-[#174B43] shadow-xs font-bold"
+                  ? "bg-white text-[#0F172A] shadow-xs font-bold"
                   : "text-slate-500 hover:text-slate-900"
               }`}
             >
@@ -485,20 +485,20 @@ export default function QuotationsPage() {
           <table className="min-w-full text-left text-xs border-collapse">
             <thead className="bg-[#F8FAF9] border-b border-[#E2E8E5] text-[#5A6B66] font-semibold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="px-4 py-3.5 whitespace-nowrap font-bold">{lang === "gu" ? "કવોટેશન નં." : "Quotation No."}</th>
-                <th className="px-4 py-3.5 whitespace-nowrap font-bold">{lang === "gu" ? "તારીખ અને માન્યતા" : "Date & Validity"}</th>
-                <th className="px-4 py-3.5 whitespace-nowrap font-bold">{lang === "gu" ? "ગ્રાહક (Party)" : "Customer / Party"}</th>
-                <th className="px-4 py-3.5 text-right whitespace-nowrap font-bold">{lang === "gu" ? "અંદાજિત રકમ" : "Estimated Amount"}</th>
-                <th className="px-4 py-3.5 text-center whitespace-nowrap font-bold">{lang === "gu" ? "સ્થિતિ" : "Status"}</th>
-                <th className="px-4 py-3.5 text-right whitespace-nowrap font-bold">Actions</th>
+                <th className="px-4 py-3.5 whitespace-nowrap font-medium">{lang === "gu" ? "કવોટેશન નં." : "Quotation No."}</th>
+                <th className="px-4 py-3.5 whitespace-nowrap font-medium">{lang === "gu" ? "તારીખ અને માન્યતા" : "Date & Validity"}</th>
+                <th className="px-4 py-3.5 whitespace-nowrap font-medium">{lang === "gu" ? "ગ્રાહક (Party)" : "Customer / Party"}</th>
+                <th className="px-4 py-3.5 text-right whitespace-nowrap font-medium">{lang === "gu" ? "અંદાજિત રકમ" : "Estimated Amount"}</th>
+                <th className="px-4 py-3.5 text-center whitespace-nowrap font-medium">{lang === "gu" ? "સ્થિતિ" : "Status"}</th>
+                <th className="px-4 py-3.5 text-right whitespace-nowrap font-medium">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E8E5]">
               {isLoading && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-16 text-center text-xs text-[#5A6B66]">
+                  <td colSpan={6} className="px-4 py-16 text-center text-[13px] text-[#5A6B66]">
                     <div className="flex items-center justify-center gap-2">
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#26A58A] border-t-transparent" />
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#1677E8] border-t-transparent" />
                       <span>{lang === "gu" ? "લોડ થઈ રહ્યું છે..." : "Loading quotations..."}</span>
                     </div>
                   </td>
@@ -524,7 +524,7 @@ export default function QuotationsPage() {
                       </p>
                       <Link
                         href="/sales/quotations/new"
-                        className="mt-4 rounded-xl bg-[#174B43] px-4 py-2 text-xs font-bold text-white shadow-jade hover:bg-[#123B35] transition-colors"
+                        className="mt-4 rounded-xl bg-[#0F172A] h-9 px-3 text-[13px] font-medium text-white shadow-blue-500/20 hover:bg-[#1268D3] transition-colors"
                       >
                         {lang === "gu" ? "+ નવું કવોટેશન" : "+ Create Quotation"}
                       </Link>
@@ -540,7 +540,7 @@ export default function QuotationsPage() {
                     <tr
                       key={q.id}
                       onClick={() => q.id && router.push(`/sales/invoices/${q.id}`)}
-                      className={`hover:bg-[#F2FAF7]/70 transition-colors group cursor-pointer ${
+                      className={`hover:bg-[#F8FAFC]/70 transition-colors group cursor-pointer ${
                         q.status === "CANCELLED" ? "opacity-60 bg-slate-50/50" : ""
                       }`}
                     >
@@ -549,7 +549,7 @@ export default function QuotationsPage() {
                         <div className="flex items-center gap-2">
                           <Link
                             href={`/sales/invoices/${q.id}`}
-                            className="font-mono font-bold text-[#174B43] hover:text-[#26A58A] hover:underline transition-colors text-xs"
+                            className="tabular-nums font-bold text-[#0F172A] hover:text-[#1677E8] hover:underline transition-colors text-xs"
                           >
                             {q.invoiceNumber}
                           </Link>
@@ -560,7 +560,7 @@ export default function QuotationsPage() {
                       </td>
 
                       {/* Date & Validity */}
-                      <td className="px-4 py-3 whitespace-nowrap text-xs text-[#1A2E2B]">
+                      <td className="px-4 py-3 whitespace-nowrap text-[13px] text-[#182230]">
                         <div>
                           {q.invoiceDate
                             ? new Date(q.invoiceDate).toLocaleDateString("en-GB", {
@@ -582,14 +582,14 @@ export default function QuotationsPage() {
                         <div className="font-semibold text-[#1A2E2B] text-xs">
                           {q.party?.name || "Cash Customer"}
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono mt-0.5">
+                        <div className="flex items-center gap-2 text-[10px] text-slate-400 tabular-nums mt-0.5">
                           {q.party?.phone && <span>📞 {q.party.phone}</span>}
                           {q.party?.gstin && <span>GST: {q.party.gstin}</span>}
                         </div>
                       </td>
 
                       {/* Amount */}
-                      <td className="px-4 py-3 text-right font-bold text-[#1A2E2B] whitespace-nowrap font-mono text-[13px]">
+                      <td className="px-4 py-3 text-right font-medium text-[#182230] whitespace-nowrap tabular-nums text-[13px]">
                         {formatInr(q.grandTotal)}
                       </td>
 
@@ -625,7 +625,7 @@ export default function QuotationsPage() {
                                 setConversionError(null);
                                 setStockConfirmPrompt(null);
                               }}
-                              className="px-2.5 py-1 text-xs font-bold text-white bg-[#174B43] hover:bg-[#123B35] rounded-lg shadow-xs transition-colors flex items-center gap-1 cursor-pointer"
+                              className="px-2.5 py-1 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] rounded-lg shadow-xs transition-colors flex items-center gap-1 cursor-pointer"
                               title="Convert this quotation to legal Tax Invoice"
                             >
                               <svg className="w-3.5 h-3.5 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -637,7 +637,7 @@ export default function QuotationsPage() {
 
                           <Link
                             href={`/sales/invoices/${q.id}`}
-                            className="p-1.5 text-xs text-[#174B43] hover:bg-[#F2FAF7] rounded-lg font-semibold transition-colors border border-[#E2E8E5]"
+                            className="p-1.5 text-[13px] text-[#0F172A] hover:bg-[#F8FAFC] rounded-lg font-medium transition-colors border border-[#E2E8F0]"
                             title="View / Print PDF"
                           >
                             View
@@ -647,7 +647,7 @@ export default function QuotationsPage() {
                             <button
                               type="button"
                               onClick={() => setDeletingTarget(q)}
-                              className="p-1.5 text-xs text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                              className="p-1.5 text-[13px] text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                               title="Delete Quotation"
                             >
                               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -714,7 +714,7 @@ export default function QuotationsPage() {
                     type="button"
                     onClick={() => handleConvertQuotation(true)}
                     disabled={isConverting}
-                    className="px-4 py-2 text-xs font-bold text-white bg-amber-700 hover:bg-amber-800 rounded-xl shadow-sm transition-all cursor-pointer"
+                    className="h-9 px-3 text-[13px] font-medium text-white bg-amber-700 hover:bg-amber-800 rounded-xl shadow-sm transition-all cursor-pointer"
                   >
                     {isConverting ? "Converting..." : lang === "gu" ? "હા, છતાં પણ પાકું બિલ બનાવો" : "Yes, Force Issue with Negative Stock"}
                   </button>
@@ -727,7 +727,7 @@ export default function QuotationsPage() {
                 <button
                   type="button"
                   onClick={() => setConvertingTarget(null)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
+                  className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
                 >
                   {lang === "gu" ? "રદ કરો" : "Cancel"}
                 </button>
@@ -735,7 +735,7 @@ export default function QuotationsPage() {
                   type="button"
                   onClick={() => handleConvertQuotation(false)}
                   disabled={isConverting}
-                  className="px-6 py-2.5 text-xs font-bold text-white bg-[#174B43] hover:bg-[#123B35] rounded-xl shadow-card transition-all flex items-center gap-2 cursor-pointer"
+                  className="px-6 py-2.5 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] rounded-xl shadow-card transition-all flex items-center gap-2 cursor-pointer"
                 >
                   {isConverting && (
                     <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -765,7 +765,7 @@ export default function QuotationsPage() {
               <button
                 type="button"
                 onClick={() => setDeletingTarget(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
+                className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
               >
                 {lang === "gu" ? "રદ કરો" : "Cancel"}
               </button>
@@ -773,7 +773,7 @@ export default function QuotationsPage() {
                 type="button"
                 onClick={handleDeleteQuotation}
                 disabled={isDeleting}
-                className="px-5 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm transition-all cursor-pointer"
+                className="h-9 px-3.5 text-[13px] font-medium text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm transition-all cursor-pointer"
               >
                 {isDeleting ? "Deleting..." : lang === "gu" ? "કાઢી નાખો (Delete)" : "Delete"}
               </button>

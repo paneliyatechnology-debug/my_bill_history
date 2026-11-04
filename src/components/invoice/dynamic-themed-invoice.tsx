@@ -474,7 +474,7 @@ export function DynamicThemedInvoice({
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <span
-                    className="font-extrabold text-[13px] tracking-wide"
+                    className="font-semibold text-[13px] tracking-wide"
                     style={{ color: activeColor !== "#111111" ? activeColor : skin.ink }}
                   >
                     {docTitle}
@@ -507,7 +507,7 @@ export function DynamicThemedInvoice({
               {/* Company Details & Invoice Metadata Row */}
               <div className="grid grid-cols-12 border-b border-black bg-transparent">
                 <div className="col-span-7 p-3 border-r border-black">
-                  <div className="text-[18px] font-black tracking-tight text-slate-950">
+                  <div className="text-[18px] font-semibold tracking-tight text-slate-950">
                     {companyName}
                   </div>
                   <div className="text-[11px] text-slate-800 leading-tight mt-1 font-medium">
@@ -585,7 +585,7 @@ export function DynamicThemedInvoice({
               {/* BILL TO & SHIP TO Boxed Row */}
               <div className="grid grid-cols-12 border-b border-black text-[11px] bg-transparent">
                 <div className="col-span-7 p-3 border-r border-black">
-                  <div className="font-extrabold uppercase tracking-wider text-[10px] text-slate-700">
+                  <div className="font-semibold uppercase tracking-wider text-[10px] text-slate-700">
                     DETAILS OF RECEIVER (BILLED TO)
                   </div>
                   <div className="font-bold text-[13px] text-slate-950 mt-0.5">
@@ -617,7 +617,7 @@ export function DynamicThemedInvoice({
                 </div>
 
                 <div className="col-span-5 p-3 text-[11px] bg-transparent">
-                  <div className="font-extrabold uppercase tracking-wider text-[10px] text-slate-700">
+                  <div className="font-semibold uppercase tracking-wider text-[10px] text-slate-700">
                     SHIP TO / DELIVERY
                   </div>
                   <div className="text-slate-800 mt-1 leading-snug font-medium">
@@ -636,7 +636,7 @@ export function DynamicThemedInvoice({
                 <table className="w-full text-left text-[11px] border-collapse">
                   <thead>
                     <tr
-                      className="border-b border-black font-black text-[10.5px]"
+                      className="border-b border-black font-semibold text-[10.5px]"
                       style={{
                         backgroundColor: activeColor !== "#111111" ? `${activeColor}15` : "#fef3c740",
                         color: activeColor !== "#111111" ? activeColor : "#78350f",
@@ -839,7 +839,7 @@ export function DynamicThemedInvoice({
                   <div className="mt-3 pt-2 border-t border-black/30 flex items-end justify-between gap-2">
                     {Boolean(settings.selectedBankAccount && settings.selectedBankAccount !== "none") && (
                       <div className="text-[9.5px] text-slate-800 space-y-0.5">
-                        <div className="font-extrabold uppercase tracking-wider text-[9.5px] text-slate-950">
+                        <div className="font-semibold uppercase tracking-wider text-[9.5px] text-slate-950">
                           Bank & Payment Details:
                         </div>
                         <div>A/C Name: <strong>{bankHolderName}</strong></div>
@@ -903,7 +903,7 @@ export function DynamicThemedInvoice({
                       </div>
                     )}
                     <div
-                      className="flex justify-between border-t border-black pt-1.5 text-[13px] font-black"
+                      className="flex justify-between border-t border-black pt-1.5 text-[13px] font-semibold"
                       style={{ color: activeColor !== "#111111" ? activeColor : "#0f172a" }}
                     >
                       <span>Invoice Grand Total</span>
@@ -924,7 +924,7 @@ export function DynamicThemedInvoice({
                             ₹ {Number(invoice.paidAmount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                           </span>
                         </div>
-                        <div className="flex justify-between text-rose-800 font-black">
+                        <div className="flex justify-between text-rose-800 font-semibold">
                           <span>Balance Due:</span>
                           <span className="font-mono">
                             ₹ {Number(invoice.balanceAmount !== undefined ? invoice.balanceAmount : invoice.outstandingBalance || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
@@ -986,7 +986,7 @@ export function DynamicThemedInvoice({
               <span className="inline-block px-2.5 py-0.5 bg-amber-600 text-white rounded text-[9px] font-bold tracking-widest uppercase mb-1">
                 EXECUTIVE LUXURY INVOICE
               </span>
-              <h1 className="text-2xl font-black tracking-tight text-amber-950 uppercase">
+              <h1 className="text-2xl font-semibold tracking-tight text-amber-950 uppercase">
                 {companyName}
               </h1>
               <p className="text-slate-600 text-xs mt-0.5">{companyAddress}</p>
@@ -998,7 +998,7 @@ export function DynamicThemedInvoice({
             </div>
 
             <div className="text-right bg-white p-3 rounded-lg border border-amber-200 shadow-xs">
-              <span className="block text-lg font-black text-amber-800">{docTitle}</span>
+              <span className="block text-lg font-semibold text-amber-800">{docTitle}</span>
               <span className="text-[9px] font-bold text-slate-500 uppercase">ORIGINAL FOR RECIPIENT</span>
               <div className="mt-2 text-xs font-mono space-y-0.5">
                 <div>Invoice No: <strong className="text-amber-900">#{invoice.invoiceNumber}</strong></div>
@@ -1100,7 +1100,7 @@ export function DynamicThemedInvoice({
                   </div>
                 </>
               )}
-              <div className="flex justify-between text-base font-black text-amber-950 border-t-2 border-amber-400 pt-2">
+              <div className="flex justify-between text-base font-semibold text-amber-950 border-t-2 border-amber-400 pt-2">
                 <span>Total Amount:</span>
                 <span className="font-mono">₹{Number(invoice.grandTotal || 0).toFixed(2)}</span>
               </div>
@@ -1136,7 +1136,7 @@ export function DynamicThemedInvoice({
             className="flex items-center justify-between px-3 py-1.5 border border-black text-white mb-2"
             style={{ backgroundColor: activeColor !== "#111111" ? activeColor : "#1e293b" }}
           >
-            <span className="font-extrabold text-sm tracking-wider uppercase">{docTitle}</span>
+            <span className="font-semibold text-sm tracking-wider uppercase">{docTitle}</span>
             <span className="text-[10px] font-semibold tracking-wide opacity-90 uppercase">{docSubtitle}</span>
           </div>
 
@@ -1145,7 +1145,7 @@ export function DynamicThemedInvoice({
             {/* Company Details & Voucher Metadata */}
             <div className="grid grid-cols-12 border-b border-black">
               <div className="col-span-7 p-3 border-r border-black">
-                <div className="text-[17px] font-black tracking-tight text-slate-950 uppercase">
+                <div className="text-[17px] font-semibold tracking-tight text-slate-950 uppercase">
                   {companyName}
                 </div>
                 <div className="text-[11px] text-slate-800 leading-tight mt-1 font-medium">
@@ -1222,7 +1222,7 @@ export function DynamicThemedInvoice({
             {/* Billed To / Billed From Row */}
             <div className="grid grid-cols-12 border-b border-black text-[11px]">
               <div className="col-span-7 p-3 border-r border-black">
-                <div className="font-extrabold uppercase tracking-wider text-[10px] text-slate-600 mb-0.5">
+                <div className="font-semibold uppercase tracking-wider text-[10px] text-slate-600 mb-0.5">
                   {isPurchase ? "SUPPLIER / VENDOR (BILLED FROM)" : "DETAILS OF RECEIVER (BILLED TO)"}
                 </div>
                 <div className="font-bold text-[13px] text-slate-950">{partyName}</div>
@@ -1241,7 +1241,7 @@ export function DynamicThemedInvoice({
               </div>
 
               <div className="col-span-5 p-3 text-[11px] bg-slate-50/40">
-                <div className="font-extrabold uppercase tracking-wider text-[10px] text-slate-600 mb-0.5">
+                <div className="font-semibold uppercase tracking-wider text-[10px] text-slate-600 mb-0.5">
                   {isPurchase ? "CONSIGNEE / WAREHOUSE DESTINATION" : "SHIP TO / DELIVERY"}
                 </div>
                 <div className="text-slate-800 mt-1 leading-snug font-medium">
@@ -1264,7 +1264,7 @@ export function DynamicThemedInvoice({
             <div className="w-full overflow-hidden flex-1">
               <table className="w-full text-left text-[11px] border-collapse">
                 <thead>
-                  <tr className="border-b border-black font-black text-[10.5px] bg-slate-100/80">
+                  <tr className="border-b border-black font-semibold text-[10.5px] bg-slate-100/80">
                     <th className="py-2 px-2.5 border-r border-black w-10 text-center">S.NO.</th>
                     <th className="py-2 px-2.5 border-r border-black">DESCRIPTION OF GOODS / SERVICES</th>
                     {settings.showHsn && <th className="py-2 px-2 border-r border-black text-center w-16">HSN/SAC</th>}
@@ -1390,7 +1390,7 @@ export function DynamicThemedInvoice({
                       <span className="font-mono">₹{Number(invoice.roundOff || 0).toFixed(2)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between py-1 border-t-2 border-black font-black text-sm text-slate-950 mt-1">
+                  <div className="flex justify-between py-1 border-t-2 border-black font-semibold text-sm text-slate-950 mt-1">
                     <span>Total Amount:</span>
                     <span className="font-mono">₹{Number(invoice.grandTotal || 0).toFixed(2)}</span>
                   </div>
@@ -1465,7 +1465,7 @@ export function DynamicThemedInvoice({
         <div className="space-y-1 flex-1">
           {layout === "billbook" && (
             <div
-              className="w-9 h-9 rounded-lg flex items-center justify-center font-black text-sm text-white mb-2 shadow-xs"
+              className="w-9 h-9 rounded-lg flex items-center justify-center font-semibold text-sm text-white mb-2 shadow-xs"
               style={{ backgroundColor: activeColor }}
             >
               {companyName.slice(0, 1).toUpperCase()}
@@ -1474,7 +1474,7 @@ export function DynamicThemedInvoice({
           <div className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase ${layout === "simple" ? "bg-slate-200 text-slate-800" : "bg-black/25 text-white"}`}>
             {docTitle}
           </div>
-          <h1 className={`text-xl sm:text-2xl font-black uppercase tracking-tight ${layout === "simple" ? "text-slate-900" : "text-white"}`}>{companyName}</h1>
+          <h1 className={`text-xl sm:text-2xl font-semibold uppercase tracking-tight ${layout === "simple" ? "text-slate-900" : "text-white"}`}>{companyName}</h1>
           <p className={`text-xs ${layout === "simple" ? "text-slate-600" : "text-white/80"}`}>{companyAddress}</p>
           <div className={`flex flex-wrap items-center gap-2 text-xs font-mono pt-1 ${layout === "simple" ? "text-slate-700" : "text-white/90"}`}>
             {companyGstin && <span>GSTIN: <strong>{companyGstin}</strong></span>}
@@ -1483,7 +1483,7 @@ export function DynamicThemedInvoice({
         </div>
 
         <div className="bg-white p-3 rounded-lg text-right shrink-0 shadow-sm text-slate-900 min-w-[150px] border border-slate-100">
-          <span className="block text-base font-black" style={{ color: activeColor }}>
+          <span className="block text-base font-semibold" style={{ color: activeColor }}>
             {docTitle}
           </span>
           <span className="text-[9px] font-bold text-slate-500 uppercase block">{docSubtitle}</span>
@@ -1607,7 +1607,7 @@ export function DynamicThemedInvoice({
             </>
           )}
           <div
-            className="flex justify-between text-base font-black border-t-2 border-slate-400 pt-2"
+            className="flex justify-between text-base font-semibold border-t-2 border-slate-400 pt-2"
             style={{ color: activeColor !== "#111111" ? activeColor : "#0f172a" }}
           >
             <span>Grand Total:</span>

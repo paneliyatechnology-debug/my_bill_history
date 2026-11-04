@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/auth-context";
@@ -19,10 +19,15 @@ import {
   DashboardSalesChart,
   DailySalesPoint,
 } from "@/components/dashboard/dashboard-sales-chart";
+import { DashboardCategoryDonut } from "@/components/dashboard/dashboard-category-donut";
+import { DashboardBusinessSnapshot } from "@/components/dashboard/dashboard-business-snapshot";
+import { RecentActivityFeed } from "@/components/dashboard/recent-activity-feed";
+import { UpcomingDuesAlertCard } from "@/components/dashboard/upcoming-dues-alert-card";
+import { aggregateItemSalesByCategory, periodToRange } from "@/lib/sales-by-category";
 
 function DashboardContent() {
   const router = useRouter();
-  const { lang, tenantContext, user, currentCompany } = useAuth();
+  const { lang, tenantContext, user, currentCompany, currentFY } = useAuth();
 
   // Metrics State
   const [toCollect, setToCollect] = useState<number>(0);
@@ -32,6 +37,7 @@ function DashboardContent() {
   // Transactions State
   const [transactions, setTransactions] = useState<TransactionRow[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isChartLoading, setIsChartLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [lastUpdate, setLastUpdate] = useState<string>("");
 
@@ -48,8 +54,24 @@ function DashboardContent() {
 
   // Sales Report Area Chart
   const [chartDays, setChartDays] = useState<DailySalesPoint[]>([]);
+  const [chartPeriod, setChartPeriod] = useState<string>("30");
   const [sevenDaysSales, setSevenDaysSales] = useState<number>(0);
   const [invoicesCount, setInvoicesCount] = useState<number>(0);
+  const [categorySplit, setCategorySplit] = useState<
+    { label: string; percentage: number; color: string }[]
+  >([]);
+  const [categoryError, setCategoryError] = useState<string>("");
+  const [snapshot, setSnapshot] = useState<{
+    totalParties: number | null;
+    totalItems: number | null;
+    totalInvoices: number | null;
+    pendingBills: number | null;
+  }>({
+    totalParties: null,
+    totalItems: null,
+    totalInvoices: null,
+    pendingBills: null,
+  });
 
   // Update current timestamp string
   const updateTimestamp = useCallback(() => {
@@ -67,12 +89,30 @@ function DashboardContent() {
     setLastUpdate(`${dateFormatted}, ${timeFormatted}`);
   }, []);
 
+  const readCount = (res: any): number | null => {
+    if (!res || typeof res !== "object") return null;
+    const candidates = [
+      res.total,
+      res.totalCount,
+      res.count,
+      res.meta?.total,
+      res.meta?.totalCount,
+      res.pagination?.total,
+      res.pagination?.totalCount,
+    ];
+    for (const value of candidates) {
+      if (typeof value === "number" && Number.isFinite(value)) return value;
+    }
+    return null;
+  };
+
   const fetchDashboardData = useCallback(async () => {
     setIsRefreshing(true);
     updateTimestamp();
 
     try {
-      const [finRes, txnsRes, chartRes]: any = await Promise.all([
+      const [finRes, txnsRes, partiesRes, itemsRes, invoicesRes]: any =
+        await Promise.all([
         apiClient.get("/dashboard/summary").catch(() => null),
         apiClient
           .get("/dashboard/all-transactions", {
@@ -82,9 +122,9 @@ function DashboardContent() {
             sortOrder: "desc",
           })
           .catch(() => null),
-        apiClient
-          .get("/dashboard/sales-overview", { days: 7 })
-          .catch(() => null),
+        apiClient.get("/masters/parties", { page: 1, limit: 1 }).catch(() => null),
+        apiClient.get("/masters/items", { page: 1, limit: 1 }).catch(() => null),
+        apiClient.get("/sales/invoices", { page: 1, limit: 1 }).catch(() => null),
       ]);
 
       // 1. Process Financial Summary
@@ -110,6 +150,30 @@ function DashboardContent() {
       setToCollect(coll);
       setToPay(pay);
       setCashBankBalance(cb);
+
+      const pendingFromSummary =
+        typeof finRes?.pendingBills === "number"
+          ? finRes.pendingBills
+          : typeof finRes?.unpaidInvoices === "number"
+            ? finRes.unpaidInvoices
+            : null;
+      setSnapshot({
+        totalParties:
+          typeof finRes?.totalParties === "number"
+            ? finRes.totalParties
+            : readCount(partiesRes),
+        totalItems:
+          typeof finRes?.totalItems === "number"
+            ? finRes.totalItems
+            : readCount(itemsRes),
+        totalInvoices:
+          typeof finRes?.totalInvoices === "number"
+            ? finRes.totalInvoices
+            : typeof finRes?.invoicesCount === "number"
+              ? finRes.invoicesCount
+              : readCount(invoicesRes),
+        pendingBills: pendingFromSummary,
+      });
 
       // 2. Process Transactions
       const txnList = txnsRes?.items || txnsRes?.transactions || [];
@@ -138,12 +202,6 @@ function DashboardContent() {
         setTransactions([]);
       }
 
-      // 3. Process 7-day Sales Report chart
-      if (chartRes?.chartDays) {
-        setChartDays(chartRes.chartDays);
-        setSevenDaysSales(Number(chartRes.sevenDaysSales || 0));
-        setInvoicesCount(Number(chartRes.invoicesCount || 0));
-      }
     } catch (err) {
       console.error("[Dashboard] Error fetching dashboard data:", err);
     } finally {
@@ -152,14 +210,99 @@ function DashboardContent() {
     }
   }, [updateTimestamp]);
 
-  const lastFetchedCompanyId = useRef<string | null>(null);
+  const fetchSalesChart = useCallback(async () => {
+    setIsChartLoading(true);
+    setCategoryError("");
+    const range = periodToRange(chartPeriod);
+    try {
+      const [chartRes, itemSalesRes, returnsRes]: any = await Promise.all([
+        apiClient.get("/dashboard/sales-overview", { days: range.days }).catch(() => null),
+        apiClient
+          .get("/reports/item-sales-report", {
+            startDate: range.startDate,
+            endDate: range.endDate,
+            fromDate: range.startDate,
+            toDate: range.endDate,
+          })
+          .catch(() => null),
+        apiClient
+          .get("/reports/sales-returns", {
+            startDate: range.startDate,
+            endDate: range.endDate,
+            fromDate: range.startDate,
+            toDate: range.endDate,
+          })
+          .catch(() => null),
+      ]);
+
+      if (chartRes?.chartDays) {
+        setChartDays(chartRes.chartDays);
+      } else {
+        setChartDays([]);
+      }
+      if (chartPeriod === "7" && chartRes) {
+        setSevenDaysSales(Number(chartRes.sevenDaysSales || chartRes.totalSales || 0));
+      } else if (chartRes?.sevenDaysSales != null) {
+        setSevenDaysSales(Number(chartRes.sevenDaysSales));
+      }
+      if (chartRes) {
+        setInvoicesCount(Number(chartRes.invoicesCount || 0));
+      }
+
+      const salesRows = itemSalesRes?.items || itemSalesRes?.data || [];
+      const returnRows = returnsRes?.returns || returnsRes?.items || [];
+      let categoryByItemId = new Map<string, string>();
+      const needsLookup =
+        Array.isArray(salesRows) &&
+        salesRows.some((row: any) => {
+          const name = String(row?.category || row?.categoryName || "").trim();
+          return !name || name === "—" || name === "-";
+        });
+      if (needsLookup) {
+        const itemsRes: any = await apiClient
+          .get("/masters/items", { page: 1, limit: 500 })
+          .catch(() => null);
+        const items = itemsRes?.items || itemsRes?.data || [];
+        if (Array.isArray(items)) {
+          categoryByItemId = new Map(
+            items.map((item: any) => [
+              String(item.id),
+              String(item.category?.name || item.categoryName || "").trim(),
+            ])
+          );
+        }
+      }
+
+      if (!itemSalesRes) {
+        setCategorySplit([]);
+        setCategoryError("Category sales could not be loaded.");
+      } else {
+        setCategorySplit(
+          aggregateItemSalesByCategory(
+            Array.isArray(salesRows) ? salesRows : [],
+            categoryByItemId,
+            Array.isArray(returnRows) ? returnRows : []
+          )
+        );
+      }
+    } catch (err) {
+      console.error("[Dashboard] Category sales failed:", err);
+      setCategorySplit([]);
+      setCategoryError("Category sales could not be loaded.");
+    } finally {
+      setIsChartLoading(false);
+    }
+  }, [chartPeriod]);
 
   useEffect(() => {
     if (!tenantContext.companyId) return;
-    if (lastFetchedCompanyId.current === tenantContext.companyId) return;
-    lastFetchedCompanyId.current = tenantContext.companyId;
     fetchDashboardData();
   }, [fetchDashboardData, tenantContext.companyId]);
+
+  useEffect(() => {
+    if (!tenantContext.companyId) return;
+    fetchSalesChart();
+  }, [fetchSalesChart, tenantContext.companyId]);
 
   // Lazy-load scanner masters dependencies only when scanner modal is opened
   useEffect(() => {
@@ -177,32 +320,33 @@ function DashboardContent() {
   }, [isScannerModalOpen, parties.length, itemsList.length]);
 
   return (
-    <div className="space-y-4 sm:space-y-5 pb-16 min-w-0 max-w-7xl mx-auto font-sans">
-      {/* 1. TOP WELCOME & EXECUTIVE COMMAND HEADER matching Reference Image */}
+    <div className="w-full min-w-0 space-y-4 sm:space-y-5 pb-16 font-sans">
+      {/* 1. TOP WELCOME & EXECUTIVE COMMAND HEADER */}
       <DashboardWelcomeBanner
-        userName={user?.name || "Jaydip"}
-        companyName={currentCompany?.tradeName || currentCompany?.legalName || "NV"}
-        lastUpdated={lastUpdate}
+        userName={user?.fullName || user?.name || ""}
+        companyName={currentCompany?.tradeName || currentCompany?.legalName || ""}
+        lastUpdated={lastUpdate || ""}
+        financialYear={currentFY?.name || ""}
         isRefreshing={isRefreshing}
-        onRefresh={fetchDashboardData}
+        onRefresh={() => {
+          fetchDashboardData();
+          fetchSalesChart();
+        }}
         onOpenAnnouncements={() => setActiveModal("announcements")}
         onOpenScanner={() => setIsScannerModalOpen(true)}
         onOpenDesktopModal={() => setActiveModal("desktop")}
         lang={lang}
       />
 
-      {/* 2. 4 FINANCIAL KPI CARDS IN ONE HORIZONTAL ROW matching Section 2 Palette */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+      {/* 2. 4 FINANCIAL KPI CARDS IN ONE MODULAR HORIZONTAL ROW */}
+      <div className="grid grid-cols-1 min-[680px]:grid-cols-2 xl:grid-cols-4 gap-3">
         {/* Card 1: To Collect (Receivables) */}
         <DashboardKpiCard
           id="collect"
           variant="receivable"
           title="To Collect (Receivables)"
           titleGujarati="ઉઘરાણી (લેવાના બાકી)"
-          amount={toCollect > 0 ? toCollect : 2100}
-          subtitle="Open customer balances"
-          subtitleGujarati="ગ્રાહક પાસેથી લેવાના બાકી"
-          badge="Receivable"
+          amount={toCollect}
           lang={lang}
           onClick={() => router.push("/masters/parties?filter=receivable")}
         />
@@ -213,10 +357,7 @@ function DashboardContent() {
           variant="payable"
           title="To Pay (Payables)"
           titleGujarati="ચૂકવવાના બાકી (દેવાના)"
-          amount={toPay > 0 ? toPay : 3150}
-          subtitle="Pending supplier bills"
-          subtitleGujarati="સપ્લાયરને ચૂકવવાના બાકી"
-          badge="Payable"
+          amount={toPay}
           lang={lang}
           onClick={() => router.push("/masters/parties?filter=payable")}
         />
@@ -227,9 +368,7 @@ function DashboardContent() {
           variant="cash-bank"
           title="Cash & Bank Balance"
           titleGujarati="રોકડ અને બેંક સિલક"
-          amount={cashBankBalance > 0 ? cashBankBalance : 194200}
-          subtitle="Liquid Treasury Funds"
-          subtitleGujarati="કુલ ઉપલબ્ધ બેંક ફંડ"
+          amount={cashBankBalance}
           lang={lang}
           onClick={() => router.push("/finance/cash-bank")}
         />
@@ -240,39 +379,66 @@ function DashboardContent() {
           variant="sales"
           title="Sales (Last 7 Days)"
           titleGujarati="વેચાણ (છેલ્લા 7 દિવસ)"
-          amount={sevenDaysSales > 0 ? sevenDaysSales : 289800}
-          subtitle={`${invoicesCount > 0 ? invoicesCount : 8} Invoices Created`}
-          subtitleGujarati={`${invoicesCount > 0 ? invoicesCount : 8} બિલ બનાવ્યા`}
-          badge="+12% Growth"
+          amount={sevenDaysSales}
+          sparkline={chartDays.map((point) => point.sales)}
           lang={lang}
           onClick={() => router.push("/sales/invoices")}
         />
       </div>
 
-      {/* 3. TWO-COLUMN WORKSPACE: LEFT (STREAM & CHART) | RIGHT (QUICK ACTIONS & AI SCANNER) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Left Column (8-col): High-density Table + Sales Performance Spline Chart */}
-        <div className="lg:col-span-8 space-y-5">
+      {/* 2.3 UPCOMING DUE & OVERDUE COLLECTIONS ALERT (NEXT 3 DAYS with RED BLINKING INDICATOR) */}
+      <UpcomingDuesAlertCard />
+
+      {/* 2.5 REAL-TIME BUSINESS ACTIVITY FEED */}
+      <RecentActivityFeed />
+
+      {/* 3. MIDDLE MODULAR ROW: SALES TREND (WIDE) | SALES BY CATEGORY (DONUT) | QUICK ACTIONS (2x2) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+        {/* Left Widget: Sales Trend Line Chart (5 cols on xl, 6 on lg) */}
+        <div className="lg:col-span-12 xl:col-span-5 flex flex-col min-w-0">
+          <DashboardSalesChart
+            chartDays={chartDays}
+            sevenDaysSales={sevenDaysSales}
+            invoicesCount={invoicesCount}
+            period={chartPeriod}
+            onPeriodChange={setChartPeriod}
+            isLoading={isChartLoading}
+            lang={lang}
+          />
+        </div>
+
+        {/* Middle Widget: Sales by Category Donut Chart (4 cols on xl, 3 on lg) */}
+        <div className="lg:col-span-6 xl:col-span-4 flex flex-col min-w-0">
+          <DashboardCategoryDonut
+            totalSales={sevenDaysSales}
+            data={categorySplit}
+            isLoading={isChartLoading}
+            error={categoryError}
+            onRetry={fetchSalesChart}
+            lang={lang}
+          />
+        </div>
+
+        {/* Right Widget: Quick Actions Grid (3 cols on lg/xl) */}
+        <div className="lg:col-span-6 xl:col-span-3 flex flex-col min-w-0">
+          <DashboardQuickActions lang={lang} />
+        </div>
+      </div>
+
+      {/* 4. BOTTOM MODULAR ROW: RECENT TRANSACTIONS TABLE (8-col) | BUSINESS SNAPSHOT (4-col) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+        {/* Left: Detailed Recent Transactions Stream */}
+        <div className="lg:col-span-8 flex flex-col">
           <DashboardTransactionsTable
             transactions={transactions}
             isLoading={isLoading}
             lang={lang}
           />
-          <DashboardSalesChart
-            chartDays={chartDays}
-            sevenDaysSales={sevenDaysSales}
-            invoicesCount={invoicesCount}
-            lang={lang}
-          />
         </div>
 
-        {/* Right Column (4-col): Quick Actions Grid & AI Bill Scanner Card */}
-        <div className="lg:col-span-4 space-y-5">
-          <DashboardQuickActions lang={lang} />
-          <DashboardScannerCard
-            onOpenScanner={() => setIsScannerModalOpen(true)}
-            lang={lang}
-          />
+        {/* Right: Business Snapshot 2x2 Metric Grid */}
+        <div className="lg:col-span-4 flex flex-col">
+          <DashboardBusinessSnapshot metrics={snapshot} lang={lang} />
         </div>
       </div>
 
@@ -313,7 +479,7 @@ function DashboardContent() {
             <div className="pt-2 flex gap-3">
               <button
                 onClick={() => setActiveModal(null)}
-                className="flex-1 py-2.5 bg-[#004D40] text-white text-xs font-bold rounded-xl hover:bg-[#003D35] transition-colors cursor-pointer"
+                className="flex-1 py-2.5 bg-[#1677E8] text-white text-xs font-bold rounded-xl hover:bg-[#1268D3] transition-colors cursor-pointer"
               >
                 Download for Windows (x64)
               </button>
@@ -345,7 +511,7 @@ function DashboardContent() {
             </div>
             <div className="space-y-3 text-xs text-slate-600">
               <div className="p-3 bg-[#E6FBF5] border border-[#B9EBDD] rounded-xl">
-                <span className="font-bold text-[#004D40] block">
+                <span className="font-bold text-[#1677E8] block">
                   Automated Payment Reminders
                 </span>
                 Automatic WhatsApp and SMS follow-ups for outstanding customer
@@ -361,7 +527,7 @@ function DashboardContent() {
             </div>
             <button
               onClick={() => setActiveModal(null)}
-              className="w-full py-2 bg-[#004D40] text-white text-xs font-bold rounded-xl hover:bg-[#003D35] transition-colors cursor-pointer"
+              className="w-full py-2 bg-[#1677E8] text-white text-xs font-bold rounded-xl hover:bg-[#1268D3] transition-colors cursor-pointer"
             >
               Got it
             </button>
@@ -383,12 +549,12 @@ function DashboardContent() {
               Invite your fellow business owners to myownbillbook. When they
               subscribe to an annual plan, both of you receive ₹500 in credit.
             </p>
-            <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl font-mono text-xs font-bold text-slate-800 select-all">
+            <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl tabular-nums text-xs font-bold text-slate-800 select-all">
               MYOWN-{user?.id?.slice(0, 6)?.toUpperCase() || "BILL500"}
             </div>
             <button
               onClick={() => setActiveModal(null)}
-              className="w-full py-2.5 bg-[#004D40] text-white text-xs font-bold rounded-xl hover:bg-[#003D35] transition-colors cursor-pointer"
+              className="w-full py-2.5 bg-[#1677E8] text-white text-xs font-bold rounded-xl hover:bg-[#1268D3] transition-colors cursor-pointer"
             >
               Copy Referral Link
             </button>
@@ -421,11 +587,11 @@ function DashboardContent() {
                   <span className="font-bold text-slate-900 block">
                     Customer Care Hotline
                   </span>
-                  <span className="text-slate-500 font-mono">+91 98765 43210</span>
+                  <span className="text-slate-500 tabular-nums">+91 98765 43210</span>
                 </div>
                 <a
                   href="tel:+919876543210"
-                  className="px-3 py-1 bg-[#004D40] text-white rounded-lg font-bold text-[11px]"
+                  className="px-3 py-1 bg-[#1677E8] text-white rounded-lg font-bold text-[11px]"
                 >
                   Call Now
                 </a>
@@ -443,7 +609,7 @@ function DashboardContent() {
                   href="https://wa.me/919876543210"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3 py-1 bg-emerald-600 text-white rounded-lg font-bold text-[11px]"
+                  className="px-3 py-1 bg-[#1677E8] text-white rounded-lg font-bold text-[11px]"
                 >
                   Chat
                 </a>
@@ -474,10 +640,10 @@ function DashboardContent() {
             </p>
             <div className="bg-gradient-to-r from-[#E6FBF5] to-white p-4 border border-[#B9EBDD] rounded-xl space-y-2 text-xs">
               <div className="flex justify-between items-center">
-                <span className="font-bold text-[#004D40]">
+                <span className="font-bold text-[#1677E8]">
                   Enterprise Annual Suite
                 </span>
-                <span className="font-bold text-[#0DAA8A] text-sm font-mono">
+                <span className="font-bold text-[#1677E8] text-sm tabular-nums">
                   ₹4,999 / year
                 </span>
               </div>
@@ -490,7 +656,7 @@ function DashboardContent() {
                 href="https://wa.me/919876543210?text=I%20want%20to%20upgrade%20to%20Annual%20Plan%20with%2065%25%20discount"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 py-2.5 bg-[#004D40] text-white text-center text-xs font-bold rounded-xl hover:bg-[#003D35] transition-colors"
+                className="flex-1 py-2.5 bg-[#1677E8] text-white text-center text-xs font-bold rounded-xl hover:bg-[#1268D3] transition-colors"
               >
                 Connect with Sales
               </a>
@@ -531,8 +697,8 @@ export default function Home() {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-[#F4F7FA] p-4 text-center">
         <div className="flex flex-col items-center gap-3 max-w-sm">
-          <div className="w-9 h-9 border-3 border-[#0DAA8A] border-t-transparent rounded-full animate-spin" />
-          <span className="text-xs font-bold text-[#004D40] tracking-tight">
+          <div className="w-9 h-9 border-3 border-[#1677E8] border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs font-bold text-[#1677E8] tracking-tight">
             Loading myownbillbook...
           </span>
           {showTimeoutFallback && (
@@ -545,7 +711,7 @@ export default function Home() {
               <div className="flex items-center justify-center gap-2">
                 <button
                   onClick={() => window.location.reload()}
-                  className="px-3 py-1.5 text-xs font-semibold bg-[#0DAA8A] text-white rounded-lg hover:bg-[#0CA678] transition-colors cursor-pointer"
+                  className="px-3 py-1.5 text-xs font-semibold bg-[#1677E8] text-white rounded-lg hover:bg-[#0CA678] transition-colors cursor-pointer"
                 >
                   {lang === "gu" ? "રીફ્રેશ કરો" : "Reload"}
                 </button>

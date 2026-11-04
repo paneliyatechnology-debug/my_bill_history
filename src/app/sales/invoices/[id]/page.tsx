@@ -432,7 +432,7 @@ export default function InvoiceDetailPage() {
   if (isLoading) {
     return (
       <div className="py-20 text-center text-slate-400">
-        <div className="inline-block w-8 h-8 border-2 border-[#174B43] border-t-transparent rounded-full animate-spin mb-3" />
+        <div className="inline-block w-8 h-8 border-2 border-[#0F172A] border-t-transparent rounded-full animate-spin mb-3" />
         <p className="text-xs">Loading tax invoice...</p>
       </div>
     );
@@ -450,10 +450,10 @@ export default function InvoiceDetailPage() {
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 mb-2">
             Record Not Found · મળેલ નથી
           </span>
-          <h2 className="text-xl font-bold text-slate-900">
+          <h2 className="text-[15px] font-semibold text-[#182230]">
             {lang === "gu" ? "વેચાણ બિલ મળેલ નથી" : "Sales Invoice Not Found"}
           </h2>
-          <p className="text-xs font-semibold text-[#174B43] mt-0.5">
+          <p className="text-xs font-semibold text-[#0F172A] mt-0.5">
             {lang === "gu" ? "આ બિલ કાઢી નાખવામાં આવ્યું હોઈ શકે છે" : "The invoice may have been deleted or removed"}
           </p>
           <p className="mt-2 text-xs sm:text-sm text-slate-500 leading-relaxed">
@@ -462,20 +462,20 @@ export default function InvoiceDetailPage() {
           <div className="mt-6 pt-4 border-t border-slate-100 flex flex-col gap-2">
             <Link
               href="/sales/invoices"
-              className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-[#174B43] px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-[#123B35] transition-colors"
+              className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-[#0F172A] h-9 px-3.5 text-[13px] font-medium text-white shadow-xs hover:bg-[#1268D3] transition-colors"
             >
               <span>{lang === "gu" ? "વેચાણ બિલોની યાદી પર પાછા જાઓ" : "Return to Invoices List"}</span>
             </Link>
             <div className="grid grid-cols-2 gap-2 mt-1">
               <Link
                 href="/sales/returns"
-                className="flex items-center justify-center py-2 px-3 rounded-lg text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+                className="flex items-center justify-center py-2 px-3 rounded-lg text-[13px] font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
               >
                 <span>Sales Returns</span>
               </Link>
               <Link
                 href="/sales/invoices/new"
-                className="flex items-center justify-center py-2 px-3 rounded-lg text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors"
+                className="flex items-center justify-center py-2 px-3 rounded-lg text-[13px] font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors"
               >
                 <span>+ Create Invoice</span>
               </Link>
@@ -516,7 +516,7 @@ export default function InvoiceDetailPage() {
           <div className="flex items-center gap-3 flex-wrap min-w-0">
             <Link
               href="/sales/invoices"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-[#174B43] hover:bg-[#F2FAF7] rounded-xl border border-slate-200 transition-colors shadow-2xs"
+              className="inline-flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-slate-700 hover:text-[#0F172A] hover:bg-[#F8FAFC] rounded-xl border border-slate-200 transition-colors shadow-2xs"
               title="Back to Sales Invoices"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -529,7 +529,7 @@ export default function InvoiceDetailPage() {
 
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="font-extrabold text-slate-900 text-base sm:text-lg tracking-tight truncate">
+                <h1 className="font-semibold text-[#182230] text-base sm:text-lg tracking-tight truncate">
                   {invoice.category === "PROFORMA_INVOICE"
                     ? `Quotation #${invoice.invoiceNumber}`
                     : invoice.category === "DELIVERY_CHALLAN"
@@ -570,10 +570,10 @@ export default function InvoiceDetailPage() {
             {/* Financial Summary Pill */}
             <div className="hidden md:flex items-center gap-2 bg-[#F6F8F7] px-3 py-1 rounded-xl border border-slate-200 text-xs shadow-2xs">
               <span className="text-slate-500 font-medium">{lang === "gu" ? "કુલ:" : "Total:"}</span>
-              <span className="font-mono font-bold text-slate-900">₹{Number(invoice.grandTotal).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
+              <span className="tabular-nums font-bold text-slate-900">₹{Number(invoice.grandTotal).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
               <span className="text-slate-300">•</span>
               <span className="text-slate-500 font-medium">{lang === "gu" ? "બાકી:" : "Due:"}</span>
-              <span className={`font-mono font-bold ${bal > 0 ? "text-rose-600" : "text-emerald-700"}`}>
+              <span className={`tabular-nums font-bold ${bal > 0 ? "text-rose-600" : "text-emerald-700"}`}>
                 ₹{bal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </span>
             </div>
@@ -587,8 +587,8 @@ export default function InvoiceDetailPage() {
               onClick={() => setShowPaymentHistory(!showPaymentHistory)}
               className={`px-3 py-2 text-xs font-semibold rounded-xl border flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs ${
                 showPaymentHistory
-                  ? "bg-[#174B43] text-white border-[#174B43]"
-                  : "bg-white text-slate-700 border-slate-200 hover:bg-[#F2FAF7] hover:text-[#174B43] hover:border-[#85D5C2]"
+                  ? "bg-[#0F172A] text-white border-[#0F172A]"
+                  : "bg-white text-slate-700 border-slate-200 hover:bg-[#F8FAFC] hover:text-[#0F172A] hover:border-[#93C5FD]"
               }`}
               title="View Payment History Drawer"
             >
@@ -596,7 +596,7 @@ export default function InvoiceDetailPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
               <span>{lang === "gu" ? "ચુકવણી ઇતિહાસ" : "Payment History"}</span>
-              <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+              <span className={`text-[10px] tabular-nums px-1.5 py-0.2 rounded-full font-bold ${
                 showPaymentHistory ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
               }`}>
                 {allocations.length || (invoice.paidAmount > 0 ? 1 : 0)}
@@ -615,7 +615,7 @@ export default function InvoiceDetailPage() {
                   setIsPrintDropdownOpen(false);
                   setIsMoreMenuOpen(false);
                 }}
-                className="px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                className="h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 text-[13px] font-medium rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                 title="Theme and Paper Size"
               >
                 <span
@@ -632,7 +632,7 @@ export default function InvoiceDetailPage() {
                   onMouseLeave={() => setIsFormatMenuOpen(false)}
                 >
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                    <label className="block text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1">
                       {lang === "gu" ? "ઇન્વોઇસ થીમ" : "Invoice Theme"}
                     </label>
                     <select
@@ -645,7 +645,7 @@ export default function InvoiceDetailPage() {
                       onChange={(e) => {
                         updateThemeFast(e.target.value);
                       }}
-                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg font-semibold text-slate-800 text-xs focus:outline-none focus:border-[#26A58A] cursor-pointer"
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg font-normal text-slate-800 text-[13px] focus:outline-none focus:border-[#1677E8] cursor-pointer h-10"
                     >
                       <optgroup label={lang === "gu" ? "તહેવાર થીમ્સ (Festive Themes)" : "Festive Themes"}>
                         {ALL_THEME_KEYS.filter((t) => t.isFestive).map((t) => (
@@ -665,13 +665,13 @@ export default function InvoiceDetailPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                    <label className="block text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1">
                       {lang === "gu" ? "કાગળનું માપ" : "Paper Size"}
                     </label>
                     <select
                       value={selectedPaperSize}
                       onChange={(e) => setSelectedPaperSize(e.target.value as any)}
-                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg font-semibold text-slate-800 text-xs focus:outline-none focus:border-[#26A58A] cursor-pointer"
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg font-normal text-slate-800 text-[13px] focus:outline-none focus:border-[#1677E8] cursor-pointer h-10"
                     >
                       <option value="A4">A4 (210 × 297 mm)</option>
                       <option value="A5">A5 (148 × 210 mm)</option>
@@ -686,7 +686,7 @@ export default function InvoiceDetailPage() {
                     <span className="text-[11px] text-slate-500">Need deep styling?</span>
                     <Link
                       href="/settings/invoice"
-                      className="text-xs font-bold text-[#174B43] hover:text-[#26A58A] hover:underline flex items-center gap-1"
+                      className="text-xs font-bold text-[#0F172A] hover:text-[#1677E8] hover:underline flex items-center gap-1"
                       title="Open Invoice Settings Studio"
                     >
                       <span>⚙️ Studio</span>
@@ -708,7 +708,7 @@ export default function InvoiceDetailPage() {
                   setIsDownloadDropdownOpen(false);
                   setIsMoreMenuOpen(false);
                 }}
-                className="px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                className="h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 text-[13px] font-medium rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                 title="Print Invoice"
               >
                 <svg className="w-3.5 h-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -727,7 +727,7 @@ export default function InvoiceDetailPage() {
                       setIsPrintDropdownOpen(false);
                       window.print();
                     }}
-                    className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
+                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
                   >
                     <span>🖨️</span>
                     <span>Print Standard A4</span>
@@ -737,7 +737,7 @@ export default function InvoiceDetailPage() {
                       setIsPrintDropdownOpen(false);
                       window.print();
                     }}
-                    className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
+                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
                   >
                     <span>🧾</span>
                     <span>Thermal Printer (3 inch)</span>
@@ -758,7 +758,7 @@ export default function InvoiceDetailPage() {
                   setIsMoreMenuOpen(false);
                 }}
                 disabled={isGeneratingPdf}
-                className="px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                className="h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 text-[13px] font-medium rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                 title="Download PDF Document"
               >
                 <svg className="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -777,7 +777,7 @@ export default function InvoiceDetailPage() {
                       setIsDownloadDropdownOpen(false);
                       handleDownloadPdf();
                     }}
-                    className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
+                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
                   >
                     <span>📄</span>
                     <span>Regular A4 Tax PDF</span>
@@ -787,7 +787,7 @@ export default function InvoiceDetailPage() {
                       setIsDownloadDropdownOpen(false);
                       handleDownloadPdf();
                     }}
-                    className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
+                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
                   >
                     <span>🧾</span>
                     <span>Thermal Slip (80mm)</span>
@@ -807,10 +807,10 @@ export default function InvoiceDetailPage() {
                   setIsPrintDropdownOpen(false);
                   setIsMoreMenuOpen(false);
                 }}
-                className="px-3 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                className="h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 text-[13px] font-medium rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                 title="Share Invoice"
               >
-                <svg className="w-3.5 h-3.5 text-[#26A58A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-3.5 h-3.5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                 </svg>
                 <span>{lang === "gu" ? "શેર કરો" : "Share"}</span>
@@ -843,7 +843,7 @@ export default function InvoiceDetailPage() {
                       navigator.clipboard.writeText(window.location.href);
                       setActionSuccess("Invoice link copied to clipboard!");
                     }}
-                    className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
+                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
                   >
                     <span>🔗</span>
                     <span>Copy Invoice Link</span>
@@ -854,7 +854,7 @@ export default function InvoiceDetailPage() {
                       setEmailShareTo(invoice.party?.email || "");
                       setEmailShareOpen(true);
                     }}
-                    className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 border-t border-slate-100 cursor-pointer"
+                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 border-t border-slate-100 cursor-pointer"
                   >
                     <span>✉️</span>
                     <span>Email Invoice</span>
@@ -868,7 +868,7 @@ export default function InvoiceDetailPage() {
               <button
                 onClick={() => handleIssueInvoice(false)}
                 disabled={isIssuing}
-                className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 {isIssuing && (
                   <svg className="animate-spin h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none">
@@ -891,7 +891,7 @@ export default function InvoiceDetailPage() {
                   setPaymentError(null);
                   setIsPaymentModalOpen(true);
                 }}
-                className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <span>💳</span>
                 <span>{lang === "gu" ? "ચુકવણી નોંધો" : "Record Payment In"}</span>
@@ -909,7 +909,7 @@ export default function InvoiceDetailPage() {
                   setIsDownloadDropdownOpen(false);
                   setIsPrintDropdownOpen(false);
                 }}
-                className="p-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-2xs"
+                className="p-2 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 rounded-xl text-[13px] font-medium transition-colors cursor-pointer shadow-2xs"
                 title="More Actions"
               >
                 •••
@@ -926,7 +926,7 @@ export default function InvoiceDetailPage() {
                       setIsMoreMenuOpen(false);
                       setIsProfitModalOpen(true);
                     }}
-                    className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer font-medium"
+                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer font-medium"
                   >
                     <span>💼</span>
                     <span>{lang === "gu" ? "નફો વિગતો" : "Profit Details"}</span>
@@ -936,7 +936,7 @@ export default function InvoiceDetailPage() {
                   {invoice.status !== "CANCELLED" && (
                     <Link
                       href={`/sales/invoices/${invoice.id}/edit`}
-                      className="px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 font-medium"
+                      className="h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 font-medium"
                     >
                       <span>✏️</span>
                       <span>{lang === "gu" ? "બિલમાં ફેરફાર કરો" : "Edit Invoice"}</span>
@@ -951,7 +951,7 @@ export default function InvoiceDetailPage() {
                           setIsMoreMenuOpen(false);
                           setViewEwbSlipNumber(invoice.eWayBillRecord!.ewbNumber);
                         }}
-                        className="w-full text-left px-3.5 py-2 hover:bg-sky-50 flex items-center gap-2 text-sky-800 font-medium cursor-pointer"
+                        className="w-full text-left h-9 px-3 hover:bg-sky-50 flex items-center gap-2 text-sky-800 font-medium cursor-pointer"
                       >
                         <span>🚚</span>
                         <span>View EWB Slip ({invoice.eWayBillRecord.ewbNumber})</span>
@@ -972,7 +972,7 @@ export default function InvoiceDetailPage() {
                           });
                           setIsEwbModalOpen(true);
                         }}
-                        className="w-full text-left px-3.5 py-2 hover:bg-sky-50 flex items-center gap-2 text-sky-800 font-medium cursor-pointer"
+                        className="w-full text-left h-9 px-3 hover:bg-sky-50 flex items-center gap-2 text-sky-800 font-medium cursor-pointer"
                       >
                         <span>🚚</span>
                         <span>{lang === "gu" ? "જનરેટ ઈ-વે બિલ" : "Generate E-way Bill"}</span>
@@ -987,7 +987,7 @@ export default function InvoiceDetailPage() {
                         setIsMoreMenuOpen(false);
                         alert(lang === "gu" ? "આ ઇન્વોઇસ માટે e-Invoice IRN સફળતાપૂર્વક જોડી દેવામાં આવ્યું છે." : "e-Invoice IRN successfully validated under Rule 48(4).");
                       }}
-                      className="w-full text-left px-3.5 py-2 hover:bg-blue-50 flex items-center gap-2 text-blue-800 font-medium cursor-pointer"
+                      className="w-full text-left h-9 px-3 hover:bg-blue-50 flex items-center gap-2 text-blue-800 font-medium cursor-pointer"
                     >
                       <span>🏛️</span>
                       <span>{lang === "gu" ? "જનરેટ e-Invoice" : "Generate e-Invoice"}</span>
@@ -998,7 +998,7 @@ export default function InvoiceDetailPage() {
                   {!["CANCELLED", "DRAFT"].includes(invoice.status) && (
                     <Link
                       href={`/sales/returns?invoiceId=${invoice.id}`}
-                      className="px-3.5 py-2 hover:bg-amber-50 flex items-center gap-2 text-amber-800 font-medium"
+                      className="h-9 px-3 hover:bg-amber-50 flex items-center gap-2 text-amber-800 font-medium"
                     >
                       <span>↩</span>
                       <span>{lang === "gu" ? "ક્રેડિટ નોટ બનાવો" : "Create Credit Note"}</span>
@@ -1014,7 +1014,7 @@ export default function InvoiceDetailPage() {
                         setCancelError(null);
                         setIsCancelModalOpen(true);
                       }}
-                      className="w-full text-left px-3.5 py-2 hover:bg-rose-50 flex items-center gap-2 text-rose-600 font-medium border-t border-slate-100 cursor-pointer"
+                      className="w-full text-left h-9 px-3 hover:bg-rose-50 flex items-center gap-2 text-rose-600 font-medium border-t border-slate-100 cursor-pointer"
                     >
                       <span>✕</span>
                       <span>{lang === "gu" ? "બિલ રદ કરો" : "Cancel Invoice"}</span>
@@ -1036,7 +1036,7 @@ export default function InvoiceDetailPage() {
           </div>
           <button
             onClick={() => setActionError(null)}
-            className="text-rose-500 hover:text-rose-700 font-bold px-2 py-0.5 rounded cursor-pointer"
+            className="text-rose-500 hover:text-rose-700 font-medium px-2 py-0.5 rounded cursor-pointer"
           >
             ✕
           </button>
@@ -1051,7 +1051,7 @@ export default function InvoiceDetailPage() {
           </div>
           <button
             onClick={() => setActionSuccess(null)}
-            className="text-emerald-500 hover:text-emerald-700 font-bold px-2 py-0.5 rounded cursor-pointer"
+            className="text-emerald-500 hover:text-emerald-700 font-medium px-2 py-0.5 rounded cursor-pointer"
           >
             ✕
           </button>
@@ -1096,12 +1096,12 @@ export default function InvoiceDetailPage() {
             value={emailShareTo}
             onChange={(e) => setEmailShareTo(e.target.value)}
             placeholder="customer@email.com"
-            className="flex-1 px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-[#26A58A]"
+            className="flex-1 px-3 py-2 text-[13px] border border-slate-200 rounded-lg focus:outline-none focus:border-[#1677E8] h-10"
           />
-          <button type="submit" disabled={emailShareBusy} className="px-4 py-2 text-xs font-bold text-white bg-[#174B43] hover:bg-[#123B35] rounded-lg disabled:opacity-60 transition-colors cursor-pointer">
+          <button type="submit" disabled={emailShareBusy} className="h-9 px-3 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] rounded-lg disabled:opacity-60 transition-colors cursor-pointer">
             {emailShareBusy ? "Sending..." : "Send Email"}
           </button>
-          <button type="button" onClick={() => setEmailShareOpen(false)} className="px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer">
+          <button type="button" onClick={() => setEmailShareOpen(false)} className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:text-slate-900 cursor-pointer">
             Cancel
           </button>
         </form>
@@ -1132,14 +1132,14 @@ export default function InvoiceDetailPage() {
               {/* Drawer Header */}
               <div className="px-5 py-4 border-b border-slate-100 bg-[#F6F8F7] flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-[#174B43]/10 text-[#174B43] flex items-center justify-center font-bold text-sm">
+                  <div className="w-8 h-8 rounded-xl bg-[#0F172A]/10 text-[#0F172A] flex items-center justify-center font-bold text-sm">
                     📋
                   </div>
                   <div>
-                    <h3 id="payment-drawer-title" className="font-bold text-slate-900 text-sm">
+                    <h3 id="payment-drawer-title" className="font-semibold text-slate-900 text-[15px]">
                       {lang === "gu" ? "ચુકવણી ઇતિહાસ" : "Payment History"}
                     </h3>
-                    <p className="text-[11px] text-slate-500 font-mono">
+                    <p className="text-[11px] text-slate-500 tabular-nums">
                       Invoice #{invoice.invoiceNumber}
                     </p>
                   </div>
@@ -1161,25 +1161,25 @@ export default function InvoiceDetailPage() {
                 <div className="bg-[#F6F8F7] rounded-xl p-4 border border-slate-200 space-y-2.5 text-xs">
                   <div className="flex justify-between items-center text-slate-600">
                     <span>{lang === "gu" ? "ઇન્વોઇસ રકમ" : "Invoice Amount"}</span>
-                    <span className="font-mono font-bold text-slate-900 text-sm">
+                    <span className="tabular-nums font-bold text-slate-900 text-sm">
                       ₹{Number(invoice.grandTotal).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-slate-600">
                     <span>{lang === "gu" ? "શરૂઆતમાં મળેલ રકમ" : "Initial Amount Received"}</span>
-                    <span className="font-mono font-medium text-slate-700">
+                    <span className="tabular-nums font-medium text-slate-700">
                       ₹{initialReceived.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-slate-600">
                     <span>{lang === "gu" ? "કુલ મળેલી રકમ" : "Total Amount Received"}</span>
-                    <span className="font-mono font-bold text-emerald-700">
+                    <span className="tabular-nums font-bold text-emerald-700">
                       ₹{Number(invoice.paidAmount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                   <div className="pt-2.5 border-t border-slate-200 flex justify-between items-center">
                     <span className="font-bold text-slate-800">{lang === "gu" ? "બાકી રકમ" : "Outstanding Balance"}</span>
-                    <span className={`font-mono text-base font-extrabold ${bal > 0 ? "text-rose-600" : "text-emerald-700"}`}>
+                    <span className={`tabular-nums text-base font-semibold ${bal > 0 ? "text-rose-600" : "text-emerald-700"}`}>
                       ₹{Number(bal).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                     </span>
                   </div>
@@ -1189,7 +1189,7 @@ export default function InvoiceDetailPage() {
                 <div>
                   <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center justify-between">
                     <span>{lang === "gu" ? "ચુકવણીઓ" : "Payment Records"}</span>
-                    <span className="text-[11px] font-mono px-2 py-0.5 bg-slate-100 text-slate-700 rounded-full font-semibold">
+                    <span className="text-[11px] tabular-nums px-2 py-0.5 bg-slate-100 text-slate-700 rounded-full font-semibold">
                       {allocations.length || (invoice.paidAmount > 0 ? 1 : 0)}
                     </span>
                   </div>
@@ -1197,12 +1197,12 @@ export default function InvoiceDetailPage() {
                   {allocations.length > 0 ? (
                     <div className="space-y-2.5">
                       {allocations.map((a, i) => (
-                        <div key={i} className="p-3.5 bg-white border border-slate-200 rounded-xl space-y-1.5 shadow-2xs hover:border-[#26A58A]/50 transition-colors">
+                        <div key={i} className="p-3.5 bg-white border border-slate-200 rounded-xl space-y-1.5 shadow-2xs hover:border-[#1677E8]/50 transition-colors">
                           <div className="flex justify-between items-center">
-                            <span className="font-bold text-[#174B43] text-xs">
+                            <span className="font-bold text-[#0F172A] text-xs">
                               Payment In #{i + 1}
                             </span>
-                            <span className="font-mono font-bold text-emerald-700 text-sm">
+                            <span className="tabular-nums font-bold text-emerald-700 text-sm">
                               +₹{Number(a.allocatedAmount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                             </span>
                           </div>
@@ -1218,10 +1218,10 @@ export default function InvoiceDetailPage() {
                   ) : invoice.paidAmount > 0 ? (
                     <div className="p-3.5 bg-white border border-slate-200 rounded-xl space-y-1.5 shadow-2xs">
                       <div className="flex justify-between items-center">
-                        <span className="font-bold text-[#174B43] text-xs">
+                        <span className="font-bold text-[#0F172A] text-xs">
                           Payment In #1 (At Billing)
                         </span>
-                        <span className="font-mono font-bold text-emerald-700 text-sm">
+                        <span className="tabular-nums font-bold text-emerald-700 text-sm">
                           +₹{Number(invoice.paidAmount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                         </span>
                       </div>
@@ -1250,7 +1250,7 @@ export default function InvoiceDetailPage() {
                       setPaymentError(null);
                       setIsPaymentModalOpen(true);
                     }}
-                    className="w-full py-2.5 px-4 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full py-2.5 px-4 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <span>💳</span>
                     <span>{lang === "gu" ? "ચુકવણી નોંધો (Record Payment In)" : "Record Payment In"}</span>
@@ -1266,7 +1266,7 @@ export default function InvoiceDetailPage() {
       {returns.length > 0 && (
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3 print:hidden">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+            <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wider">
               {lang === "gu" ? "વેચાણ પરત ઇતિહાસ (Credit Notes)" : "Issued Credit Notes / Sales Returns"}
             </h3>
             <Link
@@ -1292,19 +1292,19 @@ export default function InvoiceDetailPage() {
               <tbody className="divide-y divide-slate-100">
                 {returns.map((ret: any) => (
                   <tr key={ret.id} className="hover:bg-slate-50/50">
-                    <td className="py-2 px-3 font-mono font-semibold text-blue-600">
+                    <td className="py-2 px-3 tabular-nums font-semibold text-blue-600">
                       {ret.returnNumber}
                     </td>
-                    <td className="py-2 px-3 font-mono">
+                    <td className="py-2 px-3 tabular-nums">
                       {new Date(ret.returnDate).toLocaleDateString("en-IN")}
                     </td>
                     <td className="py-2 px-3 text-slate-600">
                       {ret.reason || "-"}
                     </td>
-                    <td className="py-2 px-3 text-right font-mono text-slate-700">
+                    <td className="py-2 px-3 text-right tabular-nums text-slate-700">
                       ₹{Number(ret.taxableAmount).toFixed(2)}
                     </td>
-                    <td className="py-2 px-3 text-right font-mono font-bold text-slate-900">
+                    <td className="py-2 px-3 text-right tabular-nums font-medium text-slate-900">
                       ₹{Number(ret.grandTotal).toFixed(2)}
                     </td>
                     <td className="py-2 px-3 text-center">
@@ -1368,25 +1368,25 @@ export default function InvoiceDetailPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
                     <p className="text-[10px] uppercase font-bold text-slate-500">Total Revenue</p>
-                    <p className="text-sm sm:text-base font-mono font-bold text-slate-900 mt-0.5">
+                    <p className="text-sm sm:text-base tabular-nums font-bold text-slate-900 mt-0.5">
                       ₹{totalTaxable.toFixed(2)}
                     </p>
                   </div>
                   <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
                     <p className="text-[10px] uppercase font-bold text-slate-500">Est. Cost</p>
-                    <p className="text-sm sm:text-base font-mono font-bold text-slate-700 mt-0.5">
+                    <p className="text-sm sm:text-base tabular-nums font-bold text-slate-700 mt-0.5">
                       ₹{totalCost.toFixed(2)}
                     </p>
                   </div>
                   <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
                     <p className="text-[10px] uppercase font-bold text-emerald-700">Gross Profit</p>
-                    <p className="text-sm sm:text-base font-mono font-bold text-emerald-800 mt-0.5">
+                    <p className="text-sm sm:text-base tabular-nums font-bold text-emerald-800 mt-0.5">
                       ₹{totalProfit.toFixed(2)}
                     </p>
                   </div>
                   <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-xl">
                     <p className="text-[10px] uppercase font-bold text-indigo-700">Margin (%)</p>
-                    <p className="text-sm sm:text-base font-mono font-bold text-indigo-800 mt-0.5">
+                    <p className="text-sm sm:text-base tabular-nums font-bold text-indigo-800 mt-0.5">
                       {overallMargin.toFixed(1)}%
                     </p>
                   </div>
@@ -1408,11 +1408,11 @@ export default function InvoiceDetailPage() {
                       {itemsWithProfit.map((it, idx) => (
                         <tr key={idx} className="hover:bg-slate-50/50">
                           <td className="py-2 px-3 font-medium text-slate-800">{it.name}</td>
-                          <td className="py-2 px-3 text-right font-mono">{it.qty}</td>
-                          <td className="py-2 px-3 text-right font-mono text-slate-700">₹{Number(it.sellingRate || 0).toFixed(2)}</td>
-                          <td className="py-2 px-3 text-right font-mono text-slate-500">₹{Number(it.purchaseRate || 0).toFixed(2)}</td>
-                          <td className="py-2 px-3 text-right font-mono font-bold text-emerald-700">₹{Number(it.itemProfit || 0).toFixed(2)}</td>
-                          <td className="py-2 px-3 text-right font-mono text-indigo-700 font-semibold">{Number(it.margin || 0).toFixed(1)}%</td>
+                          <td className="py-2 px-3 text-right tabular-nums">{it.qty}</td>
+                          <td className="py-2 px-3 text-right tabular-nums text-slate-700">₹{Number(it.sellingRate || 0).toFixed(2)}</td>
+                          <td className="py-2 px-3 text-right tabular-nums text-slate-500">₹{Number(it.purchaseRate || 0).toFixed(2)}</td>
+                          <td className="py-2 px-3 text-right tabular-nums font-medium text-emerald-700">₹{Number(it.itemProfit || 0).toFixed(2)}</td>
+                          <td className="py-2 px-3 text-right tabular-nums text-indigo-700 font-semibold">{Number(it.margin || 0).toFixed(1)}%</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1423,7 +1423,7 @@ export default function InvoiceDetailPage() {
                   <button
                     type="button"
                     onClick={() => setIsProfitModalOpen(false)}
-                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+                    className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[13px] font-medium rounded-xl transition-colors cursor-pointer"
                   >
                     Close
                   </button>
@@ -1450,7 +1450,7 @@ export default function InvoiceDetailPage() {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               Payment Amount (₹) *
             </label>
             <input
@@ -1464,7 +1464,7 @@ export default function InvoiceDetailPage() {
                   e.target.value === "" ? "" : Number(e.target.value),
                 )
               }
-              className="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded font-mono font-bold text-slate-900 focus:bg-white"
+              className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded tabular-nums font-normal text-slate-900 focus:bg-white h-10"
             />
             <p className="text-[11px] text-slate-500 mt-1">
               Outstanding Balance: ₹
@@ -1473,13 +1473,13 @@ export default function InvoiceDetailPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               Payment Mode *
             </label>
             <select
               value={paymentMode}
               onChange={(e) => setPaymentMode(e.target.value)}
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
+              className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white h-10"
             >
               <option value="CASH">{lang === "gu" ? "રોકડ (CASH)" : "CASH"}</option>
               <option value="BANK_TRANSFER">{lang === "gu" ? "બેંક ખાતું (BANK TRANSFER)" : "BANK TRANSFER"}</option>
@@ -1489,7 +1489,7 @@ export default function InvoiceDetailPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               Reference / Transaction ID
             </label>
             <input
@@ -1497,7 +1497,7 @@ export default function InvoiceDetailPage() {
               value={paymentRef}
               onChange={(e) => setPaymentRef(e.target.value)}
               placeholder="e.g. UTR-9821892"
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono focus:bg-white"
+              className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums focus:bg-white h-10"
             />
           </div>
 
@@ -1505,14 +1505,14 @@ export default function InvoiceDetailPage() {
             <button
               type="button"
               onClick={() => setIsPaymentModalOpen(false)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmittingPayment}
-              className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 rounded-lg shadow-sm"
+              className="h-9 px-3.5 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] disabled:opacity-50 rounded-lg shadow-sm"
             >
               {isSubmittingPayment ? "Recording..." : "Record Payment"}
             </button>
@@ -1541,7 +1541,7 @@ export default function InvoiceDetailPage() {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               Cancellation Reason *
             </label>
             <textarea
@@ -1550,7 +1550,7 @@ export default function InvoiceDetailPage() {
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               placeholder="e.g. Order cancelled by customer before dispatch"
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
+              className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
             />
           </div>
 
@@ -1558,14 +1558,14 @@ export default function InvoiceDetailPage() {
             <button
               type="button"
               onClick={() => setIsCancelModalOpen(false)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
             >
               Keep Invoice
             </button>
             <button
               type="submit"
               disabled={isCancelling}
-              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm"
+              className="h-9 px-3.5 text-[13px] font-medium text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm"
             >
               {isCancelling ? "Cancelling..." : "Confirm Cancellation"}
             </button>
@@ -1582,7 +1582,7 @@ export default function InvoiceDetailPage() {
         maxWidth="md"
       >
         <div className="space-y-4">
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900 font-mono">
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900 tabular-nums">
             {stockConfirmPrompt}
           </div>
           <p className="text-xs text-slate-600 leading-relaxed">
@@ -1594,7 +1594,7 @@ export default function InvoiceDetailPage() {
             <button
               type="button"
               onClick={() => setStockConfirmPrompt(null)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
             >
               {lang === "gu" ? "રદ કરો (Cancel)" : "Cancel"}
             </button>
@@ -1602,7 +1602,7 @@ export default function InvoiceDetailPage() {
               type="button"
               onClick={() => handleIssueInvoice(true)}
               disabled={isIssuing}
-              className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 rounded-lg shadow-sm flex items-center gap-1.5"
+              className="h-9 px-3.5 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] disabled:opacity-50 rounded-lg shadow-sm flex items-center gap-1.5"
             >
               {isIssuing && (
                 <svg className="animate-spin h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none">
@@ -1636,7 +1636,7 @@ export default function InvoiceDetailPage() {
             <button
               type="button"
               onClick={() => setIsEwbModalOpen(false)}
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors ml-auto"
+              className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[13px] font-medium transition-colors ml-auto"
             >
               {lang === "gu" ? "બંધ કરો" : "Close"}
             </button>
@@ -1648,14 +1648,14 @@ export default function InvoiceDetailPage() {
           {invoice && (
             <div className="bg-gradient-to-r from-orange-50/80 via-amber-50/40 to-slate-50 border border-orange-200/80 rounded-xl p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-orange-100 text-[#174B43] flex items-center justify-center shrink-0 shadow-xs">
+                <div className="w-10 h-10 rounded-xl bg-orange-100 text-[#0F172A] flex items-center justify-center shrink-0 shadow-xs">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-slate-900 font-mono text-sm">
+                    <span className="font-bold text-slate-900 tabular-nums text-sm">
                       {invoice.invoiceNumber}
                     </span>
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-100 text-orange-800 uppercase tracking-wide">
@@ -1671,14 +1671,14 @@ export default function InvoiceDetailPage() {
                   </div>
                   <p className="text-slate-600 text-[11px] mt-0.5 truncate max-w-sm">
                     Customer: <strong className="text-slate-800">{invoice.party?.name || "Direct Cash"}</strong>
-                    {invoice.party?.gstin && <span className="font-mono ml-1 text-slate-500">({invoice.party.gstin})</span>}
+                    {invoice.party?.gstin && <span className="tabular-nums ml-1 text-slate-500">({invoice.party.gstin})</span>}
                   </p>
                 </div>
               </div>
 
               <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 sm:border-l border-orange-200/60 pt-2 sm:pt-0 sm:pl-4 shrink-0">
                 <span className="text-[10px] uppercase font-semibold text-slate-500 tracking-wider">Invoice Value</span>
-                <span className="text-sm sm:text-base font-bold text-slate-900 font-mono">
+                <span className="text-sm sm:text-base font-bold text-slate-900 tabular-nums">
                   ₹{(invoice.grandTotal || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                 </span>
               </div>
@@ -1696,7 +1696,7 @@ export default function InvoiceDetailPage() {
               <button
                 type="button"
                 onClick={() => setEwbError(null)}
-                className="text-rose-500 hover:text-rose-700 text-xs font-bold px-1.5 py-0.5"
+                className="text-rose-500 hover:text-rose-700 text-[13px] font-medium px-1.5 py-0.5"
               >
                 ✕
               </button>
@@ -1715,11 +1715,11 @@ export default function InvoiceDetailPage() {
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wider mb-1">
                   ✓ Statutory EWB Recorded
                 </span>
-                <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                <h3 className="text-[15px] sm:text-[15px] font-semibold text-slate-900">
                   {lang === "gu" ? "E-Way Bill સફળતાપૂર્વક જનરેટ / રેકોર્ડ થયેલ છે!" : "E-Way Bill Successfully Recorded!"}
                 </h3>
                 <p className="text-xs text-slate-600 mt-1">
-                  Invoice <strong className="font-mono text-slate-800">{invoice?.invoiceNumber}</strong> is now compliant under Rule 138.
+                  Invoice <strong className="tabular-nums text-slate-800">{invoice?.invoiceNumber}</strong> is now compliant under Rule 138.
                 </p>
               </div>
 
@@ -1728,7 +1728,7 @@ export default function InvoiceDetailPage() {
                   Official Form GST EWB-01 Number
                 </div>
                 <div className="flex items-center justify-center gap-2">
-                  <span className="text-2xl font-mono font-black text-slate-900 tracking-widest">
+                  <span className="text-2xl tabular-nums font-semibold text-slate-900 tracking-widest">
                     {ewbSuccessResult.ewbNumber}
                   </span>
                   <button
@@ -1774,7 +1774,7 @@ export default function InvoiceDetailPage() {
                     setIsEwbModalOpen(false);
                     setViewEwbSlipNumber(num);
                   }}
-                  className="px-5 py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold shadow-sm hover:shadow transition-all flex items-center gap-2"
+                  className="h-9 px-3.5 bg-slate-900 hover:bg-black text-white rounded-xl text-[13px] font-medium shadow-sm hover:shadow transition-all flex items-center gap-2"
                 >
                   <svg className="w-4 h-4 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -1784,7 +1784,7 @@ export default function InvoiceDetailPage() {
                 <button
                   type="button"
                   onClick={() => setIsEwbModalOpen(false)}
-                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors"
+                  className="h-9 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[13px] font-medium transition-colors"
                 >
                   {lang === "gu" ? "બંધ કરો" : "Done / Close"}
                 </button>
@@ -1873,7 +1873,7 @@ export default function InvoiceDetailPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      <label className="block text-[12px] font-medium text-slate-700 mb-1">
                         Vehicle Number <span className="text-rose-500">*</span>
                       </label>
                       <input
@@ -1882,7 +1882,7 @@ export default function InvoiceDetailPage() {
                         value={ewbForm.vehicleNumber}
                         onChange={(e) => setEwbForm({ ...ewbForm, vehicleNumber: e.target.value.toUpperCase() })}
                         placeholder="GJ01AB1234"
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-medium uppercase tracking-wider focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:normal-case placeholder:tracking-normal placeholder:font-sans placeholder:text-slate-400"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-[13px] tabular-nums font-medium uppercase tracking-wider focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:normal-case placeholder:tracking-normal placeholder:font-sans placeholder:text-slate-400 h-10"
                       />
                       <span className="text-[10px] text-slate-500 block mt-1">
                         Format: State + RTO + Series (e.g. GJ01AB1234)
@@ -1890,7 +1890,7 @@ export default function InvoiceDetailPage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      <label className="block text-[12px] font-medium text-slate-700 mb-1">
                         Approx Distance (KM) <span className="text-rose-500">*</span>
                       </label>
                       <div className="relative">
@@ -1900,7 +1900,7 @@ export default function InvoiceDetailPage() {
                           required
                           value={ewbForm.distanceKm}
                           onChange={(e) => setEwbForm({ ...ewbForm, distanceKm: parseInt(e.target.value) || 0 })}
-                          className="w-full px-3 py-2 pr-12 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                          className="w-full px-3 py-2 pr-12 bg-slate-50 border border-slate-300 rounded-xl text-[13px] tabular-nums font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all h-10"
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400 pointer-events-none">
                           KM
@@ -1914,7 +1914,7 @@ export default function InvoiceDetailPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      <label className="block text-[12px] font-medium text-slate-700 mb-1">
                         Transporter ID (GSTIN / TRANSIN)
                       </label>
                       <input
@@ -1922,7 +1922,7 @@ export default function InvoiceDetailPage() {
                         value={ewbForm.transporterId}
                         onChange={(e) => setEwbForm({ ...ewbForm, transporterId: e.target.value.toUpperCase() })}
                         placeholder="24AABCT1234F1Z0"
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono uppercase tracking-wide focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:font-sans placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-400"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-[13px] tabular-nums uppercase tracking-wide focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:font-sans placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-400 h-10"
                       />
                       <span className="text-[10px] text-slate-500 block mt-1">
                         Required if goods handed over to a transporter
@@ -1930,7 +1930,7 @@ export default function InvoiceDetailPage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      <label className="block text-[12px] font-medium text-slate-700 mb-1">
                         Transporter Name
                       </label>
                       <input
@@ -1938,7 +1938,7 @@ export default function InvoiceDetailPage() {
                         value={ewbForm.transporterName}
                         onChange={(e) => setEwbForm({ ...ewbForm, transporterName: e.target.value })}
                         placeholder="e.g. Gujarat Express Logistics"
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-400"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-[13px] focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-400 h-10"
                       />
                       <span className="text-[10px] text-slate-500 block mt-1">
                         Registered transport agency or logistics fleet
@@ -1950,7 +1950,7 @@ export default function InvoiceDetailPage() {
                     <button
                       type="submit"
                       disabled={isSubmittingEwb}
-                      className="w-full py-3 px-4 bg-gradient-to-r from-orange-500 to-[#174B43] hover:from-orange-600 hover:to-[#123B35] text-white rounded-xl text-xs font-bold shadow-md shadow-orange-500/20 hover:shadow-lg hover:shadow-orange-500/30 active:scale-[0.99] transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
+                      className="w-full py-3 px-4 bg-gradient-to-r from-orange-500 to-[#0F172A] hover:from-orange-600 hover:to-[#123B35] text-white rounded-xl text-[13px] font-medium shadow-md shadow-orange-500/20 hover:shadow-lg hover:shadow-orange-500/30 active:scale-[0.99] transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
                     >
                       {isSubmittingEwb ? (
                         <>
@@ -2020,10 +2020,10 @@ export default function InvoiceDetailPage() {
 
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <label className="block text-xs font-semibold text-slate-700">
+                      <label className="block text-[12px] font-medium text-slate-700">
                         12-Digit E-Way Bill Number <span className="text-rose-500">*</span>
                       </label>
-                      <span className={`text-[10px] font-mono font-semibold ${linkEwbNumber.length === 12 ? "text-emerald-600" : "text-slate-400"}`}>
+                      <span className={`text-[10px] tabular-nums font-semibold ${linkEwbNumber.length === 12 ? "text-emerald-600" : "text-slate-400"}`}>
                         {linkEwbNumber.length === 12 ? "✓ 12/12 digits" : `${linkEwbNumber.length} / 12 digits`}
                       </span>
                     </div>
@@ -2034,13 +2034,13 @@ export default function InvoiceDetailPage() {
                       value={linkEwbNumber}
                       onChange={(e) => setLinkEwbNumber(e.target.value.replace(/\D/g, ""))}
                       placeholder="e.g. 241088219920"
-                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-base font-mono font-bold tracking-widest text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400"
+                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-[13px] tabular-nums font-normal tracking-widest text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400 h-10"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      <label className="block text-[12px] font-medium text-slate-700 mb-1">
                         Vehicle Number
                       </label>
                       <input
@@ -2048,11 +2048,11 @@ export default function InvoiceDetailPage() {
                         value={ewbForm.vehicleNumber}
                         onChange={(e) => setEwbForm({ ...ewbForm, vehicleNumber: e.target.value.toUpperCase() })}
                         placeholder="GJ01AB1234"
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono uppercase tracking-wide focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:font-sans placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-400"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-[13px] tabular-nums uppercase tracking-wide focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:font-sans placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-400 h-10"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      <label className="block text-[12px] font-medium text-slate-700 mb-1">
                         Approx Distance (KM)
                       </label>
                       <div className="relative">
@@ -2061,7 +2061,7 @@ export default function InvoiceDetailPage() {
                           min="1"
                           value={ewbForm.distanceKm}
                           onChange={(e) => setEwbForm({ ...ewbForm, distanceKm: parseInt(e.target.value) || 0 })}
-                          className="w-full px-3 py-2 pr-12 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                          className="w-full px-3 py-2 pr-12 bg-slate-50 border border-slate-300 rounded-xl text-[13px] tabular-nums focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all h-10"
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400 pointer-events-none">
                           KM
@@ -2074,7 +2074,7 @@ export default function InvoiceDetailPage() {
                     <button
                       type="submit"
                       disabled={isSubmittingEwb || linkEwbNumber.length !== 12}
-                      className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 hover:shadow-lg hover:shadow-indigo-600/30 active:scale-[0.99] transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
+                      className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[13px] font-medium shadow-md shadow-indigo-600/20 hover:shadow-lg hover:shadow-indigo-600/30 active:scale-[0.99] transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
                     >
                       {isSubmittingEwb ? (
                         <>

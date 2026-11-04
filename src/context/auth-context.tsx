@@ -852,7 +852,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             <div className="text-[11px] font-bold uppercase tracking-wider text-[#C24E1D]">
               {lang === "gu" ? "સબ્સ્ક્રિપ્શન" : "Subscription"}
             </div>
-            <h2 className="mt-1 text-lg font-bold text-slate-900">
+            <h2 className="mt-1 text-[15px] font-semibold text-[#182230]">
               {lang === "gu" ? "લાઇસન્સ પૂરું થયું" : "Licence has ended"}
             </h2>
             <p className="mt-2 text-sm text-slate-600">
@@ -887,14 +887,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             <div className="mt-5 flex gap-2">
               <a
                 href="/settings/pricing"
-                className="flex-1 h-10 rounded-xl bg-[#C24E1D] text-white text-sm font-semibold inline-flex items-center justify-center"
+                className="flex-1 h-10 rounded-xl bg-[#C24E1D] text-white text-[13px] font-medium inline-flex items-center justify-center"
               >
                 {lang === "gu" ? "પ્લાન જુઓ" : "View plans"}
               </a>
               <button
                 type="button"
                 onClick={dismissSubscriptionNotice}
-                className="flex-1 h-10 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700"
+                className="flex-1 h-10 rounded-xl border border-slate-200 text-[13px] font-medium text-slate-700"
               >
                 {lang === "gu" ? "પછી" : "Later"}
               </button>

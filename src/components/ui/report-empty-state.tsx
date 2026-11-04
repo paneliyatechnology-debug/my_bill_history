@@ -38,7 +38,7 @@ export function ReportEmptyState({
   return (
     <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-xs p-6 sm:p-10 text-center my-4 max-w-lg mx-auto w-full transition-all">
       {/* Forest Teal & Jade Icon Circle */}
-      <div className="w-14 h-14 rounded-full bg-[#E6F7F2] border border-[#85D5C2] flex items-center justify-center text-[#26A58A] mx-auto text-2xl shadow-inner mb-4">
+      <div className="w-14 h-14 rounded-full bg-[#EFF6FF] border border-[#93C5FD] flex items-center justify-center text-[#1677E8] mx-auto text-2xl shadow-inner mb-4">
         {icon || (
           <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
@@ -52,7 +52,7 @@ export function ReportEmptyState({
       </div>
 
       {/* Heading */}
-      <h3 className="text-base sm:text-lg font-bold text-[#1A2E2B] tracking-tight">
+      <h3 className="text-[15px] sm:text-[15px] font-semibold text-[#182230] tracking-tight">
         {isGu ? titleGu : title}
       </h3>
 
@@ -68,7 +68,7 @@ export function ReportEmptyState({
             (primaryAction.href ? (
               <Link
                 href={primaryAction.href}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#26A58A] hover:bg-[#208E76] text-white text-xs font-bold rounded-lg shadow-jade transition-all transform active:scale-98"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-lg shadow-blue-500/20 transition-all transform active:scale-98"
               >
                 <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 4v16m8-8H4" />
@@ -79,7 +79,7 @@ export function ReportEmptyState({
               <button
                 type="button"
                 onClick={primaryAction.onClick}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#26A58A] hover:bg-[#208E76] text-white text-xs font-bold rounded-lg shadow-jade transition-all transform active:scale-98"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-lg shadow-blue-500/20 transition-all transform active:scale-98"
               >
                 <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 4v16m8-8H4" />
@@ -92,7 +92,7 @@ export function ReportEmptyState({
             <button
               type="button"
               onClick={secondaryAction.onClick}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-[#F0F5F4] hover:bg-[#EBF2F0] text-[#174B43] border border-[#BCEADF] text-xs font-semibold rounded-lg transition-colors"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 h-9 px-3 bg-[#F0F5F4] hover:bg-[#F1F5F9] text-[#0F172A] border border-[#BFDBFE] text-[13px] font-medium rounded-lg transition-colors"
             >
               <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />

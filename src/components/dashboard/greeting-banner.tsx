@@ -187,7 +187,7 @@ export function GreetingBanner({
   return (
     <div className="relative z-30 overflow-visible bg-gradient-to-r from-white via-[#FFF9F5] to-[#F0F7FF] border border-[#E5E7EB] rounded-2xl p-3.5 sm:p-5 lg:p-6 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 sm:gap-4">
       {/* Subtle background glow */}
-      <div className="absolute -top-12 -right-12 w-48 h-48 bg-[#174B43]/5 rounded-full blur-2xl pointer-events-none" />
+      <div className="absolute -top-12 -right-12 w-48 h-48 bg-[#0F172A]/5 rounded-full blur-2xl pointer-events-none" />
       <div className="absolute -bottom-10 right-48 w-40 h-40 bg-sky-400/5 rounded-full blur-2xl pointer-events-none" />
 
       {/* Left Greeting & Titles */}
@@ -198,7 +198,7 @@ export function GreetingBanner({
           </span>
           <span className="inline-block animate-wave origin-bottom-right">👋</span>
         </div>
-        <h1 className="text-lg sm:text-2xl lg:text-3xl font-extrabold text-[#111827] tracking-tight">
+        <h1 className="text-lg sm:text-2xl lg:text-3xl font-semibold text-[#111827] tracking-tight">
           {lang === "gu" ? "તમારો વેપાર એક નજરે" : "Your Business at a Glance"}
         </h1>
         <p className="text-xs sm:text-sm text-[#6B7280] max-w-xl">
@@ -222,7 +222,7 @@ export function GreetingBanner({
             {/* Growth Graph Card */}
             <rect x="52" y="26" width="46" height="38" rx="6" fill="url(#chartGrad)" />
             <path d="M58 54 L66 46 L74 50 L88 34" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx="88" cy="34" r="2.5" fill="#174B43" stroke="#FFFFFF" strokeWidth="1" />
+            <circle cx="88" cy="34" r="2.5" fill="#0F172A" stroke="#FFFFFF" strokeWidth="1" />
 
             {/* Golden Coins */}
             <ellipse cx="44" cy="58" rx="10" ry="10" fill="#F59E0B" />
@@ -251,7 +251,7 @@ export function GreetingBanner({
               e.stopPropagation();
               setIsOpen((prev) => !prev);
             }}
-            className="w-full sm:w-auto inline-flex items-center justify-between sm:justify-start gap-2.5 px-3 sm:px-3.5 py-2.5 bg-white hover:bg-slate-50 active:bg-slate-100 border border-[#E5E7EB] hover:border-[#D1D5DB] rounded-xl text-xs sm:text-sm font-semibold text-[#374151] shadow-xs transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 select-none"
+            className="w-full sm:w-auto inline-flex items-center justify-between sm:justify-start gap-2.5 px-3 sm:h-9 px-3.5 bg-white hover:bg-slate-50 active:bg-slate-100 border border-[#E5E7EB] hover:border-[#D1D5DB] rounded-xl text-[13px] font-medium text-[#374151] shadow-xs transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0F172A]/30 select-none"
             title={lang === "gu" ? "તારીખ ફિલ્ટર બદલવા ક્લિક કરો" : "Click to select date range"}
           >
             <div className="flex items-center gap-2 min-w-0 truncate">
@@ -293,12 +293,12 @@ export function GreetingBanner({
                       onClick={() => handleSelectPreset(p.key)}
                       className={`px-2.5 sm:px-3 py-2 text-xs font-semibold rounded-xl text-left transition-colors flex items-center justify-between ${
                         isActive
-                          ? "bg-[#E6F7F2] text-[#174B43] font-bold"
+                          ? "bg-[#EFF6FF] text-[#0F172A] font-bold"
                           : "text-[#374151] hover:bg-slate-50 active:bg-slate-100"
                       }`}
                     >
                       <span className="truncate">{lang === "gu" ? p.gu : p.en}</span>
-                      {isActive && <span className="text-[#174B43] shrink-0">&bull;</span>}
+                      {isActive && <span className="text-[#0F172A] shrink-0">&bull;</span>}
                     </button>
                   );
                 })}
@@ -311,25 +311,25 @@ export function GreetingBanner({
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] text-[#6B7280] font-semibold block mb-0.5">
+                    <label className="text-[10px] text-[#6B7280] font-medium block mb-0.5">
                       {lang === "gu" ? "શરૂઆત" : "From"}
                     </label>
                     <input
                       type="date"
                       value={customStart}
                       onChange={(e) => setCustomStart(e.target.value)}
-                      className="w-full text-xs font-mono p-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg focus:outline-none focus:border-[#174B43]"
+                      className="w-full text-[13px] tabular-nums p-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg focus:outline-none focus:border-[#0F172A] h-10"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-[#6B7280] font-semibold block mb-0.5">
+                    <label className="text-[10px] text-[#6B7280] font-medium block mb-0.5">
                       {lang === "gu" ? "અંત" : "To"}
                     </label>
                     <input
                       type="date"
                       value={customEnd}
                       onChange={(e) => setCustomEnd(e.target.value)}
-                      className="w-full text-xs font-mono p-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg focus:outline-none focus:border-[#174B43]"
+                      className="w-full text-[13px] tabular-nums p-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg focus:outline-none focus:border-[#0F172A] h-10"
                     />
                   </div>
                 </div> 
@@ -338,14 +338,14 @@ export function GreetingBanner({
                   <button
                     type="button"
                     onClick={() => setIsOpen(false)}
-                    className="px-3 py-1.5 text-xs font-semibold text-[#6B7280] hover:text-[#111827] active:bg-slate-100 rounded-lg transition-colors"
+                    className="h-9 px-3 text-[13px] font-medium text-[#6B7280] hover:text-[#111827] active:bg-slate-100 rounded-lg transition-colors"
                   >
                     {lang === "gu" ? "રદ કરો" : "Cancel"}
                   </button>
                   <button
                     type="button"
                     onClick={handleApplyCustom}
-                    className="px-4 py-1.5 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-lg shadow-xs transition-colors active:scale-95"
+                    className="px-4 py-1.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-lg shadow-xs transition-colors active:scale-95"
                   >
                     {lang === "gu" ? "લાગુ કરો" : "Apply"}
                   </button>

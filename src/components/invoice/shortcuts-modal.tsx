@@ -29,7 +29,7 @@ export function ShortcutsModal({ isOpen, onClose }: ShortcutsModalProps) {
           <div className="flex items-center gap-2">
             <span className="text-xl">⌨️</span>
             <div>
-              <h2 className="text-base font-bold text-slate-900">
+              <h2 className="text-[15px] font-semibold text-[#182230]">
                 Keyboard Shortcuts
               </h2>
               <p className="text-xs text-slate-500">
@@ -60,7 +60,7 @@ export function ShortcutsModal({ isOpen, onClose }: ShortcutsModalProps) {
                 {sc.keys.map((k, i) => (
                   <React.Fragment key={i}>
                     {i > 0 && <span className="text-slate-400 text-xs">+</span>}
-                    <kbd className="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-[11px] font-mono font-bold text-slate-800 shadow-2xs">
+                    <kbd className="px-2 py-1 bg-slate-100 border border-slate-300 rounded text-[11px] tabular-nums font-bold text-slate-800 shadow-2xs">
                       {k}
                     </kbd>
                   </React.Fragment>
@@ -73,12 +73,12 @@ export function ShortcutsModal({ isOpen, onClose }: ShortcutsModalProps) {
         {/* Footer */}
         <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
           <span className="text-[11px] text-slate-500">
-            Press <kbd className="font-mono bg-white px-1.5 py-0.5 border rounded text-[10px]">Esc</kbd> anytime to dismiss
+            Press <kbd className="tabular-nums bg-white px-1.5 py-0.5 border rounded text-[10px]">Esc</kbd> anytime to dismiss
           </span>
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors"
+            className="px-5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[13px] font-medium transition-colors"
           >
             Got it
           </button>

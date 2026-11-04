@@ -158,7 +158,7 @@ export default function AutomatedBillingPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-[22px] font-semibold text-[#182230]">
               {lang === "gu" ? "ઓટોમેટેડ બિલિંગ" : "Automated Billing"}
             </h1>
             <span className="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-semibold">
@@ -196,7 +196,7 @@ export default function AutomatedBillingPage() {
 
           <Link
             href="/sales/automated-billing/new"
-            className="inline-flex items-center gap-2 bg-[#174B43] hover:bg-[#123B35] text-white px-4 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition"
+            className="inline-flex items-center gap-2 bg-[#1677E8] hover:bg-[#1268D3] text-white h-9 px-3.5 rounded-xl font-medium text-[13px] shadow-sm transition"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
@@ -323,7 +323,7 @@ export default function AutomatedBillingPage() {
                 setSearchTerm(e.target.value);
                 setPage(1);
               }}
-              className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+              className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-[#1677E8] focus:bg-white h-10"
             />
             <svg
               className="w-4 h-4 text-gray-400 absolute left-3 top-2.5"
@@ -374,7 +374,7 @@ export default function AutomatedBillingPage() {
                 <tr>
                   <td colSpan={8} className="py-12 text-center">
                     <div className="flex flex-col items-center justify-center">
-                      <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-[#174B43] mb-3">
+                      <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-[#0F172A] mb-3">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path
                             strokeLinecap="round"
@@ -384,7 +384,7 @@ export default function AutomatedBillingPage() {
                           />
                         </svg>
                       </div>
-                      <h3 className="text-sm font-bold text-gray-900">
+                      <h3 className="text-[15px] font-semibold text-gray-900">
                         {lang === "gu" ? "કોઈ ઓટોમેટેડ બિલિંગ શિડ્યુલ મળ્યું નથી" : "No Automated Billing Schedules Found"}
                       </h3>
                       <p className="text-xs text-gray-500 max-w-sm mt-1">
@@ -394,7 +394,7 @@ export default function AutomatedBillingPage() {
                       </p>
                       <Link
                         href="/sales/automated-billing/new"
-                        className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold transition"
+                        className="mt-4 inline-flex items-center gap-1.5 h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium transition"
                       >
                         + Create Your First Schedule
                       </Link>
@@ -412,7 +412,7 @@ export default function AutomatedBillingPage() {
                       >
                         {schedule.scheduleName}
                       </Link>
-                      <div className="text-[10px] text-gray-400 font-mono mt-0.5">
+                      <div className="text-[10px] text-gray-400 tabular-nums mt-0.5">
                         ID: {schedule.id.slice(0, 8)}...
                       </div>
                     </td>
@@ -437,7 +437,7 @@ export default function AutomatedBillingPage() {
                     </td>
 
                     {/* Next Run */}
-                    <td className="py-3.5 px-4 font-mono text-gray-800">
+                    <td className="py-3.5 px-4 tabular-nums text-gray-800">
                       {schedule.nextRunAt ? new Date(schedule.nextRunAt).toLocaleDateString() : "—"}
                     </td>
 
@@ -445,7 +445,7 @@ export default function AutomatedBillingPage() {
                     <td className="py-3.5 px-4">
                       {schedule.lastRunAt ? (
                         <div>
-                          <span className="text-gray-700 block font-mono">
+                          <span className="text-gray-700 block tabular-nums">
                             {new Date(schedule.lastRunAt).toLocaleDateString()}
                           </span>
                           <span
@@ -464,7 +464,7 @@ export default function AutomatedBillingPage() {
                     </td>
 
                     {/* Estimated Amount */}
-                    <td className="py-3.5 px-4 text-right font-bold text-gray-900 font-mono">
+                    <td className="py-3.5 px-4 text-right font-medium text-gray-900 tabular-nums">
                       {formatCurrency(schedule.estimatedTotal)}
                     </td>
 
@@ -582,7 +582,7 @@ export default function AutomatedBillingPage() {
               <button
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                className="h-9 px-3 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
               >
                 Next
               </button>
@@ -601,7 +601,7 @@ export default function AutomatedBillingPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
-              <h3 className="text-base font-bold text-gray-900">Stop Automated Schedule?</h3>
+              <h3 className="text-[15px] font-semibold text-gray-900">Stop Automated Schedule?</h3>
             </div>
             <p className="text-xs text-gray-600 leading-relaxed">
               Are you sure you want to stop <strong>&quot;{scheduleToStop.scheduleName}&quot;</strong>?
@@ -611,14 +611,14 @@ export default function AutomatedBillingPage() {
               <button
                 onClick={() => setScheduleToStop(null)}
                 disabled={isStopping}
-                className="px-4 py-2 border border-gray-200 text-gray-700 rounded-xl text-xs font-semibold hover:bg-gray-50 transition"
+                className="h-9 px-3 border border-gray-200 text-gray-700 rounded-xl text-[13px] font-medium hover:bg-gray-50 transition"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmStop}
                 disabled={isStopping}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold transition"
+                className="h-9 px-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-[13px] font-medium transition"
               >
                 {isStopping ? "Stopping..." : "Confirm Stop Schedule"}
               </button>

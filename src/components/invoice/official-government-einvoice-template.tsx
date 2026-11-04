@@ -228,17 +228,17 @@ export function OfficialGovernmentEInvoiceTemplate({
         {/* Left / Center: Document Title & Legal Authority */}
         <div className="flex-1">
           <div className="flex items-center justify-between">
-            <span className="inline-block border border-slate-900 px-2 py-0.5 text-[10px] font-black tracking-wider uppercase bg-white">
+            <span className="inline-block border border-slate-900 px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase bg-white">
               {copyText}
             </span>
             {isCancelled && (
-              <span className="inline-block rounded bg-rose-600 px-2.5 py-0.5 text-[10px] font-black text-white tracking-widest uppercase">
+              <span className="inline-block rounded bg-rose-600 px-2.5 py-0.5 text-[10px] font-semibold text-white tracking-widest uppercase">
                 CANCELLED E-INVOICE
               </span>
             )}
           </div>
 
-          <h1 className="mt-2 text-xl font-black tracking-wider text-slate-950 uppercase">
+          <h1 className="mt-2 text-xl font-semibold tracking-wider text-slate-950 uppercase">
             {documentType}
           </h1>
           <p className="text-[10px] font-semibold text-slate-600">
@@ -250,7 +250,7 @@ export function OfficialGovernmentEInvoiceTemplate({
             <div className="flex items-start gap-1 font-mono">
               <span className="font-bold text-slate-700 shrink-0">IRN:</span>
               {isRegistered ? (
-                <span className="font-black text-emerald-800 break-all select-all">
+                <span className="font-semibold text-emerald-800 break-all select-all">
                   {eInv.irn}
                 </span>
               ) : (
@@ -286,7 +286,7 @@ export function OfficialGovernmentEInvoiceTemplate({
                 <span
                   className={`font-bold ${
                     isCancelled
-                      ? "text-rose-700 font-black"
+                      ? "text-rose-700 font-semibold"
                       : isRegistered
                       ? "text-emerald-700"
                       : "text-amber-700"
@@ -312,7 +312,7 @@ export function OfficialGovernmentEInvoiceTemplate({
       <div className="grid grid-cols-2 sm:grid-cols-4 border-b-2 border-slate-900 divide-x divide-y sm:divide-y-0 divide-slate-400 bg-slate-50/40 text-[11px]">
         <div className="p-2">
           <div className="text-[10px] font-bold text-slate-500 uppercase">Invoice / Doc Number</div>
-          <div className="font-black text-slate-900 font-mono text-sm">{invoice.invoiceNumber}</div>
+          <div className="font-semibold text-slate-900 font-mono text-sm">{invoice.invoiceNumber}</div>
         </div>
         <div className="p-2">
           <div className="text-[10px] font-bold text-slate-500 uppercase">Invoice Date</div>
@@ -346,11 +346,11 @@ export function OfficialGovernmentEInvoiceTemplate({
       <div className="grid grid-cols-1 sm:grid-cols-2 border-b-2 border-slate-900 divide-y sm:divide-y-0 sm:divide-x-2 divide-slate-900">
         {/* SUPPLIER DETAILS */}
         <div className="p-3 bg-white">
-          <div className="border-b border-slate-300 pb-1 mb-2 font-black text-slate-900 uppercase text-[11px] tracking-wide flex items-center justify-between">
+          <div className="border-b border-slate-300 pb-1 mb-2 font-semibold text-slate-900 uppercase text-[11px] tracking-wide flex items-center justify-between">
             <span>Details of Supplier (Seller)</span>
             <span className="text-[10px] text-slate-500 font-normal">State Code: {supplierStateCode}</span>
           </div>
-          <div className="font-black text-slate-950 text-sm">{supplierName}</div>
+          <div className="font-semibold text-slate-950 text-sm">{supplierName}</div>
           {supplierTradeName && supplierTradeName !== supplierName && (
             <div className="text-[11px] font-semibold text-slate-700">Trade: {supplierTradeName}</div>
           )}
@@ -359,7 +359,7 @@ export function OfficialGovernmentEInvoiceTemplate({
           <div className="mt-2.5 pt-2 border-t border-slate-200 grid grid-cols-2 gap-1 text-[11px]">
             <div>
               <span className="font-bold text-slate-600">GSTIN: </span>
-              <span className="font-black text-slate-950 font-mono">{supplierGstin}</span>
+              <span className="font-semibold text-slate-950 font-mono">{supplierGstin}</span>
             </div>
             <div>
               <span className="font-bold text-slate-600">State: </span>
@@ -384,17 +384,17 @@ export function OfficialGovernmentEInvoiceTemplate({
 
         {/* RECIPIENT (BUYER) DETAILS */}
         <div className="p-3 bg-white">
-          <div className="border-b border-slate-300 pb-1 mb-2 font-black text-slate-900 uppercase text-[11px] tracking-wide flex items-center justify-between">
+          <div className="border-b border-slate-300 pb-1 mb-2 font-semibold text-slate-900 uppercase text-[11px] tracking-wide flex items-center justify-between">
             <span>Details of Recipient / Buyer (Billed To)</span>
             <span className="text-[10px] text-slate-500 font-normal">State Code: {buyerStateCode}</span>
           </div>
-          <div className="font-black text-slate-950 text-sm">{buyerName}</div>
+          <div className="font-semibold text-slate-950 text-sm">{buyerName}</div>
           <div className="mt-1 text-slate-700 leading-tight">{buyerAddress}</div>
 
           <div className="mt-2.5 pt-2 border-t border-slate-200 grid grid-cols-2 gap-1 text-[11px]">
             <div>
               <span className="font-bold text-slate-600">GSTIN/UIN: </span>
-              <span className="font-black text-slate-950 font-mono">{buyerGstin}</span>
+              <span className="font-semibold text-slate-950 font-mono">{buyerGstin}</span>
             </div>
             <div>
               <span className="font-bold text-slate-600">State: </span>
@@ -404,7 +404,7 @@ export function OfficialGovernmentEInvoiceTemplate({
             </div>
             <div className="col-span-2">
               <span className="font-bold text-slate-600">Place of Supply (POS): </span>
-              <span className="font-black text-slate-950">{placeOfSupply}</span>
+              <span className="font-semibold text-slate-950">{placeOfSupply}</span>
             </div>
           </div>
         </div>
@@ -495,7 +495,7 @@ export function OfficialGovernmentEInvoiceTemplate({
                       )}
                     </td>
                   )}
-                  <td className="py-2 px-2 text-right font-mono font-black text-slate-950">
+                  <td className="py-2 px-2 text-right font-mono font-semibold text-slate-950">
                     {formatInr(total)}
                   </td>
                 </tr>
@@ -508,26 +508,26 @@ export function OfficialGovernmentEInvoiceTemplate({
               <td colSpan={3} className="py-2 px-2 text-right uppercase border-r border-slate-300">
                 Total Item Values:
               </td>
-              <td className="py-2 px-1.5 text-right font-black border-r border-slate-300">
+              <td className="py-2 px-1.5 text-right font-semibold border-r border-slate-300">
                 {items.reduce((s: number, i: any) => s + Number(i.quantity || 1), 0)}
               </td>
               <td className="border-r border-slate-300"></td>
               <td className="border-r border-slate-300"></td>
-              <td className="py-2 px-2 text-right font-mono font-black border-r border-slate-300">
+              <td className="py-2 px-2 text-right font-mono font-semibold border-r border-slate-300">
                 {formatInr(taxableAmount)}
               </td>
-              <td className="py-2 px-2 text-right font-mono font-black border-r border-slate-300">
+              <td className="py-2 px-2 text-right font-mono font-semibold border-r border-slate-300">
                 {cgstAmount > 0 ? formatInr(cgstAmount) : "—"}
               </td>
-              <td className="py-2 px-2 text-right font-mono font-black border-r border-slate-300">
+              <td className="py-2 px-2 text-right font-mono font-semibold border-r border-slate-300">
                 {sgstAmount > 0 ? formatInr(sgstAmount) : "—"}
               </td>
               {igstAmount > 0 && (
-                <td className="py-2 px-2 text-right font-mono font-black border-r border-slate-300">
+                <td className="py-2 px-2 text-right font-mono font-semibold border-r border-slate-300">
                   {formatInr(igstAmount)}
                 </td>
               )}
-              <td className="py-2 px-2 text-right font-mono font-black text-slate-950">
+              <td className="py-2 px-2 text-right font-mono font-semibold text-slate-950">
                 {formatInr(grandTotal)}
               </td>
             </tr>
@@ -537,7 +537,7 @@ export function OfficialGovernmentEInvoiceTemplate({
 
       {/* 5. HSN/SAC TAX SUMMARY BREAKUP (RULE 48 MANDATORY GRID) */}
       <div className="border-b-2 border-slate-900 p-2 bg-slate-50/50">
-        <div className="text-[10px] font-black uppercase text-slate-700 mb-1 tracking-wider">
+        <div className="text-[10px] font-semibold uppercase text-slate-700 mb-1 tracking-wider">
           HSN / SAC Wise Statutory Tax Summary
         </div>
         <table className="w-full text-left border border-slate-400 border-collapse bg-white text-[10px]">
@@ -579,7 +579,7 @@ export function OfficialGovernmentEInvoiceTemplate({
               <td className="p-1 text-right font-mono border-r border-slate-300">{formatInr(sgstAmount)}</td>
               <td className="p-1 border-r border-slate-300"></td>
               <td className="p-1 text-right font-mono border-r border-slate-300">{formatInr(igstAmount)}</td>
-              <td className="p-1 text-right font-mono font-black text-slate-900">{formatInr(totalTaxAmount)}</td>
+              <td className="p-1 text-right font-mono font-semibold text-slate-900">{formatInr(totalTaxAmount)}</td>
             </tr>
           </tfoot>
         </table>
@@ -660,9 +660,9 @@ export function OfficialGovernmentEInvoiceTemplate({
               <span className="font-mono font-semibold text-slate-900">{formatInr(roundOff)}</span>
             </div>
           )}
-          <div className="flex justify-between pt-1.5 text-sm font-black border-t-2 border-slate-900 bg-white p-2 rounded">
+          <div className="flex justify-between pt-1.5 text-sm font-semibold border-t-2 border-slate-900 bg-white p-2 rounded">
             <span className="text-slate-950 uppercase">Grand Total:</span>
-            <span className="font-mono text-emerald-800 font-black">{formatInr(grandTotal)}</span>
+            <span className="font-mono text-emerald-800 font-semibold">{formatInr(grandTotal)}</span>
           </div>
         </div>
       </div>

@@ -1407,11 +1407,11 @@ const [notes, setNotes] = useState("");
               {/* Drawer Header */}
               <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-orange-50/60 to-amber-50/60 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#174B43] to-[#E65F12] text-white flex items-center justify-center shadow-xs">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#0F172A] to-[#E65F12] text-white flex items-center justify-center shadow-xs">
                     <span className="text-base">⚡</span>
                   </div>
                   <div>
-                    <h2 className="text-sm font-extrabold text-slate-900">
+                    <h2 className="text-sm font-semibold text-[#182230]">
                       Mira AI Bill Scanner
                     </h2>
                     <p className="text-[11px] text-slate-500">
@@ -1456,10 +1456,10 @@ const [notes, setNotes] = useState("");
                       🔍
                     </div>
                     <div>
-                      <p className="text-sm font-extrabold text-orange-950">
+                      <p className="text-sm font-semibold text-orange-950">
                         Analyzing Document...
                       </p>
-                      <p className="text-xl font-black font-mono text-orange-600 mt-0.5">
+                      <p className="text-xl font-semibold tabular-nums text-orange-600 mt-0.5">
                         {scanDurationSeconds}s
                       </p>
                     </div>
@@ -1504,7 +1504,7 @@ const [notes, setNotes] = useState("");
                       <button
                         type="button"
                         onClick={() => executeAiScan()}
-                        className="flex-1 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition-colors shadow-2xs cursor-pointer"
+                        className="flex-1 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl text-[13px] font-medium transition-colors shadow-2xs cursor-pointer"
                       >
                         ↻ Re-scan Document
                       </button>
@@ -1516,7 +1516,7 @@ const [notes, setNotes] = useState("");
                           setScanSuccessBanner(null);
                           setScanError(null);
                         }}
-                        className="py-2 px-3 bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-xl text-xs font-bold transition-colors shadow-2xs cursor-pointer"
+                        className="py-2 px-3 bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-xl text-[13px] font-medium transition-colors shadow-2xs cursor-pointer"
                       >
                         Remove
                       </button>
@@ -1682,16 +1682,16 @@ const [notes, setNotes] = useState("");
                 <button
                   type="button"
                   onClick={() => setViewMode("edit")}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                  className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[13px] font-medium transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
                   <span>← {lang === "gu" ? "એડિટ મોડ પર પાછા જાઓ" : "Back to Edit Mode"}</span>
                 </button>
                 <div>
-                  <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <h2 className="text-sm font-semibold text-[#182230] flex items-center gap-2">
                     <span>{lang === "gu" ? "વેચાણ બિલ પ્રિવ્યૂ" : "Sales Invoice Preview"}</span>
                     <span
                       className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-                      style={{ backgroundColor: activeInvoiceTheme.accentColor || "#174B43" }}
+                      style={{ backgroundColor: activeInvoiceTheme.accentColor || "#0F172A" }}
                     >
                       {activeInvoiceTheme.uniqueThemeKey || activeInvoiceTheme.themeId}
                     </span>
@@ -1705,7 +1705,7 @@ const [notes, setNotes] = useState("");
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                  className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
                   <span>🖨️ {lang === "gu" ? "પ્રિન્ટ" : "Print Invoice"}</span>
                 </button>
@@ -1912,7 +1912,7 @@ const [notes, setNotes] = useState("");
                               <button
                                 type="button"
                                 onClick={() => setIsAddItemsModalOpen(true)}
-                                className="px-3.5 py-1.5 bg-[#174B43] text-white rounded-xl text-xs font-bold shadow-2xs cursor-pointer"
+                                className="h-9 px-3 bg-[#0F172A] text-white rounded-xl text-[13px] font-medium shadow-2xs cursor-pointer"
                               >
                                 + Add From Catalog
                               </button>
@@ -1933,7 +1933,7 @@ const [notes, setNotes] = useState("");
 
                           return (
                             <tr key={row.rowId || `row-${idx}`} className="hover:bg-slate-50/70 transition-colors">
-                              <td className="py-3 px-3 text-center text-slate-400 font-mono text-[11px]">
+                              <td className="py-3 px-3 text-center text-slate-400 tabular-nums text-[11px]">
                                 {idx + 1}
                               </td>
 
@@ -1943,7 +1943,7 @@ const [notes, setNotes] = useState("");
                                     <select
                                       value={row.itemId}
                                       onChange={(e) => handleItemSelect(idx, e.target.value)}
-                                      className="w-full text-xs py-1.5 px-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#26A58A] rounded-xl font-bold text-slate-800"
+                                      className="w-full text-[13px] py-1.5 px-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#1677E8] rounded-xl font-normal text-slate-800 h-10"
                                     >
                                       {items.map((it) => (
                                         <option key={it.id} value={it.id}>
@@ -1960,7 +1960,7 @@ const [notes, setNotes] = useState("");
                                   type="text"
                                   value={row.hsnCode}
                                   onChange={(e) => handleRowChange(idx, "hsnCode", e.target.value)}
-                                  className="w-full text-xs py-1.5 px-2 text-center font-mono bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white"
+                                  className="w-full text-[13px] py-1.5 px-2 text-center tabular-nums bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white h-10"
                                   placeholder="6205"
                                 />
                               </td>
@@ -1973,7 +1973,7 @@ const [notes, setNotes] = useState("");
                                     step="any"
                                     value={row.quantity}
                                     onChange={(e) => handleRowChange(idx, "quantity", e.target.value)}
-                                    className="w-full text-xs text-right font-mono font-bold text-slate-800 bg-transparent focus:outline-none"
+                                    className="w-full text-[13px] text-right tabular-nums font-normal text-slate-800 bg-transparent focus:outline-none h-10"
                                   />
                                 </div>
                               </td>
@@ -1985,7 +1985,7 @@ const [notes, setNotes] = useState("");
                                   step="any"
                                   value={row.unitPrice}
                                   onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value)}
-                                  className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white"
+                                  className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
                                 />
                               </td>
 
@@ -1998,7 +1998,7 @@ const [notes, setNotes] = useState("");
                                     value={row.discountPercent}
                                     onChange={(e) => handleRowChange(idx, "discountPercent", e.target.value)}
                                     placeholder="0"
-                                    className="w-full text-xs text-right font-mono bg-transparent focus:outline-none"
+                                    className="w-full text-[13px] text-right tabular-nums bg-transparent focus:outline-none h-10"
                                   />
                                   <span className="text-[10px] text-slate-400">%</span>
                                 </div>
@@ -2012,13 +2012,13 @@ const [notes, setNotes] = useState("");
                                     value={row.taxRate}
                                     onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value) || 0)}
                                     placeholder="5"
-                                    className="w-full text-xs text-right font-mono font-bold bg-transparent focus:outline-none"
+                                    className="w-full text-[13px] text-right tabular-nums font-normal bg-transparent focus:outline-none h-10"
                                   />
                                   <span className="text-[10px] text-slate-400">%</span>
                                 </div>
                               </td>
 
-                              <td className="py-3 px-3 text-right font-mono font-black text-slate-900 text-xs">
+                              <td className="py-3 px-3 text-right tabular-nums font-semibold text-slate-900 text-[13px]">
                                 ₹ {lineTotal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </td>
 
@@ -2118,7 +2118,7 @@ const [notes, setNotes] = useState("");
       <button
         type="button"
         onClick={() => alert("Need help creating an invoice? Contact support at 9510442798 or visit help docs.")}
-        className="fixed bottom-6 right-6 w-10 h-10 rounded-full bg-slate-900 text-white shadow-xl flex items-center justify-center text-sm font-black hover:bg-slate-800 transition-all z-40"
+        className="fixed bottom-6 right-6 w-10 h-10 rounded-full bg-slate-900 text-white shadow-xl flex items-center justify-center text-[13px] font-medium hover:bg-slate-800 transition-all z-40"
         title="Help & Support"
       >
         ?
@@ -2131,7 +2131,7 @@ const [notes, setNotes] = useState("");
             
             {/* Header */}
             <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-              <h2 className="text-base font-bold text-slate-900">Create New Party</h2>
+              <h2 className="text-[15px] font-semibold text-[#182230]">Create New Party</h2>
               <button
                 type="button"
                 onClick={() => setIsCreatePartyModalOpen(false)}
@@ -2232,7 +2232,7 @@ const [notes, setNotes] = useState("");
                     {/* Party Type Radio Cards & Category */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        <label className="block text-[11px] font-medium text-slate-600 mb-1">
                           Party Type *
                         </label>
                         <div className="flex items-center gap-2">
@@ -2274,7 +2274,7 @@ const [notes, setNotes] = useState("");
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        <label className="block text-[11px] font-medium text-slate-600 mb-1">
                           Party Category
                         </label>
                         <select
@@ -2282,7 +2282,7 @@ const [notes, setNotes] = useState("");
                           onChange={(e) =>
                             setPartyFormData({ ...partyFormData, category: e.target.value })
                           }
-                          className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:outline-none"
+                          className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:outline-none text-[13px] font-normal h-10"
                         >
                           <option value="">Search Categories</option>
                           <option value="Retail">Retail</option>
@@ -2295,7 +2295,7 @@ const [notes, setNotes] = useState("");
                     {/* Party Name & Mobile */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        <label className="block text-[11px] font-medium text-slate-600 mb-1">
                           Party Name *
                         </label>
                         <input
@@ -2306,11 +2306,11 @@ const [notes, setNotes] = useState("");
                           onChange={(e) =>
                             setPartyFormData({ ...partyFormData, name: e.target.value })
                           }
-                          className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-bold focus:bg-white focus:outline-none"
+                          className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-normal focus:bg-white focus:outline-none text-[13px] font-normal h-10"
                         />
                       </div>
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        <label className="block text-[11px] font-medium text-slate-600 mb-1">
                           Mobile Number
                         </label>
                         <input
@@ -2320,7 +2320,7 @@ const [notes, setNotes] = useState("");
                           onChange={(e) =>
                             setPartyFormData({ ...partyFormData, phone: e.target.value })
                           }
-                          className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900 focus:bg-white focus:outline-none"
+                          className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl tabular-nums text-slate-900 focus:bg-white focus:outline-none text-[13px] font-normal h-10"
                         />
                       </div>
                     </div>
@@ -2328,7 +2328,7 @@ const [notes, setNotes] = useState("");
                     {/* GSTIN & PAN */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        <label className="block text-[11px] font-medium text-slate-600 mb-1">
                           GSTIN
                         </label>
                         <input
@@ -2338,14 +2338,14 @@ const [notes, setNotes] = useState("");
                           onChange={(e) =>
                             setPartyFormData({ ...partyFormData, gstin: e.target.value.toUpperCase() })
                           }
-                          className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus:bg-white focus:outline-none"
+                          className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl tabular-nums font-normal text-slate-900 focus:bg-white focus:outline-none text-[13px] font-normal h-10"
                         />
                         <p className="text-[10px] text-blue-600 mt-1">
                           Note: You can auto populate party details from GSTIN
                         </p>
                       </div>
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        <label className="block text-[11px] font-medium text-slate-600 mb-1">
                           PAN Number
                         </label>
                         <input
@@ -2355,7 +2355,7 @@ const [notes, setNotes] = useState("");
                           onChange={(e) =>
                             setPartyFormData({ ...partyFormData, panNumber: e.target.value.toUpperCase() })
                           }
-                          className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900 focus:bg-white focus:outline-none"
+                          className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl tabular-nums text-slate-900 focus:bg-white focus:outline-none text-[13px] font-normal h-10"
                         />
                       </div>
                     </div>
@@ -2363,7 +2363,7 @@ const [notes, setNotes] = useState("");
                     {/* Email & Opening Balance */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        <label className="block text-[11px] font-medium text-slate-600 mb-1">
                           Email
                         </label>
                         <input
@@ -2373,11 +2373,11 @@ const [notes, setNotes] = useState("");
                           onChange={(e) =>
                             setPartyFormData({ ...partyFormData, email: e.target.value })
                           }
-                          className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:outline-none"
+                          className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:outline-none text-[13px] font-normal h-10"
                         />
                       </div>
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        <label className="block text-[11px] font-medium text-slate-600 mb-1">
                           Opening Balance
                         </label>
                         <div className="flex items-center gap-2">
@@ -2392,7 +2392,7 @@ const [notes, setNotes] = useState("");
                                   openingBalance: Number(e.target.value) || 0,
                                 })
                               }
-                              className="w-full text-xs bg-transparent font-mono font-bold focus:outline-none"
+                              className="w-full text-[13px] bg-transparent tabular-nums font-normal focus:outline-none h-10"
                             />
                           </div>
                           <select
@@ -2403,7 +2403,7 @@ const [notes, setNotes] = useState("");
                                 balanceType: e.target.value as "TO_COLLECT" | "TO_PAY",
                               })
                             }
-                            className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold focus:outline-none"
+                            className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-normal focus:outline-none text-[13px] font-normal h-10"
                           >
                             <option value="TO_COLLECT">To Collect</option>
                             <option value="TO_PAY">To Pay</option>
@@ -2417,7 +2417,7 @@ const [notes, setNotes] = useState("");
                 {partyModalTab === "address" && (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                      <label className="block text-[11px] font-medium text-slate-600 mb-1">
                         Billing Address
                       </label>
                       <textarea
@@ -2427,12 +2427,12 @@ const [notes, setNotes] = useState("");
                         onChange={(e) =>
                           setPartyFormData({ ...partyFormData, billingLine1: e.target.value })
                         }
-                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:outline-none"
+                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:outline-none text-[13px] font-normal"
                       />
                     </div>
                     <div className="grid grid-cols-3 gap-3">
                       <div>
-                        <label className="block text-[10px] font-semibold text-slate-500 mb-1">
+                        <label className="block text-[10px] font-medium text-slate-500 mb-1">
                           City
                         </label>
                         <input
@@ -2441,11 +2441,11 @@ const [notes, setNotes] = useState("");
                           onChange={(e) =>
                             setPartyFormData({ ...partyFormData, billingCity: e.target.value })
                           }
-                          className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg"
+                          className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-normal h-10"
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-semibold text-slate-500 mb-1">
+                        <label className="block text-[10px] font-medium text-slate-500 mb-1">
                           State
                         </label>
                         <input
@@ -2454,11 +2454,11 @@ const [notes, setNotes] = useState("");
                           onChange={(e) =>
                             setPartyFormData({ ...partyFormData, billingState: e.target.value })
                           }
-                          className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg"
+                          className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-normal h-10"
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-semibold text-slate-500 mb-1">
+                        <label className="block text-[10px] font-medium text-slate-500 mb-1">
                           Pincode
                         </label>
                         <input
@@ -2467,7 +2467,7 @@ const [notes, setNotes] = useState("");
                           onChange={(e) =>
                             setPartyFormData({ ...partyFormData, billingPincode: e.target.value })
                           }
-                          className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg font-mono"
+                          className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg tabular-nums text-[13px] font-normal h-10"
                         />
                       </div>
                     </div>
@@ -2477,7 +2477,7 @@ const [notes, setNotes] = useState("");
                 {partyModalTab === "credit" && (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                      <label className="block text-[11px] font-medium text-slate-600 mb-1">
                         Credit Limit (₹)
                       </label>
                       <input
@@ -2490,11 +2490,11 @@ const [notes, setNotes] = useState("");
                             creditLimit: Number(e.target.value) || 0,
                           })
                         }
-                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono"
+                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl tabular-nums text-[13px] font-normal h-10"
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                      <label className="block text-[11px] font-medium text-slate-600 mb-1">
                         Credit Period (Days)
                       </label>
                       <input
@@ -2507,7 +2507,7 @@ const [notes, setNotes] = useState("");
                             creditDays: Number(e.target.value) || 0,
                           })
                         }
-                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono"
+                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl tabular-nums text-[13px] font-normal h-10"
                       />
                     </div>
                   </div>
@@ -2516,7 +2516,7 @@ const [notes, setNotes] = useState("");
                 {partyModalTab === "contact" && (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                      <label className="block text-[11px] font-medium text-slate-600 mb-1">
                         Contact Person Name
                       </label>
                       <input
@@ -2529,11 +2529,11 @@ const [notes, setNotes] = useState("");
                             contactPersonName: e.target.value,
                           })
                         }
-                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl"
+                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[13px] font-normal h-10"
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                      <label className="block text-[11px] font-medium text-slate-600 mb-1">
                         Contact Person Phone
                       </label>
                       <input
@@ -2546,7 +2546,7 @@ const [notes, setNotes] = useState("");
                             contactPersonPhone: e.target.value,
                           })
                         }
-                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono"
+                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl tabular-nums text-[13px] font-normal h-10"
                       />
                     </div>
                   </div>
@@ -2556,7 +2556,7 @@ const [notes, setNotes] = useState("");
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        <label className="block text-[11px] font-medium text-slate-600 mb-1">
                           Bank Name
                         </label>
                         <input
@@ -2566,11 +2566,11 @@ const [notes, setNotes] = useState("");
                           onChange={(e) =>
                             setPartyFormData({ ...partyFormData, bankName: e.target.value })
                           }
-                          className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl"
+                          className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[13px] font-normal h-10"
                         />
                       </div>
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        <label className="block text-[11px] font-medium text-slate-600 mb-1">
                           Account Number
                         </label>
                         <input
@@ -2583,12 +2583,12 @@ const [notes, setNotes] = useState("");
                               accountNumber: e.target.value,
                             })
                           }
-                          className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono"
+                          className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl tabular-nums text-[13px] font-normal h-10"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                      <label className="block text-[11px] font-medium text-slate-600 mb-1">
                         IFSC Code
                       </label>
                       <input
@@ -2601,7 +2601,7 @@ const [notes, setNotes] = useState("");
                             ifscCode: e.target.value.toUpperCase(),
                           })
                         }
-                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono"
+                        className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl tabular-nums text-[13px] font-normal h-10"
                       />
                     </div>
                   </div>
@@ -2620,7 +2620,7 @@ const [notes, setNotes] = useState("");
               <button
                 type="button"
                 onClick={() => setIsCreatePartyModalOpen(false)}
-                className="px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+                className="h-9 px-3 border border-slate-300 rounded-xl text-[13px] font-medium text-slate-700 hover:bg-slate-100 transition-colors"
               >
                 Cancel
               </button>
@@ -2629,7 +2629,7 @@ const [notes, setNotes] = useState("");
                   type="button"
                   onClick={() => handleSaveNewParty(true)}
                   disabled={isCreatingParty}
-                  className="px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors disabled:opacity-50"
+                  className="h-9 px-3 border border-slate-300 rounded-xl text-[13px] font-medium text-slate-700 hover:bg-slate-100 transition-colors disabled:opacity-50"
                 >
                   Save & New
                 </button>
@@ -2637,7 +2637,7 @@ const [notes, setNotes] = useState("");
                   type="button"
                   onClick={() => handleSaveNewParty(false)}
                   disabled={isCreatingParty}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-xl text-[13px] font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
                 >
                   {isCreatingParty ? "Saving..." : "Save"}
                 </button>
@@ -2653,7 +2653,7 @@ const [notes, setNotes] = useState("");
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-2xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h3 className="font-bold text-sm text-slate-900">Split Payment Mode</h3>
+              <h3 className="font-semibold text-[15px] text-slate-900">Split Payment Mode</h3>
               <button
                 type="button"
                 onClick={() => setIsSplitPaymentOpen(false)}
@@ -2665,7 +2665,7 @@ const [notes, setNotes] = useState("");
 
             <div className="p-3 bg-blue-50/60 border border-blue-200 rounded-xl flex justify-between items-center text-xs">
               <span className="text-blue-900 font-semibold">Total Amount:</span>
-              <span className="font-mono font-black text-blue-900 text-base">
+              <span className="tabular-nums font-semibold text-blue-900 text-base">
                 {formatInr(roundedGrandTotal)}
               </span>
             </div>
@@ -2691,7 +2691,7 @@ const [notes, setNotes] = useState("");
                         updated[idx].amount = Number(e.target.value) || 0;
                         setSplitRows(updated);
                       }}
-                      className="w-full text-xs bg-transparent font-mono font-bold focus:outline-none"
+                      className="w-full text-[13px] bg-transparent tabular-nums font-normal focus:outline-none h-10"
                     />
                   </div>
                 </div>
@@ -2701,7 +2701,7 @@ const [notes, setNotes] = useState("");
             {/* Split Sum and Action */}
             <div className="pt-2 border-t border-slate-200 flex justify-between items-center text-xs">
               <span className="text-slate-600 font-bold">Total Split Entered:</span>
-              <span className="font-mono font-bold text-slate-900">
+              <span className="tabular-nums font-bold text-slate-900">
                 {formatInr(
                   splitRows.reduce((sum, r) => sum + (Number(r.amount) || 0), 0)
                 )}
@@ -2719,7 +2719,7 @@ const [notes, setNotes] = useState("");
                 setIsFullyPaid(totalSplit >= roundedGrandTotal);
                 setIsSplitPaymentOpen(false);
               }}
-              className="w-full py-2 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-colors"
+              className="w-full py-2 bg-blue-600 text-white font-medium text-[13px] rounded-xl hover:bg-blue-700 transition-colors"
             >
               Apply Split Payment
             </button>
@@ -2731,7 +2731,7 @@ const [notes, setNotes] = useState("");
       {isScannerOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-2xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl text-center">
-            <h3 className="font-bold text-base text-slate-900">Scan Product Barcode</h3>
+            <h3 className="font-semibold text-[15px] text-slate-900">Scan Product Barcode</h3>
             <div className="h-44 bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center p-4">
               <span className="text-3xl mb-2 animate-bounce">📷</span>
               <p className="text-xs text-slate-500">Camera / USB Scanner Ready</p>
@@ -2741,7 +2741,7 @@ const [notes, setNotes] = useState("");
                 handleAddRow();
                 setIsScannerOpen(false);
               }}
-              className="w-full py-2 bg-blue-600 text-white font-bold text-xs rounded-xl"
+              className="w-full py-2 bg-blue-600 text-white font-medium text-[13px] rounded-xl"
             >
               Simulate Scan & Add Row
             </button>
@@ -2873,7 +2873,7 @@ const [notes, setNotes] = useState("");
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-2.5 shadow-xl flex items-center justify-between gap-3">
         <div className="min-w-0">
           <span className="text-[10px] text-slate-500 font-semibold block uppercase tracking-wider">Total Amount</span>
-          <span className="text-base font-black font-mono text-slate-900 truncate block">
+          <span className="text-base font-semibold tabular-nums text-slate-900 truncate block">
             {formatInr(roundedGrandTotal)}
           </span>
         </div>
@@ -2882,7 +2882,7 @@ const [notes, setNotes] = useState("");
             type="button"
             onClick={() => handleSubmit(false, true)}
             disabled={isSubmitting}
-            className="px-3 py-2 border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl shadow-2xs transition-colors disabled:opacity-50"
+            className="h-9 px-3 border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium text-[13px] rounded-xl shadow-2xs transition-colors disabled:opacity-50"
           >
             Save & New
           </button>
@@ -2890,7 +2890,7 @@ const [notes, setNotes] = useState("");
             type="button"
             onClick={() => handleSubmit(false, false)}
             disabled={isSubmitting}
-            className="px-5 py-2 bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors disabled:opacity-50 flex items-center gap-1.5"
+            className="h-9 px-3.5 bg-[#2563EB] hover:bg-blue-700 text-white font-medium text-[13px] rounded-xl shadow-xs transition-colors disabled:opacity-50 flex items-center gap-1.5"
           >
             {isSubmitting ? "Saving..." : "Save"}
           </button>

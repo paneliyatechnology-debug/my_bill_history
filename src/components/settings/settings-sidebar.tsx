@@ -180,14 +180,14 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
         <div className="flex flex-col min-h-0 flex-1">
           {/* Company Profile Header */}
           <div className="p-4 border-b border-[#E2E8E5] flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#174B43] text-white font-extrabold text-base flex items-center justify-center shrink-0 shadow-xs uppercase">
+            <div className="w-10 h-10 rounded-full bg-[#0F172A] text-white font-semibold text-base flex items-center justify-center shrink-0 shadow-xs uppercase">
               {initialLetter}
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-sm font-bold text-slate-900 truncate tracking-tight leading-tight">
                 {displayName}
               </span>
-              <span className="text-xs text-[#5A6B66] font-mono tracking-wide mt-0.5 truncate">
+              <span className="text-xs text-[#5A6B66] tabular-nums tracking-wide mt-0.5 truncate">
                 {displayPhone}
               </span>
             </div>
@@ -198,7 +198,7 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
             <Link
               href="/"
               onClick={onCloseMobile}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-full bg-[#174B43] hover:bg-[#133E37] text-white text-xs font-bold transition-all shadow-xs group"
+              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-full bg-[#0F172A] hover:bg-[#1E293B] text-white text-[13px] font-medium transition-all shadow-xs group"
               title={lang === "gu" ? "મુખ્ય ડેશબોર્ડ પર પાછા જાઓ" : "Back to Dashboard"}
             >
               <svg
@@ -226,12 +226,12 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
                   onClick={onCloseMobile}
                   className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
                     isActive
-                      ? "bg-[#E6F7F2] text-[#174B43] shadow-xs font-bold border-l-2 border-[#26A58A]"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-[#F2FAF7]"
+                      ? "bg-[#EFF6FF] text-[#0F172A] shadow-xs font-bold border-l-2 border-[#1677E8]"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-[#F8FAFC]"
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <span className={isActive ? "text-[#26A58A]" : "text-slate-400 group-hover:text-slate-600"}>
+                    <span className={isActive ? "text-[#1677E8]" : "text-slate-400 group-hover:text-slate-600"}>
                       {item.icon}
                     </span>
                     <span className="truncate">
@@ -267,7 +267,7 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
             <button
               type="button"
               onClick={() => setShowLogoutModal(true)}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+              className="w-full flex items-center gap-2.5 h-9 px-3 rounded-xl text-[13px] font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition-colors"
             >
               <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -297,8 +297,8 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
             </span>
           </div> */}
           <div className="flex items-center gap-1 text-[11px] font-bold text-slate-700 mt-1">
-            <span className="text-[#174B43]">MyOwn</span>
-            <span className="text-[#26A58A]">BillBook</span>
+            <span className="text-[#0F172A]">MyOwn</span>
+            <span className="text-[#1677E8]">BillBook</span>
             <span className="text-[9px] text-[#8E9F9A] font-normal">by Paneliya Technology</span>
           </div>
         </div>
@@ -314,7 +314,7 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
               </svg>
             </div>
             <div className="text-center">
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-[15px] font-semibold text-slate-900">
                 {lang === "gu" ? "લોગઆઉટ કરવા માંગો છો?" : "Confirm Logout?"}
               </h3>
               <p className="text-xs text-slate-500 mt-1">
@@ -327,7 +327,7 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
               <button
                 type="button"
                 onClick={() => setShowLogoutModal(false)}
-                className="flex-1 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                className="flex-1 py-2 text-[13px] font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
               >
                 {lang === "gu" ? "રદ કરો" : "Cancel"}
               </button>
@@ -338,7 +338,7 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
                   logout();
                   router.push("/auth/login");
                 }}
-                className="flex-1 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors shadow-xs"
+                className="flex-1 py-2 text-[13px] font-medium text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors shadow-xs"
               >
                 {lang === "gu" ? "લોગઆઉટ" : "Logout"}
               </button>

@@ -163,7 +163,7 @@ export default function CategoriesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
             {lang === "gu"
               ? "વસ્તુઓની શ્રેણીઓ (Item Categories)"
               : "Item Categories"}
@@ -179,7 +179,7 @@ export default function CategoriesPage() {
           <button
             type="button"
             onClick={() => setIsImportModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs sm:text-sm font-bold rounded-xl shadow-2xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-[13px] font-medium rounded-xl shadow-2xs transition-all cursor-pointer"
           >
             <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -193,7 +193,7 @@ export default function CategoriesPage() {
               setFormError(null);
               setIsModalOpen(true);
             }}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
+            className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-[13px] font-medium rounded-xl shadow-card hover:shadow-hover transition-all"
           >
             <svg
               className="w-4 h-4"
@@ -228,7 +228,7 @@ export default function CategoriesPage() {
           <button
             type="button"
             onClick={() => setIsBulkDeleteModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-[13px] font-medium rounded-xl shadow-sm transition-all cursor-pointer"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -269,7 +269,7 @@ export default function CategoriesPage() {
               <div className="inline-flex items-center justify-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => handleOpenEditModal(c)}
-                  className="px-2.5 py-1 text-xs font-semibold text-[#174B43] bg-[#E6F7F2] hover:bg-[#174B43] hover:text-white border border-[#174B43]/30 rounded transition-colors inline-flex items-center gap-1"
+                  className="px-2.5 py-1 text-[13px] font-medium text-[#0F172A] bg-[#EFF6FF] hover:bg-[#0F172A] hover:text-white border border-[#0F172A]/30 rounded transition-colors inline-flex items-center gap-1"
                   title="Edit Category"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -279,7 +279,7 @@ export default function CategoriesPage() {
                 </button>
                 <button
                   onClick={() => setCategoryToDelete(c)}
-                  className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded transition-colors inline-flex items-center gap-1"
+                  className="px-2.5 py-1 text-[13px] font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded transition-colors inline-flex items-center gap-1"
                   title="Delete Category"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -319,7 +319,7 @@ export default function CategoriesPage() {
             <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100">
               <button
                 onClick={() => handleOpenEditModal(c)}
-                className="text-xs text-[#174B43] font-semibold"
+                className="text-xs text-[#0F172A] font-semibold"
               >
                 {lang === "gu" ? "સુધારો" : "Edit"}
               </button>
@@ -350,7 +350,7 @@ export default function CategoriesPage() {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               Category Name *
             </label>
             <input
@@ -361,13 +361,13 @@ export default function CategoriesPage() {
                 setFormData({ ...formData, name: e.target.value })
               }
               placeholder="e.g. Spices & Masala"
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
+              className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white h-10"
             />
           </div>
 
           {lang === "gu" && (
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 નામ ગુજરાતીમાં (વૈકલ્પિક)
               </label>
               <input
@@ -377,7 +377,7 @@ export default function CategoriesPage() {
                   setFormData({ ...formData, nameGujarati: e.target.value })
                 }
                 placeholder="દા.ત. મસાલા અને તેજાના"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white h-10"
               />
             </div>
           )}
@@ -386,14 +386,14 @@ export default function CategoriesPage() {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-[#174B43] hover:bg-[#123B35] disabled:bg-[#174B43]/50 rounded-lg shadow-sm"
+              className="h-9 px-3.5 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] disabled:bg-[#0F172A]/50 rounded-lg shadow-sm"
             >
               {isSubmitting ? "Saving..." : "Save Category"}
             </button>
@@ -420,7 +420,7 @@ export default function CategoriesPage() {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               Category Name *
             </label>
             <input
@@ -431,13 +431,13 @@ export default function CategoriesPage() {
                 setEditFormData({ ...editFormData, name: e.target.value })
               }
               placeholder="e.g. Spices & Masala"
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
+              className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white h-10"
             />
           </div>
 
           {lang === "gu" && (
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 નામ ગુજરાતીમાં (વૈકલ્પિક)
               </label>
               <input
@@ -447,7 +447,7 @@ export default function CategoriesPage() {
                   setEditFormData({ ...editFormData, nameGujarati: e.target.value })
                 }
                 placeholder="દા.ત. મસાલા અને તેજાના"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white h-10"
               />
             </div>
           )}
@@ -459,14 +459,14 @@ export default function CategoriesPage() {
                 setIsEditModalOpen(false);
                 setEditingCategory(null);
               }}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-[#174B43] hover:bg-[#123B35] disabled:bg-[#174B43]/50 rounded-lg shadow-sm"
+              className="h-9 px-3.5 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] disabled:bg-[#0F172A]/50 rounded-lg shadow-sm"
             >
               {isSubmitting ? "Updating..." : "Save Changes"}
             </button>
@@ -493,7 +493,7 @@ export default function CategoriesPage() {
             <button
               type="button"
               onClick={() => setCategoryToDelete(null)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
             >
               Cancel
             </button>
@@ -501,7 +501,7 @@ export default function CategoriesPage() {
               type="button"
               onClick={handleDeleteCategory}
               disabled={isDeleting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm"
+              className="h-9 px-3.5 text-[13px] font-medium text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm"
             >
               {isDeleting ? "Deleting..." : "Confirm Delete"}
             </button>
@@ -528,7 +528,7 @@ export default function CategoriesPage() {
             <button
               type="button"
               onClick={() => setIsBulkDeleteModalOpen(false)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
             >
               Cancel
             </button>
@@ -536,7 +536,7 @@ export default function CategoriesPage() {
               type="button"
               onClick={handleBulkDeleteCategories}
               disabled={isBulkDeleting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm cursor-pointer"
+              className="h-9 px-3.5 text-[13px] font-medium text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm cursor-pointer"
             >
               {isBulkDeleting
                 ? "Deleting..."

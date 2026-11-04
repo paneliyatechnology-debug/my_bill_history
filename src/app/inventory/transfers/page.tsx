@@ -378,7 +378,7 @@ export default function StockTransfersPage() {
       accessorKey: "transferNumber",
       sortable: true,
       cell: (tr) => (
-        <div className="font-mono font-medium text-slate-900">
+        <div className="tabular-nums font-medium text-slate-900">
           <div>{tr.transferNumber}</div>
           {tr.challanNumber && (
             <span className="text-[10px] text-slate-400 block font-sans">
@@ -419,7 +419,7 @@ export default function StockTransfersPage() {
     {
       header: lang === "gu" ? "આઈટમ / જથ્થો" : "Items / Qty",
       accessorKey: "items",
-      className: "text-right font-mono",
+      className: "text-right tabular-nums",
       cell: (tr) => {
         const totalQty = tr.items.reduce((s, i) => s + Number(i.quantity), 0);
         return (
@@ -441,7 +441,7 @@ export default function StockTransfersPage() {
         <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => handleOpenRecon(tr)}
-            className="text-xs text-slate-600 hover:text-[#174B43] font-medium px-2 py-1 rounded hover:bg-slate-100"
+            className="text-[13px] text-slate-600 hover:text-[#0F172A] font-medium px-2 py-1 rounded hover:bg-slate-100"
           >
             {lang === "gu" ? "મેળવણી" : "Audit / Recon"}
           </button>
@@ -449,7 +449,7 @@ export default function StockTransfersPage() {
           {tr.status === "DRAFT" && (
             <button
               onClick={() => handleOpenDispatch(tr)}
-              className="text-xs bg-[#E6F7F2] text-[#174B43] hover:bg-[#174B43] hover:text-white font-semibold px-2.5 py-1 rounded transition-colors"
+              className="text-[13px] bg-[#EFF6FF] text-[#0F172A] hover:bg-[#0F172A] hover:text-white font-medium px-2.5 py-1 rounded transition-colors"
             >
               {lang === "gu" ? "રવાના કરો" : "Dispatch"}
             </button>
@@ -458,7 +458,7 @@ export default function StockTransfersPage() {
           {tr.status === "DISPATCHED" && (
             <button
               onClick={() => handleOpenReceive(tr)}
-              className="text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold px-2.5 py-1 rounded"
+              className="text-[13px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-medium px-2.5 py-1 rounded"
             >
               {lang === "gu" ? "સ્વીકારો" : "Receive"}
             </button>
@@ -467,7 +467,7 @@ export default function StockTransfersPage() {
           {tr.status === "DRAFT" && (
             <button
               onClick={() => handleOpenCancel(tr)}
-              className="text-xs text-rose-600 hover:text-rose-800 font-medium px-2 py-1 rounded hover:bg-rose-50"
+              className="text-[13px] text-rose-600 hover:text-rose-800 font-medium px-2 py-1 rounded hover:bg-rose-50"
             >
               {lang === "gu" ? "રદ કરો" : "Cancel"}
             </button>
@@ -482,7 +482,7 @@ export default function StockTransfersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle">
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl lg:text-[1.75rem] font-bold text-[#202124] tracking-tight leading-tight">
+          <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight leading-tight">
             {lang === "gu"
               ? "સ્ટોક ટ્રાન્સફર (Stock Transfers)"
               : "Stock Transfers & In-Transit Tracking"}
@@ -496,7 +496,7 @@ export default function StockTransfersPage() {
 
         <button
           onClick={handleOpenCreate}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#174B43] hover:bg-[#123B35] active:bg-[#B94B0A] text-white text-xs sm:text-sm font-bold rounded-xl shadow-saffron transition-all w-full sm:w-auto shrink-0"
+          className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] text-white text-[13px] font-medium rounded-xl shadow-xs transition-all w-full sm:w-auto shrink-0"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -544,7 +544,7 @@ export default function StockTransfersPage() {
                 onClick={() => setStatusFilter(st)}
                 className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
                   statusFilter === st
-                    ? "bg-[#174B43] text-white"
+                    ? "bg-[#0F172A] text-white"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
@@ -559,7 +559,7 @@ export default function StockTransfersPage() {
             <div key={tr.id} onClick={() => setSelectedTransfer(tr)} className="space-y-2 cursor-pointer hover:bg-slate-50 transition-colors p-2 rounded-lg">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="font-mono font-bold text-slate-900">
+                  <span className="tabular-nums font-bold text-slate-900">
                     {tr.transferNumber}
                   </span>
                   {tr.challanNumber && (
@@ -578,7 +578,7 @@ export default function StockTransfersPage() {
               </div>
               <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
                 <span className="text-slate-500">Items: {tr.items.length}</span>
-                <span className="font-mono font-bold text-slate-900">
+                <span className="tabular-nums font-bold text-slate-900">
                   {totalQty.toLocaleString()} units
                 </span>
               </div>
@@ -592,7 +592,7 @@ export default function StockTransfersPage() {
                 {tr.status === "DRAFT" && (
                   <button
                     onClick={() => handleOpenDispatch(tr)}
-                    className="text-xs text-[#174B43] font-semibold"
+                    className="text-xs text-[#0F172A] font-semibold"
                   >
                     Dispatch
                   </button>
@@ -630,7 +630,7 @@ export default function StockTransfersPage() {
             <button
               type="button"
               onClick={() => setIsCreateModalOpen(false)}
-              className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-100"
+              className="h-9 px-3 border border-slate-200 rounded-lg text-[13px] text-slate-600 hover:bg-slate-100"
             >
               {lang === "gu" ? "રદ કરો" : "Cancel"}
             </button>
@@ -638,7 +638,7 @@ export default function StockTransfersPage() {
               type="submit"
               form="create-transfer-form"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-lg text-sm font-semibold shadow-sm disabled:opacity-50 transition-colors"
+              className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg text-[13px] font-medium shadow-sm disabled:opacity-50 transition-colors"
             >
               {isSubmitting ? "..." : lang === "gu" ? "ડ્રાફ્ટ સેવ કરો" : "Save Transfer Draft"}
             </button>
@@ -654,7 +654,7 @@ export default function StockTransfersPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "ટ્રાન્સફર તારીખ *" : "Transfer Date *"}
               </label>
               <input
@@ -662,18 +662,18 @@ export default function StockTransfersPage() {
                 value={createForm.transferDate}
                 onChange={(e) => setCreateForm({ ...createForm, transferDate: e.target.value })}
                 required
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] h-10"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "મોકલનાર ગોડાઉન (From) *" : "From Warehouse *"}
               </label>
               <select
                 value={createForm.fromWarehouseId}
                 onChange={(e) => setCreateForm({ ...createForm, fromWarehouseId: e.target.value })}
                 required
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] h-10"
               >
                 {warehouses.map((w) => (
                   <option key={w.id} value={w.id}>
@@ -683,14 +683,14 @@ export default function StockTransfersPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "મેળવનાર ગોડાઉન (To) *" : "To Warehouse *"}
               </label>
               <select
                 value={createForm.toWarehouseId}
                 onChange={(e) => setCreateForm({ ...createForm, toWarehouseId: e.target.value })}
                 required
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] h-10"
               >
                 {warehouses.map((w) => (
                   <option key={w.id} value={w.id}>
@@ -724,7 +724,7 @@ export default function StockTransfersPage() {
                       value={it.itemId}
                       onChange={(e) => handleItemChange(idx, "itemId", e.target.value)}
                       required
-                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] h-10"
                     >
                       {items.map((opt) => (
                         <option key={opt.id} value={opt.id}>
@@ -742,7 +742,7 @@ export default function StockTransfersPage() {
                       onChange={(e) => handleItemChange(idx, "quantity", parseFloat(e.target.value) || 0)}
                       required
                       placeholder="Qty"
-                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono"
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] tabular-nums h-10"
                     />
                   </div>
                   <div className="col-span-1 text-right">
@@ -762,14 +762,14 @@ export default function StockTransfersPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "નોંધ (Notes)" : "Notes"}
             </label>
             <input
               type="text"
               value={createForm.notes}
               onChange={(e) => setCreateForm({ ...createForm, notes: e.target.value })}
-              className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+              className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] h-10"
             />
           </div>
         </form>
@@ -786,7 +786,7 @@ export default function StockTransfersPage() {
           <>
             <button
               onClick={() => setIsDispatchModalOpen(false)}
-              className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-600"
+              className="h-9 px-3 border border-slate-200 rounded-lg text-[13px] text-slate-600"
             >
               {lang === "gu" ? "રદ કરો" : "Cancel"}
             </button>
@@ -794,7 +794,7 @@ export default function StockTransfersPage() {
               type="submit"
               form="dispatch-form"
               disabled={isSubmitting}
-              className="px-3 py-1.5 bg-[#174B43] hover:bg-[#123B35] text-white rounded-lg text-xs font-semibold shadow-sm transition-colors"
+              className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg text-[13px] font-medium shadow-sm transition-colors"
             >
               {isSubmitting ? "..." : lang === "gu" ? "રવાના કરો" : "Confirm Dispatch"}
             </button>
@@ -813,14 +813,14 @@ export default function StockTransfersPage() {
               : "Dispatching immediately deducts goods from source warehouse and logs them into in-transit inventory."}
           </p>
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "ચલણ નંબર (Delivery Challan #)" : "Challan Number"}
             </label>
             <input
               type="text"
               value={dispatchForm.challanNumber}
               onChange={(e) => setDispatchForm({ ...dispatchForm, challanNumber: e.target.value })}
-              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono"
+              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] tabular-nums h-10"
             />
           </div>
         </form>
@@ -837,7 +837,7 @@ export default function StockTransfersPage() {
           <>
             <button
               onClick={() => setIsReceiveModalOpen(false)}
-              className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-100"
+              className="h-9 px-3 border border-slate-200 rounded-lg text-[13px] text-slate-600 hover:bg-slate-100"
             >
               {lang === "gu" ? "રદ કરો" : "Cancel"}
             </button>
@@ -845,7 +845,7 @@ export default function StockTransfersPage() {
               type="submit"
               form="receive-form"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] disabled:bg-[#174B43]/50 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors"
+              className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] disabled:bg-[#0F172A]/50 text-white rounded-lg text-[13px] font-medium shadow-sm transition-colors"
             >
               {isSubmitting ? "..." : lang === "gu" ? "સ્વીકાર પૂર્ણ કરો" : "Confirm Receipt"}
             </button>
@@ -869,10 +869,10 @@ export default function StockTransfersPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
                 <tr>
-                  <th className="px-4 py-2 font-semibold">Item</th>
-                  <th className="px-4 py-2 font-semibold text-right">Dispatched Qty</th>
-                  <th className="px-4 py-2 font-semibold text-right">Accepted / Received Qty</th>
-                  <th className="px-4 py-2 font-semibold text-right">Shortage / Variance</th>
+                  <th className="px-4 py-2 font-medium">Item</th>
+                  <th className="px-4 py-2 font-medium text-right">Dispatched Qty</th>
+                  <th className="px-4 py-2 font-medium text-right">Accepted / Received Qty</th>
+                  <th className="px-4 py-2 font-medium text-right">Shortage / Variance</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -881,7 +881,7 @@ export default function StockTransfersPage() {
                   return (
                     <tr key={it.transferItemId}>
                       <td className="px-4 py-2 font-medium text-slate-800">{it.itemName}</td>
-                      <td className="px-4 py-2 text-right font-mono text-slate-600">
+                      <td className="px-4 py-2 text-right tabular-nums text-slate-600">
                         {it.dispatchedQty}
                       </td>
                       <td className="px-4 py-2 text-right">
@@ -895,10 +895,10 @@ export default function StockTransfersPage() {
                             handleReceiveQtyChange(it.transferItemId, parseFloat(e.target.value) || 0)
                           }
                           required
-                          className="w-24 px-2 py-1 bg-slate-50 border border-slate-300 rounded text-right font-mono text-xs focus:ring-1 focus:ring-emerald-500"
+                          className="w-24 px-2 py-1 bg-slate-50 border border-slate-300 rounded text-right tabular-nums text-[13px] focus:ring-1 focus:ring-[#1677E8] h-10"
                         />
                       </td>
-                      <td className="px-4 py-2 text-right font-mono">
+                      <td className="px-4 py-2 text-right tabular-nums">
                         {shortage > 0 ? (
                           <span className="text-rose-600 font-bold">-{shortage}</span>
                         ) : (
@@ -924,7 +924,7 @@ export default function StockTransfersPage() {
           <>
             <button
               onClick={() => setIsCancelModalOpen(false)}
-              className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-600"
+              className="h-9 px-3 border border-slate-200 rounded-lg text-[13px] text-slate-600"
             >
               {lang === "gu" ? "પાછા જાઓ" : "Back"}
             </button>
@@ -932,7 +932,7 @@ export default function StockTransfersPage() {
               type="submit"
               form="cancel-tr-form"
               disabled={isSubmitting}
-              className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold"
+              className="h-9 px-3 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[13px] font-medium"
             >
               {isSubmitting ? "..." : lang === "gu" ? "હા, રદ કરો" : "Confirm Cancel"}
             </button>
@@ -950,7 +950,7 @@ export default function StockTransfersPage() {
             value={cancelReason}
             onChange={(e) => setCancelReason(e.target.value)}
             placeholder="Cancellation reason"
-            className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs"
+            className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-[13px] h-10"
           />
         </form>
       </Modal>
@@ -965,7 +965,7 @@ export default function StockTransfersPage() {
         footer={
           <button
             onClick={() => setIsReconModalOpen(false)}
-            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium"
+            className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[13px] font-medium"
           >
             {lang === "gu" ? "બંધ કરો" : "Close"}
           </button>
@@ -980,19 +980,19 @@ export default function StockTransfersPage() {
               </div>
               <div>
                 <span className="text-slate-500 block">Dispatched Qty:</span>
-                <span className="font-bold font-mono text-slate-800">
+                <span className="font-bold tabular-nums text-slate-800">
                   {Number(reconData.totalDispatchedQty).toLocaleString()}
                 </span>
               </div>
               <div>
                 <span className="text-slate-500 block">Received Qty:</span>
-                <span className="font-bold font-mono text-emerald-700">
+                <span className="font-bold tabular-nums text-emerald-700">
                   {Number(reconData.totalReceivedQty).toLocaleString()}
                 </span>
               </div>
               <div>
                 <span className="text-slate-500 block">Shortage / Damage:</span>
-                <span className="font-bold font-mono text-rose-600">
+                <span className="font-bold tabular-nums text-rose-600">
                   {Number(reconData.totalShortageQty).toLocaleString()}
                 </span>
               </div>
@@ -1002,21 +1002,21 @@ export default function StockTransfersPage() {
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
                   <tr>
-                    <th className="px-4 py-2 font-semibold">Item</th>
-                    <th className="px-4 py-2 font-semibold text-right">Dispatched</th>
-                    <th className="px-4 py-2 font-semibold text-right">Received</th>
-                    <th className="px-4 py-2 font-semibold text-right">Shortage</th>
-                    <th className="px-4 py-2 font-semibold text-right">Shortage Value</th>
+                    <th className="px-4 py-2 font-medium">Item</th>
+                    <th className="px-4 py-2 font-medium text-right">Dispatched</th>
+                    <th className="px-4 py-2 font-medium text-right">Received</th>
+                    <th className="px-4 py-2 font-medium text-right">Shortage</th>
+                    <th className="px-4 py-2 font-medium text-right">Shortage Value</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {reconData.items.map((it, idx) => (
                     <tr key={idx}>
                       <td className="px-4 py-2 font-medium text-slate-800">{it.itemName}</td>
-                      <td className="px-4 py-2 text-right font-mono">{it.dispatchedQty}</td>
-                      <td className="px-4 py-2 text-right font-mono text-emerald-700">{it.receivedQty}</td>
-                      <td className="px-4 py-2 text-right font-mono text-rose-600 font-bold">{it.shortageQty}</td>
-                      <td className="px-4 py-2 text-right font-mono text-rose-700">₹{Number(it.shortageValuation).toFixed(2)}</td>
+                      <td className="px-4 py-2 text-right tabular-nums">{it.dispatchedQty}</td>
+                      <td className="px-4 py-2 text-right tabular-nums text-emerald-700">{it.receivedQty}</td>
+                      <td className="px-4 py-2 text-right tabular-nums text-rose-600 font-medium">{it.shortageQty}</td>
+                      <td className="px-4 py-2 text-right tabular-nums text-rose-700">₹{Number(it.shortageValuation).toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>

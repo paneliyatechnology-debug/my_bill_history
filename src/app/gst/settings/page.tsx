@@ -81,11 +81,11 @@ function Body() {
         <p>Production mode: {config?.productionMode || "LIVE_GOVERNMENT_PORTAL"}.</p>
         {canWrite ? (
           <div className="space-y-2">
-            <input className="border rounded px-2 py-1 w-full sm:w-80" placeholder="IRP Client ID" value={clientId} onChange={(event) => setClientId(event.target.value)} />
-            <input className="border rounded px-2 py-1 w-full sm:w-80" placeholder="IRP Username" value={username} onChange={(event) => setUsername(event.target.value)} />
+            <input className="border rounded px-2 py-1 w-full sm:w-80 text-[13px] font-normal h-10" placeholder="IRP Client ID" value={clientId} onChange={(event) => setClientId(event.target.value)} />
+            <input className="border rounded px-2 py-1 w-full sm:w-80 text-[13px] font-normal h-10" placeholder="IRP Username" value={username} onChange={(event) => setUsername(event.target.value)} />
             <div className="flex gap-2">
-              <button type="button" className="px-3 py-1.5 rounded bg-emerald-700 text-white" onClick={save}>Save IRP Identifiers</button>
-              <button type="button" className="px-3 py-1.5 rounded border" onClick={ping}>Test Live IRP Connection</button>
+              <button type="button" className="h-9 px-3 rounded bg-emerald-700 text-white" onClick={save}>Save IRP Identifiers</button>
+              <button type="button" className="h-9 px-3 rounded border" onClick={ping}>Test Live IRP Connection</button>
             </div>
           </div>
         ) : <p>Your role cannot change GST settings.</p>}

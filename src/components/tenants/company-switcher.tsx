@@ -105,7 +105,9 @@ export function CompanySwitcher() {
   const displayName =
     currentCompany?.tradeName ||
     currentCompany?.legalName ||
-    (lang === "gu" ? "વેપાર પસંદ કરો" : "Select Business");
+    (lang === "gu" ? "JK Trading Co." : "JK Trading Co.");
+
+  const displayCity = currentCompany?.city || "Ahmedabad";
 
   const canAdd =
     entitlements?.canAddCompany ??
@@ -129,41 +131,37 @@ export function CompanySwitcher() {
       className="relative inline-flex items-center min-w-0"
       ref={containerRef}
     >
-      {/* Switcher Trigger Button */}
+      {/* Switcher Trigger Button matching Reference Image */}
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label={`Current business: ${displayName}`}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className="group flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-[#D0DED9] bg-white hover:bg-[#F2FAF7] hover:border-[#26A58A]/50 text-left transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-[#26A58A]/30 max-w-[150px] min-[390px]:max-w-[190px] sm:max-w-[280px] md:max-w-[340px] shadow-xs select-none shrink min-w-0"
+        className="group flex items-center gap-2.5 h-9 px-3 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 text-left transition-all duration-150 focus:outline-none focus:ring-1 focus:ring-blue-500 max-w-[170px] sm:max-w-[260px] md:max-w-[320px] shadow-2xs select-none shrink min-w-0"
       >
-        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#174B43] text-white flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 shadow-xs uppercase">
-          {getInitials(displayName)}
+        {/* Blue Building / Store Icon */}
+        <div className="w-8 h-8 rounded-lg bg-[#1677E8] text-white flex items-center justify-center shrink-0 shadow-2xs">
+          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
         </div>
 
         <div className="min-w-0 flex-1 overflow-hidden">
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="block text-xs min-[400px]:text-sm font-bold text-slate-900 truncate group-hover:text-[#174B43] transition-colors leading-tight">
+            <span className="block text-[13px] font-medium text-[#182230] truncate leading-tight">
               {displayName}
             </span>
-            {currentCompany?.gstin && (
-              <span className="text-[10px] font-mono text-slate-600 bg-white border border-slate-200 px-1 py-0.2 rounded hidden lg:inline shrink-0 font-medium">
-                {currentCompany.gstin.slice(0, 2)}
-              </span>
-            )}
           </div>
-          {currentCompany?.city && (
-            <p className="text-[11px] text-slate-500 truncate leading-tight mt-0.5 hidden sm:block">
-              {currentCompany.city}
-            </p>
-          )}
+          <p className="text-[10.5px] text-slate-500 truncate leading-tight mt-0.5">
+            {displayCity}
+          </p>
         </div>
 
-        <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-md flex items-center justify-center text-slate-400 group-hover:text-[#174B43] shrink-0 transition-colors">
+        <div className="w-4 h-4 rounded-md flex items-center justify-center text-slate-400 group-hover:text-slate-600 shrink-0 transition-colors">
           <svg
-            className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200 ${
-              isOpen ? "rotate-180 text-[#174B43]" : ""
+            className={`w-3.5 h-3.5 transition-transform duration-200 ${
+              isOpen ? "rotate-180 text-blue-600" : ""
             }`}
             fill="none"
             viewBox="0 0 24 24"
@@ -192,9 +190,9 @@ export function CompanySwitcher() {
           aria-label="Switch Business Dropdown"
         >
           {/* Header */}
-          <div className="px-4 py-3 bg-gradient-to-r from-[#EBF4F1] via-[#F2FAF7] to-white border-b border-[#D5E3DF] flex items-center justify-between">
+          <div className="px-4 py-3 bg-gradient-to-r from-[#EBF4F1] via-[#F8FAFC] to-white border-b border-[#D5E3DF] flex items-center justify-between">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-7 h-7 rounded-lg bg-[#174B43]/10 text-[#174B43] flex items-center justify-center shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-[#0F172A]/10 text-[#0F172A] flex items-center justify-center shrink-0">
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -263,7 +261,7 @@ export function CompanySwitcher() {
                   }
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full text-xs pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#174B43]/30 focus:border-[#174B43] text-slate-800 placeholder:text-slate-400 transition-all shadow-2xs"
+                  className="w-full text-[13px] pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F172A]/30 focus:border-[#0F172A] text-slate-800 placeholder:text-slate-400 transition-all shadow-2xs h-10"
                 />
                 {searchQuery && (
                   <button
@@ -321,7 +319,7 @@ export function CompanySwitcher() {
                   <button
                     type="button"
                     onClick={() => setSearchQuery("")}
-                    className="mt-2.5 text-xs text-[#174B43] font-semibold hover:underline"
+                    className="mt-2.5 text-xs text-[#0F172A] font-semibold hover:underline"
                   >
                     {lang === "gu" ? "શોધ સાફ કરો" : "Clear search"}
                   </button>
@@ -342,7 +340,7 @@ export function CompanySwitcher() {
                     onClick={() => handleSelectCompany(c)}
                     className={`w-full group flex items-start gap-3 p-2.5 rounded-xl text-left transition-all duration-150 border ${
                       isSelected
-                        ? "bg-gradient-to-r from-[#E6F7F2] to-[#F2FAF7] border-[#85D5C2] shadow-2xs"
+                        ? "bg-gradient-to-r from-[#EFF6FF] to-[#F8FAFC] border-[#93C5FD] shadow-2xs"
                         : "bg-white hover:bg-slate-50/90 border-transparent hover:border-slate-200/80"
                     } disabled:opacity-60 cursor-pointer`}
                   >
@@ -350,8 +348,8 @@ export function CompanySwitcher() {
                     <div
                       className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs uppercase ${
                         isSelected
-                          ? "bg-gradient-to-br from-[#174B43] to-[#26A58A] text-white"
-                          : "bg-slate-100 text-slate-700 group-hover:bg-[#174B43] group-hover:text-white transition-colors"
+                          ? "bg-gradient-to-br from-[#0F172A] to-[#1677E8] text-white"
+                          : "bg-slate-100 text-slate-700 group-hover:bg-[#0F172A] group-hover:text-white transition-colors"
                       }`}
                     >
                       {initials}
@@ -360,7 +358,7 @@ export function CompanySwitcher() {
                     {/* Company Details */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-xs font-bold text-slate-900 group-hover:text-[#174B43] transition-colors leading-tight">
+                        <span className="text-xs font-bold text-slate-900 group-hover:text-[#0F172A] transition-colors leading-tight">
                           {companyName}
                         </span>
                         {isSelected && (
@@ -381,7 +379,7 @@ export function CompanySwitcher() {
 
                       <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-500 flex-wrap">
                         {c.gstin && (
-                          <span className="font-mono bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded border border-slate-200 font-medium">
+                          <span className="tabular-nums bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded border border-slate-200 font-medium">
                             GST: {c.gstin}
                           </span>
                         )}
@@ -400,8 +398,8 @@ export function CompanySwitcher() {
                     {/* Right Action / State */}
                     <div className="shrink-0 flex items-center self-center pl-1">
                       {isLoadingThis ? (
-                        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#174B43]">
-                          <svg className="w-4 h-4 animate-spin text-[#174B43]" fill="none" viewBox="0 0 24 24">
+                        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#0F172A]">
+                          <svg className="w-4 h-4 animate-spin text-[#0F172A]" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                           </svg>
@@ -413,7 +411,7 @@ export function CompanySwitcher() {
                           </svg>
                         </div>
                       ) : (
-                        <div className="w-6 h-6 rounded-full text-slate-300 group-hover:text-[#174B43] group-hover:bg-orange-50 flex items-center justify-center transition-all">
+                        <div className="w-6 h-6 rounded-full text-slate-300 group-hover:text-[#0F172A] group-hover:bg-orange-50 flex items-center justify-center transition-all">
                           <svg className="w-4 h-4 transform group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                           </svg>
@@ -435,7 +433,7 @@ export function CompanySwitcher() {
                   setIsOpen(false);
                   setIsModalOpen(true);
                 }}
-                className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-bold text-white bg-[#26A58A] hover:bg-[#208E76] rounded-xl transition-all shadow-xs hover:shadow-sm"
+                className="w-full flex items-center justify-center gap-2 py-2 px-3 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] rounded-xl transition-all shadow-xs hover:shadow-sm"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />

@@ -294,7 +294,7 @@ export default function PurchaseReturnsPage() {
       {/* 1. Header matching myBillBook: Title left, Settings, Shortcuts, "Create Purchase Return" Button right */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-[22px] font-semibold tracking-tight text-[#182230]">
             {pathname?.includes("debit-memo")
               ? (lang === "gu" ? "ડેબિટ મેમો (Debit Memo)" : "Debit Memo")
               : isDebitNote
@@ -347,7 +347,7 @@ export default function PurchaseReturnsPage() {
                 ? "/purchases/debit-note/create"
                 : "/purchases/returns/create"
             }
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#4338CA] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#3730A3] transition-colors"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#4338CA] h-9 px-3 text-[13px] font-medium text-white shadow-xs hover:bg-[#3730A3] transition-colors"
           >
             <span>
               {pathname?.includes("debit-memo")
@@ -376,7 +376,7 @@ export default function PurchaseReturnsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search..."
-              className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-8 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 shadow-2xs"
+              className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-8 text-[13px] text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 shadow-2xs h-10"
             />
             {searchQuery && (
               <button
@@ -397,7 +397,7 @@ export default function PurchaseReturnsPage() {
                 e.stopPropagation();
                 setIsDatePickerOpen(!isDatePickerOpen);
               }}
-              className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+              className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
             >
               <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -441,27 +441,27 @@ export default function PurchaseReturnsPage() {
                 {dateRangePreset === "CUSTOM" && (
                   <div className="border-t border-slate-100 p-3 space-y-2 bg-slate-50/60 rounded-b-xl">
                     <div>
-                      <label className="block text-[10px] font-semibold text-slate-500 mb-0.5">Start Date</label>
+                      <label className="block text-[10px] font-medium text-slate-500 mb-0.5">Start Date</label>
                       <input
                         type="date"
                         value={customStartDate}
                         onChange={(e) => setCustomStartDate(e.target.value)}
-                        className="w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs"
+                        className="w-full rounded border border-slate-200 bg-white px-2 py-1 text-[13px] h-10"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-semibold text-slate-500 mb-0.5">End Date</label>
+                      <label className="block text-[10px] font-medium text-slate-500 mb-0.5">End Date</label>
                       <input
                         type="date"
                         value={customEndDate}
                         onChange={(e) => setCustomEndDate(e.target.value)}
-                        className="w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs"
+                        className="w-full rounded border border-slate-200 bg-white px-2 py-1 text-[13px] h-10"
                       />
                     </div>
                     <button
                       type="button"
                       onClick={() => setIsDatePickerOpen(false)}
-                      className="w-full mt-1 rounded bg-[#4338CA] py-1 text-center font-semibold text-white"
+                      className="w-full mt-1 rounded bg-[#4338CA] py-1 text-center font-medium text-white"
                     >
                       Apply
                     </button>
@@ -555,7 +555,7 @@ export default function PurchaseReturnsPage() {
                       </p>
                       <Link
                         href="/purchases/returns/create"
-                        className="inline-flex items-center justify-center gap-1 rounded-lg bg-[#4338CA] px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-[#3730A3]"
+                        className="inline-flex items-center justify-center gap-1 rounded-lg bg-[#4338CA] h-9 px-3 text-[13px] font-medium text-white shadow-xs hover:bg-[#3730A3]"
                       >
                         <span>{lang === "gu" ? "ખરીદી પરત બનાવો" : "Create Purchase Return"}</span>
                       </Link>
@@ -642,7 +642,7 @@ export default function PurchaseReturnsPage() {
                                     setActiveActionMenu(null);
                                     router.push(`${basePath}/${row.id}`);
                                   }}
-                                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-slate-700 hover:bg-slate-50 font-medium cursor-pointer"
+                                  className="flex w-full items-center gap-2 h-9 px-3 text-left text-slate-700 hover:bg-slate-50 font-medium cursor-pointer"
                                 >
                                   <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -656,7 +656,7 @@ export default function PurchaseReturnsPage() {
                                     setActiveActionMenu(null);
                                     router.push(`${basePath}/create?edit=${row.id}`);
                                   }}
-                                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-slate-700 hover:bg-slate-50 font-medium cursor-pointer"
+                                  className="flex w-full items-center gap-2 h-9 px-3 text-left text-slate-700 hover:bg-slate-50 font-medium cursor-pointer"
                                 >
                                   <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -673,7 +673,7 @@ export default function PurchaseReturnsPage() {
                                     setActiveActionMenu(null);
                                     window.open(`${basePath}/${row.id}?print=true`, "_blank");
                                   }}
-                                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-slate-700 hover:bg-slate-50 cursor-pointer"
+                                  className="flex w-full items-center gap-2 h-9 px-3 text-left text-slate-700 hover:bg-slate-50 cursor-pointer"
                                 >
                                   <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <polyline points="6 9 6 2 18 2 18 9" />
@@ -688,7 +688,7 @@ export default function PurchaseReturnsPage() {
                                     setActiveActionMenu(null);
                                     router.push(`${basePath}/${row.id}?download=true`);
                                   }}
-                                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-slate-700 hover:bg-slate-50 cursor-pointer"
+                                  className="flex w-full items-center gap-2 h-9 px-3 text-left text-slate-700 hover:bg-slate-50 cursor-pointer"
                                 >
                                   <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -706,7 +706,7 @@ export default function PurchaseReturnsPage() {
                                     );
                                     window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
                                   }}
-                                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-emerald-700 hover:bg-emerald-50 font-medium cursor-pointer"
+                                  className="flex w-full items-center gap-2 h-9 px-3 text-left text-emerald-700 hover:bg-emerald-50 font-medium cursor-pointer"
                                 >
                                   <svg className="w-3.5 h-3.5 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z" />
@@ -719,7 +719,7 @@ export default function PurchaseReturnsPage() {
                                 <button
                                   type="button"
                                   onClick={(e) => handleDelete(row.id, e)}
-                                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-rose-600 hover:bg-rose-50 font-medium cursor-pointer"
+                                  className="flex w-full items-center gap-2 h-9 px-3 text-left text-rose-600 hover:bg-rose-50 font-medium cursor-pointer"
                                 >
                                   <svg className="w-3.5 h-3.5 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <polyline points="3 6 5 6 21 6" />
@@ -746,7 +746,7 @@ export default function PurchaseReturnsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-semibold text-slate-900">Keyboard Shortcuts</h3>
+              <h3 className="text-[15px] font-semibold text-slate-900">Keyboard Shortcuts</h3>
               <button
                 type="button"
                 onClick={() => setShortcutsModalOpen(false)}
@@ -758,21 +758,21 @@ export default function PurchaseReturnsPage() {
             <div className="space-y-2 text-xs">
               <div className="flex items-center justify-between py-1.5 border-b border-slate-50">
                 <span className="text-slate-600">Create New Purchase Return</span>
-                <kbd className="rounded bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-700">Alt + R</kbd>
+                <kbd className="rounded bg-slate-100 px-2 py-0.5 tabular-nums text-[11px] text-slate-700">Alt + R</kbd>
               </div>
               <div className="flex items-center justify-between py-1.5 border-b border-slate-50">
                 <span className="text-slate-600">Search Invoices / Returns</span>
-                <kbd className="rounded bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-700">Ctrl + /</kbd>
+                <kbd className="rounded bg-slate-100 px-2 py-0.5 tabular-nums text-[11px] text-slate-700">Ctrl + /</kbd>
               </div>
               <div className="flex items-center justify-between py-1.5 border-b border-slate-50">
                 <span className="text-slate-600">Save Return</span>
-                <kbd className="rounded bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-700">Ctrl + S</kbd>
+                <kbd className="rounded bg-slate-100 px-2 py-0.5 tabular-nums text-[11px] text-slate-700">Ctrl + S</kbd>
               </div>
             </div>
             <button
               type="button"
               onClick={() => setShortcutsModalOpen(false)}
-              className="w-full rounded-lg bg-slate-100 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+              className="w-full rounded-lg bg-slate-100 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-200"
             >
               Close
             </button>
@@ -785,7 +785,7 @@ export default function PurchaseReturnsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-semibold text-slate-900">Purchase Return Settings</h3>
+              <h3 className="text-[15px] font-semibold text-slate-900">Purchase Return Settings</h3>
               <button
                 type="button"
                 onClick={() => setSettingsModalOpen(false)}
@@ -814,7 +814,7 @@ export default function PurchaseReturnsPage() {
                 setSettingsModalOpen(false);
                 showToast("Settings saved");
               }}
-              className="w-full rounded-lg bg-[#4338CA] py-2 text-xs font-semibold text-white hover:bg-[#3730A3]"
+              className="w-full rounded-lg bg-[#4338CA] py-2 text-[13px] font-medium text-white hover:bg-[#3730A3]"
             >
               Save Preferences
             </button>

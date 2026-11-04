@@ -11,7 +11,8 @@
     "test:reliability": "node scripts/test-reliability.mjs",
     "test:export": "node scripts/test-export-system.mjs",
     "test:gstin": "node scripts/test-gstin-verification.mjs",
-    "test": "node scripts/test-reliability.mjs && node scripts/test-export-system.mjs && node scripts/test-gstin-verification.mjs",
+    "test:staff-salary": "node scripts/test-staff-salary-accounting.mjs",
+    "test": "node scripts/test-reliability.mjs && node scripts/test-export-system.mjs && node scripts/test-gstin-verification.mjs && node scripts/test-staff-salary-accounting.mjs",
     "lint": "tsc --noEmit"
   },
   "dependencies": {

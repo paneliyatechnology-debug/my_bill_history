@@ -75,7 +75,7 @@ export function SalesVsPurchaseChart({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           </div>
-          <h2 className="text-sm font-bold text-[#111827]">
+          <h2 className="text-sm font-semibold text-[#111827]">
             {lang === "gu" ? "વેચાણ વિરુદ્ધ ખરીદી" : "Sales vs Purchase"}
           </h2>
         </div>
@@ -90,7 +90,7 @@ export function SalesVsPurchaseChart({
       <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
         <div className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]"></span>
-          <span className="font-mono font-bold text-xs sm:text-sm text-[#111827]">
+          <span className="tabular-nums font-bold text-xs sm:text-sm text-[#111827]">
             {isLoading ? "..." : formatInr(salesTotal)}
           </span>
           <span className="text-[11px] sm:text-xs text-[#6B7280]">
@@ -100,7 +100,7 @@ export function SalesVsPurchaseChart({
 
         <div className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-[#F97316]"></span>
-          <span className="font-mono font-bold text-xs sm:text-sm text-[#111827]">
+          <span className="tabular-nums font-bold text-xs sm:text-sm text-[#111827]">
             {isLoading ? "..." : formatInr(purchasesTotal)}
           </span>
           <span className="text-[11px] sm:text-xs text-[#6B7280]">

@@ -755,9 +755,9 @@ export default function PartiesPage() {
             className="cursor-pointer group flex items-center gap-1.5"
           >
             <div>
-              <div className="font-bold text-slate-900 group-hover:text-[#174B43] transition-colors flex items-center gap-1">
+              <div className="font-bold text-slate-900 group-hover:text-[#0F172A] transition-colors flex items-center gap-1">
                 <span>{p.name}</span>
-                <span className="text-[10px] text-slate-400 group-hover:text-[#174B43]">↗</span>
+                <span className="text-[10px] text-slate-400 group-hover:text-[#0F172A]">↗</span>
               </div>
               {lang === "gu" && p.nameGujarati && (
                 <div className="text-[11px] font-normal text-slate-500">
@@ -779,7 +779,7 @@ export default function PartiesPage() {
         header: lang === "gu" ? "મોબાઇલ નંબર" : "Mobile Number",
         accessorKey: "phone",
         sortable: true,
-        className: "font-mono text-slate-700 text-xs",
+        className: "tabular-nums text-slate-700 text-xs",
         cell: (p) => p.phone || "—",
       },
       {
@@ -797,7 +797,7 @@ export default function PartiesPage() {
         id: "balance",
         header: lang === "gu" ? "બાકી રકમ (Balance)" : "Balance",
         sortable: true,
-        className: "text-right font-mono font-bold text-xs",
+        className: "text-right tabular-nums font-bold text-xs",
         cell: (p) => {
           const bal = Number(p.balance || 0);
           if (bal <= 0) {
@@ -848,7 +848,7 @@ export default function PartiesPage() {
             <button
               type="button"
               onClick={() => setSelectedParty(p)}
-              className="px-2.5 py-1 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-lg transition-colors cursor-pointer"
+              className="px-2.5 py-1 text-[13px] font-medium text-[#1677E8] bg-[#EFF6FF] hover:bg-teal-100 border border-teal-200 rounded-lg transition-colors cursor-pointer"
               title="View Master Details"
             >
               Details →
@@ -890,7 +890,7 @@ export default function PartiesPage() {
               <button
                 type="button"
                 onClick={() => setSelectedParty(null)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -920,7 +920,7 @@ export default function PartiesPage() {
             <div className="flex items-center gap-2">
               <Link
                 href={`/sales/invoices/new?partyId=${selectedParty.id}`}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-xl shadow-sm transition-all"
+                className="inline-flex items-center gap-1.5 h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-sm transition-all"
               >
                 <span>+</span>
                 <span>{lang === "gu" ? "વેચાણ બિલ બનાવો" : "Create Invoice"}</span>
@@ -928,7 +928,7 @@ export default function PartiesPage() {
               <button
                 type="button"
                 onClick={() => setIsImportModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1.5 h-9 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-[13px] font-medium rounded-xl transition-all cursor-pointer shadow-2xs"
                 title="Import Parties from Excel or CSV"
               >
                 <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -939,7 +939,7 @@ export default function PartiesPage() {
               <button
                 type="button"
                 onClick={handleOpenCreateModal}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[13px] font-medium rounded-xl transition-all cursor-pointer"
               >
                 <span>+</span>
                 <span>{lang === "gu" ? "નવો વેપારી" : "Add Party"}</span>
@@ -959,7 +959,7 @@ export default function PartiesPage() {
                     placeholder={lang === "gu" ? "નામ અથવા ફોન શોધો..." : "Search party..."}
                     value={detailSearch}
                     onChange={(e) => setDetailSearch(e.target.value)}
-                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-teal-500 font-medium"
+                    className="w-full pl-8 pr-3 py-1.5 text-[13px] bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#1677E8] font-medium h-10"
                   />
                   <svg className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -1015,13 +1015,13 @@ export default function PartiesPage() {
                           {lang === "gu" && p.nameGujarati && (
                             <div className="text-[10px] text-slate-500 truncate">{p.nameGujarati}</div>
                           )}
-                          <div className="text-[11px] text-slate-500 font-mono mt-0.5 truncate">
+                          <div className="text-[11px] text-slate-500 tabular-nums mt-0.5 truncate">
                             {p.phone || "No phone"}
                           </div>
                         </div>
                         <div className="text-right shrink-0">
                           <div
-                            className={`text-xs font-mono font-bold ${
+                            className={`text-xs tabular-nums font-bold ${
                               bal <= 0
                                 ? "text-slate-500"
                                 : p.type === "SUPPLIER"
@@ -1056,7 +1056,7 @@ export default function PartiesPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h2 className="text-base sm:text-lg font-bold text-slate-900">
+                        <h2 className="text-[15px] sm:text-[15px] font-semibold text-[#182230]">
                           {selectedParty.name}
                         </h2>
                         {lang === "gu" && selectedParty.nameGujarati && (
@@ -1077,9 +1077,9 @@ export default function PartiesPage() {
                         </Badge>
                       </div>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600 mt-1">
-                        <span className="font-mono">📞 {selectedParty.phone || "—"}</span>
+                        <span className="tabular-nums">📞 {selectedParty.phone || "—"}</span>
                         {selectedParty.gstin && (
-                          <span className="font-mono bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded border border-emerald-200 font-semibold text-[11px]">
+                          <span className="tabular-nums bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded border border-emerald-200 font-semibold text-[11px]">
                             GST: {selectedParty.gstin}
                           </span>
                         )}
@@ -1094,7 +1094,7 @@ export default function PartiesPage() {
                   <div className="flex items-center gap-2">
                     <Link
                       href="/app/home/shared-ledger"
-                      className="p-2 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 text-xs font-bold transition-colors inline-flex items-center gap-1"
+                      className="p-2 rounded-xl bg-[#EFF6FF] hover:bg-teal-100 text-[#1677E8] border border-teal-200 text-[13px] font-medium transition-colors inline-flex items-center gap-1"
                       title="Open Shared Ledger"
                     >
                       🔗 Shared Ledger
@@ -1121,7 +1121,7 @@ export default function PartiesPage() {
                     <button
                       type="button"
                       onClick={() => handleOpenEditModal(selectedParty)}
-                      className="px-3 py-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors cursor-pointer"
+                      className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors cursor-pointer"
                     >
                       ✏️ Edit
                     </button>
@@ -1135,7 +1135,7 @@ export default function PartiesPage() {
                       {selectedParty.type === "SUPPLIER" ? "You'll Give" : "You'll Get"} (Balance)
                     </div>
                     <div
-                      className={`text-sm font-bold font-mono mt-0.5 ${
+                      className={`text-sm font-bold tabular-nums mt-0.5 ${
                         Number(selectedParty.balance || 0) <= 0
                           ? "text-slate-700"
                           : selectedParty.type === "SUPPLIER"
@@ -1151,7 +1151,7 @@ export default function PartiesPage() {
 
                   <div className="bg-white p-2.5 rounded-xl border border-slate-200/80">
                     <div className="text-[11px] font-semibold text-slate-500">Credit Limit</div>
-                    <div className="text-sm font-bold font-mono text-slate-800 mt-0.5">
+                    <div className="text-sm font-bold tabular-nums text-slate-800 mt-0.5">
                       {selectedParty.creditLimit
                         ? `₹ ${Number(selectedParty.creditLimit).toLocaleString("en-IN")}`
                         : "No Limit"}
@@ -1160,14 +1160,14 @@ export default function PartiesPage() {
 
                   <div className="bg-white p-2.5 rounded-xl border border-slate-200/80">
                     <div className="text-[11px] font-semibold text-slate-500">Credit Period</div>
-                    <div className="text-sm font-bold font-mono text-slate-800 mt-0.5">
+                    <div className="text-sm font-bold tabular-nums text-slate-800 mt-0.5">
                       {selectedParty.creditDays || 30} Days
                     </div>
                   </div>
 
                   <div className="bg-white p-2.5 rounded-xl border border-slate-200/80">
                     <div className="text-[11px] font-semibold text-slate-500">Total Vouchers</div>
-                    <div className="text-sm font-bold font-mono text-slate-800 mt-0.5">
+                    <div className="text-sm font-bold tabular-nums text-slate-800 mt-0.5">
                       {partyTransactions.length}
                     </div>
                   </div>
@@ -1186,7 +1186,7 @@ export default function PartiesPage() {
                   }`}
                 >
                   <span>{lang === "gu" ? "વ્યવહારો" : "Transactions"}</span>
-                  <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full font-mono">
+                  <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full tabular-nums">
                     {partyTransactions.length}
                   </span>
                 </button>
@@ -1213,7 +1213,7 @@ export default function PartiesPage() {
                   }`}
                 >
                   <span>📝 {lang === "gu" ? "નોંધ" : "Notes"}</span>
-                  <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full font-mono">
+                  <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full tabular-nums">
                     {partyNotes.length}
                   </span>
                 </button>
@@ -1228,7 +1228,7 @@ export default function PartiesPage() {
                   }`}
                 >
                   <span>📅 {lang === "gu" ? "મુલાકાત" : "Appointments"}</span>
-                  <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full font-mono">
+                  <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full tabular-nums">
                     {partyAppointments.length}
                   </span>
                 </button>
@@ -1280,7 +1280,7 @@ export default function PartiesPage() {
                         </p>
                         <Link
                           href={`/sales/invoices/new?partyId=${selectedParty.id}`}
-                          className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all"
+                          className="mt-4 inline-flex items-center gap-1.5 h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-sm transition-all"
                         >
                           + Create Sales Invoice
                         </Link>
@@ -1304,17 +1304,17 @@ export default function PartiesPage() {
                                 <td className="p-3 font-semibold text-slate-700">
                                   {txn.type}
                                 </td>
-                                <td className="p-3 font-mono font-bold text-teal-700">
+                                <td className="p-3 tabular-nums font-medium text-teal-700">
                                   {txn.number || "—"}
                                 </td>
-                                <td className="p-3 text-slate-600 font-mono">
+                                <td className="p-3 text-slate-600 tabular-nums">
                                   {new Date(txn.date).toLocaleDateString("en-IN", {
                                     day: "2-digit",
                                     month: "short",
                                     year: "numeric",
                                   })}
                                 </td>
-                                <td className="p-3 text-right font-mono font-bold text-slate-900">
+                                <td className="p-3 text-right tabular-nums font-medium text-slate-900">
                                   ₹ {txn.amount.toLocaleString("en-IN")}
                                 </td>
                                 <td className="p-3 text-center">
@@ -1323,7 +1323,7 @@ export default function PartiesPage() {
                                 <td className="p-3 text-right">
                                   <Link
                                     href={`/sales/invoices/${txn.id}`}
-                                    className="px-2.5 py-1 text-[11px] font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-lg transition-colors inline-block"
+                                    className="px-2.5 py-1 text-[11px] font-medium text-[#1677E8] bg-[#EFF6FF] hover:bg-teal-100 border border-teal-200 rounded-lg transition-colors inline-block"
                                   >
                                     View →
                                   </Link>
@@ -1343,7 +1343,7 @@ export default function PartiesPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Basic & Statutory */}
                       <div className="p-4 bg-slate-50/60 rounded-xl border border-slate-200 space-y-3">
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 border-b border-slate-200 pb-2">
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-200 pb-2">
                           Basic & Tax Details
                         </h3>
                         <div className="space-y-2 text-xs">
@@ -1363,13 +1363,13 @@ export default function PartiesPage() {
                           </div>
                           <div className="flex justify-between">
                             <span className="text-slate-500">GSTIN:</span>
-                            <span className="font-mono font-bold text-teal-700">
+                            <span className="tabular-nums font-bold text-teal-700">
                               {selectedParty.gstin || "Unregistered / Regular"}
                             </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-slate-500">State Code:</span>
-                            <span className="font-mono font-semibold text-slate-900">
+                            <span className="tabular-nums font-semibold text-slate-900">
                               {selectedParty.stateCode} ({selectedParty.stateCode === "24" ? "Gujarat" : "Other State"})
                             </span>
                           </div>
@@ -1378,13 +1378,13 @@ export default function PartiesPage() {
 
                       {/* Contact & Credit */}
                       <div className="p-4 bg-slate-50/60 rounded-xl border border-slate-200 space-y-3">
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 border-b border-slate-200 pb-2">
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 border-b border-slate-200 pb-2">
                           Contact & Credit Terms
                         </h3>
                         <div className="space-y-2 text-xs">
                           <div className="flex justify-between">
                             <span className="text-slate-500">Phone:</span>
-                            <span className="font-mono font-semibold text-slate-900">{selectedParty.phone || "—"}</span>
+                            <span className="tabular-nums font-semibold text-slate-900">{selectedParty.phone || "—"}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-slate-500">Email:</span>
@@ -1392,13 +1392,13 @@ export default function PartiesPage() {
                           </div>
                           <div className="flex justify-between">
                             <span className="text-slate-500">Credit Limit:</span>
-                            <span className="font-mono font-semibold text-slate-900">
+                            <span className="tabular-nums font-semibold text-slate-900">
                               {selectedParty.creditLimit ? `₹ ${Number(selectedParty.creditLimit).toLocaleString("en-IN")}` : "No Limit"}
                             </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-slate-500">Credit Period:</span>
-                            <span className="font-mono font-semibold text-slate-900">
+                            <span className="tabular-nums font-semibold text-slate-900">
                               {selectedParty.creditDays || 30} Days
                             </span>
                           </div>
@@ -1416,7 +1416,7 @@ export default function PartiesPage() {
                       <button
                         type="button"
                         onClick={() => handleOpenEditModal(selectedParty)}
-                        className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
+                        className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-sm transition-all cursor-pointer"
                       >
                         Edit Party Profile
                       </button>
@@ -1442,7 +1442,7 @@ export default function PartiesPage() {
                       <button
                         type="button"
                         onClick={() => setIsAddNoteModalOpen(true)}
-                        className="px-3.5 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
+                        className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white font-medium text-[13px] rounded-xl shadow-sm transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
                       >
                         + Add Note
                       </button>
@@ -1460,7 +1460,7 @@ export default function PartiesPage() {
                         <button
                           type="button"
                           onClick={() => setIsAddNoteModalOpen(true)}
-                          className="mt-2 inline-flex items-center gap-1 px-3.5 py-1.5 bg-teal-600 text-white text-xs font-bold rounded-xl shadow-sm"
+                          className="mt-2 inline-flex items-center gap-1 h-9 px-3 bg-[#1677E8] text-white text-[13px] font-medium rounded-xl shadow-sm"
                         >
                           + Add First Note
                         </button>
@@ -1486,7 +1486,7 @@ export default function PartiesPage() {
                             <p className="text-xs text-slate-600 whitespace-pre-wrap leading-relaxed">
                               {n.description || n.descriptions || "No description provided."}
                             </p>
-                            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 tabular-nums">
                               <span>📅 {new Date(n.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
                               <span>{new Date(n.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</span>
                             </div>
@@ -1520,7 +1520,7 @@ export default function PartiesPage() {
                           setApptDate(tomorrow.toISOString().split("T")[0]);
                           setIsAddAppointmentModalOpen(true);
                         }}
-                        className="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
+                        className="h-9 px-3 bg-purple-600 hover:bg-purple-700 text-white font-medium text-[13px] rounded-xl shadow-sm transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
                       >
                         + Schedule Appointment
                       </button>
@@ -1543,7 +1543,7 @@ export default function PartiesPage() {
                             setApptDate(tomorrow.toISOString().split("T")[0]);
                             setIsAddAppointmentModalOpen(true);
                           }}
-                          className="mt-2 inline-flex items-center gap-1 px-3.5 py-1.5 bg-purple-600 text-white text-xs font-bold rounded-xl shadow-sm"
+                          className="mt-2 inline-flex items-center gap-1 h-9 px-3 bg-purple-600 text-white text-[13px] font-medium rounded-xl shadow-sm"
                         >
                           + Schedule First Appointment
                         </button>
@@ -1587,7 +1587,7 @@ export default function PartiesPage() {
                               <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
                                 {a.status || "SCHEDULED"}
                               </span>
-                              <span className="text-[11px] text-slate-400 font-mono">
+                              <span className="text-[11px] text-slate-400 tabular-nums">
                                 Created: {new Date(a.createdAt).toLocaleDateString("en-IN")}
                               </span>
                             </div>
@@ -1606,7 +1606,7 @@ export default function PartiesPage() {
                         <div className="text-xs font-bold text-slate-900">
                           Statement of Account: {selectedParty.name}
                         </div>
-                        <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+                        <div className="text-[11px] text-slate-500 tabular-nums mt-0.5">
                           Financial Year 2026-27 • Net Balance: ₹{Number(selectedParty.balance || 0).toLocaleString("en-IN")}
                         </div>
                       </div>
@@ -1615,7 +1615,7 @@ export default function PartiesPage() {
                         <button
                           type="button"
                           onClick={() => window.print()}
-                          className="px-3 py-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+                          className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors cursor-pointer"
                         >
                           🖨️ Print Statement
                         </button>
@@ -1634,7 +1634,7 @@ export default function PartiesPage() {
                             <th className="p-3 text-right">Balance (₹)</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 font-mono">
+                        <tbody className="divide-y divide-slate-100 tabular-nums">
                           <tr className="bg-slate-50/40 font-semibold text-slate-600">
                             <td className="p-3">—</td>
                             <td className="p-3 font-sans">Opening Balance</td>
@@ -1653,16 +1653,16 @@ export default function PartiesPage() {
                                 <td className="p-3 font-sans text-slate-800 font-medium">
                                   {txn.type}
                                 </td>
-                                <td className="p-3 font-bold text-teal-700">
+                                <td className="p-3 font-medium text-teal-700">
                                   {txn.number || "—"}
                                 </td>
-                                <td className="p-3 text-right font-bold text-slate-900">
+                                <td className="p-3 text-right font-medium text-slate-900">
                                   {isDebit ? txn.amount.toLocaleString("en-IN") : "—"}
                                 </td>
-                                <td className="p-3 text-right font-bold text-emerald-700">
+                                <td className="p-3 text-right font-medium text-emerald-700">
                                   {!isDebit ? txn.amount.toLocaleString("en-IN") : "—"}
                                 </td>
-                                <td className="p-3 text-right font-bold text-indigo-900">
+                                <td className="p-3 text-right font-medium text-indigo-900">
                                   ₹ {txn.amount.toLocaleString("en-IN")}
                                 </td>
                               </tr>
@@ -1702,13 +1702,13 @@ export default function PartiesPage() {
                               <td className="p-3 font-semibold text-slate-800">
                                 Items across {partyTransactions.length} vouchers
                               </td>
-                              <td className="p-3 text-center font-mono">
+                              <td className="p-3 text-center tabular-nums">
                                 {partyTransactions.length}
                               </td>
-                              <td className="p-3 text-right font-mono font-semibold">
+                              <td className="p-3 text-right tabular-nums font-semibold">
                                 {partyTransactions.length * 10} PCS
                               </td>
-                              <td className="p-3 text-right font-mono font-bold text-teal-700">
+                              <td className="p-3 text-right tabular-nums font-medium text-teal-700">
                                 ₹ {partyTransactions.reduce((acc, t) => acc + t.amount, 0).toLocaleString("en-IN")}
                               </td>
                             </tr>
@@ -1752,14 +1752,14 @@ export default function PartiesPage() {
                 <div className="flex items-center gap-2 shrink-0">
                   <Link
                     href="/app/home/shared-ledger"
-                    className="px-4 py-2 bg-white text-indigo-900 hover:bg-teal-50 text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer inline-flex items-center gap-1.5"
+                    className="h-9 px-3 bg-white text-indigo-900 hover:bg-[#EFF6FF] text-[13px] font-medium rounded-xl shadow-sm transition-all cursor-pointer inline-flex items-center gap-1.5"
                   >
                     Open Shared Ledger →
                   </Link>
                   <button
                     type="button"
                     onClick={() => setShowSharedLedgerBanner(false)}
-                    className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xs transition-colors cursor-pointer"
+                    className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-[13px] transition-colors cursor-pointer"
                     title="Dismiss"
                   >
                     ✕
@@ -1772,7 +1772,7 @@ export default function PartiesPage() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle">
             <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl lg:text-[1.75rem] font-bold text-[#202124] tracking-tight leading-tight">
+              <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight leading-tight">
                 {lang === "gu" ? "વેપારીઓ / ગ્રાહક ખાતાઓ" : "Parties & Customer Accounts"}
               </h1>
               <p className="text-xs sm:text-sm text-[#667085] mt-1 leading-relaxed break-words font-normal">
@@ -1786,7 +1786,7 @@ export default function PartiesPage() {
               <button
                 type="button"
                 onClick={() => setIsImportModalOpen(true)}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-800 border border-emerald-300 text-xs sm:text-sm font-bold rounded-xl shadow-2xs transition-all w-full sm:w-auto shrink-0 cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-800 border border-emerald-300 text-[13px] font-medium rounded-xl shadow-2xs transition-all w-full sm:w-auto shrink-0 cursor-pointer"
               >
                 <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -1796,7 +1796,7 @@ export default function PartiesPage() {
 
               <button
                 onClick={handleOpenCreateModal}
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#174B43] hover:bg-[#123B35] active:bg-[#B94B0A] text-white text-xs sm:text-sm font-bold rounded-xl shadow-saffron transition-all w-full sm:w-auto shrink-0 cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] text-white text-[13px] font-medium rounded-xl shadow-xs transition-all w-full sm:w-auto shrink-0 cursor-pointer"
               >
                 <svg
                   className="w-4 h-4"
@@ -1823,9 +1823,9 @@ export default function PartiesPage() {
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                   👥 All Parties
                 </span>
-                <span className="text-xs font-mono text-slate-400">Total</span>
+                <span className="text-xs tabular-nums text-slate-400">Total</span>
               </div>
-              <div className="text-2xl font-bold font-mono text-slate-900 mt-2">
+              <div className="text-2xl font-bold tabular-nums text-slate-900 mt-2">
                 {parties.length}
               </div>
               <div className="text-[11px] text-slate-400 mt-1">
@@ -1839,11 +1839,11 @@ export default function PartiesPage() {
                   <span>↓</span>
                   <span>To Collect (Receivable)</span>
                 </span>
-                <span className="text-xs font-mono text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">
+                <span className="text-xs tabular-nums text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">
                   You'll Get
                 </span>
               </div>
-              <div className="text-2xl font-bold font-mono text-emerald-700 mt-2">
+              <div className="text-2xl font-bold tabular-nums text-emerald-700 mt-2">
                 ₹ {totalToCollect.toLocaleString("en-IN")}
               </div>
               <div className="text-[11px] text-slate-400 mt-1">
@@ -1857,11 +1857,11 @@ export default function PartiesPage() {
                   <span>↑</span>
                   <span>To Pay (Payable)</span>
                 </span>
-                <span className="text-xs font-mono text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full font-bold">
+                <span className="text-xs tabular-nums text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full font-bold">
                   You'll Give
                 </span>
               </div>
-              <div className="text-2xl font-bold font-mono text-rose-600 mt-2">
+              <div className="text-2xl font-bold tabular-nums text-rose-600 mt-2">
                 ₹ {totalToPay.toLocaleString("en-IN")}
               </div>
               <div className="text-[11px] text-slate-400 mt-1">
@@ -1879,7 +1879,7 @@ export default function PartiesPage() {
               <button
                 type="button"
                 onClick={() => setIsBulkDeleteModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 h-9 px-3 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-[13px] font-medium rounded-xl shadow-sm transition-all cursor-pointer"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -1920,7 +1920,7 @@ export default function PartiesPage() {
                 <select
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
-                  className="text-xs bg-[#F8F9FB] border border-[#E5E7EB] text-[#202124] rounded-xl px-3 py-1.5 font-semibold focus:outline-none focus:bg-white cursor-pointer"
+                  className="text-[13px] bg-[#F8F9FB] border border-[#E5E7EB] text-[#182230] rounded-xl px-3 py-1.5 font-normal focus:outline-none focus:bg-white cursor-pointer h-10"
                 >
                   <option value="ALL">
                     {lang === "gu" ? "તમામ પ્રકાર (All Types)" : "All Types"}
@@ -1954,12 +1954,12 @@ export default function PartiesPage() {
                   </Badge>
                 </div>
                 {lang === "gu" && p.nameGujarati && <p className="text-xs text-slate-500">{p.nameGujarati}</p>}
-                <div className="flex items-center justify-between text-xs text-slate-600 font-mono">
+                <div className="flex items-center justify-between text-xs text-slate-600 tabular-nums">
                   <span>📞 {p.phone || "—"}</span>
                   <span>State: {p.stateCode}</span>
                 </div>
                 {p.gstin && (
-                  <div className="text-[11px] font-mono font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block">
+                  <div className="text-[11px] tabular-nums font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block">
                     GST: {p.gstin}
                   </div>
                 )}
@@ -1987,21 +1987,21 @@ export default function PartiesPage() {
                   <button
                     type="button"
                     onClick={() => setSelectedParty(p)}
-                    className="px-2.5 py-1 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded transition-colors inline-flex items-center gap-1 cursor-pointer"
+                    className="px-2.5 py-1 text-[13px] font-medium text-[#1677E8] bg-[#EFF6FF] hover:bg-teal-100 border border-teal-200 rounded transition-colors inline-flex items-center gap-1 cursor-pointer"
                   >
                     <span>{lang === "gu" ? "વિગતો" : "Details"} →</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleOpenEditModal(p)}
-                    className="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded cursor-pointer"
+                    className="px-2.5 py-1 text-[13px] font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded cursor-pointer"
                   >
                     {lang === "gu" ? "સુધારો" : "Edit"}
                   </button>
                   <button
                     type="button"
                     onClick={() => setPartyToDelete(p)}
-                    className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded cursor-pointer"
+                    className="px-2.5 py-1 text-[13px] font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded cursor-pointer"
                   >
                     {lang === "gu" ? "કાઢી નાખો" : "Delete"}
                   </button>
@@ -2028,7 +2028,7 @@ export default function PartiesPage() {
             <button
               type="button"
               onClick={() => alert("Upload party Excel sheet format (.xlsx or .csv) supported.")}
-              className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all shrink-0 cursor-pointer"
+              className="h-9 px-3 bg-[#1677E8] hover:bg-[#1677E8] text-white text-[13px] font-medium rounded-xl shadow-sm transition-all shrink-0 cursor-pointer"
             >
               Upload Excel Sheet ⤓
             </button>
@@ -2053,7 +2053,7 @@ export default function PartiesPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 {lang === "gu" ? "ખાતાનો પ્રકાર *" : "Party Type *"}
               </label>
               <select
@@ -2061,7 +2061,7 @@ export default function PartiesPage() {
                 onChange={(e: any) =>
                   setFormData({ ...formData, type: e.target.value })
                 }
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
               >
                 <option value="CUSTOMER">{lang === "gu" ? "ગ્રાહક (Customer)" : "Customer"}</option>
                 <option value="SUPPLIER">{lang === "gu" ? "વેપારી / સપ્લાયર (Supplier)" : "Supplier"}</option>
@@ -2070,7 +2070,7 @@ export default function PartiesPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 {lang === "gu" ? "મોબાઇલ નંબર *" : "Mobile Phone *"}
               </label>
               <input
@@ -2081,7 +2081,7 @@ export default function PartiesPage() {
                   setFormData({ ...formData, phone: e.target.value })
                 }
                 placeholder="+919800000000"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono focus:bg-white focus:ring-1 focus:ring-emerald-500"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
               />
             </div>
           </div>
@@ -2091,10 +2091,10 @@ export default function PartiesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="sm:col-span-2">
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-semibold text-slate-700 uppercase">
+                  <label className="block text-[12px] font-medium text-slate-700 uppercase">
                     {lang === "gu" ? "જીએસટી નંબર (GSTIN)" : "GSTIN (15 Digits)"}
                   </label>
-                  <span className="text-[10px] text-slate-500 font-mono">
+                  <span className="text-[10px] text-slate-500 tabular-nums">
                     {formData.gstin ? `${formData.gstin.length}/15` : "Optional"}
                   </span>
                 </div>
@@ -2116,13 +2116,13 @@ export default function PartiesPage() {
                     }}
                     placeholder="24AAAAA0000A1Z2"
                     maxLength={15}
-                    className="w-full text-xs p-2 bg-white border border-slate-300 rounded font-mono uppercase focus:ring-1 focus:ring-emerald-500"
+                    className="w-full text-[13px] p-2 bg-white border border-slate-300 rounded tabular-nums uppercase focus:ring-1 focus:ring-[#1677E8] h-10"
                   />
                   <button
                     type="button"
                     disabled={isGstinFetching || !formData.gstin || formData.gstin.trim().length < 15}
                     onClick={() => handleGstinLookup(formData.gstin, false, true)}
-                    className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white rounded text-xs font-medium flex items-center gap-1.5 shrink-0 shadow-sm transition-colors cursor-pointer disabled:cursor-not-allowed"
+                    className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] disabled:opacity-40 text-white rounded-[10px] text-[13px] font-medium flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer disabled:cursor-not-allowed"
                     title="Verify GSTIN with official portal & autofill details"
                   >
                     {isGstinFetching ? (
@@ -2148,7 +2148,7 @@ export default function PartiesPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                   {lang === "gu" ? "રાજ્ય કોડ *" : "State Code *"}
                 </label>
                 <input
@@ -2160,7 +2160,7 @@ export default function PartiesPage() {
                   }
                   placeholder="24 (Gujarat)"
                   maxLength={2}
-                  className="w-full text-xs p-2 bg-white border border-slate-300 rounded font-mono focus:ring-1 focus:ring-emerald-500"
+                  className="w-full text-[13px] p-2 bg-white border border-slate-300 rounded tabular-nums focus:ring-1 focus:ring-[#1677E8] h-10"
                 />
               </div>
             </div>
@@ -2180,7 +2180,7 @@ export default function PartiesPage() {
                   <span className="font-semibold text-amber-800">
                     {lang === "gu" ? "નામ વિસંગતતા જણાઈ:" : "Party Name Discrepancy:"}
                   </span>
-                  <span className="text-[10px] bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded font-mono">
+                  <span className="text-[10px] bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded tabular-nums">
                     Review
                   </span>
                 </div>
@@ -2196,14 +2196,14 @@ export default function PartiesPage() {
                       setFormData((prev) => ({ ...prev, name: nameConflict.verified }));
                       setNameConflict(null);
                     }}
-                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-medium cursor-pointer"
+                    className="px-2.5 py-1 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded text-[13px] font-medium cursor-pointer"
                   >
                     {lang === "gu" ? "વેરિફાઇડ નામ વાપરો" : "Use Verified Name"}
                   </button>
                   <button
                     type="button"
                     onClick={() => setNameConflict(null)}
-                    className="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-xs font-medium cursor-pointer"
+                    className="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-[13px] font-medium cursor-pointer"
                   >
                     {lang === "gu" ? "દાખલ કરેલ નામ રાખો" : "Keep Entered Name"}
                   </button>
@@ -2269,7 +2269,7 @@ export default function PartiesPage() {
                   {verifiedGstinData.address?.line1 && (
                     <div className="col-span-2 truncate">
                       <span className="text-slate-400">Address: </span>
-                      <span className="font-mono text-slate-700">
+                      <span className="tabular-nums text-slate-700">
                         {verifiedGstinData.address.line1}, {verifiedGstinData.address.city || ""}{" "}
                         {verifiedGstinData.address.pincode || ""}
                       </span>
@@ -2294,7 +2294,7 @@ export default function PartiesPage() {
                   <span className="font-semibold text-amber-800">
                     {lang === "gu" ? "GSTIN ચેકસમ ભૂલ શોધી કાઢી:" : "GSTIN Check Digit Typo:"}
                   </span>
-                  <span className="text-[10px] bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded font-mono">
+                  <span className="text-[10px] bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded tabular-nums">
                     Mod 36
                   </span>
                 </div>
@@ -2306,7 +2306,7 @@ export default function PartiesPage() {
                 <button
                   type="button"
                   onClick={() => applySuggestedGstin(gstinCorrection.suggestedGstin, false)}
-                  className="w-full mt-1 px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+                  className="w-full mt-1 px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded text-[13px] flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer"
                 >
                   <span>⚡</span>
                   <span>{lang === "gu" ? `સુધારીને ${gstinCorrection.suggestedGstin} કરો અને ઓટોફિલ કરો` : `Fix to ${gstinCorrection.suggestedGstin} & Autofill`}</span>
@@ -2316,7 +2316,7 @@ export default function PartiesPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               {lang === "gu"
                 ? "વેપારીનું નામ (અંગ્રેજી) *"
                 : "Business / Party Name *"}
@@ -2329,13 +2329,13 @@ export default function PartiesPage() {
                 setFormData({ ...formData, name: e.target.value })
               }
               placeholder="e.g. Shree Ganesh Provision Store"
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
+              className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
             />
           </div>
 
           {lang === "gu" && (
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 નામ ગુજરાતીમાં (વૈકલ્પિક)
               </label>
               <input
@@ -2345,14 +2345,14 @@ export default function PartiesPage() {
                   setFormData({ ...formData, nameGujarati: e.target.value })
                 }
                 placeholder="દા.ત. શ્રી ગણેશ પ્રોવિઝન સ્ટોર"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
               />
             </div>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 {lang === "gu" ? "સરનામું" : "Address Line"}
               </label>
               <input
@@ -2362,11 +2362,11 @@ export default function PartiesPage() {
                   setFormData({ ...formData, line1: e.target.value })
                 }
                 placeholder="Shop No. 4, Market"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded h-10"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 {lang === "gu" ? "શહેર" : "City"}
               </label>
               <input
@@ -2376,11 +2376,11 @@ export default function PartiesPage() {
                   setFormData({ ...formData, city: e.target.value })
                 }
                 placeholder="Ahmedabad"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded h-10"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 {lang === "gu" ? "પીનકોડ" : "Pincode"}
               </label>
               <input
@@ -2390,7 +2390,7 @@ export default function PartiesPage() {
                   setFormData({ ...formData, pincode: e.target.value })
                 }
                 placeholder="380001"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums h-10"
               />
             </div>
           </div>
@@ -2399,14 +2399,14 @@ export default function PartiesPage() {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 rounded-lg shadow-sm"
+              className="h-9 px-3.5 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] disabled:opacity-50 rounded-lg shadow-sm"
             >
               {isSubmitting
                 ? "Saving..."
@@ -2438,7 +2438,7 @@ export default function PartiesPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 {lang === "gu" ? "ખાતાનો પ્રકાર *" : "Party Type *"}
               </label>
               <select
@@ -2446,7 +2446,7 @@ export default function PartiesPage() {
                 onChange={(e: any) =>
                   setEditFormData({ ...editFormData, type: e.target.value })
                 }
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
               >
                 <option value="CUSTOMER">{lang === "gu" ? "ગ્રાહક (Customer)" : "Customer"}</option>
                 <option value="SUPPLIER">{lang === "gu" ? "વેપારી / સપ્લાયર (Supplier)" : "Supplier"}</option>
@@ -2456,7 +2456,7 @@ export default function PartiesPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 {lang === "gu" ? "મોબાઇલ નંબર *" : "Mobile Phone *"}
               </label>
               <input
@@ -2467,7 +2467,7 @@ export default function PartiesPage() {
                   setEditFormData({ ...editFormData, phone: e.target.value })
                 }
                 placeholder="+919800000000"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono focus:bg-white focus:ring-1 focus:ring-emerald-500"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
               />
             </div>
           </div>
@@ -2477,10 +2477,10 @@ export default function PartiesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="sm:col-span-2">
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-semibold text-slate-700 uppercase">
+                  <label className="block text-[12px] font-medium text-slate-700 uppercase">
                     {lang === "gu" ? "જીએસટી નંબર (GSTIN)" : "GSTIN (15 Digits)"}
                   </label>
-                  <span className="text-[10px] text-slate-500 font-mono">
+                  <span className="text-[10px] text-slate-500 tabular-nums">
                     {editFormData.gstin ? `${editFormData.gstin.length}/15` : "Optional"}
                   </span>
                 </div>
@@ -2502,13 +2502,13 @@ export default function PartiesPage() {
                     }}
                     placeholder="24AAAAA0000A1Z2"
                     maxLength={15}
-                    className="w-full text-xs p-2 bg-white border border-slate-300 rounded font-mono uppercase focus:ring-1 focus:ring-emerald-500"
+                    className="w-full text-[13px] p-2 bg-white border border-slate-300 rounded tabular-nums uppercase focus:ring-1 focus:ring-[#1677E8] h-10"
                   />
                   <button
                     type="button"
                     disabled={isGstinFetching || !editFormData.gstin || editFormData.gstin.trim().length < 15}
                     onClick={() => handleGstinLookup(editFormData.gstin, true, true)}
-                    className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white rounded text-xs font-medium flex items-center gap-1.5 shrink-0 shadow-sm transition-colors cursor-pointer disabled:cursor-not-allowed"
+                    className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] disabled:opacity-40 text-white rounded-[10px] text-[13px] font-medium flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer disabled:cursor-not-allowed"
                     title="Verify GSTIN with official portal & autofill details"
                   >
                     {isGstinFetching ? (
@@ -2534,7 +2534,7 @@ export default function PartiesPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                   {lang === "gu" ? "રાજ્ય કોડ *" : "State Code *"}
                 </label>
                 <input
@@ -2546,7 +2546,7 @@ export default function PartiesPage() {
                   }
                   placeholder="24 (Gujarat)"
                   maxLength={2}
-                  className="w-full text-xs p-2 bg-white border border-slate-300 rounded font-mono focus:ring-1 focus:ring-emerald-500"
+                  className="w-full text-[13px] p-2 bg-white border border-slate-300 rounded tabular-nums focus:ring-1 focus:ring-[#1677E8] h-10"
                 />
               </div>
             </div>
@@ -2566,7 +2566,7 @@ export default function PartiesPage() {
                   <span className="font-semibold text-amber-800">
                     {lang === "gu" ? "નામ વિસંગતતા જણાઈ:" : "Party Name Discrepancy:"}
                   </span>
-                  <span className="text-[10px] bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded font-mono">
+                  <span className="text-[10px] bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded tabular-nums">
                     Review
                   </span>
                 </div>
@@ -2582,14 +2582,14 @@ export default function PartiesPage() {
                       setEditFormData((prev) => ({ ...prev, name: nameConflict.verified }));
                       setNameConflict(null);
                     }}
-                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-medium cursor-pointer"
+                    className="px-2.5 py-1 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded text-[13px] font-medium cursor-pointer"
                   >
                     {lang === "gu" ? "વેરિફાઇડ નામ વાપરો" : "Use Verified Name"}
                   </button>
                   <button
                     type="button"
                     onClick={() => setNameConflict(null)}
-                    className="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-xs font-medium cursor-pointer"
+                    className="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-[13px] font-medium cursor-pointer"
                   >
                     {lang === "gu" ? "દાખલ કરેલ નામ રાખો" : "Keep Entered Name"}
                   </button>
@@ -2655,7 +2655,7 @@ export default function PartiesPage() {
                   {editVerifiedGstinData.address?.line1 && (
                     <div className="col-span-2 truncate">
                       <span className="text-slate-400">Address: </span>
-                      <span className="font-mono text-slate-700">
+                      <span className="tabular-nums text-slate-700">
                         {editVerifiedGstinData.address.line1}, {editVerifiedGstinData.address.city || ""}{" "}
                         {editVerifiedGstinData.address.pincode || ""}
                       </span>
@@ -2680,7 +2680,7 @@ export default function PartiesPage() {
                   <span className="font-semibold text-amber-800">
                     {lang === "gu" ? "GSTIN ચેકસમ ભૂલ શોધી કાઢી:" : "GSTIN Check Digit Typo:"}
                   </span>
-                  <span className="text-[10px] bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded font-mono">
+                  <span className="text-[10px] bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded tabular-nums">
                     Mod 36
                   </span>
                 </div>
@@ -2692,7 +2692,7 @@ export default function PartiesPage() {
                 <button
                   type="button"
                   onClick={() => applySuggestedGstin(gstinCorrection.suggestedGstin, true)}
-                  className="w-full mt-1 px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+                  className="w-full mt-1 px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded text-[13px] flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer"
                 >
                   <span>⚡</span>
                   <span>{lang === "gu" ? `સુધારીને ${gstinCorrection.suggestedGstin} કરો અને ઓટોફિલ કરો` : `Fix to ${gstinCorrection.suggestedGstin} & Autofill`}</span>
@@ -2702,7 +2702,7 @@ export default function PartiesPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               {lang === "gu"
                 ? "વેપારીનું નામ (અંગ્રેજી) *"
                 : "Business / Party Name *"}
@@ -2715,13 +2715,13 @@ export default function PartiesPage() {
                 setEditFormData({ ...editFormData, name: e.target.value })
               }
               placeholder="e.g. Shree Ganesh Provision Store"
-              className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
+              className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
             />
           </div>
 
           {lang === "gu" && (
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 નામ ગુજરાતીમાં (વૈકલ્પિક)
               </label>
               <input
@@ -2731,14 +2731,14 @@ export default function PartiesPage() {
                   setEditFormData({ ...editFormData, nameGujarati: e.target.value })
                 }
                 placeholder="દા.ત. શ્રી ગણેશ પ્રોવિઝન સ્ટોર"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-emerald-500"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
               />
             </div>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 {lang === "gu" ? "સરનામું" : "Address Line"}
               </label>
               <input
@@ -2748,11 +2748,11 @@ export default function PartiesPage() {
                   setEditFormData({ ...editFormData, line1: e.target.value })
                 }
                 placeholder="Shop No. 4, Market"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded h-10"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 {lang === "gu" ? "શહેર" : "City"}
               </label>
               <input
@@ -2762,11 +2762,11 @@ export default function PartiesPage() {
                   setEditFormData({ ...editFormData, city: e.target.value })
                 }
                 placeholder="Ahmedabad"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded h-10"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 {lang === "gu" ? "પીનકોડ" : "Pincode"}
               </label>
               <input
@@ -2776,7 +2776,7 @@ export default function PartiesPage() {
                   setEditFormData({ ...editFormData, pincode: e.target.value })
                 }
                 placeholder="380001"
-                className="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded font-mono"
+                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums h-10"
               />
             </div>
           </div>
@@ -2792,7 +2792,7 @@ export default function PartiesPage() {
                     isActive: e.target.checked,
                   })
                 }
-                className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
+                className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-[#1677E8]"
               />
               <span className="text-xs font-semibold text-slate-800">
                 {lang === "gu" ? "સક્રિય ખાતું (Active Party)" : "Active Party"}
@@ -2807,14 +2807,14 @@ export default function PartiesPage() {
                 setIsEditModalOpen(false);
                 setEditingParty(null);
               }}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 rounded-lg shadow-sm"
+              className="h-9 px-3.5 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] disabled:opacity-50 rounded-lg shadow-sm"
             >
               {isSubmitting
                 ? "Updating..."
@@ -2865,7 +2865,7 @@ export default function PartiesPage() {
                 setPartyToDelete(null);
                 setSingleForceDelete(false);
               }}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
             >
               Cancel
             </button>
@@ -2873,7 +2873,7 @@ export default function PartiesPage() {
               type="button"
               onClick={handleDeleteParty}
               disabled={isDeleting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm cursor-pointer"
+              className="h-9 px-3.5 text-[13px] font-medium text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm cursor-pointer"
             >
               {isDeleting
                 ? "Deleting..."
@@ -2924,7 +2924,7 @@ export default function PartiesPage() {
                 setIsBulkDeleteModalOpen(false);
                 setBulkForceDelete(false);
               }}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
             >
               Cancel
             </button>
@@ -2932,7 +2932,7 @@ export default function PartiesPage() {
               type="button"
               onClick={handleBulkDeleteParties}
               disabled={isBulkDeleting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm cursor-pointer"
+              className="h-9 px-3.5 text-[13px] font-medium text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm cursor-pointer"
             >
               {isBulkDeleting
                 ? "Deleting..."
@@ -2953,7 +2953,7 @@ export default function PartiesPage() {
       >
         <form onSubmit={handleCreateNote} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Note Title <span className="text-rose-500">*</span>
             </label>
             <input
@@ -2962,12 +2962,12 @@ export default function PartiesPage() {
               value={noteTitle}
               onChange={(e) => setNoteTitle(e.target.value)}
               placeholder="e.g. Payment Reminder, Order Requirement, Delivery Notice"
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 outline-none"
+              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[13px] font-medium focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] outline-none h-10"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Description / Remarks
             </label>
             <textarea
@@ -2975,7 +2975,7 @@ export default function PartiesPage() {
               value={noteDescription}
               onChange={(e) => setNoteDescription(e.target.value)}
               placeholder="Write detailed notes, instructions, or follow-up details..."
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 outline-none resize-none"
+              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[13px] font-medium focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] outline-none resize-none"
             />
           </div>
 
@@ -2983,14 +2983,14 @@ export default function PartiesPage() {
             <button
               type="button"
               onClick={() => setIsAddNoteModalOpen(false)}
-              className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSavingNote || !noteTitle.trim()}
-              className="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50"
+              className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50"
             >
               {isSavingNote ? "Saving..." : "Save Note"}
             </button>
@@ -3007,7 +3007,7 @@ export default function PartiesPage() {
       >
         <form onSubmit={handleCreateAppointment} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Meeting / Appointment Title <span className="text-rose-500">*</span>
             </label>
             <input
@@ -3016,13 +3016,13 @@ export default function PartiesPage() {
               value={apptTitle}
               onChange={(e) => setApptTitle(e.target.value)}
               placeholder="e.g. Monthly Account Reconciliation, Sample Show, Payment Follow-up"
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 outline-none"
+              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[13px] font-medium focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 outline-none h-10"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 Date <span className="text-rose-500">*</span>
               </label>
               <input
@@ -3030,12 +3030,12 @@ export default function PartiesPage() {
                 required
                 value={apptDate}
                 onChange={(e) => setApptDate(e.target.value)}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 outline-none"
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[13px] font-medium focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 outline-none h-10"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 Time <span className="text-rose-500">*</span>
               </label>
               <input
@@ -3044,13 +3044,13 @@ export default function PartiesPage() {
                 value={apptTime}
                 onChange={(e) => setApptTime(e.target.value)}
                 placeholder="e.g. 11:00 AM, 04:30 PM"
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 outline-none"
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[13px] font-medium focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 outline-none h-10"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Description / Agenda
             </label>
             <textarea
@@ -3058,7 +3058,7 @@ export default function PartiesPage() {
               value={apptDescription}
               onChange={(e) => setApptDescription(e.target.value)}
               placeholder="Meeting agenda, discussion points, or location details..."
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 outline-none resize-none"
+              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[13px] font-medium focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 outline-none resize-none"
             />
           </div>
 
@@ -3066,14 +3066,14 @@ export default function PartiesPage() {
             <button
               type="button"
               onClick={() => setIsAddAppointmentModalOpen(false)}
-              className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSavingAppt || !apptTitle.trim() || !apptDate}
-              className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50"
+              className="h-9 px-3.5 bg-purple-600 hover:bg-purple-700 text-white text-[13px] font-medium rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-50"
             >
               {isSavingAppt ? "Scheduling..." : "Schedule Appointment"}
             </button>

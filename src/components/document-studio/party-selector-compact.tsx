@@ -68,13 +68,13 @@ export function PartySelectorCompact({
     <div className="relative min-w-0" ref={containerRef}>
       {selectedParty ? (
         /* Selected Party Chip */
-        <div className="flex items-center justify-between py-1.5 px-2.5 bg-[#F2FAF7] border border-[#85D5C2]/60 rounded-xl shadow-2xs">
+        <div className="flex items-center justify-between py-1.5 px-2.5 bg-[#F8FAFC] border border-[#93C5FD]/60 rounded-xl shadow-2xs">
           <div className="min-w-0 pr-1">
-            <p className="text-xs font-bold text-[#174B43] truncate">
+            <p className="text-xs font-bold text-[#0F172A] truncate">
               {selectedParty.name}
             </p>
             {(selectedParty.phone || selectedParty.gstin) && (
-              <p className="text-[10px] text-slate-500 font-mono truncate">
+              <p className="text-[10px] text-slate-500 tabular-nums truncate">
                 {selectedParty.gstin ? `GST: ${selectedParty.gstin}` : selectedParty.phone}
               </p>
             )}
@@ -82,7 +82,7 @@ export function PartySelectorCompact({
           <button
             type="button"
             onClick={onClearParty}
-            className="w-5 h-5 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center text-xs shrink-0 cursor-pointer"
+            className="w-5 h-5 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center text-[13px] shrink-0 cursor-pointer"
             title="Change party"
           >
             ✕
@@ -106,7 +106,7 @@ export function PartySelectorCompact({
               }}
               onFocus={() => onOpenChange(true)}
               placeholder={placeholder}
-              className="w-full py-2 pl-8 pr-2 text-xs font-semibold bg-white border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#26A58A] focus:ring-2 focus:ring-[#26A58A]/10 shadow-2xs"
+              className="w-full py-2 pl-8 pr-2 text-[13px] font-normal bg-white border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs h-10"
             />
           </div>
 
@@ -114,7 +114,7 @@ export function PartySelectorCompact({
             <button
               type="button"
               onClick={onAddNew}
-              className="w-8 h-8 rounded-xl bg-[#E6F7F2] hover:bg-[#D4F1E8] border border-[#85D5C2]/50 text-[#174B43] flex items-center justify-center shrink-0 transition-colors cursor-pointer shadow-2xs"
+              className="w-8 h-8 rounded-xl bg-[#EFF6FF] hover:bg-[#D4F1E8] border border-[#93C5FD]/50 text-[#0F172A] flex items-center justify-center shrink-0 transition-colors cursor-pointer shadow-2xs"
               title="Add New Party"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
@@ -142,7 +142,7 @@ export function PartySelectorCompact({
                   onOpenChange(false);
                   onAddNew();
                 }}
-                className="text-[#174B43] hover:underline font-bold"
+                className="text-[#0F172A] hover:underline font-bold"
               >
                 + Add New
               </button>
@@ -164,7 +164,7 @@ export function PartySelectorCompact({
                       onOpenChange(false);
                       onAddNew();
                     }}
-                    className="mt-1 text-xs text-[#174B43] font-bold hover:underline"
+                    className="mt-1 text-xs text-[#0F172A] font-bold hover:underline"
                   >
                     Create &quot;{searchTerm}&quot;
                   </button>
@@ -183,16 +183,16 @@ export function PartySelectorCompact({
                     onSelectParty(p.id);
                     onOpenChange(false);
                   }}
-                  className="p-2.5 hover:bg-[#F2FAF7] cursor-pointer transition-colors text-xs flex items-center justify-between"
+                  className="p-2.5 hover:bg-[#F8FAFC] cursor-pointer transition-colors text-xs flex items-center justify-between"
                 >
                   <div className="min-w-0 pr-2">
                     <p className="font-bold text-slate-900 truncate">{p.name}</p>
-                    <p className="text-[10px] text-slate-500 font-mono truncate">
+                    <p className="text-[10px] text-slate-500 tabular-nums truncate">
                       {p.phone || p.gstin || "No contact info"}
                     </p>
                   </div>
                   {p.outstandingBalance !== undefined && p.outstandingBalance !== 0 && (
-                    <span className="text-[10px] font-mono font-bold text-slate-600 shrink-0">
+                    <span className="text-[10px] tabular-nums font-bold text-slate-600 shrink-0">
                       ₹{p.outstandingBalance.toFixed(0)}
                     </span>
                   )}

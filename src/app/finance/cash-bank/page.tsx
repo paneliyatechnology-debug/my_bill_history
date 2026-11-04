@@ -1262,7 +1262,7 @@ export default function CashAndBankPage() {
       {/* Top Header matching MyBillBook */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[#0F172A] tracking-tight">
+          <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
             {lang === "gu" ? "રોકડ અને બેંક (Cash and Bank)" : "Cash and Bank"}
           </h1>
         </div>
@@ -1282,7 +1282,7 @@ export default function CashAndBankPage() {
               setShowAddReduceRemarks(false);
               setIsAddReduceModalOpen(true);
             }}
-            className="px-2 sm:px-3.5 py-2 sm:py-1.5 text-[11px] sm:text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-[#CBD5E1] rounded-lg sm:rounded-md transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer shadow-2xs hover:border-slate-400"
+            className="px-2 sm:h-9 px-3 sm:py-1.5 text-[11px] sm:text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-50 border border-[#CBD5E1] rounded-lg sm:rounded-md transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer shadow-2xs hover:border-slate-400"
           >
             <svg className="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -1304,7 +1304,7 @@ export default function CashAndBankPage() {
               setShowTransferRemarks(false);
               setIsTransferModalOpen(true);
             }}
-            className="px-2 sm:px-3.5 py-2 sm:py-1.5 text-[11px] sm:text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-[#CBD5E1] rounded-lg sm:rounded-md transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer shadow-2xs hover:border-slate-400"
+            className="px-2 sm:h-9 px-3 sm:py-1.5 text-[11px] sm:text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-50 border border-[#CBD5E1] rounded-lg sm:rounded-md transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer shadow-2xs hover:border-slate-400"
           >
             <svg className="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -1331,7 +1331,7 @@ export default function CashAndBankPage() {
               setBankError(null);
               setIsAddBankModalOpen(true);
             }}
-            className="px-2 sm:px-4 py-2 sm:py-1.5 text-[11px] sm:text-xs font-semibold text-white bg-[#5850EC] hover:bg-[#123B35] active:bg-[#0F322C] rounded-lg sm:rounded-md transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer shadow-xs"
+            className="px-2 sm:h-9 px-3 sm:py-1.5 text-[11px] sm:text-[13px] font-medium text-white bg-[#5850EC] hover:bg-[#1268D3] active:bg-[#0D5FC4] rounded-lg sm:rounded-md transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer shadow-xs"
           >
             <svg className="w-3.5 h-3.5 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -1350,7 +1350,7 @@ export default function CashAndBankPage() {
             <span className="text-xs font-medium text-slate-600">
               {lang === "gu" ? "કુલ સિલક (Total Balance):" : "Total Balance:"}
             </span>
-            <span className="text-sm font-bold text-slate-900 font-mono">
+            <span className="text-sm font-bold text-slate-900 tabular-nums">
               {formatINR(totalBalance)}
             </span>
           </div>
@@ -1362,7 +1362,7 @@ export default function CashAndBankPage() {
               onClick={() => setSelectedAccountId("cash_in_hand")}
               className={`shrink-0 px-3 py-1.5 rounded-lg border text-xs flex items-center gap-2 transition-all cursor-pointer ${
                 selectedAccountId === "cash_in_hand"
-                  ? "bg-[#EEF0FF] border-[#174B43] text-[#174B43] font-semibold shadow-2xs"
+                  ? "bg-[#EEF0FF] border-[#0F172A] text-[#0F172A] font-semibold shadow-2xs"
                   : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
               }`}
             >
@@ -1370,7 +1370,7 @@ export default function CashAndBankPage() {
                 💵
               </div>
               <span>{lang === "gu" ? "હાથ પર રોકડ" : "Cash in hand"}</span>
-              <span className="font-mono text-[11px] font-bold">
+              <span className="tabular-nums text-[11px] font-bold">
                 {formatINR(cashInHandBalance)}
               </span>
             </button>
@@ -1389,13 +1389,13 @@ export default function CashAndBankPage() {
                   onClick={() => setSelectedAccountId(b.id)}
                   className={`shrink-0 px-3 py-1.5 rounded-lg border text-xs flex items-center gap-2 transition-all cursor-pointer ${
                     isSelected
-                      ? "bg-[#EEF0FF] border-[#174B43] text-[#174B43] font-semibold shadow-2xs"
+                      ? "bg-[#EEF0FF] border-[#0F172A] text-[#0F172A] font-semibold shadow-2xs"
                       : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
                   }`}
                 >
                   <BankLogo bankNameOrIfsc={b.bankIfsc || b.name} className="w-5 h-5" />
                   <span className="truncate max-w-[120px]">{b.name}</span>
-                  <span className="font-mono text-[11px] font-bold">
+                  <span className="tabular-nums text-[11px] font-bold">
                     {formatINR(bal)}
                   </span>
                 </button>
@@ -1407,12 +1407,12 @@ export default function CashAndBankPage() {
               onClick={() => setSelectedAccountId("unlinked")}
               className={`shrink-0 px-3 py-1.5 rounded-lg border text-xs flex items-center gap-2 transition-all cursor-pointer ${
                 selectedAccountId === "unlinked"
-                  ? "bg-[#EEF0FF] border-[#174B43] text-[#174B43] font-semibold shadow-2xs"
+                  ? "bg-[#EEF0FF] border-[#0F172A] text-[#0F172A] font-semibold shadow-2xs"
                   : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
               }`}
             >
               <span>{lang === "gu" ? "અનલિંક્ડ" : "Unlinked"}</span>
-              <span className="font-mono text-[11px] font-bold">₹ 0</span>
+              <span className="tabular-nums text-[11px] font-bold">₹ 0</span>
             </button>
 
             {/* Add New Bank Button Chip */}
@@ -1434,7 +1434,7 @@ export default function CashAndBankPage() {
                 setBankError(null);
                 setIsAddBankModalOpen(true);
               }}
-              className="shrink-0 px-2.5 py-1.5 rounded-lg border border-dashed border-[#174B43] text-[#174B43] hover:bg-[#EEF0FF] text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+              className="shrink-0 px-2.5 py-1.5 rounded-lg border border-dashed border-[#0F172A] text-[#0F172A] hover:bg-[#EEF0FF] text-[13px] font-medium flex items-center gap-1 transition-colors cursor-pointer"
             >
               <span>+</span>
               <span>{lang === "gu" ? "નવી બેંક" : "Add Bank"}</span>
@@ -1449,7 +1449,7 @@ export default function CashAndBankPage() {
             <span className="text-xs font-medium text-slate-700">
               {lang === "gu" ? "કુલ સિલક:" : "Total Balance:"}
             </span>
-            <span className="text-sm font-bold text-slate-900 font-mono">
+            <span className="text-sm font-bold text-slate-900 tabular-nums">
               {formatINR(totalBalance)}
             </span>
           </div>
@@ -1464,14 +1464,14 @@ export default function CashAndBankPage() {
                 onClick={() => setSelectedAccountId("cash_in_hand")}
                 className={`w-full px-3 py-2.5 rounded-lg flex items-center justify-between transition-all text-left cursor-pointer ${
                   selectedAccountId === "cash_in_hand"
-                    ? "bg-[#EEF0FF] text-[#174B43] font-semibold"
+                    ? "bg-[#EEF0FF] text-[#0F172A] font-semibold"
                     : "hover:bg-slate-50 text-slate-800 font-medium"
                 }`}
               >
                 <span className="text-xs">
                   {lang === "gu" ? "હાથ પર રોકડ (Cash in hand)" : "Cash in hand"}
                 </span>
-                <span className="text-xs font-mono font-medium">
+                <span className="text-xs tabular-nums font-medium">
                   {formatINR(cashInHandBalance)}
                 </span>
               </button>
@@ -1503,7 +1503,7 @@ export default function CashAndBankPage() {
                     setBankError(null);
                     setIsAddBankModalOpen(true);
                   }}
-                  className="text-xs font-semibold text-[#174B43] hover:text-[#0F322C] hover:underline cursor-pointer"
+                  className="text-xs font-semibold text-[#0F172A] hover:text-[#020617] hover:underline cursor-pointer"
                 >
                   {lang === "gu" ? "+ નવી બેંક ઉમેરો" : "+ Add New Bank"}
                 </button>
@@ -1516,7 +1516,7 @@ export default function CashAndBankPage() {
                   onClick={() => setSelectedAccountId("unlinked")}
                   className={`w-full px-3 py-2.5 rounded-lg flex items-center justify-between transition-all text-left cursor-pointer ${
                     selectedAccountId === "unlinked"
-                      ? "bg-[#EEF0FF] text-[#174B43] font-semibold"
+                      ? "bg-[#EEF0FF] text-[#0F172A] font-semibold"
                       : "hover:bg-slate-50 text-slate-800 font-medium"
                   }`}
                 >
@@ -1530,7 +1530,7 @@ export default function CashAndBankPage() {
                       {lang === "gu" ? "અનલિંક્ડ વ્યવહારો" : "Unlinked Transactions"}
                     </span>
                   </div>
-                  <span className="text-xs font-mono font-medium pl-2">
+                  <span className="text-xs tabular-nums font-medium pl-2">
                     ₹ 0
                   </span>
                 </button>
@@ -1550,7 +1550,7 @@ export default function CashAndBankPage() {
                       onClick={() => setSelectedAccountId(b.id)}
                       className={`w-full px-3 py-2.5 rounded-lg flex items-center justify-between transition-all text-left cursor-pointer ${
                         isSelected
-                          ? "bg-[#EEF0FF] text-[#174B43] font-semibold"
+                          ? "bg-[#EEF0FF] text-[#0F172A] font-semibold"
                           : "hover:bg-slate-50 text-slate-800 font-medium"
                       }`}
                     >
@@ -1559,12 +1559,12 @@ export default function CashAndBankPage() {
                         <BankLogo bankNameOrIfsc={b.bankIfsc || b.name} className="w-8 h-8" />
                         <div className="truncate">
                           <p className="text-xs truncate font-medium">{b.name}</p>
-                          <p className="text-[11px] text-slate-400 font-mono truncate">
+                          <p className="text-[11px] text-slate-400 tabular-nums truncate">
                             {b.bankAccountNo || b.code || "••••"}
                           </p>
                         </div>
                       </div>
-                      <span className="text-xs font-mono font-medium pl-2 shrink-0">
+                      <span className="text-xs tabular-nums font-medium pl-2 shrink-0">
                         {formatINR(bal)}
                       </span>
                     </button>
@@ -1578,7 +1578,7 @@ export default function CashAndBankPage() {
               <div className="border-t border-[#E2E8F0] mt-4">
                 <button
                   onClick={() => setShowDeletedAccounts(!showDeletedAccounts)}
-                  className="w-full px-4 py-2.5 text-xs font-medium text-slate-500 hover:text-slate-800 flex items-center justify-between bg-slate-50/60"
+                  className="w-full h-9 px-3.5 text-[13px] font-medium text-slate-500 hover:text-slate-800 flex items-center justify-between bg-slate-50/60"
                 >
                   <span>Deleted Accounts ({inactiveAccounts.length})</span>
                   <span className="text-[10px]">{showDeletedAccounts ? "▲" : "▼"}</span>
@@ -1603,7 +1603,7 @@ export default function CashAndBankPage() {
           {/* Top Tab Bar: Matching MyBillBook Screenshot ('Transactions' Tab) */}
           <div className="flex items-center justify-between border-b border-[#E2E8F0] bg-white px-2 pt-2">
             <div className="flex items-center gap-1">
-              <button className="px-5 py-2.5 text-xs font-semibold text-[#174B43] bg-[#EEF0FF] border-b-2 border-[#174B43] rounded-t-lg transition-colors cursor-pointer">
+              <button className="h-9 px-3.5 text-[13px] font-medium text-[#0F172A] bg-[#EEF0FF] border-b-2 border-[#0F172A] rounded-t-lg transition-colors cursor-pointer">
                 {lang === "gu" ? "વ્યવહારો (Transactions)" : "Transactions"}
               </button>
             </div>
@@ -1634,14 +1634,14 @@ export default function CashAndBankPage() {
                     <div className="flex flex-col sm:grid sm:grid-cols-[140px_12px_1fr] text-slate-700">
                       <span className="text-slate-500 text-[11px] sm:text-xs">Account Number</span>
                       <span className="hidden sm:inline text-slate-400">:</span>
-                      <span className="font-mono font-semibold sm:font-medium text-slate-900">
+                      <span className="tabular-nums font-semibold sm:font-medium text-slate-900">
                         {selectedAccount.bankAccountNo || companyDetails?.bankAccountNo || selectedAccount.code || "-"}
                       </span>
                     </div>
                     <div className="flex flex-col sm:grid sm:grid-cols-[140px_12px_1fr] text-slate-700">
                       <span className="text-slate-500 text-[11px] sm:text-xs">IFSC Code</span>
                       <span className="hidden sm:inline text-slate-400">:</span>
-                      <span className="font-mono font-semibold sm:font-medium text-slate-900 uppercase">
+                      <span className="tabular-nums font-semibold sm:font-medium text-slate-900 uppercase">
                         {selectedAccount.bankIfsc || companyDetails?.bankIfsc || "-"}
                       </span>
                     </div>
@@ -1669,7 +1669,7 @@ export default function CashAndBankPage() {
                       });
                       setIsUpdateBankModalOpen(true);
                     }}
-                    className="px-2 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-md transition-colors flex items-center justify-center sm:justify-between gap-1 sm:gap-3 shadow-2xs hover:border-slate-400 cursor-pointer"
+                    className="px-2 sm:h-9 px-3 text-[11px] sm:text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-md transition-colors flex items-center justify-center sm:justify-between gap-1 sm:gap-3 shadow-2xs hover:border-slate-400 cursor-pointer"
                   >
                     <span className="truncate">{lang === "gu" ? "સુધારો" : "Update"}</span>
                     <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1679,7 +1679,7 @@ export default function CashAndBankPage() {
 
                   <button
                     onClick={() => setIsShareModalOpen(true)}
-                    className="px-2 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-md transition-colors flex items-center justify-center sm:justify-between gap-1 sm:gap-3 shadow-2xs hover:border-slate-400 cursor-pointer"
+                    className="px-2 sm:h-9 px-3 text-[11px] sm:text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-md transition-colors flex items-center justify-center sm:justify-between gap-1 sm:gap-3 shadow-2xs hover:border-slate-400 cursor-pointer"
                   >
                     <span className="truncate">{lang === "gu" ? "શેર કરો" : "Share"}</span>
                     <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1690,7 +1690,7 @@ export default function CashAndBankPage() {
                   <button
                     onClick={handleDownloadStatement}
                     disabled={isDownloadingPdf}
-                    className="px-2 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-md transition-colors flex items-center justify-center sm:justify-between gap-1 sm:gap-3 shadow-2xs hover:border-slate-400 cursor-pointer disabled:opacity-60"
+                    className="px-2 sm:h-9 px-3 text-[11px] sm:text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-md transition-colors flex items-center justify-center sm:justify-between gap-1 sm:gap-3 shadow-2xs hover:border-slate-400 cursor-pointer disabled:opacity-60"
                   >
                     <span className="truncate">
                       {isDownloadingPdf
@@ -1718,7 +1718,7 @@ export default function CashAndBankPage() {
                 <select
                   value={dateFilter}
                   onChange={(e) => setDateFilter(e.target.value as any)}
-                  className="w-full appearance-none pl-7 sm:pl-8 pr-6 sm:pr-7 py-1.5 bg-white border border-[#CBD5E1] rounded-md text-[11px] sm:text-xs font-medium text-slate-700 hover:border-slate-400 focus:outline-none focus:ring-1 focus:ring-[#174B43] cursor-pointer"
+                  className="w-full appearance-none pl-7 sm:pl-8 pr-6 sm:pr-7 py-1.5 bg-white border border-[#CBD5E1] rounded-md text-[11px] sm:text-[13px] font-medium text-slate-700 hover:border-slate-400 focus:outline-none focus:ring-1 focus:ring-[#0F172A] cursor-pointer h-10"
                 >
                   <option value="LAST_30_DAYS">{lang === "gu" ? "છેલ્લા ૩૦ દિવસ" : "Last 30 Days"}</option>
                   <option value="TODAY">{lang === "gu" ? "આજે" : "Today"}</option>
@@ -1740,7 +1740,7 @@ export default function CashAndBankPage() {
                 <select
                   value={txnTypeFilter}
                   onChange={(e) => setTxnTypeFilter(e.target.value)}
-                  className="w-full py-1.5 px-2.5 sm:px-3 text-[11px] sm:text-xs bg-white border border-[#CBD5E1] rounded-md font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#174B43] cursor-pointer"
+                  className="w-full py-1.5 px-2.5 sm:px-3 text-[11px] sm:text-[13px] bg-white border border-[#CBD5E1] rounded-md font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#0F172A] cursor-pointer h-10"
                 >
                   <option value="ALL">All Types</option>
                   <option value="Payment In">Payment In (Receipt)</option>
@@ -1758,7 +1758,7 @@ export default function CashAndBankPage() {
                   placeholder={lang === "gu" ? "શોધો (પાર્ટી, વાઉચર, વર્ણન)..." : "Search party, txn no, narration..."}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-7 pr-3 py-1.5 text-[11px] sm:text-xs bg-white border border-[#CBD5E1] rounded-md focus:outline-none focus:ring-1 focus:ring-[#174B43] text-slate-800 placeholder-slate-400"
+                  className="w-full pl-7 pr-3 py-1.5 text-[11px] sm:text-[13px] bg-white border border-[#CBD5E1] rounded-md focus:outline-none focus:ring-1 focus:ring-[#0F172A] text-slate-800 placeholder-slate-400 h-10"
                 />
                 <svg className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -1791,7 +1791,7 @@ export default function CashAndBankPage() {
           <div className="flex-1 flex flex-col justify-between">
             {isLoadingTxns ? (
               <div className="py-24 text-center text-xs text-slate-400">
-                <div className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-slate-300 border-t-[#174B43] mb-2" />
+                <div className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-slate-300 border-t-[#0F172A] mb-2" />
                 <p>{lang === "gu" ? "વ્યવહારો લોડ થઈ રહ્યા છે..." : "Loading transactions..."}</p>
               </div>
             ) : filteredTransactions.length === 0 ? (
@@ -1803,7 +1803,7 @@ export default function CashAndBankPage() {
                   <rect x="24" y="44" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="2" />
                   <path d="M46 49h10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
                 </svg>
-                <h3 className="mt-4 text-base font-bold text-slate-800">
+                <h3 className="mt-4 text-[15px] font-semibold text-slate-800">
                   {lang === "gu" ? "કોઈ વ્યવહાર મળ્યા નથી" : "No Transactions"}
                 </h3>
                 <p className="mt-1 text-xs text-slate-400">
@@ -1840,15 +1840,15 @@ export default function CashAndBankPage() {
                           </div>
                           <div className="text-right shrink-0">
                             {t.received > 0 ? (
-                              <span className="text-xs font-bold font-mono text-emerald-700">
+                              <span className="text-xs font-bold tabular-nums text-emerald-700">
                                 +₹{t.received.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                               </span>
                             ) : t.paid > 0 ? (
-                              <span className="text-xs font-bold font-mono text-rose-600">
+                              <span className="text-xs font-bold tabular-nums text-rose-600">
                                 -₹{t.paid.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                               </span>
                             ) : (
-                              <span className="text-xs font-mono text-slate-400">-</span>
+                              <span className="text-xs tabular-nums text-slate-400">-</span>
                             )}
                           </div>
                         </div>
@@ -1868,13 +1868,13 @@ export default function CashAndBankPage() {
                               {t.type}
                             </span>
                             <span className="text-slate-300">•</span>
-                            <span className="font-mono text-slate-600 text-[10px]">{t.txnNo}</span>
+                            <span className="tabular-nums text-slate-600 text-[10px]">{t.txnNo}</span>
                             <span className="text-slate-300">•</span>
                             <span className="text-[10px]">{formatDisplayDate(t.date)}</span>
                           </div>
                           <div className="text-right shrink-0">
                             <span className="text-[10px] text-slate-400 mr-1">Bal:</span>
-                            <span className="font-mono font-semibold text-slate-800 text-[11px]">
+                            <span className="tabular-nums font-semibold text-slate-800 text-[11px]">
                               ₹{t.balance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                             </span>
                           </div>
@@ -1886,7 +1886,7 @@ export default function CashAndBankPage() {
                   {/* Mobile Total Summary Strip */}
                   <div className="p-3 bg-[#F8FAFC] border-t-2 border-[#CBD5E1] flex items-center justify-between text-xs font-bold">
                     <span className="text-slate-600 uppercase text-[11px]">Total:</span>
-                    <div className="flex items-center gap-3 font-mono text-[11px]">
+                    <div className="flex items-center gap-3 tabular-nums text-[11px]">
                       <span className="text-rose-600">
                         Paid: ₹{totalPaid.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                       </span>
@@ -1904,12 +1904,12 @@ export default function CashAndBankPage() {
                       <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] text-[11px] font-semibold uppercase tracking-wider">
                         <th className="py-2.5 px-3 whitespace-nowrap">DATE</th>
                         <th className="py-2.5 px-3 whitespace-nowrap">TYPE</th>
-                        <th className="py-2.5 px-2.5 font-mono whitespace-nowrap">TXN NO</th>
+                        <th className="py-2.5 px-2.5 tabular-nums whitespace-nowrap">TXN NO</th>
                         <th className="py-2.5 px-3 whitespace-nowrap">PARTY / DESCRIPTION</th>
                         <th className="py-2.5 px-2.5 whitespace-nowrap">MODE</th>
                         <th className="py-2.5 px-3 text-right whitespace-nowrap">PAID (₹)</th>
                         <th className="py-2.5 px-3 text-right whitespace-nowrap">RECEIVED (₹)</th>
-                        <th className="py-2.5 px-3 text-right font-mono whitespace-nowrap">BALANCE (₹)</th>
+                        <th className="py-2.5 px-3 text-right tabular-nums whitespace-nowrap">BALANCE (₹)</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E2E8F0]">
@@ -1946,7 +1946,7 @@ export default function CashAndBankPage() {
                                 {t.type}
                               </span>
                             </td>
-                            <td className="py-2.5 px-2.5 font-mono text-slate-700 whitespace-nowrap">
+                            <td className="py-2.5 px-2.5 tabular-nums text-slate-700 whitespace-nowrap">
                               {t.txnNo}
                             </td>
                             <td className="py-2.5 px-3 text-slate-800 font-normal">
@@ -1960,17 +1960,17 @@ export default function CashAndBankPage() {
                             <td className="py-2.5 px-2.5 text-slate-500 whitespace-nowrap">
                               {t.mode}
                             </td>
-                            <td className="py-2.5 px-3 text-right font-mono text-rose-600 whitespace-nowrap">
+                            <td className="py-2.5 px-3 text-right tabular-nums text-rose-600 whitespace-nowrap">
                               {t.paid > 0
                                 ? `₹${t.paid.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
                                 : "-"}
                             </td>
-                            <td className="py-2.5 px-3 text-right font-mono text-emerald-700 whitespace-nowrap font-medium">
+                            <td className="py-2.5 px-3 text-right tabular-nums text-emerald-700 whitespace-nowrap font-medium">
                               {t.received > 0
                                 ? `₹${t.received.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
                                 : "-"}
                             </td>
-                            <td className="py-2.5 px-3 text-right font-mono text-slate-900 whitespace-nowrap font-medium">
+                            <td className="py-2.5 px-3 text-right tabular-nums text-slate-900 whitespace-nowrap font-medium">
                               ₹{t.balance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                             </td>
                           </tr>
@@ -1984,13 +1984,13 @@ export default function CashAndBankPage() {
                         <td colSpan={5} className="py-2.5 px-3 text-right uppercase text-[11px] tracking-wide text-slate-600">
                           Total:
                         </td>
-                        <td className="py-2.5 px-3 text-right font-mono text-rose-600 whitespace-nowrap">
+                        <td className="py-2.5 px-3 text-right tabular-nums text-rose-600 whitespace-nowrap">
                           ₹{totalPaid.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                         </td>
-                        <td className="py-2.5 px-3 text-right font-mono text-emerald-700 whitespace-nowrap">
+                        <td className="py-2.5 px-3 text-right tabular-nums text-emerald-700 whitespace-nowrap">
                           ₹{totalReceived.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                         </td>
-                        <td className="py-2.5 px-3 text-right font-mono text-slate-500">
+                        <td className="py-2.5 px-3 text-right tabular-nums text-slate-500">
                           -
                         </td>
                       </tr>
@@ -2012,7 +2012,7 @@ export default function CashAndBankPage() {
                         setPageSize(Number(e.target.value));
                         setCurrentPage(1);
                       }}
-                      className="border border-[#CBD5E1] rounded px-1.5 py-0.5 bg-white text-[11px] sm:text-xs text-slate-800"
+                      className="border border-[#CBD5E1] rounded px-1.5 py-0.5 bg-white text-[11px] sm:text-[13px] text-slate-800 h-10"
                     >
                       <option value={15}>15</option>
                       <option value={25}>25</option>
@@ -2038,7 +2038,7 @@ export default function CashAndBankPage() {
                   <button
                     disabled={currentPage >= totalPages}
                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    className="px-2.5 py-1 text-xs border border-[#CBD5E1] rounded text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+                    className="px-2.5 py-1 text-[13px] border border-[#CBD5E1] rounded text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
                   >
                     Next
                   </button>
@@ -2063,7 +2063,7 @@ export default function CashAndBankPage() {
           )}
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Account Name <span className="text-rose-500">*</span>
             </label>
             <input
@@ -2072,13 +2072,13 @@ export default function CashAndBankPage() {
               placeholder="ex: Personal Account"
               value={bankForm.accountName}
               onChange={(e) => setBankForm({ ...bankForm, accountName: e.target.value })}
-              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 placeholder-slate-400"
+              className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 placeholder-slate-400 h-10"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Opening Balance</label>
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">Opening Balance</label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-xs text-slate-500 font-medium">₹</span>
                 <input
@@ -2087,18 +2087,18 @@ export default function CashAndBankPage() {
                   placeholder="ex: 10,000"
                   value={bankForm.openingBalance}
                   onChange={(e) => setBankForm({ ...bankForm, openingBalance: e.target.value })}
-                  className="w-full pl-7 pr-3 py-2 text-xs border border-slate-300 rounded-md font-mono focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 placeholder-slate-400"
+                  className="w-full pl-7 pr-3 py-2 text-[13px] border border-slate-300 rounded-md tabular-nums focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 placeholder-slate-400 h-10"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">As of Date</label>
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">As of Date</label>
               <input
                 type="date"
                 value={bankForm.asOfDate}
                 onChange={(e) => setBankForm({ ...bankForm, asOfDate: e.target.value })}
-                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900"
+                className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 h-10"
               />
             </div>
           </div>
@@ -2126,7 +2126,7 @@ export default function CashAndBankPage() {
             <div className="space-y-3 pt-1 animate-in fade-in duration-200">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1">
                     Bank Account Number <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -2135,12 +2135,12 @@ export default function CashAndBankPage() {
                     placeholder="ex: 123456789157950"
                     value={bankForm.accountNumber}
                     onChange={(e) => setBankForm({ ...bankForm, accountNumber: e.target.value })}
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md font-mono focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 placeholder-slate-400"
+                    className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md tabular-nums focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 placeholder-slate-400 h-10"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1">
                     Re-Enter Bank Account Number <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -2149,14 +2149,14 @@ export default function CashAndBankPage() {
                     placeholder="ex: 123456789157950"
                     value={bankForm.reAccountNumber}
                     onChange={(e) => setBankForm({ ...bankForm, reAccountNumber: e.target.value })}
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md font-mono focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 placeholder-slate-400"
+                    className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md tabular-nums focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 placeholder-slate-400 h-10"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1">
                     Account Holders Name <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -2165,13 +2165,13 @@ export default function CashAndBankPage() {
                     placeholder="ex: Elisa wolf"
                     value={bankForm.accountHolderName}
                     onChange={(e) => setBankForm({ ...bankForm, accountHolderName: e.target.value })}
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 placeholder-slate-400"
+                    className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 placeholder-slate-400 h-10"
                   />
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-medium text-slate-700">
+                    <label className="block text-[12px] font-medium text-slate-700">
                       IFSC Code <span className="text-rose-500">*</span>
                     </label>
                     {ifscLoading && (
@@ -2192,14 +2192,14 @@ export default function CashAndBankPage() {
                     placeholder="ex: HDFC000075"
                     value={bankForm.ifscCode}
                     onChange={(e) => handleIfscLookup(e.target.value)}
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md font-mono uppercase focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 placeholder-slate-400"
+                    className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md tabular-nums uppercase focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 placeholder-slate-400 h-10"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1">
                     Bank Name <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative flex items-center">
@@ -2209,7 +2209,7 @@ export default function CashAndBankPage() {
                       placeholder="ex: HDFC"
                       value={bankForm.bankName}
                       onChange={(e) => setBankForm({ ...bankForm, bankName: e.target.value })}
-                      className="w-full pl-10 pr-3 py-2 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 placeholder-slate-400"
+                      className="w-full pl-10 pr-3 py-2 text-[13px] border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 placeholder-slate-400 h-10"
                     />
                     <div className="absolute left-2.5 top-2">
                       <BankLogo bankNameOrIfsc={bankForm.ifscCode || bankForm.bankName} className="w-5 h-5" />
@@ -2218,7 +2218,7 @@ export default function CashAndBankPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1">
                     Branch Name <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -2227,19 +2227,19 @@ export default function CashAndBankPage() {
                     placeholder="ex: Old Madras"
                     value={bankForm.branchName}
                     onChange={(e) => setBankForm({ ...bankForm, branchName: e.target.value })}
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 placeholder-slate-400"
+                    className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 placeholder-slate-400 h-10"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">UPI ID</label>
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">UPI ID</label>
                 <input
                   type="text"
                   placeholder="ex: elisa@okhdfc"
                   value={bankForm.upiId}
                   onChange={(e) => setBankForm({ ...bankForm, upiId: e.target.value })}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 placeholder-slate-400"
+                  className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 placeholder-slate-400 h-10"
                 />
               </div>
             </div>
@@ -2249,14 +2249,14 @@ export default function CashAndBankPage() {
             <button
               type="button"
               onClick={() => setIsAddBankModalOpen(false)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer border border-slate-300"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer border border-slate-300"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmittingBank}
-              className="px-5 py-2 text-xs font-semibold text-white bg-[#5850EC] hover:bg-[#123B35] active:bg-[#0F322C] rounded-md shadow-xs cursor-pointer transition-colors disabled:opacity-50"
+              className="h-9 px-3.5 text-[13px] font-medium text-white bg-[#5850EC] hover:bg-[#1268D3] active:bg-[#0D5FC4] rounded-md shadow-xs cursor-pointer transition-colors disabled:opacity-50"
             >
               {isSubmittingBank ? "Submitting..." : "Submit"}
             </button>
@@ -2278,11 +2278,11 @@ export default function CashAndBankPage() {
           )}
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Adjust money in</label>
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">Adjust money in</label>
             <select
               value={addReduceForm.accountId}
               onChange={(e) => setAddReduceForm({ ...addReduceForm, accountId: e.target.value })}
-              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900"
+              className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 h-10"
             >
               <option value="cash_in_hand">Cash</option>
               {bankAccounts.map((b) => (
@@ -2294,7 +2294,7 @@ export default function CashAndBankPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1.5">Add or Reduce</label>
+            <label className="block text-[12px] font-medium text-slate-700 mb-1.5">Add or Reduce</label>
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -2324,7 +2324,7 @@ export default function CashAndBankPage() {
           <div className="grid grid-cols-2 gap-3 items-center pt-1">
             <div>
               <span className="block text-[11px] text-slate-500">Current Balance</span>
-              <span className="text-sm font-bold text-slate-900 font-mono">
+              <span className="text-sm font-bold text-slate-900 tabular-nums">
                 {formatINR(getAccountBalance(addReduceForm.accountId))}
               </span>
             </div>
@@ -2335,13 +2335,13 @@ export default function CashAndBankPage() {
                 type="date"
                 value={addReduceForm.date}
                 onChange={(e) => setAddReduceForm({ ...addReduceForm, date: e.target.value })}
-                className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900"
+                className="w-full px-2.5 py-1.5 text-[13px] border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 h-10"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Enter Amount</label>
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">Enter Amount</label>
             <div className="relative">
               <span className={`absolute left-3 top-2.5 text-sm font-bold ${addReduceMode === "ADD" ? "text-emerald-600" : "text-rose-600"}`}>
                 {addReduceMode === "ADD" ? "+ ₹" : "- ₹"}
@@ -2353,7 +2353,7 @@ export default function CashAndBankPage() {
                 placeholder="0.00"
                 value={addReduceForm.amount}
                 onChange={(e) => setAddReduceForm({ ...addReduceForm, amount: e.target.value })}
-                className="w-full pl-10 pr-3 py-2 text-sm font-bold font-mono border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900"
+                className="w-full pl-10 pr-3 py-2 text-[13px] font-normal tabular-nums border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 h-10"
               />
             </div>
           </div>
@@ -2361,7 +2361,7 @@ export default function CashAndBankPage() {
           {/* Real-time Dynamic New Balance */}
           <div className="py-1">
             <span className="text-xs text-slate-500">New balance: </span>
-            <span className="text-xs font-bold text-slate-900 font-mono">
+            <span className="text-xs font-bold text-slate-900 tabular-nums">
               {formatINR(adjustedNewBalance)}
             </span>
           </div>
@@ -2378,13 +2378,13 @@ export default function CashAndBankPage() {
               </button>
             ) : (
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Remarks</label>
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">Remarks</label>
                 <textarea
                   rows={2}
                   placeholder="Enter remarks or reason for adjustment"
                   value={addReduceForm.remarks}
                   onChange={(e) => setAddReduceForm({ ...addReduceForm, remarks: e.target.value })}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900"
+                  className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900"
                 />
               </div>
             )}
@@ -2394,14 +2394,14 @@ export default function CashAndBankPage() {
             <button
               type="button"
               onClick={() => setIsAddReduceModalOpen(false)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer border border-slate-300"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer border border-slate-300"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmittingAddReduce}
-              className="px-6 py-2 text-xs font-semibold text-white bg-[#5850EC] hover:bg-[#123B35] active:bg-[#0F322C] rounded-md shadow-xs cursor-pointer transition-colors disabled:opacity-50"
+              className="px-6 py-2 text-[13px] font-medium text-white bg-[#5850EC] hover:bg-[#1268D3] active:bg-[#0D5FC4] rounded-md shadow-xs cursor-pointer transition-colors disabled:opacity-50"
             >
               {isSubmittingAddReduce ? "Saving..." : "Save"}
             </button>
@@ -2423,11 +2423,11 @@ export default function CashAndBankPage() {
           )}
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Transfer money from</label>
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">Transfer money from</label>
             <select
               value={transferForm.fromAccountId}
               onChange={(e) => setTransferForm({ ...transferForm, fromAccountId: e.target.value })}
-              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900"
+              className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 h-10"
             >
               <option value="cash_in_hand">Cash</option>
               {bankAccounts.map((b) => (
@@ -2439,11 +2439,11 @@ export default function CashAndBankPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Transfer money to</label>
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">Transfer money to</label>
             <select
               value={transferForm.toAccountId}
               onChange={(e) => setTransferForm({ ...transferForm, toAccountId: e.target.value })}
-              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900"
+              className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 h-10"
             >
               <option value="">Select account</option>
               <option value="cash_in_hand">Cash</option>
@@ -2458,7 +2458,7 @@ export default function CashAndBankPage() {
           <div className="grid grid-cols-2 gap-3 items-center pt-1">
             <div>
               <span className="block text-[11px] text-slate-500">Current Balance</span>
-              <span className="text-sm font-bold text-slate-900 font-mono">
+              <span className="text-sm font-bold text-slate-900 tabular-nums">
                 {formatINR(getAccountBalance(transferForm.fromAccountId))}
               </span>
             </div>
@@ -2469,13 +2469,13 @@ export default function CashAndBankPage() {
                 type="date"
                 value={transferForm.date}
                 onChange={(e) => setTransferForm({ ...transferForm, date: e.target.value })}
-                className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900"
+                className="w-full px-2.5 py-1.5 text-[13px] border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 h-10"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Enter Amount</label>
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">Enter Amount</label>
             <div className="relative">
               <span className="absolute left-3 top-2.5 text-sm font-bold text-slate-600">
                 ₹
@@ -2487,7 +2487,7 @@ export default function CashAndBankPage() {
                 placeholder="0.00"
                 value={transferForm.amount}
                 onChange={(e) => setTransferForm({ ...transferForm, amount: e.target.value })}
-                className="w-full pl-8 pr-3 py-2 text-sm font-bold font-mono border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900"
+                className="w-full pl-8 pr-3 py-2 text-[13px] font-normal tabular-nums border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 h-10"
               />
             </div>
           </div>
@@ -2504,13 +2504,13 @@ export default function CashAndBankPage() {
               </button>
             ) : (
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Remarks</label>
+                <label className="block text-[12px] font-medium text-slate-700 mb-1">Remarks</label>
                 <textarea
                   rows={2}
                   placeholder="Enter remarks, UTR, or Cheque number"
                   value={transferForm.remarks}
                   onChange={(e) => setTransferForm({ ...transferForm, remarks: e.target.value })}
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900"
+                  className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900"
                 />
               </div>
             )}
@@ -2520,14 +2520,14 @@ export default function CashAndBankPage() {
             <button
               type="button"
               onClick={() => setIsTransferModalOpen(false)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer border border-slate-300"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer border border-slate-300"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmittingTransfer}
-              className="px-6 py-2 text-xs font-semibold text-white bg-[#5850EC] hover:bg-[#123B35] active:bg-[#0F322C] rounded-md shadow-xs cursor-pointer transition-colors disabled:opacity-50"
+              className="px-6 py-2 text-[13px] font-medium text-white bg-[#5850EC] hover:bg-[#1268D3] active:bg-[#0D5FC4] rounded-md shadow-xs cursor-pointer transition-colors disabled:opacity-50"
             >
               {isSubmittingTransfer ? "Saving..." : "Save"}
             </button>
@@ -2588,44 +2588,44 @@ export default function CashAndBankPage() {
           )}
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Account Display Name</label>
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">Account Display Name</label>
             <input
               type="text"
               required
               value={updateBankForm.bankName}
               onChange={(e) => setUpdateBankForm({ ...updateBankForm, bankName: e.target.value })}
-              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md bg-white text-slate-900"
+              className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md bg-white text-slate-900 h-10"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Account Number</label>
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">Account Number</label>
               <input
                 type="text"
                 value={updateBankForm.accountNumber}
                 onChange={(e) => setUpdateBankForm({ ...updateBankForm, accountNumber: e.target.value })}
-                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md font-mono bg-white text-slate-900"
+                className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md tabular-nums bg-white text-slate-900 h-10"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">IFSC Code</label>
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">IFSC Code</label>
               <input
                 type="text"
                 value={updateBankForm.ifscCode}
                 onChange={(e) => setUpdateBankForm({ ...updateBankForm, ifscCode: e.target.value.toUpperCase() })}
-                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md font-mono uppercase bg-white text-slate-900"
+                className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md tabular-nums uppercase bg-white text-slate-900 h-10"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Branch Name</label>
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">Branch Name</label>
             <input
               type="text"
               value={updateBankForm.branchName}
               onChange={(e) => setUpdateBankForm({ ...updateBankForm, branchName: e.target.value })}
-              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md bg-white text-slate-900"
+              className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md bg-white text-slate-900 h-10"
             />
           </div>
 
@@ -2633,14 +2633,14 @@ export default function CashAndBankPage() {
             <button
               type="button"
               onClick={() => setIsUpdateBankModalOpen(false)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer border border-slate-300"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer border border-slate-300"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmittingUpdateBank}
-              className="px-5 py-2 text-xs font-semibold text-white bg-[#5850EC] hover:bg-[#123B35] rounded-md shadow-xs cursor-pointer transition-colors"
+              className="h-9 px-3.5 text-[13px] font-medium text-white bg-[#5850EC] hover:bg-[#1268D3] rounded-md shadow-xs cursor-pointer transition-colors"
             >
               {isSubmittingUpdateBank ? "Updating..." : "Update Details"}
             </button>
@@ -2673,7 +2673,7 @@ export default function CashAndBankPage() {
                 <span className="text-[11px] font-medium text-slate-500 block mb-1">
                   {lang === "gu" ? "ખાતા નંબર" : "Account Number"}
                 </span>
-                <span className="font-semibold text-slate-900 text-sm font-mono tracking-wide">
+                <span className="font-semibold text-slate-900 text-sm tabular-nums tracking-wide">
                   {selectedAccount?.bankAccountNo || companyDetails?.bankAccountNo || selectedAccount?.code || "-"}
                 </span>
               </div>
@@ -2701,7 +2701,7 @@ export default function CashAndBankPage() {
                 <span className="text-[11px] font-medium text-slate-500 block mb-1">
                   {lang === "gu" ? "IFSC કોડ" : "IFSC Code"}
                 </span>
-                <span className="font-semibold text-slate-900 text-sm font-mono uppercase">
+                <span className="font-semibold text-slate-900 text-sm tabular-nums uppercase">
                   {selectedAccount?.bankIfsc || companyDetails?.bankIfsc || "-"}
                 </span>
               </div>
@@ -2758,7 +2758,7 @@ export default function CashAndBankPage() {
                   <span className="text-[11px] font-medium text-slate-500 block mb-1">
                     UPI ID
                   </span>
-                  <span className="font-semibold text-slate-900 text-sm font-mono">
+                  <span className="font-semibold text-slate-900 text-sm tabular-nums">
                     {selectedAccount?.upiId || companyDetails?.upiVpa}
                   </span>
                 </div>
@@ -2791,7 +2791,7 @@ export default function CashAndBankPage() {
                 setToastMessage(lang === "gu" ? "તમામ વિગતો કોપી થઈ ગઈ!" : "All bank details copied to clipboard!");
                 setTimeout(() => setToastMessage(null), 3000);
               }}
-              className="w-full sm:w-auto px-3 py-2 text-xs font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-md transition-colors flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200"
+              className="w-full sm:w-auto h-9 px-3 text-[13px] font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-md transition-colors flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200"
             >
               <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -2803,7 +2803,7 @@ export default function CashAndBankPage() {
               <button
                 type="button"
                 onClick={() => setIsShareModalOpen(false)}
-                className="flex-1 sm:flex-initial px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer border border-slate-300 transition-colors text-center"
+                className="flex-1 sm:flex-initial h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer border border-slate-300 transition-colors text-center"
               >
                 {lang === "gu" ? "રદ કરો" : "Cancel"}
               </button>
@@ -2811,7 +2811,7 @@ export default function CashAndBankPage() {
               <button
                 type="button"
                 onClick={handleNativeShare}
-                className="flex-1 sm:flex-initial px-5 py-2 text-xs font-semibold text-white bg-[#5850EC] hover:bg-[#123B35] rounded-md shadow-xs cursor-pointer transition-colors flex items-center justify-center gap-1.5 text-center"
+                className="flex-1 sm:flex-initial h-9 px-3.5 text-[13px] font-medium text-white bg-[#5850EC] hover:bg-[#1268D3] rounded-md shadow-xs cursor-pointer transition-colors flex items-center justify-center gap-1.5 text-center"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />

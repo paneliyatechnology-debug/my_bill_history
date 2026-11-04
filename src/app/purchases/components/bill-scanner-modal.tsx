@@ -1459,7 +1459,7 @@ export function BillScannerModal({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-slate-800">
+                <h2 className="text-[15px] font-semibold text-[#182230]">
                   {lang === "gu"
                     ? "ખરીદી બિલ સ્કેનર (AI Scanner)"
                     : "Scan & Record Purchase Bill"}
@@ -1489,7 +1489,7 @@ export function BillScannerModal({
                     setDiagnosticStage("IDLE");
                     setDiagnosticDetails("");
                   }}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#EA580C] hover:bg-[#C2410C] text-white rounded-lg text-xs font-bold shadow-xs transition-all active:scale-95"
+                  className="inline-flex items-center gap-1.5 h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg text-[13px] font-medium shadow-xs transition-all active:scale-95"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -1551,7 +1551,7 @@ export function BillScannerModal({
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-800 group-hover:text-[#9A3412] transition-colors">
+                  <h3 className="text-[15px] font-semibold text-slate-800 group-hover:text-[#9A3412] transition-colors">
                     {lang === "gu" ? "અહીં બિલ ફાઇલ ડ્રોપ કરો અથવા પસંદ કરો" : "Drag & Drop your invoice here, or browse"}
                   </h3>
                   <p className="text-xs text-slate-500 mt-1">
@@ -1568,7 +1568,7 @@ export function BillScannerModal({
                       e.stopPropagation();
                       fileInputRef.current?.click();
                     }}
-                    className="w-full sm:w-auto px-4 py-2.5 bg-[#EA580C] hover:bg-[#C2410C] text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                    className="w-full sm:w-auto h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -1582,7 +1582,7 @@ export function BillScannerModal({
                       e.stopPropagation();
                       handleOpenCamera();
                     }}
-                    className="w-full sm:w-auto px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                    className="w-full sm:w-auto h-9 px-3.5 bg-slate-800 hover:bg-slate-900 text-white text-[13px] font-medium rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                   >
                     <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -1662,15 +1662,15 @@ export function BillScannerModal({
           {step === "processing" && (
             <div className="p-16 flex flex-col items-center justify-center text-center space-y-6">
               <div className="relative">
-                <div className="w-20 h-20 rounded-full border-4 border-[#E6F7F2] border-t-[#174B43] animate-spin" />
-                <div className="absolute inset-0 flex items-center justify-center text-[#174B43]">
+                <div className="w-20 h-20 rounded-full border-4 border-[#EFF6FF] border-t-[#0F172A] animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center text-[#0F172A]">
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
               </div>
               <div className="space-y-2">
-                <h3 className="text-base font-bold text-slate-900">{processingStage}</h3>
+                <h3 className="text-[15px] font-semibold text-slate-900">{processingStage}</h3>
                 <p className="text-xs text-slate-500 max-w-sm">
                   {lang === "gu"
                     ? "અમારી સિસ્ટમ બિલ વાંચી રહી છે અને GST નિયમો પ્રમાણે વિગતો ગોઠવી રહી છે..."
@@ -1679,13 +1679,13 @@ export function BillScannerModal({
 
                 {/* Live Diagnostic Stage Badge */}
                 <div className="mt-4 pt-3 border-t border-slate-200 max-w-xs mx-auto">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-300 rounded-full text-[11px] font-mono text-slate-700">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-300 rounded-full text-[11px] tabular-nums text-slate-700">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                     <span className="text-slate-500">STAGE:</span>
-                    <span className="font-bold text-[#174B43]">{diagnosticStage}</span>
+                    <span className="font-bold text-[#0F172A]">{diagnosticStage}</span>
                   </div>
                   {diagnosticDetails && (
-                    <div className="text-[11px] text-slate-500 font-mono mt-1.5 truncate">
+                    <div className="text-[11px] text-slate-500 tabular-nums mt-1.5 truncate">
                       {diagnosticDetails}
                     </div>
                   )}
@@ -1704,7 +1704,7 @@ export function BillScannerModal({
                   onClick={() => setMobileTab("data")}
                   className={`flex-1 py-2.5 text-xs font-bold text-center border-b-2 ${
                     mobileTab === "data"
-                      ? "border-[#174B43] text-[#174B43] bg-white"
+                      ? "border-[#0F172A] text-[#0F172A] bg-white"
                       : "border-transparent text-slate-500"
                   }`}
                 >
@@ -1715,7 +1715,7 @@ export function BillScannerModal({
                   onClick={() => setMobileTab("preview")}
                   className={`flex-1 py-2.5 text-xs font-bold text-center border-b-2 ${
                     mobileTab === "preview"
-                      ? "border-[#174B43] text-[#174B43] bg-white"
+                      ? "border-[#0F172A] text-[#0F172A] bg-white"
                       : "border-transparent text-slate-500"
                   }`}
                 >
@@ -1732,7 +1732,7 @@ export function BillScannerModal({
                 >
                   {/* Toolbar */}
                   <div className="px-4 py-2.5 bg-slate-800/80 border-b border-slate-700/60 flex items-center justify-between text-xs text-slate-300">
-                    <span className="truncate max-w-[200px] font-mono text-[11px] text-slate-300">
+                    <span className="truncate max-w-[200px] tabular-nums text-[11px] text-slate-300">
                       {scanRecord?.fileName}
                     </span>
                     <div className="flex items-center gap-1">
@@ -1745,7 +1745,7 @@ export function BillScannerModal({
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
                         </svg>
                       </button>
-                      <span className="text-[11px] font-mono px-1">{Math.round(zoomLevel * 100)}%</span>
+                      <span className="text-[11px] tabular-nums px-1">{Math.round(zoomLevel * 100)}%</span>
                       <button
                         onClick={() => setZoomLevel((z) => Math.min(2.5, z + 0.2))}
                         className="p-1 hover:bg-slate-700 rounded text-slate-300 hover:text-white"
@@ -1853,11 +1853,11 @@ export function BillScannerModal({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
                     <div className="sm:col-span-2">
                       <div className="flex items-center justify-between mb-1">
-                        <label className="text-xs font-bold text-slate-700">
+                        <label className="text-[12px] font-medium text-slate-700">
                           {lang === "gu" ? "વેપારી (Supplier Party) *" : "Supplier Party *"}
                         </label>
                         {scanRecord?.extractedData?.supplier?.gstin && (
-                          <span className="text-[11px] font-mono text-indigo-700 font-semibold bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+                          <span className="text-[11px] tabular-nums text-indigo-700 font-semibold bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
                             GSTIN: {scanRecord.extractedData.supplier.gstin}
                           </span>
                         )}
@@ -1901,7 +1901,7 @@ export function BillScannerModal({
                               type="button"
                               onClick={handleOpenCreateSupplierModal}
                               disabled={isSavingSupplier}
-                              className="px-2.5 py-1 text-[11px] font-bold bg-[#174B43] hover:bg-[#123B35] text-white rounded shadow-sm disabled:opacity-50 shrink-0 transition-colors"
+                              className="px-2.5 py-1 text-[11px] font-medium bg-[#1677E8] hover:bg-[#1268D3] text-white rounded shadow-sm disabled:opacity-50 shrink-0 transition-colors"
                             >
                               {lang === "gu" ? "ખાતું બનાવો" : "Save to Masters"}
                             </button>
@@ -1915,38 +1915,38 @@ export function BillScannerModal({
                     </div>
 
                     <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1">
+                      <label className="text-[12px] font-medium text-slate-700 block mb-1">
                         {lang === "gu" ? "વેપારી બિલ નંબર *" : "Vendor Invoice Number *"}
                       </label>
                       <input
                         type="text"
                         value={vendorInvoiceNumber}
                         onChange={(e) => setVendorInvoiceNumber(e.target.value)}
-                        className="w-full text-xs rounded-lg border border-slate-300 bg-white p-2.5 focus:border-indigo-500"
+                        className="w-full text-[13px] rounded-lg border border-slate-300 bg-white p-2.5 focus:border-indigo-500 h-10"
                         placeholder="e.g. GAMC/2026/1042"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1">
+                      <label className="text-[12px] font-medium text-slate-700 block mb-1">
                         {lang === "gu" ? "બિલ તારીખ *" : "Invoice Date *"}
                       </label>
                       <input
                         type="date"
                         value={invoiceDate}
                         onChange={(e) => setInvoiceDate(e.target.value)}
-                        className="w-full text-xs rounded-lg border border-slate-300 bg-white p-2.5 focus:border-indigo-500"
+                        className="w-full text-[13px] rounded-lg border border-slate-300 bg-white p-2.5 focus:border-indigo-500 h-10"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1">
+                      <label className="text-[12px] font-medium text-slate-700 block mb-1">
                         {lang === "gu" ? "માલ મળવાની જગ્યા (Place of Supply)" : "Place of Supply"}
                       </label>
                       <select
                         value={placeOfSupply}
                         onChange={(e) => setPlaceOfSupply(e.target.value)}
-                        className="w-full text-xs rounded-lg border border-slate-300 bg-white p-2.5"
+                        className="w-full text-[13px] rounded-lg border border-slate-300 bg-white p-2.5 h-10"
                       >
                         <option value="24">24 - Gujarat (Intra-state: CGST + SGST)</option>
                         <option value="27">27 - Maharashtra (Inter-state: IGST)</option>
@@ -1958,13 +1958,13 @@ export function BillScannerModal({
                     </div>
 
                     <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1">
+                      <label className="text-[12px] font-medium text-slate-700 block mb-1">
                         {lang === "gu" ? "ગોડાઉન / વેરહાઉસ (Inward Warehouse)" : "Inward Warehouse"}
                       </label>
                       <select
                         value={selectedWarehouseId}
                         onChange={(e) => setSelectedWarehouseId(e.target.value)}
-                        className="w-full text-xs rounded-lg border border-slate-300 bg-white p-2.5"
+                        className="w-full text-[13px] rounded-lg border border-slate-300 bg-white p-2.5 h-10"
                       >
                         {warehouses.map((w) => (
                           <option key={w.id} value={w.id}>
@@ -1980,7 +1980,7 @@ export function BillScannerModal({
                     <div className="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl space-y-2">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded text-xs font-bold bg-indigo-600 text-white uppercase font-mono">
+                          <span className="px-2 py-0.5 rounded text-xs font-bold bg-indigo-600 text-white uppercase tabular-nums">
                             {currency} Invoice
                           </span>
                           <span className="text-xs text-indigo-900 font-semibold">
@@ -1995,7 +1995,7 @@ export function BillScannerModal({
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
                         <div>
-                          <label className="block text-[11px] font-bold text-indigo-950 mb-1">
+                          <label className="block text-[11px] font-medium text-indigo-950 mb-1">
                             {lang === "gu" ? `વિનિમય દર (Exchange Rate: 1 ${currency} = ₹ INR):` : `Exchange Rate (1 ${currency} in INR):`}
                           </label>
                           <div className="flex items-center gap-2">
@@ -2004,7 +2004,7 @@ export function BillScannerModal({
                               step="0.01"
                               value={exchangeRate}
                               onChange={(e) => setExchangeRate(Math.max(0.01, Number(e.target.value) || 1))}
-                              className="w-32 text-xs rounded border border-indigo-300 p-1.5 font-mono bg-white font-bold text-slate-800"
+                              className="w-32 text-xs rounded border border-indigo-300 p-1.5 tabular-nums bg-white font-bold text-slate-800"
                             />
                             <span className="text-slate-500 text-[11px]">INR per {currency}</span>
                           </div>
@@ -2013,7 +2013,7 @@ export function BillScannerModal({
                           <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
                             {lang === "gu" ? "રૂપાંતરિત કુલ રકમ (Converted to INR)" : "Converted INR Equivalent"}
                           </span>
-                          <span className="text-sm font-black font-mono text-indigo-900">
+                          <span className="text-sm font-semibold tabular-nums text-indigo-900">
                             ₹{(totals.grandTotal * exchangeRate).toFixed(2)}
                           </span>
                         </div>
@@ -2030,7 +2030,7 @@ export function BillScannerModal({
                       <button
                         type="button"
                         onClick={handleAddLine}
-                        className="text-xs text-[#174B43] hover:text-[#123B35] font-semibold flex items-center gap-1"
+                        className="text-xs text-[#0F172A] hover:text-[#123B35] font-semibold flex items-center gap-1"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -2070,7 +2070,7 @@ export function BillScannerModal({
                                             type="text"
                                             value={item.description}
                                             onChange={(e) => handleLineChange(idx, "description", e.target.value)}
-                                            className="font-medium text-slate-800 text-xs w-full bg-transparent border-b border-dashed border-slate-300 focus:border-indigo-500 focus:outline-none"
+                                            className="font-medium text-slate-800 text-[13px] w-full bg-transparent border-b border-dashed border-slate-300 focus:border-indigo-500 focus:outline-none h-10"
                                           />
                                           {isLowConfidence && (
                                             <span
@@ -2126,7 +2126,7 @@ export function BillScannerModal({
                                             });
                                           }
                                         }}
-                                        className="w-full text-[11px] font-semibold rounded border border-slate-200 p-1 bg-white"
+                                        className="w-full text-[11px] font-normal rounded border border-slate-200 p-1 bg-white h-10"
                                         title={currentType === "SERVICE" ? "Service: No stock inward" : "Product: Inwards into stock"}
                                       >
                                         <option value="PRODUCT">📦 Goods</option>
@@ -2139,7 +2139,7 @@ export function BillScannerModal({
                                         type="text"
                                         value={item.hsnCode || ""}
                                         onChange={(e) => handleLineChange(idx, "hsnCode", e.target.value)}
-                                        className="w-full text-xs rounded border border-slate-200 p-1.5 text-center font-mono"
+                                        className="w-full text-[13px] rounded border border-slate-200 p-1.5 text-center tabular-nums h-10"
                                         placeholder="0000"
                                       />
                                     </td>
@@ -2149,7 +2149,7 @@ export function BillScannerModal({
                                         type="number"
                                         value={item.quantity}
                                         onChange={(e) => handleLineChange(idx, "quantity", e.target.value)}
-                                        className="w-full text-xs rounded border border-slate-200 p-1.5 text-center"
+                                        className="w-full text-[13px] rounded border border-slate-200 p-1.5 text-center h-10"
                                         min="0.0001"
                                         step="any"
                                       />
@@ -2160,7 +2160,7 @@ export function BillScannerModal({
                                         type="number"
                                         value={item.unitPrice}
                                         onChange={(e) => handleLineChange(idx, "unitPrice", e.target.value)}
-                                        className="w-full text-xs rounded border border-slate-200 p-1.5 text-right font-mono"
+                                        className="w-full text-[13px] rounded border border-slate-200 p-1.5 text-right tabular-nums h-10"
                                         min="0"
                                         step="any"
                                       />
@@ -2177,7 +2177,7 @@ export function BillScannerModal({
                                           value={item.taxRate ?? 18}
                                           onChange={(e) => handleLineChange(idx, "taxRate", Number(e.target.value) || 0)}
                                           placeholder="0"
-                                          className="w-full text-xs rounded border border-slate-200 p-1.5 pr-4 text-right font-mono"
+                                          className="w-full text-[13px] rounded border border-slate-200 p-1.5 pr-4 text-right tabular-nums h-10"
                                         />
                                         <span className="absolute right-1 text-[11px] font-bold text-slate-400 pointer-events-none">%</span>
                                       </div>
@@ -2193,7 +2193,7 @@ export function BillScannerModal({
                                       </datalist>
                                     </td>
 
-                                    <td className="p-3 text-right font-mono font-bold text-slate-800">
+                                    <td className="p-3 text-right tabular-nums font-medium text-slate-800">
                                       {currency === "INR" ? "₹" : `${currency} `}
                                       {Number(item.totalAmount || 0).toFixed(2)}
                                     </td>
@@ -2234,7 +2234,7 @@ export function BillScannerModal({
                                                   },
                                                 })
                                               }
-                                              className="border border-emerald-200 rounded px-1.5 py-0.5 text-xs bg-white font-semibold"
+                                              className="border border-emerald-200 rounded px-1.5 py-0.5 text-[13px] bg-white font-normal h-10"
                                             >
                                               <option value="PRODUCT">📦 Goods (Inventory)</option>
                                               <option value="SERVICE">🛠️ Service (Expense)</option>
@@ -2270,7 +2270,7 @@ export function BillScannerModal({
                                                   },
                                                 })
                                               }
-                                              className="border border-emerald-200 rounded px-1.5 py-0.5 text-xs bg-white"
+                                              className="border border-emerald-200 rounded px-1.5 py-0.5 text-[13px] bg-white h-10"
                                             >
                                               <option value="PCS">PCS</option>
                                               <option value="BAG">BAG</option>
@@ -2295,7 +2295,7 @@ export function BillScannerModal({
                                                   },
                                                 })
                                               }
-                                              className="border border-emerald-200 rounded px-2 py-0.5 text-xs bg-white w-20 text-right font-mono"
+                                              className="border border-emerald-200 rounded px-2 py-0.5 text-[13px] bg-white w-20 text-right tabular-nums h-10"
                                             />
                                           </div>
                                         </div>
@@ -2316,14 +2316,14 @@ export function BillScannerModal({
                     <div className="space-y-1 text-xs">
                       <div className="text-slate-500">
                         {lang === "gu" ? "ટેક્સપાત્ર રકમ (Taxable Amount):" : "Taxable Value:"}{" "}
-                        <span className="font-mono font-semibold text-slate-800">
+                        <span className="tabular-nums font-semibold text-slate-800">
                           {currency === "INR" ? "₹" : `${currency} `}
                           {totals.taxable.toFixed(2)}
                         </span>
                       </div>
                       <div className="text-slate-500">
                         {placeOfSupply === "24" ? "CGST (9%) + SGST (9%):" : "IGST (18%):"}{" "}
-                        <span className="font-mono font-semibold text-slate-800">
+                        <span className="tabular-nums font-semibold text-slate-800">
                           {currency === "INR" ? "₹" : `${currency} `}
                           {totals.tax.toFixed(2)}
                         </span>
@@ -2341,12 +2341,12 @@ export function BillScannerModal({
                       <div className="text-xs text-slate-500 uppercase tracking-wider font-bold">
                         {lang === "gu" ? "કુલ ચૂકવવાપાત્ર રકમ (Grand Total)" : "Calculated Grand Total"}
                       </div>
-                      <div className="text-2xl font-black font-mono text-indigo-700">
+                      <div className="text-2xl font-semibold tabular-nums text-indigo-700">
                         {currency === "INR" ? "₹" : `${currency} `}
                         {totals.grandTotal.toFixed(2)}
                       </div>
                       {currency !== "INR" && (
-                        <div className="text-xs font-bold font-mono text-slate-600 mt-0.5">
+                        <div className="text-xs font-bold tabular-nums text-slate-600 mt-0.5">
                           ≈ ₹{(totals.grandTotal * exchangeRate).toFixed(2)} INR
                         </div>
                       )}
@@ -2361,7 +2361,7 @@ export function BillScannerModal({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="flex-1 sm:flex-none px-4 py-2 border border-slate-300 text-slate-700 hover:bg-white text-xs font-semibold rounded-lg transition-colors"
+                    className="flex-1 sm:flex-none h-9 px-3 border border-slate-300 text-slate-700 hover:bg-white text-[13px] font-medium rounded-lg transition-colors"
                   >
                     {lang === "gu" ? "રદ કરો" : "Cancel / Close"}
                   </button>
@@ -2376,7 +2376,7 @@ export function BillScannerModal({
                       setDiagnosticStage("IDLE");
                       setDiagnosticDetails("");
                     }}
-                    className="flex-1 sm:flex-none px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5 active:scale-95 shadow-xs"
+                    className="flex-1 sm:flex-none h-9 px-3 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-[13px] font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5 active:scale-95 shadow-xs"
                   >
                     <span>📷</span>
                     <span>{lang === "gu" ? "બીજું બિલ સ્કેન કરો" : "Scan Another Bill"}</span>
@@ -2415,7 +2415,7 @@ export function BillScannerModal({
                         });
                         onClose();
                       }}
-                      className="flex-1 sm:flex-none px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors flex items-center justify-center gap-1.5"
+                      className="flex-1 sm:flex-none h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-[10px] transition-colors flex items-center justify-center gap-1.5"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -2432,7 +2432,7 @@ export function BillScannerModal({
                     type="button"
                     onClick={handleSaveDraft}
                     disabled={isSavingDraft || isConfirming}
-                    className="flex-1 sm:flex-none px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50"
+                    className="flex-1 sm:flex-none h-9 px-3 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-[13px] font-medium rounded-lg shadow-sm transition-colors disabled:opacity-50"
                   >
                     {isSavingDraft ? "Saving..." : lang === "gu" ? "ડ્રાફ્ટ સાચવો" : "Save Draft"}
                   </button>
@@ -2441,7 +2441,7 @@ export function BillScannerModal({
                     type="button"
                     onClick={handleConfirmPurchase}
                     disabled={isConfirming || isSavingDraft}
-                    className="flex-1 sm:flex-none px-5 py-2.5 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-lg shadow-md transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="flex-1 sm:flex-none h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-lg shadow-md transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     {isConfirming ? (
                       <>
@@ -2471,7 +2471,7 @@ export function BillScannerModal({
                 <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                   <div className="flex items-center gap-2">
                     <span className="p-1.5 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-bold">🏪</span>
-                    <h3 className="font-bold text-slate-900 text-sm">
+                    <h3 className="font-semibold text-slate-900 text-[15px]">
                       {lang === "gu" ? "માસ્ટર્સમાં વેપારી ઉમેરો" : "Save Supplier to Masters"}
                     </h3>
                   </div>
@@ -2492,7 +2492,7 @@ export function BillScannerModal({
                   )}
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                       {lang === "gu" ? "વેપારીનું નામ *" : "Supplier / Business Name *"}
                     </label>
                     <input
@@ -2512,7 +2512,7 @@ export function BillScannerModal({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                      <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                         {lang === "gu" ? "મોબાઈલ નંબર (વૈકલ્પિક)" : "Phone Number (Optional)"}
                       </label>
                       <input
@@ -2530,7 +2530,7 @@ export function BillScannerModal({
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                      <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                         {lang === "gu" ? "ઈમેલ (વૈકલ્પિક)" : "Email (Optional)"}
                       </label>
                       <input
@@ -2538,14 +2538,14 @@ export function BillScannerModal({
                         value={supplierFormData.email}
                         onChange={(e) => setSupplierFormData({ ...supplierFormData, email: e.target.value })}
                         placeholder="billing@vendor.com"
-                        className="w-full text-xs p-2.5 rounded-lg border border-slate-300 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-indigo-500"
+                        className="w-full text-[13px] p-2.5 rounded-lg border border-slate-300 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-indigo-500 h-10"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                      <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                         {lang === "gu" ? "GSTIN (વૈકલ્પિક)" : "GSTIN (Optional)"}
                       </label>
                       <input
@@ -2561,7 +2561,7 @@ export function BillScannerModal({
                           }));
                         }}
                         placeholder="24AAAAA0000A1Z5"
-                        className={`w-full text-xs p-2.5 font-mono uppercase rounded-lg border ${
+                        className={`w-full text-xs p-2.5 tabular-nums uppercase rounded-lg border ${
                           supplierFormErrors.gstin ? "border-red-500 bg-red-50" : "border-slate-300 bg-slate-50"
                         } focus:bg-white focus:ring-1 focus:ring-indigo-500`}
                       />
@@ -2571,13 +2571,13 @@ export function BillScannerModal({
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                      <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                         {lang === "gu" ? "રાજ્ય કોડ *" : "State Code *"}
                       </label>
                       <select
                         value={supplierFormData.stateCode}
                         onChange={(e) => setSupplierFormData({ ...supplierFormData, stateCode: e.target.value })}
-                        className="w-full text-xs p-2.5 rounded-lg border border-slate-300 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-indigo-500 font-medium"
+                        className="w-full text-[13px] p-2.5 rounded-lg border border-slate-300 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-indigo-500 font-medium h-10"
                       >
                         <option value="24">24 - Gujarat</option>
                         <option value="27">27 - Maharashtra</option>
@@ -2598,7 +2598,7 @@ export function BillScannerModal({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                       {lang === "gu" ? "સરનામું (વૈકલ્પિક)" : "Address (Optional)"}
                     </label>
                     <input
@@ -2606,7 +2606,7 @@ export function BillScannerModal({
                       value={supplierFormData.line1}
                       onChange={(e) => setSupplierFormData({ ...supplierFormData, line1: e.target.value })}
                       placeholder="e.g. 1000 N West St, Suite 1200"
-                      className="w-full text-xs p-2.5 rounded-lg border border-slate-300 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-indigo-500"
+                      className="w-full text-[13px] p-2.5 rounded-lg border border-slate-300 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-indigo-500 h-10"
                     />
                   </div>
 
@@ -2614,14 +2614,14 @@ export function BillScannerModal({
                     <button
                       type="button"
                       onClick={() => setIsSupplierModalOpen(false)}
-                      className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                      className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
                     >
                       {lang === "gu" ? "રદ કરો" : "Cancel"}
                     </button>
                     <button
                       type="submit"
                       disabled={isSavingSupplier}
-                      className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white text-xs font-bold rounded-lg shadow-sm disabled:opacity-50 flex items-center gap-1.5 transition-colors"
+                      className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-lg shadow-sm disabled:opacity-50 flex items-center gap-1.5 transition-colors"
                     >
                       {isSavingSupplier ? (
                         <>
@@ -2645,7 +2645,7 @@ export function BillScannerModal({
         <div className="fixed inset-0 z-[120] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-slate-200 text-center animate-in zoom-in-95 duration-200">
             {/* Animated Camera Icon */}
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-orange-50 border-2 border-[#174B43]/30 flex items-center justify-center text-[#174B43] shadow-inner">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-orange-50 border-2 border-[#0F172A]/30 flex items-center justify-center text-[#0F172A] shadow-inner">
               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -2653,7 +2653,7 @@ export function BillScannerModal({
             </div>
 
             {/* Title */}
-            <h3 className="text-base font-bold text-slate-900 mb-2">
+            <h3 className="text-[15px] font-semibold text-slate-900 mb-2">
               {lang === "gu" ? "કેમેરા એક્સેસની પરવાનગી આપો" : "Allow Camera Access?"}
             </h3>
 
@@ -2675,7 +2675,7 @@ export function BillScannerModal({
                 <span>{lang === "gu" ? "100% સુરક્ષિત અને પ્રાઇવેટ એક્સેસ" : "100% secure in-browser session"}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-orange-100 text-[#174B43] flex items-center justify-center font-bold text-[10px]">⚡</span>
+                <span className="w-5 h-5 rounded-full bg-orange-100 text-[#0F172A] flex items-center justify-center font-bold text-[10px]">⚡</span>
                 <span>{lang === "gu" ? "લો-મેમરી ઓપ્ટિમાઇઝ્ડ (કોઈ હેંગ નહિ)" : "Low-memory optimized (smooth capture)"}</span>
               </div>
             </div>
@@ -2685,7 +2685,7 @@ export function BillScannerModal({
               <button
                 type="button"
                 onClick={() => setShowPermissionPrompt(false)}
-                className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors border border-slate-200"
+                className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[13px] font-medium rounded-xl transition-colors border border-slate-200"
               >
                 {lang === "gu" ? "ના (Deny)" : "Don't Allow (Deny)"}
               </button>
@@ -2693,7 +2693,7 @@ export function BillScannerModal({
               <button
                 type="button"
                 onClick={handleOpenCamera}
-                className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 px-4 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
@@ -2711,14 +2711,14 @@ export function BillScannerModal({
           {/* Top Bar */}
           <div className="w-full max-w-2xl flex items-center justify-between text-white py-2">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-[#174B43]">
+              <div className="w-9 h-9 rounded-xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-[#0F172A]">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
               <div>
-                <h3 className="text-sm font-bold tracking-tight text-white">
+                <h3 className="text-[15px] font-semibold tracking-tight text-white">
                   {lang === "gu" ? "કેમેરાથી બિલ સ્કેન કરો" : "Scan Bill with Live Camera"}
                 </h3>
                 <p className="text-[11px] text-slate-300">
@@ -2733,7 +2733,7 @@ export function BillScannerModal({
               <button
                 type="button"
                 onClick={() => setCameraFacingMode((prev) => (prev === "environment" ? "user" : "environment"))}
-                className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-white/20 transition-all active:scale-95"
+                className="h-9 px-3 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[13px] font-medium flex items-center gap-1.5 border border-white/20 transition-all active:scale-95"
                 title={lang === "gu" ? "કેમેરો બદલો (Front / Rear)" : "Flip Camera (Front / Rear)"}
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -2768,17 +2768,17 @@ export function BillScannerModal({
             {/* Target Framing Guides */}
             <div className="absolute inset-4 sm:inset-8 pointer-events-none border-2 border-dashed border-white/40 rounded-xl flex flex-col justify-between p-3">
               <div className="flex justify-between items-start">
-                <div className="w-6 h-6 border-t-4 border-l-4 border-[#174B43] rounded-tl-lg" />
+                <div className="w-6 h-6 border-t-4 border-l-4 border-[#0F172A] rounded-tl-lg" />
                 <div className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-[11px] font-semibold text-white/90 border border-white/20 flex items-center gap-1.5 shadow">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   {lang === "gu" ? "બિલને ફ્રેમમાં ગોઠવો" : "Align bill edges inside frame"}
                 </div>
-                <div className="w-6 h-6 border-t-4 border-r-4 border-[#174B43] rounded-tr-lg" />
+                <div className="w-6 h-6 border-t-4 border-r-4 border-[#0F172A] rounded-tr-lg" />
               </div>
 
               <div className="flex justify-between items-end">
-                <div className="w-6 h-6 border-b-4 border-l-4 border-[#174B43] rounded-bl-lg" />
-                <div className="w-6 h-6 border-b-4 border-r-4 border-[#174B43] rounded-br-lg" />
+                <div className="w-6 h-6 border-b-4 border-l-4 border-[#0F172A] rounded-bl-lg" />
+                <div className="w-6 h-6 border-b-4 border-r-4 border-[#0F172A] rounded-br-lg" />
               </div>
             </div>
 
@@ -2797,7 +2797,7 @@ export function BillScannerModal({
             <button
               type="button"
               onClick={stopCameraStream}
-              className="px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white transition-colors"
+              className="h-9 px-3 text-[13px] font-medium text-slate-300 hover:text-white transition-colors"
             >
               {lang === "gu" ? "રદ કરો" : "Cancel"}
             </button>
@@ -2810,7 +2810,7 @@ export function BillScannerModal({
               className="group relative flex items-center justify-center w-18 h-18 sm:w-20 sm:h-20 rounded-full border-4 border-white bg-white/20 hover:bg-white/30 active:scale-95 transition-all shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed"
               title={lang === "gu" ? "ફોટો લો અને સ્કેન કરો" : "Capture Photo"}
             >
-              <div className="w-14 h-14 sm:w-15 sm:h-15 rounded-full bg-[#174B43] group-hover:bg-[#123B35] transition-colors flex items-center justify-center text-white shadow-inner">
+              <div className="w-14 h-14 sm:w-15 sm:h-15 rounded-full bg-[#0F172A] group-hover:bg-[#123B35] transition-colors flex items-center justify-center text-white shadow-inner">
                 <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -2824,7 +2824,7 @@ export function BillScannerModal({
                 stopCameraStream();
                 fileInputRef.current?.click();
               }}
-              className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-medium border border-white/20 transition-all flex items-center gap-1.5"
+              className="h-9 px-3 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[13px] font-medium border border-white/20 transition-all flex items-center gap-1.5"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />

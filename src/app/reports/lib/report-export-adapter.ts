@@ -1337,26 +1337,64 @@ export async function exportReportData(params: ReportExportParams): Promise<void
   // 23. FINANCIAL STATEMENTS: PROFIT & LOSS
   if (tab === "profit-loss") {
     const rows: any[] = [];
-    rows.push({ section: "--- REVENUE FROM OPERATIONS ---", account: "", amount: "" });
-    if (reportData.operatingRevenue) {
-      reportData.operatingRevenue.forEach((r: any) =>
-        rows.push({ section: "Revenue", account: r.accountName, amount: inr(r.balance) })
-      );
-    }
-    rows.push({ section: "Total Revenue", account: "Gross Turnover", amount: inr(reportData.totalRevenue || 0) });
 
-    rows.push({ section: "--- COST OF GOODS SOLD ---", account: "", amount: "" });
-    rows.push({ section: "COGS", account: "Cost of Materials & Direct Expenses", amount: inr(reportData.totalCogs || 0) });
-    rows.push({ section: "GROSS PROFIT", account: "Turnover - Direct Cost", amount: inr(reportData.grossProfit || 0) });
+    // Safely extract account arrays whether backend returns nested object or flat array
+    const directIncomeAccounts: any[] = Array.isArray(reportData.directIncome)
+      ? reportData.directIncome
+      : (reportData.directIncome?.accounts || reportData.operatingRevenue || []);
 
-    rows.push({ section: "--- OPERATING & INDIRECT EXPENSES ---", account: "", amount: "" });
-    if (reportData.expenses) {
-      reportData.expenses.forEach((e: any) =>
-        rows.push({ section: "Expense", account: e.accountName, amount: inr(e.balance) })
+    const directExpenseAccounts: any[] = Array.isArray(reportData.directExpenses)
+      ? reportData.directExpenses
+      : (reportData.directExpenses?.accounts || []);
+
+    const indirectIncomeAccounts: any[] = Array.isArray(reportData.indirectIncome)
+      ? reportData.indirectIncome
+      : (reportData.indirectIncome?.accounts || []);
+
+    const indirectExpenseAccounts: any[] = Array.isArray(reportData.indirectExpenses)
+      ? reportData.indirectExpenses
+      : (reportData.indirectExpenses?.accounts || reportData.expenses || []);
+
+    const totalDirectIncome = reportData.directIncome?.total ?? reportData.summary?.directIncome ?? reportData.totalRevenue ?? 0;
+    const totalDirectExpenses = reportData.directExpenses?.total ?? reportData.summary?.directExpenses ?? reportData.totalCogs ?? 0;
+    const grossProfit = reportData.grossProfit ?? reportData.summary?.grossProfit ?? 0;
+    const totalIndirectIncome = reportData.indirectIncome?.total ?? reportData.summary?.indirectIncome ?? 0;
+    const totalIndirectExpenses = reportData.indirectExpenses?.total ?? reportData.summary?.indirectExpenses ?? reportData.totalExpenses ?? 0;
+    const netProfit = reportData.netProfit ?? reportData.summary?.netProfit ?? 0;
+
+    rows.push({ section: "--- DIRECT INCOME / REVENUE ---", account: "", amount: "" });
+    directIncomeAccounts.forEach((r: any) =>
+      rows.push({ section: "Direct Income", account: r.name || r.accountName || "Income Account", amount: inr(r.amount ?? r.balance ?? 0) })
+    );
+    rows.push({ section: "Total Direct Income", account: "Gross Turnover / Operating Income", amount: inr(totalDirectIncome) });
+
+    rows.push({ section: "--- DIRECT EXPENSES ---", account: "", amount: "" });
+    directExpenseAccounts.forEach((e: any) =>
+      rows.push({ section: "Direct Expense", account: e.name || e.accountName || "Expense Account", amount: inr(e.amount ?? e.balance ?? 0) })
+    );
+    rows.push({ section: "Total Direct Expenses", account: "Cost of Goods & Direct Operating Costs", amount: inr(totalDirectExpenses) });
+
+    const isGrossLoss = Number(grossProfit) < 0;
+    rows.push({ section: isGrossLoss ? "GROSS LOSS" : "GROSS PROFIT", account: "Direct Income - Direct Expenses", amount: inr(grossProfit) });
+
+    if (indirectIncomeAccounts.length > 0) {
+      rows.push({ section: "--- INDIRECT INCOME ---", account: "", amount: "" });
+      indirectIncomeAccounts.forEach((i: any) =>
+        rows.push({ section: "Indirect Income", account: i.name || i.accountName || "Other Income", amount: inr(i.amount ?? i.balance ?? 0) })
       );
+      rows.push({ section: "Total Indirect Income", account: "Other Income & Gains", amount: inr(totalIndirectIncome) });
     }
-    rows.push({ section: "Total Expenses", account: "Indirect Operating Costs", amount: inr(reportData.totalExpenses || 0) });
-    rows.push({ section: "NET PROFIT / (LOSS)", account: "Net Earnings for the Period", amount: inr(reportData.netProfit || 0) });
+
+    if (indirectExpenseAccounts.length > 0) {
+      rows.push({ section: "--- INDIRECT EXPENSES ---", account: "", amount: "" });
+      indirectExpenseAccounts.forEach((ie: any) =>
+        rows.push({ section: "Indirect Expense", account: ie.name || ie.accountName || "Operating Expense", amount: inr(ie.amount ?? ie.balance ?? 0) })
+      );
+      rows.push({ section: "Total Indirect Expenses", account: "Administrative & Operating Expenses", amount: inr(totalIndirectExpenses) });
+    }
+
+    const isNetLoss = Number(netProfit) < 0;
+    rows.push({ section: isNetLoss ? "NET LOSS" : "NET PROFIT", account: "Net Earnings for the Period", amount: inr(netProfit) });
 
     const columns: ExportColumn[] = [
       { header: "Classification", key: "section", type: "string" },
@@ -1369,13 +1407,13 @@ export async function exportReportData(params: ReportExportParams): Promise<void
       title: "Profit and Loss Statement (P&L Account)",
       fileName: `Profit_and_Loss_${startDate}_to_${endDate}`,
       summaryCards: [
-        { label: "Turnover (Revenue)", value: `₹${inr(reportData.totalRevenue)}` },
-        { label: "Cost of Goods Sold", value: `₹${inr(reportData.totalCogs)}` },
-        { label: "Gross Profit", value: `₹${inr(reportData.grossProfit)}`, color: "success" },
-        { label: "Net Profit / Loss", value: `₹${inr(reportData.netProfit)}`, color: num(reportData.netProfit) >= 0 ? "success" : "danger" },
+        { label: "Turnover (Direct Income)", value: `₹${inr(totalDirectIncome)}`, color: "success" },
+        { label: "Direct Expenses", value: `₹${inr(totalDirectExpenses)}` },
+        { label: "Gross Profit", value: `₹${inr(grossProfit)}`, color: num(grossProfit) >= 0 ? "success" : "danger" },
+        { label: "Net Profit / Loss", value: `₹${inr(netProfit)}`, color: num(netProfit) >= 0 ? "success" : "danger" },
       ],
       totals: {
-        Amount: inr(reportData.netProfit),
+        Amount: inr(netProfit),
       },
     };
 
@@ -1385,27 +1423,56 @@ export async function exportReportData(params: ReportExportParams): Promise<void
   // 24. FINANCIAL STATEMENTS: BALANCE SHEET
   if (tab === "balance-sheet") {
     const rows: any[] = [];
-    rows.push({ side: "LIABILITIES & CAPITAL", particulars: "--- CAPITAL ACCOUNT & RESERVES ---", amount: "" });
-    if (reportData.equity) {
-      reportData.equity.forEach((r: any) =>
-        rows.push({ side: "Capital", particulars: r.accountName, amount: inr(r.balance) })
-      );
-    }
-    rows.push({ side: "LIABILITIES", particulars: "--- CURRENT & NON-CURRENT LIABILITIES ---", amount: "" });
-    if (reportData.liabilities) {
-      reportData.liabilities.forEach((r: any) =>
-        rows.push({ side: "Liabilities", particulars: r.accountName, amount: inr(r.balance) })
-      );
-    }
-    rows.push({ side: "TOTAL LIABILITIES & EQUITY", particulars: "Total Sources of Funds", amount: inr(reportData.totalLiabilities || 0) });
 
-    rows.push({ side: "ASSETS", particulars: "--- FIXED & CURRENT ASSETS ---", amount: "" });
-    if (reportData.assets) {
-      reportData.assets.forEach((r: any) =>
-        rows.push({ side: "Assets", particulars: r.accountName, amount: inr(r.balance) })
-      );
+    // Safely extract account arrays whether backend returns nested object or flat array
+    const equityAccounts: any[] = Array.isArray(reportData.equity)
+      ? reportData.equity
+      : (reportData.equity?.accounts || []);
+    const liabilityAccounts: any[] = Array.isArray(reportData.liabilities)
+      ? reportData.liabilities
+      : (reportData.liabilities?.accounts || []);
+    const assetAccounts: any[] = Array.isArray(reportData.assets)
+      ? reportData.assets
+      : (reportData.assets?.accounts || []);
+
+    const totalEquity = reportData.equity?.total ?? reportData.totalEquity ?? 0;
+    const netProfitOrLoss = reportData.equity?.netProfitOrLoss ?? reportData.netProfitOrLoss ?? 0;
+    const totalLiabilities = reportData.liabilities?.total ?? reportData.totalLiabilities ?? 0;
+    const totalAssets = reportData.assets?.total ?? reportData.totalAssets ?? 0;
+    const totalLiabilitiesAndEquity = reportData.totalLiabilitiesAndEquity ?? (Number(totalLiabilities) + Number(totalEquity) + Number(netProfitOrLoss));
+
+    // LIABILITIES & CAPITAL SECTION
+    rows.push({ side: "LIABILITIES & EQUITY", particulars: "--- CAPITAL / EQUITY ACCOUNTS ---", amount: "" });
+    equityAccounts.forEach((r: any) =>
+      rows.push({ side: "Capital & Reserves", particulars: r.name || r.accountName || "Equity Account", amount: inr(r.amount ?? r.balance ?? 0) })
+    );
+    if (Number(netProfitOrLoss) !== 0) {
+      rows.push({
+        side: "Profit / (Loss)",
+        particulars: Number(netProfitOrLoss) >= 0 ? "Profit & Loss Account (Net Profit)" : "Profit & Loss Account (Net Loss)",
+        amount: inr(netProfitOrLoss),
+      });
     }
-    rows.push({ side: "TOTAL ASSETS", particulars: "Total Application of Funds", amount: inr(reportData.totalAssets || 0) });
+    rows.push({ side: "Total Equity", particulars: "Capital + Retained Earnings", amount: inr(Number(totalEquity) + Number(netProfitOrLoss)) });
+
+    rows.push({ side: "LIABILITIES", particulars: "--- LIABILITIES ---", amount: "" });
+    liabilityAccounts.forEach((r: any) =>
+      rows.push({ side: "Liabilities", particulars: r.name || r.accountName || "Liability Account", amount: inr(r.amount ?? r.balance ?? 0) })
+    );
+    rows.push({ side: "Total Liabilities", particulars: "Total Current & Non-Current Liabilities", amount: inr(totalLiabilities) });
+
+    rows.push({ side: "TOTAL LIABILITIES & EQUITY", particulars: "Total Sources of Funds", amount: inr(totalLiabilitiesAndEquity) });
+
+    // ASSETS SECTION
+    rows.push({ side: "ASSETS", particulars: "--- FIXED & CURRENT ASSETS ---", amount: "" });
+    assetAccounts.forEach((r: any) =>
+      rows.push({ side: "Assets", particulars: r.name || r.accountName || "Asset Account", amount: inr(r.amount ?? r.balance ?? 0) })
+    );
+    rows.push({ side: "TOTAL ASSETS", particulars: "Total Application of Funds", amount: inr(totalAssets) });
+
+    if (reportData.difference && Math.abs(Number(reportData.difference)) > 0.01) {
+      rows.push({ side: "DIFFERENCE IN BOOKS", particulars: "Unbalanced Ledger Difference", amount: inr(reportData.difference) });
+    }
 
     const columns: ExportColumn[] = [
       { header: "Classification", key: "side", type: "string" },
@@ -1418,12 +1485,13 @@ export async function exportReportData(params: ReportExportParams): Promise<void
       title: "Balance Sheet (Statement of Financial Position)",
       fileName: `Balance_Sheet_${endDate}`,
       summaryCards: [
-        { label: "Total Assets", value: `₹${inr(reportData.totalAssets)}`, color: "success" },
-        { label: "Total Liabilities", value: `₹${inr(reportData.totalLiabilities)}` },
-        { label: "Owner Equity", value: `₹${inr(reportData.totalEquity)}` },
+        { label: "Total Assets", value: `₹${inr(totalAssets)}`, color: "success" },
+        { label: "Total Liabilities", value: `₹${inr(totalLiabilities)}` },
+        { label: "Equity & Net Profit", value: `₹${inr(Number(totalEquity) + Number(netProfitOrLoss))}` },
+        { label: "Total Sources of Funds", value: `₹${inr(totalLiabilitiesAndEquity)}` },
       ],
       totals: {
-        Amount: inr(reportData.totalAssets),
+        Amount: inr(totalAssets),
       },
     };
 

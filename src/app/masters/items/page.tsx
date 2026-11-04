@@ -150,7 +150,7 @@ function ItemActionMenu({
                 onClose();
                 onEdit();
               }}
-              className="w-full text-left px-3 py-2 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer font-medium transition-colors"
+              className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer font-medium transition-colors"
             >
               <span className="text-slate-500">✏️</span>
               <span>{lang === "gu" ? "સુધારો (Edit)" : "Edit Item"}</span>
@@ -162,7 +162,7 @@ function ItemActionMenu({
                   onClose();
                   onAdjustStock();
                 }}
-                className="w-full text-left px-3 py-2 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 flex items-center gap-2 cursor-pointer font-medium transition-colors"
+                className="w-full text-left h-9 px-3 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 flex items-center gap-2 cursor-pointer font-medium transition-colors"
               >
                 <span className="text-indigo-600">📦</span>
                 <span>{lang === "gu" ? "સ્ટોક એડજસ્ટ કરો" : "Adjust Stock"}</span>
@@ -174,7 +174,7 @@ function ItemActionMenu({
                 onClose();
                 onBarcode();
               }}
-              className="w-full text-left px-3 py-2 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer font-medium transition-colors"
+              className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer font-medium transition-colors"
             >
               <span className="text-slate-500">🏷️</span>
               <span>{lang === "gu" ? "બારકોડ સ્ટીકર" : "Barcode Sticker"}</span>
@@ -187,7 +187,7 @@ function ItemActionMenu({
                 onClose();
                 onDelete();
               }}
-              className="w-full text-left px-3 py-2 hover:bg-rose-50 text-rose-600 flex items-center gap-2 cursor-pointer font-medium transition-colors"
+              className="w-full text-left h-9 px-3 hover:bg-rose-50 text-rose-600 flex items-center gap-2 cursor-pointer font-medium transition-colors"
             >
               <span>🗑️</span>
               <span>{lang === "gu" ? "કાઢી નાખો" : "Delete"}</span>
@@ -732,11 +732,11 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
         header: lang === "gu" ? "આઇટમ કોડ" : "Item Code",
         accessorFn: (it) => it.sku || it.barcode || "-",
         sortable: true,
-        className: "font-mono text-slate-600",
+        className: "tabular-nums text-slate-600",
         cell: (it) => {
           const code = it.sku || it.barcode;
           if (!code) return <span className="text-slate-400">-</span>;
-          return <span className="font-mono text-xs text-slate-700">{code}</span>;
+          return <span className="tabular-nums text-xs text-slate-700">{code}</span>;
         },
       },
       {
@@ -746,7 +746,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
         accessorFn: (it) => (it.type === "PRODUCT" ? Number(it.currentStock || 0) : -1),
         cell: (it) => {
           if (it.type === "SERVICE") {
-            return <span className="text-slate-400 font-mono">-</span>;
+            return <span className="text-slate-400 tabular-nums">-</span>;
           }
           const stock = Number(it.currentStock || 0);
           const min = Number(it.minStockLevel || 0);
@@ -760,7 +760,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
           return (
             <div className="inline-flex items-center gap-1.5 font-medium text-xs">
               <span
-                className={`font-mono ${
+                className={`tabular-nums ${
                   isLow ? "text-amber-600 font-bold" : "text-slate-800 font-semibold"
                 }`}
               >
@@ -787,7 +787,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
           const price = Number(it.retailPrice);
           if (!price) return <span className="text-slate-400">-</span>;
           return (
-            <span className="font-mono text-xs font-semibold text-slate-800">
+            <span className="tabular-nums text-xs font-semibold text-slate-800">
               ₹ {price.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
             </span>
           );
@@ -802,7 +802,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
           const price = Number(it.purchaseRate);
           if (!price) return <span className="text-slate-400">-</span>;
           return (
-            <span className="font-mono text-xs font-semibold text-slate-800">
+            <span className="tabular-nums text-xs font-semibold text-slate-800">
               ₹ {price.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
             </span>
           );
@@ -882,7 +882,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
           {/* 1. TOP HEADER BAR matching MyBillBook                         */}
           {/* ============================================================ */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+        <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
           {lang === "gu" ? "વસ્તુઓ (Items)" : "Items"}
         </h1>
 
@@ -890,7 +890,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
           <button
             type="button"
             onClick={() => setShowPromoBanner(!showPromoBanner)}
-            className="px-3 py-1.5 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="h-9 px-3 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-[13px] font-medium rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <span>🚫</span>
             <span>{lang === "gu" ? "ઑફર્સ મેનેજ કરો" : "Manage Offer"}</span>
@@ -898,7 +898,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
           <button
             type="button"
             onClick={() => alert("Items Reports: Stock Summary, Item Sales, Low Stock Report")}
-            className="px-3 py-1.5 border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="h-9 px-3 border border-slate-300 text-slate-700 hover:bg-slate-50 text-[13px] font-medium rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <span>📊</span>
             <span>{lang === "gu" ? "રિપોર્ટ્સ" : "Reports"}</span>
@@ -966,13 +966,13 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => handleOpenCreateModal()}
-              className="px-3.5 py-1.5 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-lg border border-slate-200 shadow-2xs transition-all cursor-pointer"
+              className="h-9 px-3 bg-white hover:bg-slate-50 text-slate-800 text-[13px] font-medium rounded-lg border border-slate-200 shadow-2xs transition-all cursor-pointer"
             >
               Create Offer Now
             </button>
             <button
               onClick={() => setShowPromoBanner(false)}
-              className="text-slate-400 hover:text-slate-600 p-1 text-sm rounded-lg cursor-pointer"
+              className="text-slate-400 hover:text-slate-600 p-1 text-[13px] rounded-lg cursor-pointer"
             >
               ✕
             </button>
@@ -994,7 +994,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
               <span>{lang === "gu" ? "સ્ટોક કિંમત" : "Stock Value"}</span>
               <span className="cursor-help text-slate-400" title="Total stock valuation based on purchase rates">ⓘ</span>
             </div>
-            <p className="text-2xl font-mono font-bold text-slate-900 mt-2">
+            <p className="text-2xl tabular-nums font-bold text-slate-900 mt-2">
               ₹ {totalStockValue.toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
             </p>
           </div>
@@ -1015,7 +1015,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
               <span className="text-amber-500">📦</span>
               <span>{lang === "gu" ? "ઓછો સ્ટોક (Low Stock)" : "Low Stock"}</span>
             </div>
-            <p className={`text-2xl font-mono font-bold mt-2 ${lowStockCount > 0 ? "text-amber-600" : "text-slate-900"}`}>
+            <p className={`text-2xl tabular-nums font-bold mt-2 ${lowStockCount > 0 ? "text-amber-600" : "text-slate-900"}`}>
               {lowStockCount}
             </p>
           </div>
@@ -1065,7 +1065,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="text-xs bg-white border border-slate-300 text-slate-700 rounded-lg px-3 py-1.5 font-medium focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer appearance-none pr-6 shadow-2xs"
+                className="text-[13px] bg-white border border-slate-300 text-slate-700 rounded-lg px-3 py-1.5 font-medium focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer appearance-none pr-6 shadow-2xs h-10"
               >
                 <option value="ALL">Search Categories</option>
                 {categories.map((c) => (
@@ -1101,7 +1101,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
               <button
                 type="button"
                 onClick={() => setIsBulkMenuOpen(!isBulkMenuOpen)}
-                className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
               >
                 <span>🗂️</span>
                 <span>Bulk Actions</span>
@@ -1116,7 +1116,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
                         setIsBulkMenuOpen(false);
                         handleSelectAll(true);
                       }}
-                      className="w-full text-left px-3 py-2 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer font-medium"
+                      className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer font-medium"
                     >
                       <span>✓</span> Select All Items
                     </button>
@@ -1126,7 +1126,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
                         setIsBulkMenuOpen(false);
                         handleSelectAll(false);
                       }}
-                      className="w-full text-left px-3 py-2 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer font-medium"
+                      className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer font-medium"
                     >
                       <span>✕</span> Deselect All
                     </button>
@@ -1142,7 +1142,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
                         }
                         setIsBulkDeleteModalOpen(true);
                       }}
-                      className="w-full text-left px-3 py-2 hover:bg-rose-50 text-rose-600 flex items-center gap-2 cursor-pointer font-medium"
+                      className="w-full text-left h-9 px-3 hover:bg-rose-50 text-rose-600 flex items-center gap-2 cursor-pointer font-medium"
                     >
                       <span>🗑️</span> Delete Selected ({selectedIds.size})
                     </button>
@@ -1155,7 +1155,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
             <button
               type="button"
               onClick={() => setIsImportModalOpen(true)}
-              className="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-lg shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer"
+              className="h-9 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-[13px] font-medium rounded-lg shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -1166,7 +1166,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
             {/* Create Item Button */}
             <button
               onClick={handleOpenCreateModal}
-              className="px-4 py-1.5 bg-[#5c56df] hover:bg-[#4d47d4] text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
+              className="px-4 py-1.5 bg-[#5c56df] hover:bg-[#4d47d4] text-white text-[13px] font-medium rounded-lg shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <span>Create Item</span>
             </button>
@@ -1199,7 +1199,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
               <Badge variant={it.type === "PRODUCT" ? "info" : "purple"}>{it.type}</Badge>
             </div>
             {lang === "gu" && it.nameGujarati && <p className="text-xs text-slate-500">{it.nameGujarati}</p>}
-            <div className="flex items-center justify-between text-xs text-slate-600 font-mono">
+            <div className="flex items-center justify-between text-xs text-slate-600 tabular-nums">
               <span>Code: {it.sku || it.barcode || "—"}</span>
               <span>HSN: {it.hsnCode}</span>
             </div>
@@ -1208,7 +1208,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
                 <span className="text-[10px] text-slate-500 uppercase block">
                   {lang === "gu" ? "વેચાણ ભાવ" : "Selling Price"}
                 </span>
-                <span className="font-mono font-bold text-slate-900">
+                <span className="tabular-nums font-bold text-slate-900">
                   ₹{Number(it.retailPrice).toLocaleString("en-IN")}
                 </span>
               </div>
@@ -1217,7 +1217,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
                   {lang === "gu" ? "સ્ટોક" : "Stock"}
                 </span>
                 <span
-                  className={`font-mono font-bold text-xs ${
+                  className={`tabular-nums font-bold text-xs ${
                     it.type === "SERVICE"
                       ? "text-slate-400"
                       : Number(it.currentStock || 0) <= Number(it.minStockLevel || 0)
@@ -1236,7 +1236,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
                 <button
                   type="button"
                   onClick={() => setAdjustStockItem(it)}
-                  className="px-2.5 py-1 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg cursor-pointer flex items-center gap-1"
+                  className="px-2.5 py-1 text-[13px] font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg cursor-pointer flex items-center gap-1"
                 >
                   <span>📦</span>
                   <span>Adjust</span>
@@ -1245,14 +1245,14 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
               <button
                 type="button"
                 onClick={() => handleOpenEditModal(it)}
-                className="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg cursor-pointer"
+                className="px-2.5 py-1 text-[13px] font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg cursor-pointer"
               >
                 {lang === "gu" ? "સુધારો" : "Edit"}
               </button>
               <button
                 type="button"
                 onClick={() => setItemToDelete(it)}
-                className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg cursor-pointer"
+                className="px-2.5 py-1 text-[13px] font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg cursor-pointer"
               >
                 {lang === "gu" ? "કાઢી નાખો" : "Delete"}
               </button>
@@ -1284,14 +1284,14 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => alert("Product Library: 50,000+ FMCG, Grocery, Hardware & Pharmacy items ready to import!")}
-            className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold rounded-xl shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer"
+            className="h-9 px-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-[13px] font-medium rounded-xl shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer"
           >
             <span>📚</span>
             <span>Product Library</span>
           </button>
           <button
             onClick={() => setIsImportModalOpen(true)}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+            className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -1414,7 +1414,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
             {lang === "gu" && itemToDelete?.nameGujarati && (
               <p className="text-[11px] text-slate-500">{itemToDelete.nameGujarati}</p>
             )}
-            <div className="text-[11px] text-slate-500 font-mono flex gap-3">
+            <div className="text-[11px] text-slate-500 tabular-nums flex gap-3">
               <span>{itemToDelete?.type}</span>
               {itemToDelete?.sku && <span>SKU: {itemToDelete.sku}</span>}
               {itemToDelete?.hsnCode && <span>HSN: {itemToDelete.hsnCode}</span>}
@@ -1461,7 +1461,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
                 setDeleteError(null);
                 setForceDelete(false);
               }}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg disabled:opacity-50 cursor-pointer"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg disabled:opacity-50 cursor-pointer"
             >
               Cancel
             </button>
@@ -1469,7 +1469,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
               type="button"
               onClick={handleDeleteItem}
               disabled={isDeleting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm inline-flex items-center gap-1.5 cursor-pointer"
+              className="h-9 px-3.5 text-[13px] font-medium text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm inline-flex items-center gap-1.5 cursor-pointer"
             >
               {isDeleting ? (
                 <>
@@ -1558,7 +1558,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
                 setDeleteError(null);
                 setBulkForceDelete(false);
               }}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg disabled:opacity-50 cursor-pointer"
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg disabled:opacity-50 cursor-pointer"
             >
               Cancel
             </button>
@@ -1566,7 +1566,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
               type="button"
               onClick={handleBulkDelete}
               disabled={isBulkDeleting}
-              className="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm inline-flex items-center gap-1.5 cursor-pointer"
+              className="h-9 px-3.5 text-[13px] font-medium text-white bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 rounded-lg shadow-sm inline-flex items-center gap-1.5 cursor-pointer"
             >
               {isBulkDeleting ? (
                 <>

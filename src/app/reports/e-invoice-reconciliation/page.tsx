@@ -122,7 +122,7 @@ export default function EInvoiceReconciliationPage() {
             <span>/</span>
             <span className="font-semibold text-slate-800">Reconciliation & Audit</span>
           </div>
-          <h1 className="text-2xl font-black text-slate-900">
+          <h1 className="text-[22px] font-semibold text-[#182230]">
             {lang === "gu" ? "ઈ-ઇનવોઇસ રિકોન્સિલેશન અને ઓડિટ હિસ્ટ્રી" : "E-Invoice Reconciliation & Audit Logs"}
           </h1>
           <p className="mt-1 text-xs text-slate-600">
@@ -132,7 +132,7 @@ export default function EInvoiceReconciliationPage() {
 
         <Link
           href="/sales/e-invoices"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 shadow-xs"
         >
           ← Back to E-Invoices
         </Link>
@@ -142,22 +142,22 @@ export default function EInvoiceReconciliationPage() {
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
           <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Events Logged</div>
-          <div className="mt-1 text-2xl font-black text-slate-900">{metrics.total}</div>
+          <div className="mt-1 text-2xl font-semibold text-slate-900">{metrics.total}</div>
         </div>
 
         <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4 shadow-xs">
           <div className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">Confirmed Success</div>
-          <div className="mt-1 text-2xl font-black text-emerald-800">{metrics.succeeded}</div>
+          <div className="mt-1 text-2xl font-semibold text-emerald-800">{metrics.succeeded}</div>
         </div>
 
         <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-4 shadow-xs">
           <div className="text-[11px] font-bold text-rose-700 uppercase tracking-wider">Failed / Rejected</div>
-          <div className="mt-1 text-2xl font-black text-rose-800">{metrics.failed}</div>
+          <div className="mt-1 text-2xl font-semibold text-rose-800">{metrics.failed}</div>
         </div>
 
         <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4 shadow-xs">
           <div className="text-[11px] font-bold text-amber-700 uppercase tracking-wider">Pending / Uncertain</div>
-          <div className="mt-1 text-2xl font-black text-amber-800">{metrics.uncertain}</div>
+          <div className="mt-1 text-2xl font-semibold text-amber-800">{metrics.uncertain}</div>
         </div>
       </div>
 
@@ -192,7 +192,7 @@ export default function EInvoiceReconciliationPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by operation, key, error..."
-              className="w-full rounded-lg border border-slate-300 bg-slate-50/50 py-1.5 pl-8 pr-3 text-xs focus:border-emerald-500 focus:bg-white focus:outline-none"
+              className="w-full rounded-lg border border-slate-300 bg-slate-50/50 py-1.5 pl-8 pr-3 text-[13px] focus:border-[#1677E8] focus:bg-white focus:outline-none h-10"
             />
             <svg
               className="absolute left-2.5 top-2 h-3.5 w-3.5 text-slate-400"
@@ -251,7 +251,7 @@ export default function EInvoiceReconciliationPage() {
 
                   return (
                     <tr key={log.id} className="hover:bg-slate-50/80 transition">
-                      <td className="py-3 px-4 font-mono text-[11px] text-slate-500 whitespace-nowrap">
+                      <td className="py-3 px-4 tabular-nums text-[11px] text-slate-500 whitespace-nowrap">
                         {new Date(log.createdAt).toLocaleString("en-IN")}
                       </td>
 
@@ -284,7 +284,7 @@ export default function EInvoiceReconciliationPage() {
                           </Link>
                         )}
                         {log.externalDocumentNumber && (
-                          <div className="font-mono text-[10px] text-slate-600 truncate max-w-[120px]" title={log.externalDocumentNumber}>
+                          <div className="tabular-nums text-[10px] text-slate-600 truncate max-w-[120px]" title={log.externalDocumentNumber}>
                             IRN: {log.externalDocumentNumber.slice(0, 8)}...
                           </div>
                         )}
@@ -293,7 +293,7 @@ export default function EInvoiceReconciliationPage() {
                       <td className="py-3 px-4 max-w-xs">
                         {log.errorMessage ? (
                           <div className="text-[11px] text-rose-800 font-medium break-words">
-                            {log.errorCode ? <span className="font-bold font-mono">[{log.errorCode}] </span> : null}
+                            {log.errorCode ? <span className="font-bold tabular-nums">[{log.errorCode}] </span> : null}
                             {log.errorMessage}
                           </div>
                         ) : isSuccess ? (
@@ -303,7 +303,7 @@ export default function EInvoiceReconciliationPage() {
                         )}
                       </td>
 
-                      <td className="py-3 px-4 font-mono text-[10px] text-slate-500 truncate max-w-[140px]" title={log.idempotencyKey}>
+                      <td className="py-3 px-4 tabular-nums text-[10px] text-slate-500 truncate max-w-[140px]" title={log.idempotencyKey}>
                         {log.idempotencyKey}
                       </td>
 
@@ -312,7 +312,7 @@ export default function EInvoiceReconciliationPage() {
                           <button
                             onClick={() => handleReconcile(log.documentId)}
                             disabled={reconcilingId === log.documentId}
-                            className="rounded bg-slate-900 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-emerald-700 transition disabled:opacity-50"
+                            className="rounded bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-[#1268D3] transition disabled:opacity-50"
                           >
                             {reconcilingId === log.documentId ? "Checking..." : "Reconcile"}
                           </button>

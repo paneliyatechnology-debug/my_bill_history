@@ -1171,18 +1171,18 @@ export default function PosTerminalPage() {
           <button
             type="button"
             onClick={() => router.push("/sales/invoices")}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#1F2937] bg-white hover:bg-slate-50 rounded-md border border-[#D1D5DB] shadow-xs transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-[#1F2937] bg-white hover:bg-slate-50 rounded-md border border-[#D1D5DB] shadow-xs transition-colors cursor-pointer"
             title="Exit POS Terminal (CTRL + Q)"
           >
             <span className="text-sm">←</span>
             <span>Exit POS</span>
-            <span className="text-[11px] text-[#8C939F] font-mono">[CTRL + Q]</span>
+            <span className="text-[11px] text-[#8C939F] tabular-nums">[CTRL + Q]</span>
           </button>
         </div>
 
         {/* Center Title */}
         <div className="flex items-center gap-2">
-          <h1 className="text-base font-bold text-[#1F2937] tracking-tight">
+          <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight leading-tight">
             POS Billing
           </h1>
         </div>
@@ -1192,7 +1192,7 @@ export default function PosTerminalPage() {
           <button
             type="button"
             onClick={() => setIsHelpModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#2563EB] bg-white hover:bg-blue-50/50 rounded-md border border-[#BFDBFE] transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-[#2563EB] bg-white hover:bg-blue-50/50 rounded-md border border-[#BFDBFE] transition-colors cursor-pointer"
           >
             <svg className="w-3.5 h-3.5 fill-[#2563EB]" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z" />
@@ -1206,11 +1206,11 @@ export default function PosTerminalPage() {
               setTempSettings({ ...settings });
               setIsSettingsModalOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#1F2937] bg-white hover:bg-slate-50 rounded-md border border-[#D1D5DB] shadow-xs transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-[#1F2937] bg-white hover:bg-slate-50 rounded-md border border-[#D1D5DB] shadow-xs transition-colors cursor-pointer"
             title="Counter POS Settings (CTRL + S)"
           >
             <span>Settings</span>
-            <span className="text-[11px] text-[#8C939F] font-mono">[CTRL + S]</span>
+            <span className="text-[11px] text-[#8C939F] tabular-nums">[CTRL + S]</span>
           </button>
         </div>
       </header>
@@ -1234,7 +1234,7 @@ export default function PosTerminalPage() {
             >
               <span>{screen.title}</span>
               {shortcutKey && (
-                <span className="text-[11px] text-[#10B981] font-mono font-medium">
+                <span className="text-[11px] text-[#10B981] tabular-nums font-medium">
                   [{shortcutKey}]
                 </span>
               )}
@@ -1254,11 +1254,11 @@ export default function PosTerminalPage() {
         <button
           type="button"
           onClick={handleAddNewScreen}
-          className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-[#5C56DF] hover:text-[#4B45CF] transition-colors cursor-pointer whitespace-nowrap ml-2"
+          className="flex items-center gap-1.5 px-3 py-1 text-[13px] font-medium text-[#5C56DF] hover:text-[#4B45CF] transition-colors cursor-pointer whitespace-nowrap ml-2"
           title="Hold current bill and create new screen (CTRL + B)"
         >
           <span>+ Hold Bill & Create Another</span>
-          <span className="text-[11px] font-mono font-normal">[CTRL + B]</span>
+          <span className="text-[11px] tabular-nums font-normal">[CTRL + B]</span>
         </button>
       </div>
 
@@ -1273,50 +1273,50 @@ export default function PosTerminalPage() {
             <button
               type="button"
               onClick={() => setIsNewItemModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#1F2937] bg-white hover:bg-slate-50 rounded-md border border-[#E5E7EB] transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-[#1F2937] bg-white hover:bg-slate-50 rounded-md border border-[#E5E7EB] transition-colors cursor-pointer"
             >
               <span>+ New Item</span>
-              <span className="text-[11px] text-[#9CA3AF] font-mono">[CTRL + I]</span>
+              <span className="text-[11px] text-[#9CA3AF] tabular-nums">[CTRL + I]</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleTriggerEdit("PRICE")}
               disabled={currentScreen.selectedRowIndex === null || currentScreen.items.length === 0}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#1F2937] bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-md border border-[#E5E7EB] transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-[#1F2937] bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-md border border-[#E5E7EB] transition-colors cursor-pointer"
             >
               <span>Change Price</span>
-              <span className="text-[11px] text-[#9CA3AF] font-mono">[P]</span>
+              <span className="text-[11px] text-[#9CA3AF] tabular-nums">[P]</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleTriggerEdit("QTY")}
               disabled={currentScreen.selectedRowIndex === null || currentScreen.items.length === 0}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#1F2937] bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-md border border-[#E5E7EB] transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-[#1F2937] bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-md border border-[#E5E7EB] transition-colors cursor-pointer"
             >
               <span>Change QTY</span>
-              <span className="text-[11px] text-[#9CA3AF] font-mono">[Q]</span>
+              <span className="text-[11px] text-[#9CA3AF] tabular-nums">[Q]</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleTriggerEdit("DISCOUNT")}
               disabled={currentScreen.selectedRowIndex === null || currentScreen.items.length === 0}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#1F2937] bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-md border border-[#E5E7EB] transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-[#1F2937] bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-md border border-[#E5E7EB] transition-colors cursor-pointer"
             >
               <span>Change Discount</span>
-              <span className="text-[11px] text-[#9CA3AF] font-mono">[D]</span>
+              <span className="text-[11px] text-[#9CA3AF] tabular-nums">[D]</span>
             </button>
 
             <button
               type="button"
               onClick={handleDeleteSelectedItem}
               disabled={currentScreen.selectedRowIndex === null || currentScreen.items.length === 0}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#DC2626] bg-white hover:bg-rose-50/50 disabled:opacity-50 disabled:cursor-not-allowed rounded-md border border-[#E5E7EB] transition-colors cursor-pointer ml-auto"
+              className="flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-[#DC2626] bg-white hover:bg-rose-50/50 disabled:opacity-50 disabled:cursor-not-allowed rounded-md border border-[#E5E7EB] transition-colors cursor-pointer ml-auto"
             >
               <span>Delete Item</span>
-              <span className="text-[11px] text-[#9CA3AF] font-mono">[DEL]</span>
+              <span className="text-[11px] text-[#9CA3AF] tabular-nums">[DEL]</span>
             </button>
           </div>
 
@@ -1327,7 +1327,7 @@ export default function PosTerminalPage() {
               <button
                 type="button"
                 onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-                className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-[#374151] bg-white hover:bg-slate-50 rounded-md border border-[#D1D5DB] transition-colors cursor-pointer whitespace-nowrap h-[38px]"
+                className="flex items-center gap-2 px-3 py-2 text-[13px] font-medium text-[#374151] bg-white hover:bg-slate-50 rounded-md border border-[#D1D5DB] transition-colors cursor-pointer whitespace-nowrap h-[38px]"
               >
                 <span>
                   {selectedCategory === "ALL"
@@ -1389,10 +1389,10 @@ export default function PosTerminalPage() {
                   onFocus={() => setIsSearchDropdownOpen(true)}
                   onKeyDown={handleSearchKeyDown}
                   placeholder="Search by Item/ Serial no./ HSN code/ SKU/ Custom Field / Category or Scan Barcode"
-                  className="w-full text-xs font-medium text-[#1F2937] placeholder:text-[#9CA3AF] bg-transparent outline-none"
+                  className="w-full text-[13px] font-medium text-[#1F2937] placeholder:text-[#9CA3AF] bg-transparent outline-none h-10"
                   autoFocus
                 />
-                <span className="text-[11px] font-mono text-[#9CA3AF] pl-2 shrink-0">
+                <span className="text-[11px] tabular-nums text-[#9CA3AF] pl-2 shrink-0">
                   F1
                 </span>
               </div>
@@ -1471,7 +1471,7 @@ export default function PosTerminalPage() {
                         setIsSearchDropdownOpen(false);
                         setIsNewItemModalOpen(true);
                       }}
-                      className="w-full py-2 border border-dashed border-[#60A5FA] bg-[#F8FAFC] hover:bg-blue-50/50 text-[#2563EB] text-xs font-medium rounded-md transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                      className="w-full py-2 border border-dashed border-[#60A5FA] bg-[#F8FAFC] hover:bg-blue-50/50 text-[#2563EB] text-[13px] font-medium rounded-md transition-colors flex items-center justify-center gap-1 cursor-pointer"
                     >
                       <span>+ Create Item</span>
                     </button>
@@ -1553,7 +1553,7 @@ export default function PosTerminalPage() {
                           : "hover:bg-slate-50/70"
                       }`}
                     >
-                      <div className="w-12 py-2.5 text-center text-slate-500 font-mono border-r border-[#E5E7EB]">
+                      <div className="w-12 py-2.5 text-center text-slate-500 tabular-nums border-r border-[#E5E7EB]">
                         {idx + 1}
                       </div>
                       <div className="flex-1 py-2.5 px-3 border-r border-[#E5E7EB] min-w-0">
@@ -1573,22 +1573,22 @@ export default function PosTerminalPage() {
                                 return { ...prev, items: copy };
                               });
                             }}
-                            className="text-[10px] text-slate-500 border border-transparent hover:border-slate-300 rounded px-1 w-full outline-none"
+                            className="text-[10px] text-slate-500 border border-transparent hover:border-slate-300 rounded px-1 w-full outline-none h-10"
                           />
                         )}
                       </div>
-                      <div className="w-28 py-2.5 px-3 text-slate-500 font-mono text-[11px] truncate border-r border-[#E5E7EB]">
+                      <div className="w-28 py-2.5 px-3 text-slate-500 tabular-nums text-[11px] truncate border-r border-[#E5E7EB]">
                         {cartLine.item.barcode || cartLine.item.sku || "-"}
                       </div>
                       {!settings.hideMrp && (
-                        <div className="w-24 py-2.5 px-3 text-right font-mono text-slate-500 border-r border-[#E5E7EB]">
+                        <div className="w-24 py-2.5 px-3 text-right tabular-nums text-slate-500 border-r border-[#E5E7EB]">
                           ₹{Number(cartLine.mrp || 0).toFixed(2)}
                         </div>
                       )}
-                      <div className="w-24 py-2.5 px-3 text-right font-mono font-bold text-[#1F2937] border-r border-[#E5E7EB]">
+                      <div className="w-24 py-2.5 px-3 text-right tabular-nums font-bold text-[#1F2937] border-r border-[#E5E7EB]">
                         ₹{Number(cartLine.unitPrice).toFixed(2)}
                       </div>
-                      <div className="w-24 py-2.5 px-3 text-center font-mono text-slate-600 border-r border-[#E5E7EB]">
+                      <div className="w-24 py-2.5 px-3 text-center tabular-nums text-slate-600 border-r border-[#E5E7EB]">
                         {cartLine.discountPercent || 0}%
                       </div>
                       <div className="w-28 py-2.5 px-3 flex items-center justify-center gap-1 border-r border-[#E5E7EB]">
@@ -1598,11 +1598,11 @@ export default function PosTerminalPage() {
                             e.stopPropagation();
                             updateItemQty(cartLine.id, -1);
                           }}
-                          className="w-5 h-5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs"
+                          className="w-5 h-5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-medium text-[13px]"
                         >
                           -
                         </button>
-                        <span className="font-mono font-bold px-1 text-center">
+                        <span className="tabular-nums font-bold px-1 text-center">
                           {cartLine.quantity} {cartLine.item.unit || "PCS"}
                         </span>
                         <button
@@ -1611,12 +1611,12 @@ export default function PosTerminalPage() {
                             e.stopPropagation();
                             updateItemQty(cartLine.id, 1);
                           }}
-                          className="w-5 h-5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs"
+                          className="w-5 h-5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-medium text-[13px]"
                         >
                           +
                         </button>
                       </div>
-                      <div className="w-28 py-2.5 px-3 text-right font-mono font-bold text-[#1F2937] border-r border-[#E5E7EB]">
+                      <div className="w-28 py-2.5 px-3 text-right tabular-nums font-bold text-[#1F2937] border-r border-[#E5E7EB]">
                         ₹{lineTotal.toFixed(2)}
                       </div>
                       <div className="w-10 py-2.5 text-center">
@@ -1659,7 +1659,7 @@ export default function PosTerminalPage() {
                   className="text-xs font-semibold text-[#DC2626] hover:underline cursor-pointer"
                   title="Clear all items (CTRL + C)"
                 >
-                  Clear All Items <span className="font-mono text-[11px]">[CTRL + C]</span>
+                  Clear All Items <span className="tabular-nums text-[11px]">[CTRL + C]</span>
                 </button>
               )}
             </div>
@@ -1689,10 +1689,10 @@ export default function PosTerminalPage() {
                   });
                   setIsDiscountModalOpen(true);
                 }}
-                className="py-2 px-3 rounded-md border border-[#E5E7EB] hover:bg-slate-50 text-[#6B7280] font-medium text-xs flex items-center justify-between transition-colors cursor-pointer bg-white"
+                className="py-2 px-3 rounded-md border border-[#E5E7EB] hover:bg-slate-50 text-[#6B7280] font-medium text-[13px] flex items-center justify-between transition-colors cursor-pointer bg-white"
               >
                 <span>Add Discount</span>
-                <span className="text-[11px] text-[#9CA3AF] font-mono">[F2]</span>
+                <span className="text-[11px] text-[#9CA3AF] tabular-nums">[F2]</span>
               </button>
 
               <button
@@ -1708,7 +1708,7 @@ export default function PosTerminalPage() {
                 className="py-2 px-3 rounded-md border border-[#E5E7EB] hover:bg-slate-50 text-[#6B7280] font-medium text-xs flex items-center justify-between transition-colors cursor-pointer bg-white"
               >
                 <span>Add Additional Charge</span>
-                <span className="text-[11px] text-[#9CA3AF] font-mono">[F3]</span>
+                <span className="text-[11px] text-[#9CA3AF] tabular-nums">[F3]</span>
               </button>
             </div>
 
@@ -1720,14 +1720,14 @@ export default function PosTerminalPage() {
 
               <div className="flex justify-between items-center text-[#9CA3AF]">
                 <span>Sub Total</span>
-                <span className="font-mono">
+                <span className="tabular-nums">
                   ₹ {subTotal > 0 ? subTotal.toFixed(2) : "0"}
                 </span>
               </div>
 
               <div className="flex justify-between items-center text-[#9CA3AF]">
                 <span>Tax</span>
-                <span className="font-mono">
+                <span className="tabular-nums">
                   ₹ {taxTotal > 0 ? taxTotal.toFixed(2) : "0"}
                 </span>
               </div>
@@ -1735,7 +1735,7 @@ export default function PosTerminalPage() {
               {totalDiscount > 0 && (
                 <div className="flex justify-between items-center text-[#10B981]">
                   <span>Discount</span>
-                  <span className="font-mono font-semibold">
+                  <span className="tabular-nums font-semibold">
                     - ₹ {totalDiscount.toFixed(2)}
                   </span>
                 </div>
@@ -1744,7 +1744,7 @@ export default function PosTerminalPage() {
               {totalCharges > 0 && (
                 <div className="flex justify-between items-center text-[#374151]">
                   <span>Additional Charges</span>
-                  <span className="font-mono font-semibold">
+                  <span className="tabular-nums font-semibold">
                     + ₹ {totalCharges.toFixed(2)}
                   </span>
                 </div>
@@ -1766,7 +1766,7 @@ export default function PosTerminalPage() {
                   Total Amount
                 </span>
                 <span
-                  className="text-lg font-bold font-mono"
+                  className="text-lg font-bold tabular-nums"
                   style={{
                     color: grandTotal > 0 ? "#1B5E20" : "#8C9990",
                   }}
@@ -1782,7 +1782,7 @@ export default function PosTerminalPage() {
                 <span className="text-[12px] font-medium text-[#6B7280]">
                   Received Amount
                 </span>
-                <span className="text-[11px] text-[#9CA3AF] font-mono">[F4]</span>
+                <span className="text-[11px] text-[#9CA3AF] tabular-nums">[F4]</span>
               </div>
 
               <div className="flex items-center gap-2">
@@ -1801,7 +1801,7 @@ export default function PosTerminalPage() {
                       }))
                     }
                     placeholder="0"
-                    className="w-full pl-7 pr-3 py-2 text-xs font-mono bg-white border border-[#E5E7EB] rounded-md outline-none focus:border-[#8B5CF6] text-[#1F2937]"
+                    className="w-full pl-7 pr-3 py-2 text-[13px] tabular-nums bg-white border border-[#E5E7EB] rounded-md outline-none focus:border-[#8B5CF6] text-[#1F2937] h-10"
                   />
                 </div>
 
@@ -1814,7 +1814,7 @@ export default function PosTerminalPage() {
                         paymentMode: e.target.value as any,
                       }))
                     }
-                    className="w-full px-3 py-2 text-xs font-medium text-[#374151] bg-white border border-[#E5E7EB] rounded-md outline-none cursor-pointer appearance-none"
+                    className="w-full px-3 py-2 text-[13px] font-medium text-[#374151] bg-white border border-[#E5E7EB] rounded-md outline-none cursor-pointer appearance-none h-10"
                   >
                     <option value="CASH">Cash</option>
                     <option value="UPI">Online / UPI</option>
@@ -1850,7 +1850,7 @@ export default function PosTerminalPage() {
                   <span className="text-[12px] font-medium text-[#6B7280]">
                     Customer Details
                   </span>
-                  <span className="text-[11px] text-[#9CA3AF] font-mono">[F5]</span>
+                  <span className="text-[11px] text-[#9CA3AF] tabular-nums">[F5]</span>
                 </div>
 
                 <div
@@ -1869,7 +1869,7 @@ export default function PosTerminalPage() {
                       {currentScreen.customerName || "Cash Sale"}
                     </p>
                     {currentScreen.customerMobile && (
-                      <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+                      <p className="text-[10px] text-slate-400 tabular-nums mt-0.5">
                         {currentScreen.customerMobile}
                       </p>
                     )}
@@ -1894,7 +1894,7 @@ export default function PosTerminalPage() {
               type="button"
               onClick={() => handleCheckout(true)}
               disabled={currentScreen.items.length === 0 || isCheckingOut}
-              className="h-10 rounded-md border border-[#C7D2FE] bg-white hover:bg-indigo-50/40 text-[#8B8EE0] hover:text-[#5C56DF] disabled:opacity-40 disabled:cursor-not-allowed font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              className="h-10 rounded-md border border-[#C7D2FE] bg-white hover:bg-indigo-50/40 text-[#8B8EE0] hover:text-[#5C56DF] disabled:opacity-40 disabled:cursor-not-allowed font-medium text-[13px] transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <span>Save & Print [F6]</span>
             </button>
@@ -1903,7 +1903,7 @@ export default function PosTerminalPage() {
               type="button"
               onClick={() => handleCheckout(false)}
               disabled={currentScreen.items.length === 0 || isCheckingOut}
-              className="h-10 rounded-md text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:cursor-not-allowed"
+              className="h-10 rounded-md text-white font-medium text-[13px] transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:cursor-not-allowed"
               style={{
                 background: currentScreen.items.length > 0 ? "#5C56DF" : "#C4C7F5",
               }}
@@ -1926,7 +1926,7 @@ export default function PosTerminalPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs animate-in fade-in">
           <div className="w-full max-w-lg bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200">
             <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-[#1F2937]">Counter POS Settings</h2>
+              <h2 className="text-sm font-semibold text-[#182230]">Counter POS Settings</h2>
               <button
                 type="button"
                 onClick={() => setIsSettingsModalOpen(false)}
@@ -2028,7 +2028,7 @@ export default function PosTerminalPage() {
               </div>
 
               <div className="pt-3">
-                <label className="font-semibold text-slate-800 block mb-1">Printer Type</label>
+                <label className="font-medium text-slate-800 block mb-1">Printer Type</label>
                 <select
                   value={tempSettings.printerType}
                   onChange={(e) =>
@@ -2037,7 +2037,7 @@ export default function PosTerminalPage() {
                       printerType: e.target.value as any,
                     })
                   }
-                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-md text-xs outline-none cursor-pointer"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-md text-[13px] outline-none cursor-pointer h-10"
                 >
                   <option value="A4">A4 Printer</option>
                   <option value="80mm">Thermal 3-inch (80mm)</option>
@@ -2050,14 +2050,14 @@ export default function PosTerminalPage() {
               <button
                 type="button"
                 onClick={handleSaveSettings}
-                className="w-full py-2.5 bg-[#5C56DF] hover:bg-[#4D47CB] text-white font-bold text-xs rounded-md shadow-sm transition-colors cursor-pointer"
+                className="w-full py-2.5 bg-[#5C56DF] hover:bg-[#4D47CB] text-white font-medium text-[13px] rounded-md shadow-sm transition-colors cursor-pointer"
               >
                 Save [F7]
               </button>
               <button
                 type="button"
                 onClick={() => setIsSettingsModalOpen(false)}
-                className="w-full py-2 text-slate-600 hover:text-slate-900 font-semibold text-xs transition-colors cursor-pointer"
+                className="w-full py-2 text-slate-600 hover:text-slate-900 font-medium text-[13px] transition-colors cursor-pointer"
               >
                 Cancel [ESC]
               </button>
@@ -2071,7 +2071,7 @@ export default function PosTerminalPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs animate-in fade-in">
           <div className="w-full max-w-sm bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200">
             <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-[#1F2937]">Add Discount</h2>
+              <h2 className="text-sm font-semibold text-[#182230]">Add Discount</h2>
               <button
                 type="button"
                 onClick={() => setIsDiscountModalOpen(false)}
@@ -2127,7 +2127,7 @@ export default function PosTerminalPage() {
                       setTempDiscount({ ...tempDiscount, percent: p, amount: Number(amt.toFixed(2)) });
                     }}
                     placeholder="0"
-                    className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-md text-xs outline-none focus:bg-white focus:border-[#5C56DF] font-mono font-bold"
+                    className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-md text-[13px] outline-none focus:bg-white focus:border-[#5C56DF] tabular-nums font-normal h-10"
                   />
                 </div>
               </div>
@@ -2148,7 +2148,7 @@ export default function PosTerminalPage() {
                       setTempDiscount({ ...tempDiscount, amount: a, percent: Number(pct.toFixed(2)) });
                     }}
                     placeholder="0"
-                    className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-md text-xs outline-none focus:bg-white focus:border-[#5C56DF] font-mono font-bold"
+                    className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-md text-xs outline-none focus:bg-white focus:border-[#5C56DF] tabular-nums font-bold"
                   />
                 </div>
               </div>
@@ -2166,14 +2166,14 @@ export default function PosTerminalPage() {
                   }));
                   setIsDiscountModalOpen(false);
                 }}
-                className="w-full py-2.5 bg-[#5C56DF] hover:bg-[#4D47CB] text-white font-bold text-xs rounded-md shadow-sm transition-colors cursor-pointer"
+                className="w-full py-2.5 bg-[#5C56DF] hover:bg-[#4D47CB] text-white font-medium text-[13px] rounded-md shadow-sm transition-colors cursor-pointer"
               >
                 Save [F7]
               </button>
               <button
                 type="button"
                 onClick={() => setIsDiscountModalOpen(false)}
-                className="w-full py-2 text-slate-600 hover:text-slate-900 font-semibold text-xs transition-colors cursor-pointer"
+                className="w-full py-2 text-slate-600 hover:text-slate-900 font-medium text-[13px] transition-colors cursor-pointer"
               >
                 Cancel [ESC]
               </button>
@@ -2187,7 +2187,7 @@ export default function PosTerminalPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs animate-in fade-in">
           <div className="w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200">
             <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-[#1F2937]">Add Additional Charge</h2>
+              <h2 className="text-sm font-semibold text-[#182230]">Add Additional Charge</h2>
               <button
                 type="button"
                 onClick={() => setIsChargesModalOpen(false)}
@@ -2209,7 +2209,7 @@ export default function PosTerminalPage() {
                       setTempCharges(copy);
                     }}
                     placeholder="Enter Charge (Ex Carry Bag)"
-                    className="flex-1 p-2 bg-slate-50 border border-slate-300 rounded-md text-xs outline-none focus:bg-white focus:border-[#5C56DF]"
+                    className="flex-1 p-2 bg-slate-50 border border-slate-300 rounded-md text-[13px] outline-none focus:bg-white focus:border-[#5C56DF] h-10"
                   />
                   <div className="relative w-28">
                     <span className="absolute left-2.5 top-2 text-slate-400 font-bold">₹</span>
@@ -2223,7 +2223,7 @@ export default function PosTerminalPage() {
                         setTempCharges(copy);
                       }}
                       placeholder="0"
-                      className="w-full pl-6 pr-2 py-2 bg-slate-50 border border-slate-300 rounded-md text-xs outline-none focus:bg-white focus:border-[#5C56DF] font-mono font-bold"
+                      className="w-full pl-6 pr-2 py-2 bg-slate-50 border border-slate-300 rounded-md text-[13px] outline-none focus:bg-white focus:border-[#5C56DF] tabular-nums font-normal h-10"
                     />
                   </div>
                   {tempCharges.length > 1 && (
@@ -2248,7 +2248,7 @@ export default function PosTerminalPage() {
                     { id: `ch_${Date.now()}`, name: "", amount: 0 },
                   ])
                 }
-                className="text-[#5C56DF] hover:text-[#4D47CB] font-bold text-xs inline-flex items-center gap-1 mt-1 cursor-pointer"
+                className="text-[#5C56DF] hover:text-[#4D47CB] font-medium text-[13px] inline-flex items-center gap-1 mt-1 cursor-pointer"
               >
                 + Add Additional Charge
               </button>
@@ -2271,7 +2271,7 @@ export default function PosTerminalPage() {
               <button
                 type="button"
                 onClick={() => setIsChargesModalOpen(false)}
-                className="w-full py-2 text-slate-600 hover:text-slate-900 font-semibold text-xs transition-colors cursor-pointer"
+                className="w-full py-2 text-slate-600 hover:text-slate-900 font-medium text-[13px] transition-colors cursor-pointer"
               >
                 Cancel [ESC]
               </button>
@@ -2285,7 +2285,7 @@ export default function PosTerminalPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs animate-in fade-in">
           <div className="w-full max-w-sm bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200">
             <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-[#1F2937]">Customer Details</h2>
+              <h2 className="text-sm font-semibold text-[#182230]">Customer Details</h2>
               <button
                 type="button"
                 onClick={() => setIsCustomerModalOpen(false)}
@@ -2312,7 +2312,7 @@ export default function PosTerminalPage() {
                       });
                     }}
                     placeholder="Enter customer mobile"
-                    className="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-300 rounded-md text-xs outline-none focus:bg-white focus:border-[#5C56DF] font-mono"
+                    className="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-300 rounded-md text-[13px] outline-none focus:bg-white focus:border-[#5C56DF] tabular-nums h-10"
                     autoFocus
                   />
                   {tempCustomer.mobile && (
@@ -2334,7 +2334,7 @@ export default function PosTerminalPage() {
                   value={tempCustomer.name}
                   onChange={(e) => setTempCustomer({ ...tempCustomer, name: e.target.value })}
                   placeholder="Cash Sale"
-                  className="w-full p-2 bg-slate-50 border border-slate-300 rounded-md text-xs outline-none focus:bg-white focus:border-[#5C56DF]"
+                  className="w-full p-2 bg-slate-50 border border-slate-300 rounded-md text-[13px] outline-none focus:bg-white focus:border-[#5C56DF] h-10"
                 />
               </div>
 
@@ -2357,14 +2357,14 @@ export default function PosTerminalPage() {
                   }));
                   setIsCustomerModalOpen(false);
                 }}
-                className="w-full py-2.5 bg-[#5C56DF] hover:bg-[#4D47CB] text-white font-bold text-xs rounded-md shadow-sm transition-colors cursor-pointer"
+                className="w-full py-2.5 bg-[#5C56DF] hover:bg-[#4D47CB] text-white font-medium text-[13px] rounded-md shadow-sm transition-colors cursor-pointer"
               >
                 Save [F7]
               </button>
               <button
                 type="button"
                 onClick={() => setIsCustomerModalOpen(false)}
-                className="w-full py-2 text-slate-600 hover:text-slate-900 font-semibold text-xs transition-colors cursor-pointer"
+                className="w-full py-2 text-slate-600 hover:text-slate-900 font-medium text-[13px] transition-colors cursor-pointer"
               >
                 Cancel [ESC]
               </button>
@@ -2378,7 +2378,7 @@ export default function PosTerminalPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs animate-in fade-in">
           <div className="w-full max-w-2xl bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col">
             <div className="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-[#1F2937]">Create New Item</h2>
+              <h2 className="text-sm font-semibold text-[#182230]">Create New Item</h2>
               <button
                 type="button"
                 onClick={() => setIsNewItemModalOpen(false)}
@@ -2392,7 +2392,7 @@ export default function PosTerminalPage() {
               <div className="w-44 border-r border-slate-200 p-3 bg-slate-50/50 space-y-1 text-xs">
                 <button
                   type="button"
-                  className="w-full text-left px-3 py-2 rounded-md font-bold text-[#5C56DF] bg-purple-50 border border-purple-200 flex items-center gap-2"
+                  className="w-full text-left h-9 px-3 rounded-md font-medium text-[#5C56DF] bg-purple-50 border border-purple-200 flex items-center gap-2"
                 >
                   <span>📋</span>
                   <span>Basic Details *</span>
@@ -2402,28 +2402,28 @@ export default function PosTerminalPage() {
                 </div>
                 <button
                   type="button"
-                  className="w-full text-left px-3 py-1.5 rounded-md text-slate-600 hover:bg-slate-100 flex items-center gap-2"
+                  className="w-full text-left h-9 px-3 rounded-md text-slate-600 hover:bg-slate-100 flex items-center gap-2"
                 >
                   <span>📦</span>
                   <span>Stock Details</span>
                 </button>
                 <button
                   type="button"
-                  className="w-full text-left px-3 py-1.5 rounded-md text-slate-600 hover:bg-slate-100 flex items-center gap-2"
+                  className="w-full text-left h-9 px-3 rounded-md text-slate-600 hover:bg-slate-100 flex items-center gap-2"
                 >
                   <span>🏷️</span>
                   <span>Pricing Details</span>
                 </button>
                 <button
                   type="button"
-                  className="w-full text-left px-3 py-1.5 rounded-md text-slate-600 hover:bg-slate-100 flex items-center gap-2"
+                  className="w-full text-left h-9 px-3 rounded-md text-slate-600 hover:bg-slate-100 flex items-center gap-2"
                 >
                   <span>👥</span>
                   <span>Party Wise Prices</span>
                 </button>
                 <button
                   type="button"
-                  className="w-full text-left px-3 py-1.5 rounded-md text-slate-600 hover:bg-slate-100 flex items-center gap-2"
+                  className="w-full text-left h-9 px-3 rounded-md text-slate-600 hover:bg-slate-100 flex items-center gap-2"
                 >
                   <span>📑</span>
                   <span>Custom Fields</span>
@@ -2465,7 +2465,7 @@ export default function PosTerminalPage() {
                     <select
                       value={newItemForm.categoryId}
                       onChange={(e) => setNewItemForm({ ...newItemForm, categoryId: e.target.value })}
-                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-md text-xs outline-none"
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-md text-[13px] outline-none h-10"
                     >
                       <option value="">Search Categories</option>
                       {categories.map((c) => (
@@ -2485,7 +2485,7 @@ export default function PosTerminalPage() {
                       value={newItemForm.name}
                       onChange={(e) => setNewItemForm({ ...newItemForm, name: e.target.value })}
                       placeholder="ex: Maggie 20gm"
-                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-md text-xs outline-none focus:bg-white focus:border-[#5C56DF] font-medium"
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-md text-[13px] outline-none focus:bg-white focus:border-[#5C56DF] font-medium h-10"
                       autoFocus
                       required
                     />
@@ -2520,7 +2520,7 @@ export default function PosTerminalPage() {
                             setNewItemForm({ ...newItemForm, salesPrice: e.target.value })
                           }
                           placeholder="ex: 200"
-                          className="w-full pl-6 pr-2 py-2 bg-slate-50 border border-slate-300 rounded-md text-xs outline-none focus:bg-white focus:border-[#5C56DF] font-mono font-bold"
+                          className="w-full pl-6 pr-2 py-2 bg-slate-50 border border-slate-300 rounded-md text-[13px] outline-none focus:bg-white focus:border-[#5C56DF] tabular-nums font-normal h-10"
                           required
                         />
                       </div>
@@ -2532,7 +2532,7 @@ export default function PosTerminalPage() {
                             taxInclusive: e.target.value === "WITH_TAX",
                           })
                         }
-                        className="p-2 bg-slate-50 border border-slate-300 rounded-md text-[11px] outline-none"
+                        className="p-2 bg-slate-50 border border-slate-300 rounded-md text-[11px] outline-none h-10"
                       >
                         <option value="WITH_TAX">With Tax</option>
                         <option value="WITHOUT_TAX">Without Tax</option>
@@ -2552,7 +2552,7 @@ export default function PosTerminalPage() {
                         value={newItemForm.taxRate}
                         onChange={(e) => setNewItemForm({ ...newItemForm, taxRate: e.target.value })}
                         placeholder="0"
-                        className="w-full p-2 pr-6 bg-slate-50 border border-slate-300 rounded-md text-xs font-mono font-semibold text-right outline-none focus:bg-white"
+                        className="w-full p-2 pr-6 bg-slate-50 border border-slate-300 rounded-md text-[13px] tabular-nums font-normal text-right outline-none focus:bg-white h-10"
                       />
                       <span className="absolute right-2 text-xs font-bold text-slate-400 pointer-events-none">%</span>
                     </div>
@@ -2575,7 +2575,7 @@ export default function PosTerminalPage() {
                     <select
                       value={newItemForm.unit}
                       onChange={(e) => setNewItemForm({ ...newItemForm, unit: e.target.value })}
-                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-md text-xs outline-none"
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-md text-[13px] outline-none h-10"
                     >
                       <option value="PCS">Pieces(PCS)</option>
                       <option value="BOX">BOX</option>
@@ -2596,7 +2596,7 @@ export default function PosTerminalPage() {
                           setNewItemForm({ ...newItemForm, openingStock: e.target.value })
                         }
                         placeholder="ex: 150 PCS"
-                        className="flex-1 p-2 bg-slate-50 border border-slate-300 rounded-md text-xs outline-none font-mono"
+                        className="flex-1 p-2 bg-slate-50 border border-slate-300 rounded-md text-[13px] outline-none tabular-nums h-10"
                       />
                       <span className="text-[11px] font-bold text-slate-500">{newItemForm.unit}</span>
                     </div>
@@ -2607,14 +2607,14 @@ export default function PosTerminalPage() {
                   <button
                     type="button"
                     onClick={() => setIsNewItemModalOpen(false)}
-                    className="px-4 py-2 text-slate-600 hover:text-slate-900 font-medium text-xs"
+                    className="h-9 px-3 text-slate-600 hover:text-slate-900 font-medium text-[13px]"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSavingNewItem}
-                    className="px-5 py-2 bg-[#5C56DF] hover:bg-[#4D47CB] text-white font-bold text-xs rounded-md shadow-sm transition-colors cursor-pointer"
+                    className="h-9 px-3.5 bg-[#5C56DF] hover:bg-[#4D47CB] text-white font-medium text-[13px] rounded-md shadow-sm transition-colors cursor-pointer"
                   >
                     {isSavingNewItem ? "Saving..." : "Save Item"}
                   </button>
@@ -2630,7 +2630,7 @@ export default function PosTerminalPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs animate-in fade-in">
           <div className="w-full max-w-xs bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200">
             <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
-              <h3 className="text-xs font-bold text-[#1F2937]">
+              <h3 className="text-xs font-semibold text-[#1F2937]">
                 {quickEditModal.type === "PRICE"
                   ? "Change Item Price (P)"
                   : quickEditModal.type === "QTY"
@@ -2655,21 +2655,21 @@ export default function PosTerminalPage() {
                 onChange={(e) =>
                   setQuickEditModal((prev) => ({ ...prev, value: e.target.value }))
                 }
-                className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-md text-sm font-mono font-bold outline-none focus:bg-white focus:border-[#5C56DF]"
+                className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-md text-[13px] tabular-nums font-normal outline-none focus:bg-white focus:border-[#5C56DF] h-10"
                 autoFocus
               />
 
               <div className="flex gap-2">
                 <button
                   type="submit"
-                  className="flex-1 py-2 bg-[#5C56DF] hover:bg-[#4D47CB] text-white font-bold text-xs rounded-md transition-colors"
+                  className="flex-1 py-2 bg-[#5C56DF] hover:bg-[#4D47CB] text-white font-medium text-[13px] rounded-md transition-colors"
                 >
                   Apply [Enter]
                 </button>
                 <button
                   type="button"
                   onClick={() => setQuickEditModal((prev) => ({ ...prev, isOpen: false }))}
-                  className="px-3 py-2 text-slate-600 hover:text-slate-900 font-medium text-xs rounded-md border border-slate-200"
+                  className="h-9 px-3 text-slate-600 hover:text-slate-900 font-medium text-[13px] rounded-md border border-slate-200"
                 >
                   Cancel
                 </button>
@@ -2686,7 +2686,7 @@ export default function PosTerminalPage() {
             <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-lg">⌨️</span>
-                <h2 className="text-sm font-bold text-[#1F2937]">
+                <h2 className="text-sm font-semibold text-[#182230]">
                   POS Billing Keyboard Shortcuts & Quick Guide
                 </h2>
               </div>
@@ -2710,67 +2710,67 @@ export default function PosTerminalPage() {
                 <tbody className="divide-y divide-slate-100 font-medium">
                   <tr>
                     <td className="py-2 text-slate-800">Search Item or Scan Barcode</td>
-                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded font-mono font-bold">F1</span></td>
+                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded tabular-nums font-bold">F1</span></td>
                   </tr>
                   <tr>
                     <td className="py-2 text-slate-800">Add Discount</td>
-                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded font-mono font-bold">F2</span></td>
+                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded tabular-nums font-bold">F2</span></td>
                   </tr>
                   <tr>
                     <td className="py-2 text-slate-800">Add Additional Charge</td>
-                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded font-mono font-bold">F3</span></td>
+                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded tabular-nums font-bold">F3</span></td>
                   </tr>
                   <tr>
                     <td className="py-2 text-slate-800">Focus Received Amount</td>
-                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded font-mono font-bold">F4</span></td>
+                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded tabular-nums font-bold">F4</span></td>
                   </tr>
                   <tr>
                     <td className="py-2 text-slate-800">Customer Details</td>
-                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded font-mono font-bold">F5</span></td>
+                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded tabular-nums font-bold">F5</span></td>
                   </tr>
                   <tr>
                     <td className="py-2 text-slate-800">Save & Print Bill</td>
-                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded font-mono font-bold">F6</span></td>
+                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded tabular-nums font-bold">F6</span></td>
                   </tr>
                   <tr>
                     <td className="py-2 text-slate-800">Save Bill</td>
-                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-[#5C56DF] text-white rounded font-mono font-bold">F7</span></td>
+                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-[#5C56DF] text-white rounded tabular-nums font-bold">F7</span></td>
                   </tr>
                   <tr>
                     <td className="py-2 text-slate-800">Hold Bill & Create Another</td>
-                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded font-mono font-bold">CTRL + B</span></td>
+                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded tabular-nums font-bold">CTRL + B</span></td>
                   </tr>
                   <tr>
                     <td className="py-2 text-slate-800">Create New Item</td>
-                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded font-mono font-bold">CTRL + I</span></td>
+                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded tabular-nums font-bold">CTRL + I</span></td>
                   </tr>
                   <tr>
                     <td className="py-2 text-slate-800">POS Settings</td>
-                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded font-mono font-bold">CTRL + S</span></td>
+                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded tabular-nums font-bold">CTRL + S</span></td>
                   </tr>
                   <tr>
                     <td className="py-2 text-slate-800">Clear All Items</td>
-                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded font-mono font-bold">CTRL + C</span></td>
+                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded tabular-nums font-bold">CTRL + C</span></td>
                   </tr>
                   <tr>
                     <td className="py-2 text-slate-800">Exit POS Screen</td>
-                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded font-mono font-bold">CTRL + Q</span></td>
+                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded tabular-nums font-bold">CTRL + Q</span></td>
                   </tr>
                   <tr>
                     <td className="py-2 text-slate-800">Change Price of selected item</td>
-                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded font-mono font-bold">P</span></td>
+                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded tabular-nums font-bold">P</span></td>
                   </tr>
                   <tr>
                     <td className="py-2 text-slate-800">Change QTY of selected item</td>
-                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded font-mono font-bold">Q</span></td>
+                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded tabular-nums font-bold">Q</span></td>
                   </tr>
                   <tr>
                     <td className="py-2 text-slate-800">Change Discount of selected item</td>
-                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded font-mono font-bold">D</span></td>
+                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-slate-100 rounded tabular-nums font-bold">D</span></td>
                   </tr>
                   <tr>
                     <td className="py-2 text-slate-800">Delete selected item</td>
-                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded font-mono font-bold">DEL</span></td>
+                    <td className="py-2 text-right"><span className="px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded tabular-nums font-bold">DEL</span></td>
                   </tr>
                 </tbody>
               </table>
@@ -2780,7 +2780,7 @@ export default function PosTerminalPage() {
               <button
                 type="button"
                 onClick={() => setIsHelpModalOpen(false)}
-                className="px-4 py-2 bg-[#5C56DF] text-white font-bold text-xs rounded-md"
+                className="h-9 px-3 bg-[#5C56DF] text-white font-medium text-[13px] rounded-md"
               >
                 Close [ESC]
               </button>

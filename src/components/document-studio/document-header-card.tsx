@@ -36,7 +36,7 @@ export function DocumentHeaderCard({
     <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
       {/* Left: Document Icon, Title & Status */}
       <div className="flex items-center gap-3.5 min-w-0">
-        <div className="w-12 h-12 rounded-xl bg-[#E6F7F2] text-[#174B43] flex items-center justify-center shrink-0 border border-[#85D5C2]/40 shadow-2xs">
+        <div className="w-12 h-12 rounded-xl bg-[#EFF6FF] text-[#0F172A] flex items-center justify-center shrink-0 border border-[#93C5FD]/40 shadow-2xs">
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
@@ -44,12 +44,12 @@ export function DocumentHeaderCard({
 
         <div className="min-w-0 space-y-0.5">
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-xl sm:text-2xl font-black text-[#1A2E2B] tracking-tight truncate">
+            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight truncate">
               {title}
             </h1>
             {status && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold tracking-wide bg-[#E6F7F2] text-[#174B43] border border-[#85D5C2]/50">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#26A58A] animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold tracking-wide bg-[#EFF6FF] text-[#0F172A] border border-[#93C5FD]/50">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#1677E8] animate-pulse" />
                 <span>{status}</span>
               </span>
             )}
@@ -66,7 +66,7 @@ export function DocumentHeaderCard({
           <button
             type="button"
             onClick={onPreview}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 rounded-xl text-xs font-bold shadow-2xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 rounded-xl text-[13px] font-medium shadow-2xs transition-colors cursor-pointer"
             title="Preview document"
           >
             <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -81,7 +81,7 @@ export function DocumentHeaderCard({
           <button
             type="button"
             onClick={onPrint}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-[#F2FAF7] hover:border-[#85D5C2] text-slate-700 hover:text-[#174B43] border border-slate-200 rounded-xl text-xs font-bold shadow-2xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 rounded-xl text-[13px] font-medium shadow-2xs transition-colors cursor-pointer"
             title="Print document"
           >
             <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -96,7 +96,7 @@ export function DocumentHeaderCard({
             <button
               type="button"
               onClick={() => setIsMoreOpen(!isMoreOpen)}
-              className="inline-flex items-center gap-1 px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold shadow-2xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 h-9 px-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-[13px] font-medium shadow-2xs transition-colors cursor-pointer"
             >
               <span>More</span>
               <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -132,7 +132,7 @@ export function DocumentHeaderCard({
             type="button"
             onClick={onSave}
             disabled={isSaving}
-            className="px-5 py-2.5 bg-gradient-to-r from-[#174B43] to-[#26A58A] hover:from-[#133E37] hover:to-[#208E76] text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-950/15 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+            className="h-9 px-3.5 bg-gradient-to-r from-[#0F172A] to-[#1677E8] hover:from-[#1E293B] hover:to-[#125CC0] text-white font-medium text-[13px] rounded-xl shadow-md shadow-emerald-950/15 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
           >
             {isSaving ? (
               <>

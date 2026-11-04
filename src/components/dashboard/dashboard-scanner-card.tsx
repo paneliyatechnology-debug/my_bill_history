@@ -22,7 +22,7 @@ export function DashboardScannerCard({
           onOpenScanner();
         }
       }}
-      className="relative overflow-hidden rounded-2xl border border-[#B9EBDD] bg-gradient-to-br from-[#E6FBF5] via-[#EDFCF7] to-[#D5F5EB] p-5 shadow-[0_4px_18px_rgba(16,35,63,0.045)] cursor-pointer hover:border-[#0DAA8A] hover:shadow-[0_8px_24px_rgba(16,35,63,0.08)] transition-all duration-200 group"
+      className="relative overflow-hidden rounded-2xl border border-[#B9EBDD] bg-gradient-to-br from-[#E6FBF5] via-[#EDFCF7] to-[#D5F5EB] p-5 shadow-[0_4px_18px_rgba(16,35,63,0.045)] cursor-pointer hover:border-[#1677E8] hover:shadow-[0_8px_24px_rgba(16,35,63,0.08)] transition-all duration-200 group"
     >
       <div className="flex items-center gap-4">
         {/* Left: 3D Paper Bill Illustration matching Reference */}
@@ -58,7 +58,7 @@ export function DashboardScannerCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-1">
             <span className="text-sm">📷</span>
-            <h4 className="text-xs sm:text-sm font-extrabold text-[#10233F] tracking-tight truncate">
+            <h4 className="text-xs sm:text-sm font-semibold text-[#10233F] tracking-tight truncate">
               {lang === "gu" ? "AI બિલ સ્કેનર" : "AI Vendor Bill Scanner"}
             </h4>
           </div>
@@ -70,7 +70,7 @@ export function DashboardScannerCard({
           </p>
 
           <div className="mt-3">
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#004D40] hover:bg-[#003D35] text-white text-[11px] font-bold shadow-2xs group-hover:scale-105 transition-all">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#1677E8] hover:bg-[#1268D3] text-white text-[11px] font-bold shadow-2xs group-hover:scale-105 transition-all">
               <span>{lang === "gu" ? "દસ્તાવેજ સ્કેન કરો" : "Scan Document"}</span>
               <span>→</span>
             </span>

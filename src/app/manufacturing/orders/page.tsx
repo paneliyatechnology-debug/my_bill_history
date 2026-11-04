@@ -306,7 +306,7 @@ export default function ProductionOrdersPage() {
       accessorKey: "orderNumber",
       sortable: true,
       cell: (order) => (
-        <div className="font-mono font-medium text-slate-900">
+        <div className="tabular-nums font-medium text-slate-900">
           <div>{order.orderNumber}</div>
           <span className="text-[10px] text-slate-400 font-sans block">
             ID: {order.id.slice(0, 8)}...
@@ -339,7 +339,7 @@ export default function ProductionOrdersPage() {
       cell: (order) => {
         const batch = order.batches?.[0];
         return (
-          <div className="text-right font-mono font-semibold text-slate-700">
+          <div className="text-right tabular-nums font-semibold text-slate-700">
             {Number(order.targetQuantity).toLocaleString()}
             {batch && (
               <span className="text-[11px] text-emerald-600 block">
@@ -389,14 +389,14 @@ export default function ProductionOrdersPage() {
         >
           <button
             onClick={() => handleOpenView(order)}
-            className="text-xs text-slate-600 hover:text-indigo-600 font-medium px-2 py-1 rounded hover:bg-slate-100"
+            className="text-[13px] text-slate-600 hover:text-indigo-600 font-medium px-2 py-1 rounded hover:bg-slate-100"
           >
             {lang === "gu" ? "વિગતો" : "View"}
           </button>
           {order.status === "PLANNED" && (
             <button
               onClick={() => handleOpenStart(order)}
-              className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold px-2.5 py-1 rounded"
+              className="text-[13px] bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-medium px-2.5 py-1 rounded"
             >
               {lang === "gu" ? "શરૂ કરો" : "Start"}
             </button>
@@ -404,7 +404,7 @@ export default function ProductionOrdersPage() {
           {order.status === "IN_PROGRESS" && (
             <button
               onClick={() => handleOpenComplete(order)}
-              className="text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold px-2.5 py-1 rounded"
+              className="text-[13px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-medium px-2.5 py-1 rounded"
             >
               {lang === "gu" ? "પૂર્ણ કરો" : "Complete"}
             </button>
@@ -412,7 +412,7 @@ export default function ProductionOrdersPage() {
           {(order.status === "PLANNED" || order.status === "IN_PROGRESS") && (
             <button
               onClick={() => handleOpenCancel(order)}
-              className="text-xs text-rose-600 hover:text-rose-800 font-medium px-2 py-1 rounded hover:bg-rose-50"
+              className="text-[13px] text-rose-600 hover:text-rose-800 font-medium px-2 py-1 rounded hover:bg-rose-50"
             >
               {lang === "gu" ? "રદ કરો" : "Cancel"}
             </button>
@@ -428,7 +428,7 @@ export default function ProductionOrdersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
               {lang === "gu" ? "ઉત્પાદન ઓર્ડર (Production Orders)" : "Production Orders"}
             </h1>
           </div>
@@ -441,7 +441,7 @@ export default function ProductionOrdersPage() {
 
         <button
           onClick={handleOpenCreate}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-xs sm:text-sm font-bold rounded-xl shadow-card hover:shadow-hover transition-all"
+          className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-[13px] font-medium rounded-xl shadow-card hover:shadow-hover transition-all"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -480,7 +480,7 @@ export default function ProductionOrdersPage() {
                 d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
               />
             </svg>
-            <h3 className="text-sm font-semibold text-slate-700">
+            <h3 className="text-[15px] font-semibold text-slate-700">
               {lang === "gu" ? "કોઈ ઉત્પાદન ઓર્ડર મળ્યો નથી" : "No Production Orders found"}
             </h3>
             <p className="text-xs text-slate-500 mt-1">
@@ -490,7 +490,7 @@ export default function ProductionOrdersPage() {
             </p>
             <button
               onClick={handleOpenCreate}
-              className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-[#E6F7F2] text-[#174B43] rounded-lg text-xs font-semibold hover:bg-[#174B43] hover:text-white transition-colors"
+              className="mt-4 inline-flex items-center gap-2 h-9 px-3 bg-[#EFF6FF] text-[#0F172A] rounded-lg text-[13px] font-medium hover:bg-[#0F172A] hover:text-white transition-colors"
             >
               + {lang === "gu" ? "પ્રથમ ઓર્ડર બનાવો" : "Create First Order"}
             </button>
@@ -504,7 +504,7 @@ export default function ProductionOrdersPage() {
                 onClick={() => setStatusFilter(st)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
                   statusFilter === st
-                    ? "bg-[#174B43] text-white"
+                    ? "bg-[#0F172A] text-white"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
@@ -523,7 +523,7 @@ export default function ProductionOrdersPage() {
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="font-mono font-semibold text-slate-900">{order.orderNumber}</div>
+                  <div className="tabular-nums font-semibold text-slate-900">{order.orderNumber}</div>
                   <div className="text-xs text-slate-500 font-medium">{order.bom?.finishedItem?.name || "Finished Item"}</div>
                 </div>
                 <StatusBadge status={order.status} />
@@ -531,12 +531,12 @@ export default function ProductionOrdersPage() {
               <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-slate-100">
                 <div>
                   <span className="text-slate-400 block text-[10px]">{lang === "gu" ? "લક્ષ્ય જથ્થો" : "Target Qty"}</span>
-                  <span className="font-mono font-medium text-slate-700">{Number(order.targetQuantity).toLocaleString()}</span>
+                  <span className="tabular-nums font-medium text-slate-700">{Number(order.targetQuantity).toLocaleString()}</span>
                 </div>
                 {batch && (
                   <div>
                     <span className="text-slate-400 block text-[10px]">{lang === "gu" ? "વાસ્તવિક ઉત્પાદન" : "Yield Qty"}</span>
-                    <span className="font-mono font-medium text-emerald-600">{Number(batch.actualProducedQty).toLocaleString()}</span>
+                    <span className="tabular-nums font-medium text-emerald-600">{Number(batch.actualProducedQty).toLocaleString()}</span>
                   </div>
                 )}
                 <div>
@@ -554,14 +554,14 @@ export default function ProductionOrdersPage() {
               >
                 <button
                   onClick={() => handleOpenView(order)}
-                  className="text-xs text-slate-600 hover:text-indigo-600 font-medium px-2 py-1 rounded hover:bg-slate-100"
+                  className="text-[13px] text-slate-600 hover:text-indigo-600 font-medium px-2 py-1 rounded hover:bg-slate-100"
                 >
                   {lang === "gu" ? "વિગતો" : "View"}
                 </button>
                 {order.status === "PLANNED" && (
                   <button
                     onClick={() => handleOpenStart(order)}
-                    className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold px-2.5 py-1 rounded"
+                    className="text-[13px] bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-medium px-2.5 py-1 rounded"
                   >
                     {lang === "gu" ? "શરૂ કરો" : "Start"}
                   </button>
@@ -569,7 +569,7 @@ export default function ProductionOrdersPage() {
                 {order.status === "IN_PROGRESS" && (
                   <button
                     onClick={() => handleOpenComplete(order)}
-                    className="text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold px-2.5 py-1 rounded"
+                    className="text-[13px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-medium px-2.5 py-1 rounded"
                   >
                     {lang === "gu" ? "પૂર્ણ કરો" : "Complete"}
                   </button>
@@ -577,7 +577,7 @@ export default function ProductionOrdersPage() {
                 {(order.status === "PLANNED" || order.status === "IN_PROGRESS") && (
                   <button
                     onClick={() => handleOpenCancel(order)}
-                    className="text-xs text-rose-600 hover:text-rose-800 font-medium px-2 py-1 rounded hover:bg-rose-50"
+                    className="text-[13px] text-rose-600 hover:text-rose-800 font-medium px-2 py-1 rounded hover:bg-rose-50"
                   >
                     {lang === "gu" ? "રદ કરો" : "Cancel"}
                   </button>
@@ -600,7 +600,7 @@ export default function ProductionOrdersPage() {
             <button
               type="button"
               onClick={() => setIsCreateModalOpen(false)}
-              className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition-colors"
+              className="h-9 px-3 border border-slate-200 rounded-lg text-[13px] text-slate-600 hover:bg-slate-100 transition-colors"
             >
               {lang === "gu" ? "રદ કરો" : "Cancel"}
             </button>
@@ -608,7 +608,7 @@ export default function ProductionOrdersPage() {
               type="submit"
               form="create-order-form"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50"
+              className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg text-[13px] font-medium shadow-sm transition-colors disabled:opacity-50"
             >
               {isSubmitting
                 ? lang === "gu"
@@ -629,14 +629,14 @@ export default function ProductionOrdersPage() {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "BOM રેસિપી પસંદ કરો *" : "Select BOM Formula *"}
             </label>
             <select
               value={createForm.bomId}
               onChange={(e) => setCreateForm({ ...createForm, bomId: e.target.value })}
               required
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
             >
               <option value="">{lang === "gu" ? "-- BOM પસંદ કરો --" : "-- Select BOM --"}</option>
               {boms.map((b) => (
@@ -648,19 +648,19 @@ export default function ProductionOrdersPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "ઓર્ડર નંબર" : "Order Number"}
             </label>
             <input
               type="text"
               value={createForm.orderNumber}
               onChange={(e) => setCreateForm({ ...createForm, orderNumber: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "લક્ષ્ય ઉત્પાદન જથ્થો (Target Qty) *" : "Target Yield Quantity *"}
             </label>
             <input
@@ -670,19 +670,19 @@ export default function ProductionOrdersPage() {
               value={createForm.targetQuantity}
               onChange={(e) => setCreateForm({ ...createForm, targetQuantity: parseFloat(e.target.value) || 0 })}
               required
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "શરૂઆતની તારીખ" : "Scheduled Start Date"}
             </label>
             <input
               type="date"
               value={createForm.startDate}
               onChange={(e) => setCreateForm({ ...createForm, startDate: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
             />
           </div>
         </form>
@@ -700,7 +700,7 @@ export default function ProductionOrdersPage() {
             <button
               type="button"
               onClick={() => setIsStartModalOpen(false)}
-              className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition-colors"
+              className="h-9 px-3 border border-slate-200 rounded-lg text-[13px] text-slate-600 hover:bg-slate-100 transition-colors"
             >
               {lang === "gu" ? "રદ કરો" : "Cancel"}
             </button>
@@ -708,7 +708,7 @@ export default function ProductionOrdersPage() {
               type="submit"
               form="start-order-form"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50"
+              className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg text-[13px] font-medium shadow-sm transition-colors disabled:opacity-50"
             >
               {isSubmitting
                 ? lang === "gu"
@@ -735,14 +735,14 @@ export default function ProductionOrdersPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "કાચા માલનું ગોડાઉન (Source Warehouse) *" : "Source Warehouse for Raw Materials *"}
             </label>
             <select
               value={startForm.sourceWarehouseId}
               onChange={(e) => setStartForm({ sourceWarehouseId: e.target.value })}
               required
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
             >
               {warehouses.map((w) => (
                 <option key={w.id} value={w.id}>
@@ -766,7 +766,7 @@ export default function ProductionOrdersPage() {
             <button
               type="button"
               onClick={() => setIsCompleteModalOpen(false)}
-              className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition-colors"
+              className="h-9 px-3 border border-slate-200 rounded-lg text-[13px] text-slate-600 hover:bg-slate-100 transition-colors"
             >
               {lang === "gu" ? "રદ કરો" : "Cancel"}
             </button>
@@ -774,7 +774,7 @@ export default function ProductionOrdersPage() {
               type="submit"
               form="complete-order-form"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
+              className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg text-[13px] font-medium shadow-sm transition-colors disabled:opacity-50"
             >
               {isSubmitting
                 ? lang === "gu"
@@ -796,14 +796,14 @@ export default function ProductionOrdersPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "તૈયાર માલનું ગોડાઉન (Destination) *" : "Target Warehouse for Finished Goods *"}
               </label>
               <select
                 value={completeForm.targetWarehouseId}
                 onChange={(e) => setCompleteForm({ ...completeForm, targetWarehouseId: e.target.value })}
                 required
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
               >
                 {warehouses.map((w) => (
                   <option key={w.id} value={w.id}>
@@ -814,7 +814,7 @@ export default function ProductionOrdersPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "વાસ્તવિક ઉત્પાદન જથ્થો (Actual Produced) *" : "Actual Produced Quantity *"}
               </label>
               <input
@@ -824,12 +824,12 @@ export default function ProductionOrdersPage() {
                 value={completeForm.actualProducedQty}
                 onChange={(e) => setCompleteForm({ ...completeForm, actualProducedQty: parseFloat(e.target.value) || 0 })}
                 required
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "બગાડ / સ્ક્રેપ જથ્થો (Scrap Qty)" : "Scrap Quantity"}
               </label>
               <input
@@ -838,24 +838,24 @@ export default function ProductionOrdersPage() {
                 step="any"
                 value={completeForm.scrapQuantity}
                 onChange={(e) => setCompleteForm({ ...completeForm, scrapQuantity: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "બેચ નંબર (Batch Number)" : "Batch Number"}
               </label>
               <input
                 type="text"
                 value={completeForm.batchNumber}
                 onChange={(e) => setCompleteForm({ ...completeForm, batchNumber: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "વાસ્તવિક મજૂરી ખર્ચ (Labor Cost ₹)" : "Actual Labor Cost (₹)"}
               </label>
               <input
@@ -864,12 +864,12 @@ export default function ProductionOrdersPage() {
                 step="0.01"
                 value={completeForm.actualLaborCost}
                 onChange={(e) => setCompleteForm({ ...completeForm, actualLaborCost: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "વાસ્તવિક ઓવરહેડ ખર્ચ (Overhead ₹)" : "Actual Overhead Cost (₹)"}
               </label>
               <input
@@ -878,31 +878,31 @@ export default function ProductionOrdersPage() {
                 step="0.01"
                 value={completeForm.actualOverheadCost}
                 onChange={(e) => setCompleteForm({ ...completeForm, actualOverheadCost: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "ઉત્પાદન તારીખ (Mfg Date)" : "Manufacturing Date"}
               </label>
               <input
                 type="date"
                 value={completeForm.mfgDate}
                 onChange={(e) => setCompleteForm({ ...completeForm, mfgDate: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "એક્સપાયરી તારીખ (Expiry Date)" : "Expiry Date"}
               </label>
               <input
                 type="date"
                 value={completeForm.expiryDate}
                 onChange={(e) => setCompleteForm({ ...completeForm, expiryDate: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
               />
             </div>
           </div>
@@ -920,7 +920,7 @@ export default function ProductionOrdersPage() {
             <button
               type="button"
               onClick={() => setIsCancelModalOpen(false)}
-              className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-600 hover:bg-slate-100"
+              className="h-9 px-3 border border-slate-200 rounded-lg text-[13px] text-slate-600 hover:bg-slate-100"
             >
               {lang === "gu" ? "પાછા જાઓ" : "Go Back"}
             </button>
@@ -928,7 +928,7 @@ export default function ProductionOrdersPage() {
               type="submit"
               form="cancel-order-form"
               disabled={isSubmitting}
-              className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors disabled:opacity-50"
+              className="h-9 px-3 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[13px] font-medium shadow-sm transition-colors disabled:opacity-50"
             >
               {isSubmitting ? "..." : lang === "gu" ? "હા, રદ કરો" : "Confirm Cancel"}
             </button>
@@ -947,7 +947,7 @@ export default function ProductionOrdersPage() {
               : "Cancelling an in-progress order restores legitimately consumed raw materials back to inventory."}
           </p>
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "રદ કરવાનું કારણ" : "Cancellation Reason"}
             </label>
             <input
@@ -955,7 +955,7 @@ export default function ProductionOrdersPage() {
               value={cancelForm.reason}
               onChange={(e) => setCancelForm({ reason: e.target.value })}
               placeholder="e.g. Defective raw materials / customer cancelled"
-              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-rose-500"
+              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-rose-500 h-10"
             />
           </div>
         </form>
@@ -971,7 +971,7 @@ export default function ProductionOrdersPage() {
         footer={
           <button
             onClick={() => setIsViewModalOpen(false)}
-            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition-colors"
+            className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[13px] font-medium transition-colors"
           >
             {lang === "gu" ? "બંધ કરો" : "Close"}
           </button>
@@ -986,7 +986,7 @@ export default function ProductionOrdersPage() {
               </div>
               <div>
                 <span className="text-slate-500 block">Target Qty:</span>
-                <span className="font-bold font-mono text-slate-800 text-sm">
+                <span className="font-bold tabular-nums text-slate-800 text-sm">
                   {Number(selectedOrder.targetQuantity).toLocaleString()}
                 </span>
               </div>
@@ -1005,7 +1005,7 @@ export default function ProductionOrdersPage() {
                   <span className="text-xs font-bold text-emerald-900 uppercase">
                     Finished Batch Costing
                   </span>
-                  <span className="text-xs font-mono font-bold text-emerald-800">
+                  <span className="text-xs tabular-nums font-bold text-emerald-800">
                     Batch: {selectedOrder.batches[0].batchNumber}
                   </span>
                 </div>
@@ -1013,25 +1013,25 @@ export default function ProductionOrdersPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   <div>
                     <span className="text-slate-500 block">Produced Qty</span>
-                    <span className="font-bold font-mono text-slate-900">
+                    <span className="font-bold tabular-nums text-slate-900">
                       {Number(selectedOrder.batches[0].actualProducedQty).toLocaleString()}
                     </span>
                   </div>
                   <div>
                     <span className="text-slate-500 block">Raw Material Cost</span>
-                    <span className="font-mono text-slate-900">
+                    <span className="tabular-nums text-slate-900">
                       ₹{Number(selectedOrder.batches[0].rawMaterialCost).toFixed(2)}
                     </span>
                   </div>
                   <div>
                     <span className="text-slate-500 block">Labor + OH</span>
-                    <span className="font-mono text-slate-900">
+                    <span className="tabular-nums text-slate-900">
                       ₹{(Number(selectedOrder.batches[0].actualLaborCost) + Number(selectedOrder.batches[0].actualOverheadCost)).toFixed(2)}
                     </span>
                   </div>
                   <div>
                     <span className="text-slate-500 block">Final Unit Cost</span>
-                    <span className="font-bold font-mono text-emerald-700 text-sm">
+                    <span className="font-bold tabular-nums text-emerald-700 text-sm">
                       ₹{Number(selectedOrder.batches[0].unitCost).toFixed(2)}
                     </span>
                   </div>

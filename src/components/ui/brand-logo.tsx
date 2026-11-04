@@ -53,10 +53,10 @@ export function BrandLogo({
       {variant !== "icon" && (
         <div className="flex flex-col justify-center min-w-0">
           <span
-            className={`font-black tracking-tight leading-none whitespace-nowrap ${currentSize.text}`}
+            className={`font-semibold tracking-tight leading-none whitespace-nowrap ${currentSize.text}`}
           >
-            <span className={onDark ? "text-white" : "text-[#174B43]"}>MyOwn</span>
-            <span className="text-[#26A58A]">BillBook</span>
+            <span className={onDark ? "text-white" : "text-slate-900"}>MyOwn</span>
+            <span className={onDark ? "text-blue-300" : "text-slate-900"}>BillBook</span>
           </span>
           {showSubtitle && (
             <span

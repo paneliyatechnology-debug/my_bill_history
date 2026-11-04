@@ -699,7 +699,7 @@ const [notes, setNotes] = useState("");
                     <tbody className="divide-y divide-slate-100">
                       {items.map((row, idx) => (
                         <tr key={row.id || idx} className="hover:bg-slate-50/70 transition-colors">
-                          <td className="py-3 px-3 text-center text-slate-400 font-mono text-[11px]">
+                          <td className="py-3 px-3 text-center text-slate-400 tabular-nums text-[11px]">
                             {idx + 1}
                           </td>
 
@@ -710,7 +710,7 @@ const [notes, setNotes] = useState("");
                                 value={row.name}
                                 onChange={(e) => updateItemLine(idx, "name", e.target.value)}
                                 placeholder="Type item name..."
-                                className="w-full text-xs py-1.5 px-2.5 font-bold text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-[#26A58A]"
+                                className="w-full text-[13px] py-1.5 px-2.5 font-normal text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-[#1677E8] h-10"
                               />
                               {inventoryItems.length > 0 && !row.name && (
                                 <select
@@ -719,7 +719,7 @@ const [notes, setNotes] = useState("");
                                     if (itm) handlePickInventoryItem(idx, itm);
                                   }}
                                   defaultValue=""
-                                  className="w-full text-[11px] py-1 px-2 text-slate-500 bg-white border border-dashed border-slate-200 rounded-lg"
+                                  className="w-full text-[11px] py-1 px-2 text-slate-500 bg-white border border-dashed border-slate-200 rounded-lg h-10"
                                 >
                                   <option value="" disabled>Choose from Catalog...</option>
                                   {inventoryItems.map((it) => (
@@ -736,7 +736,7 @@ const [notes, setNotes] = useState("");
                               value={row.hsn}
                               onChange={(e) => updateItemLine(idx, "hsn", e.target.value)}
                               placeholder="HSN"
-                              className="w-full text-xs py-1.5 px-2 text-center font-mono bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white"
+                              className="w-full text-[13px] py-1.5 px-2 text-center tabular-nums bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white h-10"
                             />
                           </td>
 
@@ -746,7 +746,7 @@ const [notes, setNotes] = useState("");
                               min="1"
                               value={row.quantity}
                               onChange={(e) => updateItemLine(idx, "quantity", e.target.value === "" ? "" : Number(e.target.value))}
-                              className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white"
+                              className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white h-10"
                             />
                           </td>
 
@@ -757,7 +757,7 @@ const [notes, setNotes] = useState("");
                               step="any"
                               value={row.unitPrice}
                               onChange={(e) => updateItemLine(idx, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))}
-                              className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white"
+                              className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white h-10"
                             />
                           </td>
 
@@ -768,7 +768,7 @@ const [notes, setNotes] = useState("");
                                 min="0"
                                 value={row.discount}
                                 onChange={(e) => updateItemLine(idx, "discount", Number(e.target.value) || 0)}
-                                className="w-full text-xs text-right font-mono bg-transparent focus:outline-none"
+                                className="w-full text-[13px] text-right tabular-nums bg-transparent focus:outline-none h-10"
                               />
                               <span className="text-[10px] text-slate-400 font-bold ml-1">{row.discountType}</span>
                             </div>
@@ -779,11 +779,11 @@ const [notes, setNotes] = useState("");
                               type="number"
                               value={row.taxRate}
                               onChange={(e) => updateItemLine(idx, "taxRate", Number(e.target.value) || 0)}
-                              className="w-full text-xs py-1.5 px-2 text-right font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white"
+                              className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
                             />
                           </td>
 
-                          <td className="py-3 px-3 text-right font-mono font-black text-slate-900 text-xs">
+                          <td className="py-3 px-3 text-right tabular-nums font-semibold text-slate-900 text-[13px]">
                             ₹ {row.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </td>
 
@@ -873,16 +873,16 @@ const [notes, setNotes] = useState("");
                 <button
                   type="button"
                   onClick={() => setViewMode("edit")}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                  className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[13px] font-medium transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
                   <span>← {lang === "gu" ? "એડિટ મોડ પર પાછા જાઓ" : "Back to Edit Mode"}</span>
                 </button>
                 <div>
-                  <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <h2 className="text-sm font-semibold text-[#182230] flex items-center gap-2">
                     <span>{lang === "gu" ? "ખરીદી ઓર્ડર પ્રિવ્યૂ" : "Purchase Order Preview"}</span>
                     <span
                       className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-                      style={{ backgroundColor: activeInvoiceTheme.accentColor || "#174B43" }}
+                      style={{ backgroundColor: activeInvoiceTheme.accentColor || "#0F172A" }}
                     >
                       {activeInvoiceTheme.uniqueThemeKey || activeInvoiceTheme.themeId}
                     </span>
@@ -896,7 +896,7 @@ const [notes, setNotes] = useState("");
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="px-4 py-2 bg-[#174B43] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                  className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
                   <span>🖨️ {lang === "gu" ? "પ્રિન્ટ" : "Print PO"}</span>
                 </button>
@@ -985,42 +985,42 @@ const [notes, setNotes] = useState("");
         >
           <div className="space-y-3 text-xs p-1">
             <div>
-              <label className="block font-semibold text-slate-600 mb-1">Party Name *</label>
+              <label className="block font-medium text-slate-600 mb-1">Party Name *</label>
               <input
                 type="text"
                 value={newPartyForm.name}
                 onChange={(e) => setNewPartyForm((prev) => ({ ...prev, name: e.target.value }))}
-                className="w-full rounded-lg border border-slate-300 p-2 text-xs"
+                className="w-full rounded-lg border border-slate-300 p-2 text-[13px] h-10"
                 placeholder="e.g. Adesh Patel"
               />
             </div>
             <div>
-              <label className="block font-semibold text-slate-600 mb-1">Phone Number</label>
+              <label className="block font-medium text-slate-600 mb-1">Phone Number</label>
               <input
                 type="text"
                 value={newPartyForm.phone}
                 onChange={(e) => setNewPartyForm((prev) => ({ ...prev, phone: e.target.value }))}
-                className="w-full rounded-lg border border-slate-300 p-2 text-xs"
+                className="w-full rounded-lg border border-slate-300 p-2 text-[13px] h-10"
                 placeholder="e.g. 9876543210"
               />
             </div>
             <div>
-              <label className="block font-semibold text-slate-600 mb-1">GSTIN</label>
+              <label className="block font-medium text-slate-600 mb-1">GSTIN</label>
               <input
                 type="text"
                 value={newPartyForm.gstin}
                 onChange={(e) => setNewPartyForm((prev) => ({ ...prev, gstin: e.target.value.toUpperCase() }))}
-                className="w-full rounded-lg border border-slate-300 p-2 text-xs uppercase"
+                className="w-full rounded-lg border border-slate-300 p-2 text-[13px] uppercase h-10"
                 placeholder="24AAAAA0000A1Z5"
               />
             </div>
             <div>
-              <label className="block font-semibold text-slate-600 mb-1">Address</label>
+              <label className="block font-medium text-slate-600 mb-1">Address</label>
               <textarea
                 rows={2}
                 value={newPartyForm.address}
                 onChange={(e) => setNewPartyForm((prev) => ({ ...prev, address: e.target.value }))}
-                className="w-full rounded-lg border border-slate-300 p-2 text-xs"
+                className="w-full rounded-lg border border-slate-300 p-2 text-[13px]"
                 placeholder="Shop / office address..."
               />
             </div>
@@ -1028,7 +1028,7 @@ const [notes, setNotes] = useState("");
               <button
                 type="button"
                 onClick={() => setIsCreatePartyModalOpen(false)}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 font-semibold"
+                className="h-9 px-3 rounded-lg border border-slate-200 text-slate-600 font-medium"
               >
                 Cancel
               </button>
@@ -1048,7 +1048,7 @@ const [notes, setNotes] = useState("");
                   setSelectedParty(newP);
                   setIsCreatePartyModalOpen(false);
                 }}
-                className="px-4 py-1.5 rounded-lg bg-blue-600 text-white font-bold"
+                className="px-4 py-1.5 rounded-lg bg-blue-600 text-white font-medium"
               >
                 Save Party
               </button>
@@ -1066,32 +1066,32 @@ const [notes, setNotes] = useState("");
         >
           <div className="space-y-3 text-xs p-1">
             <div>
-              <label className="block font-semibold text-slate-600 mb-1">Item Name *</label>
+              <label className="block font-medium text-slate-600 mb-1">Item Name *</label>
               <input
                 type="text"
                 value={createItemForm.name}
                 onChange={(e) => setCreateItemForm((prev) => ({ ...prev, name: e.target.value }))}
-                className="w-full rounded-lg border border-slate-300 p-2 text-xs"
+                className="w-full rounded-lg border border-slate-300 p-2 text-[13px] h-10"
                 placeholder="e.g. 3 INCH BOPP TAPE"
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block font-semibold text-slate-600 mb-1">HSN Code</label>
+                <label className="block font-medium text-slate-600 mb-1">HSN Code</label>
                 <input
                   type="text"
                   value={createItemForm.hsn}
                   onChange={(e) => setCreateItemForm((prev) => ({ ...prev, hsn: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs"
+                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] h-10"
                   placeholder="e.g. 3919"
                 />
               </div>
               <div>
-                <label className="block font-semibold text-slate-600 mb-1">Unit</label>
+                <label className="block font-medium text-slate-600 mb-1">Unit</label>
                 <select
                   value={createItemForm.unit}
                   onChange={(e) => setCreateItemForm((prev) => ({ ...prev, unit: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs bg-white"
+                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] bg-white h-10"
                 >
                   {COMMON_UNITS.map((u) => (
                     <option key={u} value={u}>
@@ -1103,16 +1103,16 @@ const [notes, setNotes] = useState("");
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block font-semibold text-slate-600 mb-1">Purchase Price (₹)</label>
+                <label className="block font-medium text-slate-600 mb-1">Purchase Price (₹)</label>
                 <input
                   type="number"
                   value={createItemForm.price}
                   onChange={(e) => setCreateItemForm((prev) => ({ ...prev, price: Number(e.target.value) }))}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs"
+                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] h-10"
                 />
               </div>
               <div>
-                <label className="block font-semibold text-slate-600 mb-1">GST Rate (%)</label>
+                <label className="block font-medium text-slate-600 mb-1">GST Rate (%)</label>
                 <div className="relative flex items-center">
                   <input
                     type="number"
@@ -1123,7 +1123,7 @@ const [notes, setNotes] = useState("");
                     value={createItemForm.taxRate}
                     onChange={(e) => setCreateItemForm((prev) => ({ ...prev, taxRate: Number(e.target.value) || 0 }))}
                     placeholder="0"
-                    className="w-full rounded-lg border border-slate-300 p-2 pr-6 text-xs text-right font-mono bg-white"
+                    className="w-full rounded-lg border border-slate-300 p-2 pr-6 text-[13px] text-right tabular-nums bg-white h-10"
                   />
                   <span className="absolute right-2 text-xs font-bold text-slate-400 pointer-events-none">%</span>
                 </div>
@@ -1143,7 +1143,7 @@ const [notes, setNotes] = useState("");
               <button
                 type="button"
                 onClick={() => setIsCreateItemModalOpen(false)}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 font-semibold"
+                className="h-9 px-3 rounded-lg border border-slate-200 text-slate-600 font-medium"
               >
                 Cancel
               </button>
@@ -1185,23 +1185,23 @@ const [notes, setNotes] = useState("");
         >
           <div className="space-y-3 text-xs p-1">
             <div>
-              <label className="block font-semibold text-slate-600 mb-1">Charge Name</label>
+              <label className="block font-medium text-slate-600 mb-1">Charge Name</label>
               <input
                 type="text"
                 value={newChargeName}
                 onChange={(e) => setNewChargeName(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 p-2 text-xs"
+                className="w-full rounded-lg border border-slate-300 p-2 text-[13px] h-10"
                 placeholder="e.g. Freight / Transport"
               />
             </div>
             <div>
-              <label className="block font-semibold text-slate-600 mb-1">Amount (₹)</label>
+              <label className="block font-medium text-slate-600 mb-1">Amount (₹)</label>
               <input
                 type="number"
                 min="0"
                 value={newChargeAmount}
                 onChange={(e) => setNewChargeAmount(e.target.value === "" ? "" : Number(e.target.value))}
-                className="w-full rounded-lg border border-slate-300 p-2 text-xs"
+                className="w-full rounded-lg border border-slate-300 p-2 text-[13px] h-10"
                 placeholder="0.00"
               />
             </div>
@@ -1209,7 +1209,7 @@ const [notes, setNotes] = useState("");
               <button
                 type="button"
                 onClick={() => setShowAddChargeModal(false)}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 font-semibold"
+                className="h-9 px-3 rounded-lg border border-slate-200 text-slate-600 font-medium"
               >
                 Cancel
               </button>
@@ -1247,13 +1247,13 @@ const [notes, setNotes] = useState("");
               value={customShippingAddress}
               onChange={(e) => setCustomShippingAddress(e.target.value)}
               placeholder="Enter specific warehouse or delivery location address..."
-              className="w-full rounded-lg border border-slate-300 p-2.5 text-xs text-slate-800"
+              className="w-full rounded-lg border border-slate-300 p-2.5 text-[13px] text-slate-800"
             />
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setIsEditShippingOpen(false)}
-                className="px-4 py-1.5 rounded-lg bg-blue-600 text-white font-bold"
+                className="px-4 py-1.5 rounded-lg bg-blue-600 text-white font-medium"
               >
                 Done
               </button>

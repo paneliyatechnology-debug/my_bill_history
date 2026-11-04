@@ -117,7 +117,7 @@ function StockSummaryContent() {
         header: lang === "gu" ? "એસકેયુ" : "SKU",
         accessorFn: (s) => s.sku || s.itemCode || "—",
         sortable: true,
-        className: "font-mono text-slate-600",
+        className: "tabular-nums text-slate-600",
       },
       {
         id: "uom",
@@ -131,28 +131,28 @@ function StockSummaryContent() {
         header: lang === "gu" ? "આવક (In)" : "Inward Qty",
         accessorKey: "inwardQty",
         sortable: true,
-        className: "text-right font-mono text-slate-700",
+        className: "text-right tabular-nums text-slate-700",
       },
       {
         id: "outwardQty",
         header: lang === "gu" ? "જાવક (Out)" : "Outward Qty",
         accessorKey: "outwardQty",
         sortable: true,
-        className: "text-right font-mono text-slate-700",
+        className: "text-right tabular-nums text-slate-700",
       },
       {
         id: "closingQty",
         header: lang === "gu" ? "આખર સ્ટોક" : "Closing Qty",
         accessorKey: "closingQty",
         sortable: true,
-        className: "text-right font-mono font-bold text-slate-900",
+        className: "text-right tabular-nums font-bold text-slate-900",
       },
       {
         id: "valuationRate",
         header: lang === "gu" ? "મૂલ્યાંકન દર (₹)" : "Valuation Rate (₹)",
         accessorKey: "valuationRate",
         sortable: true,
-        className: "text-right font-mono text-slate-700",
+        className: "text-right tabular-nums text-slate-700",
         cell: (s) => `₹${Number(s.valuationRate || 0).toFixed(2)}`,
       },
       {
@@ -160,7 +160,7 @@ function StockSummaryContent() {
         header: lang === "gu" ? "કુલ મૂલ્ય (₹)" : "Closing Value (₹)",
         accessorKey: "closingValue",
         sortable: true,
-        className: "text-right font-mono font-bold text-emerald-800",
+        className: "text-right tabular-nums font-bold text-emerald-800",
         cell: (s) => `₹${Number(s.closingValue || 0).toFixed(2)}`,
       },
       {
@@ -193,7 +193,7 @@ function StockSummaryContent() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
               {lang === "gu"
                 ? "સ્ટોક સિલક અને મૂલ્યાંકન (Stock Summary)"
                 : "Physical Stock Summary & Valuation"}
@@ -210,7 +210,7 @@ function StockSummaryContent() {
           <span className="text-[10px] uppercase font-bold text-primary tracking-wider block">
             {lang === "gu" ? "કુલ સ્ટોક મૂલ્યાંકન" : "Total Inventory Value"}
           </span>
-          <span className="font-mono font-bold text-slate-900 text-lg">
+          <span className="tabular-nums font-bold text-slate-900 text-lg">
             ₹
             {totalInventoryValue.toLocaleString("en-IN", {
               minimumFractionDigits: 2,
@@ -327,7 +327,7 @@ function StockSummaryContent() {
                   </Badge>
                 )}
               </div>
-              <div className="flex items-center justify-between text-xs text-slate-600 font-mono">
+              <div className="flex items-center justify-between text-xs text-slate-600 tabular-nums">
                 <span>SKU: {s.sku || s.itemCode || "—"}</span>
                 <span>Unit: {s.uom}</span>
               </div>
@@ -336,7 +336,7 @@ function StockSummaryContent() {
                   <span className="text-[10px] text-slate-500 uppercase block">
                     {lang === "gu" ? "આવક" : "Inward"}
                   </span>
-                  <span className="font-mono font-semibold text-slate-800">
+                  <span className="tabular-nums font-semibold text-slate-800">
                     {s.inwardQty}
                   </span>
                 </div>
@@ -344,7 +344,7 @@ function StockSummaryContent() {
                   <span className="text-[10px] text-slate-500 uppercase block">
                     {lang === "gu" ? "જાવક" : "Outward"}
                   </span>
-                  <span className="font-mono font-semibold text-slate-800">
+                  <span className="tabular-nums font-semibold text-slate-800">
                     {s.outwardQty}
                   </span>
                 </div>
@@ -352,12 +352,12 @@ function StockSummaryContent() {
                   <span className="text-[10px] text-slate-500 uppercase block">
                     {lang === "gu" ? "આખર સ્ટોક" : "Closing"}
                   </span>
-                  <span className="font-mono font-bold text-slate-900">
+                  <span className="tabular-nums font-bold text-slate-900">
                     {s.closingQty}
                   </span>
                 </div>
               </div>
-              <div className="flex items-center justify-between text-xs font-mono pt-1">
+              <div className="flex items-center justify-between text-xs tabular-nums pt-1">
                 <span className="text-slate-500">
                   Rate: ₹{Number(s.valuationRate || 0).toFixed(2)}
                 </span>

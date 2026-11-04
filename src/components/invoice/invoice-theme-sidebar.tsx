@@ -194,7 +194,7 @@ export function InvoiceThemeSidebar({
                           className="w-3 h-3 rounded-full border border-black/10 inline-block"
                           style={{ backgroundColor: item.primaryColor }}
                         />
-                        <span className="text-[10px] font-mono text-[#667085]">
+                        <span className="text-[10px] tabular-nums text-[#667085]">
                           {item.primaryColor}
                         </span>
                         <span className="text-[10px] text-slate-300">•</span>
@@ -260,7 +260,7 @@ export function InvoiceThemeSidebar({
                     type="text"
                     value={activeColor}
                     onChange={(e) => handleUpdate({ customPrimaryColor: e.target.value })}
-                    className="font-mono text-xs font-bold text-[#202124] bg-transparent outline-none uppercase w-full"
+                    className="tabular-nums text-xs font-bold text-[#202124] bg-transparent outline-none uppercase w-full"
                   />
                 </div>
               </div>
@@ -401,7 +401,7 @@ export function InvoiceThemeSidebar({
                   value={customization.watermarkText}
                   onChange={(e) => handleUpdate({ watermarkText: e.target.value })}
                   placeholder="TAX INVOICE / ORIGINAL"
-                  className="w-full text-xs p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg font-mono text-[#202124] focus:bg-white focus:outline-none"
+                  className="w-full text-xs p-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-lg tabular-nums text-[#202124] focus:bg-white focus:outline-none"
                 />
               </div>
 

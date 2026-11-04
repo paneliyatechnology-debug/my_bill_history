@@ -40,7 +40,7 @@ export function UpcomingActivitiesCard({
             </svg>
           </div>
           <div>
-            <h2 className="text-sm font-bold text-[#111827]">
+            <h2 className="text-sm font-semibold text-[#111827]">
               {lang === "gu" ? "આગામી પ્રવૃત્તિઓ" : "Upcoming Activities"}
             </h2>
             <p className="text-[11px] text-[#6B7280]">
@@ -51,7 +51,7 @@ export function UpcomingActivitiesCard({
 
         <Link
           href="/reports?tab=outstanding"
-          className="text-xs font-semibold text-[#174B43] hover:text-[#123B35] flex items-center gap-1 hover:underline shrink-0"
+          className="text-xs font-semibold text-[#0F172A] hover:text-[#123B35] flex items-center gap-1 hover:underline shrink-0"
         >
           <span>{lang === "gu" ? "બધા જુઓ" : "View All"}</span>
           <span aria-hidden="true">&rarr;</span>
@@ -79,7 +79,7 @@ export function UpcomingActivitiesCard({
                 </svg>
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-xs font-semibold text-[#111827] truncate group-hover:text-[#174B43] transition-colors">
+                <div className="text-xs font-semibold text-[#111827] truncate group-hover:text-[#0F172A] transition-colors">
                   {lang === "gu" ? "ઓછો સ્ટોક ચેતવણી" : "Low Stock Alert"}
                 </div>
                 <div className="text-[11px] text-[#6B7280] truncate">
@@ -94,7 +94,7 @@ export function UpcomingActivitiesCard({
               </div>
             </div>
             <span
-              className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg font-bold text-[11px] sm:text-xs shrink-0 font-mono ${
+              className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg font-bold text-[11px] sm:text-xs shrink-0 tabular-nums ${
                 lowStockCount > 0
                   ? "bg-[#FEF2F2] text-[#DC2626]"
                   : "bg-emerald-50 text-emerald-700"
@@ -116,7 +116,7 @@ export function UpcomingActivitiesCard({
                 </svg>
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-xs font-semibold text-[#111827] truncate group-hover:text-[#174B43] transition-colors">
+                <div className="text-xs font-semibold text-[#111827] truncate group-hover:text-[#0F172A] transition-colors">
                   {lang === "gu" ? "ચુકવણી બાકી (Due)" : "Payment Due"}
                 </div>
                 <div className="text-[11px] text-[#6B7280] truncate">
@@ -131,7 +131,7 @@ export function UpcomingActivitiesCard({
               </div>
             </div>
             <span
-              className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg font-bold text-[11px] sm:text-xs shrink-0 font-mono ${
+              className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg font-bold text-[11px] sm:text-xs shrink-0 tabular-nums ${
                 overdueAmount > 0
                   ? "bg-[#FEF2F2] text-[#DC2626]"
                   : "bg-emerald-50 text-emerald-700"
@@ -153,7 +153,7 @@ export function UpcomingActivitiesCard({
                 </svg>
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-xs font-semibold text-[#111827] truncate group-hover:text-[#174B43] transition-colors">
+                <div className="text-xs font-semibold text-[#111827] truncate group-hover:text-[#0F172A] transition-colors">
                   {lang === "gu" ? "ખરીદી ઓર્ડર બાકી" : "Purchase Order Pending"}
                 </div>
                 <div className="text-[11px] text-[#6B7280] truncate">
@@ -167,7 +167,7 @@ export function UpcomingActivitiesCard({
                 </div>
               </div>
             </div>
-            <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-[#EFF6FF] text-[#2563EB] font-bold text-[11px] sm:text-xs shrink-0 font-mono">
+            <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-[#EFF6FF] text-[#2563EB] font-bold text-[11px] sm:text-xs shrink-0 tabular-nums">
               {pendingOrdersCount} Orders
             </span>
           </Link>

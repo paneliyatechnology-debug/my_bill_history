@@ -1,69 +1,87 @@
 // src/components/design-system/tokens.ts
 /**
  * MyOwnBillBook Centralized Design System Tokens
- * Signature Forest Teal & Jade Teal Enterprise Palette
+ * Primary Blue, Success Green, Alert Orange & Modern Flat Aesthetic
  */
+import { THEME } from "../../lib/theme";
+export { THEME };
 
 export const DS_COLORS = {
-  // Brand Palette
+  // Brand Palette: Vibrant Blue
+  primary: {
+    DEFAULT: "#1677E8",
+    hover: "#125CC0",
+    pressed: "#0E4C9E",
+    light: "#D6E8FF",
+    subtle: "#EAF3FF",
+    50: "#EAF3FF",
+    100: "#D6E8FF",
+    200: "#B9D6FF",
+    300: "#8EBEFF",
+    400: "#4C97F0",
+    500: "#1677E8",
+    600: "#125CC0",
+    700: "#0E4C9E",
+  },
+  // Forest / Jade Teal retained for backwards compatibility
   forestTeal: {
-    DEFAULT: "#174B43",
-    hover: "#133E37",
-    dark: "#0F322C",
-    light: "#1F5E54",
-    subtle: "#EBF2F0",
+    DEFAULT: "#0F172A",
+    hover: "#1E293B",
+    dark: "#020617",
+    light: "#334155",
+    subtle: "#F1F5F9",
     50: "#F0F5F4",
-    100: "#EBF2F0",
+    100: "#F1F5F9",
   },
   jadeTeal: {
-    DEFAULT: "#26A58A",
-    hover: "#208E76",
-    pressed: "#1B7864",
-    light: "#E6F7F2",
-    subtle: "#F2FAF7",
-    50: "#F2FAF7",
-    100: "#E6F7F2",
-    200: "#BCEADF",
-    300: "#85D5C2",
-    400: "#4EBFA5",
-    500: "#26A58A",
+    DEFAULT: "#1677E8",
+    hover: "#125CC0",
+    pressed: "#0E4C9E",
+    light: "#EAF3FF",
+    subtle: "#F8FBFF",
+    50: "#F8FBFF",
+    100: "#EAF3FF",
+    200: "#B9D6FF",
+    300: "#8EBEFF",
+    400: "#4C97F0",
+    500: "#1677E8",
   },
   softIvory: {
-    DEFAULT: "#F6F7F1",
-    dark: "#ECEEE5",
-    light: "#FAFBF7",
+    DEFAULT: "#F5F8FC",
+    dark: "#E3EAF3",
+    light: "#FFFFFF",
   },
   surface: {
     card: "#FFFFFF",
-    bg: "#F6F7F1",
-    sidebar: "#174B43",
-    subtle: "#F8FAF9",
-    border: "#E2E8E5",
-    borderStrong: "#CBD5E1",
+    bg: "#F5F8FC",
+    sidebar: "#FFFFFF",
+    subtle: "#F8FBFF",
+    border: "#E3EAF3",
+    borderStrong: "#D5E1EE",
   },
   text: {
-    main: "#1A2E2B",
-    secondary: "#5A6B66",
-    muted: "#8E9F9A",
+    main: "#182230",
+    secondary: "#64748B",
+    muted: "#94A3B8",
   },
   status: {
     paid: {
-      bg: "#EAF7EF",
-      text: "#16834A",
-      border: "#A7F3D0",
-      dot: "#10B981",
+      bg: "#EAF8EF",
+      text: "#15803D",
+      border: "#BBF7D0",
+      dot: "#16A34A",
     },
     partiallyPaid: {
-      bg: "#FFFBEB",
+      bg: "#FFF5E5",
       text: "#B45309",
       border: "#FDE68A",
       dot: "#F59E0B",
     },
     unpaid: {
-      bg: "#FFF0F0",
-      text: "#DC3545",
-      border: "#FECDD3",
-      dot: "#EF4444",
+      bg: "#FEF0F0",
+      text: "#DC2626",
+      border: "#FECACA",
+      dot: "#DC2626",
     },
     draft: {
       bg: "#F1F5F9",

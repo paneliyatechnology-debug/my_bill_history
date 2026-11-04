@@ -75,16 +75,17 @@ export function Modal({
 
       {/* Modal Dialog Card */}
       <div
-        className={`relative z-10 bg-white rounded-2xl shadow-2xl border border-slate-200/90 w-full ${widthClasses} max-h-[92vh] flex flex-col overflow-hidden my-auto transition-all animate-in fade-in zoom-in-95 duration-150 print:shadow-none print:border-none print:p-0 print:m-0 print:max-h-none print:max-w-none print:w-full print:rounded-none print:overflow-visible`}
+        className={`bb-overlay relative z-10 bg-white rounded-xl shadow-card border border-[#E2E8F0] w-full ${widthClasses} max-h-[min(92vh,100%)] flex flex-col overflow-hidden my-auto text-[13px] font-normal text-[#182230] transition-all animate-in fade-in zoom-in-95 duration-150 print:shadow-none print:border-none print:p-0 print:m-0 print:max-h-none print:max-w-none print:w-full print:rounded-none print:overflow-visible`}
+      style={{ fontFamily: "var(--font-inter), var(--font-noto-gujarati), sans-serif" }}
       >
         {/* Header with Forest Teal & Jade accent bar */}
-        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-[#E2E8E5] bg-gradient-to-r from-[#F0F7F5] via-white to-white border-t-4 border-t-[#26A58A] shrink-0 print:hidden">
+        <div className="flex items-center justify-between px-5 sm:px-6 py-3.5 border-b border-[#E3EAF3] bg-white border-t-4 border-t-[#1677E8] shrink-0 print:hidden">
           <div className="min-w-0 pr-4">
-            <h3 className="text-base sm:text-lg font-bold text-[#1A2E2B] tracking-tight truncate">
+            <h3 className="text-[15px] font-semibold text-[#182230] tracking-tight truncate">
               {title}
             </h3>
             {isGu && titleGujarati && (
-              <p className="text-xs text-[#174B43] font-medium font-gujarati mt-0.5 truncate">
+              <p className="text-xs text-[#0F172A] font-medium font-gujarati mt-0.5 truncate">
                 {titleGujarati}
               </p>
             )}
@@ -92,7 +93,7 @@ export function Modal({
           <button
             onClick={onClose}
             type="button"
-            className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg p-1.5 transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-[#26A58A]/30"
+            className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg p-1.5 transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/30"
             aria-label="Close"
           >
             <svg

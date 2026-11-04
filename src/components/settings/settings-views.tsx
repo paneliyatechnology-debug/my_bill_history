@@ -334,7 +334,7 @@ function AccountSettingsView() {
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900">
+            <h3 className="text-[15px] font-semibold text-slate-900">
               {lang === "gu" ? "myBillBook ને વધુ સારું બનાવવામાં સહાય કરો" : "Help us make myBillBook better"}
             </h3>
             <p className="text-xs text-slate-600 mt-0.5">
@@ -348,7 +348,7 @@ function AccountSettingsView() {
         <button
           type="button"
           onClick={() => setShowShareSuggestion(true)}
-          className="px-4 py-2 rounded-xl bg-[#EA580C] hover:bg-[#C2410C] text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 self-start sm:self-center shrink-0 cursor-pointer"
+          className="h-9 px-3 rounded-xl bg-[#EA580C] hover:bg-[#C2410C] text-white text-[13px] font-medium transition-all shadow-xs flex items-center justify-center gap-1.5 self-start sm:self-center shrink-0 cursor-pointer"
         >
           <span className="text-sm leading-none">+</span>
           <span>{lang === "gu" ? "સૂચન શેર કરો" : "Share Suggestion"}</span>
@@ -357,14 +357,14 @@ function AccountSettingsView() {
 
       {/* 2. General Information Card */}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
-        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
           {lang === "gu" ? "સામાન્ય માહિતી" : "GENERAL INFORMATION"}
         </h2>
 
         <form onSubmit={handleSaveProfile} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1.5">
                 {lang === "gu" ? "નામ *" : "NAME *"}
               </label>
               <input
@@ -372,14 +372,14 @@ function AccountSettingsView() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter full name"
-                className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20 focus:border-[#EA580C] font-semibold text-slate-800 transition-all"
+                className="w-full px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20 focus:border-[#EA580C] font-normal text-slate-800 transition-all h-10"
                 required
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-bold text-slate-700">
+                <label className="text-[12px] font-medium text-slate-700">
                   {lang === "gu" ? "મોબાઇલ નંબર" : "MOBILE NUMBER"}
                 </label>
                 <span className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
@@ -393,12 +393,12 @@ function AccountSettingsView() {
                 type="text"
                 value={mobile}
                 disabled
-                className="w-full px-3.5 py-2.5 text-xs bg-slate-100 border border-slate-200 rounded-xl font-mono font-bold text-slate-600 cursor-not-allowed select-none"
+                className="w-full px-3.5 py-2.5 text-[13px] bg-slate-100 border border-slate-200 rounded-xl tabular-nums font-normal text-slate-600 cursor-not-allowed select-none h-10"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              <label className="block text-[12px] font-medium text-slate-700 mb-1.5">
                 {lang === "gu" ? "ઇમેઇલ સરનામું" : "EMAIL"}
               </label>
               <input
@@ -406,7 +406,7 @@ function AccountSettingsView() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@business.com"
-                className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20 focus:border-[#EA580C] font-medium text-slate-800 transition-all"
+                className="w-full px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20 focus:border-[#EA580C] font-medium text-slate-800 transition-all h-10"
               />
             </div>
           </div>
@@ -426,18 +426,18 @@ function AccountSettingsView() {
                   value={profileOtp}
                   onChange={(e) => setProfileOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   placeholder="6-digit code"
-                  className="w-36 px-3 py-1.5 text-xs bg-white border border-amber-300 rounded-lg font-mono tracking-widest text-center"
+                  className="w-36 px-3 py-1.5 text-xs bg-white border border-amber-300 rounded-lg tabular-nums tracking-widest text-center"
                 />
                 <button
                   type="button"
                   disabled={isSaving}
                   onClick={handleSendProfileOtp}
-                  className="px-3 py-1.5 rounded-lg bg-amber-800 hover:bg-amber-900 text-white text-xs font-semibold disabled:opacity-50"
+                  className="h-9 px-3 rounded-lg bg-amber-800 hover:bg-amber-900 text-white text-[13px] font-medium disabled:opacity-50"
                 >
                   {lang === "gu" ? "કોડ મોકલો" : "Send code"}
                 </button>
                 {devOtp && (
-                  <span className="text-xs font-mono text-amber-950 font-bold bg-amber-100 px-2 py-1 rounded">
+                  <span className="text-xs tabular-nums text-amber-950 font-bold bg-amber-100 px-2 py-1 rounded">
                     Dev Code: {devOtp}
                   </span>
                 )}
@@ -449,7 +449,7 @@ function AccountSettingsView() {
             <button
               type="submit"
               disabled={isSaving || (emailChanged && profileOtp.length !== 6)}
-              className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+              className="h-9 px-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-[13px] font-medium transition-all shadow-xs cursor-pointer disabled:opacity-50"
             >
               {isSaving
                 ? lang === "gu" ? "સાચવી રહ્યું છે..." : "Saving..."
@@ -461,7 +461,7 @@ function AccountSettingsView() {
 
       {/* 3. Change Password Card */}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
-        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
           {lang === "gu" ? "પાસવર્ડ બદલો" : "CHANGE PASSWORD"}
         </h2>
 
@@ -473,7 +473,7 @@ function AccountSettingsView() {
                 placeholder={lang === "gu" ? "હાલનો પાસવર્ડ" : "Current password"}
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20 focus:border-[#EA580C] text-slate-800"
+                className="w-full px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20 focus:border-[#EA580C] text-slate-800 h-10"
                 required
               />
             </div>
@@ -484,7 +484,7 @@ function AccountSettingsView() {
                 placeholder={lang === "gu" ? "નવો પાસવર્ડ (ઓછામાં ઓછા 6 અક્ષર)" : "New password (min 6 characters)"}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20 focus:border-[#EA580C] text-slate-800"
+                className="w-full px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20 focus:border-[#EA580C] text-slate-800 h-10"
                 minLength={6}
                 required
               />
@@ -494,7 +494,7 @@ function AccountSettingsView() {
           <button
             type="submit"
             disabled={isSaving || !currentPassword || newPassword.length < 6}
-            className="px-4 py-2 rounded-xl bg-[#0B1528] hover:bg-[#1E293B] text-white text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+            className="h-9 px-3 rounded-xl bg-[#0B1528] hover:bg-[#1E293B] text-white text-[13px] font-medium transition-all shadow-xs cursor-pointer disabled:opacity-50"
           >
             {isSaving
               ? lang === "gu" ? "બદલી રહ્યું છે..." : "Updating..."
@@ -505,7 +505,7 @@ function AccountSettingsView() {
 
       {/* 4. Referral Code for Discount */}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
-        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
           {lang === "gu" ? "સબ્સ્ક્રિપ્શન ડિસ્કાઉન્ટ માટે રેફરલ કોડ" : "REFERRAL CODE FOR SUBSCRIPTION DISCOUNT"}
         </h2>
 
@@ -515,13 +515,13 @@ function AccountSettingsView() {
             placeholder="REFERRAL CODE"
             value={referralCode}
             onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-            className="flex-1 max-w-md px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-mono uppercase focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20 focus:border-[#EA580C] text-slate-800 tracking-wider"
+            className="flex-1 max-w-md px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl tabular-nums uppercase focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20 focus:border-[#EA580C] text-slate-800 tracking-wider h-10"
           />
 
           <button
             type="submit"
             disabled={!referralCode.trim()}
-            className="px-6 py-2.5 rounded-xl bg-[#EA580C] hover:bg-[#C2410C] text-white text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50 shrink-0"
+            className="px-6 py-2.5 rounded-xl bg-[#EA580C] hover:bg-[#C2410C] text-white text-[13px] font-medium transition-all shadow-xs cursor-pointer disabled:opacity-50 shrink-0"
           >
             {lang === "gu" ? "લાગુ કરો" : "Apply"}
           </button>
@@ -544,7 +544,7 @@ function AccountSettingsView() {
 
       {/* 5. Subscription Plan Card (Accurate Live Expiry Check) */}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
-        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
           {lang === "gu" ? "સબ્સ્ક્રિપ્શન પ્લાન" : "SUBSCRIPTION PLAN"}
         </h2>
 
@@ -565,7 +565,7 @@ function AccountSettingsView() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-lg font-black text-slate-900 tracking-tight">
+                <span className="text-lg font-semibold text-slate-900 tracking-tight">
                   {planName}
                 </span>
 
@@ -600,7 +600,7 @@ function AccountSettingsView() {
                   ? lang === "gu" ? "તમારો પ્લાન આ તારીખે સમાપ્ત થયો:" : "Your Plan expired on:"
                   : lang === "gu" ? "તમારો પ્લાન આ તારીખે સમાપ્ત થશે:" : "Your Plan ends on:"}
               </span>
-              <span className={`text-sm font-bold font-mono ${isExpired ? "text-rose-700 font-black" : "text-slate-900"}`}>
+              <span className={`text-sm font-bold tabular-nums ${isExpired ? "text-rose-700 font-semibold" : "text-slate-900"}`}>
                 {planEndsOn}
               </span>
             </div>
@@ -637,7 +637,7 @@ function AccountSettingsView() {
             <button
               type="button"
               onClick={() => setShowUpgradeModal(true)}
-              className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold text-xs shrink-0 cursor-pointer shadow-xs"
+              className="h-9 px-3 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-medium text-[13px] shrink-0 cursor-pointer shadow-xs"
             >
               {lang === "gu" ? "હમણાં રિન્યૂ કરો" : "Renew Now"}
             </button>
@@ -649,7 +649,7 @@ function AccountSettingsView() {
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               {lang === "gu" ? "સંસ્થા મુજબ બિલિંગ ઇતિહાસ" : "BILLING HISTORY"}
             </h2>
             <p className="text-[11px] text-slate-400 mt-0.5">
@@ -683,7 +683,7 @@ function AccountSettingsView() {
             <tbody className="divide-y divide-slate-100">
               {billingLoading ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
+                  <td colSpan={6} className="py-8 text-center text-slate-400 text-[13px]">
                     <div className="flex items-center justify-center gap-2">
                       <span className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></span>
                       <span>Loading billing history for {currentCompany?.tradeName || "organization"}...</span>
@@ -692,7 +692,7 @@ function AccountSettingsView() {
                 </tr>
               ) : billingHistory.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
+                  <td colSpan={6} className="py-8 text-center text-slate-400 text-[13px]">
                     No billing history records found for this organization.
                   </td>
                 </tr>
@@ -700,8 +700,8 @@ function AccountSettingsView() {
                 billingHistory.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-3 px-4 text-slate-700 font-medium">{item.displayDate || formatReadableDate(item.date)}</td>
-                    <td className="py-3 px-4 font-bold text-slate-900">{item.planName}</td>
-                    <td className="py-3 px-4 font-mono text-slate-600">{item.referenceNo}</td>
+                    <td className="py-3 px-4 font-medium text-slate-900">{item.planName}</td>
+                    <td className="py-3 px-4 tabular-nums text-slate-600">{item.referenceNo}</td>
                     <td className="py-3 px-4">
                       {item.paymentStatus === "Success" ? (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
@@ -720,12 +720,12 @@ function AccountSettingsView() {
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-4 font-bold text-slate-900">{item.formattedAmount || `₹ ${item.amount}`}</td>
+                    <td className="py-3 px-4 font-medium text-slate-900">{item.formattedAmount || `₹ ${item.amount}`}</td>
                     <td className="py-3 px-4 text-right">
                       <button
                         type="button"
                         onClick={() => setSelectedReceipt(item)}
-                        className="inline-flex items-center gap-1 text-[#6366F1] hover:text-[#4F46E5] font-semibold text-xs transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1 text-[#6366F1] hover:text-[#4F46E5] font-medium text-[13px] transition-colors cursor-pointer"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -749,8 +749,8 @@ function AccountSettingsView() {
               <div className="flex items-center gap-2.5">
                 <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">✓</span>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Tax Invoice / Receipt</h3>
-                  <p className="text-[11px] text-slate-500 font-mono">{selectedReceipt.referenceNo}</p>
+                  <h3 className="text-[15px] font-semibold text-slate-900">Tax Invoice / Receipt</h3>
+                  <p className="text-[11px] text-slate-500 tabular-nums">{selectedReceipt.referenceNo}</p>
                 </div>
               </div>
               <button onClick={() => setSelectedReceipt(null)} className="text-slate-400 hover:text-slate-700 p-1">✕</button>
@@ -761,7 +761,7 @@ function AccountSettingsView() {
               <div className="border-b border-slate-200 pb-2">
                 <p className="font-bold text-slate-900 text-xs">{selectedReceipt.billedBy?.tradeName || "myBillBook Technologies Pvt Ltd"}</p>
                 <p className="text-[11px] text-slate-500">{selectedReceipt.billedBy?.address || "Satellite, Ahmedabad, Gujarat - 380015"}</p>
-                <div className="flex gap-4 text-[10px] text-slate-600 mt-1 font-mono">
+                <div className="flex gap-4 text-[10px] text-slate-600 mt-1 tabular-nums">
                   <span>GSTIN: <b>{selectedReceipt.billedBy?.gstin || "24AABCM9124P1ZX"}</b></span>
                   <span>SAC: <b>{selectedReceipt.billedBy?.sacCode || "998314"}</b></span>
                 </div>
@@ -771,7 +771,7 @@ function AccountSettingsView() {
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase font-bold block">BILLED TO (ORGANIZATION)</span>
                   <p className="font-bold text-slate-900">{selectedReceipt.companyName || selectedReceipt.organizationName}</p>
-                  <p className="text-[11px] text-slate-600 font-mono">GSTIN: {selectedReceipt.gstin || "Unregistered"}</p>
+                  <p className="text-[11px] text-slate-600 tabular-nums">GSTIN: {selectedReceipt.gstin || "Unregistered"}</p>
                 </div>
                 <div className="text-right">
                   <span className="text-[10px] text-slate-400 uppercase font-bold block">INVOICE DATE</span>
@@ -795,9 +795,9 @@ function AccountSettingsView() {
                       <p className="font-bold text-slate-900">{selectedReceipt.planName}</p>
                       <p className="text-[10px] text-slate-500">Cloud Accounting, GST E-Invoicing & Multi-Branch</p>
                     </td>
-                    <td className="py-2 text-center font-mono text-[11px] text-slate-600">998314</td>
-                    <td className="py-2 text-right font-mono">₹ {(selectedReceipt.taxableAmount || 0).toLocaleString("en-IN")}</td>
-                    <td className="py-2 text-right font-mono font-bold text-slate-900">{selectedReceipt.formattedAmount || `₹ ${selectedReceipt.amount}`}</td>
+                    <td className="py-2 text-center tabular-nums text-[11px] text-slate-600">998314</td>
+                    <td className="py-2 text-right tabular-nums">₹ {(selectedReceipt.taxableAmount || 0).toLocaleString("en-IN")}</td>
+                    <td className="py-2 text-right tabular-nums font-medium text-slate-900">{selectedReceipt.formattedAmount || `₹ ${selectedReceipt.amount}`}</td>
                   </tr>
                 </tbody>
               </table>
@@ -805,25 +805,25 @@ function AccountSettingsView() {
               <div className="border-t border-slate-200 pt-2 space-y-1 text-[11px]">
                 <div className="flex justify-between text-slate-600">
                   <span>Taxable Value:</span>
-                  <span className="font-mono">₹ {(selectedReceipt.taxableAmount || 0).toLocaleString("en-IN")}</span>
+                  <span className="tabular-nums">₹ {(selectedReceipt.taxableAmount || 0).toLocaleString("en-IN")}</span>
                 </div>
                 <div className="flex justify-between text-slate-600">
                   <span>CGST (9%):</span>
-                  <span className="font-mono">₹ {(selectedReceipt.cgst || 0).toLocaleString("en-IN")}</span>
+                  <span className="tabular-nums">₹ {(selectedReceipt.cgst || 0).toLocaleString("en-IN")}</span>
                 </div>
                 <div className="flex justify-between text-slate-600">
                   <span>SGST (9%):</span>
-                  <span className="font-mono">₹ {(selectedReceipt.sgst || 0).toLocaleString("en-IN")}</span>
+                  <span className="tabular-nums">₹ {(selectedReceipt.sgst || 0).toLocaleString("en-IN")}</span>
                 </div>
-                <div className="flex justify-between text-xs font-black text-slate-900 pt-1 border-t border-slate-200">
+                <div className="flex justify-between text-xs font-semibold text-slate-900 pt-1 border-t border-slate-200">
                   <span>Total Amount Paid:</span>
-                  <span className="text-[#EA580C] font-mono text-sm">{selectedReceipt.formattedAmount || `₹ ${selectedReceipt.amount}`}</span>
+                  <span className="text-[#EA580C] tabular-nums text-sm">{selectedReceipt.formattedAmount || `₹ ${selectedReceipt.amount}`}</span>
                 </div>
               </div>
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-2">
-              <button onClick={() => setSelectedReceipt(null)} className="px-3.5 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-xl">Close</button>
+              <button onClick={() => setSelectedReceipt(null)} className="h-9 px-3 text-[13px] text-slate-600 hover:bg-slate-100 rounded-xl">Close</button>
               <button
                 type="button"
                 onClick={() => {
@@ -877,7 +877,7 @@ function AccountSettingsView() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-100">
           <div className="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-[15px] font-semibold text-slate-900 flex items-center gap-2">
                 <span className="w-6 h-6 rounded-lg bg-orange-100 text-[#EA580C] flex items-center justify-center text-xs">💡</span>
                 {lang === "gu" ? "તમારું સૂચન શેર કરો" : "Share Your Suggestion"}
               </h3>
@@ -897,13 +897,13 @@ function AccountSettingsView() {
             ) : (
               <form onSubmit={handleSendSuggestion} className="space-y-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1">
                     Category
                   </label>
                   <select
                     value={suggestionCategory}
                     onChange={(e) => setSuggestionCategory(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl"
+                    className="w-full px-3 py-2 text-[13px] bg-slate-50 border border-slate-200 rounded-xl h-10"
                   >
                     <option value="Feature Request">New Feature Request</option>
                     <option value="GST & E-Way">GST & E-Way Bill Workflow</option>
@@ -912,7 +912,7 @@ function AccountSettingsView() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-[12px] font-medium text-slate-700 mb-1">
                     What can we improve or build for you?
                   </label>
                   <textarea
@@ -920,7 +920,7 @@ function AccountSettingsView() {
                     value={suggestionText}
                     onChange={(e) => setSuggestionText(e.target.value)}
                     placeholder="Describe the feature or workflow that would help your business..."
-                    className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#EA580C]/30 focus:border-[#EA580C]"
+                    className="w-full p-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#EA580C]/30 focus:border-[#EA580C]"
                     required
                   ></textarea>
                 </div>
@@ -928,13 +928,13 @@ function AccountSettingsView() {
                   <button
                     type="button"
                     onClick={() => setShowShareSuggestion(false)}
-                    className="px-3.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-xl"
+                    className="h-9 px-3 text-[13px] text-slate-600 hover:bg-slate-100 rounded-xl"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-1.5 text-xs font-bold text-white bg-[#EA580C] hover:bg-[#C2410C] rounded-xl shadow-xs"
+                    className="px-4 py-1.5 text-[13px] font-medium text-white bg-[#EA580C] hover:bg-[#C2410C] rounded-xl shadow-xs"
                   >
                     Send Suggestion
                   </button>
@@ -950,7 +950,7 @@ function AccountSettingsView() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-100">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-[15px] font-semibold text-slate-900 flex items-center gap-2">
                 <span className="text-[#EA580C]">⚡</span>
                 {lang === "gu" ? "સબ્સ્ક્રિપ્શન પ્લાન રિન્યૂ / અપગ્રેડ કરો" : "Renew / Upgrade Subscription"}
               </h3>
@@ -1005,12 +1005,12 @@ function AccountSettingsView() {
                     <p className="text-[11px] text-slate-500 mt-0.5">{p.desc}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="font-bold text-xs text-slate-900 font-mono">{p.price}</span>
+                    <span className="font-bold text-xs text-slate-900 tabular-nums">{p.price}</span>
                     <button
                       type="button"
                       disabled={isUpgradingPlan}
                       onClick={() => handleUpgradePlan(p.tier, "1year")}
-                      className="px-3 py-1.5 bg-[#EA580C] hover:bg-[#C2410C] text-white text-xs font-bold rounded-lg shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                      className="h-9 px-3 bg-[#EA580C] hover:bg-[#C2410C] text-white text-[13px] font-medium rounded-lg shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                     >
                       {isUpgradingPlan ? "Activating..." : "Select"}
                     </button>
@@ -1023,7 +1023,7 @@ function AccountSettingsView() {
               <button
                 type="button"
                 onClick={() => setShowUpgradeModal(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+                className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-xl"
               >
                 Cancel
               </button>
@@ -1375,14 +1375,14 @@ function ManageBusinessSettingsView() {
     <div className="max-w-[1180px] mx-auto pb-10">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4">
         <div>
-          <h1 className="text-[22px] font-semibold text-slate-800">{lang === "gu" ? "વ્યવસાય સેટિંગ્સ" : "Business Settings"}</h1>
+          <h1 className="text-[22px] font-semibold text-[#182230]">{lang === "gu" ? "વ્યવસાય સેટિંગ્સ" : "Business Settings"}</h1>
           <p className="text-[12px] text-slate-500">{lang === "gu" ? "તમારી કંપનીની વિગતો અને માહિતી એડિટ કરો" : "Edit Your Company Settings And Information"}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="h-9 px-3 rounded-md bg-[#EA580C] hover:bg-[#C2410C] text-white text-[12px] font-semibold"
+            className="h-9 px-3 rounded-md bg-[#EA580C] hover:bg-[#C2410C] text-white text-[12px] font-medium"
           >
             Create new business
           </button>
@@ -1408,7 +1408,7 @@ function ManageBusinessSettingsView() {
             type="button"
             onClick={() => handleSubmit()}
             disabled={isSaving}
-            className="h-9 px-4 rounded-md bg-[#6D28D9] hover:bg-[#5B21B6] text-white text-[12px] font-semibold"
+            className="h-9 px-4 rounded-md bg-[#6D28D9] hover:bg-[#5B21B6] text-white text-[12px] font-medium"
           >
             {isSaving ? "Saving..." : "Save Changes"}
           </button>
@@ -1541,7 +1541,7 @@ function ManageBusinessSettingsView() {
           {formData.gstRegistered && (
             <div>
               <label className={labelCls}>GSTIN</label>
-              <input value={formData.gstin} onChange={handleGstinChange} placeholder="24ABCDE1234F1Z5" className={`${fieldCls} font-mono uppercase`} />
+              <input value={formData.gstin} onChange={handleGstinChange} placeholder="24ABCDE1234F1Z5" className={`${fieldCls} tabular-nums uppercase`} />
             </div>
           )}
 
@@ -1582,7 +1582,7 @@ function ManageBusinessSettingsView() {
               value={formData.pan}
               onChange={(e) => setFormData({ ...formData, pan: e.target.value.toUpperCase().slice(0, 10) })}
               placeholder="Enter your PAN Number"
-              className={`${fieldCls} font-mono uppercase`}
+              className={`${fieldCls} tabular-nums uppercase`}
             />
           </div>
 
@@ -1608,7 +1608,7 @@ function ManageBusinessSettingsView() {
           </label>
 
           <div className="pt-4 border-t border-slate-100">
-            <h2 className="text-[16px] font-semibold text-slate-800 mb-3">Company Settings</h2>
+            <h2 className="text-[16px] font-semibold text-[#182230] mb-3">Company Settings</h2>
             <button type="button" onClick={exportTally} className="w-full text-left rounded-lg border border-slate-200 p-3 hover:bg-slate-50">
               <p className="text-[13px] font-semibold text-slate-800">Data Export to Tally</p>
               <p className="text-[11px] text-slate-500">Transfer vouchers, items and parties to Tally</p>
@@ -1727,7 +1727,7 @@ function ManageBusinessSettingsView() {
                 placeholder={options.extraDetailKeys?.find((k: any) => k.id === extraKey)?.placeholder || "www.website.com"}
                 className={fieldCls}
               />
-              <button type="button" onClick={addExtraDetail} className="h-9 px-4 rounded-md bg-[#4F46E5] text-white text-[13px] font-semibold shrink-0">
+              <button type="button" onClick={addExtraDetail} className="h-9 px-4 rounded-md bg-[#4F46E5] text-white text-[13px] font-medium shrink-0">
                 Add
               </button>
             </div>
@@ -1866,7 +1866,7 @@ function PrintSettingsView() {
       {/* Top Header Bar */}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">
+          <h1 className="text-[22px] font-semibold text-[#182230]">
             {lang === "gu" ? "પ્રિન્ટ સેટિંગ્સ" : "Print Settings"}
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -1882,7 +1882,7 @@ function PrintSettingsView() {
           <button
             type="button"
             onClick={handleTestPrint}
-            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+            className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[13px] font-medium rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <span>🖨️</span>
             <span>Print Test Slip</span>
@@ -1890,7 +1890,7 @@ function PrintSettingsView() {
           <button
             type="button"
             onClick={handleSave}
-            className="px-5 py-2 bg-[#6366F1] hover:bg-[#4F46E5] text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer"
+            className="h-9 px-3.5 bg-[#6366F1] hover:bg-[#4F46E5] text-white text-[13px] font-medium rounded-xl shadow-xs transition-all cursor-pointer"
           >
             {lang === "gu" ? "સાચવો" : "Save Settings"}
           </button>
@@ -1902,7 +1902,7 @@ function PrintSettingsView() {
         {/* LEFT COLUMN: Live Thermal Receipt Preview */}
         <div className="flex-1 w-full bg-[#E5E7EB]/60 rounded-2xl p-4 sm:p-6 lg:p-8 flex justify-center items-start overflow-x-auto border border-slate-200 min-h-[750px]">
           <div
-            className={`bg-white shadow-xl border border-slate-300 text-[10px] text-slate-800 p-5 font-mono space-y-1.5 rounded-xs select-none transition-all ${
+            className={`bg-white shadow-xl border border-slate-300 text-[10px] text-slate-800 p-5 tabular-nums space-y-1.5 rounded-xs select-none transition-all ${
               paperSize === "2inch" ? "w-[260px]" : "w-[330px]"
             }`}
           >
@@ -2099,8 +2099,8 @@ function PrintSettingsView() {
           {/* Themes Section */}
           <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-3">
             <div className="flex items-center gap-1.5">
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">Themes</h3>
-              <span className="text-[9px] font-black uppercase bg-rose-600 text-white px-1.5 py-0.5 rounded shadow-2xs">
+              <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wide">Themes</h3>
+              <span className="text-[9px] font-semibold uppercase bg-rose-600 text-white px-1.5 py-0.5 rounded shadow-2xs">
                 NEW
               </span>
             </div>
@@ -2123,7 +2123,7 @@ function PrintSettingsView() {
                   }`}
                 >
                   {th.hasNew && (
-                    <span className="absolute -top-1.5 -right-1 text-[8px] font-black uppercase bg-rose-600 text-white px-1 py-0.2 rounded shadow-xs">
+                    <span className="absolute -top-1.5 -right-1 text-[8px] font-semibold uppercase bg-rose-600 text-white px-1 py-0.2 rounded shadow-xs">
                       NEW
                     </span>
                   )}
@@ -2139,10 +2139,10 @@ function PrintSettingsView() {
 
           {/* Print Settings: Paper Size */}
           <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-3">
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">Print Settings</h3>
+            <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wide">Print Settings</h3>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Select Paper Size</label>
+              <label className="block text-[11px] font-medium text-slate-600 mb-1.5">Select Paper Size</label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
@@ -2197,7 +2197,7 @@ function PrintSettingsView() {
 
           {/* Theme Settings Checkboxes */}
           <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-2.5">
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">Theme Settings</h3>
+            <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wide">Theme Settings</h3>
 
             <div className="space-y-2 pt-1 text-xs">
               <label className="flex items-center gap-2 cursor-pointer">
@@ -2336,7 +2336,7 @@ function RemindersView() {
     <div className="max-w-5xl mx-auto space-y-5">
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">
+          <h1 className="text-[22px] font-semibold text-[#182230]">
             {lang === "gu" ? "ઓટોમેટેડ પેમેન્ટ રિમાઇન્ડર્સ" : "Automated Payment Reminders"}
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -2348,7 +2348,7 @@ function RemindersView() {
         <button
           type="button"
           onClick={handleSave}
-          className="px-4 py-2 bg-[#6366F1] hover:bg-[#4F46E5] text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer"
+          className="h-9 px-3 bg-[#6366F1] hover:bg-[#4F46E5] text-white text-[13px] font-medium rounded-xl shadow-xs transition-all cursor-pointer"
         >
           {lang === "gu" ? "શિડ્યુલ સાચવો" : "Save Schedules"}
         </button>
@@ -2363,7 +2363,7 @@ function RemindersView() {
 
       {/* Reminder Channels */}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-3">
-        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Communication Channels</h2>
+        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Communication Channels</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 cursor-pointer">
             <div className="flex items-center gap-2.5">
@@ -2400,7 +2400,7 @@ function RemindersView() {
 
       {/* Schedules */}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-3">
-        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Automated Schedule Rules</h2>
+        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Automated Schedule Rules</h2>
         <div className="space-y-2.5">
           {[
             { key: "beforeDue", title: "3 Days Before Due Date", desc: "Friendly reminder with invoice PDF link & UPI payment QR" },
@@ -2427,21 +2427,21 @@ function RemindersView() {
 
       {/* WhatsApp Message Template & Live Preview */}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
-        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">WhatsApp Message Template</h2>
+        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">WhatsApp Message Template</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Custom Message Text</label>
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">Custom Message Text</label>
             <textarea
               rows={5}
               value={templateText}
               onChange={(e) => setTemplateText(e.target.value)}
-              className="w-full p-3 text-xs bg-slate-50 border border-slate-200 rounded-xl font-sans"
+              className="w-full p-3 text-[13px] bg-slate-50 border border-slate-200 rounded-xl font-sans"
             />
             <p className="text-[11px] text-slate-400 mt-1">Available variables: {`{CustomerName}`}, {`{Amount}`}, {`{InvoiceNo}`}, {`{DueDate}`}, {`{UPILink}`}, {`{CompanyName}`}</p>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Live WhatsApp Preview</label>
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">Live WhatsApp Preview</label>
             <div className="p-4 rounded-2xl bg-[#EFEAE2] border border-[#DAD3C8] shadow-inner">
               <div className="max-w-sm bg-white rounded-2xl p-3 shadow-xs space-y-2 border border-slate-100">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
@@ -2546,14 +2546,14 @@ function CaSharingView() {
   return (
     <div className="max-w-5xl mx-auto space-y-5">
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs">
-        <h1 className="text-xl font-bold text-slate-900">CA & Tax Consultant Audit Portal</h1>
+        <h1 className="text-[22px] font-semibold text-[#182230]">CA & Tax Consultant Audit Portal</h1>
         <p className="text-xs text-slate-500 mt-0.5">
           Give your Chartered Accountant read-only access to download GSTR-1, GSTR-3B JSON, ledgers & P&L
         </p>
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-4">
-        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Invite Chartered Accountant</h2>
+        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Invite Chartered Accountant</h2>
         <form
           onSubmit={async (e) => {
             e.preventDefault();
@@ -2585,9 +2585,9 @@ function CaSharingView() {
             onChange={(e) => setCaEmail(e.target.value)}
             placeholder="ca.sharma@auditfirm.com"
             required
-            className="flex-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl"
+            className="flex-1 px-3 py-2 text-[13px] bg-slate-50 border border-slate-200 rounded-xl h-10"
           />
-          <button type="submit" className="px-4 py-2 bg-[#6366F1] hover:bg-[#4F46E5] text-white text-xs font-bold rounded-xl shadow-xs">
+          <button type="submit" className="h-9 px-3 bg-[#6366F1] hover:bg-[#4F46E5] text-white text-[13px] font-medium rounded-xl shadow-xs">
             Send Invite
           </button>
         </form>
@@ -2601,7 +2601,7 @@ function CaSharingView() {
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-3">
-        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Direct 1-Click Monthly Audit Exports</h2>
+        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Direct 1-Click Monthly Audit Exports</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between gap-3">
             <div>
@@ -2735,7 +2735,7 @@ function PricingSettingsView() {
     <div className="max-w-5xl mx-auto space-y-5">
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">
+          <h1 className="text-[22px] font-semibold text-[#182230]">
             {lang === "gu" ? "સબ્સ્ક્રિપ્શન પ્લાન્સ અને એન્ટાઇટલમેન્ટ્સ" : "Subscription Plans & Entitlements"}
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -2788,13 +2788,13 @@ function PricingSettingsView() {
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-base font-bold text-slate-900">{p.name}</h3>
+                  <h3 className="text-[15px] font-semibold text-slate-900">{p.name}</h3>
                   {p.isCurrent && (
                     <span className="text-[10px] font-bold text-white bg-[#EA580C] px-2 py-0.5 rounded-full">Current Plan</span>
                   )}
                 </div>
                 <div>
-                  <span className="text-2xl font-black text-slate-900">₹ {displayPrice.toLocaleString("en-IN")}</span>
+                  <span className="text-2xl font-semibold text-slate-900">₹ {displayPrice.toLocaleString("en-IN")}</span>
                   <span className="text-xs text-slate-500 block">
                     {billingCycle === "1year" ? "per year + 18% GST" : "for 3 years + 18% GST"}
                   </span>
@@ -2830,7 +2830,7 @@ function PricingSettingsView() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-100">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-slate-900">Checkout: {selectedPlan} Plan</h3>
+              <h3 className="text-[15px] font-semibold text-slate-900">Checkout: {selectedPlan} Plan</h3>
               <button onClick={() => setSelectedPlan(null)} className="text-slate-400 hover:text-slate-700 p-1">✕</button>
             </div>
 
@@ -2870,7 +2870,7 @@ function PricingSettingsView() {
                   placeholder="Coupon code (e.g. SAVE20)"
                   value={coupon}
                   onChange={(e) => setCoupon(e.target.value.toUpperCase())}
-                  className="flex-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-mono uppercase"
+                  className="flex-1 px-3 py-1.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl tabular-nums uppercase h-10"
                 />
                 <button
                   type="button"
@@ -2879,7 +2879,7 @@ function PricingSettingsView() {
                       setDiscountApplied(true);
                     }
                   }}
-                  className="px-3 py-1.5 bg-slate-800 text-white text-xs font-bold rounded-xl"
+                  className="h-9 px-3 bg-slate-800 text-white text-[13px] font-medium rounded-xl"
                 >
                   Apply
                 </button>
@@ -2888,14 +2888,14 @@ function PricingSettingsView() {
             </div>
 
             <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
-              <button onClick={() => setSelectedPlan(null)} className="px-3.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-xl">
+              <button onClick={() => setSelectedPlan(null)} className="h-9 px-3 text-[13px] text-slate-600 hover:bg-slate-100 rounded-xl">
                 Cancel
               </button>
               <button
                 type="button"
                 disabled={isUpgrading}
                 onClick={handleConfirmPay}
-                className="px-4 py-1.5 text-xs font-bold text-white bg-[#EA580C] hover:bg-[#C2410C] rounded-xl shadow-xs disabled:opacity-50 cursor-pointer"
+                className="px-4 py-1.5 text-[13px] font-medium text-white bg-[#EA580C] hover:bg-[#C2410C] rounded-xl shadow-xs disabled:opacity-50 cursor-pointer"
               >
                 {isUpgrading ? "Activating Subscription..." : "Confirm & Pay Now"}
               </button>
@@ -2926,7 +2926,7 @@ function ReferEarnView() {
   return (
     <div className="max-w-5xl mx-auto space-y-5">
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs">
-        <h1 className="text-xl font-bold text-slate-900">Refer Businesses & Earn ₹500 Discount</h1>
+        <h1 className="text-[22px] font-semibold text-[#182230]">Refer Businesses & Earn ₹500 Discount</h1>
         <p className="text-xs text-slate-500 mt-0.5">
           Share your referral code with fellow business owners. They get ₹500 discount on signup and you get ₹500 on your next renewal.
         </p>
@@ -2936,13 +2936,13 @@ function ReferEarnView() {
         <div>
           <span className="text-xs font-semibold text-slate-600 block">Your Exclusive Referral Link:</span>
           <div className="flex items-center gap-2 mt-1">
-            <span className="font-mono text-sm font-bold text-slate-900 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
+            <span className="tabular-nums text-sm font-bold text-slate-900 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
               {shareUrl}
             </span>
             <button
               type="button"
               onClick={copyCode}
-              className="px-4 py-2 bg-[#6366F1] hover:bg-[#4F46E5] text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer"
+              className="h-9 px-3 bg-[#6366F1] hover:bg-[#4F46E5] text-white text-[13px] font-medium rounded-xl transition-all shadow-xs cursor-pointer"
             >
               {copied ? "Copied! ✓" : "Copy Link"}
             </button>
@@ -2953,7 +2953,7 @@ function ReferEarnView() {
           href={`https://wa.me/?text=Hello!%20I%20am%20using%20myownBillBook%20for%20GST%20Billing%20and%20Accounting.%20Use%20my%20link%20to%20get%20Rs.500%20discount:%20${encodeURIComponent(shareUrl)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-2 shrink-0"
+          className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs flex items-center gap-2 shrink-0"
         >
           <span>Share on WhatsApp</span>
         </a>
@@ -2984,9 +2984,9 @@ function ReferEarnView() {
           value={referEmail}
           onChange={(e) => setReferEmail(e.target.value)}
           placeholder="friend@business.com"
-          className="flex-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl"
+          className="flex-1 px-3 py-2 text-[13px] bg-slate-50 border border-slate-200 rounded-xl h-10"
         />
-        <button type="submit" className="px-4 py-2 bg-[#6366F1] text-white text-xs font-bold rounded-xl">
+        <button type="submit" className="h-9 px-3 bg-[#6366F1] text-white text-[13px] font-medium rounded-xl">
           Email referral
         </button>
         {referNote && <p className="text-xs text-slate-600 sm:col-span-2">{referNote}</p>}
@@ -3000,7 +3000,7 @@ function ReferEarnView() {
         ].map((st) => (
           <div key={st.label} className="p-4 rounded-xl border border-slate-200 bg-white text-center">
             <p className="text-xs text-slate-500">{st.label}</p>
-            <p className="text-xl font-black text-slate-900 mt-1">{st.val}</p>
+            <p className="text-xl font-semibold text-slate-900 mt-1">{st.val}</p>
           </div>
         ))}
       </div>
@@ -3049,7 +3049,7 @@ function HelpSupportView() {
   return (
     <div className="max-w-5xl mx-auto space-y-5">
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs">
-        <h1 className="text-xl font-bold text-slate-900">24x7 Customer Support & Help Center</h1>
+        <h1 className="text-[22px] font-semibold text-[#182230]">24x7 Customer Support & Help Center</h1>
         <p className="text-xs text-slate-500 mt-0.5">
           Dedicated assistance in Gujarati and English from our certified accounting specialists
         </p>
@@ -3083,7 +3083,7 @@ function HelpSupportView() {
 
       {/* Request Callback Form */}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-3">
-        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Request an Immediate Callback</h2>
+        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Request an Immediate Callback</h2>
         {callbackDone ? (
           <p className="text-xs text-emerald-700 font-bold p-3 bg-emerald-50 rounded-xl">
             ✓ Confirmation emailed. Our representative will call the number you entered.
@@ -3096,7 +3096,7 @@ function HelpSupportView() {
               onChange={(e) => setCallbackName(e.target.value)}
               placeholder="Your Name"
               required
-              className="flex-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl"
+              className="flex-1 px-3 py-2 text-[13px] bg-slate-50 border border-slate-200 rounded-xl h-10"
             />
             <input
               type="text"
@@ -3104,7 +3104,7 @@ function HelpSupportView() {
               onChange={(e) => setCallbackPhone(e.target.value)}
               placeholder="Mobile Number"
               required
-              className="flex-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-mono"
+              className="flex-1 px-3 py-2 text-[13px] bg-slate-50 border border-slate-200 rounded-xl tabular-nums h-10"
             />
             <input
               type="email"
@@ -3112,9 +3112,9 @@ function HelpSupportView() {
               onChange={(e) => setCallbackEmail(e.target.value)}
               placeholder="Email for confirmation"
               required
-              className="flex-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl"
+              className="flex-1 px-3 py-2 text-[13px] bg-slate-50 border border-slate-200 rounded-xl h-10"
             />
-            <button type="submit" className="px-5 py-2 bg-[#EA580C] hover:bg-[#C2410C] text-white text-xs font-bold rounded-xl shadow-xs">
+            <button type="submit" className="h-9 px-3.5 bg-[#EA580C] hover:bg-[#C2410C] text-white text-[13px] font-medium rounded-xl shadow-xs">
               Call Me
             </button>
           </form>

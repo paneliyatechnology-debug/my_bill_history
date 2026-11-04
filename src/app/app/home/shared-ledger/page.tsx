@@ -492,14 +492,14 @@ export default function SharedLedgerPage() {
       <div className="flex w-80 lg:w-[350px] shrink-0 flex-col border-r border-slate-200 bg-white shadow-xs">
         {/* Top Header */}
         <div className="flex items-center justify-between border-b border-slate-100 p-4 pb-3">
-          <h2 className="text-lg font-bold text-slate-800 tracking-tight">SharedLedger</h2>
+          <h2 className="text-[15px] font-semibold text-[#182230] tracking-tight">SharedLedger</h2>
 
           <div className="flex items-center gap-2">
             {/* How it Works Button */}
             {/* <button
               type="button"
               onClick={() => setShowHowItWorksModal(true)}
-              className="flex items-center gap-1.5 rounded-full border border-blue-500 bg-blue-50/60 px-2.5 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-100/70 transition-colors shadow-2xs cursor-pointer"
+              className="flex items-center gap-1.5 rounded-full border border-blue-500 bg-blue-50/60 px-2.5 py-1 text-[13px] font-medium text-blue-600 hover:bg-blue-100/70 transition-colors shadow-2xs cursor-pointer"
             >
               <svg className="h-3.5 w-3.5 fill-blue-600" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
@@ -553,7 +553,7 @@ export default function SharedLedgerPage() {
               value={searchParty}
               onChange={(e) => setSearchParty(e.target.value)}
               placeholder="Search by Party Name or Number"
-              className="w-full rounded-lg border border-slate-200 bg-slate-50/70 py-2 pl-9 pr-3 text-xs font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50/70 py-2 pl-9 pr-3 text-[13px] font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 h-10"
             />
           </div>
         </div>
@@ -601,7 +601,7 @@ export default function SharedLedgerPage() {
                     {/* Balance with Arrow */}
                     <div className="flex shrink-0 items-center gap-1 text-xs font-bold text-emerald-600">
                       <span>₹ {Math.round(party.balance).toLocaleString("en-IN")}</span>
-                      <span className="text-[11px] font-extrabold">
+                      <span className="text-[11px] font-semibold">
                         {party.balance >= 0 ? "↓" : "↑"}
                       </span>
                     </div>
@@ -631,7 +631,7 @@ export default function SharedLedgerPage() {
             {/* Header Row */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-xl font-bold text-slate-800">SharedLedger</h1>
+                <h1 className="text-[22px] font-semibold text-[#182230]">SharedLedger</h1>
                 <div className="mt-1 flex items-center gap-2 text-xs font-medium text-slate-600">
                   <svg
                     className="h-4 w-4 text-slate-700"
@@ -656,7 +656,7 @@ export default function SharedLedgerPage() {
               <button
                 type="button"
                 onClick={() => setShowViewOnlyModal(true)}
-                className="flex items-center gap-1.5 rounded bg-slate-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-700 transition-colors shadow-2xs cursor-pointer"
+                className="flex items-center gap-1.5 rounded bg-slate-600 h-9 px-3 text-[13px] font-medium text-white hover:bg-slate-700 transition-colors shadow-2xs cursor-pointer"
               >
                 <span>View Only Mode</span>
               </button>
@@ -726,7 +726,7 @@ export default function SharedLedgerPage() {
                 <button
                   type="button"
                   onClick={() => setShowDateDropdown(!showDateDropdown)}
-                  className="flex items-center gap-2 rounded-lg border border-indigo-400 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
+                  className="flex items-center gap-2 rounded-lg border border-indigo-400 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
                 >
                   <svg
                     className="h-3.5 w-3.5 text-indigo-600"
@@ -795,7 +795,7 @@ export default function SharedLedgerPage() {
               <button
                 type="button"
                 onClick={() => setShowDownloadModal(true)}
-                className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
               >
                 <svg
                   className="h-3.5 w-3.5 text-slate-500"
@@ -868,10 +868,10 @@ export default function SharedLedgerPage() {
                         <td className="py-3.5 px-4 font-semibold text-slate-800">
                           {tx.type}
                         </td>
-                        <td className="py-3.5 px-4 font-mono font-medium text-slate-700">
+                        <td className="py-3.5 px-4 tabular-nums font-medium text-slate-700">
                           {tx.transactionNumber || "-"}
                         </td>
-                        <td className="py-3.5 px-4 font-bold text-slate-900">
+                        <td className="py-3.5 px-4 font-medium text-slate-900">
                           ₹ {tx.amount.toLocaleString("en-IN")}
                         </td>
                         <td className="py-3.5 px-4">
@@ -895,7 +895,7 @@ export default function SharedLedgerPage() {
                                 setSelectedInvoiceToConvert(tx);
                                 setShowConvertToPurchaseModal(true);
                               }}
-                              className="inline-flex items-center gap-1.5 font-bold text-xs text-indigo-600 hover:text-indigo-800 transition-colors cursor-pointer"
+                              className="inline-flex items-center gap-1.5 font-medium text-[13px] text-indigo-600 hover:text-indigo-800 transition-colors cursor-pointer"
                             >
                               <svg
                                 className="h-4 w-4 text-indigo-600"
@@ -950,7 +950,7 @@ export default function SharedLedgerPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
           <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-6">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-[15px] font-semibold text-slate-900">
                 SharedLedger Settings
               </h3>
               <button
@@ -1054,7 +1054,7 @@ export default function SharedLedgerPage() {
               <button
                 type="button"
                 onClick={() => setShowSettingsModal(false)}
-                className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                className="rounded-lg border border-slate-200 h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 Close
               </button>
@@ -1062,7 +1062,7 @@ export default function SharedLedgerPage() {
                 type="button"
                 onClick={handleSaveSettings}
                 disabled={isSavingSettings}
-                className="rounded-lg bg-indigo-600 px-5 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+                className="rounded-lg bg-indigo-600 h-9 px-3.5 text-[13px] font-medium text-white hover:bg-indigo-700 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
               >
                 {isSavingSettings ? "Saving..." : "Save"}
               </button>
@@ -1079,7 +1079,7 @@ export default function SharedLedgerPage() {
           <div className="w-full max-w-2xl rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-[15px] font-semibold text-slate-900">
                 How does SharedLedgers work?
               </h3>
               <button
@@ -1160,7 +1160,7 @@ export default function SharedLedgerPage() {
                 <button
                   type="button"
                   onClick={() => setShowHowItWorksModal(false)}
-                  className="rounded-xl bg-indigo-600 px-6 py-2.5 text-xs font-bold text-white hover:bg-indigo-700 transition-colors shadow-sm cursor-pointer"
+                  className="rounded-xl bg-indigo-600 px-6 py-2.5 text-[13px] font-medium text-white hover:bg-indigo-700 transition-colors shadow-sm cursor-pointer"
                 >
                   View SharedLedgers
                 </button>
@@ -1190,7 +1190,7 @@ export default function SharedLedgerPage() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">
+                  <h3 className="text-[15px] font-semibold text-slate-900">
                     Turn your supplier's sales invoice into a purchase — instantly
                   </h3>
                   <div className="flex items-center gap-2 mt-0.5">
@@ -1260,15 +1260,15 @@ export default function SharedLedgerPage() {
                 {/* 3 Metric cards */}
                 <div className="grid grid-cols-3 gap-2">
                   <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-center">
-                    <div className="text-indigo-600 font-extrabold text-sm">⚡ 3x Faster</div>
+                    <div className="text-indigo-600 font-semibold text-sm">⚡ 3x Faster</div>
                     <div className="mt-1 text-[10px] text-slate-500">than Manual entry</div>
                   </div>
                   <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-center">
-                    <div className="text-indigo-600 font-extrabold text-sm">⏱ ~30 mins</div>
+                    <div className="text-indigo-600 font-semibold text-sm">⏱ ~30 mins</div>
                     <div className="mt-1 text-[10px] text-slate-500">Saved Per Invoice</div>
                   </div>
                   <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-center">
-                    <div className="text-indigo-600 font-extrabold text-sm">📖 1 Ledger</div>
+                    <div className="text-indigo-600 font-semibold text-sm">📖 1 Ledger</div>
                     <div className="mt-1 text-[10px] text-slate-500">2 Books in Sync</div>
                   </div>
                 </div>
@@ -1292,7 +1292,7 @@ export default function SharedLedgerPage() {
                     type="button"
                     onClick={handleConfirmConvertToPurchase}
                     disabled={isConverting}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-xs font-bold text-white hover:bg-indigo-700 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-[13px] font-medium text-white hover:bg-indigo-700 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
                   >
                     <span>⚡ Convert on Web Now</span>
                     {isConverting && (
@@ -1318,7 +1318,7 @@ export default function SharedLedgerPage() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <span className="text-lg">🔒</span>
-                <h3 className="text-base font-bold text-slate-900">View Only Mode</h3>
+                <h3 className="text-[15px] font-semibold text-slate-900">View Only Mode</h3>
               </div>
               <button
                 type="button"
@@ -1351,7 +1351,7 @@ export default function SharedLedgerPage() {
             <button
               type="button"
               onClick={() => setShowViewOnlyModal(false)}
-              className="w-full rounded-xl bg-slate-900 py-2.5 text-xs font-bold text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              className="w-full rounded-xl bg-slate-900 py-2.5 text-[13px] font-medium text-white hover:bg-slate-800 transition-colors cursor-pointer"
             >
               Understood
             </button>
@@ -1366,7 +1366,7 @@ export default function SharedLedgerPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-bold text-slate-900">Download Shared Ledger</h3>
+              <h3 className="text-[15px] font-semibold text-slate-900">Download Shared Ledger</h3>
               <button
                 type="button"
                 onClick={() => setShowDownloadModal(false)}
@@ -1412,7 +1412,7 @@ export default function SharedLedgerPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-bold text-slate-900">Custom Date Range</h3>
+              <h3 className="text-[15px] font-semibold text-slate-900">Custom Date Range</h3>
               <button
                 type="button"
                 onClick={() => setShowCustomDateModal(false)}
@@ -1424,22 +1424,22 @@ export default function SharedLedgerPage() {
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">From Date</label>
+                <label className="block text-slate-600 font-medium mb-1">From Date</label>
                 <input
                   type="date"
                   value={customStartDate}
                   onChange={(e) => setCustomStartDate(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-800 focus:bg-white focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] font-medium text-slate-800 focus:bg-white focus:border-indigo-500 focus:outline-none h-10"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">To Date</label>
+                <label className="block text-slate-600 font-medium mb-1">To Date</label>
                 <input
                   type="date"
                   value={customEndDate}
                   onChange={(e) => setCustomEndDate(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-800 focus:bg-white focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] font-medium text-slate-800 focus:bg-white focus:border-indigo-500 focus:outline-none h-10"
                 />
               </div>
             </div>
@@ -1448,7 +1448,7 @@ export default function SharedLedgerPage() {
               <button
                 type="button"
                 onClick={() => setShowCustomDateModal(false)}
-                className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                className="rounded-lg border border-slate-200 h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -1459,7 +1459,7 @@ export default function SharedLedgerPage() {
                   setDateFilter("Custom Date");
                   setShowCustomDateModal(false);
                 }}
-                className="rounded-lg bg-indigo-600 px-5 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors cursor-pointer disabled:opacity-50"
+                className="rounded-lg bg-indigo-600 h-9 px-3.5 text-[13px] font-medium text-white hover:bg-indigo-700 transition-colors cursor-pointer disabled:opacity-50"
               >
                 Apply Range
               </button>
