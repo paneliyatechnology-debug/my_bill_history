@@ -77,6 +77,24 @@ export function UpcomingDuesAlertCard() {
     }).format(amount || 0);
   };
 
+  const formatDueDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    const clean = dateStr.split("T")[0];
+    const parts = clean.split("-");
+    if (parts.length === 3) {
+      const year = Number(parts[0]);
+      const monthIndex = Number(parts[1]) - 1;
+      const day = Number(parts[2]);
+      const d = new Date(year, monthIndex, day);
+      return d.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    }
+    return dateStr;
+  };
+
   const duesList = data?.dues || [];
   const totalDue = data?.totalDueAmount || 0;
   const count = duesList.length;
@@ -390,11 +408,8 @@ export function UpcomingDuesAlertCard() {
                         className="text-xs font-bold text-slate-900 hover:text-[#1677E8] transition flex items-center gap-1"
                       >
                         <span className="truncate">{item.invoiceNumber}</span>
-                        <span className="text-[10px] text-slate-400 font-normal shrink-0">
-                          ({new Date(item.dueDate).toLocaleDateString("en-IN", {
-                            day: "numeric",
-                            month: "short",
-                          })})
+                        <span className="text-[10px] text-slate-500 font-semibold shrink-0 bg-slate-100 px-1.5 py-0.5 rounded">
+                          {formatDueDate(item.dueDate)}
                         </span>
                       </Link>
 
