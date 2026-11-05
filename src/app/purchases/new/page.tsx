@@ -390,7 +390,7 @@ const [notes, setNotes] = useState("");
         compRes,
         purchasesRes,
       ]: any = await Promise.all([
-        apiClient.get("/masters/parties"),
+        apiClient.get("/masters/parties", { type: "SUPPLIER", limit: 500 }),
         apiClient.get("/masters/items"),
         apiClient.get("/masters/warehouses"),
         apiClient.get("/accounting/ledgers", { nature: "ASSET", limit: 100 }),
@@ -401,7 +401,7 @@ const [notes, setNotes] = useState("");
 
       const rawParties = extractList<SupplierOption>(partiesRes);
       const supplierList = rawParties.filter(
-        (p) => !p.type || p.type === "SUPPLIER" || p.type === "BOTH" || p.type === "CUSTOMER"
+        (p) => p.type === "SUPPLIER" || p.type === "BOTH" || (!p.type && (p as any).isSupplier)
       );
       const itemList = extractList<ItemOption>(itemsRes);
       const whList = extractList<WarehouseOption>(whRes);
@@ -979,10 +979,13 @@ const [notes, setNotes] = useState("");
       if (!found && scannedData.supplierName && scannedData.supplierName.trim().length > 1) {
         try {
           const searchRes: any = await apiClient.get("/masters/parties", {
+            type: "SUPPLIER",
             search: scannedData.supplierName.trim(),
             limit: 10,
           });
-          const searchList = extractList<SupplierOption>(searchRes);
+          const searchList = extractList<SupplierOption>(searchRes).filter(
+            (p) => p.type === "SUPPLIER" || p.type === "BOTH"
+          );
           found = searchList.find((s) => {
             const sName = (s.name || "").trim().toLowerCase();
             const sGstin = (s.gstin || "").trim().toLowerCase();

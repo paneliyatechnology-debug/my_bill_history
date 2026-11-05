@@ -33,6 +33,7 @@ interface PartyOption {
   stateCode: string;
   phone?: string;
   address?: string;
+  type?: string;
   billingAddress?: {
     line1?: string;
     city?: string;
@@ -156,12 +157,14 @@ const [notes, setNotes] = useState("");
     setError(null);
     try {
       const [ptRes, itRes, whRes]: any = await Promise.allSettled([
-        apiClient.get("/masters/parties"),
-        apiClient.get("/masters/items"),
+        apiClient.get("/masters/parties", { type: "CUSTOMER", limit: 500 }),
+        apiClient.get("/masters/items", { limit: 500 }),
         apiClient.get("/masters/warehouses"),
       ]);
 
-      const pList = ptRes.status === "fulfilled" ? extractList<PartyOption>(ptRes.value) : [];
+      const pList = (ptRes.status === "fulfilled" ? extractList<PartyOption>(ptRes.value) : []).filter(
+        (p) => p.type === "CUSTOMER" || p.type === "BOTH" || (!p.type && (p as any).isCustomer),
+      );
       const iList = itRes.status === "fulfilled" ? extractList<ItemOption>(itRes.value) : [];
       const wList = whRes.status === "fulfilled" ? extractList<any>(whRes.value) : [];
 

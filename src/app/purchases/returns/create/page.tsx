@@ -49,6 +49,7 @@ interface Party {
   gstin?: string;
   billingAddress?: string;
   currentBalance?: number;
+  type?: string;
 }
 
 interface InventoryItem {
@@ -290,9 +291,11 @@ const [notes, setNotes] = useState<string>("");
   // Load parties, inventory, and count on mount
   useEffect(() => {
     apiClient
-      .get("/masters/parties")
+      .get("/masters/parties", { type: "SUPPLIER", limit: 500 })
       .then((res: any) => {
-        const list = extractList<Party>(res);
+        const list = extractList<Party>(res).filter(
+          (p) => p.type === "SUPPLIER" || p.type === "BOTH" || (!p.type && (p as any).isSupplier),
+        );
         setParties(list);
       })
       .catch(() => {});

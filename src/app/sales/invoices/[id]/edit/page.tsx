@@ -14,6 +14,7 @@ interface PartyOption {
   gstin?: string;
   stateCode: string;
   phone?: string;
+  type?: string;
 }
 
 interface ItemOption {
@@ -74,11 +75,13 @@ export default function EditInvoicePage() {
     try {
       const [invRes, partiesRes, itemsRes]: any = await Promise.all([
         apiClient.get(`/sales/invoices/${id}`),
-        apiClient.get("/masters/parties", { type: "CUSTOMER" }),
-        apiClient.get("/masters/items"),
+        apiClient.get("/masters/parties", { type: "CUSTOMER", limit: 500 }),
+        apiClient.get("/masters/items", { limit: 500 }),
       ]);
 
-      const pList = extractList<PartyOption>(partiesRes);
+      const pList = extractList<PartyOption>(partiesRes).filter(
+        (p) => p.type === "CUSTOMER" || p.type === "BOTH" || (!p.type && (p as any).isCustomer),
+      );
       const iList = extractList<ItemOption>(itemsRes);
       setParties(pList);
       setItems(iList);

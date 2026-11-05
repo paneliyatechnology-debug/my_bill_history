@@ -245,11 +245,13 @@ export default function PurchasesPage() {
   const fetchDependencies = async () => {
     try {
       const [partiesRes, itemsRes, whRes]: any = await Promise.all([
-        apiClient.get("/masters/parties", { type: "SUPPLIER" }).catch(() => apiClient.get("/masters/parties")),
+        apiClient.get("/masters/parties", { type: "SUPPLIER", limit: 500 }).catch(() => apiClient.get("/masters/parties", { type: "SUPPLIER" })),
         apiClient.get("/masters/items"),
         apiClient.get("/masters/warehouses"),
       ]);
-      setParties(Array.isArray(partiesRes) ? partiesRes : partiesRes?.items || []);
+      const pRaw = Array.isArray(partiesRes) ? partiesRes : partiesRes?.items || [];
+      const supplierParties = pRaw.filter((p: any) => p.type === "SUPPLIER" || p.type === "BOTH");
+      setParties(supplierParties);
       setItemsList(Array.isArray(itemsRes) ? itemsRes : itemsRes?.items || []);
       setWarehouses(Array.isArray(whRes) ? whRes : []);
     } catch (err) {

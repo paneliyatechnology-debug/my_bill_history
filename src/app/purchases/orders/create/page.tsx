@@ -203,9 +203,11 @@ const [notes, setNotes] = useState("");
   // Fetch Parties & Items
   useEffect(() => {
     apiClient
-      .get("/parties", { type: "SUPPLIER", limit: 200 })
+      .get("/parties", { type: "SUPPLIER", limit: 500 })
       .then((res: any) => {
-        const list = extractList<Party>(res);
+        const list = extractList<Party>(res).filter(
+          (p) => p.type === "SUPPLIER" || p.type === "BOTH" || (!p.type && (p as any).isSupplier),
+        );
         setParties(list);
       })
       .catch(() => {});

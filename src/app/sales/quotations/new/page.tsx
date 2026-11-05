@@ -202,11 +202,13 @@ const [notes, setNotes] = useState("");
     setError(null);
     try {
       const [partiesRes, itemsRes, unitsRes]: any = await Promise.all([
-        apiClient.get("/parties", { type: "CUSTOMER" }),
-        apiClient.get("/items"),
+        apiClient.get("/parties", { type: "CUSTOMER", limit: 500 }),
+        apiClient.get("/items", { limit: 500 }),
         apiClient.get("/units").catch(() => []),
       ]);
-      const pList = extractList<PartyOption>(partiesRes);
+      const pList = extractList<PartyOption>(partiesRes).filter(
+        (p) => p.type === "CUSTOMER" || p.type === "BOTH" || (!p.type && (p as any).isCustomer),
+      );
       const iList = extractList<ItemOption>(itemsRes);
       const uList = extractList<any>(unitsRes);
       setParties(pList);
