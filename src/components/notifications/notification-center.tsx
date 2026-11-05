@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
 
 export interface NotificationItem {
@@ -43,6 +43,7 @@ function formatRelativeTime(dateStr: string): string {
 
 export function NotificationCenter() {
   const router = useRouter();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -81,16 +82,24 @@ export function NotificationCenter() {
   const fetchNotifications = useCallback(async () => {
     setIsLoading(true);
     try {
-      const params: any = { limit: 25 };
+      const params: any = { limit: 50 };
       if (activeTab === "UNREAD") params.unreadOnly = true;
-      if (activeTab === "PAYMENTS") params.type = "PAYMENT_RECEIVED";
-      if (activeTab === "REMINDERS") params.type = "DUE_DATE_REMINDER_T3";
 
       const res = await apiClient.get<{ items?: NotificationItem[]; data?: NotificationItem[]; unreadCount?: number }>(
         "/api/v1/notifications",
         params
       );
-      const list = res?.items || res?.data || [];
+      let list = res?.items || res?.data || [];
+      if (activeTab === "PAYMENTS") {
+        list = list.filter((item) => item.type?.includes("PAYMENT") || item.entityType?.includes("PAYMENT"));
+      } else if (activeTab === "REMINDERS") {
+        list = list.filter(
+          (item) =>
+            item.type?.includes("REMINDER") ||
+            item.type?.includes("DUE") ||
+            item.entityType?.includes("INVOICE")
+        );
+      }
       setNotifications(list);
       if (typeof res?.unreadCount === "number") {
         setUnreadCount(res.unreadCount);
@@ -104,9 +113,28 @@ export function NotificationCenter() {
 
   useEffect(() => {
     fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000);
-    return () => clearInterval(interval);
-  }, [fetchUnreadCount]);
+    const handleNotificationRefresh = () => {
+      fetchUnreadCount();
+      if (isOpen) {
+        fetchNotifications();
+      }
+    };
+    window.addEventListener("refresh-notifications", handleNotificationRefresh);
+    window.addEventListener("notification-updated", handleNotificationRefresh);
+    window.addEventListener("focus", handleNotificationRefresh);
+    const interval = setInterval(fetchUnreadCount, 15000);
+    return () => {
+      window.removeEventListener("refresh-notifications", handleNotificationRefresh);
+      window.removeEventListener("notification-updated", handleNotificationRefresh);
+      window.removeEventListener("focus", handleNotificationRefresh);
+      clearInterval(interval);
+    };
+  }, [fetchUnreadCount, isOpen, fetchNotifications]);
+
+  // Instantly re-check unread notifications count whenever user navigates routes
+  useEffect(() => {
+    fetchUnreadCount();
+  }, [pathname, fetchUnreadCount]);
 
   useEffect(() => {
     if (isOpen) {

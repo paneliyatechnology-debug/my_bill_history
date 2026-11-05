@@ -455,7 +455,15 @@ export function UpcomingDuesAlertCard() {
 
                     <div className="flex items-center gap-1.5 shrink-0">
                       <Link
-                        href={item.actionLink}
+                        href={
+                          item.actionLink
+                            ? item.actionLink.includes("amount=")
+                              ? item.actionLink
+                              : `${item.actionLink}${item.actionLink.includes("?") ? "&" : "?"}amount=${item.balanceAmount}`
+                            : isSales
+                            ? `/sales/payment-in/new?partyId=${item.partyId || ""}&invoiceId=${item.id}&amount=${item.balanceAmount}`
+                            : `/purchases/payment-out/new?partyId=${item.partyId || ""}&billId=${item.id}&amount=${item.balanceAmount}`
+                        }
                         className={`px-2.5 py-1.5 rounded-lg text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-1 text-white ${
                           isSales
                             ? "bg-blue-600 hover:bg-blue-700"

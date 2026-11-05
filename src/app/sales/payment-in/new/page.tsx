@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../../../context/auth-context";
 import { apiClient, extractList } from "../../../../lib/api-client";
 
@@ -70,16 +70,21 @@ function invoiceBalance(inv: any): number {
   return Math.max(0, Number(inv.grandTotal || 0) - Number(inv.paidAmount || 0));
 }
 
-export default function CreatePaymentInPage() {
+function CreatePaymentInForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { lang, tenantContext } = useAuth();
+
+  const paramPartyId = searchParams?.get("partyId") || "";
+  const paramInvoiceId = searchParams?.get("invoiceId") || searchParams?.get("id") || "";
+  const paramAmount = searchParams?.get("amount") || "";
 
   // Reference data
   const [parties, setParties] = useState<PartyOption[]>([]);
   const [ledgers, setLedgers] = useState<LedgerOption[]>([]);
 
   // Form State
-  const [partyId, setPartyId] = useState("");
+  const [partyId, setPartyId] = useState<string>(() => paramPartyId);
   const [isPartyDropdownOpen, setIsPartyDropdownOpen] = useState(false);
   const [partySearchQuery, setPartySearchQuery] = useState("");
   const partyDropdownRef = useRef<HTMLDivElement>(null);
@@ -98,6 +103,14 @@ export default function CreatePaymentInPage() {
   const [isLoadingInvoices, setIsLoadingInvoices] = useState(false);
   const [invoiceSearchQuery, setInvoiceSearchQuery] = useState("");
   const [isInvoiceSearchOpen, setIsInvoiceSearchOpen] = useState(false);
+  const initialAutoSettledRef = useRef(false);
+
+  // Sync paramPartyId if it changes
+  useEffect(() => {
+    if (paramPartyId && paramPartyId !== partyId) {
+      setPartyId(paramPartyId);
+    }
+  }, [paramPartyId]);
 
   // Operation states
   const [isSaving, setIsSaving] = useState(false);
@@ -129,7 +142,30 @@ export default function CreatePaymentInPage() {
         const partyList = extractList<PartyOption>(partyRes).filter(
           (party) => !party.type || party.type === "CUSTOMER" || party.type === "BOTH",
         );
+
+        // If partyId was passed from URL and not found in initial 200 customer list,
+        // fetch it directly by ID so the party is correctly identified and selected.
+        if (paramPartyId && !partyList.some((p) => p.id === paramPartyId)) {
+          try {
+            const specificParty: any = await apiClient.get(`/masters/parties/${paramPartyId}`);
+            if (specificParty && specificParty.id) {
+              partyList.unshift({
+                id: specificParty.id,
+                name: specificParty.name,
+                phone: specificParty.phone,
+                type: specificParty.type,
+                balance: specificParty.currentBalance ?? specificParty.balance ?? 0,
+              });
+            }
+          } catch (pErr) {
+            console.error("Could not fetch party by ID:", pErr);
+          }
+        }
+
         setParties(partyList);
+        if (paramPartyId) {
+          setPartyId(paramPartyId);
+        }
 
         const accounts = extractList<LedgerOption>(ledgerRes).filter(
           (ledger) =>
@@ -152,7 +188,7 @@ export default function CreatePaymentInPage() {
     return () => {
       cancelled = true;
     };
-  }, [tenantContext.companyId]);
+  }, [tenantContext.companyId, paramPartyId]);
 
   // Click outside to close party dropdown
   useEffect(() => {
@@ -190,8 +226,9 @@ export default function CreatePaymentInPage() {
             const status = inv.status;
             const balance = invoiceBalance(inv);
             return (
-              balance > 0.009 &&
-              (status === "ISSUED" || status === "PARTIALLY_PAID" || status === "OVERDUE")
+              (balance > 0.009 &&
+                (status === "ISSUED" || status === "PARTIALLY_PAID" || status === "OVERDUE")) ||
+              inv.id === paramInvoiceId
             );
           })
           .sort(
@@ -210,15 +247,69 @@ export default function CreatePaymentInPage() {
             isDiscountOpen: false,
           }));
 
-        // Apply FIFO settlement if amount received is already typed
-        const rec = Number(amountReceivedRef.current) || 0;
-        if (rec > 0) {
-          let left = rec;
-          pending.forEach((inv) => {
-            const take = Math.min(inv.balanceAmount, Math.max(0, left));
-            left -= take;
-            if (take > 0) inv.settle = take.toString();
-          });
+        // If paramInvoiceId is provided and not present in pending, fetch it directly
+        if (
+          paramInvoiceId &&
+          !initialAutoSettledRef.current &&
+          !pending.some((i) => i.id === paramInvoiceId || i.invoiceNumber === paramInvoiceId)
+        ) {
+          try {
+            const singleInv: any = await apiClient
+              .get<any>(`/sales/invoices/${paramInvoiceId}`)
+              .catch(() => apiClient.get<any>(`/invoices/${paramInvoiceId}`));
+            if (singleInv && singleInv.id) {
+              const bal = invoiceBalance(singleInv);
+              pending.unshift({
+                id: singleInv.id,
+                invoiceNumber: singleInv.invoiceNumber,
+                invoiceDate: singleInv.invoiceDate,
+                dueDate: singleInv.dueDate || singleInv.invoiceDate,
+                grandTotal: Number(singleInv.grandTotal) || 0,
+                balanceAmount: bal > 0 ? bal : Number(singleInv.grandTotal) || 0,
+                settle: "",
+                discount: "",
+                isDiscountOpen: false,
+              });
+            }
+          } catch (iErr) {
+            console.error("Could not fetch invoice by ID:", iErr);
+          }
+        }
+
+        // Auto-select invoice or allocate amount if redirected from dashboard
+        if (!initialAutoSettledRef.current) {
+          const paramAmtNum = parseFloat(paramAmount) || 0;
+          const targetInv = paramInvoiceId
+            ? pending.find((i) => i.id === paramInvoiceId || i.invoiceNumber === paramInvoiceId)
+            : null;
+
+          if (targetInv) {
+            const settleAmt =
+              paramAmtNum > 0 ? Math.min(paramAmtNum, targetInv.balanceAmount) : targetInv.balanceAmount;
+            targetInv.settle = settleAmt > 0 ? settleAmt.toString() : "";
+            setAmountReceived(settleAmt > 0 ? settleAmt.toString() : "");
+            initialAutoSettledRef.current = true;
+          } else if (paramAmtNum > 0) {
+            setAmountReceived(paramAmtNum.toString());
+            let left = paramAmtNum;
+            pending.forEach((inv) => {
+              const take = Math.min(inv.balanceAmount, Math.max(0, left));
+              left -= take;
+              if (take > 0) inv.settle = take.toString();
+            });
+            initialAutoSettledRef.current = true;
+          }
+        } else {
+          // Apply FIFO settlement if amount received is already typed
+          const rec = Number(amountReceivedRef.current) || 0;
+          if (rec > 0) {
+            let left = rec;
+            pending.forEach((inv) => {
+              const take = Math.min(inv.balanceAmount, Math.max(0, left));
+              left -= take;
+              if (take > 0) inv.settle = take.toString();
+            });
+          }
         }
 
         setInvoices(pending);
@@ -231,7 +322,7 @@ export default function CreatePaymentInPage() {
     return () => {
       cancelled = true;
     };
-  }, [partyId]);
+  }, [partyId, paramInvoiceId, paramAmount]);
 
   // Appropriate deposit account handling based on Cash vs Bank
   const depositAccounts = useMemo(() => {

@@ -295,6 +295,9 @@ export default function EditInvoicePage() {
 
     try {
       await apiClient.put(`/sales/invoices/${id}`, payload);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("refresh-notifications"));
+      }
       router.push(`/sales/invoices/${id}`);
     } catch (err: any) {
       setError(err.message || "Failed to update sales invoice.");

@@ -1549,6 +1549,9 @@ const [notes, setNotes] = useState("");
       }
 
       setIsDirty(false);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("refresh-notifications"));
+      }
 
       if (andNew) {
         setVendorInvoiceNumber("");

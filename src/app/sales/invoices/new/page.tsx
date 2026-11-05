@@ -1294,6 +1294,10 @@ const [notes, setNotes] = useState("");
         }
       } catch {}
 
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("refresh-notifications"));
+      }
+
       if (isSaveAndNew) {
         if (updatedSettings.enablePrefix && updatedSettings.invoicePrefix) {
           setInvoiceNumber(`${updatedSettings.invoicePrefix}${nextSeq}`);
