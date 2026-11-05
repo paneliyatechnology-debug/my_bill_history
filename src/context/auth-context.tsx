@@ -795,6 +795,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== "undefined") {
       try {
         localStorage.setItem("billing_tenant_context", JSON.stringify(updated));
+        window.dispatchEvent(
+          new CustomEvent("financial-year-changed", {
+            detail: { financialYearId },
+          }),
+        );
+        window.dispatchEvent(
+          new CustomEvent("tenant-context-updated", {
+            detail: { financialYearId },
+          }),
+        );
       } catch {
         // Ignore
       }

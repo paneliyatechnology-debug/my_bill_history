@@ -7,6 +7,8 @@ import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
 import { resolveActiveNavigation } from "../../lib/sidebar-navigation";
 import { CompanySwitcher } from "../tenants/company-switcher";
+import { FinancialYearSwitcher } from "../tenants/financial-year-switcher";
+import { UserProfileDropdown } from "./user-profile-dropdown";
 import { WaveBackground } from "../ui/wave-background";
 import { BrandLogo } from "../ui/brand-logo";
 import { SettingsSidebar } from "../settings/settings-sidebar";
@@ -53,6 +55,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     currentCompany,
     currentBranch,
     currentFY,
+    entitlements,
     switchCompany,
     switchBranch,
     switchFinancialYear,
@@ -1214,40 +1217,130 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             })()}
           </nav>
 
-          {/* Sidebar Footer: Upgrade to Pro Promotional Card */}
+          {/* Sidebar Footer: Dynamic Subscription / Upgrade Card */}
           <div className="shrink-0 p-3 border-t border-slate-100 bg-white flex flex-col gap-1.5">
-            {!isSidebarCollapsed && (
-              <div className="p-3.5 rounded-2xl bg-gradient-to-b from-[#EBF3FF] to-[#F5F8FF] border border-[#BFDBFE]/80 shadow-2xs text-left space-y-2.5">
-                <div className="w-8 h-8 rounded-xl bg-blue-100 text-[#1677E8] flex items-center justify-center text-sm shadow-2xs">
-                  <svg className="w-4 h-4 text-[#1677E8]" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
-                  </svg>
+            {!isSidebarCollapsed && (() => {
+              const tierRankMap: Record<string, number> = {
+                TRIAL: 0,
+                FREE: 0,
+                RETAIL_BASIC: 1,
+                BASIC: 1,
+                SILVER: 1,
+                WHOLESALE_PRO: 2,
+                PRO: 2,
+                GOLD: 2,
+                DISTRIBUTION_ENTERPRISE: 3,
+                ENTERPRISE: 3,
+                PLATINUM: 3,
+                MANUFACTURING_SUITE: 4,
+              };
+
+              const currentTier = (entitlements?.tier || "TRIAL").toUpperCase();
+              const currentRank = tierRankMap[currentTier] ?? 0;
+
+              // If already on Enterprise or Manufacturing Suite (highest tier)
+              if (currentRank >= 3) {
+                return (
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-b from-amber-50 to-orange-50/70 border border-amber-200/80 shadow-2xs text-left space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-sm shadow-2xs font-bold">
+                        👑
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                        {lang === "gu" ? "સક્રિય" : "Active"}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-slate-900">
+                        {entitlements?.tier === "MANUFACTURING_SUITE"
+                          ? "Manufacturing Suite"
+                          : "Enterprise Plan"}
+                      </div>
+                      <p className="text-[11px] font-medium text-slate-600 mt-0.5">
+                        {lang === "gu"
+                          ? "સંપૂર્ણ અનલિમિટેડ સુવિધાઓ સક્રિય છે."
+                          : "All multi-company & advanced ERP features unlocked."}
+                      </p>
+                    </div>
+                  </div>
+                );
+              }
+
+              // If on Wholesale Pro, show upgrade to Enterprise
+              if (currentRank === 2) {
+                return (
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-b from-[#F3E8FF] to-[#FAF5FF] border border-[#DDD6FE] shadow-2xs text-left space-y-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-sm shadow-2xs">
+                      <svg className="w-4 h-4 text-purple-700" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 16h2v2h-2zm0-6h2v4h-2z"/>
+                      </svg>
+                    </div>
+                    <div className="text-xs font-semibold text-slate-900">
+                      {lang === "gu" ? "એન્ટરપ્રાઇઝમાં અપગ્રેડ કરો" : "Upgrade to Enterprise"}
+                    </div>
+                    <div className="space-y-1.5 text-[11px] font-semibold text-slate-600">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-purple-600 font-bold">✓</span>
+                        <span>{lang === "gu" ? "અમર્યાદિત પેઢીઓ (Unlimited)" : "Unlimited Companies"}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-purple-600 font-bold">✓</span>
+                        <span>{lang === "gu" ? "અમર્યાદિત સ્ટાફ યુઝર્સ" : "Unlimited Staff Users"}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-purple-600 font-bold">✓</span>
+                        <span>{lang === "gu" ? "E-Invoice અને Multi-Branch Sync" : "E-Invoice & Multi-Branch Sync"}</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => router.push("/settings/pricing")}
+                      className="w-full py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-medium text-[13px] shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95"
+                    >
+                      <span>{lang === "gu" ? "હવે અપગ્રેડ કરો" : "Upgrade Now"}</span>
+                      <span>→</span>
+                    </button>
+                  </div>
+                );
+              }
+
+              // Otherwise (Trial, Silver, Basic), show upgrade to Wholesale Pro
+              return (
+                <div className="p-3.5 rounded-2xl bg-gradient-to-b from-[#EBF3FF] to-[#F5F8FF] border border-[#BFDBFE]/80 shadow-2xs text-left space-y-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-blue-100 text-[#1677E8] flex items-center justify-center text-sm shadow-2xs">
+                    <svg className="w-4 h-4 text-[#1677E8]" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
+                    </svg>
+                  </div>
+                  <div className="text-xs font-semibold text-slate-900">
+                    {lang === "gu" ? "પ્રો પ્લાનમાં અપગ્રેડ કરો" : "Upgrade to Pro"}
+                  </div>
+                  <div className="space-y-1.5 text-[11px] font-semibold text-slate-600">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[#1677E8] font-bold">✓</span>
+                      <span>{lang === "gu" ? "મલ્ટી-યુઝર એક્સેસ" : "Multi-User Access"}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[#1677E8] font-bold">✓</span>
+                      <span>{lang === "gu" ? "એડવાન્સ્ડ બિઝનેસ રિપોર્ટ્સ" : "Advanced Reports"}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[#1677E8] font-bold">✓</span>
+                      <span>{lang === "gu" ? "પ્રાયોરિટી સપોર્ટ" : "Priority Support"}</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => router.push("/settings/pricing")}
+                    className="w-full py-2 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white font-medium text-[13px] shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95"
+                  >
+                    <span>{lang === "gu" ? "હવે અપગ્રેડ કરો" : "Upgrade Now"}</span>
+                    <span>→</span>
+                  </button>
                 </div>
-                <div className="text-xs font-semibold text-slate-900">Upgrade to Pro</div>
-                <div className="space-y-1.5 text-[11px] font-semibold text-slate-600">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[#1677E8] font-bold">✓</span>
-                    <span>Multi-User Access</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[#1677E8] font-bold">✓</span>
-                    <span>Advanced Reports</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[#1677E8] font-bold">✓</span>
-                    <span>Priority Support</span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => router.push("/settings/billing")}
-                  className="w-full py-2 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white font-medium text-[13px] shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95"
-                >
-                  <span>Upgrade Now</span>
-                  <span>→</span>
-                </button>
-              </div>
-            )}
+              );
+            })()}
           </div>
         </aside>
       )}
@@ -1329,16 +1422,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <CompanySwitcher />
 
-                {/* Financial Year Selector Pill matching Reference */}
-                <div className="hidden sm:flex items-center gap-1.5 h-9 px-3 bg-white border border-[#E2E8F0] rounded-[10px] text-[13px] font-medium text-[#182230] select-none">
-                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span>{currentFY?.name || "FY 2026-27"}</span>
-                  <svg className="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
+                {/* Financial Year Selector Switcher */}
+                <FinancialYearSwitcher />
               </div>
             </div>
 
@@ -1372,22 +1457,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </svg>
               </button>
 
-              {/* User Profile Pill matching Reference */}
-              <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-                <div className="w-8 h-8 rounded-full bg-[#1677E8] text-white flex items-center justify-center font-bold text-xs shadow-2xs uppercase">
-                  {user?.fullName
-                    ? user.fullName[0]
-                    : "J"}
-                </div>
-                <div className="hidden lg:flex items-center gap-1 text-[13px] font-medium text-[#182230]">
-                  <span className="truncate max-w-[120px]">
-                    {user?.fullName || user?.name || "Jaydeep"}
-                  </span>
-                  <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
+              {/* User Profile & Account Dropdown */}
+              <UserProfileDropdown />
 
               {/* Logout button (when not on dashboard) */}
               {pathname !== "/" && (

@@ -67,7 +67,19 @@ export function UpcomingDuesAlertCard() {
   useEffect(() => {
     if (!tenantContext?.companyId) return;
     fetchDues();
-  }, [fetchDues, tenantContext?.companyId]);
+  }, [fetchDues, tenantContext?.companyId, tenantContext?.financialYearId]);
+
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchDues();
+    };
+    window.addEventListener("financial-year-changed", handleRefresh);
+    window.addEventListener("tenant-context-updated", handleRefresh);
+    return () => {
+      window.removeEventListener("financial-year-changed", handleRefresh);
+      window.removeEventListener("tenant-context-updated", handleRefresh);
+    };
+  }, [fetchDues]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-IN", {

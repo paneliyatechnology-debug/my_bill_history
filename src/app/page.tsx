@@ -111,20 +111,30 @@ function DashboardContent() {
     updateTimestamp();
 
     try {
+      const activeFyId = tenantContext?.financialYearId || currentFY?.id;
       const [finRes, txnsRes, partiesRes, itemsRes, invoicesRes]: any =
         await Promise.all([
-        apiClient.get("/dashboard/summary").catch(() => null),
+        apiClient
+          .get("/dashboard/summary", { financialYearId: activeFyId })
+          .catch(() => null),
         apiClient
           .get("/dashboard/all-transactions", {
             page: 1,
             limit: 6,
             sortBy: "date",
             sortOrder: "desc",
+            financialYearId: activeFyId,
           })
           .catch(() => null),
-        apiClient.get("/masters/parties", { page: 1, limit: 1 }).catch(() => null),
-        apiClient.get("/masters/items", { page: 1, limit: 1 }).catch(() => null),
-        apiClient.get("/sales/invoices", { page: 1, limit: 1 }).catch(() => null),
+        apiClient
+          .get("/masters/parties", { page: 1, limit: 1 })
+          .catch(() => null),
+        apiClient
+          .get("/masters/items", { page: 1, limit: 1 })
+          .catch(() => null),
+        apiClient
+          .get("/sales/invoices", { page: 1, limit: 1, financialYearId: activeFyId })
+          .catch(() => null),
       ]);
 
       // 1. Process Financial Summary
@@ -208,15 +218,21 @@ function DashboardContent() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [updateTimestamp]);
+  }, [updateTimestamp, tenantContext?.financialYearId, currentFY?.id]);
 
   const fetchSalesChart = useCallback(async () => {
     setIsChartLoading(true);
     setCategoryError("");
     const range = periodToRange(chartPeriod);
+    const activeFyId = tenantContext?.financialYearId || currentFY?.id;
     try {
       const [chartRes, itemSalesRes, returnsRes]: any = await Promise.all([
-        apiClient.get("/dashboard/sales-overview", { days: range.days }).catch(() => null),
+        apiClient
+          .get("/dashboard/sales-overview", {
+            days: range.days,
+            financialYearId: activeFyId,
+          })
+          .catch(() => null),
         apiClient
           .get("/reports/item-sales-report", {
             startDate: range.startDate,
@@ -292,17 +308,32 @@ function DashboardContent() {
     } finally {
       setIsChartLoading(false);
     }
-  }, [chartPeriod]);
+  }, [chartPeriod, tenantContext?.financialYearId, currentFY?.id]);
 
   useEffect(() => {
     if (!tenantContext.companyId) return;
     fetchDashboardData();
-  }, [fetchDashboardData, tenantContext.companyId]);
+  }, [fetchDashboardData, tenantContext.companyId, tenantContext?.financialYearId, currentFY?.id]);
 
   useEffect(() => {
     if (!tenantContext.companyId) return;
     fetchSalesChart();
-  }, [fetchSalesChart, tenantContext.companyId]);
+  }, [fetchSalesChart, tenantContext.companyId, tenantContext?.financialYearId, currentFY?.id]);
+
+  useEffect(() => {
+    const handleFyChanged = () => {
+      fetchDashboardData();
+      fetchSalesChart();
+    };
+
+    window.addEventListener("financial-year-changed", handleFyChanged);
+    window.addEventListener("tenant-context-updated", handleFyChanged);
+
+    return () => {
+      window.removeEventListener("financial-year-changed", handleFyChanged);
+      window.removeEventListener("tenant-context-updated", handleFyChanged);
+    };
+  }, [fetchDashboardData, fetchSalesChart]);
 
   // Lazy-load scanner masters dependencies only when scanner modal is opened
   useEffect(() => {
