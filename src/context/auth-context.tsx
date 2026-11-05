@@ -577,6 +577,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const payload = JSON.parse(event.data);
           const condition = payload?.condition || payload?.type;
           if (!condition || condition === "PING") return;
+
+          if (condition === "NOTIFICATION_RECEIVED" || condition === "NOTIFICATION_UPDATED") {
+            const sessionOrg = tenantContext.organizationId || "";
+            const eventOrg = payload?.organizationId || "";
+            if (eventOrg && sessionOrg && eventOrg !== sessionOrg) return;
+            if (payload?.userId && user?.id && payload.userId !== user.id) return;
+
+            window.dispatchEvent(
+              new CustomEvent("notification-received", { detail: payload }),
+            );
+            return;
+          }
+
           if (condition === "TENANT_SUSPENDED" || condition === "SESSION_REVOKED") {
             const sessionOrg = tenantContext.organizationId || "";
             const eventOrg = payload?.organizationId || "";

@@ -45,6 +45,17 @@ interface SalesReturnRow {
   id: string;
   returnNumber: string;
   returnDate: string;
+  docType?: string;
+  creditNoteType?: string;
+  gstCategory?: string;
+  disposition?: string;
+  warehouseId?: string;
+  warehouse?: {
+    id: string;
+    name: string;
+  };
+  linkedReturnId?: string;
+  settlementMode?: string;
   taxableAmount: number;
   cgstAmount?: number;
   sgstAmount?: number;
@@ -215,7 +226,10 @@ export default function SalesReturnsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res: any = await apiClient.get("/sales/credit-notes", {
+      const endpoint = isCreditNote ? "/sales/credit-notes" : "/sales-returns";
+      const docType = isCreditNote ? "CREDIT_NOTE" : isDebitNote ? "DEBIT_NOTE" : "SALES_RETURN";
+      const res: any = await apiClient.get(endpoint, {
+        docType,
         search: searchQuery.trim() || undefined,
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
@@ -227,7 +241,23 @@ export default function SalesReturnsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [searchQuery, dateRange.startDate, dateRange.endDate]);
+  }, [isCreditNote, isDebitNote, searchQuery, dateRange.startDate, dateRange.endDate]);
+
+  const handleCreateCreditNote = async (ret: SalesReturnRow) => {
+    try {
+      setToast(lang === "gu" ? "ક્રેડિટ નોટ બની રહી છે..." : "Creating Credit Note from Sales Return...");
+      const res: any = await apiClient.post(`/sales-returns/${ret.id}/create-credit-note`, {});
+      setToast(lang === "gu" ? "ક્રેડિટ નોટ સફળતાપૂર્વક બની ગઈ છે!" : "Credit Note created successfully!");
+      const cnId = res?.creditNote?.id || res?.id;
+      if (cnId) {
+        router.push(`/sales/credit-note/view/${cnId}`);
+      } else {
+        fetchReturns();
+      }
+    } catch (err: any) {
+      setError(err?.message || "Failed to generate Credit Note.");
+    }
+  };
 
   useEffect(() => {
     if (!tenantContext.companyId) return;
@@ -642,6 +672,7 @@ export default function SalesReturnsPage() {
                 <th className="px-4 py-3.5 whitespace-nowrap font-medium">{isCreditNote ? "Credit Note #" : "Return #"}</th>
                 <th className="px-4 py-3.5 whitespace-nowrap font-medium">Party Name</th>
                 <th className="px-4 py-3.5 whitespace-nowrap font-medium">Original Invoice</th>
+                {!isCreditNote && <th className="px-4 py-3.5 whitespace-nowrap font-medium">Warehouse / Stock</th>}
                 <th className="px-4 py-3.5 text-right whitespace-nowrap font-medium">Total Amount</th>
                 <th className="px-4 py-3.5 text-center whitespace-nowrap font-medium">Status</th>
                 <th className="px-4 py-3.5 text-right whitespace-nowrap font-medium">Actions</th>
@@ -743,6 +774,28 @@ export default function SalesReturnsPage() {
                         )}
                       </td>
 
+                      {/* Warehouse & Stock Status (Sales Returns Only) */}
+                      {!isCreditNote && (
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="font-semibold text-slate-800 text-xs">
+                            {row.warehouse?.name || "Main Godown"}
+                          </div>
+                          {row.disposition ? (
+                            <span
+                              className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                                row.disposition === "SELLABLE"
+                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                  : "bg-amber-50 text-amber-700 border border-amber-200"
+                              }`}
+                            >
+                              {row.disposition}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-slate-400">Restocked</span>
+                          )}
+                        </td>
+                      )}
+
                       {/* Amount */}
                       <td className="px-4 py-3 text-right font-medium text-[#182230] whitespace-nowrap tabular-nums text-[13px]">
                         {formatInr(row.grandTotal)}
@@ -769,6 +822,17 @@ export default function SalesReturnsPage() {
                       {/* Actions */}
                       <td className="px-4 py-3 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1.5">
+                          {!isCreditNote && !row.linkedReturnId && row.status !== "CANCELLED" && (
+                            <button
+                              type="button"
+                              onClick={() => handleCreateCreditNote(row)}
+                              className="px-2 py-1 text-[11px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors shadow-2xs cursor-pointer"
+                              title="1-Click Create Credit Note"
+                            >
+                              ⚡ Credit Note
+                            </button>
+                          )}
+
                           <button
                             type="button"
                             onClick={() => router.push(`${basePath}/${row.id}`)}

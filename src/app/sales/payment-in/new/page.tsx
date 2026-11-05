@@ -75,9 +75,69 @@ function CreatePaymentInForm() {
   const searchParams = useSearchParams();
   const { lang, tenantContext } = useAuth();
 
-  const paramPartyId = searchParams?.get("partyId") || "";
-  const paramInvoiceId = searchParams?.get("invoiceId") || searchParams?.get("id") || "";
-  const paramAmount = searchParams?.get("amount") || "";
+  const [paramPartyId, setParamPartyId] = useState<string>(
+    () =>
+      searchParams?.get("partyId") ||
+      (typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("partyId") || ""
+        : ""),
+  );
+  const [paramInvoiceId, setParamInvoiceId] = useState<string>(
+    () =>
+      searchParams?.get("invoiceId") ||
+      searchParams?.get("id") ||
+      (typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("invoiceId") ||
+          new URLSearchParams(window.location.search).get("id") ||
+          ""
+        : ""),
+  );
+  const [paramAmount, setParamAmount] = useState<string>(
+    () =>
+      searchParams?.get("amount") ||
+      (typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("amount") || ""
+        : ""),
+  );
+
+  // Sync params from URL or searchParams
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlParty = searchParams?.get("partyId") || urlParams.get("partyId") || "";
+      const urlInv =
+        searchParams?.get("invoiceId") ||
+        searchParams?.get("id") ||
+        urlParams.get("invoiceId") ||
+        urlParams.get("id") ||
+        "";
+      const urlAmt = searchParams?.get("amount") || urlParams.get("amount") || "";
+      if (urlParty) setParamPartyId(urlParty);
+      if (urlInv) setParamInvoiceId(urlInv);
+      if (urlAmt) setParamAmount(urlAmt);
+    }
+  }, [searchParams]);
+
+  // If invoiceId is provided without partyId, resolve party & amount from invoice
+  useEffect(() => {
+    if (!paramPartyId && paramInvoiceId) {
+      apiClient
+        .get<any>(`/sales/invoices/${paramInvoiceId}`)
+        .catch(() => apiClient.get<any>(`/invoices/${paramInvoiceId}`))
+        .then((res: any) => {
+          const inv = res?.data || res;
+          if (inv?.partyId) {
+            setParamPartyId(inv.partyId);
+            setPartyId(inv.partyId);
+          }
+          if (!paramAmount && (inv?.balanceAmount || inv?.grandTotal)) {
+            const bal = invoiceBalance(inv);
+            setParamAmount(String(bal > 0 ? bal : inv.grandTotal));
+          }
+        })
+        .catch((err) => console.error("Could not auto-resolve invoice party:", err));
+    }
+  }, [paramPartyId, paramInvoiceId, paramAmount]);
 
   // Reference data
   const [parties, setParties] = useState<PartyOption[]>([]);
@@ -148,13 +208,14 @@ function CreatePaymentInForm() {
         if (paramPartyId && !partyList.some((p) => p.id === paramPartyId)) {
           try {
             const specificParty: any = await apiClient.get(`/masters/parties/${paramPartyId}`);
-            if (specificParty && specificParty.id) {
+            const pObj = specificParty?.data || specificParty;
+            if (pObj && pObj.id) {
               partyList.unshift({
-                id: specificParty.id,
-                name: specificParty.name,
-                phone: specificParty.phone,
-                type: specificParty.type,
-                balance: specificParty.currentBalance ?? specificParty.balance ?? 0,
+                id: pObj.id,
+                name: pObj.name,
+                phone: pObj.phone,
+                type: pObj.type,
+                balance: pObj.currentBalance ?? pObj.balance ?? 0,
               });
             }
           } catch (pErr) {

@@ -181,6 +181,16 @@ const [notes, setNotes] = useState("");
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const [signatureData, setSignatureData] = useState<string | null>(null);
 
+  // Credit Note Mode & GST Category
+  const [creditNoteType, setCreditNoteType] = useState<"ITEM_BASED" | "AMOUNT_BASED">("ITEM_BASED");
+  const [gstCategory, setGstCategory] = useState<"SECTION_34" | "COMMERCIAL">("SECTION_34");
+  const [amountBasedAmount, setAmountBasedAmount] = useState<string>("");
+  const [amountBasedTaxRate, setAmountBasedTaxRate] = useState<number>(18);
+  const [amountBasedReason, setAmountBasedReason] = useState<string>("Volume discount / rebate");
+  const [settlementMode, setSettlementMode] = useState<
+    "CUSTOMER_CREDIT" | "ADJUST_OUTSTANDING" | "REFUND_CASH" | "REFUND_BANK"
+  >("CUSTOMER_CREDIT");
+
   // Create Customer Modal
   const [isCreatePartyModalOpen, setIsCreatePartyModalOpen] = useState(false);
   const [newPartyName, setNewPartyName] = useState("");
@@ -487,18 +497,34 @@ const [notes, setNotes] = useState("");
   const subtotalTax = itemCalculations.reduce((sum, i) => sum + i.taxAmount, 0);
   const totalQuantity = itemCalculations.reduce((sum, i) => sum + i.quantity, 0);
 
+  const effectiveSubtotalTaxable = useMemo(() => {
+    if (creditNoteType === "AMOUNT_BASED") {
+      return parseFloat(amountBasedAmount) || 0;
+    }
+    return subtotalTaxable;
+  }, [creditNoteType, amountBasedAmount, subtotalTaxable]);
+
+  const effectiveSubtotalTax = useMemo(() => {
+    if (gstCategory === "COMMERCIAL") return 0;
+    if (creditNoteType === "AMOUNT_BASED") {
+      const amt = parseFloat(amountBasedAmount) || 0;
+      return (amt * (amountBasedTaxRate || 0)) / 100;
+    }
+    return subtotalTax;
+  }, [creditNoteType, gstCategory, amountBasedAmount, amountBasedTaxRate, subtotalTax]);
+
   // Grand Total Calculations
   const calculatedGrandTotal = useMemo(() => {
-    const base = subtotalTaxable + subtotalTax;
+    const base = effectiveSubtotalTaxable + effectiveSubtotalTax;
     const withExtra = base + Number(additionalCharges || 0) - Number(discountAmount || 0);
     if (!autoRoundOff) return withExtra;
     return Math.round(withExtra);
-  }, [subtotalTaxable, subtotalTax, additionalCharges, discountAmount, autoRoundOff]);
+  }, [effectiveSubtotalTaxable, effectiveSubtotalTax, additionalCharges, discountAmount, autoRoundOff]);
 
   const roundOffAmount = useMemo(() => {
-    const base = subtotalTaxable + subtotalTax + Number(additionalCharges || 0) - Number(discountAmount || 0);
+    const base = effectiveSubtotalTaxable + effectiveSubtotalTax + Number(additionalCharges || 0) - Number(discountAmount || 0);
     return calculatedGrandTotal - base;
-  }, [subtotalTaxable, subtotalTax, additionalCharges, discountAmount, calculatedGrandTotal]);
+  }, [effectiveSubtotalTaxable, effectiveSubtotalTax, additionalCharges, discountAmount, calculatedGrandTotal]);
 
   // Balance calculation
   const balanceAmount = useMemo(() => {
@@ -579,26 +605,33 @@ const [notes, setNotes] = useState("");
       setError(lang === "gu" ? "કૃપા કરીને પાર્ટી પસંદ કરો." : "Please select a customer / party.");
       return;
     }
-    if (lineItems.length === 0) {
-      setError(lang === "gu" ? "ઓછામાં ઓછી એક આઇટમ ઉમેરો." : "Please add at least one line item to return.");
-      return;
-    }
 
     // Require an invoice to be linked
     if (!selectedInvoice) {
       setError(
         lang === "gu"
           ? "ક્રેડિટ નોટ બનાવવા માટે વેચાણ બિલ (Sales Invoice) લિંક કરો."
-          : "Please link a Sales Invoice under 'Link to Invoice' to create this Sales Return / Credit Note.",
+          : "Please link a Sales Invoice under 'Link to Invoice' to create this Credit Note.",
       );
       return;
     }
 
-    // Validate quantities
-    for (const itm of lineItems) {
-      if (itm.quantity <= 0) {
-        setError(`Quantity for ${itm.name} must be greater than zero.`);
+    if (creditNoteType === "AMOUNT_BASED") {
+      const amt = parseFloat(amountBasedAmount) || 0;
+      if (amt <= 0) {
+        setError("Please enter a valid credit adjustment amount greater than zero.");
         return;
+      }
+    } else {
+      if (lineItems.length === 0) {
+        setError(lang === "gu" ? "ઓછામાં ઓછી એક આઇટમ ઉમેરો." : "Please add at least one line item to return.");
+        return;
+      }
+      for (const itm of lineItems) {
+        if (itm.quantity <= 0) {
+          setError(`Quantity for ${itm.name} must be greater than zero.`);
+          return;
+        }
       }
     }
 
@@ -629,13 +662,27 @@ const [notes, setNotes] = useState("");
         }
       }
 
-      const res: any = await apiClient.post("/sales-returns", {
+      const isAmount = creditNoteType === "AMOUNT_BASED";
+      const payload: any = {
         salesInvoiceId: selectedInvoice.id,
         returnNumber: returnNumber.trim() || undefined,
         returnDate,
-        reason: notes || "Sales Return / Credit Note",
-        items: itemsPayload,
-      });
+        docType: "CREDIT_NOTE",
+        creditNoteType,
+        gstCategory,
+        restoreStock: false,
+        settlementMode,
+        reason: notes || (isAmount ? amountBasedReason : "Sales Return / Credit Note"),
+      };
+
+      if (isAmount) {
+        payload.amount = parseFloat(amountBasedAmount) || 0;
+        payload.taxRate = gstCategory === "COMMERCIAL" ? 0 : amountBasedTaxRate;
+      } else {
+        payload.items = itemsPayload;
+      }
+
+      const res: any = await apiClient.post("/sales-returns", payload);
 
       if (isNew) {
         // Reset form
@@ -816,6 +863,75 @@ const [notes, setNotes] = useState("");
             ]}
           />
 
+          {/* CREDIT NOTE TYPE & GST CLASSIFICATION SELECTOR */}
+          {!isDebitNote && (
+            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                  Credit Note Type (ક્રેડિટ નોટ પ્રકાર)
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCreditNoteType("ITEM_BASED")}
+                    className={`px-3 py-2.5 rounded-xl border text-xs font-bold transition-all text-center cursor-pointer ${
+                      creditNoteType === "ITEM_BASED"
+                        ? "border-blue-600 bg-blue-50/70 text-blue-700 shadow-xs"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                    }`}
+                  >
+                    <span>📦 Item-Based</span>
+                    <span className="block text-[10px] font-normal text-slate-500 mt-0.5">Line-item returns & rates</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCreditNoteType("AMOUNT_BASED")}
+                    className={`px-3 py-2.5 rounded-xl border text-xs font-bold transition-all text-center cursor-pointer ${
+                      creditNoteType === "AMOUNT_BASED"
+                        ? "border-purple-600 bg-purple-50/70 text-purple-700 shadow-xs"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                    }`}
+                  >
+                    <span>💰 Amount-Based</span>
+                    <span className="block text-[10px] font-normal text-slate-500 mt-0.5">Flat discount / rebate</span>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                  GST Classification (જીએસટી વર્ગીકરણ)
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setGstCategory("SECTION_34")}
+                    className={`px-3 py-2.5 rounded-xl border text-xs font-bold transition-all text-center cursor-pointer ${
+                      gstCategory === "SECTION_34"
+                        ? "border-emerald-600 bg-emerald-50/70 text-emerald-800 shadow-xs"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                    }`}
+                  >
+                    <span>🏛️ GST Section 34 Note</span>
+                    <span className="block text-[10px] font-normal text-slate-500 mt-0.5">Reverses output GST</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGstCategory("COMMERCIAL")}
+                    className={`px-3 py-2.5 rounded-xl border text-xs font-bold transition-all text-center cursor-pointer ${
+                      gstCategory === "COMMERCIAL"
+                        ? "border-amber-600 bg-amber-50/70 text-amber-800 shadow-xs"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                    }`}
+                  >
+                    <span>🤝 Commercial Note</span>
+                    <span className="block text-[10px] font-normal text-slate-500 mt-0.5">No tax reduction</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* 5-COLUMN DOCUMENT INFO STRIP */}
           <DocumentInfoStrip
             fields={[
@@ -906,7 +1022,93 @@ const [notes, setNotes] = useState("");
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
             {/* Left Column (8 cols): Items & Services Table + Notes & Additional Info */}
             <div className="lg:col-span-8 space-y-5">
-              <DocumentItemsCard
+              {creditNoteType === "AMOUNT_BASED" ? (
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-5">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900">
+                        Amount-Based Credit Adjustment (રકમ આધારિત ક્રેડિટ)
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Flat monetary credit without item-level inventory returns (e.g. Rate difference, Annual turnover rebate, Commercial discount)
+                      </p>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                      Amount-Based Mode
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Adjustment Amount (₹) <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={amountBasedAmount}
+                        onChange={(e) => setAmountBasedAmount(e.target.value)}
+                        placeholder="0.00"
+                        className="w-full text-base font-bold tabular-nums text-slate-900 bg-slate-50 border border-slate-200 focus:bg-white focus:border-purple-600 rounded-xl px-3.5 py-2.5 h-11"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Applicable GST Rate (%)
+                      </label>
+                      {gstCategory === "COMMERCIAL" ? (
+                        <div className="h-11 flex items-center px-3.5 rounded-xl border border-slate-200 bg-slate-100 text-xs font-medium text-slate-500">
+                          0% (Commercial Credit Note - No GST Reversal)
+                        </div>
+                      ) : (
+                        <select
+                          value={amountBasedTaxRate}
+                          onChange={(e) => setAmountBasedTaxRate(Number(e.target.value) || 0)}
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:border-purple-600 h-11"
+                        >
+                          {GST_RATES.map((r) => (
+                            <option key={r.label} value={r.value}>
+                              {r.label}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Reason / Description for Credit
+                    </label>
+                    <input
+                      type="text"
+                      value={amountBasedReason}
+                      onChange={(e) => setAmountBasedReason(e.target.value)}
+                      placeholder="e.g. Annual turnover discount, rate difference, goodwill adjustment"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-purple-600 h-11"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Settlement Mode
+                    </label>
+                    <select
+                      value={settlementMode}
+                      onChange={(e) => setSettlementMode(e.target.value as any)}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 focus:border-purple-600 h-11"
+                    >
+                      <option value="CUSTOMER_CREDIT">Customer Credit Balance (Hold on Account)</option>
+                      <option value="ADJUST_OUTSTANDING">Adjust Against Invoice Outstanding</option>
+                      <option value="REFUND_CASH">Immediate Cash Refund</option>
+                      <option value="REFUND_BANK">Immediate Bank Refund</option>
+                    </select>
+                  </div>
+                </div>
+              ) : (
+                <DocumentItemsCard
                 title="Return Line Items"
                 itemsCount={lineItems.length}
                 totalQty={totalQuantity}

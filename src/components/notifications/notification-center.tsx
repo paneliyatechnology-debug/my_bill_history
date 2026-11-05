@@ -111,30 +111,45 @@ export function NotificationCenter() {
     }
   }, [activeTab]);
 
+  // 1. Fetch unread count ONCE on mount (no continuous polling loop)
   useEffect(() => {
     fetchUnreadCount();
-    const handleNotificationRefresh = () => {
-      fetchUnreadCount();
+  }, [fetchUnreadCount]);
+
+  // 2. Real-time stream (Socket / SSE) event listener: updates count only when notification arrives or changes
+  useEffect(() => {
+    const handleNotificationReceived = (e: any) => {
+      const detail = e?.detail;
+      if (typeof detail?.unreadCount === "number") {
+        setUnreadCount(detail.unreadCount);
+      } else {
+        setUnreadCount((prev) => prev + 1);
+      }
       if (isOpen) {
         fetchNotifications();
       }
     };
-    window.addEventListener("refresh-notifications", handleNotificationRefresh);
-    window.addEventListener("notification-updated", handleNotificationRefresh);
-    window.addEventListener("focus", handleNotificationRefresh);
-    const interval = setInterval(fetchUnreadCount, 15000);
-    return () => {
-      window.removeEventListener("refresh-notifications", handleNotificationRefresh);
-      window.removeEventListener("notification-updated", handleNotificationRefresh);
-      window.removeEventListener("focus", handleNotificationRefresh);
-      clearInterval(interval);
-    };
-  }, [fetchUnreadCount, isOpen, fetchNotifications]);
 
-  // Instantly re-check unread notifications count whenever user navigates routes
-  useEffect(() => {
-    fetchUnreadCount();
-  }, [pathname, fetchUnreadCount]);
+    const handleNotificationUpdated = (e: any) => {
+      const detail = e?.detail;
+      if (typeof detail?.unreadCount === "number") {
+        setUnreadCount(detail.unreadCount);
+      }
+      if (isOpen) {
+        fetchNotifications();
+      }
+    };
+
+    window.addEventListener("notification-received", handleNotificationReceived);
+    window.addEventListener("notification-updated", handleNotificationUpdated);
+    window.addEventListener("refresh-notifications", handleNotificationUpdated);
+
+    return () => {
+      window.removeEventListener("notification-received", handleNotificationReceived);
+      window.removeEventListener("notification-updated", handleNotificationUpdated);
+      window.removeEventListener("refresh-notifications", handleNotificationUpdated);
+    };
+  }, [isOpen, fetchNotifications]);
 
   useEffect(() => {
     if (isOpen) {

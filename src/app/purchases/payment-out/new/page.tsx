@@ -68,13 +68,74 @@ function CreatePaymentOutForm() {
   const searchParams = useSearchParams();
   const { lang, tenantContext } = useAuth();
 
-  const paramPartyId = searchParams?.get("partyId") || "";
-  const paramBillId =
-    searchParams?.get("billId") ||
-    searchParams?.get("invoiceId") ||
-    searchParams?.get("id") ||
-    "";
-  const paramAmount = searchParams?.get("amount") || "";
+  const [paramPartyId, setParamPartyId] = useState<string>(
+    () =>
+      searchParams?.get("partyId") ||
+      (typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("partyId") || ""
+        : ""),
+  );
+  const [paramBillId, setParamBillId] = useState<string>(
+    () =>
+      searchParams?.get("billId") ||
+      searchParams?.get("invoiceId") ||
+      searchParams?.get("id") ||
+      (typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("billId") ||
+          new URLSearchParams(window.location.search).get("invoiceId") ||
+          new URLSearchParams(window.location.search).get("id") ||
+          ""
+        : ""),
+  );
+  const [paramAmount, setParamAmount] = useState<string>(
+    () =>
+      searchParams?.get("amount") ||
+      (typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("amount") || ""
+        : ""),
+  );
+
+  // Sync params from URL or searchParams
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlParty = searchParams?.get("partyId") || urlParams.get("partyId") || "";
+      const urlBill =
+        searchParams?.get("billId") ||
+        searchParams?.get("invoiceId") ||
+        searchParams?.get("id") ||
+        urlParams.get("billId") ||
+        urlParams.get("invoiceId") ||
+        urlParams.get("id") ||
+        "";
+      const urlAmt = searchParams?.get("amount") || urlParams.get("amount") || "";
+      if (urlParty) setParamPartyId(urlParty);
+      if (urlBill) setParamBillId(urlBill);
+      if (urlAmt) setParamAmount(urlAmt);
+    }
+  }, [searchParams]);
+
+  // If billId is provided without partyId, resolve party & amount from purchase bill
+  useEffect(() => {
+    if (!paramPartyId && paramBillId) {
+      apiClient
+        .get<any>(`/purchases/invoices/${paramBillId}`)
+        .catch(() => apiClient.get<any>(`/purchases/bills/${paramBillId}`))
+        .then((res: any) => {
+          const bill = res?.data || res;
+          const resolvedParty = bill?.partyId || bill?.supplierId;
+          if (resolvedParty) {
+            setParamPartyId(resolvedParty);
+            setPartyId(resolvedParty);
+          }
+          if (!paramAmount && (bill?.balanceAmount || bill?.grandTotal)) {
+            const bal = Number(bill.balanceAmount) || Number(bill.grandTotal) || 0;
+            if (bal > 0) setParamAmount(String(bal));
+          }
+        })
+        .catch((err) => console.error("Could not auto-resolve bill party:", err));
+    }
+  }, [paramPartyId, paramBillId, paramAmount]);
 
   // Reference data
   const [parties, setParties] = useState<PartyOption[]>([]);
@@ -139,14 +200,15 @@ function CreatePaymentOutForm() {
         if (paramPartyId && !partyList.some((p) => p.id === paramPartyId)) {
           try {
             const directParty: any = await apiClient.get(`/masters/parties/${paramPartyId}`);
-            if (directParty && directParty.id) {
+            const pObj = directParty?.data || directParty;
+            if (pObj && pObj.id) {
               partyList.unshift({
-                id: directParty.id,
-                name: directParty.name,
-                phone: directParty.phone,
-                type: directParty.type,
-                currentBalance: directParty.currentBalance ?? directParty.balance ?? 0,
-                balance: directParty.currentBalance ?? directParty.balance ?? 0,
+                id: pObj.id,
+                name: pObj.name,
+                phone: pObj.phone,
+                type: pObj.type,
+                currentBalance: pObj.currentBalance ?? pObj.balance ?? 0,
+                balance: pObj.currentBalance ?? pObj.balance ?? 0,
               });
             }
           } catch (pErr) {
