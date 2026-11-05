@@ -57,6 +57,7 @@ export default function EditInvoicePage() {
   >("TAX_INVOICE");
   const [partyId, setPartyId] = useState("");
   const [invoiceDate, setInvoiceDate] = useState("");
+  const [dueDate, setDueDate] = useState("");
   const [paymentMode, setPaymentMode] = useState("UNPAID_CREDIT");
   const [placeOfSupply, setPlaceOfSupply] = useState(
     currentCompany?.stateCode || "24",
@@ -90,6 +91,11 @@ export default function EditInvoicePage() {
           invRes.invoiceDate
             ? new Date(invRes.invoiceDate).toISOString().split("T")[0]
             : new Date().toISOString().split("T")[0],
+        );
+        setDueDate(
+          invRes.dueDate
+            ? new Date(invRes.dueDate).toISOString().split("T")[0]
+            : "",
         );
         setPaymentMode(invRes.paymentMode || "UNPAID_CREDIT");
         setPlaceOfSupply(invRes.placeOfSupply || currentCompany?.stateCode || "24");
@@ -272,6 +278,7 @@ export default function EditInvoicePage() {
       category,
       partyId,
       invoiceDate: new Date(invoiceDate).toISOString(),
+      dueDate: dueDate ? new Date(dueDate.includes("T") ? dueDate : `${dueDate}T00:00:00.000Z`).toISOString() : undefined,
       paymentMode,
       placeOfSupply,
       notes,
@@ -420,6 +427,18 @@ export default function EditInvoicePage() {
               type="date"
               value={invoiceDate}
               onChange={(e) => setInvoiceDate(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none tabular-nums h-10"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[12px] font-medium text-slate-700 mb-1">
+              {lang === "gu" ? "મુદત તારીખ (Due Date)" : "Due Date"}
+            </label>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none tabular-nums h-10"
             />
           </div>

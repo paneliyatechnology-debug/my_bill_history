@@ -110,6 +110,13 @@ interface CompanyProfile {
   upiVpa?: string;
 }
 
+function formatIsoDate(dateStr?: string): string | undefined {
+  if (!dateStr || !dateStr.trim()) return undefined;
+  const trimmed = dateStr.trim();
+  const d = trimmed.includes("T") ? new Date(trimmed) : new Date(`${trimmed}T00:00:00.000Z`);
+  return isNaN(d.getTime()) ? undefined : d.toISOString();
+}
+
 const createEmptyPurchaseRow = (): PurchaseRow => ({
   itemId: "",
   itemName: "",
@@ -1490,7 +1497,8 @@ const [notes, setNotes] = useState("");
       const payload = {
         partyId,
         vendorInvoiceNumber: vendorInvoiceNumber.trim(),
-        invoiceDate: invoiceDate || new Date().toISOString().split("T")[0],
+        invoiceDate: formatIsoDate(invoiceDate) || new Date().toISOString(),
+        dueDate: formatIsoDate(dueDate),
         placeOfSupply,
         warehouseId: warehouseId || undefined,
         itcEligibility,

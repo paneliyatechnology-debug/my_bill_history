@@ -87,14 +87,24 @@ const DATE_PRESET_LABELS: Record<DateRangePreset, { en: string; gu: string }> = 
   CUSTOM: { en: "Custom Range", gu: "કસ્ટમ તારીખ" },
 };
 
-function calculateDueIn(dueDateStr?: string): { text: string; isOverdue: boolean; isDueToday: boolean } {
+function calculateDueIn(
+  dueDateStr?: string,
+  status?: string,
+): { text: string; isOverdue: boolean; isDueToday: boolean } {
+  if (status === "PAID" || status === "CANCELLED") {
+    return { text: "-", isOverdue: false, isDueToday: false };
+  }
   if (!dueDateStr) return { text: "-", isOverdue: false, isDueToday: false };
-  const due = new Date(dueDateStr);
+  const parts = dueDateStr.split("T")[0].split("-").map(Number);
+  if (parts.length < 3 || isNaN(parts[0]) || isNaN(parts[1]) || isNaN(parts[2])) {
+    return { text: "-", isOverdue: false, isDueToday: false };
+  }
+  const [y, m, d] = parts;
+  const due = new Date(y, m - 1, d);
   const now = new Date();
-  due.setHours(0, 0, 0, 0);
   now.setHours(0, 0, 0, 0);
   const diffTime = due.getTime() - now.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
   if (diffDays > 0) {
     return { text: `In ${diffDays}d`, isOverdue: false, isDueToday: false };
   } else if (diffDays === 0) {
@@ -978,7 +988,7 @@ export default function SalesInvoicesDashboardPage() {
                 filteredInvoices.map((inv) => {
                   const status = getInvoiceStatus(inv);
                   const isSelected = selectedIds.has(inv.id);
-                  const dueInfo = calculateDueIn(inv.dueDate);
+                  const dueInfo = calculateDueIn(inv.dueDate, status);
                   const total = Number(inv.grandTotal || 0);
                   const paid = Number(inv.paidAmount || 0);
                   const unpaid = Number(inv.outstandingBalance !== undefined ? inv.outstandingBalance : total - paid);

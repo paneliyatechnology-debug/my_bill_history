@@ -531,7 +531,7 @@ const [notes, setNotes] = useState("");
         category: "PROFORMA_INVOICE",
         partyId,
         invoiceDate: quotationDate,
-        dueDate: showDueDate ? dueDate : undefined,
+        dueDate: dueDate ? (dueDate.includes("T") ? dueDate : `${dueDate}T00:00:00.000Z`) : undefined,
         placeOfSupply,
         paymentMode: "UNPAID_CREDIT",
         notes: notes || undefined,

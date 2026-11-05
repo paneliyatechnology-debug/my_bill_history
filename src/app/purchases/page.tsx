@@ -102,18 +102,30 @@ function formatDisplayDate(dateStr: string): string {
 
 function calculateDueIn(dueDateStr?: string, invoiceDateStr?: string, isPaid?: boolean): { text: string; isOverdue: boolean; isDueToday: boolean } {
   if (isPaid) return { text: "-", isOverdue: false, isDueToday: false };
-  if (!dueDateStr) {
+  let targetDateStr = dueDateStr;
+  if (!targetDateStr) {
     if (!invoiceDateStr) return { text: "-", isOverdue: false, isDueToday: false };
-    const inv = new Date(invoiceDateStr);
+    const dateParts = invoiceDateStr.split("T")[0].split("-").map(Number);
+    if (dateParts.length < 3 || isNaN(dateParts[0]) || isNaN(dateParts[1]) || isNaN(dateParts[2])) {
+      return { text: "-", isOverdue: false, isDueToday: false };
+    }
+    const inv = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
     inv.setDate(inv.getDate() + 30);
-    dueDateStr = inv.toISOString();
+    const y = inv.getFullYear();
+    const m = String(inv.getMonth() + 1).padStart(2, "0");
+    const d = String(inv.getDate()).padStart(2, "0");
+    targetDateStr = `${y}-${m}-${d}`;
   }
-  const due = new Date(dueDateStr);
+  const parts = targetDateStr.split("T")[0].split("-").map(Number);
+  if (parts.length < 3 || isNaN(parts[0]) || isNaN(parts[1]) || isNaN(parts[2])) {
+    return { text: "-", isOverdue: false, isDueToday: false };
+  }
+  const [y, m, d] = parts;
+  const due = new Date(y, m - 1, d);
   const now = new Date();
-  due.setHours(0, 0, 0, 0);
   now.setHours(0, 0, 0, 0);
   const diffTime = due.getTime() - now.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
   if (diffDays > 0) {
     return { text: `In ${diffDays}d`, isOverdue: false, isDueToday: false };
   } else if (diffDays === 0) {

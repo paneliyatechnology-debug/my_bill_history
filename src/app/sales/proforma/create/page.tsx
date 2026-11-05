@@ -399,7 +399,7 @@ const [notes, setNotes] = useState("");
         category: "PROFORMA_INVOICE",
         invoiceNumber: invoiceNumber.trim() || undefined,
         invoiceDate: new Date(invoiceDate).toISOString(),
-        dueDate: showDueDate && dueDate ? new Date(dueDate).toISOString() : undefined,
+        dueDate: dueDate ? new Date(dueDate.includes("T") ? dueDate : `${dueDate}T00:00:00.000Z`).toISOString() : undefined,
         partyId: partyId || undefined,
         placeOfSupply,
         warehouseId: selectedWarehouseId || warehouses[0]?.id,

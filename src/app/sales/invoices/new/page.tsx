@@ -110,6 +110,13 @@ function numberToWordsINR(amount: number): string {
   return res + " Only";
 }
 
+function formatIsoDate(dateStr?: string): string | undefined {
+  if (!dateStr || !dateStr.trim()) return undefined;
+  const trimmed = dateStr.trim();
+  const d = trimmed.includes("T") ? new Date(trimmed) : new Date(`${trimmed}T00:00:00.000Z`);
+  return isNaN(d.getTime()) ? undefined : d.toISOString();
+}
+
 export default function NewInvoicePage() {
   const router = useRouter();
   const { lang, tenantContext, currentCompany } = useAuth();
@@ -1233,8 +1240,8 @@ const [notes, setNotes] = useState("");
         category,
         partyId,
         invoiceNumber,
-        invoiceDate: new Date(invoiceDate).toISOString(),
-        dueDate: showDueDate ? new Date(dueDate).toISOString() : undefined,
+        invoiceDate: formatIsoDate(invoiceDate) || new Date().toISOString(),
+        dueDate: formatIsoDate(dueDate),
         paymentMode: resolvedPaymentMode,
         placeOfSupply,
         notes: notes.trim() || undefined,
