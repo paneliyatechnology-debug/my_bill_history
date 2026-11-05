@@ -132,12 +132,6 @@ export function UpcomingDuesAlertCard() {
       {/* 1. Header with Red Blinking Alert Indicator */}
       <div className="p-4 sm:p-5 bg-gradient-to-r from-rose-50/90 via-white to-amber-50/50 border-b border-rose-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          {/* Animated Red Radar Blink Dot */}
-          <span className="relative flex h-4 w-4 shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-80" />
-            <span className="relative inline-flex rounded-full h-4 w-4 bg-rose-600 shadow-sm" />
-          </span>
-
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-bold text-slate-900 text-sm sm:text-base">
@@ -356,7 +350,7 @@ export function UpcomingDuesAlertCard() {
                         <span className="relative flex h-2.5 w-2.5 shrink-0">
                           <span
                             className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                              isOverdue ? "bg-rose-500" : isToday ? "bg-amber-500" : "bg-blue-500"
+                              isOverdue ? "bg-rose-500" : isToday ? "#FFF7ED" : "bg-blue-500"
                             }`}
                           />
                           <span

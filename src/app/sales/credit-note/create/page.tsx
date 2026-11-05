@@ -224,8 +224,11 @@ const [notes, setNotes] = useState("");
         }));
         setCatalogItems(items);
 
-        if (returnRes?.total !== undefined) {
-          setReturnNumber(String(returnRes.total + 1));
+        if (returnRes?.nextNumber) {
+          setReturnNumber(returnRes.nextNumber);
+        } else if (returnRes?.total !== undefined) {
+          const prefix = isDebitNote ? `DN-${new Date().getFullYear()}-` : `CN-${new Date().getFullYear()}-`;
+          setReturnNumber(`${prefix}${String(returnRes.total + 1).padStart(4, "0")}`);
         }
       } catch (err: any) {
         if (!cancelled) setError(err.message || "Failed to load reference data.");
@@ -609,6 +612,7 @@ const [notes, setNotes] = useState("");
 
       const res: any = await apiClient.post("/sales-returns", {
         salesInvoiceId: selectedInvoice.id,
+        returnNumber: returnNumber.trim() || undefined,
         returnDate,
         reason: notes || "Sales Return / Credit Note",
         items: itemsPayload,
@@ -623,7 +627,15 @@ const [notes, setNotes] = useState("");
         setTerms("");
         setAmountReceived("0");
         setError(null);
-        setReturnNumber((prev) => String(Number(prev) + 1));
+        setReturnNumber((prev) => {
+          const match = prev.match(/(\d+)$/);
+          if (match) {
+            const nextNum = parseInt(match[1], 10) + 1;
+            const prefix = prev.slice(0, match.index);
+            return `${prefix}${String(nextNum).padStart(match[1].length, "0")}`;
+          }
+          return String(Number(prev) + 1 || "1");
+        });
       } else {
         const targetId = res?.id || res?.data?.id;
         if (targetId) {
