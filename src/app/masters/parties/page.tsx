@@ -387,7 +387,18 @@ export default function PartiesPage() {
         type: typeFilter !== "ALL" ? typeFilter : undefined,
         isActive: true,
       });
-      setParties(extractList(res));
+      const list = extractList(res);
+      setParties(list);
+
+      // Keep selectedParty in sync with latest backend calculations without requiring page refresh
+      setSelectedParty((curr) => {
+        if (!curr) return null;
+        const fresh = list.find((p: Party) => p.id === curr.id);
+        if (fresh) {
+          return { ...curr, ...fresh };
+        }
+        return curr;
+      });
     } catch (err: any) {
       setError(err.message || "Failed to load parties.");
     } finally {
@@ -584,23 +595,26 @@ export default function PartiesPage() {
     setIsSubmitting(true);
 
     try {
-      await apiClient.post("/masters/parties", {
+      const newParty: any = await apiClient.post("/masters/parties", {
         type: formData.type,
-        name: formData.name,
-        nameGujarati: formData.nameGujarati || undefined,
-        phone: formData.phone,
-        email: formData.email || undefined,
-        gstin: formData.gstin || undefined,
-        stateCode: formData.stateCode,
+        name: formData.name.trim(),
+        nameGujarati: formData.nameGujarati?.trim() || undefined,
+        phone: formData.phone.trim(),
+        email: formData.email?.trim() || undefined,
+        gstin: formData.gstin?.trim() ? formData.gstin.trim().toUpperCase() : undefined,
+        stateCode: formData.stateCode.trim(),
         creditLimit: Number(formData.creditLimit) || 0,
         creditDays: Number(formData.creditDays) || 0,
         billingAddress: {
-          line1: formData.line1 || "Main Market",
-          city: formData.city || "Ahmedabad",
-          pincode: formData.pincode || "380001",
+          line1: formData.line1?.trim() || "Main Market",
+          city: formData.city?.trim() || "Ahmedabad",
+          pincode: formData.pincode?.trim() || "380001",
         },
       });
 
+      if (newParty && typeof newParty === "object") {
+        setSelectedParty(newParty);
+      }
       setIsModalOpen(false);
       await fetchParties();
     } catch (err: any) {
@@ -647,26 +661,73 @@ export default function PartiesPage() {
     setIsSubmitting(true);
 
     try {
-      await apiClient.put(`/masters/parties/${editingParty.id}`, {
+      const cleanGstin = editFormData.gstin?.trim() ? editFormData.gstin.trim().toUpperCase() : null;
+      const payload = {
         type: editFormData.type,
-        name: editFormData.name,
-        nameGujarati: editFormData.nameGujarati || undefined,
-        phone: editFormData.phone,
-        email: editFormData.email || undefined,
-        gstin: editFormData.gstin || undefined,
-        stateCode: editFormData.stateCode,
+        name: editFormData.name.trim(),
+        nameGujarati: editFormData.nameGujarati?.trim() || undefined,
+        phone: editFormData.phone.trim(),
+        email: editFormData.email?.trim() || undefined,
+        gstin: cleanGstin,
+        stateCode: editFormData.stateCode.trim(),
         creditLimit: Number(editFormData.creditLimit) || 0,
         creditDays: Number(editFormData.creditDays) || 0,
         isActive: Boolean(editFormData.isActive),
         billingAddress: {
-          line1: editFormData.line1 || "Main Market",
-          city: editFormData.city || "Ahmedabad",
-          pincode: editFormData.pincode || "380001",
+          line1: editFormData.line1?.trim() || "Main Market",
+          city: editFormData.city?.trim() || "Ahmedabad",
+          pincode: editFormData.pincode?.trim() || "380001",
         },
+      };
+
+      const res: any = await apiClient.put(`/masters/parties/${editingParty.id}`, payload);
+
+      const updatedPartyData: Party = {
+        ...editingParty,
+        ...(res && typeof res === "object" ? res : {}),
+        type: editFormData.type,
+        name: editFormData.name.trim(),
+        nameGujarati: editFormData.nameGujarati?.trim() || null,
+        phone: editFormData.phone.trim(),
+        email: editFormData.email?.trim() || null,
+        gstin: cleanGstin,
+        stateCode: editFormData.stateCode.trim(),
+        creditLimit: Number(editFormData.creditLimit) || 0,
+        creditDays: Number(editFormData.creditDays) || 0,
+        isActive: Boolean(editFormData.isActive),
+        billingAddress: {
+          line1: editFormData.line1?.trim() || "Main Market",
+          city: editFormData.city?.trim() || "Ahmedabad",
+          pincode: editFormData.pincode?.trim() || "380001",
+        },
+        balance: editingParty.balance ?? (selectedParty?.id === editingParty.id ? selectedParty.balance : 0),
+      };
+
+      // 1. Instantly update parties array in state so list updates without refresh
+      setParties((prev) =>
+        prev.map((p) => (p.id === editingParty.id ? { ...p, ...updatedPartyData } : p))
+      );
+
+      // 2. Instantly update selectedParty so right-hand detail pane immediately shows updated values without refresh
+      setSelectedParty((prev) => {
+        if (!prev || prev.id !== editingParty.id) return prev;
+        return { ...prev, ...updatedPartyData };
       });
+
+      // 3. Show confirmation feedback toast
+      setActionMessage({
+        text:
+          lang === "gu"
+            ? `'${editFormData.name.trim()}' ની વિગતો સફળતાપૂર્વક સુધારાઈ ગઈ!`
+            : `Party '${editFormData.name.trim()}' updated successfully!`,
+        type: "success",
+      });
+      setTimeout(() => setActionMessage(null), 4000);
 
       setIsEditModalOpen(false);
       setEditingParty(null);
+
+      // 4. Background re-fetch to sync any calculated backend aggregates
       await fetchParties();
     } catch (err: any) {
       setFormError(

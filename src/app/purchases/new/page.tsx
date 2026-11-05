@@ -1709,7 +1709,7 @@ const [notes, setNotes] = useState("");
   }, [suppliers, partySearchTerm]);
 
   return (
-    <div className="min-h-screen bg-[#F4F6F9] pb-20 w-full">
+    <div className="min-h-screen bg-[#F4F6F9] pb-32 sm:pb-36 w-full">
       {/* ─────────────────────────────────────────────────────────────
           1. TOP APP BAR & MODE CONTROLS (Full Width Fluid)
          ───────────────────────────────────────────────────────────── */}
@@ -1745,65 +1745,198 @@ const [notes, setNotes] = useState("");
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
-          3. MAIN WORKSPACE CONTAINER (100% FULL FLUID WIDTH, RESPONSIVE)
+          2.5 TOP DOCUMENT HEADER CARD (Full Width Fluid)
          ───────────────────────────────────────────────────────────── */}
-      <div className="w-full px-3 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-5 items-start">
-        {/* ── LEFT DRAWER: AUTOFILL THIS BILL (GEMINI AI) ── */}
-        {!isAutofillDrawerOpen && (
-          <div className="w-full lg:w-auto shrink-0 mb-3 lg:mb-0 lg:sticky lg:top-20 z-20">
-            <button
-              type="button"
-              onClick={() => setIsAutofillDrawerOpen(true)}
-              aria-expanded={false}
-              aria-controls="ai-autofill-panel"
-              className="inline-flex items-center gap-2 h-9 px-3.5 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 border border-[#93C5FD] text-[#0F172A] rounded-xl text-[13px] font-medium shadow-2xs transition-all hover:shadow-xs cursor-pointer group"
-              title="Show AI Assistant to scan bills and auto-fill line items"
-            >
-              <span className="text-base group-hover:scale-110 transition-transform">✨</span>
-              <span>{lang === "gu" ? "AI સહાયક બતાવો" : "Show AI Assistant"}</span>
-              <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-[#0F172A] text-white font-semibold uppercase tracking-wide">
-                Scan Bill
-              </span>
-            </button>
-          </div>
-        )}
-        {isAutofillDrawerOpen && (
-          <aside id="ai-autofill-panel" className="w-full lg:w-[320px] xl:w-[340px] shrink-0 bg-white rounded-2xl border border-[#E5E7EB] shadow-xs overflow-hidden flex flex-col lg:sticky lg:top-20 max-h-none lg:max-h-[calc(100vh-6rem)]">
-            {/* Drawer Header */}
-            <div className="p-4 border-b border-[#F3F4F6] flex items-center justify-between bg-gradient-to-r from-orange-50/50 to-amber-50/30">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#EFF6FF] text-[#0F172A] flex items-center justify-center font-bold text-sm shadow-xs border border-[#BFDBFE]">
-                  ✨
-                </div>
+      {activeMode !== "PREVIEW" && (
+        <div className="w-full px-3 sm:px-4 lg:px-6 pt-2">
+          <DocumentHeaderCard
+            title={lang === "gu" ? "ખરીદી બિલ" : "Purchase Bill"}
+            subtitle={lang === "gu" ? "તમારું ખરીદી બિલ બનાવો અને સ્ટોક અપડેટ કરો" : "Create and manage your purchase bill"}
+            status="Draft"
+            onPreview={() => setActiveMode("PREVIEW")}
+            onPrint={() => window.print()}
+            onSave={() => handleSubmit(false)}
+            onSaveAsDraft={() => handleSubmit(true)}
+            isSaving={isSubmitting}
+            saveButtonLabel="Save Purchase Bill"
+            moreMenuItems={[
+              { label: "Quick Settings", onClick: () => { setQuickSettingsTab("items"); setIsQuickSettingsOpen(true); } },
+              { label: "Keyboard Shortcuts", onClick: () => setIsShortcutsOpen(true) },
+            ]}
+          />
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          3. MAIN WORKSPACE CONTAINER (3-COLUMN RESPONSIVE LAYOUT)
+         ───────────────────────────────────────────────────────────── */}
+      <div className="w-full px-3 sm:px-4 lg:px-6 pt-3">
+        {activeMode === "PREVIEW" ? (
+          <div className="space-y-4 animate-fadeIn">
+            {/* Preview Top Control Bar */}
+            <div className="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-xs">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveMode("EDIT")}
+                  className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[13px] font-medium transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>← {lang === "gu" ? "એડિટ મોડ પર પાછા જાઓ" : "Back to Edit Mode"}</span>
+                </button>
                 <div>
-                  <div className="flex items-center gap-1.5">
-                    <h3 className="text-xs font-semibold text-[#111827]">
-                      {lang === "gu" ? "આ બિલ ઓટોફિલ કરો" : "Autofill this bill"}
-                    </h3>
-                    <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                      FREE • 4D left
+                  <h2 className="text-sm font-semibold text-[#182230] flex items-center gap-2">
+                    <span>{lang === "gu" ? "ખરીદી બિલ પ્રિવ્યૂ" : "Purchase Bill Preview"}</span>
+                    <span
+                      className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
+                      style={{ backgroundColor: activeInvoiceTheme.accentColor || "#0F172A" }}
+                    >
+                      {activeInvoiceTheme.uniqueThemeKey || activeInvoiceTheme.themeId}
                     </span>
-                  </div>
-                  <p className="text-[10px] text-[#6B7280]">
-                    Powered by <strong className="text-[#0F172A]">Mira AI</strong>
+                  </h2>
+                  <p className="text-[11px] text-slate-500">
+                    {lang === "gu" ? "સેટિંગ્સમાંથી પસંદ કરેલી થીમ મુજબ લાઇવ પ્રિવ્યૂ" : "Live preview rendered with your saved settings theme"}
                   </p>
                 </div>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setIsAutofillDrawerOpen(false)}
-                aria-expanded={isAutofillDrawerOpen}
-                aria-controls="ai-autofill-panel"
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-white border border-transparent hover:border-slate-200 transition-colors text-[13px] font-medium cursor-pointer shadow-2xs"
-                title="Hide AI Assistant (reclaim workspace width)"
-              >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                </svg>
-                <span className="text-[11px] font-bold">{lang === "gu" ? "છુપાવો" : "Hide AI"}</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>🖨️ {lang === "gu" ? "પ્રિન્ટ" : "Print Voucher"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSubmit(false)}
+                  disabled={isSubmitting}
+                  className="h-9 px-4 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-semibold shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  <span>✓ {lang === "gu" ? "બિલ સાચવો" : "Save Purchase Bill"}</span>
+                </button>
+              </div>
             </div>
+
+            {/* Dynamic Themed Voucher Canvas */}
+            <div className="bg-slate-100/70 p-4 sm:p-8 rounded-2xl border border-slate-200 overflow-x-auto flex justify-center">
+              <DynamicThemedInvoice
+                settings={activeInvoiceTheme}
+                invoice={{
+                  invoiceNumber: vendorInvoiceNumber || "PB-DRAFT-001",
+                  invoiceDate: invoiceDate || new Date().toISOString().split("T")[0],
+                  dueDate: dueDate || undefined,
+                  placeOfSupply: placeOfSupply || "24",
+                  taxableAmount: totals.totalTaxable,
+                  cgstAmount: !isInterState ? totals.totalCgst : 0,
+                  sgstAmount: !isInterState ? totals.totalSgst : 0,
+                  igstAmount: isInterState ? totals.totalIgst : 0,
+                  grandTotal: totals.grandTotal,
+                  paidAmount: Number(paidAmount) || 0,
+                  balanceAmount: balanceDue,
+                  notes: notes,
+                  party: selectedSupplier ? {
+                    name: selectedSupplier.name,
+                    phone: selectedSupplier.phone,
+                    gstin: selectedSupplier.gstin,
+                    billingAddress: selectedSupplier.billingAddress,
+                  } : { name: "Cash Supplier" },
+                  items: rows.map((r, i) => {
+                    const it = items.find((itm) => itm.id === r.itemId);
+                    const q = Number(r.quantity) || 0;
+                    const p = Number(r.unitPrice) || 0;
+                    const d = Number(r.discountValue) || 0;
+                    const gross = q * p;
+                    const disc = r.discountType === "₹" ? d : (gross * d) / 100;
+                    const taxable = Math.max(0, gross - disc);
+                    const tr = Number(r.taxRate) || 0;
+                    const tax = (taxable * tr) / 100;
+                    return {
+                      id: String(i + 1),
+                      description: it?.name || `Item ${i + 1}`,
+                      hsnCode: r.hsnCode || "9983",
+                      quantity: q,
+                      unitPrice: p,
+                      discountPercent: r.discountType === "%" ? d : (gross > 0 ? (disc / gross) * 100 : 0),
+                      taxRate: tr,
+                      taxableAmount: taxable,
+                      cgstAmount: !isInterState ? tax / 2 : 0,
+                      sgstAmount: !isInterState ? tax / 2 : 0,
+                      igstAmount: isInterState ? tax : 0,
+                      totalAmount: taxable + tax,
+                    };
+                  }),
+                }}
+                company={{
+                  legalName: currentCompany?.legalName || companyProfile?.legalName || "My Company",
+                  tradeName: currentCompany?.tradeName || companyProfile?.tradeName || "My Company",
+                  addressLine1: (currentCompany as any)?.address || companyProfile?.addressLine1,
+                  city: currentCompany?.city || companyProfile?.city,
+                  gstin: currentCompany?.gstin || companyProfile?.gstin,
+                  phone: (currentCompany as any)?.phone || companyProfile?.phone,
+                  stateCode: companyState,
+                }}
+                printableId="printable-purchase-bill"
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col lg:flex-row gap-3.5 xl:gap-4 items-start w-full">
+            {/* ── LEFT DRAWER: AUTOFILL THIS BILL (GEMINI AI) ── */}
+            {!isAutofillDrawerOpen && (
+              <div className="w-full lg:w-auto shrink-0 mb-3 lg:mb-0 lg:sticky lg:top-4 z-20">
+                <button
+                  type="button"
+                  onClick={() => setIsAutofillDrawerOpen(true)}
+                  aria-expanded={false}
+                  aria-controls="ai-autofill-panel"
+                  className="inline-flex items-center gap-2 h-9 px-3.5 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 border border-[#93C5FD] text-[#0F172A] rounded-xl text-[13px] font-medium shadow-2xs transition-all hover:shadow-xs cursor-pointer group"
+                  title="Show AI Assistant to scan bills and auto-fill line items"
+                >
+                  <span className="text-base group-hover:scale-110 transition-transform">✨</span>
+                  <span>{lang === "gu" ? "AI સહાયક બતાવો" : "Show AI Assistant"}</span>
+                  <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-[#0F172A] text-white font-semibold uppercase tracking-wide">
+                    Scan Bill
+                  </span>
+                </button>
+              </div>
+            )}
+            {isAutofillDrawerOpen && (
+              <aside id="ai-autofill-panel" className="w-full lg:w-[220px] xl:w-[235px] shrink-0 bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col lg:sticky lg:top-4 max-h-none lg:max-h-[calc(100vh-6rem)]">
+                {/* Drawer Header */}
+                <div className="p-4 border-b border-[#F3F4F6] flex items-center justify-between bg-gradient-to-r from-orange-50/50 to-amber-50/30">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-[#EFF6FF] text-[#0F172A] flex items-center justify-center font-bold text-sm shadow-xs border border-[#BFDBFE]">
+                      ✨
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="text-xs font-semibold text-[#111827]">
+                          {lang === "gu" ? "આ બિલ ઓટોફિલ કરો" : "Autofill this bill"}
+                        </h3>
+                        <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                          FREE • 4D left
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-[#6B7280]">
+                        Powered by <strong className="text-[#0F172A]">Mira AI</strong>
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsAutofillDrawerOpen(false)}
+                    aria-expanded={isAutofillDrawerOpen}
+                    aria-controls="ai-autofill-panel"
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-white border border-transparent hover:border-slate-200 transition-colors text-[13px] font-medium cursor-pointer shadow-2xs"
+                    title="Hide AI Assistant (reclaim workspace width)"
+                  >
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                    </svg>
+                    <span className="text-[11px] font-bold">{lang === "gu" ? "છુપાવો" : "Hide AI"}</span>
+                  </button>
+                </div>
 
             {/* Dynamic Stats Row */}
             <div className="px-4 py-2 bg-[#FAFBFD] border-b border-[#F3F4F6] flex items-center justify-between text-[11px] text-[#6B7280]">
@@ -2197,145 +2330,8 @@ const [notes, setNotes] = useState("");
           </aside>
         )}
 
-        {/* ── RIGHT MAIN PANEL (FORM OR PREVIEW - TAKES 100% REMAINING SPACE) ── */}
-        <main className="flex-1 min-w-0 space-y-6">
-          {activeMode === "PREVIEW" ? (
-            <div className="space-y-4 animate-fadeIn">
-              {/* Preview Top Control Bar */}
-              <div className="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between shadow-xs">
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setActiveMode("EDIT")}
-                    className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[13px] font-medium transition-colors inline-flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <span>← {lang === "gu" ? "એડિટ મોડ પર પાછા જાઓ" : "Back to Edit Mode"}</span>
-                  </button>
-                  <div>
-                    <h2 className="text-sm font-semibold text-[#182230] flex items-center gap-2">
-                      <span>{lang === "gu" ? "ખરીદી બિલ પ્રિવ્યૂ" : "Purchase Bill Preview"}</span>
-                      <span
-                        className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-                        style={{ backgroundColor: activeInvoiceTheme.accentColor || "#0F172A" }}
-                      >
-                        {activeInvoiceTheme.uniqueThemeKey || activeInvoiceTheme.themeId}
-                      </span>
-                    </h2>
-                    <p className="text-[11px] text-slate-500">
-                      {lang === "gu" ? "સેટિંગ્સમાંથી પસંદ કરેલી થીમ મુજબ લાઇવ પ્રિવ્યૂ" : "Live preview rendered with your saved settings theme"}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => window.print()}
-                    className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <span>🖨️ {lang === "gu" ? "પ્રિન્ટ" : "Print Voucher"}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Themed Document using DynamicThemedInvoice */}
-              <div className="bg-slate-100/70 p-4 sm:p-8 rounded-2xl border border-slate-200 overflow-x-auto flex justify-center">
-                <DynamicThemedInvoice
-                  invoice={{
-                    category: "PURCHASE_INVOICE",
-                    invoiceNumber: purchaseInvoiceNumber || "PB-001",
-                    invoiceDate: invoiceDate,
-                    dueDate: dueDate,
-                    paymentMode: paymentMode,
-                    placeOfSupply: INDIAN_STATES[placeOfSupply]?.name ? `${INDIAN_STATES[placeOfSupply].name} (${placeOfSupply})` : placeOfSupply,
-                    taxableAmount: totals.totalTaxable,
-                    cgstAmount: totals.totalCgst,
-                    sgstAmount: totals.totalSgst,
-                    igstAmount: totals.totalIgst,
-                    roundOff: totals.roundOff,
-                    grandTotal: totals.grandTotal,
-                    paidAmount: paymentStatus === "PAID_FULL" ? totals.grandTotal : Number(paidAmount) || 0,
-                    balanceAmount: balanceDue,
-                    notes: notes,
-                    party: {
-                      name: selectedSupplier?.name || "Supplier Name",
-                      gstin: selectedSupplier?.gstin,
-                      phone: selectedSupplier?.phone,
-                      billingAddress: selectedSupplier?.billingAddress?.line1,
-                    },
-                    items: rows.map((r, idx) => {
-                      const itm = items.find((i) => i.id === r.itemId);
-                      const qty = Number(r.quantity) || 0;
-                      const rate = Number(r.unitPrice) || 0;
-                      const gross = qty * rate;
-                      const disc = Number(r.discountValue) || 0;
-                      const discVal = r.discountType === "₹" ? disc : (gross * disc) / 100;
-                      const taxable = Math.max(0, gross - discVal);
-                      const taxRate = Number(r.taxRate) || 0;
-                      const taxAmt = (taxable * taxRate) / 100;
-                      return {
-                        id: (r as any).id || `row-${idx}`,
-                        description: r.description || r.itemName || itm?.name || "Item",
-                        hsnCode: r.hsnCode,
-                        quantity: qty,
-                        unit: r.unit || "PCS",
-                        unitPrice: rate,
-                        discountPercent: r.discountType === "%" ? disc : gross > 0 ? (disc / gross) * 100 : 0,
-                        taxRate: taxRate,
-                        taxableAmount: taxable,
-                        cgstAmount: !isInterState ? taxAmt / 2 : 0,
-                        sgstAmount: !isInterState ? taxAmt / 2 : 0,
-                        igstAmount: isInterState ? taxAmt : 0,
-                        totalAmount: taxable + taxAmt,
-                        item: { name: r.itemName || itm?.name },
-                      };
-                    }),
-                    eWayBillRecord: {
-                      vendorInvoiceNumber: vendorInvoiceNumber,
-                      ewayBillNo: ewayBillNo,
-                      vehicleNo: vehicleNo,
-                      dispatchDate: dispatchDate,
-                      transportMode: transportMode,
-                    },
-                  }}
-                  settings={{
-                    ...activeInvoiceTheme,
-                    termsAndConditions: {
-                      ...activeInvoiceTheme.termsAndConditions,
-                      sales: terms,
-                    },
-                  }}
-                  company={{
-                    tradeName: currentCompany?.tradeName || companyProfile?.tradeName || "My Company",
-                    legalName: currentCompany?.legalName || companyProfile?.legalName,
-                    addressLine1: (currentCompany as any)?.address || companyProfile?.addressLine1,
-                    city: currentCompany?.city || companyProfile?.city,
-                    gstin: currentCompany?.gstin || companyProfile?.gstin,
-                    phone: (currentCompany as any)?.phone || companyProfile?.phone,
-                    stateCode: companyState,
-                  }}
-                  printableId="printable-purchase-bill"
-                />
-              </div>
-            </div>
-        ) : (
-          <div className="space-y-4">
-            {/* DOCUMENT HEADER CARD */}
-            <DocumentHeaderCard
-              title={lang === "gu" ? "ખરીદી બિલ" : "Purchase Bill"}
-              subtitle={lang === "gu" ? "તમારું ખરીદી બિલ બનાવો અને સ્ટોક અપડેટ કરો" : "Create and manage your purchase bill"}
-              status="Draft"
-              onPreview={() => setActiveMode("PREVIEW")}
-              onPrint={() => window.print()}
-              onSave={() => handleSubmit(false)}
-              onSaveAsDraft={() => handleSubmit(true)}
-              isSaving={isSubmitting}
-              saveButtonLabel="Save Purchase Bill"
-              moreMenuItems={[
-                { label: "Quick Settings", onClick: () => { setQuickSettingsTab("items"); setIsQuickSettingsOpen(true); } },
-                { label: "Keyboard Shortcuts", onClick: () => setIsShortcutsOpen(true) },
-              ]}
-            />
-
+            {/* ── CENTER MAIN PANEL: VENDOR INFO, ITEMS TABLE, LOWER CARDS ── */}
+            <main className="flex-1 min-w-0 space-y-4">
             {/* 5-COLUMN DOCUMENT INFO STRIP */}
             <DocumentInfoStrip
               fields={[
@@ -2412,170 +2408,172 @@ const [notes, setNotes] = useState("");
               ]}
             />
 
-            {/* MAIN 2-COLUMN WORKSPACE MATCHING REFERENCE IMAGE */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-              {/* Left Column (8 cols): Items & Services Table + Notes & Additional Info */}
-              <div className="lg:col-span-8 space-y-5">
                 <DocumentItemsCard
                   title="Items & Services"
                   itemsCount={rows.length}
                   totalQty={totals.totalQuantity}
-                  itemsTotal={totals.grandTotal}
+                  itemsTotal={formatInr(totals.grandTotal)}
                   onImportItems={() => setIsAddItemModalOpen(true)}
                   onAddItem={() => setIsAddItemModalOpen(true)}
                   onAddBlankRow={handleAddRow}
                   addItemLabel="+ Add Item"
                 >
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 font-bold text-[11px] uppercase tracking-wider">
-                      <tr>
-                        <th className="py-3 px-3.5 text-center w-12">#</th>
-                        <th className="py-3 px-3.5">Item / Description</th>
-                        <th className="py-3 px-3 text-center w-28">HSN/SAC</th>
-                        <th className="py-3 px-3 text-right w-24">Qty</th>
-                        <th className="py-3 px-3 text-right w-28">Rate (₹)</th>
-                        <th className="py-3 px-3 text-right w-24">Discount</th>
-                        <th className="py-3 px-3 text-right w-24">Tax (%)</th>
-                        <th className="py-3 px-3 text-right w-28">Amount (₹)</th>
-                        <th className="py-3 px-3 text-center w-16">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {rows.length === 0 ? (
+                  <div className="overflow-x-auto w-full scrollbar-thin">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 font-bold text-[10px] sm:text-[11px] uppercase tracking-wider">
                         <tr>
-                          <td colSpan={9} className="py-12 text-center text-slate-400">
-                            <div className="max-w-xs mx-auto space-y-2">
-                              <span className="text-2xl">📦</span>
-                              <p className="font-bold text-slate-700">No items added to purchase bill yet</p>
-                              <p className="text-[11px] text-slate-400">Add an item from catalog or enter details below</p>
-                              <button
-                                type="button"
-                                onClick={() => setIsAddItemModalOpen(true)}
-                                className="h-9 px-3 bg-[#0F172A] text-white rounded-xl text-[13px] font-medium shadow-2xs cursor-pointer"
-                              >
-                                + Add From Catalog
-                              </button>
-                            </div>
-                          </td>
+                          <th className="py-2.5 px-1 text-center w-7">#</th>
+                          <th className="py-2.5 px-2 min-w-[110px]">Item / Description</th>
+                          <th className="py-2.5 px-1 text-center w-14">HSN/SAC</th>
+                          <th className="py-2.5 px-1 text-center w-11">Qty</th>
+                          <th className="py-2.5 px-1 text-right w-14">Rate (₹)</th>
+                          <th className="py-2.5 px-1 text-center w-13">Discount</th>
+                          <th className="py-2.5 px-1 text-center w-13">Tax (%)</th>
+                          <th className="py-2.5 px-1.5 text-right w-20">Amount (₹)</th>
+                          <th className="py-2.5 px-1 text-center w-8">Action</th>
                         </tr>
-                      ) : (
-                        rows.map((row, idx) => {
-                          const itm = items.find((i) => i.id === row.itemId);
-                          const qty = Number(row.quantity) || 0;
-                          const rate = Number(row.unitPrice) || 0;
-                          const gross = qty * rate;
-                          const disc = Number(row.discountValue) || 0;
-                          const discVal = row.discountType === "₹" ? disc : (gross * disc) / 100;
-                          const taxable = Math.max(0, gross - discVal);
-                          const taxRate = Number(row.taxRate) || 0;
-                          const taxAmt = (taxable * taxRate) / 100;
-                          const lineTot = taxable + taxAmt;
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {rows.length === 0 ? (
+                          <tr>
+                            <td colSpan={9} className="py-12 text-center text-slate-400">
+                              <div className="max-w-xs mx-auto space-y-2">
+                                <span className="text-2xl">📦</span>
+                                <p className="font-bold text-slate-700">No items added to purchase bill yet</p>
+                                <p className="text-[11px] text-slate-400">Add an item from catalog or enter details below</p>
+                                <button
+                                  type="button"
+                                  onClick={() => setIsAddItemModalOpen(true)}
+                                  className="h-9 px-3 bg-[#0F172A] text-white rounded-xl text-[13px] font-medium shadow-2xs cursor-pointer"
+                                >
+                                  + Add From Catalog
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ) : (
+                          rows.map((row, idx) => {
+                            const itm = items.find((i) => i.id === row.itemId);
+                            const qty = Number(row.quantity) || 0;
+                            const rate = Number(row.unitPrice) || 0;
+                            const gross = qty * rate;
+                            const disc = Number(row.discountValue) || 0;
+                            const discVal = row.discountType === "₹" ? disc : (gross * disc) / 100;
+                            const taxable = Math.max(0, gross - discVal);
+                            const taxRate = Number(row.taxRate) || 0;
+                            const taxAmt = (taxable * taxRate) / 100;
+                            const lineTot = taxable + taxAmt;
 
-                          return (
-                            <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
-                              <td className="py-3 px-3 text-center text-slate-400 tabular-nums text-[11px]">
-                                {idx + 1}
-                              </td>
+                            return (
+                              <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
+                                <td className="py-2 px-1 text-center text-slate-500 tabular-nums text-xs font-medium">
+                                  {idx + 1}
+                                </td>
 
-                              <td className="py-3 px-3">
-                                <div className="space-y-1">
-                                  <div className="flex items-center gap-2">
+                                <td className="py-2 px-1.5 min-w-[110px]">
+                                  <div className="relative">
                                     <select
                                       value={row.itemId}
                                       onChange={(e) => handleItemSelect(idx, e.target.value)}
-                                      className="w-full text-[13px] py-1.5 px-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#1677E8] rounded-xl font-normal text-slate-800 h-10"
+                                      className="w-full text-xs py-1 pl-2 pr-6 bg-white hover:bg-slate-50/80 focus:bg-white border border-slate-200 focus:border-[#1677E8] rounded-lg font-medium text-slate-800 shadow-2xs appearance-none cursor-pointer h-8 truncate"
                                     >
                                       {items.map((it) => (
                                         <option key={it.id} value={it.id}>
-                                          {it.name} (Stock: {it.stockQuantity ?? 0})
+                                          {it.name}
                                         </option>
                                       ))}
                                     </select>
+                                    <div className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                      </svg>
+                                    </div>
                                   </div>
-                                </div>
-                              </td>
+                                </td>
 
-                              <td className="py-3 px-3">
-                                <input
-                                  type="text"
-                                  value={row.hsnCode}
-                                  onChange={(e) => handleRowChange(idx, "hsnCode", e.target.value)}
-                                  className="w-full text-[13px] py-1.5 px-2 text-center tabular-nums bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white h-10"
-                                  placeholder="1001"
-                                />
-                              </td>
+                                <td className="py-2 px-1">
+                                  <input
+                                    type="text"
+                                    value={row.hsnCode}
+                                    onChange={(e) => handleRowChange(idx, "hsnCode", e.target.value)}
+                                    className="w-full text-xs py-1 px-1 text-center tabular-nums bg-white border border-slate-200 rounded-lg text-slate-700 focus:bg-white focus:border-[#1677E8] focus:outline-none shadow-2xs h-8"
+                                    placeholder="1001"
+                                  />
+                                </td>
 
-                              <td className="py-3 px-3">
-                                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
+                                <td className="py-2 px-1">
                                   <input
                                     type="number"
                                     min="0.001"
                                     step="any"
                                     value={row.quantity}
                                     onChange={(e) => handleRowChange(idx, "quantity", e.target.value === "" ? "" : Number(e.target.value))}
-                                    className="w-full text-[13px] text-right tabular-nums font-normal text-slate-800 bg-transparent focus:outline-none h-10"
+                                    className="w-full text-xs py-1 px-1 text-center tabular-nums font-medium text-slate-800 bg-white border border-slate-200 rounded-lg focus:border-[#1677E8] focus:outline-none shadow-2xs h-8"
                                   />
-                                </div>
-                              </td>
+                                </td>
 
-                              <td className="py-3 px-3">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  step="any"
-                                  value={row.unitPrice}
-                                  onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))}
-                                  className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
-                                />
-                              </td>
-
-                              <td className="py-3 px-3">
-                                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
+                                <td className="py-2 px-1">
                                   <input
                                     type="number"
                                     min="0"
-                                    value={row.discountValue}
-                                    onChange={(e) => handleRowChange(idx, "discountValue", e.target.value === "" ? "" : Number(e.target.value))}
-                                    placeholder="0"
-                                    className="w-full text-[13px] text-right tabular-nums bg-transparent focus:outline-none h-10"
+                                    step="any"
+                                    value={row.unitPrice}
+                                    onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))}
+                                    className="w-full text-xs py-1 px-1 text-right tabular-nums font-medium bg-white border border-slate-200 rounded-lg text-slate-800 focus:bg-white focus:border-[#1677E8] focus:outline-none shadow-2xs h-8"
                                   />
-                                  <span className="text-[10px] text-slate-400">{row.discountType}</span>
-                                </div>
-                              </td>
+                                </td>
 
-                              <td className="py-3 px-3">
-                                <input
-                                  type="number"
-                                  step="any"
-                                  value={row.taxRate}
-                                  onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value) || 0)}
-                                  placeholder="18"
-                                  className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
-                                />
-                              </td>
+                                <td className="py-2 px-1">
+                                  <div className="relative flex items-center">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      value={row.discountValue}
+                                      onChange={(e) => handleRowChange(idx, "discountValue", e.target.value === "" ? "" : Number(e.target.value))}
+                                      placeholder="0"
+                                      className="w-full text-xs py-1 pl-1 pr-3.5 text-center tabular-nums bg-white border border-slate-200 rounded-lg text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs h-8"
+                                    />
+                                    <span className="absolute right-1 text-[9px] text-slate-400 font-bold pointer-events-none">%</span>
+                                  </div>
+                                </td>
 
-                              <td className="py-3 px-3 text-right tabular-nums font-semibold text-slate-900 text-[13px]">
-                                ₹ {lineTot.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </td>
+                                <td className="py-2 px-1">
+                                  <div className="relative flex items-center">
+                                    <input
+                                      type="number"
+                                      step="any"
+                                      value={row.taxRate}
+                                      onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value) || 0)}
+                                      placeholder="0"
+                                      className="w-full text-xs py-1 pl-1 pr-3.5 text-center tabular-nums font-medium bg-white border border-slate-200 rounded-lg text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs h-8"
+                                    />
+                                    <span className="absolute right-1 text-[9px] text-slate-400 font-bold pointer-events-none">%</span>
+                                  </div>
+                                </td>
 
-                              <td className="py-3 px-3 text-center">
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveRow(idx)}
-                                  className="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
-                                  title="Delete row"
-                                >
-                                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                  </svg>
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })
-                      )}
-                    </tbody>
-                  </table>
+                                <td className="py-2 px-2 text-right tabular-nums font-bold text-slate-800 text-xs whitespace-nowrap">
+                                  ₹ {lineTot.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </td>
+
+                                <td className="py-2 px-1 text-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveRow(idx)}
+                                    className="w-6 h-6 mx-auto rounded text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
+                                    title="Delete row"
+                                  >
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </DocumentItemsCard>
 
                 {/* Side-by-side: Notes & Terms + Additional Information */}
@@ -2600,54 +2598,53 @@ const [notes, setNotes] = useState("");
                     onDispatchDateChange={setDispatchDate}
                   />
                 </div>
-              </div>
+            </main>
 
-              {/* Right Column (4 cols): Summary Card + Payment Card */}
-              <div className="lg:col-span-4 space-y-5">
-                <DocumentSummaryCard
-                  title="Purchase Summary"
-                  subtotal={totals.totalTaxable}
-                  discount={totals.totalDiscount > 0 ? totals.totalDiscount : undefined}
-                  cgst={!isInterState ? totals.totalCgst : undefined}
-                  sgst={!isInterState ? totals.totalSgst : undefined}
-                  igst={isInterState ? totals.totalIgst : undefined}
-                  roundOff={totals.roundOff !== 0 ? totals.roundOff : undefined}
-                  grandTotal={totals.grandTotal}
-                />
+            {/* Right Column: Summary Card + Payment Card */}
+            <aside className="w-full lg:w-[225px] xl:w-[240px] shrink-0 space-y-4">
+              <DocumentSummaryCard
+                title="Purchase Summary"
+                subtotal={totals.totalTaxable}
+                discount={totals.totalDiscount > 0 ? totals.totalDiscount : undefined}
+                cgst={!isInterState ? totals.totalCgst : undefined}
+                sgst={!isInterState ? totals.totalSgst : undefined}
+                igst={isInterState ? totals.totalIgst : undefined}
+                roundOff={totals.roundOff !== 0 ? totals.roundOff : undefined}
+                grandTotal={totals.grandTotal}
+              />
 
-                <DocumentPaymentCard
-                  amountReceived={paymentStatus === "PAID_FULL" ? totals.grandTotal : (Number(paidAmount) || 0)}
-                  onAmountReceivedChange={(val) => {
-                    setPaymentStatus("PARTIAL_PAID");
-                    setPaidAmount(val === "" ? 0 : val);
-                  }}
-                  paymentMode={paymentMode}
-                  onPaymentModeChange={setPaymentMode}
-                  balanceDue={balanceDue}
-                  onPaidInFull={() => {
-                    setPaymentStatus("PAID_FULL");
-                    setPaidAmount(totals.grandTotal);
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* STICKY BOTTOM ACTION BAR */}
-            <DocumentBottomBar
-              totalItems={rows.length}
-              totalAmount={totals.grandTotal}
-              onSaveAsDraft={() => handleSubmit(true)}
-              onSave={() => handleSubmit(false)}
-              isSaving={isSubmitting}
-              saveButtonLabel="Save Purchase Bill"
-              backHref="/purchases"
-            />
+              <DocumentPaymentCard
+                amountReceived={paymentStatus === "PAID_FULL" ? totals.grandTotal : (Number(paidAmount) || 0)}
+                onAmountReceivedChange={(val) => {
+                  setPaymentStatus("PARTIAL_PAID");
+                  setPaidAmount(val === "" ? 0 : val);
+                }}
+                paymentMode={paymentMode}
+                onPaymentModeChange={setPaymentMode}
+                balanceDue={balanceDue}
+                onPaidInFull={() => {
+                  setPaymentStatus("PAID_FULL");
+                  setPaidAmount(totals.grandTotal);
+                }}
+              />
+            </aside>
           </div>
-
         )}
-        </main>
       </div>
 
+      {/* STICKY BOTTOM ACTION BAR */}
+      {activeMode !== "PREVIEW" && (
+        <DocumentBottomBar
+          totalItems={rows.length}
+          totalAmount={totals.grandTotal}
+          onSaveAsDraft={() => handleSubmit(true)}
+          onSave={() => handleSubmit(false)}
+          isSaving={isSubmitting}
+          saveButtonLabel="Save Purchase Bill"
+          backHref="/purchases"
+          statusText="Ready to save • 0 changes"
+        />
+      )}
       {/* ─────────────────────────────────────────────────────────────
           STICKY MOBILE QUICK ACTION BAR (Visible on Mobile / Tablet)
          ───────────────────────────────────────────────────────────── */}
