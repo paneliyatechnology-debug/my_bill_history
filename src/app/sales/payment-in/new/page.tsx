@@ -692,6 +692,13 @@ function CreatePaymentInForm() {
                   ✕
                 </button>
               </div>
+            ) : partyId ? (
+              <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50/70 px-3 py-2 text-xs">
+                <span className="flex items-center gap-2 text-slate-500 font-medium">
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-teal-600 border-t-transparent" />
+                  <span>Loading party...</span>
+                </span>
+              </div>
             ) : (
               <div
                 onClick={() => {
@@ -1268,5 +1275,19 @@ function CreatePaymentInForm() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CreatePaymentInPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#F4F5F7] p-8 text-center text-slate-500 text-sm">
+          Loading payment in form...
+        </div>
+      }
+    >
+      <CreatePaymentInForm />
+    </Suspense>
   );
 }

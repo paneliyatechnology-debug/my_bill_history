@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../../../context/auth-context";
 import { apiClient, extractList } from "../../../../lib/api-client";
 
@@ -63,16 +63,25 @@ function formatPaymentDate(value?: string): string {
   });
 }
 
-export default function CreatePaymentOutPage() {
+function CreatePaymentOutForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { lang, tenantContext } = useAuth();
+
+  const paramPartyId = searchParams?.get("partyId") || "";
+  const paramBillId =
+    searchParams?.get("billId") ||
+    searchParams?.get("invoiceId") ||
+    searchParams?.get("id") ||
+    "";
+  const paramAmount = searchParams?.get("amount") || "";
 
   // Reference data
   const [parties, setParties] = useState<PartyOption[]>([]);
   const [ledgers, setLedgers] = useState<LedgerOption[]>([]);
 
   // Form State
-  const [partyId, setPartyId] = useState("");
+  const [partyId, setPartyId] = useState<string>(() => paramPartyId);
   const [isPartyDropdownOpen, setIsPartyDropdownOpen] = useState(false);
   const [partySearchQuery, setPartySearchQuery] = useState("");
   const partyDropdownRef = useRef<HTMLDivElement>(null);
@@ -91,6 +100,14 @@ export default function CreatePaymentOutPage() {
   const [bills, setBills] = useState<PendingPurchaseBill[]>([]);
   const [isLoadingBills, setIsLoadingBills] = useState(false);
   const [billSearchQuery, setBillSearchQuery] = useState("");
+  const initialAutoSettledRef = useRef(false);
+
+  // Sync paramPartyId if it changes
+  useEffect(() => {
+    if (paramPartyId && paramPartyId !== partyId) {
+      setPartyId(paramPartyId);
+    }
+  }, [paramPartyId]);
 
   // Settings modal state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -105,6 +122,7 @@ export default function CreatePaymentOutPage() {
   // Load parties & ledgers
   useEffect(() => {
     if (!tenantContext.companyId) return;
+    let cancelled = false;
     async function loadData() {
       try {
         const [partiesRes, ledgersRes, nextNumRes] = await Promise.all([
@@ -112,9 +130,34 @@ export default function CreatePaymentOutPage() {
           apiClient.get<any>("/accounting/accounts", { limit: 100 }).catch(() => ({ data: [] })),
           apiClient.get<any>("/purchases/payment-out", { limit: 1 }).catch(() => null),
         ]);
+        if (cancelled) return;
 
         const partyList = extractList<PartyOption>(partiesRes);
+
+        // If partyId was passed from URL and not present in supplier list,
+        // fetch it directly by ID to ensure it is available for selection
+        if (paramPartyId && !partyList.some((p) => p.id === paramPartyId)) {
+          try {
+            const directParty: any = await apiClient.get(`/masters/parties/${paramPartyId}`);
+            if (directParty && directParty.id) {
+              partyList.unshift({
+                id: directParty.id,
+                name: directParty.name,
+                phone: directParty.phone,
+                type: directParty.type,
+                currentBalance: directParty.currentBalance ?? directParty.balance ?? 0,
+                balance: directParty.currentBalance ?? directParty.balance ?? 0,
+              });
+            }
+          } catch (pErr) {
+            console.error("Failed to load party by id:", pErr);
+          }
+        }
+
         setParties(partyList);
+        if (paramPartyId) {
+          setPartyId(paramPartyId);
+        }
 
         const rawLedgers = extractList<LedgerOption>(ledgersRes);
         const cashBank = rawLedgers.filter(
@@ -150,7 +193,10 @@ export default function CreatePaymentOutPage() {
       }
     }
     loadData();
-  }, [tenantContext.companyId]);
+    return () => {
+      cancelled = true;
+    };
+  }, [tenantContext.companyId, paramPartyId]);
 
   // Load pending purchase bills when party changes
   useEffect(() => {
@@ -158,6 +204,7 @@ export default function CreatePaymentOutPage() {
       setBills([]);
       return;
     }
+    let cancelled = false;
     async function fetchPendingBills() {
       setIsLoadingBills(true);
       try {
@@ -165,6 +212,7 @@ export default function CreatePaymentOutPage() {
           partyId,
           limit: 100,
         });
+        if (cancelled) return;
         const allBills = extractList<any>(res);
         const pending = allBills
           .map((bill) => {
@@ -186,17 +234,100 @@ export default function CreatePaymentOutPage() {
               isSelected: false,
             };
           })
-          .filter((b) => b.balanceAmount > 0.01);
+          .filter((b) => b.balanceAmount > 0.01 || b.id === paramBillId);
+
+        // If paramBillId was supplied and not found in pending, fetch it directly
+        if (
+          paramBillId &&
+          !initialAutoSettledRef.current &&
+          !pending.some((b) => b.id === paramBillId || b.vendorInvoiceNumber === paramBillId)
+        ) {
+          try {
+            const singleBill: any = await apiClient
+              .get<any>(`/purchases/${paramBillId}`)
+              .catch(() => apiClient.get<any>(`/purchases/invoices/${paramBillId}`));
+            if (singleBill && singleBill.id) {
+              const grandTotal = Number(singleBill.grandTotal) || 0;
+              const paid = Number(singleBill.paidAmount) || 0;
+              const bal =
+                singleBill.balanceAmount !== undefined
+                  ? Number(singleBill.balanceAmount)
+                  : Math.max(0, grandTotal - paid);
+              pending.unshift({
+                id: singleBill.id,
+                vendorInvoiceNumber: singleBill.vendorInvoiceNumber || singleBill.invoiceNumber || "—",
+                invoiceDate: singleBill.invoiceDate,
+                dueDate: singleBill.dueDate || singleBill.invoiceDate,
+                grandTotal,
+                balanceAmount: bal > 0 ? bal : grandTotal,
+                settle: "",
+                discount: "",
+                isSelected: false,
+              });
+            }
+          } catch (bErr) {
+            console.error("Could not fetch bill by ID:", bErr);
+          }
+        }
+
+        // Auto-select bill and allocate amount if redirected from dashboard
+        if (!initialAutoSettledRef.current) {
+          const paramAmt = parseFloat(paramAmount) || 0;
+          const targetBill = paramBillId
+            ? pending.find((b) => b.id === paramBillId || b.vendorInvoiceNumber === paramBillId)
+            : null;
+
+          if (targetBill) {
+            const settleAmt =
+              paramAmt > 0 ? Math.min(paramAmt, targetBill.balanceAmount) : targetBill.balanceAmount;
+            targetBill.isSelected = true;
+            targetBill.settle = settleAmt > 0 ? settleAmt.toFixed(2) : "";
+            setAmountPaid(settleAmt > 0 ? settleAmt.toFixed(2) : "");
+            initialAutoSettledRef.current = true;
+          } else if (paramAmt > 0) {
+            setAmountPaid(paramAmt.toFixed(2));
+            let remaining = paramAmt;
+            pending.forEach((b) => {
+              const disc = parseFloat(b.discount) || 0;
+              const maxCanSettle = Math.max(0, b.balanceAmount - disc);
+              if (remaining > 0 && maxCanSettle > 0) {
+                const alloc = Math.min(remaining, maxCanSettle);
+                remaining -= alloc;
+                b.settle = alloc > 0 ? alloc.toFixed(2) : "";
+                b.isSelected = alloc > 0;
+              }
+            });
+            initialAutoSettledRef.current = true;
+          }
+        } else {
+          const currentPaid = parseFloat(amountPaid) || 0;
+          if (currentPaid > 0) {
+            let remaining = currentPaid;
+            pending.forEach((b) => {
+              const disc = parseFloat(b.discount) || 0;
+              const maxCanSettle = Math.max(0, b.balanceAmount - disc);
+              if (remaining > 0 && maxCanSettle > 0) {
+                const alloc = Math.min(remaining, maxCanSettle);
+                remaining -= alloc;
+                b.settle = alloc > 0 ? alloc.toFixed(2) : "";
+                b.isSelected = alloc > 0;
+              }
+            });
+          }
+        }
 
         setBills(pending);
       } catch (err) {
         console.error("Error loading pending bills:", err);
       } finally {
-        setIsLoadingBills(false);
+        if (!cancelled) setIsLoadingBills(false);
       }
     }
     fetchPendingBills();
-  }, [partyId, tenantContext.companyId]);
+    return () => {
+      cancelled = true;
+    };
+  }, [partyId, paramBillId, paramAmount, tenantContext.companyId]);
 
   // Click outside listener for party dropdown
   useEffect(() => {
@@ -492,6 +623,13 @@ export default function CreatePaymentOutPage() {
                     <div className="mt-1 text-[11px] text-slate-500">
                       Current Balance: ₹- {(selectedParty.currentBalance || selectedParty.balance || 0).toLocaleString("en-IN")}
                     </div>
+                  </div>
+                ) : partyId ? (
+                  <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900">
+                    <span className="flex items-center gap-2 text-slate-500 font-medium">
+                      <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-600 border-t-transparent" />
+                      <span>Loading party...</span>
+                    </span>
                   </div>
                 ) : (
                   <div>
@@ -916,5 +1054,19 @@ export default function CreatePaymentOutPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CreatePaymentOutPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#F4F5F7] p-8 text-center text-slate-500 text-sm">
+          Loading payment out form...
+        </div>
+      }
+    >
+      <CreatePaymentOutForm />
+    </Suspense>
   );
 }
