@@ -90,10 +90,10 @@ export function PartySelectorCompact({
         </div>
       ) : (
         /* Search Box with Search Icon and Quick Add Button */
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <div className="relative flex-1 min-w-0">
-            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </span>
@@ -106,7 +106,7 @@ export function PartySelectorCompact({
               }}
               onFocus={() => onOpenChange(true)}
               placeholder={placeholder}
-              className="w-full py-2 pl-8 pr-2 text-[13px] font-normal bg-white border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs h-10"
+              className="w-full py-1 pl-6 pr-1 text-xs font-normal bg-white border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 placeholder:text-[11px] focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs h-8.5"
             />
           </div>
 
@@ -114,10 +114,10 @@ export function PartySelectorCompact({
             <button
               type="button"
               onClick={onAddNew}
-              className="w-8 h-8 rounded-xl bg-[#EFF6FF] hover:bg-[#D4F1E8] border border-[#93C5FD]/50 text-[#0F172A] flex items-center justify-center shrink-0 transition-colors cursor-pointer shadow-2xs"
+              className="w-7 h-7 rounded-xl bg-[#EFF6FF] hover:bg-[#D4F1E8] border border-[#93C5FD]/50 text-[#0F172A] flex items-center justify-center shrink-0 transition-colors cursor-pointer shadow-2xs"
               title="Add New Party"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
               </svg>
             </button>

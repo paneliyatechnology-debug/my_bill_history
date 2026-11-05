@@ -119,4 +119,6 @@ export interface DocumentBottomBarProps {
   isSaving?: boolean;
   saveButtonLabel?: string;
   backHref?: string;
+  statusText?: string;
+  changesCount?: number;
 }

@@ -152,7 +152,7 @@ export function DocumentPaymentCard({
           <label className="text-[11px] font-medium text-slate-700 block">Amount Received</label>
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
               <input
                 type="number"
                 min="0"
@@ -160,17 +160,17 @@ export function DocumentPaymentCard({
                 value={amountReceived}
                 onChange={(e) => onAmountReceivedChange(e.target.value === "" ? "" : parseFloat(e.target.value))}
                 placeholder="0.00"
-                className="w-full pl-7 pr-3 py-2 bg-white border border-slate-200 rounded-xl tabular-nums font-normal text-slate-800 focus:outline-none focus:border-[#1677E8] shadow-2xs text-[13px] font-normal h-10"
+                className="w-full pl-6 pr-2.5 py-1.5 bg-white border border-slate-200 rounded-xl tabular-nums font-normal text-slate-800 focus:outline-none focus:border-[#1677E8] shadow-2xs text-xs h-9"
               />
             </div>
             {onPaidInFull && (
               <button
                 type="button"
                 onClick={onPaidInFull}
-                className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium shrink-0 transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
+                className="h-9 px-2.5 sm:px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-semibold shrink-0 transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
               >
                 <span>Paid In Full</span>
-                <span className="text-emerald-300">✓</span>
+                <span className="text-emerald-300 font-bold">✓</span>
               </button>
             )}
           </div>
@@ -183,7 +183,7 @@ export function DocumentPaymentCard({
             <select
               value={paymentMode}
               onChange={(e) => onPaymentModeChange(e.target.value)}
-              className="w-full py-2 px-3 bg-white border border-slate-200 rounded-xl font-normal text-slate-800 focus:outline-none focus:border-[#1677E8] shadow-2xs appearance-none pr-8 cursor-pointer text-[13px] font-normal h-10"
+              className="w-full py-1.5 px-2.5 bg-white border border-slate-200 rounded-xl font-normal text-slate-800 focus:outline-none focus:border-[#1677E8] shadow-2xs appearance-none pr-7 cursor-pointer text-xs h-9"
             >
               <option value="Cash">Cash</option>
               <option value="UPI">UPI</option>
@@ -191,8 +191,8 @@ export function DocumentPaymentCard({
               <option value="Cheque">Cheque</option>
               <option value="Credit">Credit / Due</option>
             </select>
-            <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
             </div>
@@ -202,9 +202,9 @@ export function DocumentPaymentCard({
         {/* Balance Due Pill matching Reference Image */}
         <div className="pt-1">
           <div
-            className={`p-2.5 rounded-xl border text-center font-bold text-xs flex items-center justify-center gap-2 ${
+            className={`p-2.5 rounded-xl border text-center font-semibold text-xs flex items-center justify-center gap-2 ${
               isFullyPaid
-                ? "bg-[#EFF6FF] border-[#93C5FD]/60 text-[#0F172A]"
+                ? "bg-[#EFF6FF] border-[#BFDBFE] text-[#1677E8]"
                 : "bg-amber-50 border-amber-200 text-amber-800"
             }`}
           >

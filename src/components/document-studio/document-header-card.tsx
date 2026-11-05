@@ -33,10 +33,13 @@ export function DocumentHeaderCard({
   }, [isMoreOpen]);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="bg-white relative overflow-hidden bg-gradient-to-r from-white via-white via-50% to-sky-50/70 border border-slate-200/80 p-4 sm:p-5 rounded-2xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Decorative gentle cyan wash in top right */}
+      <div className="absolute top-0 right-0 w-80 h-32 bg-radial from-sky-100/40 via-transparent to-transparent pointer-events-none" />
+
       {/* Left: Document Icon, Title & Status */}
-      <div className="flex items-center gap-3.5 min-w-0">
-        <div className="w-12 h-12 rounded-xl bg-[#EFF6FF] text-[#0F172A] flex items-center justify-center shrink-0 border border-[#93C5FD]/40 shadow-2xs">
+      <div className="flex items-center gap-3.5 min-w-0 relative z-10">
+        <div className="w-12 h-12 rounded-xl bg-[#EFF6FF] text-[#1677E8] flex items-center justify-center shrink-0 border border-[#BFDBFE] shadow-2xs">
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
@@ -48,8 +51,8 @@ export function DocumentHeaderCard({
               {title}
             </h1>
             {status && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold tracking-wide bg-[#EFF6FF] text-[#0F172A] border border-[#93C5FD]/50">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#1677E8] animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide bg-[#EFF6FF] text-[#1677E8] border border-[#BFDBFE]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#1677E8]" />
                 <span>{status}</span>
               </span>
             )}
@@ -61,7 +64,7 @@ export function DocumentHeaderCard({
       </div>
 
       {/* Right: Actions Toolbar matching Reference Image */}
-      <div className="flex items-center gap-2.5 flex-wrap shrink-0">
+      <div className="flex items-center gap-2.5 flex-wrap shrink-0 relative z-10">
         {onPreview && (
           <button
             type="button"
@@ -132,7 +135,7 @@ export function DocumentHeaderCard({
             type="button"
             onClick={onSave}
             disabled={isSaving}
-            className="h-9 px-3.5 bg-gradient-to-r from-[#0F172A] to-[#1677E8] hover:from-[#1E293B] hover:to-[#125CC0] text-white font-medium text-[13px] rounded-xl shadow-md shadow-emerald-950/15 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+            className="h-9 px-4 bg-[#1677E8] hover:bg-[#1268D3] text-white font-semibold text-[13px] rounded-xl shadow-xs transition-all active:scale-[0.98] disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
           >
             {isSaving ? (
               <>
