@@ -161,7 +161,11 @@ function CreateSalesReturnForm() {
     (async () => {
       try {
         const [partyRes, whRes]: any = await Promise.all([
-          apiClient.get("/masters/parties", { limit: 200 }),
+          apiClient.get("/masters/parties", {
+            type: "CUSTOMER",
+            availableForReturnOnly: true,
+            limit: 500,
+          }),
           apiClient.get("/tenants/warehouses", { limit: 50 }).catch(() => ({ data: [] })),
         ]);
         const pList = extractList<Party>(partyRes);
@@ -194,11 +198,15 @@ function CreateSalesReturnForm() {
       try {
         const res: any = await apiClient.get("/sales/invoices", {
           partyId: selectedParty.id,
+          availableForReturnOnly: true,
           limit: 100,
         });
         if (cancelled) return;
         const list = extractList<SalesInvoice>(res).filter(
-          (inv) => (inv as any).status !== "CANCELLED" && (inv as any).status !== "DRAFT",
+          (inv) =>
+            (inv as any).status !== "CANCELLED" &&
+            (inv as any).status !== "DRAFT" &&
+            !(inv as any).isFullyReturned,
         );
         setCustomerInvoices(list);
 
@@ -540,27 +548,39 @@ function CreateSalesReturnForm() {
                     />
                   </div>
                   <div className="max-h-56 overflow-y-auto">
-                    {filteredParties.map((p) => (
-                      <div
-                        key={p.id}
-                        onClick={() => {
-                          setSelectedParty(p);
-                          setIsPartyDropdownOpen(false);
-                          setPartySearchQuery("");
-                        }}
-                        className="flex items-center justify-between px-3.5 py-2 hover:bg-slate-50 cursor-pointer"
-                      >
-                        <div>
-                          <p className="font-semibold text-slate-800">{p.name}</p>
-                          <p className="text-[11px] text-slate-400">{p.phone || "No phone"}</p>
-                        </div>
-                        {p.gstin && (
-                          <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono">
-                            {p.gstin}
-                          </span>
-                        )}
+                    {filteredParties.length === 0 ? (
+                      <div className="p-4 text-center text-slate-500">
+                        <p className="font-semibold text-slate-700">No return-eligible customers found</p>
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          Only customers with active, unreturned sales invoices are shown here.
+                        </p>
                       </div>
-                    ))}
+                    ) : (
+                      filteredParties.map((p) => (
+                        <div
+                          key={p.id}
+                          onClick={() => {
+                            setSelectedParty(p);
+                            setIsPartyDropdownOpen(false);
+                            setPartySearchQuery("");
+                          }}
+                          className="flex items-center justify-between px-3.5 py-2 hover:bg-slate-50 cursor-pointer"
+                        >
+                          <div>
+                            <p className="font-semibold text-slate-800">{p.name}</p>
+                            <p className="text-[11px] text-slate-400">
+                              {p.phone || "No phone"}
+                              {(p as any).returnableInvoicesCount ? ` • ${(p as any).returnableInvoicesCount} invoice(s) eligible` : ""}
+                            </p>
+                          </div>
+                          {p.gstin && (
+                            <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono">
+                              {p.gstin}
+                            </span>
+                          )}
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               )}

@@ -210,14 +210,18 @@ const [notes, setNotes] = useState("");
     (async () => {
       try {
         const [partyRes, itemRes, returnRes]: any = await Promise.all([
-          apiClient.get("/parties", { limit: 200 }),
+          apiClient.get("/parties", {
+            type: isDebitNote ? "SUPPLIER" : "CUSTOMER",
+            availableForReturnOnly: true,
+            limit: 500,
+          }),
           apiClient.get("/items", { limit: 300 }),
           apiClient.get("/sales-returns", { limit: 1 }),
         ]);
         if (cancelled) return;
 
         const partyList = extractList<Party>(partyRes).filter(
-          (p) => !p.type || p.type === "CUSTOMER" || p.type === "BOTH",
+          (p) => !p.type || p.type === (isDebitNote ? "SUPPLIER" : "CUSTOMER") || p.type === "BOTH",
         );
         setParties(partyList);
 
@@ -247,7 +251,7 @@ const [notes, setNotes] = useState("");
     return () => {
       cancelled = true;
     };
-  }, [tenantContext.companyId]);
+  }, [tenantContext.companyId, isDebitNote]);
 
   // Prefill when editing, duplicating, or linking specific invoice
   useEffect(() => {
