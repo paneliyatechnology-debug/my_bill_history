@@ -347,26 +347,43 @@ const [notes, setNotes] = useState("");
         const res: any = await apiClient.get("/invoices/sales", {
           partyId: selectedParty.id,
           limit: 100,
+          availableForReturnOnly: true,
         });
         if (cancelled) return;
         const invList: SalesInvoiceOption[] = extractList<any>(res)
-          .filter((inv) => inv.status !== "CANCELLED" && inv.status !== "DRAFT")
+          .filter((inv) => {
+            if (inv.status === "CANCELLED" || inv.status === "DRAFT") return false;
+            if (inv.isFullyReturned) return false;
+            const remaining = (inv.items || []).reduce((acc: number, itm: any) => {
+              const r =
+                itm.remainingQuantity !== undefined
+                  ? Number(itm.remainingQuantity)
+                  : Number(itm.quantity || 0);
+              return acc + Math.max(0, r);
+            }, 0);
+            return remaining > 0.0001;
+          })
           .map((inv) => ({
             id: inv.id,
             invoiceNumber: inv.invoiceNumber,
             invoiceDate: inv.invoiceDate,
             grandTotal: Number(inv.grandTotal) || 0,
             balanceAmount: Number(inv.balanceAmount || inv.outstandingBalance || 0),
-            items: (inv.items || []).map((itm: any) => ({
-              id: itm.id,
-              itemId: itm.itemId,
-              quantity: Number(itm.quantity) || 0,
-              unitPrice: Number(itm.unitPrice) || 0,
-              taxRate: Number(itm.taxRate) || 0,
-              taxableAmount: Number(itm.taxableAmount) || 0,
-              totalAmount: Number(itm.totalAmount) || 0,
-              item: itm.item,
-            })),
+            items: (inv.items || [])
+              .map((itm: any) => ({
+                id: itm.id,
+                itemId: itm.itemId,
+                quantity:
+                  itm.remainingQuantity !== undefined
+                    ? Number(itm.remainingQuantity)
+                    : Number(itm.quantity) || 0,
+                unitPrice: Number(itm.unitPrice) || 0,
+                taxRate: Number(itm.taxRate) || 0,
+                taxableAmount: Number(itm.taxableAmount) || 0,
+                totalAmount: Number(itm.totalAmount) || 0,
+                item: itm.item,
+              }))
+              .filter((itm: any) => itm.quantity > 0.0001),
           }));
         setInvoices(invList);
       } catch (err: any) {
@@ -383,22 +400,24 @@ const [notes, setNotes] = useState("");
     setSelectedInvoice(inv);
     setIsInvoiceDropdownOpen(false);
 
-    // Populate lines from invoice
+    // Populate lines from invoice with remaining returnable quantity only
     if (inv.items && inv.items.length > 0) {
-      const returnLines: ReturnLineItem[] = inv.items.map((i) => ({
-        id: crypto.randomUUID(),
-        salesItemId: i.id,
-        itemId: i.itemId,
-        name: i.item?.name || "Item",
-        description: "",
-        hsn: i.item?.hsnCode || "",
-        quantity: i.quantity,
-        unit: "PCS",
-        unitPrice: i.unitPrice,
-        discountValue: 0,
-        discountType: "PERCENT",
-        taxRate: i.taxRate,
-      }));
+      const returnLines: ReturnLineItem[] = inv.items
+        .filter((i) => i.quantity > 0.0001)
+        .map((i) => ({
+          id: crypto.randomUUID(),
+          salesItemId: i.id,
+          itemId: i.itemId,
+          name: i.item?.name || "Item",
+          description: "",
+          hsn: i.item?.hsnCode || "",
+          quantity: i.quantity,
+          unit: "PCS",
+          unitPrice: i.unitPrice,
+          discountValue: 0,
+          discountType: "PERCENT",
+          taxRate: i.taxRate,
+        }));
       setLineItems(returnLines);
     }
   }
@@ -865,7 +884,12 @@ const [notes, setNotes] = useState("");
                   label: `#${inv.invoiceNumber} (${formatDisplayDate(inv.invoiceDate)} - ₹${inv.grandTotal})`,
                   value: inv.id,
                 })),
-                placeholder: "-- Select Invoice (Optional) --",
+                placeholder:
+                  invoices.length > 0
+                    ? "-- Select Invoice (Optional) --"
+                    : selectedParty
+                    ? "-- No Eligible Returnable Invoices --"
+                    : "-- Select Customer First --",
               },
               {
                 id: "reason",

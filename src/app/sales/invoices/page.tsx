@@ -114,11 +114,18 @@ function calculateDueIn(
   }
 }
 
-function getInvoiceStatus(inv: SalesInvoice): "PAID" | "PARTIALLY_PAID" | "UNPAID" | "CANCELLED" {
+function getInvoiceStatus(inv: any): "PAID" | "PARTIALLY_PAID" | "UNPAID" | "CANCELLED" {
   if (inv.status === "CANCELLED") return "CANCELLED";
+  if (inv.isFullyReturned) return "PAID";
   const total = Number(inv.grandTotal || 0);
   const paid = Number(inv.paidAmount || 0);
-  const balance = Number(inv.outstandingBalance !== undefined ? inv.outstandingBalance : total - paid);
+  const balance = Number(
+    inv.outstandingBalance !== undefined
+      ? inv.outstandingBalance
+      : inv.balanceAmount !== undefined
+      ? inv.balanceAmount
+      : total - paid,
+  );
   if (balance <= 0.01 || paid >= total - 0.01) return "PAID";
   if (paid > 0 && balance > 0) return "PARTIALLY_PAID";
   return "UNPAID";
@@ -344,17 +351,28 @@ export default function SalesInvoicesDashboardPage() {
     let paidCount = 0;
     let unpaidCount = 0;
 
-    invoices.forEach((inv) => {
+    invoices.forEach((inv: any) => {
       const gTotal = Number(inv.grandTotal || 0);
+      const returned = Number(inv.returnedAmount || 0);
+      const netTotal =
+        inv.netGrandTotal !== undefined
+          ? Number(inv.netGrandTotal)
+          : Math.max(0, gTotal - returned);
       const paid = Number(inv.paidAmount || 0);
-      const bal = Number(inv.outstandingBalance !== undefined ? inv.outstandingBalance : gTotal - paid);
+      const bal = Number(
+        inv.outstandingBalance !== undefined
+          ? inv.outstandingBalance
+          : inv.balanceAmount !== undefined
+          ? inv.balanceAmount
+          : gTotal - paid,
+      );
 
       if (inv.status === "CANCELLED") {
         cancelledCount += 1;
       } else {
-        totalSales += gTotal;
+        totalSales += netTotal;
         totalPaid += paid;
-        if (bal > 0) {
+        if (bal > 0.01 && !inv.isFullyReturned) {
           totalUnpaid += bal;
           unpaidCount += 1;
         } else {
@@ -991,7 +1009,15 @@ export default function SalesInvoicesDashboardPage() {
                   const dueInfo = calculateDueIn(inv.dueDate, status);
                   const total = Number(inv.grandTotal || 0);
                   const paid = Number(inv.paidAmount || 0);
-                  const unpaid = Number(inv.outstandingBalance !== undefined ? inv.outstandingBalance : total - paid);
+                  const unpaid = (inv as any).isFullyReturned
+                    ? 0
+                    : Number(
+                        inv.outstandingBalance !== undefined
+                          ? inv.outstandingBalance
+                          : (inv as any).balanceAmount !== undefined
+                          ? (inv as any).balanceAmount
+                          : total - paid,
+                      );
 
                   return (
                     <tr
@@ -1083,7 +1109,11 @@ export default function SalesInvoicesDashboardPage() {
                         <div className="bb-amount text-[13px] text-[#182230]">
                           {formatInr(total)}
                         </div>
-                        {unpaid > 0.01 ? (
+                        {(inv as any).isFullyReturned ? (
+                          <div className="text-[10px] text-purple-600 font-semibold">
+                            Fully Returned
+                          </div>
+                        ) : unpaid > 0.01 ? (
                           <div className="text-[10px] text-amber-700 font-semibold">
                             {formatInr(unpaid)} due
                           </div>

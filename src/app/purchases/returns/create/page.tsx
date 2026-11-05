@@ -482,8 +482,13 @@ const [notes, setNotes] = useState<string>("");
     setIsLoadingInvoices(true);
 
     try {
-      const res: any = await apiClient.get("/purchases/invoices", { partyId: party.id });
-      const list = extractList<any>(res);
+      const res: any = await apiClient.get("/purchases/invoices", {
+        partyId: party.id,
+        availableForReturnOnly: true,
+      });
+      const list = extractList<any>(res).filter(
+        (inv: any) => !inv.isFullyReturned && (inv.totalRemainingQty === undefined || inv.totalRemainingQty > 0.0001),
+      );
       setInvoices(list);
     } catch (err) {
       console.error(err);
@@ -675,8 +680,12 @@ const [notes, setNotes] = useState<string>("");
       }
 
       if (fullItems.length > 0) {
-        const newLines: ReturnItemLine[] = fullItems.map((pi: any, idx: number) => {
-          const qty = Number(pi.quantity || 1);
+        const eligibleItems = fullItems.filter((pi: any) => {
+          const rem = pi.remainingQuantity !== undefined ? Number(pi.remainingQuantity) : Number(pi.quantity || 1);
+          return rem > 0.0001;
+        });
+        const newLines: ReturnItemLine[] = eligibleItems.map((pi: any, idx: number) => {
+          const qty = Number(pi.remainingQuantity !== undefined ? pi.remainingQuantity : pi.quantity || 1);
           const price = Number(pi.unitPrice || 0);
           const taxRate = Number(pi.taxRate || 0);
           const taxable = Number(pi.taxableAmount || qty * price);
