@@ -71,6 +71,20 @@ interface SalesReturnDetail {
   id: string;
   returnNumber: string;
   returnDate: string;
+  docType?: string;
+  creditNoteType?: string;
+  gstCategory?: string;
+  disposition?: string;
+  warehouseId?: string;
+  warehouse?: {
+    id: string;
+    name: string;
+  };
+  linkedReturnId?: string;
+  settlementMode?: string;
+  refundAmount?: number;
+  allocatedAmount?: number;
+  remainingCredit?: number;
   taxableAmount: number;
   cgstAmount?: number;
   sgstAmount?: number;
@@ -78,6 +92,7 @@ interface SalesReturnDetail {
   grandTotal: number;
   status: string;
   reason?: string;
+  notes?: string;
   createdAt?: string;
   party?: {
     id: string;
@@ -104,6 +119,7 @@ interface SalesReturnDetail {
     sgstAmount?: number;
     igstAmount?: number;
     totalAmount: number;
+    disposition?: string;
     item?: {
       id: string;
       name: string;
@@ -167,6 +183,24 @@ export default function CreditNoteViewPage() {
     window.addEventListener("click", handleClickOutside);
     return () => window.removeEventListener("click", handleClickOutside);
   }, []);
+
+  const [isCreatingCN, setIsCreatingCN] = useState(false);
+  const handleCreateCreditNote = async () => {
+    if (!data?.id) return;
+    setIsCreatingCN(true);
+    try {
+      const res: any = await apiClient.post(`/sales-returns/${data.id}/create-credit-note`, {});
+      const cnId = res?.creditNote?.id || res?.id;
+      setToastMessage("Credit Note created successfully!");
+      if (cnId) {
+        router.push(`/sales/credit-note/view/${cnId}`);
+      }
+    } catch (err: any) {
+      alert(err?.message || "Failed to create Credit Note from Sales Return.");
+    } finally {
+      setIsCreatingCN(false);
+    }
+  };
 
   // Fetch sales return
   useEffect(() => {
@@ -505,6 +539,31 @@ export default function CreditNoteViewPage() {
             <span className="text-sm">🎨</span>
             <span className="hidden sm:inline">Theme</span>
           </Link>
+
+          {/* 1-Click Create Credit Note from Sales Return */}
+          {(isSalesReturn || data?.docType === "SALES_RETURN") && !data?.linkedReturnId && data?.status !== "CANCELLED" && (
+            <button
+              type="button"
+              onClick={handleCreateCreditNote}
+              disabled={isCreatingCN}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-blue-600 bg-blue-600 h-9 px-3.5 text-[13px] font-bold text-white shadow-xs hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50"
+            >
+              <span>{isCreatingCN ? "Generating..." : "⚡ Create Credit Note"}</span>
+            </button>
+          )}
+
+          {data?.linkedReturnId && (
+            <Link
+              href={
+                data.docType === "CREDIT_NOTE"
+                  ? `/sales/returns/${data.linkedReturnId}`
+                  : `/sales/credit-note/view/${data.linkedReturnId}`
+              }
+              className="inline-flex items-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 h-9 px-3 text-[12px] font-bold text-purple-800 hover:bg-purple-100 transition-colors"
+            >
+              <span>{data.docType === "CREDIT_NOTE" ? "🔗 View Linked Sales Return" : "🔗 View Linked Credit Note"}</span>
+            </Link>
+          )}
 
           {/* Download PDF */}
           <button

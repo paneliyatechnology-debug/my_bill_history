@@ -1265,6 +1265,7 @@ const [notes, setNotes] = useState("");
                   </tbody>
                 </table>
               </DocumentItemsCard>
+              )}
 
               {/* Side-by-side: Notes & Terms + Additional Information */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

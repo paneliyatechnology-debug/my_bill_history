@@ -403,6 +403,9 @@ export default function ReportsPage({
   const [gstr1SubTab, setGstr1SubTab] = useState<"sales" | "credit-notes" | "debit-notes">("sales");
   const [gstr1Page, setGstr1Page] = useState<number>(1);
   const [gstr1PageSize, setGstr1PageSize] = useState<number>(10);
+  const [salesReturnsSubTab, setSalesReturnsSubTab] = useState<
+    "all" | "item-wise" | "customer-wise" | "reason-wise" | "warehouse-wise" | "gst-schedule" | "credits-refunds"
+  >("all");
 
   // General Report Pagination State
   const [reportPage, setReportPage] = useState<number>(1);
@@ -653,10 +656,11 @@ export default function ReportsPage({
     }
   }, [tenantContext.companyId, viewMode, fetchReport]);
 
-  // Reset GSTR-1 page when tab or filters change
+  // Reset GSTR-1 and Sales Returns pagination when tab or filters change
   useEffect(() => {
     setGstr1Page(1);
-  }, [activeTab, gstr1SubTab, startDate, endDate]);
+    setReportPage(1);
+  }, [activeTab, gstr1SubTab, salesReturnsSubTab, startDate, endDate]);
 
   const handleExportReport = async (format: ExportFormat) => {
     if (!reportData) return;
@@ -1528,90 +1532,673 @@ export default function ReportsPage({
                 })()}
               </div>
             ) : activeTab === "sales-returns" ? (
-              /* Sales Returns */
+              /* Sales Returns & Credit Notes Comprehensive Suite */
               <div className="space-y-6">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 min-w-0">
+                {/* 1. Metric Summary Cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 min-w-0">
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
-                    <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Returns</span>
-                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">{reportData.summary?.totalReturns || 0}</p>
+                    <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Documents</span>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">{reportData?.summary?.totalReturns || 0}</p>
+                    <span className="text-[10px] text-slate-400">Returns & Credit Notes</span>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Taxable Reversal</span>
-                    <p className="tabular-nums font-bold text-lg text-[#DC2626] mt-1">₹{reportData.summary?.totalTaxable || "0.00"}</p>
+                    <p className="tabular-nums font-bold text-lg text-[#DC2626] mt-1">₹{reportData?.summary?.totalTaxable || "0.00"}</p>
+                    <span className="text-[10px] text-slate-400">Adjusted Turnover</span>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
-                    <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Tax Reversal</span>
-                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">₹{reportData.summary?.totalTax || "0.00"}</p>
+                    <span className="text-[11px] text-[#64748B] uppercase font-semibold block">GST Reversal</span>
+                    <p className="tabular-nums font-bold text-lg text-emerald-600 mt-1">₹{reportData?.summary?.totalTax || "0.00"}</p>
+                    <span className="text-[10px] text-slate-400">CGST + SGST + IGST</span>
                   </div>
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
-                    <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Refund / Credit</span>
-                    <p className="tabular-nums font-bold text-lg text-amber-700 mt-1">₹{reportData.summary?.grandTotal || "0.00"}</p>
+                    <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Total Value</span>
+                    <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">₹{reportData?.summary?.grandTotal || "0.00"}</p>
+                    <span className="text-[10px] text-slate-400">Net Credit Issued</span>
+                  </div>
+                  <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
+                    <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Open Customer Credit</span>
+                    <p className="tabular-nums font-bold text-lg text-amber-600 mt-1">₹{reportData?.summary?.totalRemainingCredit || "0.00"}</p>
+                    <span className="text-[10px] text-slate-400">Unallocated Balance</span>
+                  </div>
+                  <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
+                    <span className="text-[11px] text-[#64748B] uppercase font-semibold block">Settled / Refunded</span>
+                    <p className="tabular-nums font-bold text-lg text-blue-600 mt-1">
+                      ₹{((Number(reportData?.summary?.totalAllocatedCredit || 0) + Number(reportData?.summary?.totalRefunds || 0))).toFixed(2)}
+                    </p>
+                    <span className="text-[10px] text-slate-400">Invoice Adj + Cash/Bank</span>
                   </div>
                 </div>
 
-                {(() => {
-                  const rawReturns = reportData.returns || [];
-                  const q = (filterPartyQuery || "").trim().toLowerCase();
-                  const returns = rawReturns.filter((r: any) => {
-                    if (!q) return true;
-                    const cn = (r.creditNoteNumber || r.returnNumber || "").toLowerCase();
-                    const party = (r.partyName || r.party?.name || "").toLowerCase();
-                    const reason = (r.reason || "").toLowerCase();
-                    return cn.includes(q) || party.includes(q) || reason.includes(q);
-                  });
+                {/* 2. Subtabs Navigation */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-2">
+                  <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => setSalesReturnsSubTab("all")}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                        salesReturnsSubTab === "all"
+                          ? "bg-[#0047BA] text-white shadow-xs"
+                          : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
+                      }`}
+                    >
+                      <span>📑 All Documents</span>
+                      <span className={`px-1.5 py-0.2 rounded-full text-[10px] tabular-nums ${
+                        salesReturnsSubTab === "all" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+                      }`}>
+                        {reportData?.returns?.length || 0}
+                      </span>
+                    </button>
 
-                  const { paginatedList, safePage, totalEntries } = paginateList(returns);
-                  return (
-                    <div className="border border-[#E2E8F0] rounded-xl overflow-hidden w-full shadow-2xs bg-white">
-                      <div className="overflow-x-auto w-full -webkit-overflow-scrolling-touch">
-                        <table className="w-full min-w-[700px] text-left text-xs border-collapse">
-                          <thead>
-                            <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] uppercase font-semibold">
-                              <th className="py-2.5 px-3">Credit Note #</th>
-                              <th className="py-2.5 px-3">Date</th>
-                              <th className="py-2.5 px-3">Customer</th>
-                              <th className="py-2.5 px-3">Reason</th>
-                              <th className="py-2.5 px-3 text-right">Taxable (₹)</th>
-                              <th className="py-2.5 px-3 text-right">Total Refund (₹)</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-[#E2E8F0]">
-                            {paginatedList.length === 0 ? (
-                              <tr>
-                                <td colSpan={6} className="py-8 text-center text-slate-400">
-                                  {lang === "gu" ? "કોઈ ક્રેડિટ નોટ મળી નથી" : "No returns found matching search"}
-                                </td>
+                    <button
+                      type="button"
+                      onClick={() => setSalesReturnsSubTab("item-wise")}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                        salesReturnsSubTab === "item-wise"
+                          ? "bg-[#0047BA] text-white shadow-xs"
+                          : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
+                      }`}
+                    >
+                      <span>📦 Item-Wise</span>
+                      <span className={`px-1.5 py-0.2 rounded-full text-[10px] tabular-nums ${
+                        salesReturnsSubTab === "item-wise" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+                      }`}>
+                        {reportData?.itemWise?.length || 0}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSalesReturnsSubTab("customer-wise")}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                        salesReturnsSubTab === "customer-wise"
+                          ? "bg-[#0047BA] text-white shadow-xs"
+                          : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
+                      }`}
+                    >
+                      <span>👥 Customer-Wise</span>
+                      <span className={`px-1.5 py-0.2 rounded-full text-[10px] tabular-nums ${
+                        salesReturnsSubTab === "customer-wise" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+                      }`}>
+                        {reportData?.customerWise?.length || 0}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSalesReturnsSubTab("reason-wise")}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                        salesReturnsSubTab === "reason-wise"
+                          ? "bg-[#0047BA] text-white shadow-xs"
+                          : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
+                      }`}
+                    >
+                      <span>🏷️ Reason-Wise</span>
+                      <span className={`px-1.5 py-0.2 rounded-full text-[10px] tabular-nums ${
+                        salesReturnsSubTab === "reason-wise" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+                      }`}>
+                        {reportData?.reasonWise?.length || 0}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSalesReturnsSubTab("warehouse-wise")}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                        salesReturnsSubTab === "warehouse-wise"
+                          ? "bg-[#0047BA] text-white shadow-xs"
+                          : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
+                      }`}
+                    >
+                      <span>🏬 Warehouse</span>
+                      <span className={`px-1.5 py-0.2 rounded-full text-[10px] tabular-nums ${
+                        salesReturnsSubTab === "warehouse-wise" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+                      }`}>
+                        {reportData?.warehouseWise?.length || 0}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSalesReturnsSubTab("gst-schedule")}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                        salesReturnsSubTab === "gst-schedule"
+                          ? "bg-[#0047BA] text-white shadow-xs"
+                          : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
+                      }`}
+                    >
+                      <span>⚖️ GST Schedule</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSalesReturnsSubTab("credits-refunds")}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                        salesReturnsSubTab === "credits-refunds"
+                          ? "bg-[#0047BA] text-white shadow-xs"
+                          : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
+                      }`}
+                    >
+                      <span>💳 Credits & Refunds</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 3. Subtab Content */}
+                {salesReturnsSubTab === "all" ? (
+                  /* Subtab: All Returns and Credit Notes */
+                  (() => {
+                    const rawReturns = reportData?.returns || [];
+                    const q = (filterPartyQuery || "").trim().toLowerCase();
+                    const returns = rawReturns.filter((r: any) => {
+                      if (!q) return true;
+                      const cn = (r.creditNoteNumber || r.returnNumber || "").toLowerCase();
+                      const party = (r.partyName || "").toLowerCase();
+                      const reason = (r.reason || "").toLowerCase();
+                      const wh = (r.warehouseName || "").toLowerCase();
+                      const gstin = (r.gstin || "").toLowerCase();
+                      return cn.includes(q) || party.includes(q) || reason.includes(q) || wh.includes(q) || gstin.includes(q);
+                    });
+
+                    const { paginatedList, safePage, totalEntries } = paginateList(returns);
+                    return (
+                      <div className="border border-[#E2E8F0] rounded-xl overflow-hidden w-full shadow-2xs bg-white">
+                        <div className="overflow-x-auto w-full -webkit-overflow-scrolling-touch">
+                          <table className="w-full min-w-[950px] text-left text-xs border-collapse">
+                            <thead>
+                              <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] uppercase font-semibold">
+                                <th className="py-2.5 px-3">Doc #</th>
+                                <th className="py-2.5 px-3">Date</th>
+                                <th className="py-2.5 px-3">Customer</th>
+                                <th className="py-2.5 px-3">Type / Category</th>
+                                <th className="py-2.5 px-3">Warehouse / Godown</th>
+                                <th className="py-2.5 px-3">Disposition</th>
+                                <th className="py-2.5 px-3">Reason</th>
+                                <th className="py-2.5 px-3 text-right">Taxable (₹)</th>
+                                <th className="py-2.5 px-3 text-right">Tax (₹)</th>
+                                <th className="py-2.5 px-3 text-right">Total (₹)</th>
+                                <th className="py-2.5 px-3">Settlement</th>
                               </tr>
-                            ) : (
-                              paginatedList.map((r: any, idx: number) => (
-                                <tr
-                                  key={r.id || `credit-note-${idx}`}
-                                  onClick={() => r.id && router.push(`/sales/credit-note/${r.id}`)}
-                                  className={`hover:bg-[#F8FAFC] transition-colors ${r.id ? "cursor-pointer" : ""}`}
-                                >
-                                  <td className="py-2.5 px-3 tabular-nums font-medium text-[#0F172A]">{r.creditNoteNumber || r.returnNumber}</td>
-                                  <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{r.returnDate}</td>
-                                  <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{r.partyName || r.party?.name}</td>
-                                  <td className="py-2.5 px-3 text-[#64748B]">{r.reason || "—"}</td>
-                                  <td className="py-2.5 px-3 text-right tabular-nums">₹{r.taxableAmount}</td>
-                                  <td className="py-2.5 px-3 text-right tabular-nums font-medium text-[#DC2626]">₹{r.grandTotal}</td>
+                            </thead>
+                            <tbody className="divide-y divide-[#E2E8F0]">
+                              {paginatedList.length === 0 ? (
+                                <tr>
+                                  <td colSpan={11} className="py-8 text-center text-slate-400">
+                                    {lang === "gu" ? "કોઈ દસ્તાવેજ મળ્યા નથી" : "No returns or credit notes found matching search"}
+                                  </td>
                                 </tr>
-                              ))
-                            )}
-                          </tbody>
-                        </table>
+                              ) : (
+                                paginatedList.map((r: any, idx: number) => {
+                                  const isSalesReturn = r.docType === "SALES_RETURN";
+                                  const link = isSalesReturn ? `/sales/returns/${r.id}` : `/sales/credit-note/view/${r.id}`;
+                                  return (
+                                    <tr
+                                      key={r.id || `sr-${idx}`}
+                                      onClick={() => r.id && router.push(link)}
+                                      className={`hover:bg-[#F8FAFC] transition-colors ${r.id ? "cursor-pointer" : ""}`}
+                                    >
+                                      <td className="py-2.5 px-3 tabular-nums font-semibold text-[#0047BA]">
+                                        {r.creditNoteNumber || r.returnNumber}
+                                      </td>
+                                      <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{r.returnDate}</td>
+                                      <td className="py-2.5 px-3">
+                                        <div className="font-semibold text-[#0F172A]">{r.partyName}</div>
+                                        {r.phone && <div className="text-[11px] text-slate-400">{r.phone}</div>}
+                                      </td>
+                                      <td className="py-2.5 px-3">
+                                        <div className="flex flex-wrap gap-1 items-center">
+                                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border ${
+                                            isSalesReturn
+                                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                              : "bg-blue-50 text-blue-700 border-blue-200"
+                                          }`}>
+                                            {isSalesReturn ? "Return" : "Credit Note"}
+                                          </span>
+                                          {r.gstCategory === "COMMERCIAL" ? (
+                                            <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                              Commercial
+                                            </span>
+                                          ) : (
+                                            <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                              Sec 34 GST
+                                            </span>
+                                          )}
+                                        </div>
+                                      </td>
+                                      <td className="py-2.5 px-3 text-[#0F172A] font-medium">{r.warehouseName || "Main Godown"}</td>
+                                      <td className="py-2.5 px-3">
+                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border ${
+                                          r.disposition === "DAMAGED"
+                                            ? "bg-rose-50 text-rose-700 border-rose-200"
+                                            : r.disposition === "SCRAPPED"
+                                            ? "bg-slate-100 text-slate-700 border-slate-300"
+                                            : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                        }`}>
+                                          {r.disposition || "SELLABLE"}
+                                        </span>
+                                      </td>
+                                      <td className="py-2.5 px-3 text-[#64748B] max-w-[140px] truncate" title={r.reason}>
+                                        {r.reason || "—"}
+                                      </td>
+                                      <td className="py-2.5 px-3 text-right tabular-nums">₹{r.taxableAmount}</td>
+                                      <td className="py-2.5 px-3 text-right tabular-nums text-emerald-600">₹{r.totalTax}</td>
+                                      <td className="py-2.5 px-3 text-right tabular-nums font-bold text-[#DC2626]">₹{r.grandTotal}</td>
+                                      <td className="py-2.5 px-3">
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                          r.settlementMode === "REFUND_CASH" || r.settlementMode === "REFUND_BANK"
+                                            ? "bg-blue-50 text-blue-700"
+                                            : Number(r.remainingCredit || 0) > 0
+                                            ? "bg-amber-50 text-amber-700"
+                                            : "bg-slate-100 text-slate-700"
+                                        }`}>
+                                          {r.settlementMode === "REFUND_CASH"
+                                            ? "Cash Refund"
+                                            : r.settlementMode === "REFUND_BANK"
+                                            ? "Bank Refund"
+                                            : Number(r.remainingCredit || 0) > 0
+                                            ? `Credit Avail (₹${r.remainingCredit})`
+                                            : "Adjusted"}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  );
+                                })
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                        <ReportPagination
+                          currentPage={safePage}
+                          pageSize={reportPageSize}
+                          totalEntries={totalEntries}
+                          onPageChange={setReportPage}
+                          onPageSizeChange={setReportPageSize}
+                          lang={lang}
+                        />
                       </div>
-                      <ReportPagination
-                        currentPage={safePage}
-                        pageSize={reportPageSize}
-                        totalEntries={totalEntries}
-                        onPageChange={setReportPage}
-                        onPageSizeChange={setReportPageSize}
-                        lang={lang}
-                      />
+                    );
+                  })()
+                ) : salesReturnsSubTab === "item-wise" ? (
+                  /* Subtab: Item-Wise Sales Return */
+                  (() => {
+                    const rawItems = reportData?.itemWise || [];
+                    const q = (filterPartyQuery || "").trim().toLowerCase();
+                    const items = rawItems.filter((i: any) => {
+                      if (!q) return true;
+                      return (
+                        (i.itemName || "").toLowerCase().includes(q) ||
+                        (i.sku || "").toLowerCase().includes(q) ||
+                        (i.hsnCode || "").toLowerCase().includes(q)
+                      );
+                    });
+
+                    const { paginatedList, safePage, totalEntries } = paginateList(items);
+                    return (
+                      <div className="border border-[#E2E8F0] rounded-xl overflow-hidden w-full shadow-2xs bg-white">
+                        <div className="overflow-x-auto w-full -webkit-overflow-scrolling-touch">
+                          <table className="w-full min-w-[700px] text-left text-xs border-collapse">
+                            <thead>
+                              <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] uppercase font-semibold">
+                                <th className="py-2.5 px-3">Item / Product Name</th>
+                                <th className="py-2.5 px-3">SKU / Code</th>
+                                <th className="py-2.5 px-3">HSN/SAC</th>
+                                <th className="py-2.5 px-3 text-right">Returned Quantity</th>
+                                <th className="py-2.5 px-3 text-right">Taxable Reversal (₹)</th>
+                                <th className="py-2.5 px-3 text-right">Total Returned Value (₹)</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#E2E8F0]">
+                              {paginatedList.length === 0 ? (
+                                <tr>
+                                  <td colSpan={6} className="py-8 text-center text-slate-400">
+                                    No returned items recorded
+                                  </td>
+                                </tr>
+                              ) : (
+                                paginatedList.map((i: any, idx: number) => (
+                                  <tr key={i.itemId || `itm-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
+                                    <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{i.itemName}</td>
+                                    <td className="py-2.5 px-3 text-[#64748B] tabular-nums">{i.sku || "—"}</td>
+                                    <td className="py-2.5 px-3 text-[#64748B] tabular-nums">{i.hsnCode || "—"}</td>
+                                    <td className="py-2.5 px-3 text-right tabular-nums font-bold text-rose-600">
+                                      {i.totalQuantity}
+                                    </td>
+                                    <td className="py-2.5 px-3 text-right tabular-nums">₹{i.totalTaxable}</td>
+                                    <td className="py-2.5 px-3 text-right tabular-nums font-bold text-[#DC2626]">
+                                      ₹{i.totalAmount}
+                                    </td>
+                                  </tr>
+                                ))
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                        <ReportPagination
+                          currentPage={safePage}
+                          pageSize={reportPageSize}
+                          totalEntries={totalEntries}
+                          onPageChange={setReportPage}
+                          onPageSizeChange={setReportPageSize}
+                          lang={lang}
+                        />
+                      </div>
+                    );
+                  })()
+                ) : salesReturnsSubTab === "customer-wise" ? (
+                  /* Subtab: Customer-Wise Sales Return */
+                  (() => {
+                    const rawCusts = reportData?.customerWise || [];
+                    const q = (filterPartyQuery || "").trim().toLowerCase();
+                    const custs = rawCusts.filter((c: any) => {
+                      if (!q) return true;
+                      return (
+                        (c.partyName || "").toLowerCase().includes(q) ||
+                        (c.phone || "").toLowerCase().includes(q) ||
+                        (c.gstin || "").toLowerCase().includes(q)
+                      );
+                    });
+
+                    const { paginatedList, safePage, totalEntries } = paginateList(custs);
+                    return (
+                      <div className="border border-[#E2E8F0] rounded-xl overflow-hidden w-full shadow-2xs bg-white">
+                        <div className="overflow-x-auto w-full -webkit-overflow-scrolling-touch">
+                          <table className="w-full min-w-[700px] text-left text-xs border-collapse">
+                            <thead>
+                              <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] uppercase font-semibold">
+                                <th className="py-2.5 px-3">Customer Name</th>
+                                <th className="py-2.5 px-3">Contact Number</th>
+                                <th className="py-2.5 px-3">GSTIN</th>
+                                <th className="py-2.5 px-3 text-right">Returns Count (#)</th>
+                                <th className="py-2.5 px-3 text-right">Total Returned Value (₹)</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#E2E8F0]">
+                              {paginatedList.length === 0 ? (
+                                <tr>
+                                  <td colSpan={5} className="py-8 text-center text-slate-400">
+                                    No customer returns found
+                                  </td>
+                                </tr>
+                              ) : (
+                                paginatedList.map((c: any, idx: number) => (
+                                  <tr key={c.partyId || `cust-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
+                                    <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{c.partyName}</td>
+                                    <td className="py-2.5 px-3 text-[#64748B] tabular-nums">{c.phone || "—"}</td>
+                                    <td className="py-2.5 px-3 text-[#64748B] tabular-nums font-mono text-[11px]">{c.gstin || "—"}</td>
+                                    <td className="py-2.5 px-3 text-right tabular-nums font-semibold text-[#0F172A]">{c.returnCount}</td>
+                                    <td className="py-2.5 px-3 text-right tabular-nums font-bold text-[#DC2626]">₹{c.totalAmount}</td>
+                                  </tr>
+                                ))
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                        <ReportPagination
+                          currentPage={safePage}
+                          pageSize={reportPageSize}
+                          totalEntries={totalEntries}
+                          onPageChange={setReportPage}
+                          onPageSizeChange={setReportPageSize}
+                          lang={lang}
+                        />
+                      </div>
+                    );
+                  })()
+                ) : salesReturnsSubTab === "reason-wise" ? (
+                  /* Subtab: Reason-Wise Return Analysis */
+                  (() => {
+                    const rawReasons = reportData?.reasonWise || [];
+                    const grandTotal = Number(reportData?.summary?.grandTotal || 0);
+                    const { paginatedList, safePage, totalEntries } = paginateList(rawReasons);
+                    return (
+                      <div className="border border-[#E2E8F0] rounded-xl overflow-hidden w-full shadow-2xs bg-white">
+                        <div className="overflow-x-auto w-full -webkit-overflow-scrolling-touch">
+                          <table className="w-full min-w-[600px] text-left text-xs border-collapse">
+                            <thead>
+                              <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] uppercase font-semibold">
+                                <th className="py-2.5 px-3">Return Reason</th>
+                                <th className="py-2.5 px-3 text-right">Return Count (#)</th>
+                                <th className="py-2.5 px-3 text-right">Total Amount (₹)</th>
+                                <th className="py-2.5 px-3 text-right">% of Total Returns</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#E2E8F0]">
+                              {paginatedList.length === 0 ? (
+                                <tr>
+                                  <td colSpan={4} className="py-8 text-center text-slate-400">
+                                    No reason-wise data available
+                                  </td>
+                                </tr>
+                              ) : (
+                                paginatedList.map((r: any, idx: number) => {
+                                  const rAmt = Number(r.totalAmount || 0);
+                                  const pct = grandTotal > 0 ? ((rAmt / grandTotal) * 100).toFixed(1) : "0.0";
+                                  return (
+                                    <tr key={r.reason || `rsn-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
+                                      <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{r.reason}</td>
+                                      <td className="py-2.5 px-3 text-right tabular-nums font-semibold text-[#0F172A]">{r.count}</td>
+                                      <td className="py-2.5 px-3 text-right tabular-nums font-bold text-[#DC2626]">₹{r.totalAmount}</td>
+                                      <td className="py-2.5 px-3 text-right tabular-nums font-medium text-slate-600">{pct}%</td>
+                                    </tr>
+                                  );
+                                })
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                        <ReportPagination
+                          currentPage={safePage}
+                          pageSize={reportPageSize}
+                          totalEntries={totalEntries}
+                          onPageChange={setReportPage}
+                          onPageSizeChange={setReportPageSize}
+                          lang={lang}
+                        />
+                      </div>
+                    );
+                  })()
+                ) : salesReturnsSubTab === "warehouse-wise" ? (
+                  /* Subtab: Warehouse Returns */
+                  (() => {
+                    const rawWh = reportData?.warehouseWise || [];
+                    const { paginatedList, safePage, totalEntries } = paginateList(rawWh);
+                    return (
+                      <div className="border border-[#E2E8F0] rounded-xl overflow-hidden w-full shadow-2xs bg-white">
+                        <div className="overflow-x-auto w-full -webkit-overflow-scrolling-touch">
+                          <table className="w-full min-w-[600px] text-left text-xs border-collapse">
+                            <thead>
+                              <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] uppercase font-semibold">
+                                <th className="py-2.5 px-3">Godown / Warehouse</th>
+                                <th className="py-2.5 px-3 text-right">Returns Processed (#)</th>
+                                <th className="py-2.5 px-3 text-right">Total Goods Value (₹)</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#E2E8F0]">
+                              {paginatedList.length === 0 ? (
+                                <tr>
+                                  <td colSpan={3} className="py-8 text-center text-slate-400">
+                                    No warehouse returns data
+                                  </td>
+                                </tr>
+                              ) : (
+                                paginatedList.map((w: any, idx: number) => (
+                                  <tr key={w.warehouseName || `wh-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
+                                    <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{w.warehouseName}</td>
+                                    <td className="py-2.5 px-3 text-right tabular-nums font-semibold text-[#0F172A]">{w.count}</td>
+                                    <td className="py-2.5 px-3 text-right tabular-nums font-bold text-[#DC2626]">₹{w.totalAmount}</td>
+                                  </tr>
+                                ))
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                        <ReportPagination
+                          currentPage={safePage}
+                          pageSize={reportPageSize}
+                          totalEntries={totalEntries}
+                          onPageChange={setReportPage}
+                          onPageSizeChange={setReportPageSize}
+                          lang={lang}
+                        />
+                      </div>
+                    );
+                  })()
+                ) : salesReturnsSubTab === "gst-schedule" ? (
+                  /* Subtab: GST Schedule (Section 34 vs Commercial) */
+                  <div className="space-y-5">
+                    {/* Two Cards: Sec 34 GST vs Commercial */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Section 34 Statutory Card */}
+                      <div className="p-4 bg-indigo-50/50 border border-indigo-200 rounded-xl space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-sm text-indigo-900">GST Section 34 Statutory Credit Notes</span>
+                          <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-600 text-white">
+                            {reportData?.gstSchedule?.section34?.count || 0} Notes
+                          </span>
+                        </div>
+                        <p className="text-xs text-indigo-700">
+                          Eligible to reduce GST Output Tax Liability under CGST/SGST Act Section 34(2). Requires original tax invoice reference.
+                        </p>
+                        <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-indigo-200">
+                          <div>
+                            <span className="text-indigo-600 text-[11px] block">Taxable Turnover Adjustment</span>
+                            <span className="font-bold text-sm text-indigo-950">₹{reportData?.gstSchedule?.section34?.taxable || "0.00"}</span>
+                          </div>
+                          <div>
+                            <span className="text-indigo-600 text-[11px] block">CGST Reversal</span>
+                            <span className="font-bold text-sm text-indigo-950">₹{reportData?.gstSchedule?.section34?.cgst || "0.00"}</span>
+                          </div>
+                          <div>
+                            <span className="text-indigo-600 text-[11px] block">SGST Reversal</span>
+                            <span className="font-bold text-sm text-indigo-950">₹{reportData?.gstSchedule?.section34?.sgst || "0.00"}</span>
+                          </div>
+                          <div>
+                            <span className="text-indigo-600 text-[11px] block">IGST Reversal</span>
+                            <span className="font-bold text-sm text-indigo-950">₹{reportData?.gstSchedule?.section34?.igst || "0.00"}</span>
+                          </div>
+                          <div className="col-span-2 pt-2 border-t border-indigo-200 flex justify-between items-center">
+                            <span className="font-semibold text-indigo-900">Total Statutory Credit:</span>
+                            <span className="font-bold text-base text-indigo-950">₹{reportData?.gstSchedule?.section34?.total || "0.00"}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Commercial Notes Card */}
+                      <div className="p-4 bg-amber-50/50 border border-amber-200 rounded-xl space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-sm text-amber-900">Commercial / Financial Credit Notes</span>
+                          <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-600 text-white">
+                            {reportData?.gstSchedule?.commercial?.count || 0} Notes
+                          </span>
+                        </div>
+                        <p className="text-xs text-amber-700">
+                          Commercial discounts, post-sale volume rebates, and rate differences without GST adjustment as per Section 15(3)(b).
+                          Debited to Commercial Discounts &amp; Rebates (5150) without adjusting output tax.
+                        </p>
+                        <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-amber-200">
+                          <div>
+                            <span className="text-amber-600 text-[11px] block">Rebates &amp; Discount Total</span>
+                            <span className="font-bold text-sm text-amber-950">₹{reportData?.gstSchedule?.commercial?.rebateAmount || "0.00"}</span>
+                          </div>
+                          <div>
+                            <span className="text-amber-600 text-[11px] block">GST Liability Impact</span>
+                            <span className="font-bold text-sm text-emerald-700">₹ 0.00 (No Tax Reversal)</span>
+                          </div>
+                          <div className="col-span-2 pt-2 border-t border-amber-200 flex justify-between items-center">
+                            <span className="font-semibold text-amber-900">Total Commercial Credit:</span>
+                            <span className="font-bold text-base text-amber-950">₹{reportData?.gstSchedule?.commercial?.rebateAmount || "0.00"}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  );
-                })()}
+                  </div>
+                ) : (
+                  /* Subtab: Customer Credits & Refunds */
+                  <div className="space-y-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl">
+                        <span className="text-[11px] text-amber-800 uppercase font-semibold block">Available Customer Credit</span>
+                        <p className="tabular-nums font-bold text-xl text-amber-950 mt-1">₹{reportData?.summary?.totalRemainingCredit || "0.00"}</p>
+                        <span className="text-[10px] text-amber-700">Can be adjusted against future invoices</span>
+                      </div>
+                      <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-xl">
+                        <span className="text-[11px] text-blue-800 uppercase font-semibold block">Allocated to Invoice Dues</span>
+                        <p className="tabular-nums font-bold text-xl text-blue-950 mt-1">₹{reportData?.summary?.totalAllocatedCredit || "0.00"}</p>
+                        <span className="text-[10px] text-blue-700">Applied against customer receivables</span>
+                      </div>
+                      <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl">
+                        <span className="text-[11px] text-emerald-800 uppercase font-semibold block">Direct Cash / Bank Refunds</span>
+                        <p className="tabular-nums font-bold text-xl text-emerald-950 mt-1">₹{reportData?.summary?.totalRefunds || "0.00"}</p>
+                        <span className="text-[10px] text-emerald-700">Disbursed via Cash or Bank transfers</span>
+                      </div>
+                    </div>
+
+                    {/* Table of credits & refunds */}
+                    {(() => {
+                      const returnsWithBalance = (reportData?.returns || []).filter(
+                        (r: any) =>
+                          Number(r.remainingCredit || 0) > 0 ||
+                          Number(r.refundAmount || 0) > 0 ||
+                          r.settlementMode
+                      );
+                      const { paginatedList, safePage, totalEntries } = paginateList(returnsWithBalance);
+                      return (
+                        <div className="border border-[#E2E8F0] rounded-xl overflow-hidden w-full shadow-2xs bg-white">
+                          <div className="overflow-x-auto w-full -webkit-overflow-scrolling-touch">
+                            <table className="w-full min-w-[750px] text-left text-xs border-collapse">
+                              <thead>
+                                <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] uppercase font-semibold">
+                                  <th className="py-2.5 px-3">Return / Note #</th>
+                                  <th className="py-2.5 px-3">Date</th>
+                                  <th className="py-2.5 px-3">Customer</th>
+                                  <th className="py-2.5 px-3">Settlement Mode</th>
+                                  <th className="py-2.5 px-3 text-right">Grand Total (₹)</th>
+                                  <th className="py-2.5 px-3 text-right">Direct Refund (₹)</th>
+                                  <th className="py-2.5 px-3 text-right">Available Credit (₹)</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-[#E2E8F0]">
+                                {paginatedList.length === 0 ? (
+                                  <tr>
+                                    <td colSpan={7} className="py-8 text-center text-slate-400">
+                                      No credit balances or refund records
+                                    </td>
+                                  </tr>
+                                ) : (
+                                  paginatedList.map((r: any, idx: number) => (
+                                    <tr key={r.id || `cr-${idx}`} className="hover:bg-[#F8FAFC] transition-colors">
+                                      <td className="py-2.5 px-3 tabular-nums font-semibold text-[#0047BA]">
+                                        {r.creditNoteNumber || r.returnNumber}
+                                      </td>
+                                      <td className="py-2.5 px-3 tabular-nums text-[#64748B]">{r.returnDate}</td>
+                                      <td className="py-2.5 px-3 font-semibold text-[#0F172A]">{r.partyName}</td>
+                                      <td className="py-2.5 px-3 text-[#64748B]">{r.settlementMode || "CREDIT"}</td>
+                                      <td className="py-2.5 px-3 text-right tabular-nums font-bold text-[#0F172A]">₹{r.grandTotal}</td>
+                                      <td className="py-2.5 px-3 text-right tabular-nums text-emerald-600 font-semibold">
+                                        ₹{r.refundAmount || "0.00"}
+                                      </td>
+                                      <td className="py-2.5 px-3 text-right tabular-nums text-amber-600 font-bold">
+                                        ₹{r.remainingCredit || "0.00"}
+                                      </td>
+                                    </tr>
+                                  ))
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                          <ReportPagination
+                            currentPage={safePage}
+                            pageSize={reportPageSize}
+                            totalEntries={totalEntries}
+                            onPageChange={setReportPage}
+                            onPageSizeChange={setReportPageSize}
+                            lang={lang}
+                          />
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
               </div>
             ) : activeTab === "quotations" ? (
               /* Quotations / Estimates */
