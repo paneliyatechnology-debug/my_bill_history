@@ -225,19 +225,38 @@ export function ImportWizardModal({
   const unmappedRequiredFields = (currentSchema?.fields || [])
     .filter((f) => f.required && !Object.values(columnMapping).includes(f.key));
 
+  const getCategoryBadgeClass = (category: string) => {
+    switch (category) {
+      case "MASTERS":
+        return "bg-blue-50 text-blue-700 border border-blue-200/60";
+      case "INVENTORY":
+        return "bg-indigo-50 text-indigo-700 border border-indigo-200/60";
+      case "SALES":
+        return "bg-emerald-50 text-emerald-700 border border-emerald-200/60";
+      case "PURCHASES":
+        return "bg-amber-50 text-amber-700 border border-amber-200/60";
+      case "ACCOUNTING":
+        return "bg-purple-50 text-purple-700 border border-purple-200/60";
+      case "MANUFACTURING":
+        return "bg-teal-50 text-teal-700 border border-teal-200/60";
+      default:
+        return "bg-slate-100 text-slate-600 border border-slate-200";
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-slate-950/70 backdrop-blur-sm animate-fadeIn">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
       <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden text-slate-800">
         
-        {/* HEADER */}
-        <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+        {/* HEADER - Clean white theme matching application standards */}
+        <div className="px-6 py-4 bg-white border-b border-slate-200 border-t-4 border-t-[#1677E8] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center font-bold text-lg border border-orange-500/30">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1677E8] border border-blue-200/80 flex items-center justify-center font-bold text-lg shadow-2xs">
               📊
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-[15px] font-semibold">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-[16px] font-bold text-slate-900 tracking-tight">
                   {lang === "gu" ? "એક્સેલ / CSV ડેટા આયાત સેન્ટર" : "Excel / CSV Data Import Center"}
                 </h2>
                 {modules.length > 0 && (
@@ -257,7 +276,7 @@ export function ImportWizardModal({
                         }
                       }
                     }}
-                    className="text-[13px] bg-slate-800 text-orange-400 px-2.5 py-1 rounded-lg border border-slate-700 font-normal focus:outline-none focus:ring-1 focus:ring-orange-500 cursor-pointer h-10"
+                    className="text-[12px] bg-slate-50 text-slate-700 hover:bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] cursor-pointer h-8 transition-colors"
                   >
                     {modules.map((m) => (
                       <option key={m.module} value={m.module}>
@@ -267,23 +286,24 @@ export function ImportWizardModal({
                   </select>
                 )}
               </div>
-              <p className="text-xs text-slate-400">
-                {currentCompany?.tradeName || currentCompany?.legalName || "MyOwnBill History"} •{" "}
-                {lang === "gu" ? "સરળ ડેટા માઈગ્રેશન" : "Seamless Data Migration Engine"}
+              <p className="text-xs text-slate-500 mt-0.5">
+                {currentCompany?.tradeName || currentCompany?.legalName || "MyOwnBill"} •{" "}
+                {lang === "gu" ? "સરળ ડેટા માઈગ્રેશન એન્જિન" : "Seamless Data Migration Engine"}
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 flex items-center justify-center transition-colors"
+            type="button"
+            className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
           >
             ✕
           </button>
         </div>
 
         {/* STEP PROGRESS BAR */}
-        <div className="bg-slate-100 px-6 py-2.5 border-b border-slate-200 flex items-center justify-between text-xs overflow-x-auto scrollbar-none">
+        <div className="bg-slate-50/80 px-6 py-2.5 border-b border-slate-200 flex items-center justify-between text-xs overflow-x-auto scrollbar-none">
           {[
             { id: "MODULE", label: lang === "gu" ? "૧. મોડ્યુલ" : "1. Module" },
             { id: "UPLOAD", label: lang === "gu" ? "૨. ફાઇલ" : "2. File" },
@@ -303,15 +323,15 @@ export function ImportWizardModal({
                 <span
                   className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
                     isCurrent
-                      ? "bg-orange-600 text-white"
+                      ? "bg-[#1677E8] text-white shadow-2xs"
                       : isCompleted
                       ? "bg-emerald-600 text-white"
-                      : "bg-slate-300 text-slate-600"
+                      : "bg-slate-200 text-slate-500"
                   }`}
                 >
                   {isCompleted ? "✓" : idx + 1}
                 </span>
-                <span className={`font-medium ${isCurrent ? "text-orange-700 font-bold" : isCompleted ? "text-slate-800" : "text-slate-500"}`}>
+                <span className={`font-medium ${isCurrent ? "text-[#1677E8] font-bold" : isCompleted ? "text-slate-800" : "text-slate-400"}`}>
                   {s.label}
                 </span>
                 {idx < 5 && <span className="text-slate-300 mx-1">›</span>}
@@ -362,15 +382,15 @@ export function ImportWizardModal({
                       }}
                       className={`p-4 rounded-xl border cursor-pointer transition-all ${
                         isSelected
-                          ? "border-orange-500 bg-orange-50/60 shadow-md ring-2 ring-orange-500/20"
-                          : "border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50"
+                          ? "border-[#1677E8] bg-blue-50/60 shadow-sm ring-2 ring-blue-500/20"
+                          : "border-slate-200 hover:border-blue-200 bg-white hover:bg-slate-50/70"
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${getCategoryBadgeClass(m.category)}`}>
                           {m.category}
                         </span>
-                        {isSelected && <span className="text-orange-600 font-bold text-sm">✓</span>}
+                        {isSelected && <span className="text-[#1677E8] font-bold text-sm">✓</span>}
                       </div>
                       <h4 className="text-sm font-bold text-slate-900 mb-1">
                         {lang === "gu" ? m.titleGujarati : m.title}
@@ -388,7 +408,7 @@ export function ImportWizardModal({
                   type="button"
                   onClick={() => setStep("UPLOAD")}
                   disabled={!selectedModule}
-                  className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white rounded-xl text-[13px] font-medium shadow transition-colors cursor-pointer"
+                  className="px-6 py-2.5 bg-[#1677E8] hover:bg-[#1268D3] disabled:opacity-50 text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors cursor-pointer active:scale-95"
                 >
                   {lang === "gu" ? "આગળ વધો (ફાઇલ અપલોડ) ›" : "Next (Upload File) ›"}
                 </button>
@@ -443,7 +463,7 @@ export function ImportWizardModal({
                   }
                 }}
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-slate-300 hover:border-orange-500 rounded-2xl p-8 sm:p-12 text-center bg-slate-50/60 hover:bg-orange-50/20 transition-all cursor-pointer group"
+                className="border-2 border-dashed border-slate-300 hover:border-[#1677E8] rounded-2xl p-8 sm:p-12 text-center bg-slate-50/60 hover:bg-blue-50/30 transition-all cursor-pointer group"
               >
                 <input
                   type="file"
@@ -453,7 +473,7 @@ export function ImportWizardModal({
                   className="hidden"
                 />
 
-                <div className="w-16 h-16 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center mx-auto mb-4 text-2xl group-hover:scale-110 transition-transform">
+                <div className="w-16 h-16 rounded-2xl bg-blue-100 text-[#1677E8] flex items-center justify-center mx-auto mb-4 text-2xl group-hover:scale-105 transition-transform shadow-2xs">
                   📁
                 </div>
 
@@ -466,14 +486,14 @@ export function ImportWizardModal({
                     : "Intelligent auto-detection matches both English and Gujarati accounting terminology."}
                 </p>
 
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-700 shadow-sm group-hover:border-orange-400">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs group-hover:border-[#1677E8] group-hover:text-[#1677E8] transition-colors">
                   <span>📂</span> {lang === "gu" ? "કોમ્પ્યુટરમાંથી ફાઇલ પસંદ કરો" : "Choose File from Computer"}
                 </div>
               </div>
 
               {isParsing && (
-                <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl flex items-center justify-center gap-3 text-orange-800 text-sm">
-                  <span className="animate-spin text-xl">⏳</span>
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-center gap-3 text-blue-900 text-sm">
+                  <span className="animate-spin text-xl text-[#1677E8]">⏳</span>
                   <span className="font-semibold">
                     {lang === "gu" ? "સ્પ્રેડશીટ અને કોલમ્સ તપાસી રહ્યા છીએ..." : "Parsing spreadsheet and auto-detecting columns..."}
                   </span>
@@ -628,7 +648,7 @@ export function ImportWizardModal({
                   type="button"
                   onClick={() => setStep("CONFIGURE")}
                   disabled={unmappedRequiredFields.length > 0}
-                  className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white rounded-xl text-sm font-semibold shadow transition-colors cursor-pointer"
+                  className="px-6 py-2.5 bg-[#1677E8] hover:bg-[#1268D3] disabled:opacity-50 text-white rounded-xl text-sm font-semibold shadow-xs transition-colors cursor-pointer active:scale-95"
                 >
                   {lang === "gu" ? "આગળ (આયાત સેટિંગ્સ) ›" : "Next (Configure Options) ›"}
                 </button>
@@ -688,7 +708,7 @@ export function ImportWizardModal({
                       onClick={() => setImportMode(opt.mode)}
                       className={`p-4 rounded-xl border cursor-pointer transition-all ${
                         importMode === opt.mode
-                          ? "border-orange-500 bg-orange-50/70 shadow-sm ring-2 ring-orange-500/20"
+                          ? "border-[#1677E8] bg-blue-50/60 shadow-sm ring-2 ring-blue-500/20"
                           : "border-slate-200 hover:border-slate-300 bg-white"
                       }`}
                     >
@@ -696,7 +716,7 @@ export function ImportWizardModal({
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
                           {opt.badge}
                         </span>
-                        {importMode === opt.mode && <span className="text-orange-600 font-bold">✓</span>}
+                        {importMode === opt.mode && <span className="text-[#1677E8] font-bold">✓</span>}
                       </div>
                       <h4 className="text-sm font-bold text-slate-900 mb-1">{opt.title}</h4>
                       <p className="text-xs text-slate-500">{opt.desc}</p>
@@ -764,7 +784,7 @@ export function ImportWizardModal({
                   type="button"
                   onClick={handleRunValidation}
                   disabled={isValidating}
-                  className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white rounded-xl text-[13px] font-medium shadow transition-colors cursor-pointer flex items-center gap-2"
+                  className="px-6 py-2.5 bg-[#1677E8] hover:bg-[#1268D3] disabled:opacity-50 text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors cursor-pointer flex items-center gap-2 active:scale-95"
                 >
                   {isValidating ? (
                     <>
@@ -826,7 +846,7 @@ export function ImportWizardModal({
                       }}
                       className={`px-3 py-1 rounded-lg font-bold transition-colors cursor-pointer ${
                         filterPreviewStatus === st
-                          ? "bg-slate-900 text-white"
+                          ? "bg-[#1677E8] text-white shadow-xs"
                           : "text-slate-600 hover:bg-slate-100"
                       }`}
                     >
@@ -970,7 +990,7 @@ export function ImportWizardModal({
           {/* STEP 6: EXECUTING SPINNER */}
           {step === "EXECUTING" && (
             <div className="py-16 text-center space-y-6">
-              <div className="w-20 h-20 rounded-full border-4 border-orange-200 border-t-orange-600 animate-spin mx-auto" />
+              <div className="w-20 h-20 rounded-full border-4 border-blue-200 border-t-[#1677E8] animate-spin mx-auto" />
               <div>
                 <h3 className="text-[15px] font-semibold text-slate-900 mb-1">
                   {lang === "gu" ? "ડેટાબેઝમાં આયાત થઈ રહી છે..." : "Importing Records into PostgreSQL..."}
@@ -984,7 +1004,7 @@ export function ImportWizardModal({
 
               <div className="w-full max-w-md mx-auto bg-slate-200 rounded-full h-3 overflow-hidden">
                 <div
-                  className="bg-orange-600 h-full transition-all duration-300"
+                  className="bg-[#1677E8] h-full transition-all duration-300"
                   style={{ width: `${executionProgress}%` }}
                 />
               </div>
@@ -1064,7 +1084,7 @@ export function ImportWizardModal({
                       onClose();
                       router.push(currentSchema.routeHref);
                     }}
-                    className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-[13px] font-medium shadow cursor-pointer"
+                    className="px-6 py-2.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors cursor-pointer active:scale-95"
                   >
                     {lang === "gu" ? "રેકોર્ડ્સ લિસ્ટ જુઓ ›" : "View Imported Records ›"}
                   </button>
