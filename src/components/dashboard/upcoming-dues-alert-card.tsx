@@ -111,8 +111,7 @@ export function UpcomingDuesAlertCard() {
   const totalDue = data?.totalDueAmount || 0;
   const count = duesList.length;
 
-  // CRITICAL USER REQUIREMENT:
-  // If there are no dues (count === 0 on "ALL" or totalDue === 0), the entire section MUST be completely hidden!
+  // If there are no dues (count === 0 on "ALL" or totalDue === 0), hide section completely
   if (typeFilter === "ALL" && !isLoading && count === 0) {
     return null;
   }
@@ -128,82 +127,108 @@ export function UpcomingDuesAlertCard() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-rose-200/90 shadow-sm overflow-hidden mb-6 transition-all hover:border-rose-300">
-      {/* 1. Header with Red Blinking Alert Indicator */}
-      <div className="p-4 sm:p-5 bg-gradient-to-r from-rose-50/90 via-white to-amber-50/50 border-b border-rose-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div>
+    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden mb-6">
+      {/* Header with Title, Stats, and Clean Segmented Filters */}
+      <div className="px-4 sm:px-5 py-3.5 sm:py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+
+          <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-bold text-slate-900 text-sm sm:text-base">
-                {lang === "gu"
-                  ? "આગામી બાકી લેણી અને ચૂકવણી ચેતવણી (Next 3 Days Dues)"
-                  : "Upcoming Dues & Urgent Collections Alert (Next 3 Days)"}
-              </h3>
+              <h2 className="text-sm sm:text-[15px] font-semibold text-slate-900 tracking-tight">
+                {lang === "gu" ? "આગામી બાકી રકમ (ડ્યુ)" : "Upcoming Dues"}
+              </h2>
               {count > 0 && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-rose-100 text-rose-800 border border-rose-300 shadow-xs animate-pulse">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
+                <span className="text-[11px] font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
                   {count} {lang === "gu" ? "બિલ બાકી" : "Bills Due"}
                 </span>
               )}
             </div>
-            {/* <p className="text-xs text-slate-500 mt-0.5">
+
+            <p className="text-xs text-slate-500 mt-0.5 truncate">
               {lang === "gu"
-                ? "આગામી 3 દિવસમાં વસૂલવાના સેલ્સ બિલ (લેવાના) અને ચૂકવવાના પરચેઝ બિલ (દેવાના)ની લાઈવ યાદી"
-                : "Real-time list of receivables to collect and purchase bills to pay within 3 days"}
-            </p> */}
+                ? `આગામી ${daysFilter} દિવસમાં બાકી લેણી/ચૂકવણી`
+                : `Due within next ${daysFilter} days`}
+              {totalDue > 0 && (
+                <span className="ml-1.5 font-semibold text-slate-800">
+                  • {lang === "gu" ? "કુલ: " : "Total: "}
+                  {formatCurrency(totalDue)}
+                </span>
+              )}
+              {Boolean(data?.totalOverdueAmount && data.totalOverdueAmount > 0) && (
+                <span className="ml-1.5 font-semibold text-rose-600">
+                  ({formatCurrency(data?.totalOverdueAmount || 0)}{" "}
+                  {lang === "gu" ? "મુદત વીતી ગઈ" : "overdue"})
+                </span>
+              )}
+            </p>
           </div>
         </div>
 
-        {/* Filter Controls */}
-        <div className="flex items-center gap-2 self-start sm:self-center shrink-0 flex-wrap">
+        {/* Filter Controls: Clean & Minimalist */}
+        <div className="flex items-center gap-2 self-start md:self-center shrink-0 flex-wrap">
           {/* Type Filter: ALL, SALES, PURCHASES */}
-          <div className="inline-flex rounded-xl bg-slate-100 p-0.5 text-xs font-semibold">
+          <div className="inline-flex rounded-lg bg-slate-100 p-0.5 text-xs font-medium">
             <button
               type="button"
               onClick={() => setTypeFilter("ALL")}
-              className={`px-3 py-1 rounded-lg transition ${
+              className={`px-2.5 py-1 rounded-md transition ${
                 typeFilter === "ALL"
-                  ? "bg-white text-rose-700 shadow-xs font-bold"
+                  ? "bg-white text-slate-900 shadow-2xs font-semibold"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              {lang === "gu" ? "બધા ડ્યુ" : "All Dues"}
+              {lang === "gu" ? "બધા" : "All"}
               {data?.count !== undefined && typeFilter === "ALL" ? ` (${data.count})` : ""}
             </button>
             <button
               type="button"
               onClick={() => setTypeFilter("SALES")}
-              className={`px-3 py-1 rounded-lg transition ${
+              className={`px-2.5 py-1 rounded-md transition ${
                 typeFilter === "SALES"
-                  ? "bg-white text-rose-700 shadow-xs font-bold"
+                  ? "bg-white text-slate-900 shadow-2xs font-semibold"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              {lang === "gu" ? "↑ લેવાના (સેલ્સ)" : "↑ Receivables"}
+              {lang === "gu" ? "લેવાના" : "Receivables"}
               {data?.salesCount !== undefined ? ` (${data.salesCount})` : ""}
             </button>
             <button
               type="button"
               onClick={() => setTypeFilter("PURCHASES")}
-              className={`px-3 py-1 rounded-lg transition ${
+              className={`px-2.5 py-1 rounded-md transition ${
                 typeFilter === "PURCHASES"
-                  ? "bg-white text-rose-700 shadow-xs font-bold"
+                  ? "bg-white text-slate-900 shadow-2xs font-semibold"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              {lang === "gu" ? "↓ ચૂકવવાના (પરચેઝ)" : "↓ Payables"}
+              {lang === "gu" ? "ચૂકવવાના" : "Payables"}
               {data?.purchaseCount !== undefined ? ` (${data.purchaseCount})` : ""}
             </button>
           </div>
 
           {/* Days Horizon Filter: 3 Days, 7 Days */}
-          <div className="inline-flex rounded-xl bg-slate-100 p-0.5 text-xs font-semibold">
+          <div className="inline-flex rounded-lg bg-slate-100 p-0.5 text-xs font-medium">
             <button
               type="button"
               onClick={() => setDaysFilter(3)}
-              className={`px-2.5 py-1 rounded-lg transition ${
+              className={`px-2.5 py-1 rounded-md transition ${
                 daysFilter === 3
-                  ? "bg-rose-600 text-white shadow-xs font-bold"
+                  ? "bg-white text-slate-900 shadow-2xs font-semibold"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -212,9 +237,9 @@ export function UpcomingDuesAlertCard() {
             <button
               type="button"
               onClick={() => setDaysFilter(7)}
-              className={`px-2.5 py-1 rounded-lg transition ${
+              className={`px-2.5 py-1 rounded-md transition ${
                 daysFilter === 7
-                  ? "bg-rose-600 text-white shadow-xs font-bold"
+                  ? "bg-white text-slate-900 shadow-2xs font-semibold"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -224,105 +249,37 @@ export function UpcomingDuesAlertCard() {
         </div>
       </div>
 
-      {/* 2. Outstanding Balance Metric Ribbon */}
-      <div className="px-4 sm:px-5 py-2.5 bg-rose-50/50 border-b border-rose-100 flex items-center justify-between gap-3 text-xs flex-wrap">
-        <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
-          {/* Sales to Collect (લેવાના) */}
-          {(data?.totalSalesDueAmount ?? 0) > 0 && (
-            <div>
-              <span className="text-slate-500 font-medium">
-                {lang === "gu" ? "↑ લેવાના (સેલ્સ): " : "↑ To Collect: "}
-              </span>
-              <span className="font-extrabold text-blue-700 tabular-nums">
-                {formatCurrency(data?.totalSalesDueAmount || 0)}
-              </span>
-            </div>
-          )}
-
-          {/* Purchases to Pay (ચૂકવવાના) */}
-          {(data?.totalPurchaseDueAmount ?? 0) > 0 && (
-            <div>
-              <span className="text-slate-500 font-medium">
-                {lang === "gu" ? "↓ ચૂકવવાના (પરચેઝ): " : "↓ To Pay: "}
-              </span>
-              <span className="font-extrabold text-amber-700 tabular-nums">
-                {formatCurrency(data?.totalPurchaseDueAmount || 0)}
-              </span>
-            </div>
-          )}
-
-          {/* Net / Total Dues */}
-          <div>
-            <span className="text-slate-500 font-medium">
-              {lang === "gu" ? "કુલ ડ્યુ રકમ: " : "Total Due: "}
-            </span>
-            <span className="font-extrabold text-rose-700 text-sm tabular-nums">
-              {formatCurrency(totalDue)}
-            </span>
-          </div>
-
-          {/* Overdue alert badge if any */}
-          {Boolean(data?.totalOverdueAmount && data.totalOverdueAmount > 0) && (
-            <div className="text-rose-600 font-semibold flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-              <span>
-                {lang === "gu" ? "મુદત વીતી ગયેલ:" : "Overdue:"}{" "}
-                {formatCurrency(data?.totalOverdueAmount || 0)}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Quick links to full modules */}
-        <div className="flex items-center gap-3">
-          <Link
-            href="/sales/invoices"
-            className="text-xs font-semibold text-blue-700 hover:text-blue-900 hover:underline flex items-center gap-1"
-          >
-            <span>{lang === "gu" ? "સેલ્સ ઇનવોઇસ" : "Sales Invoices"}</span>
-            <span>&rarr;</span>
-          </Link>
-          <span className="text-slate-300">|</span>
-          <Link
-            href="/purchases"
-            className="text-xs font-semibold text-amber-700 hover:text-amber-900 hover:underline flex items-center gap-1"
-          >
-            <span>{lang === "gu" ? "પરચેઝ બિલ" : "Purchase Bills"}</span>
-            <span>&rarr;</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* 3. Invoices List / Table */}
+      {/* Dues Cards Grid */}
       <div className="p-4 sm:p-5">
         {isLoading ? (
-          <div className="space-y-3 py-2">
-            <div className="h-14 bg-slate-100 rounded-xl animate-pulse" />
-            <div className="h-14 bg-slate-100 rounded-xl animate-pulse" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-28 bg-slate-100 rounded-xl animate-pulse" />
+            ))}
           </div>
         ) : count === 0 ? (
-          /* Empty state only shown if user explicitly filtered into an empty tab */
-          <div className="py-6 px-4 text-center flex flex-col items-center justify-center">
-            <p className="text-xs font-semibold text-slate-500">
+          /* Empty state for filtered tab */
+          <div className="py-8 px-4 text-center flex flex-col items-center justify-center">
+            <p className="text-xs font-medium text-slate-500">
               {typeFilter === "SALES"
                 ? lang === "gu"
-                  ? "આ કેટેગરીમાં કોઈ સેલ્સ લેણી બાકી નથી."
-                  : "No sales receivables due in this horizon."
+                  ? "કોઈ સેલ્સ લેણી બાકી નથી."
+                  : "No sales receivables due in this period."
                 : lang === "gu"
-                ? "આ કેટેગરીમાં કોઈ પરચેઝ બિલ ચૂકવવાના બાકી નથી."
-                : "No purchase bills due in this horizon."}
+                ? "કોઈ પરચેઝ બિલ ચૂકવવાના બાકી નથી."
+                : "No purchase bills due in this period."}
             </p>
             <button
               type="button"
               onClick={() => setTypeFilter("ALL")}
-              className="mt-2 text-xs font-bold text-rose-600 hover:text-rose-800 underline cursor-pointer"
+              className="mt-2 text-xs font-semibold text-[#1677E8] hover:underline cursor-pointer"
             >
-              {lang === "gu" ? "તમામ ડ્યુ જુઓ (Show All Dues)" : "Show All Dues"}
+              {lang === "gu" ? "તમામ ડ્યુ જુઓ" : "Show All Dues"}
             </button>
           </div>
         ) : (
-          /* Cards Grid of Due Bills */
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3.5">
+          /* Responsive Cards Grid */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
             {duesList.map((item) => {
               const isOverdue = item.daysRemaining < 0;
               const isToday = item.daysRemaining === 0;
@@ -332,44 +289,29 @@ export function UpcomingDuesAlertCard() {
               return (
                 <div
                   key={`${item.type}-${item.id}`}
-                  className={`p-4 rounded-xl border transition-all flex flex-col justify-between ${
-                    isOverdue
-                      ? "border-rose-300 bg-rose-50/40 hover:bg-rose-50/70"
-                      : isToday
-                      ? "border-amber-300 bg-amber-50/40 hover:bg-amber-50/70"
-                      : isSales
-                      ? "border-blue-200/90 bg-white hover:border-blue-300 hover:shadow-xs"
-                      : "border-amber-200/90 bg-white hover:border-amber-300 hover:shadow-xs"
-                  }`}
+                  className="p-3.5 sm:p-4 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-2xs transition-all flex flex-col justify-between"
                 >
                   <div>
-                    {/* Top Badges: Type (Sales/Purchase) & Urgency */}
+                    {/* Urgency Status Dot and Type Label */}
                     <div className="flex items-center justify-between gap-2 mb-2">
-                      {/* Urgency Badge with Blinking Dot */}
-                      <div className="flex items-center gap-1.5">
-                        <span className="relative flex h-2.5 w-2.5 shrink-0">
-                          <span
-                            className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                              isOverdue ? "bg-rose-500" : isToday ? "#FFF7ED" : "bg-blue-500"
-                            }`}
-                          />
-                          <span
-                            className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                              isOverdue ? "bg-rose-600" : isToday ? "bg-amber-600" : "bg-blue-600"
-                            }`}
-                          />
-                        </span>
-
+                      <div className="flex items-center gap-1.5 text-xs font-medium">
                         <span
-                          className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider ${
+                          className={`w-2 h-2 rounded-full shrink-0 ${
                             isOverdue
-                              ? "bg-rose-100 text-rose-800 border border-rose-300"
+                              ? "bg-rose-500"
                               : isToday
-                              ? "bg-amber-100 text-amber-800 border border-amber-300 animate-pulse"
-                              : isTomorrow
-                              ? "bg-amber-50 text-amber-700 border border-amber-200"
-                              : "bg-blue-50 text-blue-700 border border-blue-200"
+                              ? "bg-amber-500"
+                              : "bg-blue-500"
                           }`}
+                        />
+                        <span
+                          className={
+                            isOverdue
+                              ? "text-rose-600 font-semibold"
+                              : isToday
+                              ? "text-amber-600 font-semibold"
+                              : "text-slate-600"
+                          }
                         >
                           {isOverdue
                             ? lang === "gu"
@@ -377,117 +319,96 @@ export function UpcomingDuesAlertCard() {
                               : `Overdue ${Math.abs(item.daysRemaining)}d`
                             : isToday
                             ? lang === "gu"
-                              ? "આજે જ ભરો!"
+                              ? "આજે બાકી"
                               : "Due Today"
                             : isTomorrow
                             ? lang === "gu"
-                              ? "આવતીકાલે Due"
+                              ? "આવતીકાલે"
                               : "Tomorrow"
                             : lang === "gu"
-                            ? `${item.daysRemaining} દિવસમાં Due`
+                            ? `${item.daysRemaining} દિવસમાં`
                             : `In ${item.daysRemaining}d`}
                         </span>
                       </div>
 
-                      {/* Direction Tag: To Collect (Sales) vs To Pay (Purchase) */}
-                      <span
-                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                          isSales
-                            ? "bg-blue-50 text-blue-700 border border-blue-200"
-                            : "bg-amber-50 text-amber-800 border border-amber-200"
-                        }`}
-                      >
+                      <span className="text-[11px] font-medium text-slate-500">
                         {isSales
                           ? lang === "gu"
-                            ? "↑ લેવાના (Sales)"
-                            : "↑ To Collect"
+                            ? "લેવાના"
+                            : "Receivable"
                           : lang === "gu"
-                          ? "↓ ચૂકવવાના (Purchase)"
-                          : "↓ To Pay"}
+                          ? "ચૂકવવાના"
+                          : "Payable"}
                       </span>
                     </div>
 
-                    {/* Invoice Number & Due Date */}
-                    <div className="mb-2">
+                    {/* Party Name */}
+                    <h4
+                      className="text-sm font-semibold text-slate-900 truncate"
+                      title={item.partyName}
+                    >
+                      {item.partyName}
+                    </h4>
+
+                    {/* Invoice No & Due Date */}
+                    <div className="flex items-center justify-between gap-2 mt-1 text-xs text-slate-500">
                       <Link
                         href={item.deepLink}
-                        className="text-xs font-bold text-slate-900 hover:text-[#1677E8] transition flex items-center gap-1"
+                        className="font-medium text-[#1677E8] hover:underline truncate"
+                        title={item.invoiceNumber}
                       >
-                        <span className="truncate">{item.invoiceNumber}</span>
-                        <span className="text-[10px] text-slate-500 font-semibold shrink-0 bg-slate-100 px-1.5 py-0.5 rounded">
-                          {formatDueDate(item.dueDate)}
-                        </span>
+                        {item.invoiceNumber}
                       </Link>
-
-                      {/* Party Name */}
-                      <p className="text-xs font-semibold text-slate-700 truncate mt-0.5" title={item.partyName}>
-                        <span className="text-[10px] text-slate-400 font-normal mr-1">
-                          {isSales ? (lang === "gu" ? "ગ્રાહક:" : "Customer:") : (lang === "gu" ? "વેપારી:" : "Supplier:")}
-                        </span>
-                        {item.partyName}
-                      </p>
-                      {item.partyPhone && (
-                        <p className="text-[10px] text-slate-400 mt-0.5">{item.partyPhone}</p>
-                      )}
-
-                      {/* Explicit Due Date Highlight */}
-                      <div className="mt-1.5 flex items-center justify-between text-[11px] bg-slate-50 rounded px-2 py-1 border border-slate-100">
-                        <span className="text-slate-500">{lang === "gu" ? "મુદત:" : "Due Date:"}</span>
-                        <span className="font-bold text-slate-800 tabular-nums">{formatDueDate(item.dueDate)}</span>
-                      </div>
+                      <span className="tabular-nums shrink-0">
+                        {formatDueDate(item.dueDate)}
+                      </span>
                     </div>
                   </div>
 
-                  {/* Financial Amounts & Action CTA */}
-                  <div className="pt-2.5 border-t border-slate-200/60 mt-auto flex items-center justify-between gap-2">
+                  {/* Amount and Action CTA */}
+                  <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                     <div>
-                      <span className="text-[10px] text-slate-400 block font-medium">
+                      <span className="text-[10px] text-slate-400 block font-medium uppercase tracking-wider">
                         {isSales
                           ? lang === "gu"
-                            ? "બાકી લેણી (Due):"
-                            : "Receivable:"
+                            ? "બાકી રકમ"
+                            : "Balance"
                           : lang === "gu"
-                          ? "બાકી ચૂકવણી (Due):"
-                          : "Payable:"}
+                          ? "ચૂકવવાપાત્ર"
+                          : "Payable"}
                       </span>
-                      <span
-                        className={`text-xs sm:text-sm font-extrabold tabular-nums ${
-                          isSales ? "text-blue-700" : "text-amber-800"
-                        }`}
-                      >
+                      <span className="text-sm sm:text-[15px] font-bold text-slate-900 tabular-nums">
                         {formatCurrency(item.balanceAmount)}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <Link
-                        href={
-                          item.actionLink
-                            ? item.actionLink.includes("amount=")
-                              ? item.actionLink
-                              : `${item.actionLink}${item.actionLink.includes("?") ? "&" : "?"}amount=${item.balanceAmount}`
-                            : isSales
-                            ? `/sales/payment-in/new?partyId=${item.partyId || ""}&invoiceId=${item.id}&amount=${item.balanceAmount}`
-                            : `/purchases/payment-out/new?partyId=${item.partyId || ""}&billId=${item.id}&amount=${item.balanceAmount}`
-                        }
-                        className={`px-2.5 py-1.5 rounded-lg text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-1 text-white ${
-                          isSales
-                            ? "bg-blue-600 hover:bg-blue-700"
-                            : "bg-amber-600 hover:bg-amber-700"
-                        }`}
-                      >
-                        <span>
-                          {isSales
-                            ? lang === "gu"
-                              ? "ઉઘરાણી નોંધો"
-                              : "Collect"
-                            : lang === "gu"
-                            ? "ચુકવણી કરો"
+                    <Link
+                      href={
+                        item.actionLink
+                          ? item.actionLink.includes("amount=")
+                            ? item.actionLink
+                            : `${item.actionLink}${item.actionLink.includes("?") ? "&" : "?"}amount=${item.balanceAmount}`
+                          : isSales
+                          ? `/sales/payment-in/new?partyId=${item.partyId || ""}&invoiceId=${item.id}&amount=${item.balanceAmount}`
+                          : `/purchases/payment-out/new?partyId=${item.partyId || ""}&billId=${item.id}&amount=${item.balanceAmount}`
+                      }
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold shadow-2xs transition flex items-center gap-1 shrink-0 ${
+                        isSales
+                          ? "bg-[#1677E8] hover:bg-blue-600 text-white"
+                          : "bg-slate-900 hover:bg-slate-800 text-white"
+                      }`}
+                    >
+                      <span>
+                        {isSales
+                          ? lang === "gu"
+                            ? "ઉઘરાણી"
+                            : "Collect"
+                          : lang === "gu"
+                            ? "ચૂકવો"
                             : "Pay"}
-                        </span>
-                        <span>&rarr;</span>
-                      </Link>
-                    </div>
+                      </span>
+                      <span>→</span>
+                    </Link>
                   </div>
                 </div>
               );

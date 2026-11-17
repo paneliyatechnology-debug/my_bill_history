@@ -23,59 +23,35 @@ export interface DashboardTransactionsTableProps {
   lang?: "en" | "gu";
 }
 
-// 3-Color Strict Palette: Primary Blue (#1677E8), Neutral Slate, and Semantic Accents
-function getTypeBadge(type: string, lang: "en" | "gu" = "en") {
+// Clean Type Label (No background or pill)
+function getTypeLabel(type: string, lang: "en" | "gu" = "en") {
   const norm = (type || "").toLowerCase();
 
-  // Inflow / Sales Primary: Blue
   if (norm.includes("sales invoice") || (norm.includes("sales") && !norm.includes("return"))) {
-    return {
-      label: lang === "gu" ? "વેચાણ બિલ" : "Sales Invoice",
-      className: "bg-blue-50 text-[#1677E8] border border-blue-200/80",
-    };
+    return lang === "gu" ? "વેચાણ બિલ" : "Sales Invoice";
   }
 
-  // Payment In / Receipts: Blue
   if (norm.includes("payment in") || norm.includes("receipt")) {
-    return {
-      label: lang === "gu" ? "પેમેન્ટ ઇન" : "Payment In",
-      className: "bg-blue-50 text-[#1677E8] border border-blue-200/80",
-    };
+    return lang === "gu" ? "પેમેન્ટ ઇન" : "Payment In";
   }
 
-  // Returns / Purchases / Expenses / Others: Clean Neutral Slate (No rainbow colors)
   if (norm.includes("sales return") || norm.includes("credit note")) {
-    return {
-      label: lang === "gu" ? "વેચાણ પરત" : "Sales Return",
-      className: "bg-slate-100 text-slate-700 border border-slate-200/80",
-    };
+    return lang === "gu" ? "વેચાણ પરત" : "Sales Return";
   }
 
   if (norm.includes("purchase return") || norm.includes("debit memo")) {
-    return {
-      label: lang === "gu" ? "ખરીદી પરત" : "Purchase Return",
-      className: "bg-slate-100 text-slate-700 border border-slate-200/80",
-    };
+    return lang === "gu" ? "ખરીદી પરત" : "Purchase Return";
   }
 
   if (norm.includes("purchase invoice") || norm.includes("purchase")) {
-    return {
-      label: lang === "gu" ? "ખરીદી બિલ" : "Purchase Invoice",
-      className: "bg-slate-100 text-slate-700 border border-slate-200/80",
-    };
+    return lang === "gu" ? "ખરીદી બિલ" : "Purchase Invoice";
   }
 
   if (norm.includes("expense")) {
-    return {
-      label: lang === "gu" ? "ખર્ચ" : "Expenses",
-      className: "bg-slate-100 text-slate-700 border border-slate-200/80",
-    };
+    return lang === "gu" ? "ખર્ચ" : "Expenses";
   }
 
-  return {
-    label: type || (lang === "gu" ? "વ્યવહાર" : "Transaction"),
-    className: "bg-slate-100 text-slate-700 border border-slate-200/80",
-  };
+  return type || (lang === "gu" ? "વ્યવહાર" : "Transaction");
 }
 
 // Clean status typography with zero background color
@@ -188,7 +164,7 @@ export function DashboardTransactionsTable({
                 </tr>
               ) : (
                 rows.slice(0, 5).map((row) => {
-                  const badge = getTypeBadge(row.type, lang);
+                  const typeLabel = getTypeLabel(row.type, lang);
                   const statusInfo = getStatusDisplay(row.status, lang);
 
                   return (
@@ -202,13 +178,9 @@ export function DashboardTransactionsTable({
                         {row.date}
                       </td>
 
-                      {/* Type Badge */}
-                      <td className="px-3 sm:px-4 py-3 sm:py-3.5 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold ${badge.className}`}
-                        >
-                          {badge.label}
-                        </span>
+                      {/* Type - Clean text without background */}
+                      <td className="px-3 sm:px-4 py-3 sm:py-3.5 whitespace-nowrap text-xs font-medium text-slate-700">
+                        {typeLabel}
                       </td>
 
                       {/* Voucher No. */}
