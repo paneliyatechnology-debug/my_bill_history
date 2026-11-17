@@ -412,6 +412,36 @@ export default function PartiesPage() {
     }
   }, [tenantContext.companyId, fetchParties]);
 
+  // Auto-select party and search term from URL query parameters (e.g. from Global Search navigation)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetPartyId = urlParams.get("partyId");
+    const targetSearch = urlParams.get("search");
+
+    if (targetSearch && !searchTerm) {
+      setSearchTerm(targetSearch);
+    }
+
+    if (targetPartyId) {
+      if (selectedParty?.id === targetPartyId) return;
+      const found = parties.find((p) => p.id === targetPartyId);
+      if (found) {
+        setSelectedParty(found);
+      } else {
+        apiClient
+          .get(`/masters/parties/${targetPartyId}`)
+          .then((res: any) => {
+            const data = res?.data || res;
+            if (data && data.id) {
+              setSelectedParty(data);
+            }
+          })
+          .catch(() => {});
+      }
+    }
+  }, [parties, selectedParty?.id]);
+
   const totalToCollect = useMemo(() => {
     return parties
       .filter((p) => p.type === "CUSTOMER" || p.type === "BOTH")

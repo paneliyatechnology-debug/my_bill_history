@@ -14,6 +14,7 @@ import { BrandLogo } from "../ui/brand-logo";
 import { SettingsSidebar } from "../settings/settings-sidebar";
 import { WorkspaceErrorState } from "../ui/workspace-error-state";
 import { NotificationCenter } from "../notifications/notification-center";
+import { GlobalSearch } from "./global-search";
 const SIDEBAR_BG = "#FFFFFF";
 const ACTIVE_MENU_BG = "#1677E8";
 const TEXT_COLOR = "#FFFFFF";
@@ -64,6 +65,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [loadingWatchdogTriggered, setLoadingWatchdogTriggered] =
     useState(false);
 
@@ -1301,22 +1303,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </div>
             </div>
 
-            {/* Center: Prominent Search Bar matching Reference Image */}
-            <div className="hidden md:flex items-center flex-1 max-w-md mx-4 lg:mx-8">
-              <div className="relative w-full">
-                <svg className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input
-                  type="text"
-                  placeholder={lang === "gu" ? "પાર્ટી, ઇનવોઇસ, વસ્તુઓ શોધો..." : "Search parties, invoices, items..."}
-                  className="w-full h-10 pl-9 pr-4 bg-[#F8FBFF] hover:bg-white border border-[#E2E8F0] rounded-[10px] text-[13px] font-normal text-[#182230] placeholder:text-[#94A3B8] focus:bg-white focus:border-[#1677E8] focus:ring-1 focus:ring-[#1677E8] transition-all outline-none"
-                />
-              </div>
+            {/* Center: Prominent Global Search matching Reference Image */}
+            <div className="hidden md:flex items-center flex-1 max-w-lg mx-4 lg:mx-8">
+              <GlobalSearch />
             </div>
 
             {/* Right: Notifications, Help, User Profile matching Reference Image */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto pl-1 sm:pl-2">
+              {/* Mobile Search Button (visible on small screens) */}
+              <button
+                type="button"
+                onClick={() => setIsMobileSearchOpen(true)}
+                className="md:hidden p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                title={lang === "gu" ? "શોધો (Ctrl+K)" : "Search (Ctrl+K)"}
+                aria-label="Search"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </button>
+
               {/* Notification Bell Center */}
               <NotificationCenter />
 
@@ -1693,6 +1699,37 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span>{lang === "gu" ? "મેનૂ" : "Menu"}</span>
           </button>
         </nav>
+      )}
+
+      {/* 6. MOBILE SEARCH MODAL OVERLAY */}
+      {isMobileSearchOpen && (
+        <div className="fixed inset-0 z-50 md:hidden bg-slate-900/60 backdrop-blur-xs flex flex-col p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl p-3 shadow-2xl border border-slate-200 mt-2">
+            <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
+              <span className="text-[13px] font-bold text-slate-800">
+                {lang === "gu" ? "ગ્લોબલ સર્ચ" : "Global Search"}
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsMobileSearchOpen(false)}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
+                aria-label="Close search"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
+            <GlobalSearch
+              isMobileDrawer
+              onCloseMobileDrawer={() => setIsMobileSearchOpen(false)}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

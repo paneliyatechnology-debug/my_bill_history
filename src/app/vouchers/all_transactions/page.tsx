@@ -64,6 +64,16 @@ export default function AllTransactionsPage() {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
+  // Sync search query parameter from URL (e.g. from Global Search)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const q = urlParams.get("search");
+    if (q) {
+      setSearch(q);
+    }
+  }, []);
+
   // Reset page to 1 when filters change
   const handleSearchChange = (val: string) => {
     setSearch(val);
