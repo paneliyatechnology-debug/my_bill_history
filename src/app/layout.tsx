@@ -35,7 +35,6 @@ const dmMono = DM_Mono({
 
 const notoSansGujarati = Noto_Sans_Gujarati({
   subsets: ["gujarati"],
-  weight: ["400", "500", "600", "700", "800", "900"],
   variable: "--font-noto-gujarati",
   display: "swap",
 });
