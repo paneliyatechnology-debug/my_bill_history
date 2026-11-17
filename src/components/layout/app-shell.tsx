@@ -250,7 +250,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     pathname === "/rojmek" ||
     pathname === "/Myownbillbook" ||
     pathname.toLowerCase() === "/rojmek" ||
-    pathname === "/pos" ||
+        pathname === "/pos" ||
     pathname === "/sales/pos" ||
     (!isAuthenticated && pathname === "/")
   ) {
@@ -828,29 +828,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </svg>
       ),
     },
-    // {
-    //   id: "ai_collections",
-    //   name: "Payment Reminders",
-    //   nameGujarati: "ઓટો ઉઘરાણી (Follow-ups)",
-    //   group: "BUSINESS TOOLS",
-    //   badge: "Smart",
-    //   href: "/finance/ai-collections",
-    //   icon: (
-    //     <svg
-    //       className="w-5 h-5"
-    //       fill="none"
-    //       viewBox="0 0 24 24"
-    //       stroke="currentColor"
-    //     >
-    //       <path
-    //         strokeLinecap="round"
-    //         strokeLinejoin="round"
-    //         strokeWidth={1.8}
-    //         d="M13 10V3L4 14h7v7l9-11h-7z"
-    //       />
-    //     </svg>
-    //   ),
-    // },
+    {
+      id: "ai_collections",
+      name: "Payment Reminders",
+      nameGujarati: "ઓટો ઉઘરાણી (Follow-ups)",
+      group: "BUSINESS TOOLS",
+      badge: "Smart",
+      href: "/finance/ai-collections",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.8}
+            d="M13 10V3L4 14h7v7l9-11h-7z"
+          />
+        </svg>
+      ),
+    },
     // Temporarily commented out as requested (keep for future use)
     /*
     {
@@ -958,8 +958,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* 2. REGULAR DESKTOP MYBILLBOOK SIDEBAR (When in dashboard mode) */}
       {!isSettingsPage && (
         <aside
-          className={`hidden lg:flex flex-col shrink-0 h-full border-r border-slate-200/90 bg-white text-slate-800 transition-all duration-300 z-30 select-none print:hidden ${isSidebarCollapsed ? "w-[72px]" : "w-[240px]"
-            }`}
+          className={`hidden lg:flex flex-col shrink-0 h-full border-r border-slate-200/90 bg-white text-slate-800 transition-all duration-300 z-30 select-none print:hidden ${
+            isSidebarCollapsed ? "w-[72px]" : "w-[240px]"
+          }`}
         >
           {/* Top Brand Logo matching Reference Image */}
           <div className="shrink-0 flex items-center justify-between px-4 py-3.5 border-b border-slate-100">
@@ -1026,14 +1027,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       <Link
                         href={section.href}
                         className={`flex items-center transition-all ${isSidebarCollapsed
-                          ? `w-11 h-11 mx-auto justify-center rounded-xl ${isActive
-                            ? "text-white font-bold shadow-xs bg-[#1677E8]"
-                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                          }`
-                          : `gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold ${isActive
-                            ? "text-white shadow-xs font-bold bg-[#1677E8]"
-                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                          }`
+                            ? `w-11 h-11 mx-auto justify-center rounded-xl ${isActive
+                              ? "text-white font-bold shadow-xs bg-[#1677E8]"
+                              : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                            }`
+                            : `gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold ${isActive
+                              ? "text-white shadow-xs font-bold bg-[#1677E8]"
+                              : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                            }`
                           }`}
                         title={
                           lang === "gu" ? section.nameGujarati : section.name
@@ -1070,8 +1071,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       <Link
                         href={section.items?.[0]?.href || "#"}
                         className={`w-11 h-11 mx-auto flex items-center justify-center rounded-xl text-xs font-medium transition-all ${hasActiveChild
-                          ? "text-white font-bold shadow-xs bg-[#1677E8]"
-                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                            ? "text-white font-bold shadow-xs bg-[#1677E8]"
+                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                           }`}
                         title={
                           lang === "gu" ? section.nameGujarati : section.name
@@ -1108,8 +1109,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                 key={`${item.name}-${item.href}`}
                                 href={item.href}
                                 className={`block px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${isSubActive
-                                  ? "text-white font-bold bg-[#1677E8]"
-                                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                                    ? "text-white font-bold bg-[#1677E8]"
+                                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                                   }`}
                               >
                                 <div className="truncate">{item.name}</div>
@@ -1140,8 +1141,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         type="button"
                         onClick={() => toggleSection(section.id)}
                         className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${hasActiveChild
-                          ? "text-[#1677E8] font-bold bg-blue-50/70"
-                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                            ? "text-[#1677E8] font-bold bg-blue-50/70"
+                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                           }`}
                         title={section.name}
                       >
@@ -1189,8 +1190,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                 key={`${item.name}-${item.href}`}
                                 href={item.href}
                                 className={`group relative flex items-center justify-between py-2 px-2.5 rounded-xl text-xs font-medium transition-all duration-150 ${isItemActive
-                                  ? "text-white font-bold shadow-xs bg-[#1677E8]"
-                                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                                    ? "text-white font-bold shadow-xs bg-[#1677E8]"
+                                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                                   }`}
                               >
                                 <div className="flex items-center gap-2 truncate min-w-0">
@@ -1272,7 +1273,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <div className="p-3.5 rounded-2xl bg-gradient-to-b from-[#F3E8FF] to-[#FAF5FF] border border-[#DDD6FE] shadow-2xs text-left space-y-2.5">
                     <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-sm shadow-2xs">
                       <svg className="w-4 h-4 text-purple-700" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 16h2v2h-2zm0-6h2v4h-2z" />
+                        <path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 16h2v2h-2zm0-6h2v4h-2z"/>
                       </svg>
                     </div>
                     <div className="text-xs font-semibold text-slate-900">
@@ -1583,8 +1584,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                           href={sec.href}
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${activeNav.isDirectLinkActive(sec.id, sec.href)
-                            ? "bg-[#1677E8] text-white font-bold shadow-xs"
-                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                              ? "bg-[#1677E8] text-white font-bold shadow-xs"
+                              : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                             }`}
                         >
                           <span className={activeNav.isDirectLinkActive(sec.id, sec.href) ? "text-white" : "text-slate-500"}>
@@ -1611,8 +1612,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                   href={item.href}
                                   onClick={() => setIsMobileMenuOpen(false)}
                                   className={`group relative flex items-center justify-between py-2 px-2.5 rounded-xl text-xs font-medium transition-all duration-150 ${isItemActive
-                                    ? "bg-[#1677E8] text-white font-bold shadow-xs"
-                                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                                      ? "bg-[#1677E8] text-white font-bold shadow-xs"
+                                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                                     }`}
                                 >
                                   <div className="flex items-center gap-2 truncate min-w-0">
@@ -1705,8 +1706,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link
             href="/"
             className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${pathname === "/"
-              ? "text-[#1677E8]"
-              : "text-slate-500 hover:text-slate-900"
+                ? "text-[#1677E8]"
+                : "text-slate-500 hover:text-slate-900"
               }`}
           >
             <svg
@@ -1728,8 +1729,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link
             href="/sales/invoices"
             className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${pathname.startsWith("/sales/invoices")
-              ? "text-[#1677E8]"
-              : "text-slate-500 hover:text-slate-900"
+                ? "text-[#1677E8]"
+                : "text-slate-500 hover:text-slate-900"
               }`}
           >
             <svg
@@ -1751,8 +1752,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link
             href="/sales/pos"
             className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${pathname === "/sales/pos"
-              ? "text-[#1677E8]"
-              : "text-[#667085] hover:text-[#202124]"
+                ? "text-[#1677E8]"
+                : "text-[#667085] hover:text-[#202124]"
               }`}
           >
             <div className="w-8 h-8 -mt-3 rounded-full bg-[#1677E8] text-white flex items-center justify-center shadow-blue-500/20">
@@ -1776,8 +1777,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link
             href="/purchases"
             className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg text-[10px] font-bold transition-colors ${pathname.startsWith("/purchases")
-              ? "text-[#1677E8]"
-              : "text-[#667085] hover:text-[#202124]"
+                ? "text-[#1677E8]"
+                : "text-[#667085] hover:text-[#202124]"
               }`}
           >
             <svg
