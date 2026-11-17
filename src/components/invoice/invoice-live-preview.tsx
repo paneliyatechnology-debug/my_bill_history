@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { resolveThemeDefinition } from "@/lib/invoice-theme-keys";
+import { resolveThemeDefinition, resolveThemeAssetUrl, getBackendOrigin } from "@/lib/invoice-theme-keys";
 
 export type InvoiceStudioState = {
   themeId: string;
@@ -1320,9 +1320,7 @@ export function FestiveBackgroundSvg({
 }) {
   const resolved = resolveThemeDefinition(skinId, variant);
   const rawSrc = customImageUrl || resolved.bgImageSrc;
-  const src = rawSrc
-    ? (rawSrc.startsWith("/") || rawSrc.startsWith("http") || rawSrc.startsWith("data:") ? rawSrc : `/${rawSrc}`)
-    : null;
+  const src = resolveThemeAssetUrl(rawSrc);
 
   if (src) {
     return (
@@ -1331,6 +1329,31 @@ export function FestiveBackgroundSvg({
           src={src}
           alt={resolved.displayName}
           className="w-full h-full object-cover object-top pointer-events-none select-none opacity-[0.18]"
+          onError={(e) => {
+            const target = e.currentTarget;
+            const currentSrc = target.getAttribute("src") || "";
+            const backendOrigin = getBackendOrigin();
+            if (backendOrigin && currentSrc.startsWith(backendOrigin)) {
+              const localPath = currentSrc.slice(backendOrigin.length);
+              target.onerror = () => {
+                target.onerror = null;
+                target.style.display = "none";
+              };
+              target.src = localPath;
+              return;
+            }
+            if (backendOrigin && !currentSrc.startsWith("http") && !currentSrc.startsWith("data:")) {
+              const backendPath = `${backendOrigin}${currentSrc.startsWith("/") ? currentSrc : `/${currentSrc}`}`;
+              target.onerror = () => {
+                target.onerror = null;
+                target.style.display = "none";
+              };
+              target.src = backendPath;
+              return;
+            }
+            target.onerror = null;
+            target.style.display = "none";
+          }}
         />
       </div>
     );
@@ -1361,9 +1384,7 @@ export function FestiveMiniIllustration({
 }) {
   const resolved = id ? resolveThemeDefinition(id) : null;
   const rawSrc = customThumbUrl || resolved?.thumbSrc || resolved?.bgImageSrc;
-  const src = rawSrc
-    ? (rawSrc.startsWith("/") || rawSrc.startsWith("http") || rawSrc.startsWith("data:") ? rawSrc : `/${rawSrc}`)
-    : null;
+  const src = resolveThemeAssetUrl(rawSrc);
 
   if (src) {
     return (
@@ -1373,7 +1394,29 @@ export function FestiveMiniIllustration({
           alt={resolved?.displayName || id || "theme"}
           className="w-full h-full object-cover object-top"
           onError={(e) => {
-            (e.currentTarget as HTMLElement).style.display = "none";
+            const target = e.currentTarget;
+            const currentSrc = target.getAttribute("src") || "";
+            const backendOrigin = getBackendOrigin();
+            if (backendOrigin && currentSrc.startsWith(backendOrigin)) {
+              const localPath = currentSrc.slice(backendOrigin.length);
+              target.onerror = () => {
+                target.onerror = null;
+                (target as HTMLElement).style.display = "none";
+              };
+              target.src = localPath;
+              return;
+            }
+            if (backendOrigin && !currentSrc.startsWith("http") && !currentSrc.startsWith("data:")) {
+              const backendPath = `${backendOrigin}${currentSrc.startsWith("/") ? currentSrc : `/${currentSrc}`}`;
+              target.onerror = () => {
+                target.onerror = null;
+                (target as HTMLElement).style.display = "none";
+              };
+              target.src = backendPath;
+              return;
+            }
+            target.onerror = null;
+            (target as HTMLElement).style.display = "none";
           }}
         />
       </div>

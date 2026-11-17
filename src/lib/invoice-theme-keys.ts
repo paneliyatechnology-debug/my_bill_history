@@ -341,20 +341,73 @@ export const ALL_THEME_KEYS: ThemeDefinition[] = [
   },
 ];
 
+export function getBackendOrigin(): string {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL || "";
+  if (envUrl.startsWith("http://") || envUrl.startsWith("https://")) {
+    return envUrl.replace(/\/api\/v1\/?$/, "");
+  }
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host === "localhost" || host === "127.0.0.1") {
+      return "http://localhost:4000";
+    }
+    if (host.includes("myownbillbook.com")) {
+      return "https://api.myownbillbook.com";
+    }
+  }
+  return "";
+}
+
+export function resolveThemeAssetUrl(url?: string | null): string {
+  if (!url) return "";
+  const trimmed = String(url).trim();
+  if (!trimmed) return "";
+
+  // 1. Base64 Data URLs and Blob URLs are self-contained
+  if (trimmed.startsWith("data:") || trimmed.startsWith("blob:")) {
+    return trimmed;
+  }
+
+  const backendOrigin = getBackendOrigin();
+
+  // 2. Handle absolute URLs (e.g. http://localhost:4000/... vs https://api.myownbillbook.com/...)
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    if (backendOrigin && !backendOrigin.includes("localhost") && trimmed.includes("localhost:4000")) {
+      return trimmed.replace("http://localhost:4000", backendOrigin);
+    }
+    if (backendOrigin && backendOrigin.includes("localhost") && trimmed.includes("api.myownbillbook.com")) {
+      return trimmed.replace("https://api.myownbillbook.com", backendOrigin);
+    }
+    return trimmed;
+  }
+
+  if (trimmed.startsWith("//")) {
+    return trimmed;
+  }
+
+  // Ensure path starts with /
+  const path = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+
+  // 3. Built-in preset themes bundled statically in Next.js public/themes
+  const isBuiltInPreset =
+    path.startsWith("/themes/navaratri_") ||
+    path.startsWith("/themes/diwali_") ||
+    path.startsWith("/themes/durga_puja_") ||
+    path.startsWith("/themes/dussehra_") ||
+    path.startsWith("/themes/dhanteras_");
+
+  // Dynamically uploaded themes (e.g. /themes/invoice_christmas_...) reside on the backend server
+  if (!isBuiltInPreset && backendOrigin) {
+    return `${backendOrigin}${path}`;
+  }
+
+  return path;
+}
+
 const dynamicThemesRegistry = new Map<string, ThemeDefinition>();
 
 export function registerDynamicThemes(managedThemes: any[]) {
   if (!Array.isArray(managedThemes)) return;
-
-  const normalizeUrl = (u?: string) => {
-    if (!u) return "";
-    const t = String(u).trim();
-    if (!t) return "";
-    if (t.startsWith("/") || t.startsWith("http://") || t.startsWith("https://") || t.startsWith("data:")) {
-      return t;
-    }
-    return `/${t}`;
-  };
 
   for (const t of managedThemes) {
     if (!t || !t.id) continue;
@@ -363,8 +416,8 @@ export function registerDynamicThemes(managedThemes: any[]) {
     const rawVariants: string[] = Array.isArray(t.variants) && t.variants.length > 0 
       ? t.variants 
       : (t.thumbnail ? [t.thumbnail] : (isFestive ? ["/themes/navaratri_1.jpg"] : []));
-    const variants = rawVariants.map(normalizeUrl).filter(Boolean);
-    const thumbUrl = normalizeUrl(t.thumbnail) || variants[0] || (isFestive ? "/themes/navaratri_1.jpg" : undefined);
+    const variants = rawVariants.map((v) => resolveThemeAssetUrl(v)).filter(Boolean);
+    const thumbUrl = resolveThemeAssetUrl(t.thumbnail) || variants[0] || (isFestive ? "/themes/navaratri_1.jpg" : undefined);
 
     const baseDef: ThemeDefinition = {
       uniqueKey: baseId,
