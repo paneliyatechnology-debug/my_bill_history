@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Mono, Inter, Manrope, Noto_Sans_Gujarati, Playfair_Display } from "next/font/google";
+import { DM_Mono, Inter, Manrope, Playfair_Display } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "../context/auth-context";
 import { AppShell } from "../components/layout/app-shell";
@@ -33,8 +34,19 @@ const dmMono = DM_Mono({
   display: "swap",
 });
 
-const notoSansGujarati = Noto_Sans_Gujarati({
-  subsets: ["gujarati"],
+const notoSansGujarati = localFont({
+  src: [
+    {
+      path: "../fonts/noto-sans-gujarati-gujarati-wght-normal.woff2",
+      weight: "100 900",
+      style: "normal",
+    },
+    {
+      path: "../fonts/noto-sans-gujarati-latin-wght-normal.woff2",
+      weight: "100 900",
+      style: "normal",
+    },
+  ],
   variable: "--font-noto-gujarati",
   display: "swap",
 });
