@@ -63,18 +63,23 @@ const FESTIVAL_IDS = new Set([
 export function resolvePreviewLayout(state: InvoiceStudioState): PreviewLayout {
   const festive = state.festiveTheme;
   if (festive) return "festival";
-  const id = state.themeId;
+  const id = (state.themeId || "").toLowerCase().trim();
   if (id === "festival" || FESTIVAL_IDS.has(id)) return "festival";
+
+  const def = resolveThemeDefinition(id, state.festiveVariant);
+  if (def.isFestive) return "festival";
+
   if (id === "luxury") return "luxury";
   if (id === "modern") return "modern";
   if (id === "simple") return "simple";
   if (id === "billbook") return "billbook";
   if (id === "stylish") return "stylish";
-  if (id === "advanced_gst") return "gst";
+  if (id === "advanced_gst" || id === "gst") return "gst";
   if (id === "tallybook") return "tallybook";
-  if (id === "tallybook_lite") return "lite";
-  if (id === "advanced_compact") return "compact";
-  return "tally";
+  if (id === "tallybook_lite" || id === "lite") return "lite";
+  if (id === "advanced_compact" || id === "compact") return "compact";
+  if (id === "advanced_gst_tally" || id === "tally") return "tally";
+  return "stylish";
 }
 
 export const FESTIVE_SKINS: Record<
@@ -138,70 +143,93 @@ export const FESTIVE_SKINS: Record<
   dussehra: {
     name: "Dussehra",
     title: "VIJAYADASHAMI",
-    subGreeting: "🏹 ॥ अधर्म पर धर्म की विजय - विजयादशमी ॥ 🏹",
-    footerWish: "🏹 Wishing you victory, peace, joy, and grand success this Vijayadashami! 🏹",
+    subGreeting: "🏹 ॥ शुभ विजयादशमी ॥ 🏹",
+    footerWish: "🏹 May the triumph of good over evil bring victory and success to your enterprise! 🏹",
     border: "#C2410C",
     wash: "#FFF7ED",
-    ink: "#9A3412",
-    band: ["#EA580C", "#FACC15", "#EA580C"],
+    ink: "#C2410C",
+    band: ["#EA580C", "#F59E0B", "#EA580C"],
     motif: "dussehra",
   },
   dhanteras: {
     name: "Dhanteras",
     title: "SHUBH DHANTERAS",
-    subGreeting: "🪙 ॥ ॐ महालक्ष्म्यै नमः - शुभ धनतेरस ॥ 🪙",
-    footerWish: "🪙 May Goddess Lakshmi and Lord Dhanvantari shower eternal wealth upon you! 🪙",
-    border: "#A16207",
+    subGreeting: "🪙 ॥ शुभ धनतेरस - धनत्रयोदशी ॥ 🪙",
+    footerWish: "🪙 May Goddess Lakshmi shower endless wealth and fortune on your business! 🪙",
+    border: "#B45309",
     wash: "#FEFCE8",
-    ink: "#854D0E",
-    band: ["#CA8A04", "#FDE68A", "#CA8A04"],
+    ink: "#B45309",
+    band: ["#EAB308", "#F59E0B", "#FBBF24"],
     motif: "dhanteras",
   },
   diwali: {
     name: "Diwali",
-    title: "HAPPY DIWALI",
-    subGreeting: "🪔 ॥ शुभ दीपावली - तमसो मा ज्योतिर्गमय ॥ 🪔",
-    footerWish: "🪔 Wishing you and your loved ones a sparkling, joyous, and prosperous Happy Diwali! 🪔",
-    border: "#6B21A8",
+    title: "SHUBH DEEPAVALI",
+    subGreeting: "🪔 ॥ शुभ दीपावली ॥ 🪔",
+    footerWish: "🪔 Wishing you a radiant, joyful Diwali and a highly prosperous New Year ahead! 🪔",
+    border: "#6D28D9",
     wash: "#FAF5FF",
-    ink: "#6B21A8",
-    band: ["#7E22CE", "#F59E0B", "#7E22CE", "#F59E0B", "#7E22CE"],
+    ink: "#6D28D9",
+    band: ["#7C3AED", "#EC4899", "#F59E0B", "#10B981"],
     motif: "diwali",
   },
   uttarayan: {
     name: "Uttarayan",
-    title: "UTTARAYAN",
-    subGreeting: "🪁 ॥ કાઈપો છે ! હેપી ઉત્તરાયણ ॥ 🪁",
-    footerWish: "🪁 Wishing you a joyful, high-flying and sun-blessed Makar Sankranti & Uttarayan! 🪁",
+    title: "MAKAR SANKRANTI",
+    subGreeting: "🪁 ॥ શુભ મકરસંક્રાંતિ - ઉત્તરાયણ ॥ 🪁",
+    footerWish: "🪁 May your business soar high like the colorful kites in the blue sky! 🪁",
     border: "#0284C7",
     wash: "#F0F9FF",
-    ink: "#0C4A6E",
-    band: ["#0284C7", "#F97316", "#EAB308", "#10B981"],
+    ink: "#0284C7",
+    band: ["#0284C7", "#F59E0B", "#10B981"],
     motif: "uttarayan",
   },
   independence: {
-    name: "Independence",
-    title: "INDEPENDENCE DAY",
-    subGreeting: "🇮🇳 ॥ स्वतंत्रता दिवस की हार्दिक शुभकामनाएं ॥ 🇮🇳",
-    footerWish: "🇮🇳 Proud to build and serve in India. Happy Independence Day! 🇮🇳",
-    border: "#166534",
-    wash: "#F8FAFC",
-    ink: "#14532D",
-    band: ["#FF9933", "#E2E8F0", "#138808"],
+    name: "Independence Day",
+    title: "HAPPY INDEPENDENCE DAY",
+    subGreeting: "🇮🇳 ॥ स्वतंत्र भारत - ૭૮મો સ્વતંત્રતા પર્વ ॥ 🇮🇳",
+    footerWish: "🇮🇳 Celebrating freedom, unity and growth with pride! Jai Hind! 🇮🇳",
+    border: "#EA580C",
+    wash: "#F0FDF4",
+    ink: "#15803D",
+    band: ["#F97316", "#FFFFFF", "#16A34A"],
     motif: "independence",
   },
   ganesh_chaturthi: {
     name: "Ganesh Puja",
-    title: "GANESH CHATURTHI",
-    subGreeting: "🌸 ॥ ॐ श्री गणेशाय नमः - शुभ गणेश चतुर्थी ॥ 🌸",
-    footerWish: "🌸 May Lord Ganesha remove all obstacles and shower his divine blessings upon you! 🌸",
+    title: "SHREE GANESHOTSAV",
+    subGreeting: "🐘 ॥ ॐ गं गणपतये नमः ॥ 🐘",
+    footerWish: "🐘 May Lord Ganesha remove all obstacles and bless your commerce with prosperity! 🐘",
     border: "#B45309",
     wash: "#FFFBEB",
-    ink: "#92400E",
+    ink: "#B45309",
     band: ["#F59E0B", "#DC2626", "#F59E0B"],
     motif: "ganesh_chaturthi",
   },
 };
+
+export function getDynamicFestiveSkin(
+  themeId?: string | null,
+  def?: { displayName?: string; primaryColor?: string; badge?: string | null }
+) {
+  const id = (themeId || "").toLowerCase().trim();
+  if (id && FESTIVE_SKINS[id]) {
+    return FESTIVE_SKINS[id];
+  }
+  const name = def?.displayName || themeId || "Festive";
+  const primaryColor = def?.primaryColor || "#7C3AED";
+  return {
+    name,
+    title: name.toUpperCase(),
+    subGreeting: `🌸 ॥ ${name} ॥ 🌸`,
+    footerWish: `Wishing you and your family success and prosperity on ${name}!`,
+    border: primaryColor,
+    wash: "#FFF8F0",
+    ink: primaryColor,
+    band: [primaryColor, "#F97316", "#EAB308"],
+    motif: "festive",
+  };
+}
 
 type Item = {
   name: string;
@@ -1291,12 +1319,10 @@ export function FestiveBackgroundSvg({
   customImageUrl?: string;
 }) {
   const resolved = resolveThemeDefinition(skinId, variant);
-  const src =
-    customImageUrl ||
-    resolved.bgImageSrc ||
-    (resolved.variant === 2 && FESTIVE_BACKGROUND_IMAGES[resolved.baseTheme]?.v2
-      ? FESTIVE_BACKGROUND_IMAGES[resolved.baseTheme]?.v2
-      : FESTIVE_BACKGROUND_IMAGES[resolved.baseTheme]?.v1);
+  const rawSrc = customImageUrl || resolved.bgImageSrc;
+  const src = rawSrc
+    ? (rawSrc.startsWith("/") || rawSrc.startsWith("http") || rawSrc.startsWith("data:") ? rawSrc : `/${rawSrc}`)
+    : null;
 
   if (src) {
     return (
@@ -1320,16 +1346,7 @@ export function FestiveBackgroundSvg({
     );
   }
 
-  // Fallback to default Navaratri background image
-  return (
-    <div className="absolute inset-0 w-full h-full pointer-events-none select-none overflow-hidden z-0">
-      <img
-        src="/themes/navaratri_1.jpg"
-        alt="Navaratri"
-        className="w-full h-full object-cover object-top pointer-events-none select-none opacity-[0.18]"
-      />
-    </div>
-  );
+  return null;
 }
 
 // =========================================================================
@@ -1342,13 +1359,22 @@ export function FestiveMiniIllustration({
   id?: string;
   customThumbUrl?: string;
 }) {
-  if (customThumbUrl) {
+  const resolved = id ? resolveThemeDefinition(id) : null;
+  const rawSrc = customThumbUrl || resolved?.thumbSrc || resolved?.bgImageSrc;
+  const src = rawSrc
+    ? (rawSrc.startsWith("/") || rawSrc.startsWith("http") || rawSrc.startsWith("data:") ? rawSrc : `/${rawSrc}`)
+    : null;
+
+  if (src) {
     return (
       <div className="w-full h-full overflow-hidden bg-white">
         <img
-          src={customThumbUrl}
-          alt={id || "theme"}
+          src={src}
+          alt={resolved?.displayName || id || "theme"}
           className="w-full h-full object-cover object-top"
+          onError={(e) => {
+            (e.currentTarget as HTMLElement).style.display = "none";
+          }}
         />
       </div>
     );
@@ -1363,27 +1389,9 @@ export function FestiveMiniIllustration({
     );
   }
 
-  const thumbMap: Record<string, string> = {
-    navratri: "/themes/navaratri_thumb.png",
-    dhanteras: "/themes/dhanteras_thumb.png",
-    durga_puja: "/themes/durga_puja_thumb.png",
-    dussehra: "/themes/dussehra_thumb.png",
-    diwali: "/themes/diwali_thumb.png",
-  };
-
-  const src =
-    (id && thumbMap[id]) ||
-    (id && `/themes/${id}_thumb.png`) ||
-    (id && `/themes/${id}_1.jpg`) ||
-    "/themes/navaratri_thumb.png";
-
   return (
-    <div className="w-full h-full overflow-hidden bg-white">
-      <img
-        src={src}
-        alt={id || "Festive theme"}
-        className="w-full h-full object-cover object-top"
-      />
+    <div className="w-full h-full flex items-center justify-center bg-slate-100 text-[8px] text-slate-400 font-bold uppercase">
+      {id || "Theme"}
     </div>
   );
 }
@@ -1406,6 +1414,7 @@ function FestivalInvoice(props: {
     props.state.festiveVariant
   );
   const id = def.baseTheme;
+  const skin = getDynamicFestiveSkin(id, def);
 
   const { state } = props;
 
@@ -1431,9 +1440,9 @@ function FestivalInvoice(props: {
                 ORIGINAL FOR RECIPIENT
               </span>
             </div>
-            {FESTIVE_SKINS[id]?.subGreeting && (
+            {skin.subGreeting && (
               <div className="text-[11px] font-bold text-amber-950/80 tracking-wide">
-                {FESTIVE_SKINS[id].subGreeting}
+                {skin.subGreeting}
               </div>
             )}
           </div>
@@ -1644,9 +1653,9 @@ function FestivalInvoice(props: {
         </div>
 
         {/* Festive Footer Wish */}
-        {FESTIVE_SKINS[id]?.footerWish && (
+        {skin.footerWish && (
           <div className="mt-3 text-center text-[10px] font-bold text-amber-950/90 tracking-wide">
-            {FESTIVE_SKINS[id].footerWish}
+            {skin.footerWish}
           </div>
         )}
       </div>
@@ -1818,7 +1827,8 @@ export function FestiveThumb({
   onDeselect?: () => void;
 }) {
   const isLogo = id === "logo" || id === "your_logo";
-  const skin = FESTIVE_SKINS[id || "navratri"] || FESTIVE_SKINS.navratri;
+  const def = id ? resolveThemeDefinition(id) : undefined;
+  const skin = getDynamicFestiveSkin(id, def);
 
   return (
     <div className="relative flex flex-col items-center">

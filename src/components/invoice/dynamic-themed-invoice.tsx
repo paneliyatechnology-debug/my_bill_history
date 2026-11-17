@@ -6,7 +6,7 @@ import QRCode from "qrcode";
 import { InvoiceStudioState } from "@/components/invoice/invoice-settings-studio";
 import {
   FestiveBackgroundSvg,
-  FESTIVE_SKINS,
+  getDynamicFestiveSkin,
   resolvePreviewLayout,
 } from "@/components/invoice/invoice-live-preview";
 import { resolveThemeDefinition } from "@/lib/invoice-theme-keys";
@@ -317,7 +317,7 @@ export function DynamicThemedInvoice({
   );
   const layout = resolvedDef.isFestive ? "festival" : resolvedDef.uniqueKey;
   const activeColor = settings.accentColor || "#111111";
-  const skin = resolvedDef.isFestive ? FESTIVE_SKINS[resolvedDef.baseTheme] || FESTIVE_SKINS.navratri : null;
+  const skin = resolvedDef.isFestive ? getDynamicFestiveSkin(resolvedDef.baseTheme, resolvedDef) : null;
 
   const bankAccountVal =
     company?.accountNumber || "639898001122";

@@ -220,6 +220,7 @@ export function InvoiceSettingsStudio() {
   const [lastSaved, setLastSaved] = useState<InvoiceStudioState>(DEFAULT_STATE);
   const [saveBanner, setSaveBanner] = useState<string | null>(null);
   const [festiveThemesList, setFestiveThemesList] = useState<any[]>(FESTIVE_THEMES);
+  const [standardThemesList, setStandardThemesList] = useState<any[]>(STANDARD_THEMES);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const skipRemoteLoad = useRef(false);
@@ -312,6 +313,40 @@ export function InvoiceSettingsStudio() {
             }));
           if (festiveOnly.length > 0) {
             setFestiveThemesList(festiveOnly);
+          }
+
+          const standardOnly = themeCatalog.managedThemes
+            .filter((t: any) => t.category === "standard")
+            .map((t: any) => {
+              const kind =
+                t.id === "luxury"
+                  ? "luxury"
+                  : t.id === "advanced_gst_tally"
+                  ? "tally"
+                  : t.id === "advanced_gst"
+                  ? "gst"
+                  : t.id === "billbook"
+                  ? "billbook"
+                  : t.id === "advanced_compact"
+                  ? "compact"
+                  : t.id === "tallybook_lite"
+                  ? "lite"
+                  : t.id === "modern"
+                  ? "modern"
+                  : t.id === "simple"
+                  ? "simple"
+                  : "stylish";
+              return {
+                id: t.id,
+                name: t.name,
+                kind,
+                desc: t.description || t.name,
+                tag: t.description || t.name,
+                isNew: t.badge === "NEW",
+              };
+            });
+          if (standardOnly.length > 0) {
+            setStandardThemesList(standardOnly);
           }
         }
       } catch {}
@@ -1027,44 +1062,53 @@ export function InvoiceSettingsStudio() {
             {/* Festive Variant Selection Pills & Unlock Action Button (Matching Screenshot) */}
             {state.festiveTheme && (
               <div className="pt-2 border-t border-slate-100 space-y-2.5">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => updateState({ festiveVariant: 1, uniqueThemeKey: `${state.festiveTheme}_1` })}
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
-                      (state.festiveVariant || 1) === 1
-                        ? "border-[#5346F5] bg-violet-50 text-[#5346F5] shadow-xs"
-                        : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
-                    }`}
-                  >
-                    <span>{(festiveThemesList.find((t) => t.id === state.festiveTheme)?.name || "Theme")} 1</span>
-                    {(state.festiveVariant || 1) === 1 && (
-                      <span
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          updateState({ festiveTheme: null, themeId: "stylish", uniqueThemeKey: "stylish" });
-                        }}
-                        className="text-slate-400 hover:text-rose-600 text-[11px] ml-0.5 cursor-pointer"
-                        title="Deselect theme"
+                {(() => {
+                  const activeFestiveObj = festiveThemesList.find(
+                    (t) => t.id === state.festiveTheme || (t.id === "logo" && state.festiveTheme === "your_logo")
+                  );
+                  const themeName = activeFestiveObj?.name || "Theme";
+                  const hasV2 = (activeFestiveObj?.variants?.length ?? 1) > 1;
+                  return (
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => updateState({ festiveVariant: 1, uniqueThemeKey: `${state.festiveTheme}_1` })}
+                        className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
+                          (state.festiveVariant || 1) === 1
+                            ? "border-[#5346F5] bg-violet-50 text-[#5346F5] shadow-xs"
+                            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                        }`}
                       >
-                        ✕
-                      </span>
-                    )}
-                  </button>
-                  {((festiveThemesList.find((t) => t.id === state.festiveTheme)?.variants?.length ?? 2) > 1) && (
-                    <button
-                      type="button"
-                      onClick={() => updateState({ festiveVariant: 2, uniqueThemeKey: `${state.festiveTheme}_2` })}
-                      className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
-                        state.festiveVariant === 2
-                          ? "border-[#5346F5] bg-violet-50 text-[#5346F5] shadow-xs"
-                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
-                      }`}
-                    >
-                      <span>{(festiveThemesList.find((t) => t.id === state.festiveTheme)?.name || "Theme")} 2</span>
-                    </button>
-                  )}
-                </div>
+                        <span>{themeName} 1</span>
+                        {(state.festiveVariant || 1) === 1 && (
+                          <span
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updateState({ festiveTheme: null, themeId: "stylish", uniqueThemeKey: "stylish" });
+                            }}
+                            className="text-slate-400 hover:text-rose-600 text-[11px] ml-0.5 cursor-pointer"
+                            title="Deselect theme"
+                          >
+                            ✕
+                          </span>
+                        )}
+                      </button>
+                      {hasV2 && (
+                        <button
+                          type="button"
+                          onClick={() => updateState({ festiveVariant: 2, uniqueThemeKey: `${state.festiveTheme}_2` })}
+                          className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
+                            state.festiveVariant === 2
+                              ? "border-[#5346F5] bg-violet-50 text-[#5346F5] shadow-xs"
+                              : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                          }`}
+                        >
+                          <span>{themeName} 2</span>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 <button
                   type="button"
@@ -1105,7 +1149,7 @@ export function InvoiceSettingsStudio() {
             </div>
 
             <div className={`grid ${showAllThemesInline ? "grid-cols-3 gap-2.5" : "grid-cols-4 gap-2"}`}>
-              {(showAllThemesInline ? STANDARD_THEMES : STANDARD_THEMES.slice(0, 3)).map((thm) => {
+              {(showAllThemesInline ? standardThemesList : standardThemesList.slice(0, 3)).map((thm) => {
                 const isSelected = !state.festiveTheme && state.themeId === thm.id;
                 return (
                   <button
@@ -1686,7 +1730,7 @@ export function InvoiceSettingsStudio() {
 
             <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Invoice layouts</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-[60vh] overflow-y-auto p-1">
-              {ALL_MODAL_THEMES.map((th) => (
+              {standardThemesList.map((th) => (
                 <button
                   key={th.id}
                   type="button"
@@ -1701,13 +1745,13 @@ export function InvoiceSettingsStudio() {
                   }`}
                 >
                   <div className="mb-2 w-full">
-                    <ThemeMiniCard kind={th.kind} />
+                    <ThemeMiniCard kind={th.kind || th.id} />
                   </div>
                   <span className="text-xs font-bold text-slate-900">{th.name}</span>
-                  <span className="text-[10px] text-slate-500 mt-0.5">{th.tag}</span>
+                  <span className="text-[10px] text-slate-500 mt-0.5">{th.desc || th.tag || "Standard layout"}</span>
                 </button>
               ))}
-              {FESTIVE_THEMES.map((th) => {
+              {festiveThemesList.map((th) => {
                 const active =
                   state.festiveTheme === th.id ||
                   state.themeId === th.id ||
@@ -1731,7 +1775,7 @@ export function InvoiceSettingsStudio() {
                         : "border-slate-200 hover:bg-slate-50"
                     }`}
                   >
-                    <FestiveThumb id={th.id} name={th.name} />
+                    <FestiveThumb id={th.id} name={th.name} customThumbUrl={th.thumbnail} />
                     <span className="mt-2 text-xs font-bold text-slate-900">{th.name}</span>
                     <span className="text-[10px] text-slate-500 mt-0.5">Festival frame</span>
                   </button>

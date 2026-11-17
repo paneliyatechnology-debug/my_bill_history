@@ -7,6 +7,9 @@ export interface ThemeDefinition {
   isFestive: boolean;
   bgImageSrc?: string;
   thumbSrc?: string;
+  primaryColor?: string;
+  badge?: string | null;
+  description?: string;
 }
 
 export const ALL_THEME_KEYS: ThemeDefinition[] = [
@@ -342,37 +345,59 @@ const dynamicThemesRegistry = new Map<string, ThemeDefinition>();
 
 export function registerDynamicThemes(managedThemes: any[]) {
   if (!Array.isArray(managedThemes)) return;
+
+  const normalizeUrl = (u?: string) => {
+    if (!u) return "";
+    const t = String(u).trim();
+    if (!t) return "";
+    if (t.startsWith("/") || t.startsWith("http://") || t.startsWith("https://") || t.startsWith("data:")) {
+      return t;
+    }
+    return `/${t}`;
+  };
+
   for (const t of managedThemes) {
     if (!t || !t.id) continue;
     const baseId = String(t.id).toLowerCase().trim();
     const isFestive = t.category === "festive" || t.category === "branding";
-    const variants: string[] = Array.isArray(t.variants) && t.variants.length > 0 
+    const rawVariants: string[] = Array.isArray(t.variants) && t.variants.length > 0 
       ? t.variants 
-      : [t.thumbnail || "/themes/navaratri_1.jpg"];
+      : (t.thumbnail ? [t.thumbnail] : (isFestive ? ["/themes/navaratri_1.jpg"] : []));
+    const variants = rawVariants.map(normalizeUrl).filter(Boolean);
+    const thumbUrl = normalizeUrl(t.thumbnail) || variants[0] || (isFestive ? "/themes/navaratri_1.jpg" : undefined);
 
-    const def1: ThemeDefinition = {
-      uniqueKey: `${baseId}_1`,
+    const baseDef: ThemeDefinition = {
+      uniqueKey: baseId,
       baseTheme: baseId,
       variant: 1,
-      displayName: t.name ? `${t.name} 1` : baseId,
-      displayNameGu: t.name ? `${t.name} ૧` : baseId,
+      displayName: t.name || baseId,
+      displayNameGu: t.festivalName || t.name || baseId,
       isFestive,
-      bgImageSrc: variants[0] || t.thumbnail,
-      thumbSrc: t.thumbnail || variants[0],
+      bgImageSrc: variants[0] || thumbUrl,
+      thumbSrc: thumbUrl,
+      primaryColor: t.primaryColor,
+      badge: t.badge,
+      description: t.description,
+    };
+    dynamicThemesRegistry.set(baseId, baseDef);
+
+    const def1: ThemeDefinition = {
+      ...baseDef,
+      uniqueKey: `${baseId}_1`,
+      variant: 1,
+      displayName: variants.length > 1 ? `${t.name || baseId} 1` : (t.name || baseId),
+      displayNameGu: variants.length > 1 ? `${t.festivalName || t.name || baseId} ૧` : (t.festivalName || t.name || baseId),
     };
     dynamicThemesRegistry.set(`${baseId}_1`, def1);
-    dynamicThemesRegistry.set(baseId, def1);
 
     if (variants.length > 1) {
       const def2: ThemeDefinition = {
+        ...baseDef,
         uniqueKey: `${baseId}_2`,
-        baseTheme: baseId,
         variant: 2,
-        displayName: t.name ? `${t.name} 2` : `${baseId} 2`,
-        displayNameGu: t.name ? `${t.name} ૨` : `${baseId} ૨`,
-        isFestive,
+        displayName: `${t.name || baseId} 2`,
+        displayNameGu: `${t.festivalName || t.name || baseId} ૨`,
         bgImageSrc: variants[1] || variants[0],
-        thumbSrc: t.thumbnail || variants[1],
       };
       dynamicThemesRegistry.set(`${baseId}_2`, def2);
     }
