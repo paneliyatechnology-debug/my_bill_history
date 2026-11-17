@@ -146,11 +146,11 @@ export function UpcomingDuesAlertCard() {
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            {/* <p className="text-xs text-slate-500 mt-0.5">
               {lang === "gu"
                 ? "આગામી 3 દિવસમાં વસૂલવાના સેલ્સ બિલ (લેવાના) અને ચૂકવવાના પરચેઝ બિલ (દેવાના)ની લાઈવ યાદી"
                 : "Real-time list of receivables to collect and purchase bills to pay within 3 days"}
-            </p>
+            </p> */}
           </div>
         </div>
 
