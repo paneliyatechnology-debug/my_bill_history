@@ -338,12 +338,68 @@ export const ALL_THEME_KEYS: ThemeDefinition[] = [
   },
 ];
 
+const dynamicThemesRegistry = new Map<string, ThemeDefinition>();
+
+export function registerDynamicThemes(managedThemes: any[]) {
+  if (!Array.isArray(managedThemes)) return;
+  for (const t of managedThemes) {
+    if (!t || !t.id) continue;
+    const baseId = String(t.id).toLowerCase().trim();
+    const isFestive = t.category === "festive" || t.category === "branding";
+    const variants: string[] = Array.isArray(t.variants) && t.variants.length > 0 
+      ? t.variants 
+      : [t.thumbnail || "/themes/navaratri_1.jpg"];
+
+    const def1: ThemeDefinition = {
+      uniqueKey: `${baseId}_1`,
+      baseTheme: baseId,
+      variant: 1,
+      displayName: t.name ? `${t.name} 1` : baseId,
+      displayNameGu: t.name ? `${t.name} ૧` : baseId,
+      isFestive,
+      bgImageSrc: variants[0] || t.thumbnail,
+      thumbSrc: t.thumbnail || variants[0],
+    };
+    dynamicThemesRegistry.set(`${baseId}_1`, def1);
+    dynamicThemesRegistry.set(baseId, def1);
+
+    if (variants.length > 1) {
+      const def2: ThemeDefinition = {
+        uniqueKey: `${baseId}_2`,
+        baseTheme: baseId,
+        variant: 2,
+        displayName: t.name ? `${t.name} 2` : `${baseId} 2`,
+        displayNameGu: t.name ? `${t.name} ૨` : `${baseId} ૨`,
+        isFestive,
+        bgImageSrc: variants[1] || variants[0],
+        thumbSrc: t.thumbnail || variants[1],
+      };
+      dynamicThemesRegistry.set(`${baseId}_2`, def2);
+    }
+  }
+}
+
+// Auto-hydrate cached dynamic themes on client
+if (typeof window !== "undefined") {
+  try {
+    const cached = localStorage.getItem("billing_managed_themes");
+    if (cached) {
+      registerDynamicThemes(JSON.parse(cached));
+    }
+  } catch {}
+}
+
 export function resolveThemeDefinition(
   key?: string | null,
   fallbackVariant: number = 1
 ): ThemeDefinition {
   const raw = (key || "").toLowerCase().trim();
   if (!raw) return ALL_THEME_KEYS.find((t) => t.uniqueKey === "stylish")!;
+
+  // 0. Check dynamic themes registry first
+  if (dynamicThemesRegistry.has(raw)) {
+    return dynamicThemesRegistry.get(raw)!;
+  }
 
   // 1. Direct match on uniqueKey
   const direct = ALL_THEME_KEYS.find((t) => t.uniqueKey === raw);
@@ -397,11 +453,26 @@ export function resolveThemeDefinition(
     return ALL_THEME_KEYS.find((t) => t.uniqueKey === "custom")!;
   }
 
-  // 4. Suffix matching e.g. "durga_puja_1" or "durga_puja_2"
-  const suffixMatch = raw.match(/^(.*)_(d+)$/);
+  // 4. Suffix matching e.g. "durga_puja_1" or "durga_puja_2" or "2027_8079_1"
+  const suffixMatch = raw.match(/^(.*)_(\d+)$/);
   if (suffixMatch) {
     const base = suffixMatch[1];
     const variantNum = parseInt(suffixMatch[2], 10);
+
+    // Check dynamic registry for this base + variant
+    if (dynamicThemesRegistry.has(`${base}_${variantNum}`)) {
+      return dynamicThemesRegistry.get(`${base}_${variantNum}`)!;
+    }
+    if (dynamicThemesRegistry.has(base)) {
+      const baseDef = dynamicThemesRegistry.get(base)!;
+      return {
+        ...baseDef,
+        variant: variantNum,
+        uniqueKey: raw,
+        bgImageSrc: variantNum === 2 ? (baseDef.thumbSrc || baseDef.bgImageSrc) : baseDef.bgImageSrc,
+      };
+    }
+
     const found = ALL_THEME_KEYS.find((t) => (t.baseTheme === base || t.uniqueKey === base) && t.variant === variantNum)
       || ALL_THEME_KEYS.find((t) => t.baseTheme === base || t.uniqueKey === base);
     if (found) {
@@ -411,6 +482,21 @@ export function resolveThemeDefinition(
         uniqueKey: raw,
       };
     }
+  }
+
+  // 5. Dynamic fallback for any custom festive theme not yet registered
+  const standardIds = ["stylish", "luxury", "tally", "gst", "modern", "simple", "billbook", "tallybook", "tallybook_lite", "advanced_compact"];
+  if (raw && !standardIds.includes(raw)) {
+    return {
+      uniqueKey: raw,
+      baseTheme: raw.replace(/_\d+$/, ""),
+      variant: fallbackVariant,
+      displayName: raw,
+      displayNameGu: raw,
+      isFestive: true,
+      bgImageSrc: `/themes/${raw}.jpg`,
+      thumbSrc: `/themes/${raw}_thumb.png`,
+    };
   }
 
   // Fallback to stylish

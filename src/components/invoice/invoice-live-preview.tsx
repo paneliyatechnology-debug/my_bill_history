@@ -62,9 +62,9 @@ const FESTIVAL_IDS = new Set([
 
 export function resolvePreviewLayout(state: InvoiceStudioState): PreviewLayout {
   const festive = state.festiveTheme;
-  if (festive && FESTIVAL_IDS.has(festive)) return "festival";
+  if (festive) return "festival";
   const id = state.themeId;
-  if (FESTIVAL_IDS.has(id)) return "festival";
+  if (id === "festival" || FESTIVAL_IDS.has(id)) return "festival";
   if (id === "luxury") return "luxury";
   if (id === "modern") return "modern";
   if (id === "simple") return "simple";

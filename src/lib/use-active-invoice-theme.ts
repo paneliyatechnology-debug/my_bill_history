@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { apiClient } from "./api-client";
 import { InvoiceStudioState } from "@/components/invoice/invoice-settings-studio";
-import { resolveThemeDefinition } from "./invoice-theme-keys";
+import { resolveThemeDefinition, registerDynamicThemes } from "./invoice-theme-keys";
 
 export const DEFAULT_INVOICE_STUDIO_STATE: InvoiceStudioState = {
   themeId: "stylish",
@@ -93,6 +93,18 @@ export function useActiveInvoiceTheme(companyId?: string) {
   const reload = useCallback(async () => {
     setIsLoading(true);
     try {
+      try {
+        const themeCatalog: any = await apiClient.get("/invoice-settings/themes");
+        if (themeCatalog?.managedThemes && Array.isArray(themeCatalog.managedThemes)) {
+          registerDynamicThemes(themeCatalog.managedThemes);
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem("billing_managed_themes", JSON.stringify(themeCatalog.managedThemes));
+            } catch {}
+          }
+        }
+      } catch {}
+
       const res: any = await apiClient.get("/invoice-settings");
       if (res && res.settings) {
         const s = res.settings;

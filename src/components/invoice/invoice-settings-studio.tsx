@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
 import { FestiveThumb, InvoiceLivePreview, ThemeMiniCard } from "./invoice-live-preview";
-import { resolveThemeDefinition } from "@/lib/invoice-theme-keys";
+import { resolveThemeDefinition, registerDynamicThemes } from "@/lib/invoice-theme-keys";
 
 export interface CustomField {
   id: string;
@@ -295,6 +295,12 @@ export function InvoiceSettingsStudio() {
       try {
         const themeCatalog: any = await apiClient.get("/invoice-settings/themes");
         if (themeCatalog?.managedThemes && Array.isArray(themeCatalog.managedThemes)) {
+          registerDynamicThemes(themeCatalog.managedThemes);
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem("billing_managed_themes", JSON.stringify(themeCatalog.managedThemes));
+            } catch {}
+          }
           const festiveOnly = themeCatalog.managedThemes
             .filter((t: any) => t.category === "festive" || t.category === "branding")
             .map((t: any) => ({
@@ -1031,7 +1037,7 @@ export function InvoiceSettingsStudio() {
                         : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
                     }`}
                   >
-                    <span>{(festiveThemesList.find((t) => t.id === state.festiveTheme)?.name || "Navaratri")} 1</span>
+                    <span>{(festiveThemesList.find((t) => t.id === state.festiveTheme)?.name || "Theme")} 1</span>
                     {(state.festiveVariant || 1) === 1 && (
                       <span
                         onClick={(e) => {
@@ -1045,17 +1051,19 @@ export function InvoiceSettingsStudio() {
                       </span>
                     )}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => updateState({ festiveVariant: 2, uniqueThemeKey: `${state.festiveTheme}_2` })}
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
-                      state.festiveVariant === 2
-                        ? "border-[#5346F5] bg-violet-50 text-[#5346F5] shadow-xs"
-                        : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
-                    }`}
-                  >
-                    <span>{(festiveThemesList.find((t) => t.id === state.festiveTheme)?.name || "Navaratri")} 2</span>
-                  </button>
+                  {((festiveThemesList.find((t) => t.id === state.festiveTheme)?.variants?.length ?? 2) > 1) && (
+                    <button
+                      type="button"
+                      onClick={() => updateState({ festiveVariant: 2, uniqueThemeKey: `${state.festiveTheme}_2` })}
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
+                        state.festiveVariant === 2
+                          ? "border-[#5346F5] bg-violet-50 text-[#5346F5] shadow-xs"
+                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                      }`}
+                    >
+                      <span>{(festiveThemesList.find((t) => t.id === state.festiveTheme)?.name || "Theme")} 2</span>
+                    </button>
+                  )}
                 </div>
 
                 <button
