@@ -50,11 +50,5 @@ backups/
 storage/
 apps/api/storage/
 
-# Dynamically uploaded theme images (keeps built-in festival presets tracked)
-public/themes/*_*[0-9]*.*
-!public/themes/navaratri*
-!public/themes/diwali*
-!public/themes/durga_puja*
-!public/themes/dussehra*
-!public/themes/dhanteras*
+
 
