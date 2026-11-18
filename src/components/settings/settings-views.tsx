@@ -10,6 +10,17 @@ import { CreateCompanyModal } from "../tenants/create-company-modal";
 import ManageUsersView from "./manage-users-view";
 import { InvoiceSettingsStudio } from "../invoice/invoice-settings-studio";
 import EInvoiceSettingsPage from "../../app/settings/e-invoice/page";
+import {
+  ThermalPrintSettings,
+  ThermalReceiptData,
+  DEFAULT_THERMAL_SETTINGS,
+  getCachedThermalSettings,
+  saveCachedThermalSettings,
+  executeThermalPrint,
+  printViaBluetoothPos,
+  generateUpiQrDataUrl,
+} from "../../lib/thermal-printer";
+import JsBarcode from "jsbarcode";
 
 export interface SettingsViewProps {
   tab: string;
@@ -1705,6 +1716,84 @@ function ManageBusinessSettingsView() {
             )}
           </div>
 
+          {/* Bank & Payment Details (For Invoices & Scanner QR) */}
+          <div className="pt-4 border-t border-slate-100 space-y-3">
+            <div>
+              <h3 className="text-[14px] font-semibold text-slate-800 flex items-center gap-2">
+                <svg className="w-4 h-4 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                {lang === "gu" ? "બેંક અને UPI સ્કેનર વિગતો" : "Bank & UPI Payment Details"}
+              </h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                {lang === "gu"
+                  ? "આ વિગતો આપમેળે તમારા સેલ્સ ઇન્વોઇસ પર બેંક ડિટેઇલ્સ અને Scan to Pay UPI QR કોડ તરીકે દેખાશે."
+                  : "These details will automatically appear on your invoices as Bank Details & Scan to Pay UPI QR Code."}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>{lang === "gu" ? "બેંકનું નામ" : "Bank Name"}</label>
+                <input
+                  value={formData.bankName}
+                  onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
+                  placeholder={lang === "gu" ? "દા.ત. State Bank of India, HDFC Bank" : "e.g. State Bank of India, HDFC Bank"}
+                  className={fieldCls}
+                />
+              </div>
+
+              <div>
+                <label className={labelCls}>{lang === "gu" ? "બેંક એકાઉન્ટ નંબર" : "Bank Account Number"}</label>
+                <input
+                  value={formData.bankAccountNo}
+                  onChange={(e) => setFormData({ ...formData, bankAccountNo: e.target.value.replace(/\s/g, "") })}
+                  placeholder={lang === "gu" ? "એકાઉન્ટ નંબર દાખલ કરો" : "Enter Account Number"}
+                  className={`${fieldCls} tabular-nums`}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>{lang === "gu" ? "IFSC કોડ" : "IFSC Code"}</label>
+                <input
+                  value={formData.bankIfsc}
+                  onChange={(e) => setFormData({ ...formData, bankIfsc: e.target.value.toUpperCase().replace(/\s/g, "").slice(0, 11) })}
+                  placeholder="e.g. SBIN0001234"
+                  className={`${fieldCls} uppercase tabular-nums`}
+                />
+              </div>
+
+              <div>
+                <label className={labelCls}>{lang === "gu" ? "બ્રાન્ચનું નામ" : "Branch Name"}</label>
+                <input
+                  value={formData.bankBranch}
+                  onChange={(e) => setFormData({ ...formData, bankBranch: e.target.value })}
+                  placeholder={lang === "gu" ? "દા.ત. Main Branch, Surat" : "e.g. Main Branch, Surat"}
+                  className={fieldCls}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className={labelCls}>
+                {lang === "gu" ? "UPI ID / VPA (સ્કેનર QR કોડ માટે)" : "UPI ID / VPA (For Scanner QR Code)"}
+              </label>
+              <input
+                value={formData.upiVpa}
+                onChange={(e) => setFormData({ ...formData, upiVpa: e.target.value.trim() })}
+                placeholder="e.g. 9876543210@paytm, merchant@okhdfcbank"
+                className={`${fieldCls} font-mono text-[12px]`}
+              />
+              <p className="text-[11px] text-slate-500 mt-1">
+                {lang === "gu"
+                  ? "તમારા ગૂગલ પે / ફોનપે / પેટીએમ નો UPI ID અહીં લખો જેથી ઇન્વોઇસ પર સ્કેન કરીને પેમેન્ટ કરવાનું QR કોડ આવી જશે."
+                  : "Enter your Google Pay / PhonePe / Paytm UPI ID to generate the invoice 'Scan to Pay UPI' QR Code."}
+              </p>
+            </div>
+          </div>
+
           <div>
             <h3 className="text-[14px] font-semibold text-slate-800">Add Business Details</h3>
             <p className="text-[11px] text-slate-500 mb-2">Add additional business information such as MSME number, Website etc.</p>
@@ -1751,331 +1840,771 @@ function InvoiceSettingsView() {
 }
 
 // =========================================================================
-// 4. PRINT SETTINGS VIEW (Live Thermal Slip Studio Matching MyBillBook)
+// 4. PRINT SETTINGS VIEW (Live Dynamic Thermal Slip Studio)
 // =========================================================================
 function PrintSettingsView() {
   const { lang, currentCompany, user } = useAuth();
   const [activeTab, setActiveTab] = useState<"thermal" | "barcode">("thermal");
 
-  // Format & Paper Size
-  const [paperSize, setPaperSize] = useState<"2inch" | "3inch">("3inch");
-  const [selectedTheme, setSelectedTheme] = useState<"compact" | "advanced" | "simple" | "classic">("compact");
+  // Core Thermal Settings
+  const [settings, setSettings] = useState<ThermalPrintSettings>(() => getCachedThermalSettings());
+  const [upiQrPreview, setUpiQrPreview] = useState<string>("");
+  const [openSection, setOpenSection] = useState<string | null>("theme-settings");
+  const [savedBanner, setSavedBanner] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isPrinting, setIsPrinting] = useState<boolean>(false);
+  const [isBluetoothPrinting, setIsBluetoothPrinting] = useState<boolean>(false);
+  const [bluetoothStatus, setBluetoothStatus] = useState<string | null>(null);
+  const [showBluetoothHelp, setShowBluetoothHelp] = useState<boolean>(false);
 
-  // Thermal Options
-  const [showPartyBalance, setShowPartyBalance] = useState(true);
-  const [showItemDesc, setShowItemDesc] = useState(true);
-  const [showTime, setShowTime] = useState(true);
-  const [showSavings, setShowSavings] = useState(true);
-  const [showPrevBalance, setShowPrevBalance] = useState(true);
-  const [showUpiQr, setShowUpiQr] = useState(false);
+  // Dynamic Company Details
+  const displayName = currentCompany?.tradeName || currentCompany?.legalName || "NV ENTERPRISE";
+  const displayAddress = [
+    (currentCompany as any)?.addressLine1 || (currentCompany as any)?.address || "Shop No. 12, Market Yard",
+    (currentCompany as any)?.city || "Ahmedabad",
+    (currentCompany as any)?.state || "Gujarat",
+    (currentCompany as any)?.pincode || "380001",
+  ].filter(Boolean).join(", ");
+  const displayPhone = (currentCompany as any)?.phone || user?.phone || "9426886960";
+  const displayGstin = currentCompany?.gstin || "24AABCCDD1202Z1";
+  const displayUpi = (currentCompany as any)?.upiVpa || (currentCompany as any)?.upiId || `${displayPhone}@okaxis`;
 
-  // Accordions
-  const [openSection, setOpenSection] = useState<string | null>(null);
-  const [savedBanner, setSavedBanner] = useState(false);
-
+  // 1. Auto-fetch remote settings & generate dynamic UPI QR
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("billing_thermal_print_settings");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.paperSize) setPaperSize(parsed.paperSize);
-        if (parsed.selectedTheme) setSelectedTheme(parsed.selectedTheme);
-        if (parsed.showPartyBalance !== undefined) setShowPartyBalance(parsed.showPartyBalance);
-        if (parsed.showItemDesc !== undefined) setShowItemDesc(parsed.showItemDesc);
-        if (parsed.showTime !== undefined) setShowTime(parsed.showTime);
-        if (parsed.showSavings !== undefined) setShowSavings(parsed.showSavings);
-        if (parsed.showPrevBalance !== undefined) setShowPrevBalance(parsed.showPrevBalance);
-      }
-    } catch {}
-  }, []);
+    let active = true;
 
-  const handleSave = () => {
-    try {
-      const payload = {
-        paperSize,
-        selectedTheme,
-        showPartyBalance,
-        showItemDesc,
-        showTime,
-        showSavings,
-        showPrevBalance,
-        showUpiQr,
-      };
-      localStorage.setItem("billing_thermal_print_settings", JSON.stringify(payload));
-      setSavedBanner(true);
-      setTimeout(() => setSavedBanner(false), 3000);
-    } catch {}
+    // Load backend invoice print settings
+    (async () => {
+      try {
+        const res: any = await apiClient.get("/invoice-settings");
+        if (res && res.settings && active) {
+          const s = res.settings;
+          setSettings((prev) => {
+            const next: ThermalPrintSettings = {
+              ...prev,
+              paperSize: s.paperSize === "THERMAL_58" ? "2inch" : prev.paperSize,
+              showPartyBalance: s.showPartyBalance ?? prev.showPartyBalance,
+              showItemDesc: s.showItemDescription ?? prev.showItemDesc,
+              showTime: s.showTimeOnInvoice ?? prev.showTime,
+              showSavings: s.showSavedAmount ?? prev.showSavings,
+              showUpiQr: s.showUpiQr ?? prev.showUpiQr,
+              showGstin: s.showGstin ?? prev.showGstin,
+              showDueDate: s.showDueDate ?? prev.showDueDate,
+              showPlaceOfSupply: s.showPlaceOfSupply ?? prev.showPlaceOfSupply,
+              showShippingAddress: s.showShippingAddress ?? prev.showShippingAddress,
+              showHsn: s.showHsn ?? prev.showHsn,
+              showRate: s.showPricePerItem ?? prev.showRate,
+              showTaxBreakup: s.showTaxBreakup ?? prev.showTaxBreakup,
+              showNotes: s.showNotes ?? prev.showNotes,
+              showTerms: s.showTerms ?? prev.showTerms,
+              logoUrl: s.logoUrl || prev.logoUrl || (currentCompany as any)?.logoUrl || null,
+            };
+            saveCachedThermalSettings(next);
+            return next;
+          });
+        }
+      } catch {}
+    })();
+
+    // Generate real-time scannable UPI QR code for the thermal slip
+    generateUpiQrDataUrl(displayUpi, displayName, 9596.5).then((dataUrl) => {
+      if (active) setUpiQrPreview(dataUrl);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [currentCompany?.id, displayName, displayUpi]);
+
+  // Update setting helper
+  const updateSetting = <K extends keyof ThermalPrintSettings>(key: K, val: ThermalPrintSettings[K]) => {
+    setSettings((prev) => {
+      const next = { ...prev, [key]: val };
+      saveCachedThermalSettings(next);
+      return next;
+    });
   };
 
-  const displayName = currentCompany?.tradeName || currentCompany?.legalName || "MODI CHAI";
-  const displayPhone = (currentCompany as any)?.phone || user?.phone || "9510442798";
-  const displayGstin = currentCompany?.gstin || "24ABCDE1234F1Z5";
+  // Barcode Label Studio State
+  const [barcodeSize, setBarcodeSize] = useState<"50x25" | "38x25" | "50x35">("50x25");
+  const [barcodeShowCompany, setBarcodeShowCompany] = useState(true);
+  const [barcodeShowItemName, setBarcodeShowItemName] = useState(true);
+  const [barcodeShowPrice, setBarcodeShowPrice] = useState(true);
+  const [barcodeShowCode, setBarcodeShowCode] = useState(true);
+  const [barcodeItemName, setBarcodeItemName] = useState("Samsung A30 (4GB/64GB)");
+  const [barcodeValue, setBarcodeValue] = useState("8901030865421");
+  const [barcodePrice, setBarcodePrice] = useState(10620);
+  const barcodeSvgRef = useRef<SVGSVGElement | null>(null);
 
-  const handleTestPrint = () => {
-    const printWindow = window.open("", "_blank", "width=380,height=600");
-    if (!printWindow) return;
-    printWindow.document.write(`
+  // Live Barcode Preview Generator
+  useEffect(() => {
+    if (activeTab === "barcode" && barcodeSvgRef.current && barcodeValue) {
+      try {
+        JsBarcode(barcodeSvgRef.current, barcodeValue.trim(), {
+          format: "CODE128",
+          width: barcodeSize === "38x25" ? 1.5 : 2,
+          height: barcodeSize === "50x35" ? 50 : 38,
+          displayValue: barcodeShowCode,
+          fontSize: 11,
+          font: "monospace",
+          fontOptions: "bold",
+          margin: 2,
+          background: "#FFFFFF",
+          lineColor: "#000000",
+        });
+      } catch (e) {
+        console.warn("JsBarcode preview notice:", e);
+      }
+    }
+  }, [activeTab, barcodeValue, barcodeShowCode, barcodeSize]);
+
+  // Handle Barcode Sticker Print
+  const handlePrintBarcodeSticker = () => {
+    let iframe = document.getElementById("barcode-label-print-frame") as HTMLIFrameElement;
+    if (iframe) iframe.remove();
+    iframe = document.createElement("iframe");
+    iframe.id = "barcode-label-print-frame";
+    iframe.style.position = "fixed";
+    iframe.style.top = "-99999px";
+    iframe.style.left = "-99999px";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "none";
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow?.document;
+    if (!doc) return;
+
+    const widthMm = barcodeSize === "38x25" ? "38mm" : "50mm";
+    const heightMm = barcodeSize === "50x35" ? "35mm" : "25mm";
+    const svgHtml = barcodeSvgRef.current ? barcodeSvgRef.current.outerHTML : "";
+
+    doc.open();
+    doc.write(`
+      <!DOCTYPE html>
       <html>
         <head>
-          <title>Thermal Test Print - ${displayName}</title>
+          <meta charset="utf-8" />
+          <title>Barcode_${barcodeValue}</title>
           <style>
-            body { font-family: 'Courier New', monospace; font-size: 11px; margin: 0; padding: 10px; width: ${paperSize === "2inch" ? "210px" : "290px"}; }
-            .center { text-align: center; }
-            .bold { font-weight: bold; }
-            .divider { border-top: 1px dashed #000; margin: 5px 0; }
-            .solid-divider { border-top: 1px solid #000; margin: 5px 0; }
-            .row { display: flex; justify-content: space-between; }
-            .small { font-size: 9.5px; }
+            @page { size: ${widthMm} ${heightMm}; margin: 0 !important; }
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+              color: #000;
+              background: #fff;
+              width: ${widthMm};
+              height: ${heightMm};
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              text-align: center;
+              padding: 1.5mm;
+              overflow: hidden;
+            }
+            .company { font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; line-height: 1; }
+            .item-name { font-size: 8px; font-weight: 600; line-height: 1.1; margin-top: 1mm; max-height: 2.4em; overflow: hidden; }
+            .price { font-size: 10px; font-weight: 900; margin-top: 1mm; }
+            .svg-wrap { margin-top: 1mm; max-width: 100%; display: flex; justify-content: center; }
+            .svg-wrap svg { max-width: 100%; height: auto; }
           </style>
         </head>
         <body>
-          <div class="center bold" style="font-size: 13px;">${displayName}</div>
-          <div class="center small">Gujarat,</div>
-          <div class="center small">Phone No : ${displayPhone}</div>
-          <div class="solid-divider"></div>
-          <div class="center bold">TAX INVOICE</div>
-          <div class="small">Invoice No : AABBCCDD/202</div>
-          <div class="row small"><span>Date : 17/01/2026</span><span>Time : 15:47</span></div>
-          <div class="solid-divider"></div>
-          <div class="row bold"><span># Item</span><span>Qty</span><span>Amt</span></div>
-          <div class="solid-divider"></div>
-          <div class="row"><span>1 Samsung A30</span><span>1 Pcs</span><span>₹ 10,620</span></div>
-          <div class="row"><span>2 Parle-G 200g</span><span>1 Box</span><span>₹ 306</span></div>
-          <div class="row"><span>3 Puma Blue T-Shirt</span><span>2 Pcs</span><span>₹ 1,890</span></div>
-          <div class="solid-divider"></div>
-          <div class="row"><span>Sub Total (4)</span><span>₹ 12,816</span></div>
-          <div class="row"><span>Taxable Amount</span><span>₹ 11,091.43</span></div>
-          <div class="divider"></div>
-          <div class="row bold" style="font-size: 12px;"><span>Total</span><span>₹ 9,596.5</span></div>
-          <div class="row bold"><span>You Saved</span><span>- ₹ 1,051.43</span></div>
-          <div class="divider"></div>
-          <div class="center small" style="margin-top: 8px;">Thank you for your business!</div>
+          ${barcodeShowCompany ? `<div class="company">${displayName}</div>` : ""}
+          ${barcodeShowItemName ? `<div class="item-name">${barcodeItemName}</div>` : ""}
+          <div class="svg-wrap">${svgHtml}</div>
+          ${barcodeShowPrice ? `<div class="price">MRP: ₹${Number(barcodePrice).toLocaleString("en-IN")}</div>` : ""}
         </body>
       </html>
     `);
-    printWindow.document.close();
-    printWindow.focus();
+    doc.close();
+
     setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 400);
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+    }, 250);
   };
+
+  // Sample data constructed dynamically from real company profile
+  const sampleReceiptData: ThermalReceiptData = useMemo(() => {
+    return {
+      companyName: displayName,
+      companyAddress: displayAddress,
+      companyPhone: displayPhone,
+      companyGstin: displayGstin,
+      companyFssai: (currentCompany as any)?.fssaiNumber || "",
+      companyLogoUrl: (currentCompany as any)?.logoUrl || settings.logoUrl || null,
+      upiId: displayUpi,
+
+      invoiceNumber: "AABBCCDD/202",
+      invoiceDate: "17/01/2026",
+      invoiceTime: "15:47",
+      cashierName: user?.fullName || "jaydip Khunt",
+
+      customerName: "Sample Party",
+      customerPhone: "7400417400",
+      customerAddress: "No F2, Outer Circle, Connaught Circus, New Delhi, DELHI, 110001",
+      customerGstin: "07AAAAA0000A1Z5",
+
+      shippingAddress: "Plot No. 123, Industrial Area, Andheri East, Mumbai, MAHARASHTRA, 400001",
+      placeOfSupply: "Gujarat (24)",
+      dueDate: "24/01/2026",
+
+      items: [
+        {
+          name: "Samsung A30",
+          description: "samsung phone",
+          hsn: "1234",
+          quantity: "1",
+          unit: "Pcs",
+          rate: 10000,
+          discount: 10,
+          taxPercent: 18,
+          amount: 10620,
+        },
+        {
+          name: "Parle-G 200g",
+          description: "best biscuit",
+          hsn: "40511209",
+          quantity: "1",
+          unit: "Box",
+          rate: 342.86,
+          discount: 15,
+          taxPercent: 5,
+          amount: 306,
+        },
+        {
+          name: "Puma Blue Round...",
+          description: "dryfit athletic",
+          hsn: "2032",
+          quantity: "2",
+          unit: "Pcs",
+          rate: 900,
+          taxPercent: 5,
+          amount: 1890,
+        },
+      ],
+
+      subTotal: 12816,
+      taxableAmount: 11091.43,
+      taxTotal: 1724.57,
+      taxBreakdown: [
+        { label: "IGST @5%", amount: 104.57 },
+        { label: "IGST @18%", amount: 1620 },
+      ],
+      discountTotal: 1051.43,
+      grandTotal: 9596.5,
+      paymentMode: "UPI / QR",
+      receivedAmount: 0,
+      balanceAmount: 9596.5,
+      previousBalance: -192050.15,
+      currentBalance: -182453.65,
+      youSaved: 1051.43,
+
+      notes: "Sample Note",
+      terms: "1. Goods once sold will not be taken back or exchanged\n2. All disputes are subject to local jurisdiction",
+    };
+  }, [displayName, displayAddress, displayPhone, displayGstin, displayUpi, user?.fullName, settings.logoUrl, (currentCompany as any)?.logoUrl]);
+
+  // Handle Save to Backend & LocalStorage
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      saveCachedThermalSettings(settings);
+
+      // Persist in backend invoice print settings
+      await apiClient.put("/invoice-settings", {
+        paperSize: settings.paperSize === "2inch" ? "THERMAL_58" : "THERMAL_80",
+        showPartyBalance: settings.showPartyBalance,
+        showItemDescription: settings.showItemDesc,
+        showTimeOnInvoice: settings.showTime,
+        showSavedAmount: settings.showSavings,
+        showUpiQr: settings.showUpiQr,
+        showGstin: settings.showGstin,
+        showDueDate: settings.showDueDate,
+        showPlaceOfSupply: settings.showPlaceOfSupply,
+        showShippingAddress: settings.showShippingAddress,
+        showHsn: settings.showHsn,
+        showPricePerItem: settings.showRate,
+        showTaxBreakup: settings.showTaxBreakup,
+        showNotes: settings.showNotes,
+        showTerms: settings.showTerms,
+      });
+
+      setSavedBanner(true);
+      setTimeout(() => setSavedBanner(false), 3000);
+    } catch {
+      // Local cache preserved
+      setSavedBanner(true);
+      setTimeout(() => setSavedBanner(false), 3000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Direct Browser / Mobile Thermal Slip Print
+  const handleTestPrint = async () => {
+    setIsPrinting(true);
+    try {
+      await executeThermalPrint(sampleReceiptData, settings);
+    } catch {
+      window.print();
+    } finally {
+      setIsPrinting(false);
+    }
+  };
+
+  // Direct Web Bluetooth Thermal POS Printer Connect & Print
+  const handleBluetoothPrint = async () => {
+    setIsBluetoothPrinting(true);
+    setBluetoothStatus("Searching Bluetooth POS printer...");
+    try {
+      const res = await printViaBluetoothPos(sampleReceiptData, settings);
+      if (res.success) {
+        setBluetoothStatus("Receipt printed via Bluetooth!");
+        setTimeout(() => setBluetoothStatus(null), 3500);
+      } else {
+        if (res.isSecureContextError) {
+          setBluetoothStatus("Direct Bluetooth works on live HTTPS domain. Using standard thermal print.");
+        } else {
+          setBluetoothStatus(res.error || "Bluetooth print failed. Using standard thermal print.");
+        }
+        setTimeout(() => setBluetoothStatus(null), 5000);
+        await executeThermalPrint(sampleReceiptData, settings);
+      }
+    } catch (err: any) {
+      setBluetoothStatus(err?.message || "Bluetooth error.");
+      setTimeout(() => setBluetoothStatus(null), 3500);
+      await executeThermalPrint(sampleReceiptData, settings);
+    } finally {
+      setIsBluetoothPrinting(false);
+    }
+  };
+
+  const is2Inch = settings.paperSize === "2inch";
 
   return (
     <div className="space-y-4 max-w-[1600px] mx-auto">
       {/* Top Header Bar */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs flex items-center justify-between">
+      <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-[22px] font-semibold text-[#182230]">
-            {lang === "gu" ? "પ્રિન્ટ સેટિંગ્સ" : "Print Settings"}
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-[22px] font-semibold text-[#182230]">
+              {activeTab === "thermal"
+                ? lang === "gu"
+                  ? "પ્રિન્ટ સેટિંગ્સ (થર્મલ POS)"
+                  : "Print Settings"
+                : lang === "gu"
+                ? "બારકોડ સ્ટીકર પ્રિન્ટ"
+                : "Barcode Sticker Print"}
+            </h1>
+            <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+              {activeTab === "thermal"
+                ? is2Inch
+                  ? "2 Inch (58mm)"
+                  : "3 Inch (80mm)"
+                : `${barcodeSize === "38x25" ? "38x25mm" : barcodeSize === "50x35" ? "50x35mm" : "50x25mm"} Label`}
+            </span>
+          </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            {lang === "gu" ? "થર્મલ POS સ્લિપ પ્રિન્ટર કસ્ટમાઇઝેશન અને પ્રિવ્યૂ" : "Thermal POS slip printer customization, themes and receipt preview"}
+            {activeTab === "thermal"
+              ? lang === "gu"
+                ? "થર્મલ POS સ્લિપ પ્રિન્ટર કસ્ટમાઇઝેશન, સાઈઝ અને રીઅલ-ટાઇમ રસીદ પ્રિવ્યૂ"
+                : "Thermal POS slip printer customization, size profiles and real receipt preview"
+              : lang === "gu"
+              ? "ઇન્વેન્ટરી આઇટમ્સ માટે બારકોડ લેબલ સ્ટીકર પ્રિન્ટર સેટિંગ્સ અને પ્રિવ્યૂ"
+              : "Thermal barcode sticker printer customization, label sizes and live sticker preview"}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-2 flex-wrap">
           {savedBanner && (
-            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
-              ✓ Saved!
+            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl animate-fade-in">
+              ✓ {lang === "gu" ? "સેટિંગ્સ સચવાયા!" : "Settings Saved!"}
             </span>
           )}
-          <button
-            type="button"
-            onClick={handleTestPrint}
-            className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[13px] font-medium rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
-          >
-            <span>🖨️</span>
-            <span>Print Test Slip</span>
-          </button>
+
+          {activeTab === "thermal" && (
+            <>
+              {bluetoothStatus && (
+                <span className="text-[11px] font-medium text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1.5 rounded-xl">
+                  {bluetoothStatus}
+                </span>
+              )}
+
+              <button
+                type="button"
+                onClick={handleTestPrint}
+                disabled={isPrinting}
+                className="h-9 px-4 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                title="Print test slip on connected POS printer (USB / Bluetooth / Network)"
+              >
+                <span>🖨️</span>
+                <span>{isPrinting ? "Printing..." : "Print Test Slip"}</span>
+              </button>
+
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={handleBluetoothPrint}
+                  disabled={isBluetoothPrinting}
+                  className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[13px] font-medium rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                  title="Direct print to Bluetooth 58mm/80mm POS slip printer"
+                >
+                  <span>📱</span>
+                  <span>{isBluetoothPrinting ? "Connecting..." : "Bluetooth POS"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowBluetoothHelp(true)}
+                  className="h-9 w-8 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                  title="Bluetooth POS Details & Live HTTPS Info"
+                >
+                  ?
+                </button>
+              </div>
+            </>
+          )}
+
+          {activeTab === "barcode" && (
+            <button
+              type="button"
+              onClick={handlePrintBarcodeSticker}
+              className="h-9 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[13px] font-medium rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+              title="Print test barcode sticker label"
+            >
+              <span>🏷️</span>
+              <span>Print Test Sticker</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={handleSave}
-            className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs transition-all cursor-pointer"
+            disabled={isSaving}
+            className="h-9 px-4 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
           >
-            {lang === "gu" ? "સાચવો" : "Save Settings"}
+            <span>{isSaving ? "Saving..." : lang === "gu" ? "સેટિંગ્સ સાચવો" : "Save Settings"}</span>
           </button>
         </div>
       </div>
 
       {/* 2-Column Studio Layout */}
       <div className="flex flex-col xl:flex-row gap-5 items-start">
-        {/* LEFT COLUMN: Live Thermal Receipt Preview */}
-        <div className="flex-1 w-full bg-[#E5E7EB]/60 rounded-2xl p-4 sm:p-6 lg:p-8 flex justify-center items-start overflow-x-auto border border-slate-200 min-h-[750px]">
-          <div
-            className={`bg-white shadow-xl border border-slate-300 text-[10px] text-slate-800 p-5 tabular-nums space-y-1.5 rounded-xs select-none transition-all ${
-              paperSize === "2inch" ? "w-[260px]" : "w-[330px]"
-            }`}
-          >
-            {/* Header info */}
-            <div className="text-center space-y-0.5">
-              <p className="font-bold text-sm text-slate-900 uppercase">{displayName}</p>
-              <p className="text-slate-600">Gujarat,</p>
-              <p className="text-slate-600">Phone No : {displayPhone}</p>
-            </div>
-
-            <div className="border-t border-slate-900 my-1"></div>
-
-            <p className="text-center font-bold text-xs uppercase tracking-wider text-slate-900">TAX INVOICE</p>
-
-            <div className="space-y-0.5 text-[9.5px]">
-              <p>Invoice No : AABBCCDD/202</p>
-              <div className="flex justify-between">
-                <span>Date : 17/01/2026</span>
-                {showTime && <span>Time : 15:47</span>}
-              </div>
-              <p className="font-semibold text-slate-900">Bill To : Sample Party</p>
-              <p>Ph. : 7400417400</p>
-              <p className="text-[8.5px] leading-tight text-slate-600">No F2, Outer Circle, Connaught Circus, New Delhi, DELHI, 110001</p>
-              <p className="font-semibold text-slate-900 pt-0.5">Ship To : Sample Shipping Company</p>
-              <p className="text-[8.5px] leading-tight text-slate-600">Plot No. 123, Industrial Area, Andheri East, Mumbai, MAHARASHTRA, 400001</p>
-            </div>
-
-            <div className="border-t border-slate-900 my-1"></div>
-
-            {/* Items Header */}
-            <div className="grid grid-cols-12 font-bold text-[9px] border-b border-slate-900 pb-0.5">
-              <span className="col-span-1">#</span>
-              <span className="col-span-5">Item</span>
-              <span className="col-span-2 text-center">Qty</span>
-              <span className="col-span-2 text-right">Rate</span>
-              <span className="col-span-2 text-right">Amt</span>
-            </div>
-
-            {/* Items Rows */}
-            <div className="space-y-1 py-1 text-[9px]">
-              <div>
-                <div className="grid grid-cols-12 font-semibold">
-                  <span className="col-span-1">1</span>
-                  <span className="col-span-5 truncate">Samsung A30</span>
-                  <span className="col-span-2 text-center">1 Pcs</span>
-                  <span className="col-span-2 text-right">10,000</span>
-                  <span className="col-span-2 text-right">10,620</span>
-                </div>
-                {showItemDesc && (
-                  <div className="text-[8px] text-slate-500 pl-3">
-                    <p>Desc: samsung phone</p>
-                    <p>HSN: 1234, Disc: 10%, GST: 18%</p>
+        {/* LEFT COLUMN: Live Preview (Thermal Slip OR Barcode Label) */}
+        <div className="flex-1 w-full bg-[#E5E7EB]/70 rounded-2xl p-4 sm:p-6 lg:p-8 flex justify-center items-start overflow-x-auto border border-slate-200 min-h-[820px]">
+          {activeTab === "thermal" ? (
+            <div
+              className={`bg-white shadow-xl border border-slate-400 text-black p-4 sm:p-5 tabular-nums space-y-1.5 rounded-xs select-none transition-all duration-200 ${
+                is2Inch ? "w-[260px] max-w-[260px] text-[9.5px]" : "w-[330px] max-w-[330px] text-[10.5px]"
+              }`}
+              style={{
+                fontFamily: "'Courier New', Courier, 'Lucida Console', Monaco, monospace",
+                fontWeight: 600,
+                lineHeight: 1.25,
+              }}
+            >
+              {/* Header info */}
+              <div className="text-center space-y-0.5">
+                {settings.logoUrl && (
+                  <div className="flex justify-center mb-1">
+                    <img
+                      src={settings.logoUrl}
+                      alt="Logo"
+                      className="max-h-9 max-w-[110px] object-contain filter grayscale contrast-150"
+                    />
                   </div>
+                )}
+                <p className="font-extrabold text-sm text-black uppercase tracking-tight">{displayName}</p>
+                <p className="text-[9px] text-black leading-tight">{displayAddress}</p>
+                <p className="text-[9px] text-black">
+                  Phone No : <b>{displayPhone}</b>
+                </p>
+                {settings.showGstin && displayGstin && (
+                  <p className="text-[9px] text-black">
+                    GSTIN : <b>{displayGstin}</b>
+                  </p>
                 )}
               </div>
 
-              <div>
-                <div className="grid grid-cols-12 font-semibold">
-                  <span className="col-span-1">2</span>
-                  <span className="col-span-5 truncate">Parle-G 200g</span>
-                  <span className="col-span-2 text-center">1 Box</span>
-                  <span className="col-span-2 text-right">342.86</span>
-                  <span className="col-span-2 text-right">306</span>
+              <div className="border-t border-black my-1"></div>
+
+              <p className="text-center font-bold text-xs uppercase tracking-wider text-black">TAX INVOICE</p>
+
+              <div className="space-y-0.5 text-[9.5px]">
+                <p>
+                  Invoice No : <b>AABBCCDD/202</b>
+                </p>
+                <div className="flex justify-between">
+                  <span>Date : 17/01/2026</span>
+                  {settings.showTime && <span>Time : 15:47</span>}
                 </div>
-                {showItemDesc && (
-                  <div className="text-[8px] text-slate-500 pl-3">
-                    <p>Desc: best biscuit</p>
-                    <p>HSN: 40511209, Disc: 15%, GST: 5%</p>
+                {settings.showDueDate && (
+                  <div className="flex justify-between text-[9px]">
+                    <span>Due Date : 24/01/2026</span>
                   </div>
+                )}
+                {settings.showPlaceOfSupply && (
+                  <p className="text-[9px]">Place of Supply : Gujarat (24)</p>
+                )}
+                <p className="font-bold text-black pt-0.5">Bill To : Sample Party</p>
+                {settings.showCustomerPhone !== false && <p>Ph. : 7400417400</p>}
+                <p className="text-[8.5px] leading-tight text-black">
+                  No F2, Outer Circle, Connaught Circus, New Delhi, DELHI, 110001
+                </p>
+                {settings.showShippingAddress && (
+                  <>
+                    <p className="font-bold text-black pt-0.5">Ship To : Sample Shipping Company</p>
+                    <p className="text-[8.5px] leading-tight text-black">
+                      Plot No. 123, Industrial Area, Andheri East, Mumbai, MAHARASHTRA, 400001
+                    </p>
+                  </>
                 )}
               </div>
 
-              <div>
-                <div className="grid grid-cols-12 font-semibold">
-                  <span className="col-span-1">3</span>
-                  <span className="col-span-5 truncate">Puma Blue Round...</span>
-                  <span className="col-span-2 text-center">2 Pcs</span>
-                  <span className="col-span-2 text-right">900</span>
-                  <span className="col-span-2 text-right">1,890</span>
-                </div>
-                {showItemDesc && (
-                  <div className="text-[8px] text-slate-500 pl-3">
-                    <p>HSN: 2032, GST: 5%</p>
+              <div className="border-t border-black my-1"></div>
+
+              {/* Items Header */}
+              <div className="grid grid-cols-12 font-bold text-[9px] border-b border-black pb-0.5">
+                <span className="col-span-1">#</span>
+                <span className="col-span-5">Item</span>
+                <span className="col-span-2 text-center">Qty</span>
+                {settings.showRate && <span className="col-span-2 text-right">Rate</span>}
+                <span className={`${settings.showRate ? "col-span-2" : "col-span-4"} text-right`}>Amt</span>
+              </div>
+
+              {/* Items Rows */}
+              <div className="space-y-1 py-0.5 text-[9px]">
+                <div>
+                  <div className="grid grid-cols-12 font-bold">
+                    <span className="col-span-1">1</span>
+                    <span className="col-span-5 truncate">Samsung A30</span>
+                    <span className="col-span-2 text-center">1 Pcs</span>
+                    {settings.showRate && <span className="col-span-2 text-right">10,000</span>}
+                    <span className={`${settings.showRate ? "col-span-2" : "col-span-4"} text-right`}>10,620</span>
                   </div>
+                  {settings.showItemDesc && (
+                    <div className="text-[8px] text-black pl-3 leading-tight">
+                      <p>Desc: samsung phone</p>
+                      {settings.showHsn && <p>HSN: 1234, Disc: 10%, GST: 18%</p>}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="grid grid-cols-12 font-bold">
+                    <span className="col-span-1">2</span>
+                    <span className="col-span-5 truncate">Parle-G 200g</span>
+                    <span className="col-span-2 text-center">1 Box</span>
+                    {settings.showRate && <span className="col-span-2 text-right">342.86</span>}
+                    <span className={`${settings.showRate ? "col-span-2" : "col-span-4"} text-right`}>306</span>
+                  </div>
+                  {settings.showItemDesc && (
+                    <div className="text-[8px] text-black pl-3 leading-tight">
+                      <p>Desc: best biscuit</p>
+                      {settings.showHsn && <p>HSN: 40511209, Disc: 15%, GST: 5%</p>}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="grid grid-cols-12 font-bold">
+                    <span className="col-span-1">3</span>
+                    <span className="col-span-5 truncate">Puma Blue Round...</span>
+                    <span className="col-span-2 text-center">2 Pcs</span>
+                    {settings.showRate && <span className="col-span-2 text-right">900</span>}
+                    <span className={`${settings.showRate ? "col-span-2" : "col-span-4"} text-right`}>1,890</span>
+                  </div>
+                  {settings.showItemDesc && settings.showHsn && (
+                    <div className="text-[8px] text-black pl-3 leading-tight">
+                      <p>HSN: 2032, GST: 5%</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="border-t border-black my-1"></div>
+
+              {/* Subtotal & Taxes */}
+              <div className="space-y-0.5 text-[9px]">
+                <div className="flex justify-between font-bold">
+                  <span>Sub Total (4)</span>
+                  <span>₹ 12,816</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Taxable Amount</span>
+                  <span>₹ 11,091.43</span>
+                </div>
+                {settings.showTaxBreakup && (
+                  <>
+                    <div className="flex justify-between">
+                      <span>IGST @5%</span>
+                      <span>₹ 104.57</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>IGST @18%</span>
+                      <span>₹ 1,620</span>
+                    </div>
+                  </>
                 )}
               </div>
-            </div>
 
-            <div className="border-t border-slate-900 my-1"></div>
+              <div className="border-t border-dashed border-black my-1"></div>
 
-            {/* Subtotal & Taxes */}
-            <div className="space-y-0.5 text-[9px]">
-              <div className="flex justify-between font-semibold">
-                <span>Sub Total (4)</span>
-                <span>₹ 12,816</span>
-              </div>
-              <div className="flex justify-between text-slate-600">
-                <span>Taxable Amount</span>
-                <span>₹ 11,091.43</span>
-              </div>
-              <div className="flex justify-between text-slate-600">
-                <span>IGST @5%</span>
-                <span>₹ 104.57</span>
-              </div>
-              <div className="flex justify-between text-slate-600">
-                <span>IGST @18%</span>
-                <span>₹ 1,620</span>
-              </div>
-            </div>
-
-            <div className="border-t border-dashed border-slate-900 my-1"></div>
-
-            {/* Total */}
-            <div className="space-y-0.5 text-[9.5px]">
-              <div className="flex justify-between font-bold text-xs">
-                <span>Total</span>
-                <span>₹ 9,596.5</span>
-              </div>
-              {showSavings && (
-                <div className="flex justify-between font-bold text-slate-700">
-                  <span>You Saved</span>
-                  <span>- ₹ 1,051.43</span>
+              {/* Total */}
+              <div className="space-y-0.5 text-[9.5px]">
+                <div className="flex justify-between font-extrabold text-xs">
+                  <span>TOTAL AMOUNT</span>
+                  <span>₹ 9,596.5</span>
                 </div>
-              )}
-              <div className="flex justify-between text-slate-600">
-                <span>Received</span>
-                <span>₹ 0</span>
+                {settings.showSavings && (
+                  <div className="flex justify-between font-bold bg-black text-white px-1 py-0.5 my-0.5 text-[9px]">
+                    <span>YOU SAVED</span>
+                    <span>- ₹ 1,051.43</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-[9px]">
+                  <span>Received</span>
+                  <span>₹ 0</span>
+                </div>
               </div>
-            </div>
 
-            <div className="border-t border-dashed border-slate-900 my-1"></div>
+              <div className="border-t border-dashed border-black my-1"></div>
 
-            {/* Balance Details */}
-            <div className="space-y-0.5 text-[9px]">
-              <div className="flex justify-between font-bold">
-                <span>Balance Amount</span>
-                <span>₹ 9,596.5</span>
+              {/* Balance Details */}
+              <div className="space-y-0.5 text-[9px]">
+                <div className="flex justify-between font-bold">
+                  <span>Balance Due</span>
+                  <span>₹ 9,596.5</span>
+                </div>
+                {settings.showPartyBalance && (
+                  <>
+                    {settings.showPrevBalance && (
+                      <div className="flex justify-between">
+                        <span>Previous Balance</span>
+                        <span>₹ -1,92,050.15</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between font-bold">
+                      <span>Current Balance</span>
+                      <span>₹ -1,82,453.65</span>
+                    </div>
+                  </>
+                )}
               </div>
-              {showPartyBalance && (
+
+              {/* Scannable Dynamic UPI QR Code */}
+              {settings.showUpiQr && upiQrPreview && (
                 <>
-                  <div className="flex justify-between text-slate-600">
-                    <span>Previous Balance</span>
-                    <span>₹ -1,92,050.15</span>
-                  </div>
-                  <div className="flex justify-between text-slate-900 font-semibold">
-                    <span>Current Balance</span>
-                    <span>₹ -1,82,453.65</span>
+                  <div className="border-t border-dashed border-black my-1"></div>
+                  <div className="text-center py-1">
+                    <img
+                      src={upiQrPreview}
+                      alt="Scan UPI QR"
+                      className="mx-auto border border-black p-0.5 bg-white"
+                      style={{ width: is2Inch ? "84px" : "102px", height: is2Inch ? "84px" : "102px" }}
+                    />
+                    <p className="text-[8.5px] font-bold mt-0.5">SCAN TO PAY VIA UPI</p>
+                    <p className="text-[7.5px]">{displayUpi}</p>
                   </div>
                 </>
               )}
-            </div>
 
-            <div className="border-t border-slate-900 my-1"></div>
+              {/* Notes & Terms */}
+              {settings.showNotes && (
+                <div className="border-t border-black my-1 pt-0.5 text-[8.5px] space-y-0.5">
+                  <p className="font-bold">Notes:</p>
+                  <p>Sample Note</p>
+                </div>
+              )}
+              {settings.showTerms && (
+                <div className="border-t border-dashed border-black my-1 pt-0.5 text-[8px] space-y-0.5">
+                  <p className="font-bold">Terms and conditions:</p>
+                  <p>1. Goods once sold will not be taken back or exchanged</p>
+                  <p>2. All disputes are subject to local jurisdiction</p>
+                </div>
+              )}
 
-            {/* Notes & Terms */}
-            <div className="text-[8.5px] space-y-0.5 text-slate-600">
-              <p className="font-bold text-slate-800">Notes:</p>
-              <p>Sample Note</p>
-              <p className="font-bold text-slate-800 pt-0.5">Terms and conditions:</p>
-              <p>1. Goods once sold will not be taken back or exchanged</p>
-              <p>2. All disputes are subject to local jurisdiction</p>
+              {/* Footer */}
+              <div className="border-t border-black my-1 pt-1 text-center text-[8.5px]">
+                <p className="font-bold">{settings.customFooter || "Thank you for your business!"}</p>
+                <p className="text-[7.5px] text-slate-600 mt-0.5">Powered by myownbillbook</p>
+              </div>
+
+              {/* Tear-off / Cutter space indicator */}
+              <div className="pt-3 text-center border-t border-dotted border-slate-400 mt-2">
+                <span className="text-[7.5px] text-slate-400 uppercase tracking-widest">
+                  ✂️ Tear / Auto-Cutter Line
+                </span>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-10 w-full">
+              <div className="mb-4 text-center">
+                <span className="text-xs font-bold text-slate-600 uppercase tracking-wider bg-white/90 border border-slate-300 px-3 py-1 rounded-full shadow-2xs">
+                  {barcodeSize === "38x25"
+                    ? "38mm × 25mm Label Sticker"
+                    : barcodeSize === "50x35"
+                    ? "50mm × 35mm Label Sticker"
+                    : "50mm × 25mm Standard Label Sticker"}
+                </span>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  High-contrast thermal sticker preview for barcode printers (TSC, TVS, Zebra, Xprinter)
+                </p>
+              </div>
+
+              {/* Physical sticker look */}
+              <div
+                className={`bg-white rounded-lg shadow-xl border-2 border-dashed border-slate-400 p-3.5 text-center flex flex-col items-center justify-between transition-all ${
+                  barcodeSize === "38x25"
+                    ? "w-[240px] min-h-[160px]"
+                    : barcodeSize === "50x35"
+                    ? "w-[310px] min-h-[220px]"
+                    : "w-[300px] min-h-[175px]"
+                }`}
+              >
+                {barcodeShowCompany && (
+                  <p className="text-[11px] font-black uppercase text-slate-900 tracking-wider truncate w-full">
+                    {displayName}
+                  </p>
+                )}
+
+                {barcodeShowItemName && (
+                  <p className="text-[11.5px] font-bold text-slate-800 line-clamp-2 w-full mt-1">
+                    {barcodeItemName}
+                  </p>
+                )}
+
+                <div className="my-1.5 flex justify-center w-full overflow-hidden">
+                  <svg ref={barcodeSvgRef} className="max-w-full" />
+                </div>
+
+                {barcodeShowPrice && (
+                  <div className="bg-slate-900 text-white text-[12px] font-black px-2.5 py-0.5 rounded tracking-wide w-full max-w-[200px]">
+                    MRP: ₹{Number(barcodePrice).toLocaleString("en-IN")}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 p-4 bg-white/80 border border-slate-200 rounded-xl text-center max-w-sm text-xs text-slate-600 shadow-2xs">
+                <p className="font-semibold text-slate-800">Direct Thermal Barcode Printer Ready</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Prints on 1-up, 2-up, and continuous roll thermal stickers. Compatible with Zebra EPL/ZPL, ESC/Label, and standard Windows/Android print services.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* RIGHT COLUMN: Controls Studio Panel */}
-        <div className="w-full xl:w-[420px] shrink-0 space-y-4">
+        {/* RIGHT COLUMN: Controls Panel */}
+        <div className="w-full xl:w-[440px] shrink-0 space-y-4">
           {/* Subtabs at Top */}
           <div className="flex items-center gap-6 border-b border-slate-200 pb-2 bg-white rounded-2xl p-4 shadow-2xs">
             <button
               type="button"
               onClick={() => setActiveTab("thermal")}
-              className={`text-xs font-bold pb-1 transition-all border-b-2 ${
+              className={`text-xs font-bold pb-1 transition-all border-b-2 cursor-pointer ${
                 activeTab === "thermal"
                   ? "border-[#1677E8] text-[#1677E8]"
                   : "border-transparent text-slate-500 hover:text-slate-800"
@@ -2086,7 +2615,7 @@ function PrintSettingsView() {
             <button
               type="button"
               onClick={() => setActiveTab("barcode")}
-              className={`text-xs font-bold pb-1 transition-all border-b-2 ${
+              className={`text-xs font-bold pb-1 transition-all border-b-2 cursor-pointer ${
                 activeTab === "barcode"
                   ? "border-[#1677E8] text-[#1677E8]"
                   : "border-transparent text-slate-500 hover:text-slate-800"
@@ -2096,187 +2625,750 @@ function PrintSettingsView() {
             </button>
           </div>
 
-          {/* Themes Section */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-3">
-            <div className="flex items-center gap-1.5">
-              <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wide">Themes</h3>
-              <span className="text-[9px] font-semibold uppercase bg-rose-600 text-white px-1.5 py-0.5 rounded shadow-2xs">
-                NEW
-              </span>
-            </div>
-
-            <div className="grid grid-cols-4 gap-2">
-              {[
-                { id: "compact", title: "Compact", hasNew: false },
-                { id: "advanced", title: "Advanced", hasNew: true },
-                { id: "simple", title: "Simple", hasNew: false },
-                { id: "classic", title: "Classic", hasNew: false },
-              ].map((th) => (
-                <button
-                  key={th.id}
-                  type="button"
-                  onClick={() => setSelectedTheme(th.id as any)}
-                  className={`relative p-2 rounded-xl border text-center transition-all ${
-                    selectedTheme === th.id
-                      ? "border-[#1677E8] ring-2 ring-[#1677E8]/20 bg-[#EFF6FF]/40"
-                      : "border-slate-200 hover:border-slate-300 bg-white"
-                  }`}
-                >
-                  {th.hasNew && (
-                    <span className="absolute -top-1.5 -right-1 text-[8px] font-semibold uppercase bg-rose-600 text-white px-1 py-0.2 rounded shadow-xs">
-                      NEW
-                    </span>
-                  )}
-                  <div className="h-10 bg-slate-100 rounded-md mb-1.5 border border-slate-200 flex flex-col justify-around p-1">
-                    <div className="h-1 w-3/4 bg-slate-300 rounded-full mx-auto"></div>
-                    <div className="h-1 w-1/2 bg-slate-300 rounded-full mx-auto"></div>
+          {activeTab === "thermal" ? (
+            <>
+              {/* 1. SIZE-WISE THERMAL RECEIPT SELECTION (Replaces fake themes) */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                      Receipt Printer Size
+                    </h3>
+                    <p className="text-[11px] text-slate-500">
+                      Select your thermal machine or Bluetooth roll width
+                    </p>
                   </div>
-                  <p className="text-[10px] font-bold text-slate-800 leading-tight">{th.title}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Print Settings: Paper Size */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-3">
-            <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wide">Print Settings</h3>
-
-            <div>
-              <label className="block text-[11px] font-medium text-slate-600 mb-1.5">Select Paper Size</label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPaperSize("2inch")}
-                  className={`p-2.5 rounded-xl border flex items-center justify-between text-xs font-semibold cursor-pointer transition-all ${
-                    paperSize === "2inch"
-                      ? "border-[#1677E8] bg-[#EFF6FF]/40 text-slate-900"
-                      : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  <span>2 inch</span>
-                  <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${paperSize === "2inch" ? "border-[#1677E8] bg-[#1677E8]" : "border-slate-300"}`}>
-                    {paperSize === "2inch" && <span className="w-1.5 h-1.5 rounded-full bg-white"></span>}
+                  <span className="text-[9px] font-bold uppercase bg-blue-50 text-[#1677E8] border border-blue-200 px-2 py-0.5 rounded-full">
+                    SIZE-WISE
                   </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPaperSize("3inch")}
-                  className={`p-2.5 rounded-xl border flex items-center justify-between text-xs font-semibold cursor-pointer transition-all ${
-                    paperSize === "3inch"
-                      ? "border-[#1677E8] bg-[#EFF6FF]/40 text-slate-900"
-                      : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  <span>3 inch</span>
-                  <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${paperSize === "3inch" ? "border-[#1677E8] bg-[#1677E8]" : "border-slate-300"}`}>
-                    {paperSize === "3inch" && <span className="w-1.5 h-1.5 rounded-full bg-white"></span>}
-                  </span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Upload Logo Accordion */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs">
-            <button
-              type="button"
-              onClick={() => setOpenSection(openSection === "logo" ? null : "logo")}
-              className="w-full p-4 flex items-center justify-between text-left font-bold text-xs text-slate-800 hover:bg-slate-50 transition-colors"
-            >
-              <span>Upload Logo</span>
-              <span>{openSection === "logo" ? "▲" : "▼"}</span>
-            </button>
-            {openSection === "logo" && (
-              <div className="p-4 pt-0 border-t border-slate-100 text-xs text-slate-500">
-                <input type="file" accept="image/*" className="text-xs" />
-                <p className="text-[10px] text-slate-400 mt-1">Recommended size: 200x200px black & white PNG.</p>
-              </div>
-            )}
-          </div>
-
-          {/* Theme Settings Checkboxes */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-2.5">
-            <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wide">Theme Settings</h3>
-
-            <div className="space-y-2 pt-1 text-xs">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showPartyBalance}
-                  onChange={(e) => setShowPartyBalance(e.target.checked)}
-                  className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4"
-                />
-                <span className="text-slate-800">Show party balance in invoice</span>
-              </label>
-
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showItemDesc}
-                  onChange={(e) => setShowItemDesc(e.target.checked)}
-                  className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4"
-                />
-                <span className="text-slate-800">Show item description in invoice</span>
-              </label>
-
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showTime}
-                  onChange={(e) => setShowTime(e.target.checked)}
-                  className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4"
-                />
-                <span className="text-slate-800">Show time on Invoices</span>
-              </label>
-
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showSavings}
-                  onChange={(e) => setShowSavings(e.target.checked)}
-                  className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4"
-                />
-                <span className="text-slate-800">Show customer savings line</span>
-              </label>
-
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showUpiQr}
-                  onChange={(e) => setShowUpiQr(e.target.checked)}
-                  className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4"
-                />
-                <span className="text-slate-800">Show UPI QR code on receipt</span>
-              </label>
-            </div>
-          </div>
-
-          {/* Extra Accordions matching screenshot */}
-          {[
-            { id: "invoice-det", title: "Invoice Details" },
-            { id: "party-det", title: "Party Details" },
-            { id: "table-col", title: "Item Table Columns" },
-            { id: "misc-det", title: "Miscellaneous Details" },
-          ].map((sec) => (
-            <div key={sec.id} className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs">
-              <button
-                type="button"
-                onClick={() => setOpenSection(openSection === sec.id ? null : sec.id)}
-                className="w-full p-3.5 flex items-center justify-between text-left font-bold text-xs text-slate-800 hover:bg-slate-50 transition-colors"
-              >
-                <span>{sec.title}</span>
-                <span>{openSection === sec.id ? "▲" : "▼"}</span>
-              </button>
-              {openSection === sec.id && (
-                <div className="p-3.5 pt-0 border-t border-slate-100 text-xs text-slate-600">
-                  <p className="text-[11px] text-slate-500">Configure {sec.title.toLowerCase()} field display options for thermal slips.</p>
                 </div>
-              )}
+
+                {/* 2 Size-Wise Primary Cards */}
+                <div className="grid grid-cols-2 gap-2.5">
+                  {/* Card 1: 2 Inch (58mm) */}
+                  <button
+                    type="button"
+                    onClick={() => updateSetting("paperSize", "2inch")}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative flex flex-col justify-between min-h-[110px] ${
+                      is2Inch
+                        ? "border-[#1677E8] bg-[#EFF6FF]/60 ring-2 ring-[#1677E8]/20 shadow-xs"
+                        : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="w-7 h-7 rounded-lg bg-blue-100/70 text-[#1677E8] flex items-center justify-center text-sm">
+                        📱
+                      </div>
+                      <span
+                        className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                          is2Inch ? "border-[#1677E8] bg-[#1677E8]" : "border-slate-300"
+                        }`}
+                      >
+                        {is2Inch && <span className="w-1.5 h-1.5 rounded-full bg-white"></span>}
+                      </span>
+                    </div>
+
+                    <div className="mt-2">
+                      <p className="text-xs font-bold text-slate-900">2 Inch (58mm)</p>
+                      <p className="text-[10px] text-slate-600 font-medium">Mobile POS & Bluetooth</p>
+                      <p className="text-[9px] text-slate-400 mt-0.5">32 Cols • Sunmi / mPOS</p>
+                    </div>
+                  </button>
+
+                  {/* Card 2: 3 Inch (80mm) */}
+                  <button
+                    type="button"
+                    onClick={() => updateSetting("paperSize", "3inch")}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative flex flex-col justify-between min-h-[110px] ${
+                      !is2Inch
+                        ? "border-[#1677E8] bg-[#EFF6FF]/60 ring-2 ring-[#1677E8]/20 shadow-xs"
+                        : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="w-7 h-7 rounded-lg bg-blue-100/70 text-[#1677E8] flex items-center justify-center text-sm">
+                        🖨️
+                      </div>
+                      <span
+                        className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                          !is2Inch ? "border-[#1677E8] bg-[#1677E8]" : "border-slate-300"
+                        }`}
+                      >
+                        {!is2Inch && <span className="w-1.5 h-1.5 rounded-full bg-white"></span>}
+                      </span>
+                    </div>
+
+                    <div className="mt-2">
+                      <div className="flex items-center gap-1">
+                        <p className="text-xs font-bold text-slate-900">3 Inch (80mm)</p>
+                      </div>
+                      <p className="text-[10px] text-slate-600 font-medium">Desktop Counter POS</p>
+                      <p className="text-[9px] text-slate-400 mt-0.5">48 Cols • Epson / TVS / USB</p>
+                    </div>
+                  </button>
+                </div>
+
+                {/* Density Layout Toggle */}
+                <div className="pt-1 flex items-center justify-between border-t border-slate-100 text-xs">
+                  <span className="text-slate-600 font-medium text-[11px]">Slip Layout Density:</span>
+                  <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50">
+                    <button
+                      type="button"
+                      onClick={() => updateSetting("styleDensity", "standard")}
+                      className={`px-2 py-0.5 text-[10.5px] font-semibold rounded-md transition-all cursor-pointer ${
+                        settings.styleDensity === "standard"
+                          ? "bg-white text-[#1677E8] shadow-2xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      Standard Detailed
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateSetting("styleDensity", "compact")}
+                      className={`px-2 py-0.5 text-[10.5px] font-semibold rounded-md transition-all cursor-pointer ${
+                        settings.styleDensity === "compact"
+                          ? "bg-white text-[#1677E8] shadow-2xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      Express Compact
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. MACHINE & HARDWARE CONTROLS */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-2.5">
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                  POS Machine & Hardware Controls
+                </h3>
+
+                <div className="space-y-2 pt-0.5 text-xs">
+                  <label className="flex items-center justify-between cursor-pointer py-1 border-b border-slate-100">
+                    <div>
+                      <span className="text-slate-800 font-medium">Auto-Cut Paper Feed Space</span>
+                      <p className="text-[10px] text-slate-400">
+                        Feeds 15mm extra paper so cutter does not slice receipt text
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={settings.autoCut}
+                      onChange={(e) => updateSetting("autoCut", e.target.checked)}
+                      className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4 cursor-pointer"
+                    />
+                  </label>
+
+                  <label className="flex items-center justify-between cursor-pointer py-1 border-b border-slate-100">
+                    <div>
+                      <span className="text-slate-800 font-medium">Cash Drawer Kick Pulse</span>
+                      <p className="text-[10px] text-slate-400">
+                        Sends RJ11 pulse to pop open drawer upon printing bill
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={settings.openCashDrawer}
+                      onChange={(e) => updateSetting("openCashDrawer", e.target.checked)}
+                      className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4 cursor-pointer"
+                    />
+                  </label>
+
+                  <div className="flex items-center justify-between py-1">
+                    <span className="text-slate-800 font-medium text-[11px]">Print Copies:</span>
+                    <select
+                      value={settings.printCopies}
+                      onChange={(e) => updateSetting("printCopies", Number(e.target.value))}
+                      className="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white font-medium text-slate-700"
+                    >
+                      <option value={1}>1 Copy (Customer)</option>
+                      <option value={2}>2 Copies (Customer + Store)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. UPLOAD LOGO ACCORDION */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setOpenSection(openSection === "logo" ? null : "logo")}
+                  className="w-full p-4 flex items-center justify-between text-left font-bold text-xs text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <span>Upload Thermal Logo</span>
+                    {settings.logoUrl && (
+                      <span className="text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.2 rounded font-semibold">
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
+                  <span>{openSection === "logo" ? "▲" : "▼"}</span>
+                </button>
+                {openSection === "logo" && (
+                  <div className="p-4 pt-0 border-t border-slate-100 text-xs text-slate-600 space-y-2">
+                    <p className="text-[11px] text-slate-500">
+                      Thermal printers produce black & white monochrome print. Pure black PNG on white works best.
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              updateSetting("logoUrl", reader.result as string);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        className="text-xs text-slate-600"
+                      />
+                      {settings.logoUrl && (
+                        <button
+                          type="button"
+                          onClick={() => updateSetting("logoUrl", null)}
+                          className="text-[10px] text-rose-600 font-semibold hover:underline cursor-pointer"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 4. RECEIPT CONTENT TOGGLES */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-2.5">
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                  Receipt Content Toggles
+                </h3>
+
+                <div className="space-y-2 pt-0.5 text-xs">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.showPartyBalance}
+                      onChange={(e) => updateSetting("showPartyBalance", e.target.checked)}
+                      className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4 cursor-pointer"
+                    />
+                    <span className="text-slate-800">Show party balance in invoice</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.showItemDesc}
+                      onChange={(e) => updateSetting("showItemDesc", e.target.checked)}
+                      className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4 cursor-pointer"
+                    />
+                    <span className="text-slate-800">Show item description in invoice</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.showTime}
+                      onChange={(e) => updateSetting("showTime", e.target.checked)}
+                      className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4 cursor-pointer"
+                    />
+                    <span className="text-slate-800">Show time on Invoices</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.showSavings}
+                      onChange={(e) => updateSetting("showSavings", e.target.checked)}
+                      className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4 cursor-pointer"
+                    />
+                    <span className="text-slate-800">Show customer savings line</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.showUpiQr}
+                      onChange={(e) => updateSetting("showUpiQr", e.target.checked)}
+                      className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4 cursor-pointer"
+                    />
+                    <span className="text-slate-800">Show UPI QR code on receipt (Instant Payment)</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* 5. INVOICE DETAILS ACCORDION */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setOpenSection(openSection === "inv-det" ? null : "inv-det")}
+                  className="w-full p-3.5 flex items-center justify-between text-left font-bold text-xs text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  <span>Invoice Details</span>
+                  <span>{openSection === "inv-det" ? "▲" : "▼"}</span>
+                </button>
+                {openSection === "inv-det" && (
+                  <div className="p-3.5 pt-0 border-t border-slate-100 text-xs text-slate-700 space-y-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings.showDueDate}
+                        onChange={(e) => updateSetting("showDueDate", e.target.checked)}
+                        className="rounded text-[#1677E8] w-3.5 h-3.5"
+                      />
+                      <span>Show Due Date</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings.showPlaceOfSupply}
+                        onChange={(e) => updateSetting("showPlaceOfSupply", e.target.checked)}
+                        className="rounded text-[#1677E8] w-3.5 h-3.5"
+                      />
+                      <span>Show Place of Supply</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings.showGstin}
+                        onChange={(e) => updateSetting("showGstin", e.target.checked)}
+                        className="rounded text-[#1677E8] w-3.5 h-3.5"
+                      />
+                      <span>Show Store GSTIN</span>
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              {/* 6. PARTY DETAILS ACCORDION */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setOpenSection(openSection === "party-det" ? null : "party-det")}
+                  className="w-full p-3.5 flex items-center justify-between text-left font-bold text-xs text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  <span>Party Details</span>
+                  <span>{openSection === "party-det" ? "▲" : "▼"}</span>
+                </button>
+                {openSection === "party-det" && (
+                  <div className="p-3.5 pt-0 border-t border-slate-100 text-xs text-slate-700 space-y-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings.showCustomerPhone !== false}
+                        onChange={(e) => updateSetting("showCustomerPhone", e.target.checked)}
+                        className="rounded text-[#1677E8] w-3.5 h-3.5"
+                      />
+                      <span>Show Customer Mobile Number</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings.showShippingAddress}
+                        onChange={(e) => updateSetting("showShippingAddress", e.target.checked)}
+                        className="rounded text-[#1677E8] w-3.5 h-3.5"
+                      />
+                      <span>Show Shipping Address</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings.showPrevBalance}
+                        onChange={(e) => updateSetting("showPrevBalance", e.target.checked)}
+                        className="rounded text-[#1677E8] w-3.5 h-3.5"
+                      />
+                      <span>Show Customer Previous Balance</span>
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              {/* 7. ITEM TABLE COLUMNS ACCORDION */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setOpenSection(openSection === "table-col" ? null : "table-col")}
+                  className="w-full p-3.5 flex items-center justify-between text-left font-bold text-xs text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  <span>Item Table Columns</span>
+                  <span>{openSection === "table-col" ? "▲" : "▼"}</span>
+                </button>
+                {openSection === "table-col" && (
+                  <div className="p-3.5 pt-0 border-t border-slate-100 text-xs text-slate-700 space-y-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings.showHsn}
+                        onChange={(e) => updateSetting("showHsn", e.target.checked)}
+                        className="rounded text-[#1677E8] w-3.5 h-3.5"
+                      />
+                      <span>Show HSN / SAC Code</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings.showRate}
+                        onChange={(e) => updateSetting("showRate", e.target.checked)}
+                        className="rounded text-[#1677E8] w-3.5 h-3.5"
+                      />
+                      <span>Show Item Rate / Price Column</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings.showTaxBreakup}
+                        onChange={(e) => updateSetting("showTaxBreakup", e.target.checked)}
+                        className="rounded text-[#1677E8] w-3.5 h-3.5"
+                      />
+                      <span>Show GST Tax Rate & Breakup</span>
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              {/* 8. MISCELLANEOUS DETAILS ACCORDION */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setOpenSection(openSection === "misc-det" ? null : "misc-det")}
+                  className="w-full p-3.5 flex items-center justify-between text-left font-bold text-xs text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  <span>Notes, Terms & Custom Footer</span>
+                  <span>{openSection === "misc-det" ? "▲" : "▼"}</span>
+                </button>
+                {openSection === "misc-det" && (
+                  <div className="p-3.5 pt-0 border-t border-slate-100 text-xs text-slate-700 space-y-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings.showNotes}
+                        onChange={(e) => updateSetting("showNotes", e.target.checked)}
+                        className="rounded text-[#1677E8] w-3.5 h-3.5"
+                      />
+                      <span>Show Bill Notes</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings.showTerms}
+                        onChange={(e) => updateSetting("showTerms", e.target.checked)}
+                        className="rounded text-[#1677E8] w-3.5 h-3.5"
+                      />
+                      <span>Show Terms and Conditions</span>
+                    </label>
+
+                    <div>
+                      <label className="block text-[11px] font-medium text-slate-600 mb-1">
+                        Custom Receipt Footer Message
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.customFooter || ""}
+                        onChange={(e) => updateSetting("customFooter", e.target.value)}
+                        placeholder="Thank you for your business! Please visit again."
+                        className="w-full text-xs border border-slate-200 rounded-lg p-2 text-slate-800"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            /* BARCODE PRINT SETTINGS ACCORDION & CARDS */
+            <div className="space-y-4">
+              {/* 1. Barcode Label Roll Size Selection */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                      Barcode Label Size
+                    </h3>
+                    <p className="text-[11px] text-slate-500">Select thermal label sticker roll dimension</p>
+                  </div>
+                  <span className="text-[9px] font-bold uppercase bg-blue-50 text-[#1677E8] border border-blue-200 px-2 py-0.5 rounded-full">
+                    STICKER
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setBarcodeSize("50x25")}
+                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between min-h-[90px] ${
+                      barcodeSize === "50x25"
+                        ? "border-[#1677E8] bg-[#EFF6FF]/60 ring-2 ring-[#1677E8]/20 shadow-xs"
+                        : "border-slate-200 bg-white hover:border-slate-300"
+                    }`}
+                  >
+                    <span className="text-[10px] font-bold text-[#1677E8]">50 × 25 mm</span>
+                    <p className="text-[11px] font-bold text-slate-900 mt-1">Standard</p>
+                    <p className="text-[9px] text-slate-500">Retail & FMCG</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setBarcodeSize("38x25")}
+                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between min-h-[90px] ${
+                      barcodeSize === "38x25"
+                        ? "border-[#1677E8] bg-[#EFF6FF]/60 ring-2 ring-[#1677E8]/20 shadow-xs"
+                        : "border-slate-200 bg-white hover:border-slate-300"
+                    }`}
+                  >
+                    <span className="text-[10px] font-bold text-[#1677E8]">38 × 25 mm</span>
+                    <p className="text-[11px] font-bold text-slate-900 mt-1">Compact</p>
+                    <p className="text-[9px] text-slate-500">Jewelry / Pharma</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setBarcodeSize("50x35")}
+                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between min-h-[90px] ${
+                      barcodeSize === "50x35"
+                        ? "border-[#1677E8] bg-[#EFF6FF]/60 ring-2 ring-[#1677E8]/20 shadow-xs"
+                        : "border-slate-200 bg-white hover:border-slate-300"
+                    }`}
+                  >
+                    <span className="text-[10px] font-bold text-[#1677E8]">50 × 35 mm</span>
+                    <p className="text-[11px] font-bold text-slate-900 mt-1">Detailed</p>
+                    <p className="text-[9px] text-slate-500">With MRP & Date</p>
+                  </button>
+                </div>
+              </div>
+
+              {/* 2. Barcode Label Content Toggles */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-2.5">
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                  Label Content Options
+                </h3>
+
+                <div className="space-y-2 pt-0.5 text-xs">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={barcodeShowCompany}
+                      onChange={(e) => setBarcodeShowCompany(e.target.checked)}
+                      className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4 cursor-pointer"
+                    />
+                    <span className="text-slate-800">Show Company / Store Name</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={barcodeShowItemName}
+                      onChange={(e) => setBarcodeShowItemName(e.target.checked)}
+                      className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4 cursor-pointer"
+                    />
+                    <span className="text-slate-800">Show Item / Product Name</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={barcodeShowPrice}
+                      onChange={(e) => setBarcodeShowPrice(e.target.checked)}
+                      className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4 cursor-pointer"
+                    />
+                    <span className="text-slate-800">Show Retail Price / MRP Tag</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={barcodeShowCode}
+                      onChange={(e) => setBarcodeShowCode(e.target.checked)}
+                      className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4 cursor-pointer"
+                    />
+                    <span className="text-slate-800">Show Barcode Numbers Under Bars</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* 3. Sample Item & Test Input */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-3">
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                  Preview Item Configuration
+                </h3>
+
+                <div className="space-y-2 text-xs">
+                  <div>
+                    <label className="block text-[11px] font-medium text-slate-600 mb-1">
+                      Product Name
+                    </label>
+                    <input
+                      type="text"
+                      value={barcodeItemName}
+                      onChange={(e) => setBarcodeItemName(e.target.value)}
+                      className="w-full text-xs border border-slate-200 rounded-lg p-2 text-slate-800"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[11px] font-medium text-slate-600">
+                        Barcode (EAN-13 / Code-128)
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setBarcodeValue(`890${Math.floor(100000000 + Math.random() * 900000000)}`)
+                        }
+                        className="text-[10px] text-[#1677E8] font-bold hover:underline cursor-pointer"
+                      >
+                        ⚡ Generate Code
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      value={barcodeValue}
+                      onChange={(e) => setBarcodeValue(e.target.value)}
+                      className="w-full text-xs border border-slate-200 rounded-lg p-2 text-slate-800 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-medium text-slate-600 mb-1">
+                      Retail Price (MRP ₹)
+                    </label>
+                    <input
+                      type="number"
+                      value={barcodePrice}
+                      onChange={(e) => setBarcodePrice(Number(e.target.value))}
+                      className="w-full text-xs border border-slate-200 rounded-lg p-2 text-slate-800"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Supported Barcode Printers Info */}
+              <div className="p-3.5 bg-blue-50/60 border border-blue-200/80 rounded-2xl text-[11px] text-slate-600 space-y-1">
+                <p className="font-bold text-slate-900">Supported Thermal Barcode Printers:</p>
+                <p className="leading-relaxed">
+                  TVS LP 46 Neo, TSC TE244 / TDP-225, Zebra ZD220, Xprinter XP-365B, Citizen CL-E300, and generic Bluetooth 58mm/80mm label printers.
+                </p>
+              </div>
             </div>
-          ))}
+          )}
         </div>
       </div>
+
+      {/* Bluetooth Mobile Setup Guide Modal */}
+      {showBluetoothHelp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-100">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">📱</span>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">
+                    How to Enable Bluetooth in Chrome on Mobile
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Why does Chrome block Bluetooth on local IP addresses?
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowBluetoothHelp(false)}
+                className="text-slate-400 hover:text-slate-700 font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 leading-relaxed">
+              <p className="font-bold mb-1">🔒 Google Chrome Security Rule:</p>
+              <p>
+                Chrome blocks device hardware access (Bluetooth / Camera) when opening an IP address like{" "}
+                <code className="bg-amber-100 px-1 py-0.5 rounded font-mono text-[11px]">
+                  http://192.168.1.112:3000
+                </code>{" "}
+                over HTTP. It requires a <b>Secure Origin</b>.
+              </p>
+            </div>
+
+            <div className="space-y-3 text-xs text-slate-700">
+              <p className="font-bold text-slate-900">30-Second Solution in Chrome (Android / Tablet):</p>
+
+              <div className="flex gap-2.5 items-start">
+                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[11px]">
+                  1
+                </span>
+                <div>
+                  <p className="font-semibold text-slate-900">Open Chrome Flag on Mobile:</p>
+                  <p className="text-slate-500">
+                    In your mobile Chrome address bar, open:
+                  </p>
+                  <code className="block mt-1 p-2 bg-slate-100 rounded text-[11px] font-mono text-blue-700 break-all select-all">
+                    chrome://flags/#unsafely-treat-insecure-origin-as-secure
+                  </code>
+                </div>
+              </div>
+
+              <div className="flex gap-2.5 items-start">
+                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[11px]">
+                  2
+                </span>
+                <div className="w-full">
+                  <p className="font-semibold text-slate-900">Enable & Add Local Origin:</p>
+                  <p className="text-slate-500 mb-1">
+                    Set dropdown to <b>Enabled</b> and paste your server URL in the text box:
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 p-2 bg-slate-100 rounded text-[11px] font-mono text-slate-900 select-all border border-slate-200">
+                      http://192.168.1.112:3000
+                    </code>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard?.writeText(window.location.origin || "http://192.168.1.112:3000");
+                        alert("Copied URL to clipboard!");
+                      }}
+                      className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded text-[11px] font-medium cursor-pointer"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2.5 items-start">
+                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[11px]">
+                  3
+                </span>
+                <div>
+                  <p className="font-semibold text-slate-900">Tap Relaunch:</p>
+                  <p className="text-slate-500">
+                    Tap the blue <b>Relaunch</b> button at the bottom of Chrome. Now clicking <b>Bluetooth POS</b> will immediately scan & connect your Bluetooth thermal printer!
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 mt-2">
+                <p className="font-bold">✨ Production Live Note:</p>
+                <p className="text-slate-600 text-[11px] mt-0.5">
+                  When deployed on your live domain with SSL (e.g. <b>https://myownbillbook.com</b>), Web Bluetooth works automatically for every phone, tablet, and Sunmi machine without touching any flags!
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-slate-100 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowBluetoothHelp(false)}
+                className="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold cursor-pointer shadow-xs"
+              >
+                Got It
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

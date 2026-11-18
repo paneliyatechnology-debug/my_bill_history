@@ -951,6 +951,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     pathname.startsWith("/app/settings") ||
     pathname.startsWith("/pricing-settings");
 
+  const isPurchaseBillPage =
+    pathname === "/purchases/new" ||
+    pathname === "/purchases/create" ||
+    pathname === "/purchases/invoices/new" ||
+    pathname.startsWith("/purchases/new/") ||
+    pathname.startsWith("/purchases/create/") ||
+    pathname.startsWith("/purchases/invoices/new/");
+
   return (
     <div className="h-[100dvh] h-screen w-full flex overflow-hidden bg-[#F5F8FC] print:h-auto print:min-h-0 print:overflow-visible print:bg-white print:block">
       {/* 1. DEDICATED MYBILLBOOK SETTINGS SIDEBAR (When in Settings mode) */}
@@ -960,8 +968,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      {/* 2. REGULAR DESKTOP MYBILLBOOK SIDEBAR (When in dashboard mode) */}
-      {!isSettingsPage && (
+      {/* 2. REGULAR DESKTOP MYBILLBOOK SIDEBAR (When in dashboard mode and not in full-screen purchase bill mode) */}
+      {!isSettingsPage && !isPurchaseBillPage && (
         <aside
           className={`hidden lg:flex flex-col shrink-0 h-full border-r border-slate-200/90 bg-white text-slate-800 transition-all duration-300 z-30 select-none print:hidden ${
             isSidebarCollapsed ? "w-[72px]" : "w-[240px]"
@@ -1283,19 +1291,43 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </header>
         ) : (
           <header className="shrink-0 h-14 bg-white border-b border-[#E3EAF3] px-3 sm:px-5 flex items-center justify-between z-20 max-w-full min-w-0 print:hidden sticky top-0">
-            {/* Left: Active Company Context & Financial Year */}
+            {/* Left: Brand Logo (on full-screen purchase bill) + Active Company Context & Financial Year */}
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
+              {/* Brand Logo in header when sidebar is hidden on Purchase Bill page */}
+              {isPurchaseBillPage && (
+                <Link href="/" className="hidden sm:flex items-center gap-2.5 shrink-0 mr-1 sm:mr-3 group">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
+                    <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none">
+                      <rect width="32" height="32" rx="8" fill="#1677E8" />
+                      <path d="M7 10h12a3 3 0 013 3v0a3 3 0 01-3 3H7v-6z" fill="white" />
+                      <path d="M7 16h14a3 3 0 013 3v0a3 3 0 01-3 3H7v-6z" fill="white" fillOpacity="0.85" />
+                      <path d="M11 7v18" stroke="#1677E8" strokeWidth="2.5" strokeLinecap="round" />
+                    </svg>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-extrabold text-[15px] leading-tight tracking-tight text-slate-900 group-hover:text-[#1677E8] transition-colors">
+                      MyOwn
+                    </span>
+                    <span className="font-bold text-[13px] leading-tight tracking-tight text-[#1677E8]">
+                      BillBook
+                    </span>
+                  </div>
+                </Link>
+              )}
+
               {/* Menu Drawer Toggle Button (Visible on mobile) */}
-              <button
-                onClick={() => setIsMobileMenuOpen(true)}
-                className="lg:hidden flex items-center justify-center p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer shrink-0"
-                title={lang === "gu" ? "મેનૂ ખોલો" : "Open Navigation Menu"}
-                aria-label="Navigation Menu"
-              >
-                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
+              {!isPurchaseBillPage && (
+                <button
+                  onClick={() => setIsMobileMenuOpen(true)}
+                  className="lg:hidden flex items-center justify-center p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer shrink-0"
+                  title={lang === "gu" ? "મેનૂ ખોલો" : "Open Navigation Menu"}
+                  aria-label="Navigation Menu"
+                >
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+              )}
 
               {/* Company Switcher */}
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -1374,7 +1406,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main
           id="main-content"
           tabIndex={-1}
-          className="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden relative z-10 p-3 sm:p-4 lg:px-5 lg:py-4 pb-24 lg:pb-5 overscroll-y-contain focus:outline-none print:p-0 print:m-0 print:overflow-visible print:h-auto print:w-full print:block"
+          className={`flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden relative z-10 ${
+            isPurchaseBillPage
+              ? "p-2 sm:p-3 lg:p-4 pb-20 overscroll-y-contain focus:outline-none print:p-0 print:m-0 print:overflow-visible print:h-auto print:w-full print:block"
+              : "p-3 sm:p-4 lg:px-5 lg:py-4 pb-24 lg:pb-5 overscroll-y-contain focus:outline-none print:p-0 print:m-0 print:overflow-visible print:h-auto print:w-full print:block"
+          }`}
         >
           <div
             className="w-full min-w-0 max-w-none print:max-w-none print:w-full print:p-0 print:m-0"
@@ -1579,8 +1615,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      {/* 5. MOBILE BOTTOM NAVIGATION BAR (Hidden in Settings mode) */}
-      {!isSettingsPage && (
+      {/* 5. MOBILE BOTTOM NAVIGATION BAR (Hidden in Settings mode & Purchase Bill mode) */}
+      {!isSettingsPage && !isPurchaseBillPage && (
         <nav
           aria-label="Mobile Navigation Bar"
           className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-40 px-2 py-1.5 flex items-center justify-around shadow-lg no-print print:hidden print-hide"

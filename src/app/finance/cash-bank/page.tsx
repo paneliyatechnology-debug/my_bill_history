@@ -253,6 +253,17 @@ function saveStoredBankMeta(
   }
 }
 
+function clearStoredBankMeta(companyId: string | undefined, accountId: string) {
+  if (typeof window === "undefined" || !accountId) return;
+  try {
+    const all = getStoredBankMeta(companyId);
+    delete all[accountId];
+    localStorage.setItem(getBankMetaStorageKey(companyId), JSON.stringify(all));
+  } catch {
+    // ignore
+  }
+}
+
 export default function CashAndBankPage() {
   const router = useRouter();
   const { lang, tenantContext, currentFY } = useAuth();
@@ -345,6 +356,50 @@ export default function CashAndBankPage() {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
+  // ================= MODAL 6: Delete Bank Account Details =================
+  const [isDeleteBankModalOpen, setIsDeleteBankModalOpen] = useState(false);
+  const [isDeletingBank, setIsDeletingBank] = useState(false);
+  const [deleteBankError, setDeleteBankError] = useState<string | null>(null);
+
+  const handleDeleteBank = async () => {
+    if (!selectedAccount) return;
+    setIsDeletingBank(true);
+    setDeleteBankError(null);
+    try {
+      await apiClient.delete(`/accounting/ledgers/${selectedAccount.id}`);
+      clearStoredBankMeta(tenantContext?.companyId, selectedAccount.id);
+
+      if (
+        companyDetails?.bankName === selectedAccount.name ||
+        companyDetails?.bankAccountNo === selectedAccount.bankAccountNo
+      ) {
+        await apiClient
+          .patch("/tenants/company", {
+            bankName: "",
+            bankAccountNo: "",
+            bankIfsc: "",
+            bankBranch: "",
+          })
+          .catch(() => {});
+      }
+
+      setIsDeleteBankModalOpen(false);
+      setToastMessage(
+        lang === "gu"
+          ? "બેંક ખાતું સફળતાપૂર્વક ડિલીટ કરી દેવાયું!"
+          : "Bank account deleted / archived successfully!"
+      );
+      setTimeout(() => setToastMessage(null), 3500);
+
+      setSelectedAccountId("cash_in_hand");
+      await fetchData();
+    } catch (err: any) {
+      setDeleteBankError(err.message || "Failed to delete bank account.");
+    } finally {
+      setIsDeletingBank(false);
+    }
+  };
 
   const copyToClipboard = (text: string, fieldName: string) => {
     if (!text || text === "-") return;
@@ -1584,11 +1639,33 @@ export default function CashAndBankPage() {
                   <span className="text-[10px]">{showDeletedAccounts ? "▲" : "▼"}</span>
                 </button>
                 {showDeletedAccounts && (
-                  <div className="p-2 space-y-1 bg-slate-50">
+                  <div className="p-2 space-y-1.5 bg-slate-50">
                     {inactiveAccounts.map((ia) => (
-                      <div key={ia.id} className="p-2 text-xs text-slate-400 flex justify-between">
-                        <span className="line-through">{ia.name}</span>
-                        <span>₹{Number(ia.currentBalance || 0).toFixed(2)}</span>
+                      <div key={ia.id} className="p-2 text-xs bg-white border border-slate-200 rounded flex items-center justify-between gap-2 shadow-2xs">
+                        <div className="min-w-0">
+                          <span className="line-through text-slate-400 font-medium block truncate">{ia.name}</span>
+                          <span className="text-[11px] text-slate-400 tabular-nums">
+                            {formatINR(Number(ia.currentBalance || 0))}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              await apiClient.patch(`/accounting/ledgers/${ia.id}`, { isActive: true });
+                              setToastMessage(lang === "gu" ? "ખાતું પુનઃસ્થાપિત થઈ ગયું!" : "Account restored successfully!");
+                              setTimeout(() => setToastMessage(null), 3000);
+                              await fetchData();
+                            } catch (err: any) {
+                              setToastMessage(err.message || "Failed to restore account");
+                              setTimeout(() => setToastMessage(null), 3000);
+                            }
+                          }}
+                          className="px-2 py-1 text-[11px] font-semibold text-[#5850EC] hover:bg-[#EEF0FF] rounded border border-[#5850EC]/30 transition-colors shrink-0 cursor-pointer"
+                        >
+                          {lang === "gu" ? "પુનઃસ્થાપિત" : "Restore"}
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -1655,8 +1732,8 @@ export default function CashAndBankPage() {
                   </div>
                 </div>
 
-                {/* 3 Action Buttons - Responsive Grid on Mobile */}
-                <div className="grid grid-cols-3 md:flex md:flex-col gap-1.5 sm:gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
+                {/* 4 Action Buttons - Responsive Grid on Mobile */}
+                <div className="grid grid-cols-4 md:flex md:flex-col gap-1.5 sm:gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
                   <button
                     onClick={() => {
                       setUpdateBankForm({
@@ -1704,6 +1781,20 @@ export default function CashAndBankPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                       </svg>
                     )}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setDeleteBankError(null);
+                      setIsDeleteBankModalOpen(true);
+                    }}
+                    className="px-2 sm:h-9 px-3 text-[11px] sm:text-[13px] font-medium text-rose-600 bg-white hover:bg-rose-50 border border-rose-200 rounded-md transition-colors flex items-center justify-center sm:justify-between gap-1 sm:gap-3 shadow-2xs hover:border-rose-300 cursor-pointer"
+                    title={lang === "gu" ? "ખાતું ડિલીટ / દૂર કરો" : "Delete Account"}
+                  >
+                    <span className="truncate">{lang === "gu" ? "ડિલીટ" : "Delete"}</span>
+                    <svg className="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
                   </button>
                 </div>
               </div>
@@ -2566,6 +2657,7 @@ export default function CashAndBankPage() {
                   bankAccountNo: updateBankForm.accountNumber.trim(),
                   bankIfsc: updateBankForm.ifscCode.trim().toUpperCase(),
                   bankBranch: updateBankForm.branchName.trim(),
+                  upiVpa: updateBankForm.upiId.trim(),
                 })
                 .catch(() => {});
 
@@ -2629,21 +2721,37 @@ export default function CashAndBankPage() {
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100">
             <button
               type="button"
-              onClick={() => setIsUpdateBankModalOpen(false)}
-              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer border border-slate-300"
+              onClick={() => {
+                setIsUpdateBankModalOpen(false);
+                setDeleteBankError(null);
+                setIsDeleteBankModalOpen(true);
+              }}
+              className="h-9 px-3 text-[13px] font-medium text-rose-600 hover:bg-rose-50 rounded-md cursor-pointer border border-rose-200 transition-colors flex items-center gap-1.5"
             >
-              Cancel
+              <svg className="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <span>{lang === "gu" ? "ખાતું ડિલીટ કરો" : "Delete Account"}</span>
             </button>
-            <button
-              type="submit"
-              disabled={isSubmittingUpdateBank}
-              className="h-9 px-3.5 text-[13px] font-medium text-white bg-[#5850EC] hover:bg-[#1268D3] rounded-md shadow-xs cursor-pointer transition-colors"
-            >
-              {isSubmittingUpdateBank ? "Updating..." : "Update Details"}
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setIsUpdateBankModalOpen(false)}
+                className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer border border-slate-300"
+              >
+                {lang === "gu" ? "રદ કરો" : "Cancel"}
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmittingUpdateBank}
+                className="h-9 px-3.5 text-[13px] font-medium text-white bg-[#5850EC] hover:bg-[#1268D3] rounded-md shadow-xs cursor-pointer transition-colors"
+              >
+                {isSubmittingUpdateBank ? "Updating..." : (lang === "gu" ? "વિગતો સુધારો" : "Update Details")}
+              </button>
+            </div>
           </div>
         </form>
       </Modal>
@@ -2819,6 +2927,69 @@ export default function CashAndBankPage() {
                 <span>{lang === "gu" ? "વિગતો શેર કરો" : "Share Details"}</span>
               </button>
             </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ================= MODAL 6: Confirm Delete Bank Account ================= */}
+      <Modal
+        isOpen={isDeleteBankModalOpen}
+        onClose={() => setIsDeleteBankModalOpen(false)}
+        title={lang === "gu" ? "ખાતું ડિલીટ / દૂર કરો" : "Delete Bank Account"}
+        maxWidth="sm"
+      >
+        <div className="space-y-4 pt-1">
+          {deleteBankError && (
+            <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-xs">
+              {deleteBankError}
+            </div>
+          )}
+
+          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1.5">
+            <div className="text-xs text-slate-500 font-medium">{lang === "gu" ? "ખાતાનું નામ" : "Account Name"}</div>
+            <div className="text-sm font-bold text-slate-900">{selectedAccount?.name}</div>
+            {selectedAccount?.bankAccountNo && (
+              <div className="text-xs text-slate-600 font-mono">
+                A/C: {selectedAccount.bankAccountNo} • IFSC: {selectedAccount.bankIfsc || "-"}
+              </div>
+            )}
+            <div className="text-xs text-slate-500 pt-1">
+              {lang === "gu" ? "વર્તમાન બેલેન્સ:" : "Current Balance:"}{" "}
+              <strong className="text-slate-900 font-semibold font-mono">
+                ₹{Number(selectedAccount?.currentBalance || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+              </strong>
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-600 leading-relaxed">
+            {lang === "gu"
+              ? "શું તમે ખરેખર આ બેંક ખાતાને ડિલીટ કરવા માંગો છો? આ ખાતું તમારા એક્ટિવ બેંક એકાઉન્ટ્સ લિસ્ટ અને ઇન્વોઇસ પરથી દૂર થઈ જશે."
+              : "Are you sure you want to delete this bank account? It will be removed from your active accounts list and invoices."}
+          </p>
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setIsDeleteBankModalOpen(false)}
+              className="h-9 px-3 text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg cursor-pointer"
+            >
+              {lang === "gu" ? "રદ કરો" : "Cancel"}
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteBank}
+              disabled={isDeletingBank}
+              className="h-9 px-4 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm disabled:opacity-60 cursor-pointer flex items-center gap-1.5"
+            >
+              {isDeletingBank ? (
+                <>
+                  <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>{lang === "gu" ? "ડિલીટ થઈ રહ્યું છે..." : "Deleting..."}</span>
+                </>
+              ) : (
+                <span>{lang === "gu" ? "ખાતરી સાથે ડિલીટ કરો" : "Confirm Delete"}</span>
+              )}
+            </button>
           </div>
         </div>
       </Modal>

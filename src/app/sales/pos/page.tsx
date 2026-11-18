@@ -6,6 +6,12 @@ import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { getPartyItemPrice } from "../../../lib/party-item-pricing";
 import QRCode from "qrcode";
+import {
+  executeThermalPrint,
+  getCachedThermalSettings,
+  printViaBluetoothPos,
+  ThermalReceiptData,
+} from "../../../lib/thermal-printer";
 
 // Interfaces
 interface CatalogItem {
@@ -726,10 +732,21 @@ export default function PosTerminalPage() {
     });
   };
 
-  const handleTriggerEdit = (type: "PRICE" | "QTY" | "DISCOUNT") => {
-    if (currentScreen.selectedRowIndex === null || currentScreen.items.length === 0) return;
-    const selectedItem = currentScreen.items[currentScreen.selectedRowIndex];
+  const handleTriggerEdit = (
+    type: "PRICE" | "QTY" | "DISCOUNT",
+    targetItem?: CartItem,
+    targetIdx?: number
+  ) => {
+    let selectedItem = targetItem;
+    if (!selectedItem) {
+      if (currentScreen.selectedRowIndex === null || currentScreen.items.length === 0) return;
+      selectedItem = currentScreen.items[currentScreen.selectedRowIndex];
+    }
     if (!selectedItem) return;
+
+    if (targetIdx !== undefined) {
+      updateCurrentScreen((prev) => ({ ...prev, selectedRowIndex: targetIdx }));
+    }
 
     const initialVal =
       type === "PRICE"
@@ -805,6 +822,11 @@ export default function PosTerminalPage() {
     const effectiveCustomerName = currentScreen.selectedParty?.name || currentScreen.customerName || "Cash Sale";
     const effectiveCustomerPhone = currentScreen.selectedParty?.mobile || currentScreen.customerMobile || undefined;
 
+    const tenderedAmount =
+      typeof currentScreen.receivedAmount === "number" && currentScreen.receivedAmount > 0
+        ? currentScreen.receivedAmount
+        : grandTotal;
+
     const payload = {
       clientOfflineUuid,
       offlineBillNumber,
@@ -812,10 +834,16 @@ export default function PosTerminalPage() {
       customerName: effectiveCustomerName,
       customerPhone: effectiveCustomerPhone,
       paymentMode: currentScreen.paymentMode === "SPLIT" ? "CASH" : currentScreen.paymentMode,
-      receivedAmount:
-        typeof currentScreen.receivedAmount === "number"
-          ? currentScreen.receivedAmount
-          : grandTotal,
+      receivedAmount: tenderedAmount >= grandTotal ? grandTotal : tenderedAmount,
+      discountType: currentScreen.discountType,
+      discountPercent: currentScreen.discountPercent || undefined,
+      discountAmount: currentScreen.discountAmount || undefined,
+      additionalCharges: currentScreen.additionalCharges
+        .filter((c) => Number(c.amount) > 0)
+        .map((c) => ({
+          name: c.name || "Additional Charge",
+          amount: Number(c.amount),
+        })),
       tenderedSplit:
         currentScreen.paymentMode === "SPLIT"
           ? {
@@ -920,9 +948,78 @@ export default function PosTerminalPage() {
     setIsCheckingOut(false);
   };
 
-  const handlePrintReceipt = (receiptToPrint?: any) => {
+  const handlePrintReceipt = async (receiptToPrint?: any) => {
     const data = receiptToPrint || lastReceipt;
     if (!data) return;
+
+    if (settings.printerType !== "A4") {
+      try {
+        const thermalSettings = getCachedThermalSettings();
+        if (settings.printerType === "58mm") {
+          thermalSettings.paperSize = "2inch";
+        } else if (settings.printerType === "80mm") {
+          thermalSettings.paperSize = "3inch";
+        }
+
+        const displayName = currentCompany?.tradeName || currentCompany?.legalName || "NV ENTERPRISE";
+        const displayAddress = [
+          (currentCompany as any)?.addressLine1 || (currentCompany as any)?.address,
+          (currentCompany as any)?.city,
+          (currentCompany as any)?.state,
+          (currentCompany as any)?.pincode,
+        ].filter(Boolean).join(", ");
+        const displayPhone = (currentCompany as any)?.phone || user?.phone || "";
+        const displayGstin = currentCompany?.gstin || "";
+        const displayUpi = (currentCompany as any)?.upiVpa || (currentCompany as any)?.upiId || (displayPhone ? `${displayPhone}@okaxis` : "");
+
+        const thermalData: ThermalReceiptData = {
+          companyName: displayName,
+          companyAddress: displayAddress,
+          companyPhone: displayPhone,
+          companyGstin: displayGstin,
+          companyLogoUrl: (currentCompany as any)?.logoUrl || thermalSettings.logoUrl || null,
+          upiId: displayUpi,
+
+          invoiceNumber: data.invoiceNumber,
+          invoiceDate: (data.date || "").split(",")[0] || new Date().toLocaleDateString("en-IN"),
+          invoiceTime: (data.date || "").split(",")[1]?.trim() || new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
+          cashierName: user?.fullName || "Cashier",
+
+          customerName: data.customerName || "Walk-in Customer",
+          customerPhone: data.customerPhone || "",
+          customerAddress: "",
+          customerGstin: "",
+
+          items: (data.items || []).map((c: any) => ({
+            name: c.item?.name || "Item",
+            description: c.item?.description || "",
+            hsn: c.item?.hsnCode || "",
+            quantity: String(c.quantity),
+            unit: typeof c.item?.unit === "string" ? c.item.unit : (c.item?.unit?.symbol || "Pcs"),
+            rate: Number(c.unitPrice) || 0,
+            discount: Number(c.discountPercent) || 0,
+            taxPercent: Number(c.taxRate || c.item?.taxRate) || 0,
+            amount: (Number(c.unitPrice) || 0) * (Number(c.quantity) || 1),
+          })),
+
+          subTotal: Number(data.subTotal) || 0,
+          taxableAmount: (Number(data.subTotal) || 0) - (Number(data.totalDiscount) || 0),
+          taxTotal: Number(data.taxTotal) || 0,
+          discountTotal: Number(data.totalDiscount) || 0,
+          grandTotal: Number(data.grandTotal) || 0,
+          paymentMode: data.paymentMode || "Cash",
+          receivedAmount: Number(data.receivedAmount) || Number(data.grandTotal) || 0,
+          balanceAmount: Math.max(0, (Number(data.grandTotal) || 0) - (Number(data.receivedAmount) || 0)),
+          youSaved: Number(data.totalDiscount) || 0,
+          notes: data.notes || "",
+        };
+
+        await executeThermalPrint(thermalData, thermalSettings);
+        return;
+      } catch (err) {
+        console.error("Thermal slip generation fallback:", err);
+      }
+    }
 
     let iframe = document.getElementById("pos-receipt-print-frame") as HTMLIFrameElement;
     if (iframe) iframe.remove();
@@ -1585,10 +1682,24 @@ export default function PosTerminalPage() {
                           ₹{Number(cartLine.mrp || 0).toFixed(2)}
                         </div>
                       )}
-                      <div className="w-24 py-2.5 px-3 text-right tabular-nums font-bold text-[#1F2937] border-r border-[#E5E7EB]">
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTriggerEdit("PRICE", cartLine, idx);
+                        }}
+                        title="Click to edit Price [P]"
+                        className="w-24 py-2.5 px-3 text-right tabular-nums font-bold text-[#1F2937] border-r border-[#E5E7EB] hover:bg-indigo-50/80 hover:text-[#5C56DF] transition-colors cursor-pointer"
+                      >
                         ₹{Number(cartLine.unitPrice).toFixed(2)}
                       </div>
-                      <div className="w-24 py-2.5 px-3 text-center tabular-nums text-slate-600 border-r border-[#E5E7EB]">
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTriggerEdit("DISCOUNT", cartLine, idx);
+                        }}
+                        title="Click to edit Discount [D]"
+                        className="w-24 py-2.5 px-3 text-center tabular-nums text-slate-600 border-r border-[#E5E7EB] hover:bg-emerald-50/80 hover:text-emerald-700 transition-colors cursor-pointer font-medium"
+                      >
                         {cartLine.discountPercent || 0}%
                       </div>
                       <div className="w-28 py-2.5 px-3 flex items-center justify-center gap-1 border-r border-[#E5E7EB]">
@@ -1598,11 +1709,18 @@ export default function PosTerminalPage() {
                             e.stopPropagation();
                             updateItemQty(cartLine.id, -1);
                           }}
-                          className="w-5 h-5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-medium text-[13px]"
+                          className="w-5 h-5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-medium text-[13px] cursor-pointer"
                         >
                           -
                         </button>
-                        <span className="tabular-nums font-bold px-1 text-center">
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleTriggerEdit("QTY", cartLine, idx);
+                          }}
+                          title="Click to edit Quantity [Q]"
+                          className="tabular-nums font-bold px-1 text-center cursor-pointer hover:bg-indigo-50 hover:text-[#5C56DF] rounded"
+                        >
                           {cartLine.quantity} {cartLine.item.unit || "PCS"}
                         </span>
                         <button
@@ -1611,7 +1729,7 @@ export default function PosTerminalPage() {
                             e.stopPropagation();
                             updateItemQty(cartLine.id, 1);
                           }}
-                          className="w-5 h-5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-medium text-[13px]"
+                          className="w-5 h-5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-medium text-[13px] cursor-pointer"
                         >
                           +
                         </button>
@@ -1733,18 +1851,67 @@ export default function PosTerminalPage() {
               </div>
 
               {totalDiscount > 0 && (
-                <div className="flex justify-between items-center text-[#10B981]">
-                  <span>Discount</span>
-                  <span className="tabular-nums font-semibold">
+                <div className="flex justify-between items-center text-[#10B981] bg-emerald-50/60 px-2 py-1 rounded">
+                  <div className="flex items-center gap-1.5">
+                    <span>Discount ({currentScreen.discountType === "BEFORE_TAX" ? "Before Tax" : "After Tax"})</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateCurrentScreen((prev) => ({
+                          ...prev,
+                          discountPercent: 0,
+                          discountAmount: 0,
+                        }))
+                      }
+                      className="text-slate-400 hover:text-rose-600 font-bold px-0.5 cursor-pointer"
+                      title="Clear Discount"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <span
+                    onClick={() => {
+                      setTempDiscount({
+                        type: currentScreen.discountType,
+                        percent: currentScreen.discountPercent,
+                        amount: currentScreen.discountAmount,
+                      });
+                      setIsDiscountModalOpen(true);
+                    }}
+                    className="tabular-nums font-semibold cursor-pointer hover:underline"
+                    title="Click to edit discount [F2]"
+                  >
                     - ₹ {totalDiscount.toFixed(2)}
                   </span>
                 </div>
               )}
 
               {totalCharges > 0 && (
-                <div className="flex justify-between items-center text-[#374151]">
-                  <span>Additional Charges</span>
-                  <span className="tabular-nums font-semibold">
+                <div className="flex justify-between items-center text-[#374151] bg-slate-50 px-2 py-1 rounded">
+                  <div className="flex items-center gap-1.5">
+                    <span>Additional Charges</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateCurrentScreen((prev) => ({
+                          ...prev,
+                          additionalCharges: [],
+                        }))
+                      }
+                      className="text-slate-400 hover:text-rose-600 font-bold px-0.5 cursor-pointer"
+                      title="Clear Charges"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <span
+                    onClick={() => {
+                      setTempCharges([...currentScreen.additionalCharges]);
+                      setIsChargesModalOpen(true);
+                    }}
+                    className="tabular-nums font-semibold cursor-pointer hover:underline"
+                    title="Click to edit charges [F3]"
+                  >
                     + ₹ {totalCharges.toFixed(2)}
                   </span>
                 </div>

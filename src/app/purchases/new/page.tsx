@@ -219,6 +219,37 @@ function NewPurchaseInvoiceContent() {
   const [customPartyFieldValues, setCustomPartyFieldValues] = useState<Record<string, string>>({});
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Redesign state: Details tabs, attachments, dropdowns
+  const [activeDetailsTab, setActiveDetailsTab] = useState<"notes" | "terms" | "info" | "attachments">("notes");
+  const [attachments, setAttachments] = useState<{ id: string; name: string; size: string; file: File }[]>([]);
+  const attachmentInputRef = useRef<HTMLInputElement>(null);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showImportMenu, setShowImportMenu] = useState(false);
+  const [showAddItemMenu, setShowAddItemMenu] = useState(false);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
+  const importMenuRef = useRef<HTMLDivElement>(null);
+  const addItemMenuRef = useRef<HTMLDivElement>(null);
+  const partyDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target as Node)) {
+        setShowMoreMenu(false);
+      }
+      if (importMenuRef.current && !importMenuRef.current.contains(e.target as Node)) {
+        setShowImportMenu(false);
+      }
+      if (addItemMenuRef.current && !addItemMenuRef.current.contains(e.target as Node)) {
+        setShowAddItemMenu(false);
+      }
+      if (partyDropdownRef.current && !partyDropdownRef.current.contains(e.target as Node)) {
+        setShowPartyDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   function incrementSequenceNumber(seq: string): string {
     if (!seq) return "0001";
     const num = parseInt(seq, 10);
@@ -1745,25 +1776,141 @@ const [notes, setNotes] = useState("");
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
-          2.5 TOP DOCUMENT HEADER CARD (Full Width Fluid)
+          2.5 TOP DOCUMENT HEADER (Breadcrumb, Title, Actions)
          ───────────────────────────────────────────────────────────── */}
       {activeMode !== "PREVIEW" && (
-        <div className="w-full px-3 sm:px-4 lg:px-6 pt-2">
-          <DocumentHeaderCard
-            title={lang === "gu" ? "ખરીદી બિલ" : "Purchase Bill"}
-            subtitle={lang === "gu" ? "તમારું ખરીદી બિલ બનાવો અને સ્ટોક અપડેટ કરો" : "Create and manage your purchase bill"}
-            status="Draft"
-            onPreview={() => setActiveMode("PREVIEW")}
-            onPrint={() => window.print()}
-            onSave={() => handleSubmit(false)}
-            onSaveAsDraft={() => handleSubmit(true)}
-            isSaving={isSubmitting}
-            saveButtonLabel="Save Purchase Bill"
-            moreMenuItems={[
-              { label: "Quick Settings", onClick: () => { setQuickSettingsTab("items"); setIsQuickSettingsOpen(true); } },
-              { label: "Keyboard Shortcuts", onClick: () => setIsShortcutsOpen(true) },
-            ]}
-          />
+        <div className="w-full px-3 sm:px-4 lg:px-6 pt-2 pb-1">
+          {/* Breadcrumb matching Reference Image */}
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mb-1.5">
+            <span>Purchases</span>
+            <span className="text-slate-400">/</span>
+            <span>Purchase Invoices</span>
+            <span className="text-slate-400">/</span>
+            <span className="text-slate-800 font-semibold">New</span>
+          </div>
+
+          {/* Header Row */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            {/* Left: Icon, Title, Badge, Subtitle */}
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-50/80 border border-blue-200/60 flex items-center justify-center text-[#1677E8] shrink-0 shadow-2xs">
+                <svg className="w-5 h-5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+                    {lang === "gu" ? "ખરીદી બિલ" : "Purchase Bill"}
+                  </h1>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-[#1677E8] border border-blue-200/60">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#1677E8]" />
+                    <span>Draft</span>
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {lang === "gu" ? "તમારું ખરીદી બિલ બનાવો અને સ્ટોક અપડેટ કરો" : "Create and manage your purchase bill."}
+                </p>
+              </div>
+            </div>
+
+            {/* Right: Actions */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setActiveMode("PREVIEW")}
+                className="h-9 px-3.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold shadow-2xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span>Preview</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="h-9 px-3.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold shadow-2xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                <span>Print</span>
+              </button>
+
+              {/* More Menu Dropdown */}
+              <div className="relative" ref={moreMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowMoreMenu((prev) => !prev)}
+                  className="h-9 px-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold shadow-2xs inline-flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  <span>More</span>
+                  <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {showMoreMenu && (
+                  <div className="absolute right-0 top-full mt-1.5 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-1.5 space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuickSettingsTab("items");
+                        setIsQuickSettingsOpen(true);
+                        setShowMoreMenu(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2 cursor-pointer"
+                    >
+                      <span>⚙️</span>
+                      <span>Quick Settings</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsShortcutsOpen(true);
+                        setShowMoreMenu(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2 cursor-pointer"
+                    >
+                      <span>⌨️</span>
+                      <span>Keyboard Shortcuts</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRows([createEmptyPurchaseRow()]);
+                        setPartyId("");
+                        setVendorInvoiceNumber("");
+                        setShowMoreMenu(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 rounded-lg flex items-center gap-2 cursor-pointer"
+                    >
+                      <span>🗑️</span>
+                      <span>Reset Form</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => handleSubmit(false)}
+                className="h-9 px-4.5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0E5BB5] text-white rounded-xl text-xs font-bold shadow-xs inline-flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+                <span>Save Purchase Bill</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -1880,78 +2027,27 @@ const [notes, setNotes] = useState("");
             </div>
           </div>
         ) : (
-          <div className="flex flex-col lg:flex-row gap-3.5 xl:gap-4 items-start w-full">
-            {/* ── LEFT DRAWER: AUTOFILL THIS BILL (GEMINI AI) ── */}
-            {!isAutofillDrawerOpen && (
-              <div className="w-full lg:w-auto shrink-0 mb-3 lg:mb-0 lg:sticky lg:top-4 z-20">
-                <button
-                  type="button"
-                  onClick={() => setIsAutofillDrawerOpen(true)}
-                  aria-expanded={false}
-                  aria-controls="ai-autofill-panel"
-                  className="inline-flex items-center gap-2 h-9 px-3.5 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 border border-[#93C5FD] text-[#0F172A] rounded-xl text-[13px] font-medium shadow-2xs transition-all hover:shadow-xs cursor-pointer group"
-                  title="Show AI Assistant to scan bills and auto-fill line items"
-                >
-                  <span className="text-base group-hover:scale-110 transition-transform">✨</span>
-                  <span>{lang === "gu" ? "AI સહાયક બતાવો" : "Show AI Assistant"}</span>
-                  <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-[#0F172A] text-white font-semibold uppercase tracking-wide">
-                    Scan Bill
-                  </span>
-                </button>
-              </div>
-            )}
-            {isAutofillDrawerOpen && (
-              <aside id="ai-autofill-panel" className="w-full lg:w-[220px] xl:w-[235px] shrink-0 bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col lg:sticky lg:top-4 max-h-none lg:max-h-[calc(100vh-6rem)]">
-                {/* Drawer Header */}
-                <div className="p-4 border-b border-[#F3F4F6] flex items-center justify-between bg-gradient-to-r from-orange-50/50 to-amber-50/30">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-[#EFF6FF] text-[#0F172A] flex items-center justify-center font-bold text-sm shadow-xs border border-[#BFDBFE]">
-                      ✨
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <h3 className="text-xs font-semibold text-[#111827]">
-                          {lang === "gu" ? "આ બિલ ઓટોફિલ કરો" : "Autofill this bill"}
-                        </h3>
-                        <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                          FREE • 4D left
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-[#6B7280]">
-                        Powered by <strong className="text-[#0F172A]">Mira AI</strong>
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsAutofillDrawerOpen(false)}
-                    aria-expanded={isAutofillDrawerOpen}
-                    aria-controls="ai-autofill-panel"
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-white border border-transparent hover:border-slate-200 transition-colors text-[13px] font-medium cursor-pointer shadow-2xs"
-                    title="Hide AI Assistant (reclaim workspace width)"
-                  >
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                    </svg>
-                    <span className="text-[11px] font-bold">{lang === "gu" ? "છુપાવો" : "Hide AI"}</span>
-                  </button>
+          <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)_300px] gap-4 items-start w-full">
+            {/* ── 1. LEFT PANEL: AI AUTOFILL (280px) ── */}
+            <aside className="w-full bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 flex flex-col relative overflow-hidden">
+              {/* AI Header */}
+              <div className="flex items-start gap-2.5 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200/60 text-[#1677E8] flex items-center justify-center font-bold text-sm shadow-2xs shrink-0">
+                  ✨
                 </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 leading-tight">
+                    Create Bill with AI
+                  </h3>
+                  <p className="text-[11px] text-slate-500 leading-relaxed mt-0.5">
+                    Upload your purchase bill and let Mira AI extract the details automatically.
+                  </p>
+                </div>
+              </div>
 
-            {/* Dynamic Stats Row */}
-            <div className="px-4 py-2 bg-[#FAFBFD] border-b border-[#F3F4F6] flex items-center justify-between text-[11px] text-[#6B7280]">
-              <span className="flex items-center gap-1 font-medium">
-                <span>📄</span> {totalBillsRecorded || 2} bills scanned
-              </span>
-              <span className="flex items-center gap-1 font-medium text-[#0F172A]">
-                <span>⏳</span> ~{Math.max(10, Math.round((totalBillsRecorded || 2) * 5))} mins saved
-              </span>
-            </div>
-
-            {/* Upload & Preview Zone */}
-            <div className="p-4 flex-1 overflow-y-auto space-y-4">
+              {/* Upload Zone / Document Preview */}
               {!uploadedDocUrl ? (
-                /* Drag & Drop Area */
+                /* Drag & Drop Area matching Reference Image */
                 <div
                   onClick={() => fileInputRef.current?.click()}
                   onDragOver={(e) => e.preventDefault()}
@@ -1961,7 +2057,7 @@ const [notes, setNotes] = useState("");
                       handleFileUpload(e.dataTransfer.files[0]);
                     }
                   }}
-                  className="border-2 border-dashed border-[#93C5FD] hover:border-[#0F172A] bg-[#FFFBF8] hover:bg-[#FFF6EF] rounded-2xl p-6 text-center cursor-pointer transition-all group flex flex-col items-center justify-center min-h-[200px]"
+                  className="border-2 border-dashed border-blue-200 hover:border-[#1677E8] bg-blue-50/20 hover:bg-blue-50/40 rounded-2xl p-4 text-center cursor-pointer transition-all flex flex-col items-center justify-center my-3 group min-h-[140px]"
                 >
                   <input
                     ref={fileInputRef}
@@ -1974,52 +2070,24 @@ const [notes, setNotes] = useState("");
                       }
                     }}
                   />
-                  <div className="w-12 h-12 rounded-full bg-[#EFF6FF] text-[#0F172A] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  <div className="w-9 h-9 rounded-full bg-blue-100/70 text-[#1677E8] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
                   </div>
-                  <h4 className="text-xs font-bold text-[#C2410C] mb-1">
-                    {lang === "gu" ? "ફાઇલ ડ્રેગ કરો અથવા અપલોડ કરો" : "Drag & Drop files here to upload"}
-                  </h4>
-                  <p className="text-[10px] text-[#9CA3AF] max-w-[200px]">
-                    (PDF, JPG, JPEG & PNG supported, max 5MB)
+                  <p className="text-xs text-slate-700 font-medium">
+                    Drag & Drop or{" "}
+                    <span className="text-[#1677E8] font-bold underline">Browse Files</span>
                   </p>
-                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        fileInputRef.current?.click();
-                      }}
-                      className="px-5 py-1.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg text-[13px] font-medium shadow-xs transition-all active:scale-95"
-                    >
-                      {lang === "gu" ? "આગળ વધો (Proceed)" : "Proceed"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenSmartScanner();
-                      }}
-                      className="h-9 px-3 bg-slate-900 hover:bg-black text-white rounded-lg text-[13px] font-medium shadow-xs transition-all flex items-center gap-1 active:scale-95"
-                    >
-                      <span>📷</span>
-                      <span>{lang === "gu" ? "કેમેરા સ્કેન" : "Camera Scan"}</span>
-                    </button>
-                  </div>
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    PDF, JPG, JPEG, PNG (Max 5MB)
+                  </p>
                 </div>
               ) : (
-                /* Document Preview Card with Futuristic Laser Scanner */
-                <div className="space-y-3">
-                  <div className="relative rounded-xl border border-[#E5E7EB] bg-slate-900 overflow-hidden shadow-md">
-                    {/* Page badge */}
-                    <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-black/75 text-white text-[10px] tabular-nums font-bold z-30 shadow">
-                      1/1
-                    </div>
-
-                    {/* Document Viewport: PDF iframe or Image */}
-                    <div className="relative h-60 w-full bg-slate-950 overflow-hidden">
+                /* Document Preview & Scanning State */
+                <div className="my-3 space-y-2">
+                  <div className="relative rounded-xl border border-slate-200 bg-slate-900 overflow-hidden shadow-xs">
+                    <div className="relative h-44 w-full bg-slate-950 overflow-hidden flex items-center justify-center">
                       {uploadedDocType?.includes("pdf") ? (
                         <iframe
                           src={`${uploadedDocUrl}#toolbar=0&navpanes=0&scrollbar=0`}
@@ -2035,65 +2103,34 @@ const [notes, setNotes] = useState("");
                         />
                       )}
 
-                      {/* Scanning Grid & Laser Beam Overlay (Sweeps across document) */}
+                      {/* Scanning laser overlay when analyzing */}
                       {isAnalyzingDoc && (
-                        <div className="absolute inset-0 z-20 pointer-events-none flex flex-col justify-between">
-                          {/* High-tech Corner Crosshairs */}
-                          <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-[#0F172A]" />
-                          <div className="absolute top-2 right-12 w-4 h-4 border-t-2 border-r-2 border-[#0F172A]" />
-                          <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-[#0F172A]" />
-                          <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-[#0F172A]" />
-
-                          {/* Scanner grid pattern */}
-                          <div className="scanner-grid-pattern absolute inset-0 opacity-40" />
-
-                          {/* Moving Laser Beam with Light Cone */}
-                          <div className="absolute inset-x-0 animate-laser-sweep pointer-events-none z-30">
-                            <div className="h-[3px] w-full bg-gradient-to-r from-transparent via-[#0F172A] via-amber-400 to-transparent shadow-[0_0_20px_6px_rgba(244,119,33,0.95)]" />
-                            <div className="h-10 w-full bg-gradient-to-b from-[#0F172A]/30 to-transparent blur-[1px]" />
-                          </div>
-
-                          {/* Center Animated Scanner Status */}
-                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[1px] p-3 text-center z-40">
-                            <div className="px-3.5 py-1.5 rounded-full bg-slate-900/95 border border-[#0F172A] shadow-xl flex items-center gap-2 mb-2 animate-scan-tag">
-                              <span className="w-2.5 h-2.5 rounded-full bg-[#0F172A] animate-ping" />
-                              <span className="text-xs font-bold text-white tracking-wide">
-                                {analysisProgress || (lang === "gu" ? "AI બિલ સ્કેન કરી રહ્યું છે..." : "AI Gemini Vision Scanning...")}
-                              </span>
-                            </div>
-                            <div className="flex flex-wrap items-center justify-center gap-1.5 max-w-[240px]">
-                              <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/90 text-white animate-pulse">
-                                ✓ GSTIN & Date
-                              </span>
-                              <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500/90 text-white animate-pulse">
-                                ✓ Items & HSN
-                              </span>
-                              <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/90 text-white animate-pulse">
-                                ✓ Tax & Totals
-                              </span>
-                            </div>
+                        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/50 p-2 text-center">
+                          <div className="w-full h-1 bg-gradient-to-r from-transparent via-[#1677E8] via-blue-400 to-transparent shadow-[0_0_12px_3px_rgba(22,119,232,0.9)] animate-pulse mb-3" />
+                          <div className="px-2.5 py-1 rounded-full bg-slate-900/90 border border-blue-400/60 shadow text-[11px] font-bold text-white flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
+                            <span>{analysisProgress || "AI Gemini Vision Scanning..."}</span>
                           </div>
                         </div>
                       )}
                     </div>
 
-                    {/* File bottom info strip */}
-                    <div className="p-2.5 bg-white border-t border-[#E5E7EB] flex items-center justify-between text-xs relative z-10">
-                      <div className="flex items-center gap-1.5 truncate max-w-[180px]">
-                        <span className="px-1.5 py-0.5 rounded bg-orange-100 text-[#0F172A] font-bold text-[9px]">
+                    {/* Bottom file info bar */}
+                    <div className="p-2 bg-white border-t border-slate-200 flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1.5 truncate max-w-[170px]">
+                        <span className="px-1.5 py-0.5 rounded bg-blue-100 text-[#1677E8] font-bold text-[9px]">
                           {uploadedDocType?.includes("pdf") ? "PDF" : "IMG"}
                         </span>
                         <span className="text-[11px] font-semibold text-slate-700 truncate" title={uploadedDocName || ""}>
-                          {uploadedDocName}
+                          {uploadedDocName || "Uploaded Bill"}
                         </span>
                       </div>
-
                       <div className="flex items-center gap-1">
                         <button
                           type="button"
                           onClick={() => setZoomPreviewModal(true)}
-                          className="p-1 text-slate-500 hover:text-[#0F172A] rounded"
-                          title="Zoom"
+                          className="p-1 text-slate-500 hover:text-[#1677E8]"
+                          title="Zoom preview"
                         >
                           🔍
                         </button>
@@ -2105,587 +2142,1033 @@ const [notes, setNotes] = useState("");
                             setUploadedDocFile(null);
                             setLastScanRecord(null);
                           }}
-                          className="p-1 text-slate-400 hover:text-rose-600 rounded"
-                          title="Remove"
+                          className="p-1 text-slate-400 hover:text-rose-600"
+                          title="Remove file"
                         >
                           ✕
                         </button>
                       </div>
                     </div>
                   </div>
-
-                  {/* Scanning Status Bar or Review Buttons */}
-                  {isAnalyzingDoc ? (
-                    <div className="p-3 bg-[#F8FAFC] border border-[#BFDBFE] rounded-xl space-y-2">
-                      <div className="flex items-center justify-between text-xs text-[#C2410C] font-bold">
-                        <span className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-[#0F172A] animate-ping" />
-                          {lang === "gu" ? "AI બિલ વાંચી રહ્યું છે" : "AI Gemini Vision Analyzing"}
-                        </span>
-                        <span className="text-[11px] tabular-nums text-[#0F172A]">
-                          {scanStepIndex === 0
-                            ? "20%"
-                            : scanStepIndex === 1
-                              ? "45%"
-                              : scanStepIndex === 2
-                                ? "70%"
-                                : scanStepIndex === 3
-                                  ? "90%"
-                                  : "98%"}
-                        </span>
-                      </div>
-                      <div className="w-full h-1.5 bg-orange-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-to-r from-[#0F172A] to-amber-500 rounded-full transition-all duration-500"
-                          style={{
-                            width:
-                              scanStepIndex === 0
-                                ? "20%"
-                                : scanStepIndex === 1
-                                  ? "45%"
-                                  : scanStepIndex === 2
-                                    ? "70%"
-                                    : scanStepIndex === 3
-                                      ? "90%"
-                                      : "98%",
-                          }}
-                        />
-                      </div>
-                      <p className="text-[10px] text-slate-500 leading-tight">
-                        {analysisProgress}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (lastScanRecord?.extractedData) {
-                            const ed = lastScanRecord.extractedData;
-                            const inv = ed.invoice || {};
-                            const sup = ed.supplier || {};
-                            const fin = ed.financials || {};
-                            const itemsList = ed.items || [];
-                            const grandTotalVal = Number(fin.grandTotal || ed.sourceGrandTotal || 0);
-
-                            // Resolve invoice number: avoid generic "Screenshot from ..."
-                            const rawOcr = lastScanRecord?.rawOcrText || "";
-                            let detectedInvNo = inv.invoiceNumber || ed.invoiceNumber;
-                            if (!detectedInvNo || /^(?:screenshot|img_|file_)/i.test(detectedInvNo.trim())) {
-                              const payMatch = rawOcr.match(/pay_[A-Za-z0-9]+/i) ||
-                                rawOcr.match(/(?:Payment\s*Id|Payment\s*ID|Order\s*Id|Order\s*ID|Txn\s*Id|Transaction\s*Id|Ref\s*No|Reference\s*No)[\s:]+([A-Za-z0-9_-]+)/i);
-                              if (payMatch) {
-                                detectedInvNo = payMatch[1] || payMatch[0];
-                              } else {
-                                detectedInvNo = uploadedDocName?.replace(/\.[^/.]+$/, "").substring(0, 16);
-                              }
-                            }
-
-                            // Detect if receipt was already paid (e.g. Zepto / UPI Paid Successfully)
-                            const isPaid = /paid\s+successfully|paid\s+on|\bpaid\b/i.test(rawOcr) || /upi|gpay|phonepe|paytm/i.test(rawOcr);
-
-                            // If items are empty but grandTotalVal > 0, generate single item
-                            let finalItems = itemsList;
-                            if ((!finalItems || finalItems.length === 0) && grandTotalVal > 0) {
-                              const fallbackSupName = sup.name ? `${sup.name} - Purchase Bill` : (lang === "gu" ? "ખરીદી બિલ / વાઉચર" : "Purchase Bill / Expense");
-                              finalItems = [{
-                                description: fallbackSupName,
-                                hsnCode: "9983",
-                                unit: "PCS",
-                                quantity: 1,
-                                unitPrice: grandTotalVal,
-                                taxRate: 0,
-                                discountAmount: 0,
-                              }];
-                            }
-
-                            handleTransferFromScanner({
-                              vendorInvoiceNumber: detectedInvNo || undefined,
-                              invoiceDate: inv.invoiceDate || ed.invoiceDate || new Date().toISOString().split("T")[0],
-                              dueDate: inv.dueDate || ed.dueDate || undefined,
-                              partyId: lastScanRecord.matchedPartyId || lastScanRecord.matchedSupplierId || sup.matchedPartyId || undefined,
-                              matchedParty: lastScanRecord.matchedParty || undefined,
-                              supplierName: sup.name || undefined,
-                              supplierGstin: sup.gstin || undefined,
-                              supplierPhone: sup.phone || undefined,
-                              supplierAddress: sup.address || undefined,
-                              placeOfSupply: inv.placeOfSupply || ed.placeOfSupply || undefined,
-                              grandTotal: grandTotalVal,
-                              paymentStatus: isPaid ? "PAID_FULL" : undefined,
-                              paidAmount: isPaid ? grandTotalVal : undefined,
-                              items: finalItems.map((it: any) => ({
-                                itemId: it.matchedItemId,
-                                itemName: it.description || it.itemName,
-                                hsnCode: it.hsnCode,
-                                unit: it.unit,
-                                quantity: it.quantity,
-                                unitPrice: it.unitPrice,
-                                taxRate: it.taxRate ?? it.gstRate,
-                                discountAmount: it.discountAmount ?? it.discount,
-                              })),
-                            });
-                          } else if (uploadedDocFile) {
-                            handleFileUpload(uploadedDocFile);
-                          } else {
-                            handleOpenSmartScanner();
-                          }
-                        }}
-                        className="w-full py-2.5 bg-gradient-to-r from-[#0F172A] to-[#123B35] hover:from-[#123B35] hover:to-[#B94B0A] text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5 active:scale-95"
-                      >
-                        <span>✨</span>
-                        <span>
-                          {lang === "gu"
-                            ? "ફોર્મમાં ફરીથી ભરો (Autofill Form)"
-                            : "Review Scanned Details & Autofill"}
-                        </span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={handleOpenScanReview}
-                        className="w-full py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl text-[13px] font-medium transition-all flex items-center justify-center gap-1.5 active:scale-95"
-                      >
-                        <span>🔍</span>
-                        <span>
-                          {lang === "gu"
-                            ? "આમને સામને ચકાસો (Side-by-Side Review)"
-                            : "Open Side-by-Side Review"}
-                        </span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={handleOpenSmartScanner}
-                        className="w-full py-2 bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-900 hover:to-black text-white rounded-xl text-[13px] font-medium transition-all flex items-center justify-center gap-1.5 shadow-xs active:scale-95"
-                      >
-                        <svg className="w-3.5 h-3.5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <span>
-                          {lang === "gu"
-                            ? "નવું બિલ સ્કેન કરો (Scan New Bill)"
-                            : "Scan New Bill (Camera / Upload)"}
-                        </span>
-                      </button>
-                    </div>
-                  )}
                 </div>
               )}
 
-              {/* Dismissible How it works? Box */}
-              {showHowItWorks && (
-                <div className="p-3 bg-[#FAF5FF] border border-[#E9D5FF] rounded-xl text-xs space-y-2 relative">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-[#6B21A8]">How it works?</span>
-                    <button
-                      type="button"
-                      onClick={() => setShowHowItWorks(false)}
-                      className="text-purple-400 hover:text-purple-700 text-xs font-bold"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  <div className="space-y-1.5 text-[11px] text-[#581C87]">
-                    <div className="flex items-start gap-1.5">
-                      <span className="font-bold text-[#7E22CE]">1.</span>
-                      <span>Upload a picture or PDF of your purchase bill</span>
-                    </div>
-                    <div className="flex items-start gap-1.5">
-                      <span className="font-bold text-[#7E22CE]">2.</span>
-                      <span>Mira AI automatically extracts party, items, rates & taxes</span>
-                    </div>
-                    <div className="flex items-start gap-1.5">
-                      <span className="font-bold text-[#7E22CE]">3.</span>
-                      <span>Review extracted details and save your voucher</span>
-                    </div>
-                  </div>
-                </div>
-              )}
+              {/* Action Buttons */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (uploadedDocFile) {
+                    handleFileUpload(uploadedDocFile);
+                  } else {
+                    fileInputRef.current?.click();
+                  }
+                }}
+                className="w-full py-2.5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0E5BB5] text-white rounded-xl text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+              >
+                <span>✨</span>
+                <span>Proceed with AI Autofill</span>
+              </button>
 
-              {/* Quick Tips Box with Dot Carousel */}
-              <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[11px] text-[#475569] space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 font-bold text-[#1E293B]">
-                    <span>💡</span>
-                    <span>{lang === "gu" ? "મહત્વપૂર્ણ ટીપ્સ" : "Quick Tips"}</span>
+              <button
+                type="button"
+                onClick={handleOpenSmartScanner}
+                className="w-full mt-2 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold shadow-2xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <svg className="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>Camera Scan</span>
+              </button>
+
+              {/* How It Works Stepper */}
+              <div className="mt-4 pt-3 border-t border-slate-100">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 mb-2.5">
+                  <span className="text-[#1677E8]">ℹ</span>
+                  <span>How it works?</span>
+                </div>
+                <div className="space-y-0.5">
+                  <div className="flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-full bg-blue-50 text-[#1677E8] border border-blue-200 text-[10px] font-bold flex items-center justify-center shrink-0">
+                      1
+                    </span>
+                    <span className="text-[11px] text-slate-600 leading-tight pt-0.5">
+                      Upload a bill (PDF or image)
+                    </span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    {quickTips.map((_, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => setTipIndex(i)}
-                        className={`h-1.5 rounded-full transition-all ${tipIndex === i ? "bg-[#0F172A] w-3" : "bg-slate-300 w-1.5"
-                          }`}
-                      />
-                    ))}
+                  <div className="w-0.5 h-3 bg-blue-100 ml-2.5 my-0.5" />
+                  <div className="flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-full bg-blue-50 text-[#1677E8] border border-blue-200 text-[10px] font-bold flex items-center justify-center shrink-0">
+                      2
+                    </span>
+                    <span className="text-[11px] text-slate-600 leading-tight pt-0.5">
+                      Mira AI extracts party, items, taxes & amounts
+                    </span>
+                  </div>
+                  <div className="w-0.5 h-3 bg-blue-100 ml-2.5 my-0.5" />
+                  <div className="flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-full bg-blue-50 text-[#1677E8] border border-blue-200 text-[10px] font-bold flex items-center justify-center shrink-0">
+                      3
+                    </span>
+                    <span className="text-[11px] text-slate-600 leading-tight pt-0.5">
+                      Review the details and save your bill
+                    </span>
                   </div>
                 </div>
-                <p className="text-[10px] leading-relaxed text-slate-600 min-h-[28px]">
-                  {quickTips[tipIndex]}
-                </p>
               </div>
-            </div>
-          </aside>
-        )}
 
-            {/* ── CENTER MAIN PANEL: VENDOR INFO, ITEMS TABLE, LOWER CARDS ── */}
+              {/* Bottom Subtle Wave Decoration */}
+              <div className="mt-4 -mx-4 -mb-4 overflow-hidden pointer-events-none opacity-40">
+                <svg viewBox="0 0 280 40" fill="none" className="w-full h-10">
+                  <path d="M0 25C70 10 140 35 210 20C245 12 265 18 280 22V40H0V25Z" fill="#93C5FD" fillOpacity="0.3" />
+                  <path d="M0 30C50 18 120 38 180 26C230 16 260 28 280 32V40H0V30Z" fill="#3B82F6" fillOpacity="0.2" />
+                </svg>
+              </div>
+            </aside>
+
+            {/* ── 2. CENTER PANEL: MAIN PURCHASE WORKSPACE (MAX WIDTH) ── */}
             <main className="flex-1 min-w-0 space-y-4">
-            {/* 5-COLUMN DOCUMENT INFO STRIP */}
-            <DocumentInfoStrip
-              fields={[
-                {
-                  id: "supplier",
-                  label: "Supplier / Vendor",
-                  required: true,
-                  type: "custom",
-                  customRender: (
-                    <PartySelectorCompact
-                      selectedParty={selectedSupplier ? {
-                        id: selectedSupplier.id,
-                        name: selectedSupplier.name,
-                        phone: selectedSupplier.phone,
-                        gstin: selectedSupplier.gstin,
-                        address: selectedSupplier.billingAddress?.line1,
-                      } : null}
-                      searchTerm={partySearchTerm}
-                      onSearchChange={setPartySearchTerm}
-                      isOpen={showPartyDropdown}
-                      onOpenChange={setShowPartyDropdown}
-                      filteredParties={filteredSuppliers.map((s) => ({
-                        id: s.id,
-                        name: s.name,
-                        phone: s.phone,
-                        gstin: s.gstin,
-                        outstandingBalance: s.currentBalance,
-                      }))}
-                      onSelectParty={(id) => {
-                        handleSupplierChange(id);
-                      }}
-                      onClearParty={() => {
-                        setPartyId("");
-                        setPartySearchTerm("");
-                      }}
-                      onAddNew={() => setIsAddSupplierModalOpen(true)}
-                      placeholder="Search supplier..."
-                    />
-                  ),
-                },
-                {
-                  id: "vendorInvoiceNumber",
-                  label: "Supplier Bill No.",
-                  type: "text",
-                  value: vendorInvoiceNumber,
-                  onChange: setVendorInvoiceNumber,
-                  placeholder: "e.g. BILL-9821",
-                },
-                {
-                  id: "invoiceDate",
-                  label: "Purchase Date",
-                  type: "date",
-                  value: invoiceDate,
-                  onChange: setInvoiceDate,
-                },
-                {
-                  id: "dueDate",
-                  label: "Due Date",
-                  type: "date",
-                  value: dueDate,
-                  onChange: setDueDate,
-                },
-                {
-                  id: "placeOfSupply",
-                  label: "Place of Supply",
-                  type: "select",
-                  value: placeOfSupply,
-                  onChange: setPlaceOfSupply,
-                  options: Object.entries(INDIAN_STATES).map(([code, st]) => ({
-                    label: `${st.name} (${code})`,
-                    value: code,
-                  })),
-                },
-              ]}
-            />
+              {/* Card A: Supplier & Bill Details */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 sm:p-5 space-y-4">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <h2 className="text-sm font-bold text-slate-900">
+                    Supplier & Bill Details
+                  </h2>
+                </div>
 
-                <DocumentItemsCard
-                  title="Items & Services"
-                  itemsCount={rows.length}
-                  totalQty={totals.totalQuantity}
-                  itemsTotal={formatInr(totals.grandTotal)}
-                  onImportItems={() => setIsAddItemModalOpen(true)}
-                  onAddItem={() => setIsAddItemModalOpen(true)}
-                  onAddBlankRow={handleAddRow}
-                  addItemLabel="+ Add Item"
-                >
-                  <div className="overflow-x-auto w-full scrollbar-thin">
-                    <table className="w-full text-left text-xs border-collapse">
-                      <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 font-bold text-[10px] sm:text-[11px] uppercase tracking-wider">
-                        <tr>
-                          <th className="py-2.5 px-1 text-center w-7">#</th>
-                          <th className="py-2.5 px-2 min-w-[110px]">Item / Description</th>
-                          <th className="py-2.5 px-1 text-center w-14">HSN/SAC</th>
-                          <th className="py-2.5 px-1 text-center w-11">Qty</th>
-                          <th className="py-2.5 px-1 text-right w-14">Rate (₹)</th>
-                          <th className="py-2.5 px-1 text-center w-13">Discount</th>
-                          <th className="py-2.5 px-1 text-center w-13">Tax (%)</th>
-                          <th className="py-2.5 px-1.5 text-right w-20">Amount (₹)</th>
-                          <th className="py-2.5 px-1 text-center w-8">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {rows.length === 0 ? (
-                          <tr>
-                            <td colSpan={9} className="py-12 text-center text-slate-400">
-                              <div className="max-w-xs mx-auto space-y-2">
-                                <span className="text-2xl">📦</span>
-                                <p className="font-bold text-slate-700">No items added to purchase bill yet</p>
-                                <p className="text-[11px] text-slate-400">Add an item from catalog or enter details below</p>
-                                <button
-                                  type="button"
-                                  onClick={() => setIsAddItemModalOpen(true)}
-                                  className="h-9 px-3 bg-[#0F172A] text-white rounded-xl text-[13px] font-medium shadow-2xs cursor-pointer"
-                                >
-                                  + Add From Catalog
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ) : (
-                          rows.map((row, idx) => {
-                            const itm = items.find((i) => i.id === row.itemId);
-                            const qty = Number(row.quantity) || 0;
-                            const rate = Number(row.unitPrice) || 0;
-                            const gross = qty * rate;
-                            const disc = Number(row.discountValue) || 0;
-                            const discVal = row.discountType === "₹" ? disc : (gross * disc) / 100;
-                            const taxable = Math.max(0, gross - discVal);
-                            const taxRate = Number(row.taxRate) || 0;
-                            const taxAmt = (taxable * taxRate) / 100;
-                            const lineTot = taxable + taxAmt;
+                <div className="space-y-4">
+                  {/* Row 1: Supplier / Vendor + Supplier Bill No. */}
+                  <div className="grid grid-cols-1 md:grid-cols-[1.3fr_1fr] gap-4">
+                    {/* Supplier / Vendor */}
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 mb-1.5 block">
+                        Supplier / Vendor <span className="text-rose-500">*</span>
+                      </label>
+                      {selectedSupplier ? (
+                        <div className="flex items-center justify-between h-10 px-3 bg-[#F8FAFC] border border-blue-200/80 rounded-xl shadow-2xs">
+                          <div className="flex items-center gap-2 min-w-0 pr-2">
+                            <svg className="w-4 h-4 text-slate-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-slate-900 truncate">
+                                {selectedSupplier.name}
+                              </p>
+                              {(selectedSupplier.phone || selectedSupplier.gstin) && (
+                                <p className="text-[10px] text-slate-500 tabular-nums truncate">
+                                  {selectedSupplier.gstin ? `GST: ${selectedSupplier.gstin}` : selectedSupplier.phone}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPartyId("");
+                              setPartySearchTerm("");
+                              setShowPartyDropdown(false);
+                            }}
+                            className="w-6 h-6 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center text-xs shrink-0 cursor-pointer"
+                            title="Change supplier"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="relative" ref={partyDropdownRef}>
+                          <button
+                            type="button"
+                            onClick={() => setShowPartyDropdown((prev) => !prev)}
+                            className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-left flex items-center justify-between text-xs font-medium text-slate-500 hover:border-slate-300 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2">
+                              <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                              <span>Select supplier</span>
+                            </div>
+                            <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
 
-                            return (
-                              <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
-                                <td className="py-2 px-1 text-center text-slate-500 tabular-nums text-xs font-medium">
-                                  {idx + 1}
-                                </td>
-
-                                <td className="py-2 px-1.5 min-w-[110px]">
-                                  <div className="relative">
-                                    <select
-                                      value={row.itemId}
-                                      onChange={(e) => handleItemSelect(idx, e.target.value)}
-                                      className="w-full text-xs py-1 pl-2 pr-6 bg-white hover:bg-slate-50/80 focus:bg-white border border-slate-200 focus:border-[#1677E8] rounded-lg font-medium text-slate-800 shadow-2xs appearance-none cursor-pointer h-8 truncate"
-                                    >
-                                      {items.map((it) => (
-                                        <option key={it.id} value={it.id}>
-                                          {it.name}
-                                        </option>
-                                      ))}
-                                    </select>
-                                    <div className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                      </svg>
-                                    </div>
-                                  </div>
-                                </td>
-
-                                <td className="py-2 px-1">
+                          {showPartyDropdown && (
+                            <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-2 space-y-2">
+                              <div className="flex items-center gap-2">
+                                <div className="relative flex-1">
                                   <input
                                     type="text"
-                                    value={row.hsnCode}
-                                    onChange={(e) => handleRowChange(idx, "hsnCode", e.target.value)}
-                                    className="w-full text-xs py-1 px-1 text-center tabular-nums bg-white border border-slate-200 rounded-lg text-slate-700 focus:bg-white focus:border-[#1677E8] focus:outline-none shadow-2xs h-8"
-                                    placeholder="1001"
+                                    autoFocus
+                                    value={partySearchTerm}
+                                    onChange={(e) => setPartySearchTerm(e.target.value)}
+                                    placeholder="Search supplier..."
+                                    className="w-full h-8.5 pl-8 pr-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#1677E8]"
                                   />
-                                </td>
+                                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+                                    🔍
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setShowPartyDropdown(false);
+                                    setIsAddSupplierModalOpen(true);
+                                  }}
+                                  className="h-8.5 px-2.5 bg-blue-50 text-[#1677E8] hover:bg-blue-100 rounded-lg text-xs font-semibold whitespace-nowrap cursor-pointer"
+                                >
+                                  + Add New
+                                </button>
+                              </div>
 
-                                <td className="py-2 px-1">
-                                  <input
-                                    type="number"
-                                    min="0.001"
-                                    step="any"
-                                    value={row.quantity}
-                                    onChange={(e) => handleRowChange(idx, "quantity", e.target.value === "" ? "" : Number(e.target.value))}
-                                    className="w-full text-xs py-1 px-1 text-center tabular-nums font-medium text-slate-800 bg-white border border-slate-200 rounded-lg focus:border-[#1677E8] focus:outline-none shadow-2xs h-8"
-                                  />
-                                </td>
-
-                                <td className="py-2 px-1">
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    step="any"
-                                    value={row.unitPrice}
-                                    onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))}
-                                    className="w-full text-xs py-1 px-1 text-right tabular-nums font-medium bg-white border border-slate-200 rounded-lg text-slate-800 focus:bg-white focus:border-[#1677E8] focus:outline-none shadow-2xs h-8"
-                                  />
-                                </td>
-
-                                <td className="py-2 px-1">
-                                  <div className="relative flex items-center">
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      value={row.discountValue}
-                                      onChange={(e) => handleRowChange(idx, "discountValue", e.target.value === "" ? "" : Number(e.target.value))}
-                                      placeholder="0"
-                                      className="w-full text-xs py-1 pl-1 pr-3.5 text-center tabular-nums bg-white border border-slate-200 rounded-lg text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs h-8"
-                                    />
-                                    <span className="absolute right-1 text-[9px] text-slate-400 font-bold pointer-events-none">%</span>
+                              <div className="max-h-56 overflow-y-auto divide-y divide-slate-100">
+                                {filteredSuppliers.length === 0 ? (
+                                  <div className="py-4 text-center text-xs text-slate-400">
+                                    No suppliers found
                                   </div>
-                                </td>
+                                ) : (
+                                  filteredSuppliers.map((s) => (
+                                    <button
+                                      key={s.id}
+                                      type="button"
+                                      onClick={() => handleSupplierChange(s.id)}
+                                      className="w-full text-left py-2 px-2.5 hover:bg-slate-50 rounded-lg flex items-center justify-between text-xs transition-colors cursor-pointer"
+                                    >
+                                      <div>
+                                        <p className="font-semibold text-slate-800">{s.name}</p>
+                                        <p className="text-[10px] text-slate-400">
+                                          {s.gstin ? `GST: ${s.gstin}` : s.phone || "No phone"}
+                                        </p>
+                                      </div>
+                                      {s.currentBalance !== undefined && (
+                                        <span className="text-[11px] font-bold text-slate-600 tabular-nums">
+                                          ₹{Number(s.currentBalance).toLocaleString("en-IN")}
+                                        </span>
+                                      )}
+                                    </button>
+                                  ))
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
 
-                                <td className="py-2 px-1">
-                                  <div className="relative flex items-center">
-                                    <input
-                                      type="number"
-                                      step="any"
-                                      value={row.taxRate}
-                                      onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value) || 0)}
-                                      placeholder="0"
-                                      className="w-full text-xs py-1 pl-1 pr-3.5 text-center tabular-nums font-medium bg-white border border-slate-200 rounded-lg text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs h-8"
-                                    />
-                                    <span className="absolute right-1 text-[9px] text-slate-400 font-bold pointer-events-none">%</span>
-                                  </div>
-                                </td>
-
-                                <td className="py-2 px-2 text-right tabular-nums font-bold text-slate-800 text-xs whitespace-nowrap">
-                                  ₹ {lineTot.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </td>
-
-                                <td className="py-2 px-1 text-center">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveRow(idx)}
-                                    className="w-6 h-6 mx-auto rounded text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
-                                    title="Delete row"
-                                  >
-                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                  </button>
-                                </td>
-                              </tr>
-                            );
-                          })
-                        )}
-                      </tbody>
-                    </table>
+                    {/* Supplier Bill No. */}
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 mb-1.5 block">
+                        Supplier Bill No.
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </span>
+                        <input
+                          type="text"
+                          value={vendorInvoiceNumber}
+                          onChange={(e) => {
+                            setVendorInvoiceNumber(e.target.value);
+                            setIsDirty(true);
+                          }}
+                          placeholder="e.g. BILL-9821"
+                          className="w-full h-10 pl-9 pr-3 text-xs font-medium bg-white border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs"
+                        />
+                      </div>
+                    </div>
                   </div>
-                </DocumentItemsCard>
 
-                {/* Side-by-side: Notes & Terms + Additional Information */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <DocumentNotesAndTermsCard
-                    activeTab={activeNotesTab}
-                    onTabChange={setActiveNotesTab}
-                    notes={notes}
-                    onNotesChange={setNotes}
-                    terms={terms}
-                    onTermsChange={setTerms}
-                  />
+                  {/* Row 2: Purchase Date + Due Date + Place of Supply */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Purchase Date */}
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 mb-1.5 block">
+                        Purchase Date <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </span>
+                        <input
+                          type="date"
+                          value={invoiceDate}
+                          onChange={(e) => {
+                            setInvoiceDate(e.target.value);
+                            setIsDirty(true);
+                          }}
+                          className="w-full h-10 pl-9 pr-3 text-xs font-medium bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs cursor-pointer"
+                        />
+                      </div>
+                    </div>
 
-                  <DocumentAdditionalInfoCard
-                    transportMode={transportMode}
-                    onTransportModeChange={setTransportMode}
-                    vehicleNo={vehicleNo}
-                    onVehicleNoChange={setVehicleNo}
-                    ewayBillNo={ewayBillNo}
-                    onEwayBillNoChange={setEwayBillNo}
-                    dispatchDate={dispatchDate}
-                    onDispatchDateChange={setDispatchDate}
-                  />
+                    {/* Due Date */}
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 mb-1.5 block">
+                        Due Date
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </span>
+                        <input
+                          type="date"
+                          value={dueDate}
+                          onChange={(e) => {
+                            setDueDate(e.target.value);
+                            setIsDirty(true);
+                          }}
+                          placeholder="mm/dd/yyyy"
+                          className="w-full h-10 pl-9 pr-3 text-xs font-medium bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs cursor-pointer"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Place of Supply */}
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 mb-1.5 block">
+                        Place of Supply
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        </span>
+                        <select
+                          value={placeOfSupply}
+                          onChange={(e) => {
+                            setPlaceOfSupply(e.target.value);
+                            setIsDirty(true);
+                          }}
+                          className="w-full h-10 pl-9 pr-8 text-xs font-medium bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs appearance-none cursor-pointer"
+                        >
+                          {Object.entries(INDIAN_STATES).map(([code, st]) => (
+                            <option key={code} value={code}>
+                              {st.name} ({code})
+                            </option>
+                          ))}
+                        </select>
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              </div>
+
+              {/* Card B: Items & Services */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 sm:p-5 space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    <h2 className="text-sm font-bold text-slate-900">
+                      Items & Services
+                    </h2>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {/* Import dropdown */}
+                    <div className="relative" ref={importMenuRef}>
+                      <button
+                        type="button"
+                        onClick={() => setShowImportMenu((prev) => !prev)}
+                        className="h-8 px-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold shadow-2xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        <span>Import</span>
+                        <svg className="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+
+                      {showImportMenu && (
+                        <div className="absolute right-0 top-full mt-1.5 w-44 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-1.5 space-y-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsAddItemsCatalogOpen(true);
+                              setShowImportMenu(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2 cursor-pointer"
+                          >
+                            <span>📦</span>
+                            <span>From Items Catalog</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              router.push("/tools/import");
+                              setShowImportMenu(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2 cursor-pointer"
+                          >
+                            <span>📊</span>
+                            <span>From Excel / CSV</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* + Add Item dropdown */}
+                    <div className="relative" ref={addItemMenuRef}>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddItemMenu((prev) => !prev)}
+                        className="h-8 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-bold shadow-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <span>+ Add Item</span>
+                        <svg className="w-3 h-3 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+
+                      {showAddItemMenu && (
+                        <div className="absolute right-0 top-full mt-1.5 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-1.5 space-y-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsAddItemsCatalogOpen(true);
+                              setShowAddItemMenu(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2 cursor-pointer"
+                          >
+                            <span>📦</span>
+                            <span>Pick from Catalog</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsAddItemModalOpen(true);
+                              setShowAddItemMenu(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2 cursor-pointer"
+                          >
+                            <span>✨</span>
+                            <span>Create New Item</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleAddRow();
+                              setShowAddItemMenu(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2 cursor-pointer"
+                          >
+                            <span>➕</span>
+                            <span>Add Blank Line Row</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Items Table */}
+                <div className="border border-slate-200/80 rounded-xl overflow-x-auto scrollbar-thin">
+                  <table className="w-full text-left text-xs border-collapse min-w-[760px]">
+                    <thead className="bg-[#FAFBFD] border-b border-slate-200 text-slate-600 font-bold text-[11px]">
+                      <tr>
+                        <th className="py-2.5 px-2 text-center w-8">#</th>
+                        <th className="py-2.5 px-3 min-w-[180px]">Item / Description</th>
+                        <th className="py-2.5 px-2 text-center w-20">HSN/SAC</th>
+                        <th className="py-2.5 px-2 text-center w-16">Qty</th>
+                        <th className="py-2.5 px-2 text-right w-24">Rate (₹)</th>
+                        <th className="py-2.5 px-2 text-center w-20">Discount</th>
+                        <th className="py-2.5 px-2 text-center w-20">Tax (%)</th>
+                        <th className="py-2.5 px-3 text-right w-28">Amount (₹)</th>
+                        <th className="py-2.5 px-2 text-center w-10">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {rows.map((row, idx) => {
+                        const qty = Number(row.quantity) || 0;
+                        const rate = Number(row.unitPrice) || 0;
+                        const gross = qty * rate;
+                        const disc = Number(row.discountValue) || 0;
+                        const discVal = row.discountType === "₹" ? disc : (gross * disc) / 100;
+                        const taxable = Math.max(0, gross - discVal);
+                        const taxRate = Number(row.taxRate) || 0;
+                        const taxAmt = (taxable * taxRate) / 100;
+                        const lineTot = taxable + taxAmt;
+
+                        return (
+                          <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
+                            <td className="py-2 px-2 text-center text-slate-400 tabular-nums font-medium text-xs">
+                              {idx + 1}
+                            </td>
+
+                            {/* Item / Description */}
+                            <td className="py-2 px-3 min-w-[180px]">
+                              <div className="space-y-1">
+                                <div className="relative">
+                                  <select
+                                    value={row.itemId}
+                                    onChange={(e) => handleItemSelect(idx, e.target.value)}
+                                    className="w-full text-xs h-9 pl-3 pr-8 bg-white hover:bg-slate-50/80 focus:bg-white border border-slate-200 focus:border-[#1677E8] rounded-xl font-medium text-slate-800 shadow-2xs appearance-none cursor-pointer truncate"
+                                  >
+                                    <option value="">{row.itemName || "Select item..."}</option>
+                                    {items.map((it) => (
+                                      <option key={it.id} value={it.id}>
+                                        {it.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                  </div>
+                                </div>
+                                {row.itemId === "" && row.itemName && (
+                                  <input
+                                    type="text"
+                                    value={row.itemName}
+                                    onChange={(e) => handleRowChange(idx, "itemName", e.target.value)}
+                                    placeholder="Item name / description"
+                                    className="w-full text-[11px] h-7 px-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:bg-white focus:border-[#1677E8]"
+                                  />
+                                )}
+                              </div>
+                            </td>
+
+                            {/* HSN/SAC */}
+                            <td className="py-2 px-2 w-20">
+                              <input
+                                type="text"
+                                value={row.hsnCode}
+                                onChange={(e) => handleRowChange(idx, "hsnCode", e.target.value)}
+                                className="w-full text-xs h-9 px-2 text-center tabular-nums bg-white border border-slate-200 rounded-xl text-slate-700 focus:border-[#1677E8] focus:outline-none shadow-2xs"
+                                placeholder="1001"
+                              />
+                            </td>
+
+                            {/* Qty */}
+                            <td className="py-2 px-2 w-16">
+                              <input
+                                type="number"
+                                min="0.001"
+                                step="any"
+                                value={row.quantity}
+                                onChange={(e) => handleRowChange(idx, "quantity", e.target.value === "" ? "" : Number(e.target.value))}
+                                className="w-full text-xs h-9 px-2 text-center tabular-nums font-medium text-slate-800 bg-white border border-slate-200 rounded-xl focus:border-[#1677E8] focus:outline-none shadow-2xs"
+                              />
+                            </td>
+
+                            {/* Rate (₹) */}
+                            <td className="py-2 px-2 w-24">
+                              <input
+                                type="number"
+                                min="0"
+                                step="any"
+                                value={row.unitPrice}
+                                onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value === "" ? "" : Number(e.target.value))}
+                                placeholder="0.00"
+                                className="w-full text-xs h-9 px-2 text-right tabular-nums font-medium bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs"
+                              />
+                            </td>
+
+                            {/* Discount */}
+                            <td className="py-2 px-2 w-20">
+                              <div className="relative flex items-center">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={row.discountValue}
+                                  onChange={(e) => handleRowChange(idx, "discountValue", e.target.value === "" ? "" : Number(e.target.value))}
+                                  placeholder="0"
+                                  className="w-full text-xs h-9 pl-2 pr-5 text-center tabular-nums bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs"
+                                />
+                                <span className="absolute right-2 text-[10px] text-slate-400 font-bold pointer-events-none">%</span>
+                              </div>
+                            </td>
+
+                            {/* Tax (%) */}
+                            <td className="py-2 px-2 w-20">
+                              <div className="relative flex items-center">
+                                <select
+                                  value={row.taxRate}
+                                  onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value) || 0)}
+                                  className="w-full text-xs h-9 pl-2 pr-6 text-center tabular-nums font-medium bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs appearance-none cursor-pointer"
+                                >
+                                  <option value={0}>0 %</option>
+                                  <option value={5}>5 %</option>
+                                  <option value={12}>12 %</option>
+                                  <option value={18}>18 %</option>
+                                  <option value={28}>28 %</option>
+                                </select>
+                                <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Amount (₹) */}
+                            <td className="py-2 px-3 text-right tabular-nums font-bold text-slate-800 text-xs whitespace-nowrap w-28">
+                              ₹ {lineTot.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </td>
+
+                            {/* Action */}
+                            <td className="py-2 px-2 text-center w-10">
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveRow(idx)}
+                                className="w-7 h-7 mx-auto rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer"
+                                title="Delete row"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Table Footer */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleAddRow}
+                    className="h-9 px-3.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold shadow-2xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>+ Add More Item</span>
+                  </button>
+
+                  <div className="flex items-center gap-6 text-xs text-slate-600">
+                    <div>
+                      <span>Total Qty: </span>
+                      <span className="font-bold text-slate-900 tabular-nums">
+                        {totals.totalQuantity}
+                      </span>
+                    </div>
+                    <div>
+                      <span>Items Total: </span>
+                      <span className="font-bold text-slate-900 tabular-nums">
+                        {formatInr(totals.grandTotal)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card C: Additional Details (Tabs) */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 sm:p-5 space-y-3">
+                {/* Horizontal Tabs */}
+                <div className="flex items-center gap-6 border-b border-slate-200/80 overflow-x-auto">
+                  <button
+                    type="button"
+                    onClick={() => setActiveDetailsTab("notes")}
+                    className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
+                      activeDetailsTab === "notes"
+                        ? "text-[#1677E8] border-b-2 border-[#1677E8]"
+                        : "text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
+                    <span>📝</span>
+                    <span>Notes</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveDetailsTab("terms")}
+                    className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
+                      activeDetailsTab === "terms"
+                        ? "text-[#1677E8] border-b-2 border-[#1677E8]"
+                        : "text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
+                    <span>📋</span>
+                    <span>Terms & Conditions</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveDetailsTab("info")}
+                    className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
+                      activeDetailsTab === "info"
+                        ? "text-[#1677E8] border-b-2 border-[#1677E8]"
+                        : "text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
+                    <span>ℹ</span>
+                    <span>Additional Information</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveDetailsTab("attachments")}
+                    className={`pb-3 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
+                      activeDetailsTab === "attachments"
+                        ? "text-[#1677E8] border-b-2 border-[#1677E8]"
+                        : "text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
+                    <span>📎</span>
+                    <span>Attachments ({attachments.length})</span>
+                  </button>
+                </div>
+
+                {/* Tab Body */}
+                {activeDetailsTab === "notes" && (
+                  <div className="pt-2">
+                    <textarea
+                      value={notes}
+                      onChange={(e) => {
+                        setIsDirty(true);
+                        setNotes(e.target.value);
+                      }}
+                      placeholder="Enter notes for customer..."
+                      rows={3}
+                      className="w-full p-3 text-xs border border-slate-200 rounded-xl focus:border-[#1677E8] focus:outline-none focus:ring-2 focus:ring-[#1677E8]/10 text-slate-800 placeholder:text-slate-400 resize-y"
+                    />
+                  </div>
+                )}
+
+                {activeDetailsTab === "terms" && (
+                  <div className="pt-2">
+                    <textarea
+                      value={terms}
+                      onChange={(e) => {
+                        setIsDirty(true);
+                        setTerms(e.target.value);
+                      }}
+                      placeholder="Enter terms and conditions..."
+                      rows={3}
+                      className="w-full p-3 text-xs border border-slate-200 rounded-xl focus:border-[#1677E8] focus:outline-none focus:ring-2 focus:ring-[#1677E8]/10 text-slate-800 placeholder:text-slate-400 resize-y"
+                    />
+                  </div>
+                )}
+
+                {activeDetailsTab === "info" && (
+                  <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div>
+                      <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
+                        Transport Mode
+                      </label>
+                      <select
+                        value={transportMode}
+                        onChange={(e) => setTransportMode(e.target.value)}
+                        className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none"
+                      >
+                        <option value="Road">Road</option>
+                        <option value="Rail">Rail</option>
+                        <option value="Air">Air</option>
+                        <option value="Ship">Ship</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
+                        Vehicle Number
+                      </label>
+                      <input
+                        type="text"
+                        value={vehicleNo}
+                        onChange={(e) => setVehicleNo(e.target.value)}
+                        placeholder="GJ-01-AB-1234"
+                        className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
+                        E-Way Bill No.
+                      </label>
+                      <input
+                        type="text"
+                        value={ewayBillNo}
+                        onChange={(e) => setEwayBillNo(e.target.value)}
+                        placeholder="e.g. 24109845231"
+                        className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
+                        Dispatch Date
+                      </label>
+                      <input
+                        type="date"
+                        value={dispatchDate}
+                        onChange={(e) => setDispatchDate(e.target.value)}
+                        className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {activeDetailsTab === "attachments" && (
+                  <div className="pt-2 space-y-3">
+                    <div
+                      onClick={() => attachmentInputRef.current?.click()}
+                      className="border-2 border-dashed border-slate-200 hover:border-[#1677E8] rounded-xl p-4 text-center cursor-pointer transition-colors bg-slate-50/50 hover:bg-blue-50/20"
+                    >
+                      <input
+                        ref={attachmentInputRef}
+                        type="file"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => {
+                          if (e.target.files) {
+                            const files = Array.from(e.target.files).map((f) => ({
+                              id: Math.random().toString(36).substring(2, 9),
+                              name: f.name,
+                              size: (f.size / (1024 * 1024)).toFixed(2) + " MB",
+                              file: f,
+                            }));
+                            setAttachments((prev) => [...prev, ...files]);
+                          }
+                        }}
+                      />
+                      <p className="text-xs text-slate-600">
+                        Click or drop files here to attach supporting documents (PO, Delivery Challan, etc.)
+                      </p>
+                    </div>
+
+                    {attachments.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {attachments.map((att) => (
+                          <div
+                            key={att.id}
+                            className="flex items-center gap-2 py-1.5 px-3 bg-slate-100 border border-slate-200 rounded-lg text-xs"
+                          >
+                            <span className="font-medium text-slate-800">{att.name}</span>
+                            <span className="text-[10px] text-slate-500">({att.size})</span>
+                            <button
+                              type="button"
+                              onClick={() => setAttachments((prev) => prev.filter((a) => a.id !== att.id))}
+                              className="text-slate-400 hover:text-rose-600 font-bold ml-1 cursor-pointer"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </main>
 
-            {/* Right Column: Summary Card + Payment Card */}
-            <aside className="w-full lg:w-[225px] xl:w-[240px] shrink-0 space-y-4">
-              <DocumentSummaryCard
-                title="Purchase Summary"
-                subtotal={totals.totalTaxable}
-                discount={totals.totalDiscount > 0 ? totals.totalDiscount : undefined}
-                cgst={!isInterState ? totals.totalCgst : undefined}
-                sgst={!isInterState ? totals.totalSgst : undefined}
-                igst={isInterState ? totals.totalIgst : undefined}
-                roundOff={totals.roundOff !== 0 ? totals.roundOff : undefined}
-                grandTotal={totals.grandTotal}
-              />
+            {/* ── 3. RIGHT PANEL: SUMMARY & PAYMENT (300px) ── */}
+            <aside className="w-full space-y-4">
+              {/* Purchase Summary Card */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  <h3 className="text-sm font-bold text-slate-900">Purchase Summary</h3>
+                </div>
 
-              <DocumentPaymentCard
-                amountReceived={paymentStatus === "PAID_FULL" ? totals.grandTotal : (Number(paidAmount) || 0)}
-                onAmountReceivedChange={(val) => {
-                  setPaymentStatus("PARTIAL_PAID");
-                  setPaidAmount(val === "" ? 0 : val);
-                }}
-                paymentMode={paymentMode}
-                onPaymentModeChange={setPaymentMode}
-                balanceDue={balanceDue}
-                onPaidInFull={() => {
-                  setPaymentStatus("PAID_FULL");
-                  setPaidAmount(totals.grandTotal);
-                }}
-              />
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span>Items Subtotal</span>
+                    <span className="font-semibold tabular-nums text-slate-800">
+                      {formatInr(totals.totalTaxable)}
+                    </span>
+                  </div>
+
+                  {totals.totalDiscount > 0 && (
+                    <div className="flex items-center justify-between text-emerald-600">
+                      <span>Discount</span>
+                      <span className="font-semibold tabular-nums">
+                        - {formatInr(totals.totalDiscount)}
+                      </span>
+                    </div>
+                  )}
+
+                  {!isInterState ? (
+                    <>
+                      {totals.totalCgst > 0 && (
+                        <div className="flex items-center justify-between text-slate-600">
+                          <span>CGST</span>
+                          <span className="font-semibold tabular-nums text-slate-800">
+                            {formatInr(totals.totalCgst)}
+                          </span>
+                        </div>
+                      )}
+                      {totals.totalSgst > 0 && (
+                        <div className="flex items-center justify-between text-slate-600">
+                          <span>SGST</span>
+                          <span className="font-semibold tabular-nums text-slate-800">
+                            {formatInr(totals.totalSgst)}
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    totals.totalIgst > 0 && (
+                      <div className="flex items-center justify-between text-slate-600">
+                        <span>IGST</span>
+                        <span className="font-semibold tabular-nums text-slate-800">
+                          {formatInr(totals.totalIgst)}
+                        </span>
+                      </div>
+                    )
+                  )}
+
+                  {totals.roundOff !== 0 && (
+                    <div className="flex items-center justify-between text-slate-500 text-[11px]">
+                      <span>Round Off</span>
+                      <span className="tabular-nums">
+                        {totals.roundOff > 0 ? `+${totals.roundOff.toFixed(2)}` : totals.roundOff.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-sm font-bold text-slate-900">Grand Total</span>
+                    <span className="text-base sm:text-lg font-bold text-slate-900 tabular-nums">
+                      {formatInr(totals.grandTotal)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Details Card */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 space-y-3.5">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                  <h3 className="text-sm font-bold text-slate-900">Payment Details</h3>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 mb-1.5 block">
+                    Amount Received
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1 min-w-0">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-xs pointer-events-none">
+                        ₹
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={paymentStatus === "PAID_FULL" ? totals.grandTotal : paidAmount}
+                        onChange={(e) => {
+                          setPaymentStatus("PARTIAL_PAID");
+                          setPaidAmount(e.target.value === "" ? 0 : Number(e.target.value));
+                        }}
+                        placeholder="0.00"
+                        className="w-full h-10 pl-7 pr-3 text-xs font-medium bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs tabular-nums"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPaymentStatus("PAID_FULL");
+                        setPaidAmount(totals.grandTotal);
+                      }}
+                      className="h-10 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-bold shadow-xs whitespace-nowrap transition-colors cursor-pointer shrink-0"
+                    >
+                      Paid In Full
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 mb-1.5 block">
+                    Payment Mode
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={paymentMode}
+                      onChange={(e) => setPaymentMode(e.target.value)}
+                      className="w-full h-10 px-3 pr-8 text-xs font-medium bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs appearance-none cursor-pointer"
+                    >
+                      <option value="CASH">Cash</option>
+                      <option value="BANK_TRANSFER">Bank Transfer</option>
+                      <option value="CHEQUE">Cheque</option>
+                      <option value="UPI">UPI</option>
+                    </select>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="py-2.5 px-3 rounded-xl bg-blue-50/70 border border-blue-200/80 text-[#1677E8] flex items-center justify-center gap-1.5 text-xs font-bold shadow-2xs">
+                  <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Balance Due: {formatInr(balanceDue)}</span>
+                </div>
+              </div>
             </aside>
           </div>
         )}
       </div>
 
-      {/* STICKY BOTTOM ACTION BAR */}
-      {activeMode !== "PREVIEW" && (
-        <DocumentBottomBar
-          totalItems={rows.length}
-          totalAmount={totals.grandTotal}
-          onSaveAsDraft={() => handleSubmit(true)}
-          onSave={() => handleSubmit(false)}
-          isSaving={isSubmitting}
-          saveButtonLabel="Save Purchase Bill"
-          backHref="/purchases"
-          statusText="Ready to save • 0 changes"
-        />
-      )}
       {/* ─────────────────────────────────────────────────────────────
-          STICKY MOBILE QUICK ACTION BAR (Visible on Mobile / Tablet)
+          STICKY FULL-WIDTH ACTION FOOTER
          ───────────────────────────────────────────────────────────── */}
-      <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E5E7EB] px-4 py-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.1)] flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-            {lang === "gu" ? "કુલ રકમ (Total)" : "Grand Total"}
-          </span>
-          <span className="text-base font-semibold tabular-nums text-[#0F172A] truncate block">
-            {formatInr(totals.grandTotal)}
-          </span>
-        </div>
+      {activeMode !== "PREVIEW" && (
+        <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-4 sm:px-6 py-2.5 flex items-center justify-between z-30 shadow-lg">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs font-semibold text-slate-700">
+              Ready to save a purchase bill
+            </span>
+          </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={handleOpenSmartScanner}
-            className="p-2.5 bg-slate-900 text-white rounded-xl text-[13px] font-medium shadow-xs transition-all flex items-center gap-1 active:scale-95"
-            title="Scan Bill"
-          >
-            <span className="text-sm">📷</span>
-            <span className="text-[11px]">{lang === "gu" ? "સ્કેન" : "Scan"}</span>
-          </button>
-
-          <button
-            type="button"
-            disabled={isSubmitting || isLoading}
-            onClick={() => handleSubmit(false)}
-            className="h-9 px-3.5 bg-gradient-to-r from-[#0F172A] to-[#123B35] active:bg-[#C2410C] text-white rounded-xl text-[13px] font-medium shadow-sm transition-all flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
-          >
-            {isSubmitting ? (
-              <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-              </svg>
-            )}
-            <span>{lang === "gu" ? "સાચવો" : "Save"}</span>
-          </button>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => router.push("/purchases")}
+              className="h-9 px-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => handleSubmit(true)}
+              className="h-9 px-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+            >
+              Save as Draft
+            </button>
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => handleSubmit(false)}
+              className="h-9 px-5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0E5BB5] text-white rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+            >
+              {isSubmitting ? (
+                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+              <span>Save Purchase Bill</span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ─────────────────────────────────────────────────────────────
           MODALS: SCANNER, ZOOM, NEW SUPPLIER, NEW ITEM, SETTINGS, PHONE

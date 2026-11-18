@@ -320,13 +320,13 @@ export function DynamicThemedInvoice({
   const skin = resolvedDef.isFestive ? getDynamicFestiveSkin(resolvedDef.baseTheme, resolvedDef) : null;
 
   const bankAccountVal =
-    company?.accountNumber || "639898001122";
+    (company as any)?.bankAccountNo || company?.accountNumber || "";
   const bankHolderName =
-    company?.accountHolderName || companyName;
-  const bankIfsc = company?.ifscCode || "SBIN0001234";
-  const bankName = company?.bankName || "State Bank of India";
-  const bankBranch = company?.branchName || "Main Branch";
-  const upiVpa = company?.upiVpa || "9898990001@paytm";
+    company?.accountHolderName || company?.tradeName || company?.legalName || companyName;
+  const bankIfsc = (company as any)?.bankIfsc || company?.ifscCode || "";
+  const bankName = company?.bankName || "";
+  const bankBranch = (company as any)?.bankBranch || company?.branchName || "";
+  const upiVpa = company?.upiVpa || "";
 
   // Generate Barcode
   useEffect(() => {
@@ -346,17 +346,20 @@ export function DynamicThemedInvoice({
 
   // Generate UPI QR Code
   useEffect(() => {
-    if (upiQrRef.current && upiVpa) {
+    if (upiQrRef.current) {
       try {
-        const bal = invoice.balanceAmount !== undefined ? invoice.balanceAmount : invoice.grandTotal;
-        const upiUrl = `upi://pay?pa=${upiVpa}&pn=${encodeURIComponent(companyName)}&am=${bal}&cu=INR&tn=Invoice%20${encodeURIComponent(invoice.invoiceNumber)}`;
-        QRCode.toCanvas(upiQrRef.current, upiUrl, {
-          width: 72,
-          margin: 1,
-        });
+        const vpa = upiVpa || (company?.phone ? `${company.phone}@upi` : "");
+        if (vpa) {
+          const bal = invoice.balanceAmount !== undefined ? invoice.balanceAmount : invoice.grandTotal;
+          const upiUrl = `upi://pay?pa=${vpa}&pn=${encodeURIComponent(companyName)}&am=${bal}&cu=INR&tn=Invoice%20${encodeURIComponent(invoice.invoiceNumber)}`;
+          QRCode.toCanvas(upiQrRef.current, upiUrl, {
+            width: 72,
+            margin: 1,
+          });
+        }
       } catch {}
     }
-  }, [upiVpa, companyName, invoice.balanceAmount, invoice.grandTotal, invoice.invoiceNumber]);
+  }, [upiVpa, companyName, invoice.balanceAmount, invoice.grandTotal, invoice.invoiceNumber, company?.phone]);
 
   // Generate E-Invoice Signed QR Code
   useEffect(() => {
@@ -851,11 +854,18 @@ export function DynamicThemedInvoice({
                           Bank & Payment Details:
                         </div>
                         <div>A/C Name: <strong>{bankHolderName}</strong></div>
-                        <div>A/C No.: <strong className="font-mono">{bankAccountVal}</strong></div>
-                        <div>IFSC: <strong className="font-mono">{bankIfsc}</strong> ({bankName})</div>
-                        <div className="pt-1">
-                          <svg ref={barcodeRef} className="max-w-[160px] h-8 bg-white/70 p-0.5 rounded" />
-                        </div>
+                        {bankAccountVal && <div>A/C No.: <strong className="font-mono">{bankAccountVal}</strong></div>}
+                        {(bankIfsc || bankName) && (
+                          <div>
+                            {bankIfsc && <>IFSC: <strong className="font-mono">{bankIfsc}</strong> </>}
+                            {bankName && <span>({bankName})</span>}
+                          </div>
+                        )}
+                        {bankAccountVal && (
+                          <div className="pt-1">
+                            <svg ref={barcodeRef} className="max-w-[160px] h-8 bg-white/70 p-0.5 rounded" />
+                          </div>
+                        )}
                       </div>
                     )}
                     {Boolean(settings.selectedPaymentQr && settings.selectedPaymentQr !== "none") && (

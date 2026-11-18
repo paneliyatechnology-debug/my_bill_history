@@ -1403,7 +1403,7 @@ const [notes, setNotes] = useState("");
       {/* Top header replaced by unified DocumentHeaderCard */}
 
       {/* =========================================================================
-          SLIDE-OVER DRAWER: Mira AI Document Scanner & Autofill Utility
+          SLIDE-OVER DRAWER: AI Document Scanner & Autofill Utility
           (Clean slide-over drawer that frees up 100% of the invoice canvas)
           ========================================================================= */}
       {showAiPanel && (
@@ -1425,7 +1425,7 @@ const [notes, setNotes] = useState("");
                   </div>
                   <div>
                     <h2 className="text-sm font-semibold text-[#182230]">
-                      Mira AI Bill Scanner
+                       AI Bill Scanner
                     </h2>
                     <p className="text-[11px] text-slate-500">
                       Extract items, GST & totals automatically
@@ -1816,7 +1816,7 @@ const [notes, setNotes] = useState("");
               isSaving={isSubmitting}
               saveButtonLabel="Save Invoice"
               moreMenuItems={[
-                { label: "Mira AI Bill Scanner", onClick: () => setShowAiPanel(true) },
+                { label: " AI Bill Scanner", onClick: () => setShowAiPanel(true) },
                 { label: "Quick Settings", onClick: () => { setQuickSettingsTab("invoice"); setIsQuickSettingsOpen(true); } },
                 { label: "Keyboard Shortcuts", onClick: () => setIsShortcutsOpen(true) },
                 { label: "Authorized Signature", onClick: () => setIsSignatureModalOpen(true) },

@@ -23,6 +23,12 @@ import { ALL_THEME_KEYS, resolveThemeDefinition } from "@/lib/invoice-theme-keys
 import JsBarcode from "jsbarcode";
 import QRCode from "qrcode";
 import { EwbSlipModal } from "../../../../components/gst/ewb-slip-modal";
+import {
+  executeThermalPrint,
+  printViaBluetoothPos,
+  getCachedThermalSettings,
+  ThermalReceiptData,
+} from "@/lib/thermal-printer";
 
 interface InvoiceDetail {
   id: string;
@@ -83,7 +89,7 @@ export default function InvoiceDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = params?.id as string;
-  const { lang, currentCompany } = useAuth();
+  const { lang, currentCompany, user } = useAuth();
   const { state: invoiceThemeState, updateThemeFast } = useActiveInvoiceTheme(currentCompany?.id);
   const [selectedPaperSize, setSelectedPaperSize] = useState<"A4" | "A5" | "US_LETTER" | "LEGAL" | "THERMAL_80" | "DL">("A4");
 
@@ -98,6 +104,84 @@ export default function InvoiceDetailPage() {
   const [returns, setReturns] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const buildThermalReceiptData = useCallback((inv: InvoiceDetail): ThermalReceiptData => {
+    const thermalSettings = getCachedThermalSettings();
+    const displayName = currentCompany?.tradeName || currentCompany?.legalName || "NV ENTERPRISE";
+    const displayAddress = [
+      (currentCompany as any)?.addressLine1 || (currentCompany as any)?.address,
+      (currentCompany as any)?.city,
+      (currentCompany as any)?.state,
+      (currentCompany as any)?.pincode,
+    ].filter(Boolean).join(", ");
+    const displayPhone = (currentCompany as any)?.phone || user?.phone || "";
+    const displayGstin = currentCompany?.gstin || "";
+    const displayUpi = (currentCompany as any)?.upiVpa || (currentCompany as any)?.upiId || (displayPhone ? `${displayPhone}@okaxis` : "");
+
+    const customerAddressStr = typeof inv.party?.billingAddress === "string"
+      ? inv.party.billingAddress
+      : [inv.party?.billingAddress?.addressLine1, inv.party?.billingAddress?.city, inv.party?.billingAddress?.state, inv.party?.billingAddress?.pincode].filter(Boolean).join(", ");
+
+    return {
+      companyName: displayName,
+      companyAddress: displayAddress,
+      companyPhone: displayPhone,
+      companyGstin: displayGstin,
+      companyLogoUrl: (currentCompany as any)?.logoUrl || thermalSettings.logoUrl || null,
+      upiId: displayUpi,
+
+      invoiceNumber: inv.invoiceNumber,
+      invoiceDate: inv.invoiceDate ? new Date(inv.invoiceDate).toLocaleDateString("en-IN") : new Date().toLocaleDateString("en-IN"),
+      invoiceTime: inv.invoiceDate ? new Date(inv.invoiceDate).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "",
+      cashierName: user?.fullName || "",
+
+      customerName: inv.party?.name || "Cash Customer",
+      customerPhone: inv.party?.phone || "",
+      customerAddress: customerAddressStr || "",
+      customerGstin: inv.party?.gstin || "",
+      placeOfSupply: inv.placeOfSupply || "",
+      dueDate: (inv as any)?.dueDate ? new Date((inv as any).dueDate).toLocaleDateString("en-IN") : "",
+
+      items: (inv.items || []).map((it) => ({
+        name: it.item?.name || it.description || "Item",
+        description: it.description || "",
+        hsn: it.hsnCode || "",
+        quantity: String(it.quantity),
+        unit: (it as any).unit || "Pcs",
+        rate: Number(it.unitPrice) || 0,
+        discount: Number(it.discountPercent) || 0,
+        taxPercent: Number(it.taxRate) || 0,
+        amount: Number(it.totalAmount) || (Number(it.unitPrice) * Number(it.quantity)),
+      })),
+
+      subTotal: Number(inv.taxableAmount) || 0,
+      taxableAmount: Number(inv.taxableAmount) || 0,
+      taxTotal: (Number(inv.cgstAmount) || 0) + (Number(inv.sgstAmount) || 0) + (Number(inv.igstAmount) || 0),
+      discountTotal: 0,
+      grandTotal: Number(inv.grandTotal) || 0,
+      paymentMode: inv.paymentMode || "Cash",
+      receivedAmount: Number(inv.paidAmount) || 0,
+      balanceAmount: Number(inv.balanceAmount) || (Number(inv.grandTotal) - Number(inv.paidAmount)),
+      notes: inv.notes || "",
+    };
+  }, [currentCompany, user]);
+
+  const handleThermalPrint = async (size: "2inch" | "3inch" = "3inch") => {
+    if (!invoice) return;
+    const settings = { ...getCachedThermalSettings(), paperSize: size };
+    const receiptData = buildThermalReceiptData(invoice);
+    await executeThermalPrint(receiptData, settings);
+  };
+
+  const handleBluetoothThermalPrint = async () => {
+    if (!invoice) return;
+    const settings = getCachedThermalSettings();
+    const receiptData = buildThermalReceiptData(invoice);
+    const res = await printViaBluetoothPos(receiptData, settings);
+    if (!res.success) {
+      await executeThermalPrint(receiptData, settings);
+    }
+  };
 
   // MyBillBook UI & Drawer States
   const [showPaymentHistory, setShowPaymentHistory] = useState(false);
@@ -719,7 +803,7 @@ export default function InvoiceDetailPage() {
               </button>
               {isPrintDropdownOpen && (
                 <div
-                  className="absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-40 text-xs animate-in fade-in zoom-in-95 duration-100"
+                  className="absolute right-0 mt-1.5 w-52 bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-40 text-xs animate-in fade-in zoom-in-95 duration-100"
                   onMouseLeave={() => setIsPrintDropdownOpen(false)}
                 >
                   <button
@@ -735,12 +819,32 @@ export default function InvoiceDetailPage() {
                   <button
                     onClick={() => {
                       setIsPrintDropdownOpen(false);
-                      window.print();
+                      handleThermalPrint("3inch");
                     }}
                     className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
                   >
                     <span>🧾</span>
-                    <span>Thermal Printer (3 inch)</span>
+                    <span>Thermal Printer (3 inch / 80mm)</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsPrintDropdownOpen(false);
+                      handleThermalPrint("2inch");
+                    }}
+                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
+                  >
+                    <span>📱</span>
+                    <span>Thermal Printer (2 inch / 58mm)</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsPrintDropdownOpen(false);
+                      handleBluetoothThermalPrint();
+                    }}
+                    className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-blue-700 font-medium cursor-pointer"
+                  >
+                    <span>📶</span>
+                    <span>Bluetooth POS Machine</span>
                   </button>
                 </div>
               )}

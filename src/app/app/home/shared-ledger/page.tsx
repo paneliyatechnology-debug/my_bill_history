@@ -1194,7 +1194,7 @@ export default function SharedLedgerPage() {
                     Turn your supplier's sales invoice into a purchase — instantly
                   </h3>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[11px] font-semibold text-amber-600">✨ Powered by Mira AI</span>
+                    <span className="text-[11px] font-semibold text-amber-600">✨ Powered by  AI</span>
                     <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
                       ● Live on Android
                     </span>

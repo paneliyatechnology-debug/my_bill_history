@@ -1573,30 +1573,61 @@ export function InvoiceSettingsStudio() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Bank Account</label>
+                <div className="flex items-center justify-between mb-0.5">
+                  <label className="block text-[11px] font-semibold text-slate-700">Bank Account</label>
+                  <Link
+                    href="/settings"
+                    className="text-[11px] text-[#2563EB] hover:underline font-semibold"
+                  >
+                    Edit Bank &rarr;
+                  </Link>
+                </div>
                 <select
                   value={state.selectedBankAccount}
                   onChange={(e) => updateState({ selectedBankAccount: e.target.value })}
                   className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-800 focus:border-[#2563EB] focus:outline-none"
                 >
-                  <option value="primary">HDFC Bank - Primary Business Account</option>
-                  <option value="icici">ICICI Bank - Current Account</option>
-                  <option value="sbi">State Bank of India</option>
+                  <option value="primary">
+                    {currentCompany?.bankName
+                      ? `${currentCompany.bankName} (${currentCompany.bankAccountNo ? `A/C: ${currentCompany.bankAccountNo}` : "Configured"})`
+                      : "Company Bank Account (Primary)"}
+                  </option>
                   <option value="none">Don&apos;t print bank details</option>
                 </select>
+                <p className="text-[10px] text-slate-500 mt-1 truncate">
+                  {currentCompany?.bankAccountNo
+                    ? `A/C: ${currentCompany.bankAccountNo} • IFSC: ${currentCompany.bankIfsc || "-"}`
+                    : "Configure bank in Company Settings"}
+                </p>
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Payment QR</label>
+                <div className="flex items-center justify-between mb-0.5">
+                  <label className="block text-[11px] font-semibold text-slate-700">Payment QR (Scanner)</label>
+                  <Link
+                    href="/settings"
+                    className="text-[11px] text-[#2563EB] hover:underline font-semibold"
+                  >
+                    Edit UPI &rarr;
+                  </Link>
+                </div>
                 <select
                   value={state.selectedPaymentQr}
                   onChange={(e) => updateState({ selectedPaymentQr: e.target.value })}
                   className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-800 focus:border-[#2563EB] focus:outline-none"
                 >
-                  <option value="primary_upi">Dynamic UPI QR (HDFC / Google Pay / PhonePe)</option>
-                  <option value="paytm">Paytm Merchant QR</option>
+                  <option value="primary_upi">
+                    {currentCompany?.upiVpa
+                      ? `Dynamic UPI QR (${currentCompany.upiVpa})`
+                      : "Dynamic UPI QR (Scan to Pay)"}
+                  </option>
                   <option value="none">Don&apos;t print Payment QR</option>
                 </select>
+                <p className="text-[10px] text-slate-500 mt-1 truncate">
+                  {currentCompany?.upiVpa
+                    ? `UPI ID: ${currentCompany.upiVpa}`
+                    : "Configure UPI ID in Company Settings"}
+                </p>
               </div>
 
               <div>
