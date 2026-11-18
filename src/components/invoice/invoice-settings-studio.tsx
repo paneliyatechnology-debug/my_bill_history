@@ -151,22 +151,6 @@ const COLOR_PALETTE = [
   { id: "#0D9488", name: "Teal Emerald" },
 ];
 
-const FESTIVE_THEMES = [
-  { id: "gudi_padwa", name: "Gudi Padwa", tone: "linear-gradient(160deg,#FED7AA,#FFF7ED)" },
-  { id: "eid", name: "Eid", tone: "linear-gradient(160deg,#FEF3C7,#FFFBEB)" },
-  { id: "werwe", name: "werwe", tone: "linear-gradient(160deg,#E0E7FF,#EEF2FF)" },
-  { id: "christmas", name: "christmas", tone: "linear-gradient(160deg,#FEE2E2,#FFF1F2)" },
-  { id: "navratri", name: "Navaratri", tone: "linear-gradient(160deg,#FED7AA,#FFF7ED)" },
-  { id: "durga_puja", name: "Durga Puja", tone: "linear-gradient(160deg,#FECDD3,#FFF1F2)" },
-  { id: "dussehra", name: "Dussehra", tone: "linear-gradient(160deg,#FDBA74,#FFF7ED)" },
-  { id: "dhanteras", name: "Dhanteras", tone: "linear-gradient(160deg,#FDE68A,#FEFCE8)" },
-  { id: "diwali", name: "Diwali", tone: "linear-gradient(160deg,#E9D5FF,#FAF5FF)" },
-  { id: "uttarayan", name: "Uttarayan", tone: "linear-gradient(160deg,#BAE6FD,#F0F9FF)" },
-  { id: "independence", name: "Independence", tone: "linear-gradient(160deg,#BBF7D0,#FFEDD5)" },
-  { id: "ganesh_chaturthi", name: "Ganesh Puja", tone: "linear-gradient(160deg,#FDE68A,#FFEDD5)" },
-  { id: "logo", name: "Your logo", tone: "linear-gradient(160deg,#FFF7ED,#FFFFFF)" },
-];
-
 const STANDARD_THEMES = [
   { id: "stylish", name: "Stylish", kind: "stylish" as const, desc: "Clean modern bill without heavy boxes" },
   { id: "luxury", name: "Luxury", kind: "luxury" as const, isNew: true, desc: "Ornate border, premium header & gold lines" },
@@ -202,7 +186,7 @@ export function InvoiceSettingsStudio() {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<InvoiceStudioState>(DEFAULT_STATE);
   const [saveBanner, setSaveBanner] = useState<string | null>(null);
-  const [festiveThemesList, setFestiveThemesList] = useState<any[]>(FESTIVE_THEMES);
+  const [festiveThemesList, setFestiveThemesList] = useState<any[]>([]);
   const [standardThemesList, setStandardThemesList] = useState<any[]>(STANDARD_THEMES);
   const [companyLogoUrl, setCompanyLogoUrl] = useState<string | null>(
     (currentCompany as any)?.logoUrl || null
@@ -336,65 +320,93 @@ export function InvoiceSettingsStudio() {
     skipRemoteLoad.current = false;
     const loadSettings = async () => {
       try {
-        const themeCatalog: any = await apiClient.get("/invoice-settings/themes");
-        if (themeCatalog?.managedThemes && Array.isArray(themeCatalog.managedThemes)) {
-          registerDynamicThemes(themeCatalog.managedThemes);
+        let managedThemes: any[] = [];
+        try {
+          const themeCatalog: any = await apiClient.get("/invoice-settings/themes");
+          if (themeCatalog?.managedThemes && Array.isArray(themeCatalog.managedThemes)) {
+            managedThemes = themeCatalog.managedThemes;
+          }
+        } catch {
+          try {
+            const list: any = await apiClient.get("/invoice-settings/theme-list");
+            if (Array.isArray(list)) managedThemes = list;
+          } catch {}
+        }
+
+        if (managedThemes.length === 0 && typeof window !== "undefined") {
+          try {
+            const cached = localStorage.getItem("billing_managed_themes");
+            if (cached) managedThemes = JSON.parse(cached);
+          } catch {}
+        }
+
+        if (Array.isArray(managedThemes) && managedThemes.length > 0) {
+          registerDynamicThemes(managedThemes);
           if (typeof window !== "undefined") {
             try {
-              localStorage.setItem("billing_managed_themes", JSON.stringify(themeCatalog.managedThemes));
+              localStorage.setItem("billing_managed_themes", JSON.stringify(managedThemes));
             } catch {}
           }
-          const festiveOnly = themeCatalog.managedThemes
-            .filter((t: any) => t.category === "festive" || t.category === "branding")
-            .map((t: any) => ({
+        }
+
+        const activeThemes = Array.isArray(managedThemes)
+          ? managedThemes.filter((t: any) => t && t.isActive !== false)
+          : [];
+
+        // ONLY SuperAdmin created themes with category festive/branding
+        const festiveOnly = activeThemes
+          .filter((t: any) => t.category === "festive" || t.category === "branding")
+          .map((t: any) => ({
+            id: t.id,
+            name: t.name,
+            category: t.category,
+            festivalName: t.festivalName || t.name,
+            primaryColor: t.primaryColor || "#F97316",
+            badge: t.badge || null,
+            thumbnail: t.thumbnail,
+            variants: t.variants,
+            tone: t.primaryColor
+              ? `linear-gradient(160deg, ${t.primaryColor}22, #FFF7ED)`
+              : "linear-gradient(160deg,#FED7AA,#FFF7ED)",
+          }));
+        setFestiveThemesList(festiveOnly);
+
+        const standardOnly = activeThemes
+          .filter((t: any) => t.category === "standard")
+          .map((t: any) => {
+            const kind =
+              t.id === "luxury"
+                ? "luxury"
+                : t.id === "advanced_gst_tally"
+                ? "tally"
+                : t.id === "advanced_gst"
+                ? "gst"
+                : t.id === "billbook"
+                ? "billbook"
+                : t.id === "advanced_compact"
+                ? "compact"
+                : t.id === "tallybook_lite"
+                ? "lite"
+                : t.id === "modern"
+                ? "modern"
+                : t.id === "simple"
+                ? "simple"
+                : "stylish";
+            return {
               id: t.id,
               name: t.name,
-              tone: "linear-gradient(160deg,#FED7AA,#FFF7ED)",
-              thumbnail: t.thumbnail,
-              variants: t.variants,
-            }));
-          if (festiveOnly.length > 0) {
-            setFestiveThemesList((prev) => {
-              const ids = new Set(festiveOnly.map((x: any) => x.id));
-              return [...festiveOnly, ...prev.filter((x: any) => !ids.has(x.id))];
-            });
-          }
-
-          const standardOnly = themeCatalog.managedThemes
-            .filter((t: any) => t.category === "standard")
-            .map((t: any) => {
-              const kind =
-                t.id === "luxury"
-                  ? "luxury"
-                  : t.id === "advanced_gst_tally"
-                  ? "tally"
-                  : t.id === "advanced_gst"
-                  ? "gst"
-                  : t.id === "billbook"
-                  ? "billbook"
-                  : t.id === "advanced_compact"
-                  ? "compact"
-                  : t.id === "tallybook_lite"
-                  ? "lite"
-                  : t.id === "modern"
-                  ? "modern"
-                  : t.id === "simple"
-                  ? "simple"
-                  : "stylish";
-              return {
-                id: t.id,
-                name: t.name,
-                kind,
-                desc: t.description || t.name,
-                tag: t.description || t.name,
-                isNew: t.badge === "NEW",
-              };
-            });
-          if (standardOnly.length > 0) {
-            setStandardThemesList(standardOnly);
-          }
+              kind,
+              desc: t.description || t.name,
+              tag: t.description || t.name,
+              isNew: t.badge === "NEW",
+            };
+          });
+        if (standardOnly.length > 0) {
+          setStandardThemesList(standardOnly);
         }
-      } catch {}
+      } catch (err) {
+        console.warn("Failed to load invoice themes:", err);
+      }
 
       try {
         const res: any = await apiClient.get("/invoice-settings");
@@ -969,73 +981,85 @@ export function InvoiceSettingsStudio() {
 
                 {/* Theme Thumbnails Carousel with < and > Arrows */}
                 <div className="relative flex items-center">
-                  <button
-                    type="button"
-                    onClick={scrollThemeStoreLeft}
-                    className="absolute -left-1.5 z-20 flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 bg-white shadow-md text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
-                    title="Previous themes"
-                  >
-                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
+                  {festiveThemesList.length > 4 && (
+                    <button
+                      type="button"
+                      onClick={scrollThemeStoreLeft}
+                      className="absolute -left-1.5 z-20 flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 bg-white shadow-md text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                      title="Previous themes"
+                    >
+                      <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                  )}
 
                   <div
                     ref={themeStoreScrollRef}
                     className="flex gap-2 overflow-x-auto pb-1 pt-0.5 px-2 scrollbar-none w-full"
                     style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
                   >
-                    {festiveThemesList.map((th) => {
-                      const targetId = th.id === "logo" ? "your_logo" : th.id;
-                      const isActive =
-                        state.festiveTheme === targetId ||
-                        state.festiveTheme === th.id ||
-                        (!state.festiveTheme &&
-                          (state.themeId === targetId ||
-                            (th.id === "logo" && state.themeId === "your_logo")));
-                      return (
-                        <div
-                          key={th.id}
-                          onClick={() =>
-                            updateState({
-                              festiveTheme: isActive ? null : targetId,
-                              themeId: isActive ? "stylish" : targetId,
-                              uniqueThemeKey: isActive ? "stylish" : `${targetId}_${state.festiveVariant || 1}`,
-                              themeMode: "preset",
-                            })
-                          }
-                          className="flex shrink-0 flex-col items-center cursor-pointer p-0.5"
-                        >
-                          <FestiveThumb
-                            id={th.id}
-                            name={th.name}
-                            customThumbUrl={th.thumbnail}
-                            companyLogoUrl={companyLogoUrl}
-                            tone={th.tone}
-                            isSelected={isActive}
-                            onDeselect={() =>
+                    {festiveThemesList.length === 0 ? (
+                      <div className="py-3 px-2 text-center text-[11px] text-slate-400 w-full italic">
+                        No active invoice themes found in SuperAdmin
+                      </div>
+                    ) : (
+                      festiveThemesList.map((th) => {
+                        const targetId = th.id === "logo" ? "your_logo" : th.id;
+                        const isActive =
+                          state.festiveTheme === th.id ||
+                          state.festiveTheme === targetId ||
+                          (Boolean(state.uniqueThemeKey) && state.uniqueThemeKey!.startsWith(th.id)) ||
+                          (Boolean(state.festiveTheme) && state.festiveTheme!.startsWith(th.id)) ||
+                          (!state.festiveTheme &&
+                            (state.themeId === targetId ||
+                              (th.id === "logo" && state.themeId === "your_logo")));
+                        return (
+                          <div
+                            key={th.id}
+                            onClick={() =>
                               updateState({
-                                festiveTheme: null,
-                                themeId: "stylish",
-                                uniqueThemeKey: "stylish",
+                                festiveTheme: isActive ? null : targetId,
+                                themeId: isActive ? "stylish" : targetId,
+                                uniqueThemeKey: isActive ? "stylish" : `${targetId}_${state.festiveVariant || 1}`,
+                                themeMode: "preset",
                               })
                             }
-                          />
-                        </div>
-                      );
-                    })}
+                            className="flex shrink-0 flex-col items-center cursor-pointer p-0.5"
+                          >
+                            <FestiveThumb
+                              id={th.id}
+                              name={th.name}
+                              customThumbUrl={th.thumbnail}
+                              companyLogoUrl={companyLogoUrl}
+                              tone={th.tone}
+                              isSelected={isActive}
+                              onDeselect={() =>
+                                updateState({
+                                  festiveTheme: null,
+                                  themeId: "stylish",
+                                  uniqueThemeKey: "stylish",
+                                })
+                              }
+                            />
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={scrollThemeStoreRight}
-                    className="absolute -right-1.5 z-20 flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 bg-white shadow-md text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
-                    title="Next themes"
-                  >
-                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
+                  {festiveThemesList.length > 4 && (
+                    <button
+                      type="button"
+                      onClick={scrollThemeStoreRight}
+                      className="absolute -right-1.5 z-20 flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 bg-white shadow-md text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                      title="Next themes"
+                    >
+                      <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
 
                 {/* Company Logo Watermark Upload / Status for 'Your Logo' theme */}
@@ -1696,19 +1720,24 @@ export function InvoiceSettingsStudio() {
                 </button>
               ))}
               {festiveThemesList.map((th) => {
+                const targetId = th.id === "logo" ? "your_logo" : th.id;
                 const active =
                   state.festiveTheme === th.id ||
-                  state.themeId === th.id ||
-                  (th.id === "logo" && state.themeId === "your_logo");
+                  state.festiveTheme === targetId ||
+                  (Boolean(state.uniqueThemeKey) && state.uniqueThemeKey!.startsWith(th.id)) ||
+                  (Boolean(state.festiveTheme) && state.festiveTheme!.startsWith(th.id)) ||
+                  (!state.festiveTheme &&
+                    (state.themeId === targetId ||
+                      (th.id === "logo" && state.themeId === "your_logo")));
                 return (
                   <button
                     key={th.id}
                     type="button"
                     onClick={() => {
                       updateState({
-                        festiveTheme: th.id,
-                        themeId: th.id === "logo" ? "your_logo" : th.id,
-                        uniqueThemeKey: th.id === "logo" ? "your_logo" : `${th.id}_${state.festiveVariant || 1}`,
+                        festiveTheme: targetId,
+                        themeId: targetId,
+                        uniqueThemeKey: `${targetId}_${state.festiveVariant || 1}`,
                         themeMode: "preset",
                       });
                       setShowAllThemesModal(false);

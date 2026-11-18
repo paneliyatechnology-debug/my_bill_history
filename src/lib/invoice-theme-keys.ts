@@ -408,9 +408,10 @@ const dynamicThemesRegistry = new Map<string, ThemeDefinition>();
 
 export function registerDynamicThemes(managedThemes: any[]) {
   if (!Array.isArray(managedThemes)) return;
+  dynamicThemesRegistry.clear();
 
   for (const t of managedThemes) {
-    if (!t || !t.id) continue;
+    if (!t || !t.id || t.isActive === false) continue;
     const baseId = String(t.id).toLowerCase().trim();
     const isFestive = t.category === "festive" || t.category === "branding";
     const rawVariants: string[] = Array.isArray(t.variants) && t.variants.length > 0 
