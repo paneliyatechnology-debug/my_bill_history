@@ -342,18 +342,22 @@ export default function CreditNoteViewPage() {
     if (!to) return;
     try {
       const companyName = currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook";
+      const viewUrl = typeof window !== "undefined" ? window.location.href : "";
       const result = await sendAppEmail({
         to: to.trim(),
         subject: `Credit note ${data.returnNumber} from ${companyName}`,
         heading: `Credit note ${data.returnNumber}`,
         intro: `${companyName} shared this credit note with you.`,
+        actionUrl: viewUrl,
+        actionLabel: "View Credit Note →",
+        companyName,
         details: [
-          { label: "Credit note", value: data.returnNumber },
+          { label: "Credit Note Number", value: data.returnNumber },
           { label: "Party", value: data.party?.name || "—" },
           { label: "Date", value: formatDisplayDate(data.returnDate) },
-          { label: "Amount", value: formatInr(data.grandTotal) },
+          { label: "Total Amount", value: formatInr(data.grandTotal) },
         ],
-        text: "Open the credit note in myownbillbook to print or download it.",
+        text: `Open the credit note in myownbillbook to print or download it: ${viewUrl}`,
       });
       showToast(mailResultMessage(result, lang === "gu" ? "gu" : "en"));
     } catch (err: any) {

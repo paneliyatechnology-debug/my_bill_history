@@ -253,6 +253,7 @@ export function InvoiceLivePreview(props: {
   companyPhone: string;
   companyAddress: string;
   companyGstin: string;
+  companyLogoUrl?: string | null;
   items: Item[];
   focusedSection: string | null;
   onFocus: (section: string, accordion: string) => void;
@@ -1313,14 +1314,45 @@ export function FestiveBackgroundSvg({
   skinId,
   variant = 1,
   customImageUrl,
+  companyLogoUrl,
+  companyName,
 }: {
   skinId: string;
   variant?: number;
   customImageUrl?: string;
+  companyLogoUrl?: string | null;
+  companyName?: string;
 }) {
   const resolved = resolveThemeDefinition(skinId, variant);
   const rawSrc = customImageUrl || resolved.bgImageSrc;
   const src = resolveThemeAssetUrl(rawSrc);
+
+  if (skinId === "logo" || skinId === "your_logo" || resolved.baseTheme === "your_logo") {
+    return (
+      <div className="absolute inset-0 w-full h-full pointer-events-none select-none flex items-center justify-center bg-white z-0 overflow-hidden">
+        {companyLogoUrl ? (
+          <img
+            src={companyLogoUrl}
+            alt={companyName ? `${companyName} Watermark` : "Watermark"}
+            className="max-w-[340px] max-h-[340px] w-auto h-auto object-contain opacity-[0.14] -rotate-12 select-none pointer-events-none filter grayscale contrast-125 transition-opacity"
+            onError={(e) => {
+              const target = e.currentTarget;
+              target.style.display = "none";
+              const fb = target.parentElement?.querySelector(".fallback-watermark-text");
+              if (fb) (fb as HTMLElement).style.display = "block";
+            }}
+          />
+        ) : null}
+        <div
+          className={`fallback-watermark-text ${
+            companyLogoUrl ? "hidden" : "block"
+          } text-[44px] font-bold tracking-widest text-slate-300/40 uppercase select-none -rotate-12 text-center max-w-[85%] leading-tight`}
+        >
+          {companyName || "COMPANY LOGO"}
+        </div>
+      </div>
+    );
+  }
 
   if (src) {
     return (
@@ -1359,16 +1391,6 @@ export function FestiveBackgroundSvg({
     );
   }
 
-  if (skinId === "logo" || skinId === "your_logo" || resolved.baseTheme === "your_logo") {
-    return (
-      <div className="absolute inset-0 w-full h-full pointer-events-none select-none flex items-center justify-center bg-white z-0">
-        <div className="text-[56px] font-semibold tracking-widest text-slate-200/50 uppercase select-none -rotate-12">
-          YOUR LOGO
-        </div>
-      </div>
-    );
-  }
-
   return null;
 }
 
@@ -1378,9 +1400,11 @@ export function FestiveBackgroundSvg({
 export function FestiveMiniIllustration({
   id,
   customThumbUrl,
+  companyLogoUrl,
 }: {
   id?: string;
   customThumbUrl?: string;
+  companyLogoUrl?: string | null;
 }) {
   const resolved = id ? resolveThemeDefinition(id) : null;
   const rawSrc = customThumbUrl || resolved?.thumbSrc || resolved?.bgImageSrc;
@@ -1424,6 +1448,13 @@ export function FestiveMiniIllustration({
   }
 
   if (id === "logo" || id === "your_logo") {
+    if (companyLogoUrl) {
+      return (
+        <div className="w-full h-full flex items-center justify-center bg-white p-1">
+          <img src={companyLogoUrl} alt="Logo" className="max-w-[42px] max-h-[36px] object-contain" />
+        </div>
+      );
+    }
     return (
       <div className="w-full h-full flex flex-col items-center justify-center bg-amber-50/60 p-1 border border-dashed border-amber-300">
         <span className="text-[9px] font-semibold tracking-wider text-slate-400">YOUR</span>
@@ -1448,6 +1479,7 @@ function FestivalInvoice(props: {
   companyPhone: string;
   companyAddress: string;
   companyGstin: string;
+  companyLogoUrl?: string | null;
   items: Item[];
   focusedSection: string | null;
   onFocus: (section: string, accordion: string) => void;
@@ -1468,6 +1500,8 @@ function FestivalInvoice(props: {
         skinId={def.uniqueKey}
         variant={def.variant}
         customImageUrl={def.bgImageSrc}
+        companyLogoUrl={props.companyLogoUrl}
+        companyName={props.companyName}
       />
 
       {/* Main Invoice Content - Layered crisply over Festive Background */}
@@ -1859,12 +1893,14 @@ export function FestiveThumb({
   name,
   id,
   customThumbUrl,
+  companyLogoUrl,
   isSelected,
   onDeselect,
 }: {
   name: string;
   id?: string;
   customThumbUrl?: string;
+  companyLogoUrl?: string | null;
   tone?: string;
   isSelected?: boolean;
   onDeselect?: () => void;
@@ -1877,46 +1913,49 @@ export function FestiveThumb({
     <div className="relative flex flex-col items-center">
       {/* Mini invoice preview card */}
       <div
-        className={`relative h-[86px] w-[78px] overflow-hidden rounded-lg border bg-white p-1 shadow-2xs transition-all ${
+        className={`relative h-[70px] w-[62px] overflow-hidden rounded-md border bg-white p-1 shadow-2xs transition-all ${
           isSelected
-            ? "border-2 border-[#5346F5] ring-2 ring-purple-100"
+            ? "border-2 border-[#2563EB] ring-2 ring-blue-100"
             : "border-slate-200 hover:border-slate-300"
         }`}
         style={{ backgroundColor: skin.wash }}
       >
-        {/* Deselect 'X' icon button on top-right when selected */}
+        {/* Selected checkmark indicator on top-right */}
         {isSelected && (
           <span
-            onClick={(e) => {
-              e.stopPropagation();
-              onDeselect?.();
-            }}
-            title="Deselect theme"
-            className="absolute top-1 right-1 z-20 flex h-4 w-4 items-center justify-center rounded-full bg-slate-800 text-white text-[9px] hover:bg-rose-600 transition-colors cursor-pointer shadow-xs"
+            className="absolute top-0.5 right-0.5 z-20 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#0F172A] text-white text-[8px] font-bold shadow-xs"
           >
-            ✕
+            ✓
           </span>
         )}
 
         {/* Mini background illustration */}
         <div className="absolute inset-0 pointer-events-none opacity-90 overflow-hidden">
-          <FestiveMiniIllustration id={id} customThumbUrl={customThumbUrl} />
+          <FestiveMiniIllustration id={id} customThumbUrl={customThumbUrl} companyLogoUrl={companyLogoUrl} />
         </div>
 
         {/* Mini simulated invoice content lines */}
-        <div className="relative z-10 flex h-full flex-col justify-between pt-1 text-[5px]">
+        <div className="relative z-10 flex h-full flex-col justify-between pt-0.5 text-[5px]">
           {isLogo ? (
-            <div className="my-auto flex flex-col items-center justify-center">
-              <div className="flex items-center gap-0.5 mb-0.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-slate-900" />
-                <span className="h-1.5 w-1.5 rounded-full bg-[#5346F5]" />
-              </div>
-              <div className="text-[6.5px] font-semibold text-slate-800 tracking-wider">
-                YOUR LOGO
+            <div className="my-auto flex flex-col items-center justify-center p-0.5">
+              {companyLogoUrl ? (
+                <img
+                  src={companyLogoUrl}
+                  alt="Logo"
+                  className="max-w-[34px] max-h-[22px] object-contain mb-0.5"
+                />
+              ) : (
+                <div className="flex items-center gap-0.5 mb-0.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-slate-900" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#2563EB]" />
+                </div>
+              )}
+              <div className="text-[6px] font-semibold text-slate-800 tracking-wider">
+                {companyLogoUrl ? "LOGO" : "YOUR LOGO"}
               </div>
             </div>
           ) : (
-            <div className="mt-4 text-center text-[6px] font-bold tracking-tight text-slate-700/80">
+            <div className="mt-3 text-center text-[5.5px] font-bold tracking-tight text-slate-700/80">
               {skin.title.slice(0, 14)}
             </div>
           )}
@@ -1930,8 +1969,8 @@ export function FestiveThumb({
 
       {/* Label under card */}
       <span
-        className={`mt-1.5 max-w-[80px] truncate text-[11px] leading-tight text-center ${
-          isSelected ? "font-bold text-[#5346F5]" : "font-medium text-slate-700"
+        className={`mt-1 max-w-[64px] truncate text-[10px] leading-tight text-center ${
+          isSelected ? "font-bold text-[#2563EB]" : "font-medium text-slate-700"
         }`}
       >
         {name}

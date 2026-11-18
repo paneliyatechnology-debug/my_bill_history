@@ -13,6 +13,9 @@ export async function sendAppEmail(input: {
   heading?: string;
   intro?: string;
   note?: string;
+  actionUrl?: string;
+  actionLabel?: string;
+  companyName?: string;
   details?: Array<{ label: string; value: string }>;
   text: string;
   replyTo?: string;

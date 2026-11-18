@@ -299,18 +299,22 @@ export default function SalesReturnViewPage() {
     if (!to) return;
     try {
       const companyName = currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook";
+      const viewUrl = typeof window !== "undefined" ? window.location.href : "";
       const result = await sendAppEmail({
         to: to.trim(),
         subject: `Sales return ${data.returnNumber} from ${companyName}`,
         heading: `Sales return ${data.returnNumber}`,
         intro: `${companyName} shared this sales return with you.`,
+        actionUrl: viewUrl,
+        actionLabel: "View Sales Return →",
+        companyName,
         details: [
           { label: "Return Number", value: data.returnNumber },
           { label: "Party", value: data.party?.name || "—" },
           { label: "Date", value: formatDisplayDate(data.returnDate) },
-          { label: "Amount", value: formatInr(data.grandTotal) },
+          { label: "Total Amount", value: formatInr(data.grandTotal) },
         ],
-        text: "Open the sales return in myownbillbook to print or download it.",
+        text: `Open the sales return in myownbillbook to print or download it: ${viewUrl}`,
       });
       showToast(mailResultMessage(result, lang === "gu" ? "gu" : "en"));
     } catch (err: any) {

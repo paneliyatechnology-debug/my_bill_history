@@ -125,12 +125,12 @@ export default function PartiesPage() {
     phone: "",
     email: "",
     gstin: "",
-    stateCode: "24",
+    stateCode: "",
     creditLimit: 0,
-    creditDays: 30,
+    creditDays: 0,
     line1: "",
-    city: "Ahmedabad",
-    pincode: "380001",
+    city: "",
+    pincode: "",
     isActive: true,
   });
 
@@ -154,12 +154,12 @@ export default function PartiesPage() {
     phone: "",
     email: "",
     gstin: "",
-    stateCode: "24", // Default Gujarat
+    stateCode: "",
     creditLimit: 0,
-    creditDays: 30,
+    creditDays: 0,
     line1: "",
-    city: "Ahmedabad",
-    pincode: "380001",
+    city: "",
+    pincode: "",
   });
 
   // GSTIN Autofill & Verification state
@@ -384,7 +384,6 @@ export default function PartiesPage() {
     try {
       const res: any = await apiClient.get("/masters/parties", {
         search: searchTerm || undefined,
-        type: typeFilter !== "ALL" ? typeFilter : undefined,
         isActive: true,
       });
       const list = extractList(res);
@@ -404,7 +403,7 @@ export default function PartiesPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [searchTerm, typeFilter]);
+  }, [searchTerm]);
 
   useEffect(() => {
     if (tenantContext.companyId) {
@@ -442,16 +441,24 @@ export default function PartiesPage() {
     }
   }, [parties, selectedParty?.id]);
 
+  const totalCustomers = useMemo(() => {
+    return parties.filter((p) => p.type === "CUSTOMER" || p.type === "BOTH").length;
+  }, [parties]);
+
+  const totalSuppliers = useMemo(() => {
+    return parties.filter((p) => p.type === "SUPPLIER" || p.type === "BOTH").length;
+  }, [parties]);
+
   const totalToCollect = useMemo(() => {
     return parties
       .filter((p) => p.type === "CUSTOMER" || p.type === "BOTH")
-      .reduce((sum, p) => sum + Number(p.balance || 0), 0);
+      .reduce((sum, p) => sum + Math.max(0, Number(p.balance || 0)), 0);
   }, [parties]);
 
   const totalToPay = useMemo(() => {
     return parties
       .filter((p) => p.type === "SUPPLIER" || p.type === "BOTH")
-      .reduce((sum, p) => sum + Number(p.balance || 0), 0);
+      .reduce((sum, p) => sum + Math.max(0, Number(p.balance || 0)), 0);
   }, [parties]);
 
   useEffect(() => {
@@ -608,12 +615,12 @@ export default function PartiesPage() {
       phone: "",
       email: "",
       gstin: "",
-      stateCode: "24",
+      stateCode: "",
       creditLimit: 0,
-      creditDays: 30,
+      creditDays: 0,
       line1: "",
-      city: "Ahmedabad",
-      pincode: "380001",
+      city: "",
+      pincode: "",
     });
     setFormError(null);
     setIsModalOpen(true);
@@ -625,6 +632,10 @@ export default function PartiesPage() {
     setIsSubmitting(true);
 
     try {
+      const derivedStateCode =
+        formData.stateCode?.trim() ||
+        (formData.gstin?.trim()?.length >= 2 ? formData.gstin.trim().substring(0, 2) : "24");
+
       const newParty: any = await apiClient.post("/masters/parties", {
         type: formData.type,
         name: formData.name.trim(),
@@ -632,13 +643,13 @@ export default function PartiesPage() {
         phone: formData.phone.trim(),
         email: formData.email?.trim() || undefined,
         gstin: formData.gstin?.trim() ? formData.gstin.trim().toUpperCase() : undefined,
-        stateCode: formData.stateCode.trim(),
+        stateCode: derivedStateCode,
         creditLimit: Number(formData.creditLimit) || 0,
         creditDays: Number(formData.creditDays) || 0,
         billingAddress: {
-          line1: formData.line1?.trim() || "Main Market",
-          city: formData.city?.trim() || "Ahmedabad",
-          pincode: formData.pincode?.trim() || "380001",
+          line1: formData.line1?.trim() || "",
+          city: formData.city?.trim() || "",
+          pincode: formData.pincode?.trim() || "",
         },
       });
 
@@ -652,7 +663,7 @@ export default function PartiesPage() {
         lang === "gu" && err.messageGujarati
           ? err.messageGujarati
           : err.message ||
-          "Failed to create party. Please verify GSTIN and state code.",
+          "Failed to create party. Please verify details.",
       );
     } finally {
       setIsSubmitting(false);
@@ -672,12 +683,12 @@ export default function PartiesPage() {
       phone: party.phone || "",
       email: party.email || "",
       gstin: party.gstin || "",
-      stateCode: party.stateCode || "24",
+      stateCode: party.stateCode || "",
       creditLimit: Number(party.creditLimit) || 0,
-      creditDays: Number(party.creditDays) || 30,
+      creditDays: Number(party.creditDays) || 0,
       line1: party.billingAddress?.line1 || "",
-      city: party.billingAddress?.city || "Ahmedabad",
-      pincode: party.billingAddress?.pincode || "380001",
+      city: party.billingAddress?.city || "",
+      pincode: party.billingAddress?.pincode || "",
       isActive: party.isActive !== false,
     });
     setFormError(null);
@@ -692,6 +703,10 @@ export default function PartiesPage() {
 
     try {
       const cleanGstin = editFormData.gstin?.trim() ? editFormData.gstin.trim().toUpperCase() : null;
+      const derivedStateCode =
+        editFormData.stateCode?.trim() ||
+        (cleanGstin && cleanGstin.length >= 2 ? cleanGstin.substring(0, 2) : editingParty.stateCode || "24");
+
       const payload = {
         type: editFormData.type,
         name: editFormData.name.trim(),
@@ -699,14 +714,14 @@ export default function PartiesPage() {
         phone: editFormData.phone.trim(),
         email: editFormData.email?.trim() || undefined,
         gstin: cleanGstin,
-        stateCode: editFormData.stateCode.trim(),
+        stateCode: derivedStateCode,
         creditLimit: Number(editFormData.creditLimit) || 0,
         creditDays: Number(editFormData.creditDays) || 0,
         isActive: Boolean(editFormData.isActive),
         billingAddress: {
-          line1: editFormData.line1?.trim() || "Main Market",
-          city: editFormData.city?.trim() || "Ahmedabad",
-          pincode: editFormData.pincode?.trim() || "380001",
+          line1: editFormData.line1?.trim() || "",
+          city: editFormData.city?.trim() || "",
+          pincode: editFormData.pincode?.trim() || "",
         },
       };
 
@@ -721,14 +736,14 @@ export default function PartiesPage() {
         phone: editFormData.phone.trim(),
         email: editFormData.email?.trim() || null,
         gstin: cleanGstin,
-        stateCode: editFormData.stateCode.trim(),
+        stateCode: derivedStateCode,
         creditLimit: Number(editFormData.creditLimit) || 0,
         creditDays: Number(editFormData.creditDays) || 0,
         isActive: Boolean(editFormData.isActive),
         billingAddress: {
-          line1: editFormData.line1?.trim() || "Main Market",
-          city: editFormData.city?.trim() || "Ahmedabad",
-          pincode: editFormData.pincode?.trim() || "380001",
+          line1: editFormData.line1?.trim() || "",
+          city: editFormData.city?.trim() || "",
+          pincode: editFormData.pincode?.trim() || "",
         },
         balance: editingParty.balance ?? (selectedParty?.id === editingParty.id ? selectedParty.balance : 0),
       };
@@ -830,6 +845,12 @@ export default function PartiesPage() {
 
   const displayParties = useMemo(() => {
     if (typeFilter === "ALL") return parties;
+    if (typeFilter === "CUSTOMER") {
+      return parties.filter((p) => p.type === "CUSTOMER" || p.type === "BOTH");
+    }
+    if (typeFilter === "SUPPLIER") {
+      return parties.filter((p) => p.type === "SUPPLIER" || p.type === "BOTH");
+    }
     return parties.filter((p) => p.type === typeFilter);
   }, [parties, typeFilter]);
 
@@ -846,9 +867,8 @@ export default function PartiesPage() {
             className="cursor-pointer group flex items-center gap-1.5"
           >
             <div>
-              <div className="font-bold text-slate-900 group-hover:text-[#0F172A] transition-colors flex items-center gap-1">
-                <span>{p.name}</span>
-                <span className="text-[10px] text-slate-400 group-hover:text-[#0F172A]">↗</span>
+              <div className="font-semibold text-slate-900 group-hover:text-[#1677E8] transition-colors">
+                {p.name}
               </div>
               {lang === "gu" && p.nameGujarati && (
                 <div className="text-[11px] font-normal text-slate-500">
@@ -862,7 +882,7 @@ export default function PartiesPage() {
       {
         id: "category",
         header: lang === "gu" ? "કેટેગરી" : "Category",
-        className: "text-slate-500 text-xs",
+        className: "text-slate-500 text-xs font-normal",
         cell: () => "-",
       },
       {
@@ -870,17 +890,24 @@ export default function PartiesPage() {
         header: lang === "gu" ? "મોબાઇલ નંબર" : "Mobile Number",
         accessorKey: "phone",
         sortable: true,
-        className: "tabular-nums text-slate-700 text-xs",
-        cell: (p) => p.phone || "—",
+        className: "tabular-nums text-slate-700 text-xs font-normal",
+        cell: (p) => p.phone || "-",
       },
       {
         id: "type",
-        header: lang === "gu" ? "પ્રકાર" : "Party type",
+        header: lang === "gu" ? "પ્રકાર" : "Party Type",
         accessorKey: "type",
         sortable: true,
+        className: "text-xs font-normal text-slate-700",
         cell: (p) => (
-          <span className="text-xs font-medium text-slate-700 capitalize">
-            {p.type === "CUSTOMER" ? "Customer" : p.type === "SUPPLIER" ? "Supplier" : p.type}
+          <span className="text-xs text-slate-700">
+            {p.type === "CUSTOMER"
+              ? "Customer"
+              : p.type === "SUPPLIER"
+              ? "Supplier"
+              : p.type === "BOTH"
+              ? "Both"
+              : p.type}
           </span>
         ),
       },
@@ -888,22 +915,22 @@ export default function PartiesPage() {
         id: "balance",
         header: lang === "gu" ? "બાકી રકમ (Balance)" : "Balance",
         sortable: true,
-        className: "text-right tabular-nums font-bold text-xs",
+        className: "tabular-nums text-xs font-semibold",
         cell: (p) => {
           const bal = Number(p.balance || 0);
           if (bal <= 0) {
-            return <span className="text-slate-500 font-semibold">₹ 0</span>;
+            return <span className="text-slate-700 font-normal">₹ 0</span>;
           }
           if (p.type === "SUPPLIER") {
             return (
-              <span className="text-rose-600 font-bold inline-flex items-center gap-1">
+              <span className="text-[#DC2626] font-semibold inline-flex items-center gap-1">
                 <span>↑</span>
                 <span>₹ {bal.toLocaleString("en-IN")}</span>
               </span>
             );
           }
           return (
-            <span className="text-emerald-700 font-bold inline-flex items-center gap-1">
+            <span className="text-[#15803D] font-semibold inline-flex items-center gap-1">
               <span>↓</span>
               <span>₹ {bal.toLocaleString("en-IN")}</span>
             </span>
@@ -914,35 +941,40 @@ export default function PartiesPage() {
         id: "actions",
         header: lang === "gu" ? "ક્રિયાઓ" : "Actions",
         className: "text-center",
+        headerClassName: "text-center",
+        align: "center",
         cell: (p) => (
           <div className="inline-flex items-center justify-center gap-2" onClick={(e) => e.stopPropagation()}>
-            {p.phone && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const companyName = currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook";
-                  const bal = Number(p.balance || 0);
-                  const text = `*Statement from ${companyName}*\nDear ${p.name},\nYour current balance is ₹${bal.toLocaleString("en-IN")}.\nKindly let us know if you need any invoices.\n\nThank you!`;
-                  const cleanPhone = p.phone.replace(/[^0-9]/g, "");
-                  const waUrl = cleanPhone
-                    ? `https://wa.me/${cleanPhone.startsWith("91") ? cleanPhone : "91" + cleanPhone}?text=${encodeURIComponent(text)}`
-                    : `https://wa.me/?text=${encodeURIComponent(text)}`;
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                const companyName = currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook";
+                const bal = Number(p.balance || 0);
+                const text = `*Statement from ${companyName}*\nDear ${p.name},\nYour current balance is ₹${bal.toLocaleString("en-IN")}.\nKindly let us know if you need any invoices.\n\nThank you!`;
+                const cleanPhone = (p.phone || "").replace(/[^0-9]/g, "");
+                if (cleanPhone) {
+                  const waUrl = `https://wa.me/${cleanPhone.startsWith("91") ? cleanPhone : "91" + cleanPhone}?text=${encodeURIComponent(text)}`;
                   window.open(waUrl, "_blank");
-                }}
-                className="w-7 h-7 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center justify-center text-xs transition-colors cursor-pointer"
-                title="Send reminder via WhatsApp"
-              >
-                💬
-              </button>
-            )}
+                } else {
+                  alert(lang === "gu" ? "આ વેપારી માટે કોઈ મોબાઇલ નંબર ઉપલબ્ધ નથી." : "No phone number available for this party.");
+                }
+              }}
+              className="w-8 h-8 rounded-lg border border-slate-200 bg-white hover:bg-emerald-50 hover:border-emerald-300 text-slate-500 hover:text-emerald-600 flex items-center justify-center transition-colors cursor-pointer shadow-2xs"
+              title={lang === "gu" ? "વોટ્સએપ સ્ટેટમેન્ટ મોકલો" : "Send Statement via WhatsApp"}
+            >
+              <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </button>
             <button
               type="button"
               onClick={() => setSelectedParty(p)}
-              className="px-2.5 py-1 text-[13px] font-medium text-[#1677E8] bg-[#EFF6FF] hover:bg-teal-100 border border-teal-200 rounded-lg transition-colors cursor-pointer"
+              className="px-3 py-1 text-xs font-medium text-[#1677E8] bg-[#EFF6FF] hover:bg-blue-100 border border-[#BFDBFE] rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1 shadow-2xs"
               title="View Master Details"
             >
-              Details →
+              <span>Details</span>
+              <span>→</span>
             </button>
           </div>
         ),
@@ -1861,25 +1893,26 @@ export default function PartiesPage() {
           )} */}
 
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-2xs">
             <div className="min-w-0">
-              <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight leading-tight">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-tight">
                 {lang === "gu" ? "વેપારીઓ / ગ્રાહક ખાતાઓ" : "Parties & Customer Accounts"}
               </h1>
-              <p className="text-xs sm:text-sm text-[#667085] mt-1 leading-relaxed break-words font-normal">
+              <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed break-words font-normal">
                 {lang === "gu"
                   ? "ગ્રાહકો, સપ્લાયરો, જીએસટી નંબર અને ખાતાની માહિતી મેનેજ કરો"
                   : "Manage customers, suppliers, GSTINs, credit terms, and ledger limits"}
               </p>
             </div>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
               <button
                 type="button"
                 onClick={() => setIsImportModalOpen(true)}
-                className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-800 border border-emerald-300 text-[13px] font-medium rounded-xl shadow-2xs transition-all w-full sm:w-auto shrink-0 cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 h-10 px-4 bg-white hover:bg-emerald-50/50 text-[#166534] border border-[#86EFAC] text-[13px] font-medium rounded-xl shadow-2xs transition-all w-full sm:w-auto shrink-0 cursor-pointer"
+                title="Import Parties from Excel or CSV"
               >
-                <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 text-[#15803D]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
                 <span>{lang === "gu" ? "એક્સેલ / CSV ઈમ્પોર્ટ" : "Import Excel / CSV"}</span>
@@ -1887,76 +1920,124 @@ export default function PartiesPage() {
 
               <button
                 onClick={handleOpenCreateModal}
-                className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] text-white text-[13px] font-medium rounded-xl shadow-xs transition-all w-full sm:w-auto shrink-0 cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 h-10 px-4 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] text-white text-[13px] font-medium rounded-xl shadow-xs transition-all w-full sm:w-auto shrink-0 cursor-pointer"
               >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2.5}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
+                <span className="text-base font-semibold leading-none">+</span>
                 <span>{lang === "gu" ? "નવો વેપારી ઉમેરો" : "Add New Party"}</span>
               </button>
             </div>
           </div>
 
-          {/* 3 Summary KPI Cards (Matching MyBillBook) */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-subtle">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  👥 All Parties
-                </span>
-                <span className="text-xs tabular-nums text-slate-400">Total</span>
+          {/* 4 Summary KPI Cards (Exact Matching Target Design) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Card 1: Customers */}
+            <div
+              onClick={() => setTypeFilter(typeFilter === "CUSTOMER" ? "ALL" : "CUSTOMER")}
+              className={`bg-white rounded-2xl border p-4 sm:p-5 flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs transition-all cursor-pointer group ${
+                typeFilter === "CUSTOMER" ? "border-[#1677E8] ring-2 ring-blue-100" : "border-slate-200/80 hover:border-blue-200"
+              }`}
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-[#EFF6FF] text-[#1677E8] flex items-center justify-center shrink-0">
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <span className="text-xs sm:text-[13px] font-medium text-slate-600 block">
+                    {lang === "gu" ? "ગ્રાહકો" : "Customers"}
+                  </span>
+                  <div className="text-2xl sm:text-[28px] font-bold tabular-nums text-slate-900 tracking-tight mt-0.5 leading-none">
+                    {totalCustomers}
+                  </div>
+                </div>
               </div>
-              <div className="text-2xl font-bold tabular-nums text-slate-900 mt-2">
-                {parties.length}
-              </div>
-              <div className="text-[11px] text-slate-400 mt-1">
-                Active customer & supplier directories
-              </div>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-subtle">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-1">
-                  <span>↓</span>
-                  <span>To Collect (Receivable)</span>
-                </span>
-                <span className="text-xs tabular-nums text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">
-                  You'll Get
-                </span>
-              </div>
-              <div className="text-2xl font-bold tabular-nums text-emerald-700 mt-2">
-                ₹ {totalToCollect.toLocaleString("en-IN")}
-              </div>
-              <div className="text-[11px] text-slate-400 mt-1">
-                Outstanding dues from customers
+              <div className="text-blue-500 group-hover:translate-x-0.5 transition-transform shrink-0">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                </svg>
               </div>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-subtle">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-rose-600 uppercase tracking-wider flex items-center gap-1">
-                  <span>↑</span>
-                  <span>To Pay (Payable)</span>
-                </span>
-                <span className="text-xs tabular-nums text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full font-bold">
-                  You'll Give
-                </span>
+            {/* Card 2: Suppliers */}
+            <div
+              onClick={() => setTypeFilter(typeFilter === "SUPPLIER" ? "ALL" : "SUPPLIER")}
+              className={`bg-white rounded-2xl border p-4 sm:p-5 flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs transition-all cursor-pointer group ${
+                typeFilter === "SUPPLIER" ? "border-indigo-500 ring-2 ring-indigo-100" : "border-slate-200/80 hover:border-indigo-200"
+              }`}
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center shrink-0">
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                  </svg>
+                </div>
+                <div>
+                  <span className="text-xs sm:text-[13px] font-medium text-slate-600 block">
+                    {lang === "gu" ? "સપ્લાયરો" : "Suppliers"}
+                  </span>
+                  <div className="text-2xl sm:text-[28px] font-bold tabular-nums text-slate-900 tracking-tight mt-0.5 leading-none">
+                    {totalSuppliers}
+                  </div>
+                </div>
               </div>
-              <div className="text-2xl font-bold tabular-nums text-rose-600 mt-2">
-                ₹ {totalToPay.toLocaleString("en-IN")}
+              <div className="text-indigo-500 group-hover:translate-x-0.5 transition-transform shrink-0">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                </svg>
               </div>
-              <div className="text-[11px] text-slate-400 mt-1">
-                Payables to raw material / suppliers
+            </div>
+
+            {/* Card 3: To Collect (Receivable) */}
+            <div
+              onClick={() => setTypeFilter(typeFilter === "CUSTOMER" ? "ALL" : "CUSTOMER")}
+              className="bg-[#F0FDF4] rounded-2xl border border-[#BBF7D0] p-4 sm:p-5 flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
+            >
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="w-12 h-12 rounded-2xl bg-[#DCFCE7] text-[#15803D] font-bold text-xl flex items-center justify-center shrink-0">
+                  ₹
+                </div>
+                <div className="min-w-0">
+                  <span className="text-xs sm:text-[13px] font-medium text-[#15803D] block truncate">
+                    {lang === "gu" ? "લેવાની રકમ (Receivable)" : "To Collect (Receivable)"}
+                  </span>
+                  <div className="text-2xl sm:text-[28px] font-bold tabular-nums text-[#15803D] tracking-tight mt-0.5 leading-none truncate">
+                    ₹ {totalToCollect.toLocaleString("en-IN")}
+                  </div>
+                </div>
+              </div>
+              <div className="text-[#15803D] group-hover:translate-x-0.5 transition-transform shrink-0">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Card 4: To Pay (Payable) */}
+            <div
+              onClick={() => setTypeFilter(typeFilter === "SUPPLIER" ? "ALL" : "SUPPLIER")}
+              className="bg-[#FEF2F2] rounded-2xl border border-[#FECACA] p-4 sm:p-5 flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
+            >
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="w-12 h-12 rounded-2xl bg-[#FEE2E2] text-[#DC2626] flex items-center justify-center shrink-0">
+                  <svg className="w-6 h-6 text-[#DC2626]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <span className="text-xs sm:text-[13px] font-medium text-[#DC2626] block truncate">
+                    {lang === "gu" ? "ચૂકવવાની રકમ (Payable)" : "To Pay (Payable)"}
+                  </span>
+                  <div className="text-2xl sm:text-[28px] font-bold tabular-nums text-[#DC2626] tracking-tight mt-0.5 leading-none truncate">
+                    ₹ {totalToPay.toLocaleString("en-IN")}
+                  </div>
+                </div>
+              </div>
+              <div className="text-[#DC2626] group-hover:translate-x-0.5 transition-transform shrink-0">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                </svg>
               </div>
             </div>
           </div>
@@ -1966,11 +2047,12 @@ export default function PartiesPage() {
             selectable
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
+            toolbarVariant="clean"
             renderBulkActions={(ids) => (
               <button
                 type="button"
                 onClick={() => setIsBulkDeleteModalOpen(true)}
-                className="inline-flex items-center gap-1.5 h-9 px-3 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-[13px] font-medium rounded-xl shadow-sm transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 h-10 px-3.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-[13px] font-medium rounded-xl shadow-sm transition-all cursor-pointer"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -2011,7 +2093,7 @@ export default function PartiesPage() {
                 <select
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
-                  className="text-[13px] bg-[#F8F9FB] border border-[#E5E7EB] text-[#182230] rounded-xl px-3 py-1.5 font-normal focus:outline-none focus:bg-white cursor-pointer h-10"
+                  className="h-10 text-[13px] bg-white border border-[#E2E8F0] text-[#182230] rounded-xl px-3.5 py-1.5 font-normal focus:outline-none focus:border-[#1677E8] cursor-pointer shadow-2xs"
                 >
                   <option value="ALL">
                     {lang === "gu" ? "તમામ પ્રકાર (All Types)" : "All Types"}
@@ -2028,77 +2110,108 @@ export default function PartiesPage() {
                 </select>
               </div>
             }
-            mobileCardRender={(p) => (
-              <div key={p.id} onClick={() => setSelectedParty(p)} className="p-3.5 hover:bg-slate-50 transition-colors space-y-2 cursor-pointer">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-semibold text-slate-900 text-sm">{p.name}</span>
-                  <Badge
-                    variant={
-                      p.type === "CUSTOMER"
-                        ? "info"
-                        : p.type === "SUPPLIER"
-                          ? "purple"
-                          : "neutral"
-                    }
-                  >
-                    {p.type}
-                  </Badge>
-                </div>
-                {lang === "gu" && p.nameGujarati && <p className="text-xs text-slate-500">{p.nameGujarati}</p>}
-                <div className="flex items-center justify-between text-xs text-slate-600 tabular-nums">
-                  <span>📞 {p.phone || "—"}</span>
-                  <span>State: {p.stateCode}</span>
-                </div>
-                {p.gstin && (
-                  <div className="text-[11px] tabular-nums font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block">
-                    GST: {p.gstin}
+            mobileCardRender={(p) => {
+              const bal = Number(p.balance || 0);
+              return (
+                <div
+                  key={p.id}
+                  onClick={() => setSelectedParty(p)}
+                  className="p-4 hover:bg-slate-50/80 transition-colors space-y-3 cursor-pointer"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="font-semibold text-slate-900 text-sm block">{p.name}</span>
+                      {lang === "gu" && p.nameGujarati && (
+                        <p className="text-xs text-slate-500">{p.nameGujarati}</p>
+                      )}
+                      <span className="text-xs text-slate-500 tabular-nums">
+                        📞 {p.phone || "—"}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <Badge
+                        variant={
+                          p.type === "CUSTOMER"
+                            ? "info"
+                            : p.type === "SUPPLIER"
+                            ? "purple"
+                            : "neutral"
+                        }
+                      >
+                        {p.type === "CUSTOMER" ? "Customer" : p.type === "SUPPLIER" ? "Supplier" : p.type}
+                      </Badge>
+                      <div className="mt-1 font-semibold text-xs tabular-nums">
+                        {bal <= 0 ? (
+                          <span className="text-slate-600 font-normal">₹ 0</span>
+                        ) : p.type === "SUPPLIER" ? (
+                          <span className="text-[#DC2626]">↑ ₹ {bal.toLocaleString("en-IN")}</span>
+                        ) : (
+                          <span className="text-[#15803D]">↓ ₹ {bal.toLocaleString("en-IN")}</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                )}
-                <div className="flex flex-wrap items-center justify-end gap-1.5 pt-1">
-                  {p.phone && (
+
+                  {p.gstin && (
+                    <div className="text-[11px] tabular-nums font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md inline-block">
+                      GSTIN: {p.gstin}
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100" onClick={(e) => e.stopPropagation()}>
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         const companyName =
                           currentCompany?.tradeName ||
                           currentCompany?.legalName ||
                           "myownbillbook";
-                        const text = `*Payment Reminder from ${companyName}*\nDear ${p.name},\nThis is a friendly reminder regarding your outstanding bill. Kindly arrange payment at your earliest convenience.\n\nThank you!`;
-                        const cleanPhone = p.phone.replace(/[^0-9]/g, "");
-                        const waUrl = cleanPhone
-                          ? `https://wa.me/${cleanPhone.startsWith("91") ? cleanPhone : "91" + cleanPhone}?text=${encodeURIComponent(text)}`
-                          : `https://wa.me/?text=${encodeURIComponent(text)}`;
-                        window.open(waUrl, "_blank");
+                        const bal = Number(p.balance || 0);
+                        const text = `*Statement from ${companyName}*\nDear ${p.name},\nYour current balance is ₹${bal.toLocaleString("en-IN")}.\nKindly let us know if you need any invoices.\n\nThank you!`;
+                        const cleanPhone = (p.phone || "").replace(/[^0-9]/g, "");
+                        if (cleanPhone) {
+                          const waUrl = `https://wa.me/${cleanPhone.startsWith("91") ? cleanPhone : "91" + cleanPhone}?text=${encodeURIComponent(text)}`;
+                          window.open(waUrl, "_blank");
+                        } else {
+                          alert(lang === "gu" ? "આ વેપારી માટે કોઈ મોબાઇલ નંબર ઉપલબ્ધ નથી." : "No phone number available for this party.");
+                        }
                       }}
-                      className="px-2 py-1 text-[11px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-medium rounded inline-flex items-center gap-1 cursor-pointer"
+                      className="w-8 h-8 rounded-lg border border-slate-200 bg-white hover:bg-emerald-50 text-slate-500 hover:text-emerald-600 flex items-center justify-center transition-colors cursor-pointer shadow-2xs"
+                      title={lang === "gu" ? "વોટ્સએપ સ્ટેટમેન્ટ મોકલો" : "Send Statement via WhatsApp"}
                     >
-                      <span>💬 Remind</span>
+                      <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setSelectedParty(p)}
-                    className="px-2.5 py-1 text-[13px] font-medium text-[#1677E8] bg-[#EFF6FF] hover:bg-teal-100 border border-teal-200 rounded transition-colors inline-flex items-center gap-1 cursor-pointer"
-                  >
-                    <span>{lang === "gu" ? "વિગતો" : "Details"} →</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleOpenEditModal(p)}
-                    className="px-2.5 py-1 text-[13px] font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded cursor-pointer"
-                  >
-                    {lang === "gu" ? "સુધારો" : "Edit"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPartyToDelete(p)}
-                    className="px-2.5 py-1 text-[13px] font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded cursor-pointer"
-                  >
-                    {lang === "gu" ? "કાઢી નાખો" : "Delete"}
-                  </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedParty(p)}
+                      className="px-3 py-1 text-xs font-medium text-[#1677E8] bg-[#EFF6FF] hover:bg-blue-100 border border-[#BFDBFE] rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1 shadow-2xs"
+                      title="View Master Details"
+                    >
+                      <span>Details</span>
+                      <span>→</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditModal(p)}
+                      className="px-2.5 py-1 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg cursor-pointer"
+                    >
+                      {lang === "gu" ? "સુધારો" : "Edit"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPartyToDelete(p)}
+                      className="px-2.5 py-1 text-xs font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg cursor-pointer"
+                    >
+                      {lang === "gu" ? "કાઢી નાખો" : "Delete"}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            }}
           />
 
           {/* Bottom Excel / Tally Migration Banner (Matching MyBillBook) */}
@@ -2171,7 +2284,7 @@ export default function PartiesPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, phone: e.target.value })
                 }
-                placeholder="+919800000000"
+                placeholder={lang === "gu" ? "૧૦ આંકડાનો મોબાઇલ નંબર" : "Enter mobile number"}
                 className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
               />
             </div>
@@ -2205,7 +2318,7 @@ export default function PartiesPage() {
                         setNameConflict(null);
                       }
                     }}
-                    placeholder="24AAAAA0000A1Z2"
+                    placeholder={lang === "gu" ? "૧૫ આંકડાનો GSTIN (વૈકલ્પિક)" : "15-digit GSTIN (optional)"}
                     maxLength={15}
                     className="w-full text-[13px] p-2 bg-white border border-slate-300 rounded tabular-nums uppercase focus:ring-1 focus:ring-[#1677E8] h-10"
                   />
@@ -2240,16 +2353,15 @@ export default function PartiesPage() {
 
               <div>
                 <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
-                  {lang === "gu" ? "રાજ્ય કોડ *" : "State Code *"}
+                  {lang === "gu" ? "રાજ્ય કોડ" : "State Code"}
                 </label>
                 <input
                   type="text"
-                  required
                   value={formData.stateCode}
                   onChange={(e) =>
                     setFormData({ ...formData, stateCode: e.target.value })
                   }
-                  placeholder="24 (Gujarat)"
+                  placeholder={lang === "gu" ? "રાજ્ય કોડ (દા.ત. 24)" : "e.g. 24"}
                   maxLength={2}
                   className="w-full text-[13px] p-2 bg-white border border-slate-300 rounded tabular-nums focus:ring-1 focus:ring-[#1677E8] h-10"
                 />
@@ -2419,7 +2531,7 @@ export default function PartiesPage() {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              placeholder="e.g. Shree Ganesh Provision Store"
+              placeholder={lang === "gu" ? "વેપારીનું નામ દાખલ કરો" : "Enter business / party name"}
               className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
             />
           </div>
@@ -2452,7 +2564,7 @@ export default function PartiesPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, line1: e.target.value })
                 }
-                placeholder="Shop No. 4, Market"
+                placeholder={lang === "gu" ? "દુકાન, મકાન, શેરી" : "Shop, building, street, area"}
                 className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded h-10"
               />
             </div>
@@ -2466,7 +2578,7 @@ export default function PartiesPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, city: e.target.value })
                 }
-                placeholder="Ahmedabad"
+                placeholder={lang === "gu" ? "શહેરનું નામ" : "City / District"}
                 className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded h-10"
               />
             </div>
@@ -2480,7 +2592,7 @@ export default function PartiesPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, pincode: e.target.value })
                 }
-                placeholder="380001"
+                placeholder={lang === "gu" ? "પીનકોડ" : "Pincode"}
                 className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums h-10"
               />
             </div>
@@ -2557,7 +2669,7 @@ export default function PartiesPage() {
                 onChange={(e) =>
                   setEditFormData({ ...editFormData, phone: e.target.value })
                 }
-                placeholder="+919800000000"
+                placeholder={lang === "gu" ? "૧૦ આંકડાનો મોબાઇલ નંબર" : "Enter mobile number"}
                 className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
               />
             </div>
@@ -2591,7 +2703,7 @@ export default function PartiesPage() {
                         setNameConflict(null);
                       }
                     }}
-                    placeholder="24AAAAA0000A1Z2"
+                    placeholder={lang === "gu" ? "૧૫ આંકડાનો GSTIN (વૈકલ્પિક)" : "15-digit GSTIN (optional)"}
                     maxLength={15}
                     className="w-full text-[13px] p-2 bg-white border border-slate-300 rounded tabular-nums uppercase focus:ring-1 focus:ring-[#1677E8] h-10"
                   />
@@ -2626,16 +2738,15 @@ export default function PartiesPage() {
 
               <div>
                 <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
-                  {lang === "gu" ? "રાજ્ય કોડ *" : "State Code *"}
+                  {lang === "gu" ? "રાજ્ય કોડ" : "State Code"}
                 </label>
                 <input
                   type="text"
-                  required
                   value={editFormData.stateCode}
                   onChange={(e) =>
                     setEditFormData({ ...editFormData, stateCode: e.target.value })
                   }
-                  placeholder="24 (Gujarat)"
+                  placeholder={lang === "gu" ? "રાજ્ય કોડ (દા.ત. 24)" : "e.g. 24"}
                   maxLength={2}
                   className="w-full text-[13px] p-2 bg-white border border-slate-300 rounded tabular-nums focus:ring-1 focus:ring-[#1677E8] h-10"
                 />
@@ -2805,7 +2916,7 @@ export default function PartiesPage() {
               onChange={(e) =>
                 setEditFormData({ ...editFormData, name: e.target.value })
               }
-              placeholder="e.g. Shree Ganesh Provision Store"
+              placeholder={lang === "gu" ? "વેપારીનું નામ દાખલ કરો" : "Enter business / party name"}
               className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
             />
           </div>
@@ -2838,7 +2949,7 @@ export default function PartiesPage() {
                 onChange={(e) =>
                   setEditFormData({ ...editFormData, line1: e.target.value })
                 }
-                placeholder="Shop No. 4, Market"
+                placeholder={lang === "gu" ? "દુકાન, મકાન, શેરી" : "Shop, building, street, area"}
                 className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded h-10"
               />
             </div>
@@ -2852,7 +2963,7 @@ export default function PartiesPage() {
                 onChange={(e) =>
                   setEditFormData({ ...editFormData, city: e.target.value })
                 }
-                placeholder="Ahmedabad"
+                placeholder={lang === "gu" ? "શહેરનું નામ" : "City / District"}
                 className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded h-10"
               />
             </div>
@@ -2866,7 +2977,7 @@ export default function PartiesPage() {
                 onChange={(e) =>
                   setEditFormData({ ...editFormData, pincode: e.target.value })
                 }
-                placeholder="380001"
+                placeholder={lang === "gu" ? "પીનકોડ" : "Pincode"}
                 className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded tabular-nums h-10"
               />
             </div>

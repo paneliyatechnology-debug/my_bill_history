@@ -946,7 +946,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     },
   ];
 
-  const isSettingsPage = pathname.startsWith("/settings") || pathname.startsWith("/pricing-settings");
+  const isSettingsPage =
+    pathname.startsWith("/settings") ||
+    pathname.startsWith("/app/settings") ||
+    pathname.startsWith("/pricing-settings");
 
   return (
     <div className="h-[100dvh] h-screen w-full flex overflow-hidden bg-[#F5F8FC] print:h-auto print:min-h-0 print:overflow-visible print:bg-white print:block">

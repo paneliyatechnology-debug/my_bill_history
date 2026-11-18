@@ -82,26 +82,26 @@ export interface InvoiceStudioState {
 export const DEFAULT_INVOICE_STUDIO_STATE: InvoiceStudioState = {
   themeId: "stylish",
   themeMode: "preset",
-  accentColor: "#111111",
-  customColorHex: "#111111",
+  accentColor: "#2563EB",
+  customColorHex: "#2563EB",
   festiveTheme: null,
   festiveVariant: 1,
   uniqueThemeKey: "stylish",
   paperSize: "A4",
 
   showPartyBalance: false,
-  enableFreeItemQuantity: false,
+  enableFreeItemQuantity: true,
   showItemDescription: true,
-  showAlternateUnit: false,
+  showAlternateUnit: true,
   showPhoneNumber: true,
-  showTimeOnInvoice: false,
-  priceHistory: false,
+  showTimeOnInvoice: true,
+  priceHistory: true,
   autoApplyLuxuryForSharing: true,
 
   industryType: "General Trade",
-  showPoNumber: false,
-  showEwayBillNumber: false,
-  showVehicleNumber: false,
+  showPoNumber: true,
+  showEwayBillNumber: true,
+  showVehicleNumber: true,
   invoiceCustomFields: [],
 
   showShippingAddress: true,
@@ -141,18 +141,21 @@ export const DEFAULT_INVOICE_STUDIO_STATE: InvoiceStudioState = {
 const DEFAULT_STATE = DEFAULT_INVOICE_STUDIO_STATE;
 
 const COLOR_PALETTE = [
-  { id: "#111827", name: "Charcoal Black" },
-  { id: "#4D7C0F", name: "Olive Green" },
-  { id: "#0284C7", name: "Ocean Blue" },
+  { id: "#0F172A", name: "Navy Charcoal" },
+  { id: "#2563EB", name: "Primary Blue" },
   { id: "#7C3AED", name: "Royal Purple" },
   { id: "#DC2626", name: "Crimson Red" },
-  { id: "#4338CA", name: "Slate Indigo" },
-  { id: "#D97706", name: "Mustard Gold" },
-  { id: "#C2410C", name: "Rust Brown" },
+  { id: "#EA580C", name: "Rust Orange" },
+  { id: "#65A30D", name: "Olive Green" },
+  { id: "#0284C7", name: "Ocean Blue" },
+  { id: "#0D9488", name: "Teal Emerald" },
 ];
 
 const FESTIVE_THEMES = [
-  { id: "logo", name: "Your logo", tone: "linear-gradient(160deg,#FFF7ED,#FFFFFF)" },
+  { id: "gudi_padwa", name: "Gudi Padwa", tone: "linear-gradient(160deg,#FED7AA,#FFF7ED)" },
+  { id: "eid", name: "Eid", tone: "linear-gradient(160deg,#FEF3C7,#FFFBEB)" },
+  { id: "werwe", name: "werwe", tone: "linear-gradient(160deg,#E0E7FF,#EEF2FF)" },
+  { id: "christmas", name: "christmas", tone: "linear-gradient(160deg,#FEE2E2,#FFF1F2)" },
   { id: "navratri", name: "Navaratri", tone: "linear-gradient(160deg,#FED7AA,#FFF7ED)" },
   { id: "durga_puja", name: "Durga Puja", tone: "linear-gradient(160deg,#FECDD3,#FFF1F2)" },
   { id: "dussehra", name: "Dussehra", tone: "linear-gradient(160deg,#FDBA74,#FFF7ED)" },
@@ -161,6 +164,7 @@ const FESTIVE_THEMES = [
   { id: "uttarayan", name: "Uttarayan", tone: "linear-gradient(160deg,#BAE6FD,#F0F9FF)" },
   { id: "independence", name: "Independence", tone: "linear-gradient(160deg,#BBF7D0,#FFEDD5)" },
   { id: "ganesh_chaturthi", name: "Ganesh Puja", tone: "linear-gradient(160deg,#FDE68A,#FFEDD5)" },
+  { id: "logo", name: "Your logo", tone: "linear-gradient(160deg,#FFF7ED,#FFFFFF)" },
 ];
 
 const STANDARD_THEMES = [
@@ -175,74 +179,112 @@ const STANDARD_THEMES = [
   { id: "simple", name: "Simple", kind: "simple" as const, desc: "Hairline rules only" },
 ];
 
-const ALL_MODAL_THEMES: Array<{
-  id: string;
-  name: string;
-  tag: string;
-  kind: "stylish" | "luxury" | "tally" | "gst" | "tallybook" | "lite" | "compact" | "modern" | "simple" | "billbook" | "festival";
-}> = [
-  { id: "stylish", name: "Stylish", tag: "Clean open bill", kind: "stylish" },
-  { id: "luxury", name: "Luxury", tag: "Double gold frame", kind: "luxury" },
-  { id: "advanced_gst_tally", name: "Advanced GST (Tally)", tag: "Ruled HSN invoice", kind: "tally" },
-  { id: "advanced_gst", name: "Advanced GST", tag: "Colour banner + tax column", kind: "gst" },
-  { id: "tallybook", name: "TallyBook", tag: "Classic black boxes", kind: "tallybook" },
-  { id: "tallybook_lite", name: "TallyBook Lite", tag: "Light frame", kind: "lite" },
-  { id: "advanced_compact", name: "Advanced compact", tag: "Tight A5 GST", kind: "compact" },
-  { id: "modern", name: "Modern", tag: "Accent rail + pill bar", kind: "modern" },
-  { id: "simple", name: "Simple", tag: "Hairline rules only", kind: "simple" },
-  { id: "billbook", name: "Billbook", tag: "Logo mark + footer", kind: "billbook" },
-];
+type SettingsTab = "design" | "invoice_details" | "party_details" | "item_columns" | "misc";
 
 export function InvoiceSettingsStudio() {
   const { currentCompany, user } = useAuth();
 
+  const [activeTab, setActiveTab] = useState<SettingsTab>("design");
   const [state, setState] = useState<InvoiceStudioState>(DEFAULT_STATE);
   const [history, setHistory] = useState<InvoiceStudioState[]>([DEFAULT_STATE]);
   const [historyIndex, setHistoryIndex] = useState(0);
 
   const [openAccordion, setOpenAccordion] = useState<string | null>("theme-settings");
   const [focusedSection, setFocusedSection] = useState<string | null>(null);
+  const [zoom, setZoom] = useState<number>(0.70);
 
   const [showAllThemesModal, setShowAllThemesModal] = useState(false);
-  const [showCustomThemeModal, setShowCustomThemeModal] = useState(false);
   const [showCustomFieldModal, setShowCustomFieldModal] = useState<{
     target: "invoice" | "party" | "column";
   } | null>(null);
   const [customFieldInput, setCustomFieldInput] = useState({ label: "", value: "" });
-
-  const [aiPrompt, setAiPrompt] = useState("");
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiAttachedImage, setAiAttachedImage] = useState<string | null>(null);
-  const [selectorActive, setSelectorActive] = useState(false);
-  const [aiToast, setAiToast] = useState<{ message: string; showUndo: boolean } | null>(null);
 
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<InvoiceStudioState>(DEFAULT_STATE);
   const [saveBanner, setSaveBanner] = useState<string | null>(null);
   const [festiveThemesList, setFestiveThemesList] = useState<any[]>(FESTIVE_THEMES);
   const [standardThemesList, setStandardThemesList] = useState<any[]>(STANDARD_THEMES);
+  const [companyLogoUrl, setCompanyLogoUrl] = useState<string | null>(
+    (currentCompany as any)?.logoUrl || null
+  );
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const skipRemoteLoad = useRef(false);
   const signatureInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const colorPickerInputRef = useRef<HTMLInputElement>(null);
   const themeStoreScrollRef = useRef<HTMLDivElement>(null);
-  const [scrollThumb, setScrollThumb] = useState({ leftPercent: 0, widthPercent: 35 });
 
-  const [showAllThemesInline, setShowAllThemesInline] = useState(false);
-
-  const handleThemeStoreScroll = () => {
-    const el = themeStoreScrollRef.current;
-    if (!el) return;
-    const maxScroll = el.scrollWidth - el.clientWidth;
-    if (maxScroll > 0) {
-      const scrollRatio = el.scrollLeft / maxScroll;
-      const widthRatio = Math.max(20, Math.min(60, (el.clientWidth / el.scrollWidth) * 100));
-      const maxLeft = 100 - widthRatio;
-      setScrollThumb({
-        leftPercent: scrollRatio * maxLeft,
-        widthPercent: widthRatio,
-      });
+  const handleOpenColorPicker = (e?: React.MouseEvent) => {
+    if (colorPickerInputRef.current && "showPicker" in HTMLInputElement.prototype) {
+      try {
+        if (e) e.preventDefault();
+        colorPickerInputRef.current.showPicker();
+        return;
+      } catch {
+        // fallback to direct event
+      }
     }
+  };
+
+  // Auto-load company logo from context or backend
+  useEffect(() => {
+    if ((currentCompany as any)?.logoUrl) {
+      setCompanyLogoUrl((currentCompany as any).logoUrl);
+      return;
+    }
+    let active = true;
+    (async () => {
+      try {
+        const token = typeof window !== "undefined" ? localStorage.getItem("billing_auth_token") : null;
+        const tenantRaw = typeof window !== "undefined" ? localStorage.getItem("billing_tenant_context") : null;
+        const tenant = tenantRaw ? JSON.parse(tenantRaw) : {};
+        const headers: Record<string, string> = {};
+        if (token) headers.Authorization = `Bearer ${token}`;
+        if (tenant.organizationId) headers["x-organization-id"] = tenant.organizationId;
+        if (tenant.companyId) headers["x-company-id"] = tenant.companyId;
+        if (tenant.branchId) headers["x-branch-id"] = tenant.branchId;
+        const res = await fetch(`${apiClient.getBaseUrl()}/tenants/company/logo`, { headers });
+        if (res.ok) {
+          const blob = await res.blob();
+          if (blob && blob.size > 0 && active) {
+            const url = URL.createObjectURL(blob);
+            setCompanyLogoUrl(url);
+          }
+        }
+      } catch {
+        // keep fallback
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [currentCompany?.id, (currentCompany as any)?.logoUrl]);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setSaveBanner("Company logo must be under 5 MB");
+        setTimeout(() => setSaveBanner(null), 3000);
+        return;
+      }
+      const localUrl = URL.createObjectURL(file);
+      setCompanyLogoUrl(localUrl);
+
+      try {
+        const fd = new FormData();
+        fd.append("file", file);
+        await apiClient.post("/tenants/company/logo", fd);
+        setSaveBanner("Company logo updated successfully!");
+        setTimeout(() => setSaveBanner(null), 3000);
+      } catch {
+        // Local preview remains active
+      }
+    }
+  };
+
+  const scrollThemeStoreLeft = () => {
+    themeStoreScrollRef.current?.scrollBy({ left: -180, behavior: "smooth" });
   };
 
   const scrollThemeStoreRight = () => {
@@ -312,7 +354,10 @@ export function InvoiceSettingsStudio() {
               variants: t.variants,
             }));
           if (festiveOnly.length > 0) {
-            setFestiveThemesList(festiveOnly);
+            setFestiveThemesList((prev) => {
+              const ids = new Set(festiveOnly.map((x: any) => x.id));
+              return [...festiveOnly, ...prev.filter((x: any) => !ids.has(x.id))];
+            });
           }
 
           const standardOnly = themeCatalog.managedThemes
@@ -350,6 +395,7 @@ export function InvoiceSettingsStudio() {
           }
         }
       } catch {}
+
       try {
         const res: any = await apiClient.get("/invoice-settings");
         if (res && res.settings) {
@@ -366,6 +412,7 @@ export function InvoiceSettingsStudio() {
             festiveVariant: def.variant,
             uniqueThemeKey: def.uniqueKey,
             accentColor: s.accentColor || DEFAULT_STATE.accentColor,
+            customColorHex: s.accentColor || DEFAULT_STATE.customColorHex,
             showPartyBalance: s.showPartyBalance ?? DEFAULT_STATE.showPartyBalance,
             enableFreeItemQuantity: s.enableFreeItemQuantity ?? DEFAULT_STATE.enableFreeItemQuantity,
             showItemDescription: s.showItemDescription ?? DEFAULT_STATE.showItemDescription,
@@ -427,7 +474,7 @@ export function InvoiceSettingsStudio() {
           setState(merged);
           setHistory([merged]);
           setHistoryIndex(0);
-          setLastSaved(merged); // setLastSaved in local fallback
+          setLastSaved(merged);
         }
       } catch {}
     };
@@ -514,125 +561,6 @@ export function InvoiceSettingsStudio() {
     }
   };
 
-  const handleTriggerAi = async (overridePrompt?: string) => {
-    const promptToSend = (overridePrompt || aiPrompt).trim();
-    if (!promptToSend) return;
-
-    setAiLoading(true);
-    try {
-      const res: any = await apiClient.post("/invoice-settings/ai-style", {
-        prompt: promptToSend,
-        currentSettings: state,
-        selectedElement: selectorActive ? focusedSection : null,
-        imageBase64: aiAttachedImage,
-      });
-
-      if (res && res.updatedSettings) {
-        const festivalIds = [
-          "your_logo",
-          "navratri",
-          "durga_puja",
-          "dussehra",
-          "dhanteras",
-          "diwali",
-          "uttarayan",
-          "independence",
-          "ganesh_chaturthi",
-        ];
-        const patch = { ...res.updatedSettings };
-        if (festivalIds.includes(patch.themeId)) {
-          patch.festiveTheme = patch.themeId === "your_logo" ? "logo" : patch.themeId;
-        } else if (patch.themeId) {
-          patch.festiveTheme = null;
-        }
-        updateState((prev) => ({
-          ...prev,
-          ...patch,
-        }));
-        setAiToast({
-          message: res.explanation || "AI applied new invoice styles!",
-          showUndo: true,
-        });
-        setAiPrompt("");
-        setAiAttachedImage(null);
-        setSelectorActive(false);
-      }
-    } catch {
-      if (promptToSend.toLowerCase().includes("easy to read")) {
-        updateState({
-          themeId: "stylish",
-          festiveTheme: null,
-          accentColor: "#111111",
-          showItemDescription: true,
-          showAlternateUnit: true,
-          showHsn: true,
-        });
-        setAiToast({
-          message: "Applied clean, high-contrast typography and spaced item layout.",
-          showUndo: true,
-        });
-      } else if (promptToSend.toLowerCase().includes("brand touch")) {
-        updateState({
-          themeId: "luxury",
-          festiveTheme: null,
-          accentColor: "#4F46E5",
-          autoApplyLuxuryForSharing: true,
-        });
-        setAiToast({
-          message: "Applied luxury branding theme with elegant slate indigo accents.",
-          showUndo: true,
-        });
-      } else if (promptToSend.toLowerCase().includes("highlight key info")) {
-        updateState({
-          themeId: "advanced_gst_tally",
-          festiveTheme: null,
-          accentColor: "#DC2626",
-          showPoNumber: true,
-          showPartyBalance: true,
-          showTax: true,
-        });
-        setAiToast({
-          message: "Highlighted PO Number, Party Balance, and GST Tax Breakup.",
-          showUndo: true,
-        });
-      } else if (promptToSend.toLowerCase().includes("fix layout")) {
-        updateState({
-          themeId: "advanced_gst_tally",
-          festiveTheme: null,
-          accentColor: "#0284C7",
-          fontSize: "12",
-        });
-        setAiToast({
-          message: "Rebalanced column widths and normalized table margins.",
-          showUndo: true,
-        });
-      } else if (promptToSend.toLowerCase().includes("make it creative")) {
-        updateState({
-          themeId: "diwali",
-          festiveTheme: "diwali",
-          showTimeOnInvoice: true,
-        });
-        setAiToast({
-          message: "Applied the Diwali frame with diyas, purple border, and a full item table.",
-          showUndo: true,
-        });
-      }
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
-  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setAiAttachedImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleSignatureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -695,7 +623,7 @@ export function InvoiceSettingsStudio() {
       mfg: "01/24",
     },
     {
-      name: "PARLE-G 200G",
+      name: "PARLE- G 200G",
       desc: "best biscuit",
       hsn: "40511209",
       qty: "1 BOX",
@@ -726,19 +654,13 @@ export function InvoiceSettingsStudio() {
     },
   ];
 
-  const companyDisplayName = currentCompany?.tradeName || currentCompany?.legalName || "JKEnterprise";
-  const companyPhone = (currentCompany as any)?.phone || user?.phone || "8238812890";
+  const companyDisplayName = currentCompany?.tradeName || currentCompany?.legalName || "JMK";
+  const companyPhone = (currentCompany as any)?.phone || user?.phone || "8238878965";
   const companyAddress = (currentCompany as any)?.address || "Amreli, Gujarat, 365630";
+  const companyGstin = (currentCompany as any)?.gstin || "24AAAPL1234C1ZV";
 
   return (
-    <div className="w-full min-h-screen bg-[#F8FAFC] pb-12 font-sans text-slate-800">
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleImageFileChange}
-      />
+    <div className="w-full min-h-screen bg-[#F5F7FB] p-2 sm:p-3 font-sans text-slate-800">
       <input
         ref={signatureInputRef}
         type="file"
@@ -746,19 +668,45 @@ export function InvoiceSettingsStudio() {
         className="hidden"
         onChange={handleSignatureUpload}
       />
+      <input
+        ref={logoInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleLogoUpload}
+      />
 
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/95 px-6 py-3.5 backdrop-blur-md shadow-xs">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">Invoice Settings</h1>
-          <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-600 border border-blue-100">
-            Live Preview Studio
-          </span>
+      {/* 1. TOP BREADCRUMB & PAGE HEADER (Compact Design) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 mb-1.5 border-b border-slate-200/60">
+        <div>
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[11px] text-slate-500 mb-0.5">
+            <Link href="/settings" className="hover:text-slate-800 transition-colors">Settings</Link>
+            <span className="text-slate-400">›</span>
+            <span className="font-semibold text-slate-700">Invoice Settings</span>
+          </nav>
+
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 text-[#2563EB] flex items-center justify-center shrink-0 shadow-2xs">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-base sm:text-lg font-bold tracking-tight text-[#111827]">
+                Invoice Settings
+              </h1>
+              <p className="text-[11px] text-slate-500 leading-none mt-0.5">
+                Customize invoice appearance, theme, and details for your business.
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Right Action Buttons */}
+        <div className="flex items-center gap-2 shrink-0">
           {saveBanner && (
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 animate-in fade-in">
-              <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="hidden md:flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 animate-in fade-in">
+              <svg className="w-3 h-3 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
               </svg>
               <span>{saveBanner}</span>
@@ -767,64 +715,173 @@ export function InvoiceSettingsStudio() {
 
           <button
             type="button"
+            onClick={handleRevertToOriginal}
+            className="flex items-center gap-1 rounded-lg border border-slate-200/90 bg-white hover:bg-slate-50 h-8 px-2.5 text-xs font-semibold text-slate-700 shadow-2xs transition-all active:scale-95 cursor-pointer"
+          >
+            <svg className="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>Revert to Original</span>
+          </button>
+
+          <button
+            type="button"
             onClick={handleSave}
-            disabled={isSaving || JSON.stringify(state) === JSON.stringify(lastSaved)}
-            className="flex items-center gap-2 rounded-xl bg-[#5346F5] hover:bg-[#4338CA] px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all active:scale-95 disabled:opacity-60"
+            disabled={isSaving}
+            className="flex items-center gap-1 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] h-8 px-3.5 text-xs font-semibold text-white shadow-xs transition-all active:scale-95 disabled:opacity-60 cursor-pointer"
           >
             {isSaving ? (
               <>
-                <svg className="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <svg className="w-3.5 h-3.5 animate-spin text-white shrink-0" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={4} />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                 </svg>
                 <span>Saving...</span>
               </>
             ) : (
-              <span>Save Changes</span>
+              <>
+                <svg className="w-3.5 h-3.5 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Save Changes</span>
+              </>
             )}
           </button>
         </div>
-      </header>
+      </div>
 
-      {aiToast && (
-        <div className="mx-6 mt-3 flex items-center justify-between rounded-xl bg-indigo-50 border border-indigo-200 px-4 py-2.5 text-xs text-indigo-900 shadow-xs animate-in slide-in-from-top-2">
-          <div className="flex items-center gap-2">
-            <span className="text-base">✨</span>
-            <span className="font-medium">{aiToast.message}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {aiToast.showUndo && (
+      {/* 2. TOP SETTINGS HORIZONTAL NAVIGATION TABS (Compact) */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mb-2.5 scrollbar-none">
+        <button
+          type="button"
+          onClick={() => setActiveTab("design")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+            activeTab === "design"
+              ? "bg-[#2563EB] text-white shadow-xs"
+              : "bg-white border border-slate-200/90 text-slate-700 hover:bg-slate-50"
+          }`}
+        >
+          <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 21a4 4 0 01-4-4 4 4 0 014-4h2.586a1 1 0 00.707-.293l8.414-8.414a2 2 0 112.828 2.828l-8.414 8.414a1 1 0 00-.293.707V17a4 4 0 01-4 4H7z" />
+          </svg>
+          <span>Design &amp; Theme</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("invoice_details")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+            activeTab === "invoice_details"
+              ? "bg-[#2563EB] text-white shadow-xs"
+              : "bg-white border border-slate-200/90 text-slate-700 hover:bg-slate-50"
+          }`}
+        >
+          <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span>Invoice Details</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("party_details")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+            activeTab === "party_details"
+              ? "bg-[#2563EB] text-white shadow-xs"
+              : "bg-white border border-slate-200/90 text-slate-700 hover:bg-slate-50"
+          }`}
+        >
+          <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          <span>Party Details</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("item_columns")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+            activeTab === "item_columns"
+              ? "bg-[#2563EB] text-white shadow-xs"
+              : "bg-white border border-slate-200/90 text-slate-700 hover:bg-slate-50"
+          }`}
+        >
+          <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          <span>Item Table Columns</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("misc")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+            activeTab === "misc"
+              ? "bg-[#2563EB] text-white shadow-xs"
+              : "bg-white border border-slate-200/90 text-slate-700 hover:bg-slate-50"
+          }`}
+        >
+          <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Miscellaneous</span>
+        </button>
+      </div>
+
+      {/* 3. MAIN WORKSPACE — TWO COLUMN LAYOUT */}
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.9fr)_minmax(310px,0.95fr)] xl:grid-cols-[minmax(0,2fr)_minmax(330px,1fr)] gap-3.5 items-start">
+        
+        {/* LEFT PANEL — LIVE INVOICE PREVIEW CARD */}
+        <section className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden flex flex-col">
+          {/* Preview Toolbar (with Zoom + Undo/Redo) */}
+          <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-white">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md border border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-700 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <span>Live Preview</span>
+            </div>
+
+            {/* Middle: Compact Zoom Controls */}
+            <div className="flex items-center gap-1 bg-slate-50 border border-slate-200/90 rounded-md p-0.5">
               <button
                 type="button"
-                onClick={handleUndo}
-                className="font-bold underline hover:text-indigo-700"
+                onClick={() => setZoom((z) => Math.max(0.45, Number((z - 0.05).toFixed(2))))}
+                title="Zoom out"
+                className="w-6 h-6 rounded flex items-center justify-center text-slate-700 hover:bg-white transition-colors text-xs font-bold cursor-pointer"
               >
-                Undo
+                −
               </button>
-            )}
-            <button
-              type="button"
-              onClick={() => setAiToast(null)}
-              className="text-slate-400 hover:text-slate-600 ml-2"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-      )}
+              <span className="text-[11px] font-mono font-bold text-slate-700 min-w-[36px] text-center select-none">
+                {Math.round(zoom * 100)}%
+              </span>
+              <button
+                type="button"
+                onClick={() => setZoom((z) => Math.min(1.2, Number((z + 0.05).toFixed(2))))}
+                title="Zoom in"
+                className="w-6 h-6 rounded flex items-center justify-center text-slate-700 hover:bg-white transition-colors text-xs font-bold cursor-pointer"
+              >
+                +
+              </button>
+              <button
+                type="button"
+                onClick={() => setZoom(0.70)}
+                title="Reset zoom to fit"
+                className="px-1.5 h-6 rounded text-[10px] font-bold text-slate-600 hover:bg-white hover:text-[#2563EB] transition-colors cursor-pointer border-l border-slate-200"
+              >
+                Fit
+              </button>
+            </div>
 
-      <main className="grid grid-cols-1 gap-6 p-4 lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[minmax(0,1fr)_420px] max-w-[1720px] mx-auto">
-        <section className="flex flex-col items-center">
-          <div className="mb-3 flex w-full max-w-[850px] items-center justify-between px-2">
+            {/* Right: Undo / Redo */}
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={handleUndo}
                 disabled={historyIndex <= 0}
                 title="Undo last change"
-                className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 disabled:opacity-40"
+                className="flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 disabled:opacity-40 transition-colors cursor-pointer"
               >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a5 5 0 015 5v2M3 10l6-6M3 10l6 6" />
                 </svg>
                 <span>Undo</span>
@@ -835,885 +892,772 @@ export function InvoiceSettingsStudio() {
                 onClick={handleRedo}
                 disabled={historyIndex >= history.length - 1}
                 title="Redo change"
-                className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 disabled:opacity-40"
+                className="flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 disabled:opacity-40 transition-colors cursor-pointer"
               >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10H11a5 5 0 00-5 5v2m15-7l-6-6m6 6l-6 6" />
                 </svg>
                 <span>Redo</span>
               </button>
             </div>
-
-            <button
-              type="button"
-              onClick={handleRevertToOriginal}
-              className="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <span>Revert to Original</span>
-            </button>
           </div>
 
-          <div
-            className={`relative w-full max-w-[850px] max-h-[calc(100vh-210px)] min-h-[600px] overflow-y-auto rounded-xl bg-slate-100/75 p-3 sm:p-5 pb-36 border border-slate-200/80 transition-all flex justify-center items-start ${
-              selectorActive ? "cursor-crosshair ring-2 ring-indigo-400" : ""
-            }`}
-          >
-            <InvoiceLivePreview
-              state={state}
-              companyName={companyDisplayName}
-              companyPhone={companyPhone}
-              companyAddress={companyAddress}
-              companyGstin={(currentCompany as any)?.gstin || "24AAAPL1234C1ZV"}
-              items={sampleItems}
-              focusedSection={focusedSection}
-              onFocus={(section, accordion) => {
-                setFocusedSection(section);
-                setOpenAccordion(accordion);
+          {/* Centered Scaled A4 Preview Container */}
+          <div className="relative w-full max-h-[calc(100vh-170px)] min-h-[500px] overflow-y-auto overflow-x-auto bg-[#F8FAFC] p-2.5 sm:p-3 flex justify-center items-start">
+            <div
+              className="w-full flex justify-center items-start transition-transform origin-top"
+              style={{
+                transform: `scale(${zoom})`,
+                transformOrigin: "top center",
+                marginBottom: `${(zoom - 1) * 1123}px`,
               }}
-            />
-          </div>
-
-          <div className="sticky bottom-4 z-20 mt-4 w-full max-w-[850px] rounded-2xl border border-indigo-100 bg-white/95 p-3.5 shadow-xl backdrop-blur-md">
-            <div className="mb-2.5 flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-              <span className="flex items-center gap-1 font-bold text-indigo-700 whitespace-nowrap mr-1">
-                <span className="text-sm">✨</span> Try using:
-              </span>
-              {[
-                { label: "Easy to Read", prompt: "Make the invoice easy to read with clean typography and high contrast" },
-                { label: "Brand Touch", prompt: "Apply a premium brand touch with luxury theme and executive colors" },
-                { label: "Highlight Key Info", prompt: "Highlight key billing information, tax breakup, and due dates prominently" },
-                { label: "Fix Layout", prompt: "Fix and rebalance the table columns and layout for maximum neatness" },
-                { label: "Make it Creative", prompt: "Make it creative with vibrant festive colors and decorative styling" },
-              ].map((chip) => (
-                <button
-                  key={chip.label}
-                  type="button"
-                  onClick={() => handleTriggerAi(chip.prompt)}
-                  disabled={aiLoading}
-                  className="rounded-full border border-slate-200 bg-slate-50/80 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-700 px-3 py-1 text-[11px] font-medium text-slate-600 transition-all whitespace-nowrap active:scale-95"
-                >
-                  {chip.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="relative flex items-center rounded-xl border border-slate-200 bg-slate-50/50 p-1.5 focus-within:border-indigo-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
-              <input
-                type="text"
-                value={aiPrompt}
-                onChange={(e) => setAiPrompt(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleTriggerAi();
-                  }
+            >
+              <InvoiceLivePreview
+                state={state}
+                companyName={companyDisplayName}
+                companyPhone={companyPhone}
+                companyAddress={companyAddress}
+                companyGstin={companyGstin}
+                companyLogoUrl={companyLogoUrl}
+                items={sampleItems}
+                focusedSection={focusedSection}
+                onFocus={(section, accordion) => {
+                  setFocusedSection(section);
+                  setOpenAccordion(accordion);
                 }}
-                placeholder="Write anything to style your invoice... (e.g. 'Use emerald green with tax breakup & PO field')"
-                className="flex-1 bg-transparent px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none"
               />
-
-              <div className="flex items-center gap-1.5 pr-1">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  title="Attach reference image or logo"
-                  className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
-                    aiAttachedImage
-                      ? "bg-indigo-100 text-indigo-700"
-                      : "text-slate-600 hover:bg-slate-200/60"
-                  }`}
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span>{aiAttachedImage ? "Image Attached" : "Attach Image"}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectorActive(!selectorActive)}
-                  title="Target a specific invoice block"
-                  className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
-                    selectorActive
-                      ? "bg-indigo-600 text-white"
-                      : "text-slate-600 hover:bg-slate-200/60"
-                  }`}
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <circle cx="12" cy="12" r="7" strokeWidth={2} />
-                    <path strokeLinecap="round" strokeWidth={2} d="M12 2v3m0 14v3M2 12h3m14 0h3" />
-                  </svg>
-                  <span>{selectorActive ? "Target Active" : "Selector"}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleTriggerAi()}
-                  disabled={aiLoading || (!aiPrompt.trim() && !aiAttachedImage)}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 transition-all active:scale-90 shadow-2xs"
-                >
-                  {aiLoading ? (
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                    </svg>
-                  )}
-                </button>
-              </div>
             </div>
           </div>
         </section>
 
-        <aside className="space-y-4">
-          <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs space-y-2.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <span className="text-base">🎁</span>
-                <h3 className="text-sm font-bold tracking-tight text-slate-800">ThemeStore</h3>
-                <span className="text-slate-400 hover:text-slate-600 cursor-pointer" title="Seasonal and festive designs">ⓘ</span>
-              </div>
-              {state.festiveTheme && (
-                <button
-                  type="button"
-                  onClick={() => updateState({ festiveTheme: null, themeId: "stylish", uniqueThemeKey: "stylish" })}
-                  className="text-[11px] font-semibold text-rose-600 hover:underline"
-                >
-                  Clear Festive
-                </button>
-              )}
-            </div>
+        {/* RIGHT PANEL — COMPACT CUSTOMIZATION SIDEBAR */}
+        <aside className="space-y-2.5 max-h-[calc(100vh-150px)] overflow-y-auto pr-1">
+          
+          {/* ============================================================= */}
+          {/* TAB 1: DESIGN & THEME (Ultra-Compact Matching Reference) */}
+          {/* ============================================================= */}
+          {activeTab === "design" && (
+            <>
+              {/* SECTION A: INVOICE THEME */}
+              <div className="rounded-xl border border-slate-200/90 bg-white p-2.5 sm:p-3 shadow-2xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded bg-blue-50 text-[#2563EB] flex items-center justify-center text-[11px] font-bold">
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-xs font-bold text-slate-900">Invoice Theme</h3>
+                  </div>
 
-            <div className="relative">
-              <div
-                ref={themeStoreScrollRef}
-                onScroll={handleThemeStoreScroll}
-                className="flex gap-2.5 overflow-x-auto pb-1.5 pt-0.5 scrollbar-none"
-                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-              >
-                {festiveThemesList.map((th) => {
-                  const targetId = th.id === "logo" ? "your_logo" : th.id;
-                  const isActive =
-                    state.festiveTheme === targetId ||
-                    state.festiveTheme === th.id ||
-                    (!state.festiveTheme && (state.themeId === targetId || (th.id === "logo" && state.themeId === "your_logo")));
-                  return (
-                    <div
-                      key={th.id}
+                  {state.festiveTheme && (
+                    <button
+                      type="button"
                       onClick={() =>
                         updateState({
-                          festiveTheme: isActive ? null : targetId,
-                          themeId: isActive ? "stylish" : targetId,
-                          uniqueThemeKey: isActive ? "stylish" : `${targetId}_${state.festiveVariant || 1}`,
-                          themeMode: "preset",
+                          festiveTheme: null,
+                          themeId: "stylish",
+                          uniqueThemeKey: "stylish",
                         })
                       }
-                      className="flex shrink-0 flex-col items-center cursor-pointer p-0.5"
+                      className="text-[10px] font-semibold text-rose-600 hover:text-rose-700 cursor-pointer"
                     >
-                      <FestiveThumb
-                        id={th.id}
-                        name={th.name}
-                        customThumbUrl={th.thumbnail}
-                        tone={th.tone}
-                        isSelected={isActive}
-                        onDeselect={() =>
-                          updateState({
-                            festiveTheme: null,
-                            themeId: "stylish",
-                            uniqueThemeKey: "stylish",
-                          })
-                        }
-                      />
+                      Clear Festive
+                    </button>
+                  )}
+                </div>
+
+                {/* Theme Thumbnails Carousel with < and > Arrows */}
+                <div className="relative flex items-center">
+                  <button
+                    type="button"
+                    onClick={scrollThemeStoreLeft}
+                    className="absolute -left-1.5 z-20 flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 bg-white shadow-md text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                    title="Previous themes"
+                  >
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  <div
+                    ref={themeStoreScrollRef}
+                    className="flex gap-2 overflow-x-auto pb-1 pt-0.5 px-2 scrollbar-none w-full"
+                    style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                  >
+                    {festiveThemesList.map((th) => {
+                      const targetId = th.id === "logo" ? "your_logo" : th.id;
+                      const isActive =
+                        state.festiveTheme === targetId ||
+                        state.festiveTheme === th.id ||
+                        (!state.festiveTheme &&
+                          (state.themeId === targetId ||
+                            (th.id === "logo" && state.themeId === "your_logo")));
+                      return (
+                        <div
+                          key={th.id}
+                          onClick={() =>
+                            updateState({
+                              festiveTheme: isActive ? null : targetId,
+                              themeId: isActive ? "stylish" : targetId,
+                              uniqueThemeKey: isActive ? "stylish" : `${targetId}_${state.festiveVariant || 1}`,
+                              themeMode: "preset",
+                            })
+                          }
+                          className="flex shrink-0 flex-col items-center cursor-pointer p-0.5"
+                        >
+                          <FestiveThumb
+                            id={th.id}
+                            name={th.name}
+                            customThumbUrl={th.thumbnail}
+                            companyLogoUrl={companyLogoUrl}
+                            tone={th.tone}
+                            isSelected={isActive}
+                            onDeselect={() =>
+                              updateState({
+                                festiveTheme: null,
+                                themeId: "stylish",
+                                uniqueThemeKey: "stylish",
+                              })
+                            }
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={scrollThemeStoreRight}
+                    className="absolute -right-1.5 z-20 flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 bg-white shadow-md text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                    title="Next themes"
+                  >
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Company Logo Watermark Upload / Status for 'Your Logo' theme */}
+                {(state.festiveTheme === "your_logo" || state.themeId === "your_logo") && (
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-blue-50/80 border border-blue-200/70 mt-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {companyLogoUrl ? (
+                        <img
+                          src={companyLogoUrl}
+                          alt="Logo"
+                          className="w-7 h-7 object-contain rounded bg-white p-0.5 border border-slate-200 shrink-0"
+                        />
+                      ) : (
+                        <div className="w-7 h-7 rounded bg-white flex items-center justify-center border border-dashed border-blue-300 text-blue-600 font-bold text-[9px] shrink-0">
+                          LOGO
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <div className="text-[11px] font-bold text-slate-800 truncate">
+                          {companyLogoUrl ? "Company Logo Watermark Active" : "No Logo Uploaded"}
+                        </div>
+                        <div className="text-[10px] text-slate-500 truncate">
+                          {companyLogoUrl ? "Real logo used as invoice watermark" : "Upload company logo to display as watermark"}
+                        </div>
+                      </div>
                     </div>
-                  );
-                })}
+                    <button
+                      type="button"
+                      onClick={() => logoInputRef.current?.click()}
+                      className="px-2.5 py-1 text-[10px] font-semibold text-[#2563EB] bg-white rounded border border-[#2563EB]/40 hover:bg-blue-50 transition-colors shrink-0 cursor-pointer shadow-2xs"
+                    >
+                      {companyLogoUrl ? "Change" : "Upload"}
+                    </button>
+                  </div>
+                )}
               </div>
 
-              {/* Scroll Right Button Matching myBillBook */}
-              <button
-                type="button"
-                onClick={scrollThemeStoreRight}
-                className="absolute -right-2 top-10 -translate-y-1/2 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white shadow-md text-slate-700 hover:bg-slate-50 transition-colors"
-                title="Scroll more themes"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
+              {/* SECTION B: COLOR THEME (Compact Small Circles & Inward Safe Picker) */}
+              <div className="relative rounded-xl border border-slate-200/90 bg-white p-2.5 sm:p-3 shadow-2xs space-y-2">
+                {/* Hidden color input anchored on the left of the card so Chrome native popup opens cleanly inward without clipping */}
+                <input
+                  ref={colorPickerInputRef}
+                  type="color"
+                  aria-label="Color Picker"
+                  value={
+                    state.customColorHex.startsWith("#") && state.customColorHex.length === 7
+                      ? state.customColorHex
+                      : "#2563EB"
+                  }
+                  onChange={(e) =>
+                    updateState({ accentColor: e.target.value, customColorHex: e.target.value })
+                  }
+                  style={{
+                    position: "absolute",
+                    left: "14px",
+                    bottom: "10px",
+                    width: "28px",
+                    height: "28px",
+                    opacity: 0.01,
+                    zIndex: -1,
+                  }}
+                  tabIndex={-1}
+                />
 
-            {/* Custom Horizontal Scrollbar Track & Thumb Matching Screenshot */}
-            <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden relative">
-              <div
-                className="absolute top-0 bottom-0 rounded-full bg-slate-300 transition-[left,width] duration-75"
-                style={{
-                  left: `${scrollThumb.leftPercent}%`,
-                  width: `${scrollThumb.widthPercent}%`,
-                }}
-              />
-            </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-5 h-5 rounded bg-blue-50 text-[#2563EB] flex items-center justify-center text-[11px] font-bold">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4 4 4 0 014-4h2.586a1 1 0 00.707-.293l8.414-8.414a2 2 0 112.828 2.828l-8.414 8.414a1 1 0 00-.293.707V17a4 4 0 01-4 4H7z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xs font-bold text-slate-900">Color Theme</h3>
+                </div>
 
-            {/* Festive Variant Selection Pills & Unlock Action Button (Matching Screenshot) */}
-            {state.festiveTheme && (
-              <div className="pt-2 border-t border-slate-100 space-y-2.5">
-                {(() => {
-                  const activeFestiveObj = festiveThemesList.find(
-                    (t) => t.id === state.festiveTheme || (t.id === "logo" && state.festiveTheme === "your_logo")
-                  );
-                  const themeName = activeFestiveObj?.name || "Theme";
-                  const hasV2 = (activeFestiveObj?.variants?.length ?? 1) > 1;
-                  return (
-                    <div className="flex items-center gap-2">
+                {/* 8 Preset Circular Swatches (Small Circles) */}
+                <div className="grid grid-cols-8 gap-1.5 justify-items-center items-center py-1">
+                  {COLOR_PALETTE.map((c) => {
+                    const isSelected = state.accentColor.toLowerCase() === c.id.toLowerCase();
+                    return (
                       <button
+                        key={c.id}
                         type="button"
-                        onClick={() => updateState({ festiveVariant: 1, uniqueThemeKey: `${state.festiveTheme}_1` })}
-                        className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
-                          (state.festiveVariant || 1) === 1
-                            ? "border-[#5346F5] bg-violet-50 text-[#5346F5] shadow-xs"
-                            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                        title={c.name}
+                        onClick={() => updateState({ accentColor: c.id, customColorHex: c.id })}
+                        style={{ backgroundColor: c.id }}
+                        className={`relative flex h-5 w-5 rounded-full items-center justify-center transition-all cursor-pointer ${
+                          isSelected
+                            ? "ring-2 ring-offset-2 ring-slate-900 scale-110 shadow-xs"
+                            : "hover:scale-105 opacity-90 hover:opacity-100"
                         }`}
                       >
-                        <span>{themeName} 1</span>
-                        {(state.festiveVariant || 1) === 1 && (
-                          <span
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              updateState({ festiveTheme: null, themeId: "stylish", uniqueThemeKey: "stylish" });
-                            }}
-                            className="text-slate-400 hover:text-rose-600 text-[11px] ml-0.5 cursor-pointer"
-                            title="Deselect theme"
-                          >
-                            ✕
-                          </span>
+                        {isSelected && (
+                          <svg className="w-2.5 h-2.5 text-white drop-shadow-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3.5} d="M5 13l4 4L19 7" />
+                          </svg>
                         )}
                       </button>
-                      {hasV2 && (
-                        <button
-                          type="button"
-                          onClick={() => updateState({ festiveVariant: 2, uniqueThemeKey: `${state.festiveTheme}_2` })}
-                          className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
-                            state.festiveVariant === 2
-                              ? "border-[#5346F5] bg-violet-50 text-[#5346F5] shadow-xs"
-                              : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
-                          }`}
-                        >
-                          <span>{themeName} 2</span>
-                        </button>
-                      )}
+                    );
+                  })}
+                </div>
+
+                {/* Custom Color Input Row with Visible Color Picker Swatch Box */}
+                <div className="flex items-center justify-between pt-1.5 border-t border-slate-100">
+                  <span className="text-[11px] font-medium text-slate-700">Custom Color</span>
+
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-slate-400 font-mono">HEX</span>
+                    <input
+                      type="text"
+                      value={state.customColorHex}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (/^#?[0-9A-Fa-f]{0,6}$/.test(val)) {
+                          const hex = val.startsWith("#") ? val : `#${val}`;
+                          updateState({ customColorHex: hex });
+                          if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+                            updateState({ accentColor: hex });
+                          }
+                        }
+                      }}
+                      placeholder="#2563EB"
+                      maxLength={7}
+                      className="w-20 h-7 text-center font-mono text-[11px] font-bold text-slate-800 uppercase px-1 rounded-md border border-slate-200 focus:border-[#2563EB] focus:outline-none"
+                    />
+
+                    {/* Visible, Clickable Color Picker Box (Pickupbox) */}
+                    <div
+                      onClick={handleOpenColorPicker}
+                      className="relative h-7 w-7 rounded-md border border-slate-300 shadow-2xs overflow-hidden cursor-pointer hover:scale-105 active:scale-95 transition-transform flex items-center justify-center shrink-0"
+                      title="Pick custom color"
+                    >
+                      <input
+                        type="color"
+                        value={
+                          state.customColorHex.startsWith("#") && state.customColorHex.length === 7
+                            ? state.customColorHex
+                            : "#2563EB"
+                        }
+                        onChange={(e) =>
+                          updateState({ accentColor: e.target.value, customColorHex: e.target.value })
+                        }
+                        onClick={handleOpenColorPicker}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        title="Pick custom color"
+                      />
+                      <div
+                        className="w-full h-full"
+                        style={{ backgroundColor: state.accentColor }}
+                      />
                     </div>
-                  );
-                })()}
-
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="w-full rounded-xl bg-[#5346F5] hover:bg-[#4338CA] py-2.5 text-xs font-bold text-white shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
-                >
-                  {isSaving ? (
-                    <span>Saving Theme...</span>
-                  ) : (
-                    <span>Unlock & Save Theme</span>
-                  )}
-                </button>
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800 cursor-pointer">
-                <input
-                  type="radio"
-                  name="themeMode"
-                  checked={state.themeMode === "preset"}
-                  onChange={() => updateState({ themeMode: "preset" })}
-                  className="accent-[#5346F5]"
-                />
-                <span>Themes</span>
-              </label>
-
-              <button
-                type="button"
-                onClick={() => setShowAllThemesInline(!showAllThemesInline)}
-                className="text-xs font-bold text-[#5346F5] hover:underline"
-              >
-                {showAllThemesInline ? "Show Less" : "See All"}
-              </button>
-            </div>
-
-            <div className={`grid ${showAllThemesInline ? "grid-cols-3 gap-2.5" : "grid-cols-4 gap-2"}`}>
-              {(showAllThemesInline ? standardThemesList : standardThemesList.slice(0, 3)).map((thm) => {
-                const isSelected = !state.festiveTheme && state.themeId === thm.id;
-                return (
-                  <button
-                    key={thm.id}
-                    type="button"
-                    onClick={() =>
-                      updateState({
-                        themeId: thm.id,
-                        themeMode: "preset",
-                        festiveTheme: null,
-                        uniqueThemeKey: thm.id,
-                        accentColor: thm.id === "luxury" && state.accentColor === "#111827" ? "#C9A227" : state.accentColor,
-                      })
-                    }
-                    className={`relative flex flex-col items-center rounded-xl p-1 text-center transition-all ${
-                      isSelected ? "ring-2 ring-[#5346F5] bg-violet-50/30" : "hover:ring-1 hover:ring-slate-300"
-                    }`}
-                  >
-                    {thm.isNew && (
-                      <span className="absolute -top-1 right-0 z-10 rounded bg-rose-500 px-1 text-[8px] font-bold uppercase text-white shadow-xs">
-                        NEW
-                      </span>
-                    )}
-                    <ThemeMiniCard kind={thm.kind} />
-                    <span className="mt-1 text-[11px] font-medium leading-tight text-slate-800">{thm.name}</span>
-                  </button>
-                );
-              })}
-              {!showAllThemesInline && (
-                <button
-                  type="button"
-                  onClick={() => setShowAllThemesInline(true)}
-                  className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-xs font-semibold text-[#5346F5] hover:bg-indigo-50 min-h-[92px]"
-                >
-                  See All
-                </button>
-              )}
-            </div>
-
-            <div className="pt-2 border-t border-slate-100">
-              <label className="flex items-center gap-2 text-xs font-semibold text-slate-800 cursor-pointer">
-                <input
-                  type="radio"
-                  name="themeMode"
-                  checked={state.themeMode === "custom"}
-                  onChange={() => updateState({ themeMode: "custom" })}
-                  className="accent-[#5346F5]"
-                />
-                <span>Create Custom Theme</span>
-                <span className="text-slate-400 hover:text-slate-600" title="Customize margins, fonts and layouts">ⓘ</span>
-              </label>
-
-              <Link
-                href="/app/settings/invoice/customise"
-                className="mt-2.5 block text-center w-full rounded-xl bg-[#5346F5] hover:bg-[#4338CA] py-2 text-xs font-semibold text-white shadow-xs transition-colors"
-              >
-                Create your own theme
-              </Link>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
-            <h3 className="mb-2.5 text-xs font-bold uppercase tracking-wider text-slate-800">Select Color</h3>
-            <div className="grid grid-cols-4 gap-2.5">
-              {COLOR_PALETTE.map((c) => {
-                const isSelected = state.accentColor.toLowerCase() === c.id.toLowerCase();
-                return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    title={c.name}
-                    onClick={() => updateState({ accentColor: c.id, customColorHex: c.id })}
-                    style={{ backgroundColor: c.id }}
-                    className={`relative flex h-8 w-full items-center justify-center rounded-lg transition-transform active:scale-95 ${
-                      isSelected ? "ring-2 ring-offset-2 ring-slate-900 shadow-sm" : "hover:opacity-90"
-                    }`}
-                  >
-                    {isSelected && (
-                      <svg className="w-4 h-4 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              {/* SECTION C: THEME SETTINGS (Ultra-Compact Checkbox Rows) */}
+              <div className="rounded-xl border border-slate-200/90 bg-white p-2.5 sm:p-3 shadow-2xs space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded bg-blue-50 text-[#2563EB] flex items-center justify-center text-[11px] font-bold">
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
-                    )}
+                    </div>
+                    <h3 className="text-xs font-bold text-slate-900">Theme Settings</h3>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setOpenAccordion(openAccordion === "theme-settings" ? null : "theme-settings")}
+                    className="text-slate-400 hover:text-slate-600 cursor-pointer p-0.5"
+                  >
+                    <svg
+                      className={`w-3.5 h-3.5 transition-transform ${openAccordion === "theme-settings" ? "rotate-180" : ""}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
                   </button>
-                );
-              })}
-            </div>
-            <div className="mt-2.5 flex items-center justify-between pt-2 border-t border-slate-100">
-              <span className="text-xs text-slate-600 font-medium">Custom color:</span>
+                </div>
+
+                {openAccordion === "theme-settings" && (
+                  <div className="space-y-0.5 pt-1 border-t border-slate-100">
+                    {[
+                      {
+                        key: "showPartyBalance",
+                        label: "Show party balance in invoice",
+                        val: state.showPartyBalance,
+                        set: (v: boolean) => updateState({ showPartyBalance: v }),
+                      },
+                      {
+                        key: "enableFreeItemQuantity",
+                        label: "Enable free item quantity",
+                        val: state.enableFreeItemQuantity,
+                        set: (v: boolean) => updateState({ enableFreeItemQuantity: v }),
+                      },
+                      {
+                        key: "showItemDescription",
+                        label: "Show item description in invoice",
+                        val: state.showItemDescription,
+                        set: (v: boolean) => updateState({ showItemDescription: v }),
+                      },
+                      {
+                        key: "showAlternateUnit",
+                        label: "Show Alternate Unit in Invoice",
+                        val: state.showAlternateUnit,
+                        set: (v: boolean) => updateState({ showAlternateUnit: v }),
+                      },
+                      {
+                        key: "showPhoneNumber",
+                        label: "Show phone number on Invoice",
+                        val: state.showPhoneNumber,
+                        set: (v: boolean) => updateState({ showPhoneNumber: v }),
+                      },
+                      {
+                        key: "showTimeOnInvoice",
+                        label: "Show time on Invoices",
+                        val: state.showTimeOnInvoice,
+                        set: (v: boolean) => updateState({ showTimeOnInvoice: v }),
+                      },
+                      {
+                        key: "priceHistory",
+                        label: "Price History",
+                        val: state.priceHistory,
+                        set: (v: boolean) => updateState({ priceHistory: v }),
+                      },
+                      {
+                        key: "autoApplyLuxuryForSharing",
+                        label: "Auto-apply luxury theme for sharing",
+                        val: state.autoApplyLuxuryForSharing,
+                        set: (v: boolean) => updateState({ autoApplyLuxuryForSharing: v }),
+                      },
+                    ].map((item) => (
+                      <label key={item.key} className="flex items-center justify-between py-1 px-1 rounded hover:bg-slate-50 cursor-pointer select-none">
+                        <span className="text-[11px] text-slate-700 font-medium leading-tight">{item.label}</span>
+                        <input
+                          type="checkbox"
+                          checked={item.val}
+                          onChange={(e) => item.set(e.target.checked)}
+                          className="h-3.5 w-3.5 rounded border-slate-300 accent-[#2563EB] cursor-pointer"
+                        />
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* SECTION D: Standard Templates (Compact) */}
+              <div className="rounded-xl border border-slate-200/90 bg-white p-2.5 sm:p-3 shadow-2xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-800">Standard Templates</h3>
+                  <button
+                    type="button"
+                    onClick={() => setShowAllThemesModal(true)}
+                    className="text-[10px] font-semibold text-[#2563EB] hover:underline cursor-pointer"
+                  >
+                    See All
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-3 gap-1.5">
+                  {standardThemesList.slice(0, 3).map((thm) => {
+                    const isSelected = !state.festiveTheme && state.themeId === thm.id;
+                    return (
+                      <button
+                        key={thm.id}
+                        type="button"
+                        onClick={() =>
+                          updateState({
+                            themeId: thm.id,
+                            themeMode: "preset",
+                            festiveTheme: null,
+                            uniqueThemeKey: thm.id,
+                          })
+                        }
+                        className={`relative flex flex-col items-center rounded-lg p-1.5 text-center transition-all cursor-pointer ${
+                          isSelected ? "ring-2 ring-[#2563EB] bg-[#EFF6FF]" : "hover:bg-slate-50 border border-slate-200"
+                        }`}
+                      >
+                        <ThemeMiniCard kind={thm.kind} />
+                        <span className="mt-1 text-[10px] font-semibold text-slate-800 truncate max-w-full">{thm.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ============================================================= */}
+          {/* TAB 2: INVOICE DETAILS (Compact) */}
+          {/* ============================================================= */}
+          {activeTab === "invoice_details" && (
+            <div className="rounded-xl border border-slate-200/90 bg-white p-2.5 sm:p-3 shadow-2xs space-y-2.5">
               <div className="flex items-center gap-1.5">
-                <input
-                  type="color"
-                  value={state.customColorHex}
-                  onChange={(e) => updateState({ accentColor: e.target.value, customColorHex: e.target.value })}
-                  className="h-7 w-8 cursor-pointer rounded-lg border border-slate-200 p-0.5"
-                  title="Pick custom hex color"
-                />
-                <span className="text-xs font-mono text-slate-700 uppercase">{state.accentColor}</span>
+                <div className="w-5 h-5 rounded bg-blue-50 text-[#2563EB] flex items-center justify-center text-[11px] font-bold">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-xs font-bold text-slate-900">Invoice Details</h3>
               </div>
-            </div>
-          </div>
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
-            <button
-              type="button"
-              onClick={() => setOpenAccordion(openAccordion === "theme-settings" ? null : "theme-settings")}
-              className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-slate-50"
-            >
-              <div className="flex items-center gap-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">Theme Settings</h3>
-                <span className="rounded-full bg-blue-100 px-2 py-0.2 text-[9px] font-bold text-blue-700">NEW</span>
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Industry Type</label>
+                <select
+                  value={state.industryType}
+                  onChange={(e) => updateState({ industryType: e.target.value })}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-800 focus:border-[#2563EB] focus:outline-none"
+                >
+                  <option value="General Trade">General Trade</option>
+                  <option value="Retail Store">Retail Store &amp; Supermarket</option>
+                  <option value="Wholesale">Wholesale &amp; Distribution</option>
+                  <option value="Pharmacy">Pharmacy &amp; Healthcare</option>
+                  <option value="Manufacturing">Manufacturing &amp; Processing</option>
+                  <option value="Textiles">Textiles &amp; Apparel</option>
+                  <option value="Electronics">Electronics &amp; Hardware</option>
+                  <option value="Services">Services &amp; IT Consulting</option>
+                </select>
               </div>
-              <svg
-                className={`w-4 h-4 text-slate-400 transition-transform ${openAccordion === "theme-settings" ? "rotate-180" : ""}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
 
-            {openAccordion === "theme-settings" && (
-              <div className="space-y-2.5 border-t border-slate-100 p-4 text-xs">
+              <div className="space-y-1 pt-1.5 border-t border-slate-100">
                 {[
-                  {
-                    key: "showPartyBalance",
-                    label: "Show party balance in invoice",
-                    val: state.showPartyBalance,
-                    set: (v: boolean) => updateState({ showPartyBalance: v }),
-                  },
-                  {
-                    key: "enableFreeItemQuantity",
-                    label: "Enable free item quantity",
-                    val: state.enableFreeItemQuantity,
-                    set: (v: boolean) => updateState({ enableFreeItemQuantity: v }),
-                  },
-                  {
-                    key: "showItemDescription",
-                    label: "Show item description in invoice",
-                    val: state.showItemDescription,
-                    set: (v: boolean) => updateState({ showItemDescription: v }),
-                  },
-                  {
-                    key: "showAlternateUnit",
-                    label: "Show Alternate Unit in Invoice",
-                    val: state.showAlternateUnit,
-                    set: (v: boolean) => updateState({ showAlternateUnit: v }),
-                  },
-                  {
-                    key: "showPhoneNumber",
-                    label: "Show phone number on Invoice",
-                    val: state.showPhoneNumber,
-                    set: (v: boolean) => updateState({ showPhoneNumber: v }),
-                  },
-                  {
-                    key: "showTimeOnInvoice",
-                    label: "Show time on Invoices",
-                    tooltip: "Print exact billing time alongside invoice date",
-                    val: state.showTimeOnInvoice,
-                    set: (v: boolean) => updateState({ showTimeOnInvoice: v }),
-                  },
-                  {
-                    key: "priceHistory",
-                    label: "Price History",
-                    tooltip: "Track past selling prices for the customer",
-                    val: state.priceHistory,
-                    set: (v: boolean) => updateState({ priceHistory: v }),
-                  },
-                  {
-                    key: "autoApplyLuxuryForSharing",
-                    label: "Auto-apply luxury theme for sharing",
-                    val: state.autoApplyLuxuryForSharing,
-                    set: (v: boolean) => updateState({ autoApplyLuxuryForSharing: v }),
-                  },
-                ].map((item) => (
-                  <label key={item.key} className="flex items-center justify-between py-0.5 cursor-pointer select-none">
-                    <span className="flex items-center gap-1 text-slate-700">
-                      {item.label}
-                      {item.tooltip && (
-                        <span className="text-slate-400 hover:text-slate-600" title={item.tooltip}>ⓘ</span>
-                      )}
-                    </span>
+                  { label: "PO Number", checked: state.showPoNumber, set: (v: boolean) => updateState({ showPoNumber: v }) },
+                  { label: "E-way Bill Number", checked: state.showEwayBillNumber, set: (v: boolean) => updateState({ showEwayBillNumber: v }) },
+                  { label: "Vehicle Number", checked: state.showVehicleNumber, set: (v: boolean) => updateState({ showVehicleNumber: v }) },
+                ].map((field) => (
+                  <label key={field.label} className="flex items-center justify-between cursor-pointer py-0.5 px-1 rounded hover:bg-slate-50 select-none">
+                    <span className="text-[11px] text-slate-700 font-medium">{field.label}</span>
                     <input
                       type="checkbox"
-                      checked={item.val}
-                      onChange={(e) => item.set(e.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300 accent-[#5346F5]"
+                      checked={field.checked}
+                      onChange={(e) => field.set(e.target.checked)}
+                      className="h-3.5 w-3.5 rounded border-slate-300 accent-[#2563EB] cursor-pointer"
                     />
                   </label>
                 ))}
               </div>
-            )}
-          </div>
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
-            <button
-              type="button"
-              onClick={() => setOpenAccordion(openAccordion === "invoice-details" ? null : "invoice-details")}
-              className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-slate-50"
-            >
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">Invoice Details</h3>
-              <svg
-                className={`w-4 h-4 text-slate-400 transition-transform ${openAccordion === "invoice-details" ? "rotate-180" : ""}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {openAccordion === "invoice-details" && (
-              <div className="space-y-3.5 border-t border-slate-100 p-4 text-xs">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Industry Type</label>
-                  <select
-                    value={state.industryType}
-                    onChange={(e) => updateState({ industryType: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:outline-none"
-                  >
-                    <option value="General Trade">General Trade</option>
-                    <option value="Retail Store">Retail Store & Supermarket</option>
-                    <option value="Wholesale">Wholesale & Distribution</option>
-                    <option value="Pharmacy">Pharmacy & Healthcare</option>
-                    <option value="Manufacturing">Manufacturing & Processing</option>
-                    <option value="Textiles">Textiles & Apparel</option>
-                    <option value="Electronics">Electronics & Hardware</option>
-                    <option value="Services">Services & IT Consulting</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  {[
-                    { label: "PO Number", checked: state.showPoNumber, set: (v: boolean) => updateState({ showPoNumber: v }) },
-                    { label: "E-way Bill Number", checked: state.showEwayBillNumber, set: (v: boolean) => updateState({ showEwayBillNumber: v }) },
-                    { label: "Vehicle Number", checked: state.showVehicleNumber, set: (v: boolean) => updateState({ showVehicleNumber: v }) },
-                  ].map((field) => (
-                    <label key={field.label} className="flex items-center justify-between cursor-pointer py-0.5">
-                      <span className="text-slate-700">{field.label}</span>
-                      <input
-                        type="checkbox"
-                        checked={field.checked}
-                        onChange={(e) => field.set(e.target.checked)}
-                        className="h-4 w-4 rounded border-slate-300 accent-[#5346F5]"
-                      />
-                    </label>
-                  ))}
-                </div>
-
-                {state.invoiceCustomFields.length > 0 && (
-                  <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                    <span className="font-semibold text-slate-500 text-[11px]">Custom Fields:</span>
-                    {state.invoiceCustomFields.map((cf) => (
-                      <div key={cf.id} className="flex items-center justify-between bg-slate-50 px-2.5 py-1.5 rounded-lg">
-                        <span className="text-slate-700 font-medium">{cf.label}</span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            updateState({
-                              invoiceCustomFields: state.invoiceCustomFields.filter((f) => f.id !== cf.id),
-                            })
-                          }
-                          className="text-rose-500 hover:text-rose-700 text-xs"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => setShowCustomFieldModal({ target: "invoice" })}
-                  className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl border border-dashed border-indigo-300 text-indigo-600 hover:bg-indigo-50 font-semibold text-xs transition-colors"
-                >
-                  <span>+ Add Custom Field</span>
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
-            <button
-              type="button"
-              onClick={() => setOpenAccordion(openAccordion === "party-details" ? null : "party-details")}
-              className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-slate-50"
-            >
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">Party Details</h3>
-              <svg
-                className={`w-4 h-4 text-slate-400 transition-transform ${openAccordion === "party-details" ? "rotate-180" : ""}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {openAccordion === "party-details" && (
-              <div className="space-y-3.5 border-t border-slate-100 p-4 text-xs">
-                <label className="flex items-center justify-between cursor-pointer py-0.5">
-                  <span className="text-slate-700">Show Shipping Address</span>
-                  <input
-                    type="checkbox"
-                    checked={state.showShippingAddress}
-                    onChange={(e) => updateState({ showShippingAddress: e.target.checked })}
-                    className="h-4 w-4 rounded border-slate-300 accent-[#5346F5]"
-                  />
-                </label>
-
-                {state.partyCustomFields.length > 0 && (
-                  <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                    <span className="font-semibold text-slate-500 text-[11px]">Custom Party Fields:</span>
-                    {state.partyCustomFields.map((pf) => (
-                      <div key={pf.id} className="flex items-center justify-between bg-slate-50 px-2.5 py-1.5 rounded-lg">
-                        <span className="text-slate-700 font-medium">{pf.label}</span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            updateState({
-                              partyCustomFields: state.partyCustomFields.filter((f) => f.id !== pf.id),
-                            })
-                          }
-                          className="text-rose-500 hover:text-rose-700 text-xs"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => setShowCustomFieldModal({ target: "party" })}
-                  className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl border border-dashed border-indigo-300 text-indigo-600 hover:bg-indigo-50 font-semibold text-xs transition-colors"
-                >
-                  <span>+ Add Custom Field</span>
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
-            <button
-              type="button"
-              onClick={() => setOpenAccordion(openAccordion === "item-table" ? null : "item-table")}
-              className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-slate-50"
-            >
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">Item Table Columns</h3>
-              <svg
-                className={`w-4 h-4 text-slate-400 transition-transform ${openAccordion === "item-table" ? "rotate-180" : ""}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {openAccordion === "item-table" && (
-              <div className="space-y-3.5 border-t border-slate-100 p-4 text-xs">
-                <div className="space-y-2">
-                  {[
-                    { label: "Price/Item (₹)", checked: state.showPricePerItem, set: (v: boolean) => updateState({ showPricePerItem: v }) },
-                    { label: "Quantity", checked: state.showQuantity, set: (v: boolean) => updateState({ showQuantity: v }) },
-                    { label: "Batch No.", checked: state.showBatchNo, set: (v: boolean) => updateState({ showBatchNo: v }) },
-                    { label: "Exp. Date", checked: state.showExpDate, set: (v: boolean) => updateState({ showExpDate: v }) },
-                    { label: "Mfg Date", checked: state.showMfgDate, set: (v: boolean) => updateState({ showMfgDate: v }) },
-                    { label: "Discount", checked: state.showDiscount, set: (v: boolean) => updateState({ showDiscount: v }) },
-                    { label: "Tax", checked: state.showTax, set: (v: boolean) => updateState({ showTax: v }) },
-                    { label: "HSN", checked: state.showHsn, set: (v: boolean) => updateState({ showHsn: v }) },
-                  ].map((col) => (
-                    <label key={col.label} className="flex items-center justify-between cursor-pointer py-0.5">
-                      <span className="text-slate-700">{col.label}</span>
-                      <input
-                        type="checkbox"
-                        checked={col.checked}
-                        onChange={(e) => col.set(e.target.checked)}
-                        className="h-4 w-4 rounded border-slate-300 accent-[#5346F5]"
-                      />
-                    </label>
-                  ))}
-                </div>
-
-                {state.itemCustomColumns.length > 0 && (
-                  <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                    <span className="font-semibold text-slate-500 text-[11px]">Custom Columns:</span>
-                    {state.itemCustomColumns.map((col) => (
-                      <div key={col.id} className="flex items-center justify-between bg-slate-50 px-2.5 py-1.5 rounded-lg">
-                        <span className="text-slate-700 font-medium">{col.name}</span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            updateState({
-                              itemCustomColumns: state.itemCustomColumns.filter((c) => c.id !== col.id),
-                            })
-                          }
-                          className="text-rose-500 hover:text-rose-700 text-xs"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => setShowCustomFieldModal({ target: "column" })}
-                  className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl border border-dashed border-indigo-300 text-indigo-600 hover:bg-indigo-50 font-semibold text-xs transition-colors"
-                >
-                  <span>+ Add Custom Column</span>
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
-            <button
-              type="button"
-              onClick={() => setOpenAccordion(openAccordion === "misc-details" ? null : "misc-details")}
-              className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-slate-50"
-            >
-              <div className="flex items-center gap-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">Miscellaneous Details</h3>
-                <span className="rounded-full bg-blue-100 px-2 py-0.2 text-[9px] font-bold text-blue-700">NEW</span>
-              </div>
-              <svg
-                className={`w-4 h-4 text-slate-400 transition-transform ${openAccordion === "misc-details" ? "rotate-180" : ""}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {openAccordion === "misc-details" && (
-              <div className="space-y-4 border-t border-slate-100 p-4 text-xs">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Bank Account</label>
-                  <select
-                    value={state.selectedBankAccount}
-                    onChange={(e) => updateState({ selectedBankAccount: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:outline-none"
-                  >
-                    <option value="primary">HDFC Bank - 50200034821 (Primary)</option>
-                    <option value="icici">ICICI Bank - 00210501923</option>
-                    <option value="sbi">State Bank of India - 310928419</option>
-                    <option value="none">Don&apos;t print bank details</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Payment QR</label>
-                  <select
-                    value={state.selectedPaymentQr}
-                    onChange={(e) => updateState({ selectedPaymentQr: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:outline-none"
-                  >
-                    <option value="primary_upi">Dynamic UPI QR (HDFC / Google Pay / PhonePe)</option>
-                    <option value="paytm">Paytm Merchant QR</option>
-                    <option value="none">Don&apos;t print Payment QR</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Terms and Conditions</label>
-                  <select
-                    value={state.termsDocType}
-                    onChange={(e) => updateState({ termsDocType: e.target.value as any })}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:outline-none mb-2"
-                  >
-                    <option value="sales">Sales Invoices</option>
-                    <option value="quotation">Quotations / Estimates</option>
-                    <option value="challan">Delivery Challans</option>
-                  </select>
-
-                  <textarea
-                    rows={4}
-                    value={state.termsAndConditions[state.termsDocType] || ""}
-                    onChange={(e) =>
-                      updateState((prev) => ({
-                        termsAndConditions: {
-                          ...prev.termsAndConditions,
-                          [prev.termsDocType]: e.target.value,
-                        },
-                      }))
-                    }
-                    placeholder="Enter terms and conditions..."
-                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none leading-relaxed"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSaveBanner("Terms and Conditions updated!");
-                      setTimeout(() => setSaveBanner(null), 2500);
-                    }}
-                    className="mt-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 transition-colors"
-                  >
-                    Save Terms
-                  </button>
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Signature</label>
-                  <select
-                    value={state.signatureType}
-                    onChange={(e) => updateState({ signatureType: e.target.value as any })}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:outline-none mb-2"
-                  >
-                    <option value="desktop">Upload from Desktop</option>
-                    <option value="saved">Use Saved Signature</option>
-                    <option value="none">None</option>
-                  </select>
-
-                  {state.signatureType === "desktop" && (
-                    <div className="space-y-2">
+              {state.invoiceCustomFields.length > 0 && (
+                <div className="space-y-1 pt-1.5 border-t border-slate-100">
+                  <span className="font-semibold text-slate-500 text-[10px]">Custom Fields:</span>
+                  {state.invoiceCustomFields.map((cf) => (
+                    <div key={cf.id} className="flex items-center justify-between bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200/60">
+                      <span className="text-slate-700 text-[11px] font-medium">{cf.label}</span>
                       <button
                         type="button"
-                        onClick={() => signatureInputRef.current?.click()}
-                        className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-indigo-300 py-3 text-indigo-600 hover:bg-indigo-50 font-semibold text-xs transition-colors"
+                        onClick={() =>
+                          updateState({
+                            invoiceCustomFields: state.invoiceCustomFields.filter((f) => f.id !== cf.id),
+                          })
+                        }
+                        className="text-rose-500 hover:text-rose-700 text-xs font-bold"
                       >
-                        <span>Choose an Image</span>
+                        ✕
                       </button>
-                      <p className="text-[10px] text-slate-400 text-center">
-                        PNG, JPEG supported, upto 3 MB and dimensions over 300 X 300
-                      </p>
-
-                      {state.signatureUrl && (
-                        <div className="flex items-center justify-between rounded-lg bg-slate-50 p-2 border border-slate-200">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={state.signatureUrl} alt="Signature preview" className="h-8 object-contain" />
-                          <button
-                            type="button"
-                            onClick={() => updateState({ signatureUrl: null })}
-                            className="text-xs font-semibold text-rose-600 hover:underline"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      )}
                     </div>
-                  )}
+                  ))}
+                </div>
+              )}
 
-                  <label className="mt-3 flex items-center justify-between cursor-pointer py-1">
-                    <span className="text-slate-700">Enable receiver&apos;s signature field on invoice</span>
+              <button
+                type="button"
+                onClick={() => setShowCustomFieldModal({ target: "invoice" })}
+                className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg border border-dashed border-[#BFDBFE] text-[#2563EB] hover:bg-[#EFF6FF] font-semibold text-xs transition-colors cursor-pointer"
+              >
+                <span>+ Add Custom Field</span>
+              </button>
+            </div>
+          )}
+
+          {/* ============================================================= */}
+          {/* TAB 3: PARTY DETAILS (Compact) */}
+          {/* ============================================================= */}
+          {activeTab === "party_details" && (
+            <div className="rounded-xl border border-slate-200/90 bg-white p-2.5 sm:p-3 shadow-2xs space-y-2.5">
+              <div className="flex items-center gap-1.5">
+                <div className="w-5 h-5 rounded bg-blue-50 text-[#2563EB] flex items-center justify-center text-[11px] font-bold">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <h3 className="text-xs font-bold text-slate-900">Party Details</h3>
+              </div>
+
+              <label className="flex items-center justify-between cursor-pointer py-0.5 px-1 rounded hover:bg-slate-50 select-none">
+                <span className="text-[11px] text-slate-700 font-medium">Show Shipping Address</span>
+                <input
+                  type="checkbox"
+                  checked={state.showShippingAddress}
+                  onChange={(e) => updateState({ showShippingAddress: e.target.checked })}
+                  className="h-3.5 w-3.5 rounded border-slate-300 accent-[#2563EB] cursor-pointer"
+                />
+              </label>
+
+              {state.partyCustomFields.length > 0 && (
+                <div className="space-y-1 pt-1.5 border-t border-slate-100">
+                  <span className="font-semibold text-slate-500 text-[10px]">Custom Party Fields:</span>
+                  {state.partyCustomFields.map((pf) => (
+                    <div key={pf.id} className="flex items-center justify-between bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200/60">
+                      <span className="text-slate-700 text-[11px] font-medium">{pf.label}</span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateState({
+                            partyCustomFields: state.partyCustomFields.filter((f) => f.id !== pf.id),
+                          })
+                        }
+                        className="text-rose-500 hover:text-rose-700 text-xs font-bold"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setShowCustomFieldModal({ target: "party" })}
+                className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg border border-dashed border-[#BFDBFE] text-[#2563EB] hover:bg-[#EFF6FF] font-semibold text-xs transition-colors cursor-pointer"
+              >
+                <span>+ Add Custom Field</span>
+              </button>
+            </div>
+          )}
+
+          {/* ============================================================= */}
+          {/* TAB 4: ITEM TABLE COLUMNS (Compact) */}
+          {/* ============================================================= */}
+          {activeTab === "item_columns" && (
+            <div className="rounded-xl border border-slate-200/90 bg-white p-2.5 sm:p-3 shadow-2xs space-y-2.5">
+              <div className="flex items-center gap-1.5">
+                <div className="w-5 h-5 rounded bg-blue-50 text-[#2563EB] flex items-center justify-center text-[11px] font-bold">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-xs font-bold text-slate-900">Item Table Columns</h3>
+              </div>
+
+              <div className="space-y-1">
+                {[
+                  { label: "Price/Item (₹)", checked: state.showPricePerItem, set: (v: boolean) => updateState({ showPricePerItem: v }) },
+                  { label: "Quantity", checked: state.showQuantity, set: (v: boolean) => updateState({ showQuantity: v }) },
+                  { label: "Batch No.", checked: state.showBatchNo, set: (v: boolean) => updateState({ showBatchNo: v }) },
+                  { label: "Exp. Date", checked: state.showExpDate, set: (v: boolean) => updateState({ showExpDate: v }) },
+                  { label: "Mfg Date", checked: state.showMfgDate, set: (v: boolean) => updateState({ showMfgDate: v }) },
+                  { label: "Discount", checked: state.showDiscount, set: (v: boolean) => updateState({ showDiscount: v }) },
+                  { label: "Tax", checked: state.showTax, set: (v: boolean) => updateState({ showTax: v }) },
+                  { label: "HSN", checked: state.showHsn, set: (v: boolean) => updateState({ showHsn: v }) },
+                ].map((col) => (
+                  <label key={col.label} className="flex items-center justify-between cursor-pointer py-0.5 px-1 rounded hover:bg-slate-50 select-none">
+                    <span className="text-[11px] text-slate-700 font-medium">{col.label}</span>
                     <input
                       type="checkbox"
-                      checked={state.enableReceiverSignature}
-                      onChange={(e) => updateState({ enableReceiverSignature: e.target.checked })}
-                      className="h-4 w-4 rounded border-slate-300 accent-[#5346F5]"
+                      checked={col.checked}
+                      onChange={(e) => col.set(e.target.checked)}
+                      className="h-3.5 w-3.5 rounded border-slate-300 accent-[#2563EB] cursor-pointer"
                     />
                   </label>
-                </div>
+                ))}
               </div>
-            )}
-          </div>
-        </aside>
-      </main>
 
+              {state.itemCustomColumns.length > 0 && (
+                <div className="space-y-1 pt-1.5 border-t border-slate-100">
+                  <span className="font-semibold text-slate-500 text-[10px]">Custom Columns:</span>
+                  {state.itemCustomColumns.map((col) => (
+                    <div key={col.id} className="flex items-center justify-between bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200/60">
+                      <span className="text-slate-700 text-[11px] font-medium">{col.name}</span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateState({
+                            itemCustomColumns: state.itemCustomColumns.filter((c) => c.id !== col.id),
+                          })
+                        }
+                        className="text-rose-500 hover:text-rose-700 text-xs font-bold"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setShowCustomFieldModal({ target: "column" })}
+                className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg border border-dashed border-[#BFDBFE] text-[#2563EB] hover:bg-[#EFF6FF] font-semibold text-xs transition-colors cursor-pointer"
+              >
+                <span>+ Add Custom Column</span>
+              </button>
+            </div>
+          )}
+
+          {/* ============================================================= */}
+          {/* TAB 5: MISCELLANEOUS (Compact) */}
+          {/* ============================================================= */}
+          {activeTab === "misc" && (
+            <div className="rounded-xl border border-slate-200/90 bg-white p-2.5 sm:p-3 shadow-2xs space-y-2.5">
+              <div className="flex items-center gap-1.5">
+                <div className="w-5 h-5 rounded bg-blue-50 text-[#2563EB] flex items-center justify-center text-[11px] font-bold">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xs font-bold text-slate-900">Miscellaneous Details</h3>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Bank Account</label>
+                <select
+                  value={state.selectedBankAccount}
+                  onChange={(e) => updateState({ selectedBankAccount: e.target.value })}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-800 focus:border-[#2563EB] focus:outline-none"
+                >
+                  <option value="primary">HDFC Bank - Primary Business Account</option>
+                  <option value="icici">ICICI Bank - Current Account</option>
+                  <option value="sbi">State Bank of India</option>
+                  <option value="none">Don&apos;t print bank details</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Payment QR</label>
+                <select
+                  value={state.selectedPaymentQr}
+                  onChange={(e) => updateState({ selectedPaymentQr: e.target.value })}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-800 focus:border-[#2563EB] focus:outline-none"
+                >
+                  <option value="primary_upi">Dynamic UPI QR (HDFC / Google Pay / PhonePe)</option>
+                  <option value="paytm">Paytm Merchant QR</option>
+                  <option value="none">Don&apos;t print Payment QR</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Terms and Conditions</label>
+                <select
+                  value={state.termsDocType}
+                  onChange={(e) => updateState({ termsDocType: e.target.value as any })}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-800 focus:border-[#2563EB] focus:outline-none mb-1.5"
+                >
+                  <option value="sales">Sales Invoices</option>
+                  <option value="quotation">Quotations / Estimates</option>
+                  <option value="challan">Delivery Challans</option>
+                </select>
+
+                <textarea
+                  rows={3}
+                  value={state.termsAndConditions[state.termsDocType] || ""}
+                  onChange={(e) =>
+                    updateState((prev) => ({
+                      termsAndConditions: {
+                        ...prev.termsAndConditions,
+                        [prev.termsDocType]: e.target.value,
+                      },
+                    }))
+                  }
+                  placeholder="Enter terms and conditions..."
+                  className="w-full rounded-lg border border-slate-200 p-2 text-xs text-slate-800 focus:border-[#2563EB] focus:outline-none leading-relaxed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Authorized Signature</label>
+                <select
+                  value={state.signatureType}
+                  onChange={(e) => updateState({ signatureType: e.target.value as any })}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-800 focus:border-[#2563EB] focus:outline-none mb-1.5"
+                >
+                  <option value="desktop">Upload from Desktop</option>
+                  <option value="saved">Use Saved Signature</option>
+                  <option value="none">None</option>
+                </select>
+
+                {state.signatureType === "desktop" && (
+                  <div className="space-y-1.5">
+                    <button
+                      type="button"
+                      onClick={() => signatureInputRef.current?.click()}
+                      className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-[#BFDBFE] py-1.5 text-[#2563EB] hover:bg-[#EFF6FF] font-semibold text-xs transition-colors cursor-pointer"
+                    >
+                      <span>Choose Signature Image</span>
+                    </button>
+
+                    {state.signatureUrl && (
+                      <div className="flex items-center justify-between rounded-lg bg-slate-50 p-1.5 border border-slate-200">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={state.signatureUrl} alt="Signature preview" className="h-7 object-contain" />
+                        <button
+                          type="button"
+                          onClick={() => updateState({ signatureUrl: null })}
+                          className="text-[11px] font-semibold text-rose-600 hover:underline cursor-pointer"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <label className="mt-2 flex items-center justify-between cursor-pointer py-0.5 px-1 rounded hover:bg-slate-50 select-none">
+                  <span className="text-[11px] text-slate-700 font-medium">Enable receiver&apos;s signature field</span>
+                  <input
+                    type="checkbox"
+                    checked={state.enableReceiverSignature}
+                    onChange={(e) => updateState({ enableReceiverSignature: e.target.checked })}
+                    className="h-3.5 w-3.5 rounded border-slate-300 accent-[#2563EB] cursor-pointer"
+                  />
+                </label>
+              </div>
+            </div>
+          )}
+
+        </aside>
+      </div>
+
+      {/* ALL THEMES MODAL */}
       {showAllThemesModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-in fade-in">
           <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl space-y-4">
@@ -1722,13 +1666,13 @@ export function InvoiceSettingsStudio() {
               <button
                 type="button"
                 onClick={() => setShowAllThemesModal(false)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 cursor-pointer text-lg font-bold"
               >
                 ✕
               </button>
             </div>
 
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Invoice layouts</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Invoice Layouts</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-[60vh] overflow-y-auto p-1">
               {standardThemesList.map((th) => (
                 <button
@@ -1738,9 +1682,9 @@ export function InvoiceSettingsStudio() {
                     updateState({ themeId: th.id, themeMode: "preset", festiveTheme: null, uniqueThemeKey: th.id });
                     setShowAllThemesModal(false);
                   }}
-                  className={`flex flex-col items-center rounded-xl border p-3 text-center transition-all ${
+                  className={`flex flex-col items-center rounded-xl border p-3 text-center transition-all cursor-pointer ${
                     !state.festiveTheme && state.themeId === th.id
-                      ? "border-[#5346F5] bg-indigo-50/50 ring-2 ring-[#5346F5]"
+                      ? "border-[#2563EB] bg-[#EFF6FF] ring-2 ring-[#2563EB]"
                       : "border-slate-200 hover:bg-slate-50"
                   }`}
                 >
@@ -1769,13 +1713,13 @@ export function InvoiceSettingsStudio() {
                       });
                       setShowAllThemesModal(false);
                     }}
-                    className={`flex flex-col items-center rounded-xl border p-3 text-center transition-all ${
+                    className={`flex flex-col items-center rounded-xl border p-3 text-center transition-all cursor-pointer ${
                       active
-                        ? "border-[#5346F5] bg-indigo-50/50 ring-2 ring-[#5346F5]"
+                        ? "border-[#2563EB] bg-[#EFF6FF] ring-2 ring-[#2563EB]"
                         : "border-slate-200 hover:bg-slate-50"
                     }`}
                   >
-                    <FestiveThumb id={th.id} name={th.name} customThumbUrl={th.thumbnail} />
+                    <FestiveThumb id={th.id} name={th.name} customThumbUrl={th.thumbnail} companyLogoUrl={companyLogoUrl} />
                     <span className="mt-2 text-xs font-bold text-slate-900">{th.name}</span>
                     <span className="text-[10px] text-slate-500 mt-0.5">Festival frame</span>
                   </button>
@@ -1786,96 +1730,7 @@ export function InvoiceSettingsStudio() {
         </div>
       )}
 
-      {showCustomThemeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="text-base font-bold text-slate-900">Create Custom Theme</h3>
-                <p className="text-xs text-slate-500">Fine-tune fonts, margins, and typography</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowCustomThemeModal(false)}
-                className="text-slate-400 hover:text-slate-600"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-3.5 text-xs">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Font Family</label>
-                <select
-                  value={state.fontFamily}
-                  onChange={(e) => updateState({ fontFamily: e.target.value })}
-                  className="w-full rounded-xl border border-slate-200 p-2 text-xs"
-                >
-                  <option value="Inter, sans-serif">Inter (Modern Clean)</option>
-                  <option value="Georgia, serif">Georgia (Editorial Serif)</option>
-                  <option value="'Courier New', monospace">Courier (Typewriter / POS)</option>
-                  <option value="system-ui, sans-serif">System Default</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Base Font Size</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {["11", "12", "13", "14"].map((sz) => (
-                    <button
-                      key={sz}
-                      type="button"
-                      onClick={() => updateState({ fontSize: sz })}
-                      className={`py-2 rounded-lg border font-semibold ${
-                        state.fontSize === sz
-                          ? "border-[#5346F5] bg-indigo-50 text-indigo-700"
-                          : "border-slate-200"
-                      }`}
-                    >
-                      {sz}px
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Table Padding</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: "compact", label: "Compact" },
-                    { id: "normal", label: "Normal" },
-                    { id: "relaxed", label: "Relaxed" },
-                  ].map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => updateState({ tablePadding: p.id })}
-                      className={`py-2 rounded-lg border font-semibold ${
-                        state.tablePadding === p.id
-                          ? "border-[#5346F5] bg-indigo-50 text-indigo-700"
-                          : "border-slate-200"
-                      }`}
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-2 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowCustomThemeModal(false)}
-                className="rounded-xl bg-[#5346F5] px-5 py-2 text-xs font-semibold text-white shadow-xs"
-              >
-                Apply Custom Theme
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* CUSTOM FIELD MODAL */}
       {showCustomFieldModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-in fade-in">
           <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl space-y-3.5">
@@ -1890,7 +1745,7 @@ export function InvoiceSettingsStudio() {
               <button
                 type="button"
                 onClick={() => setShowCustomFieldModal(null)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 cursor-pointer font-bold"
               >
                 ✕
               </button>
@@ -1910,7 +1765,7 @@ export function InvoiceSettingsStudio() {
                       ? "e.g. Drug License No, Transporter"
                       : "e.g. Sales Rep, Delivery Terms"
                   }
-                  className="w-full rounded-xl border border-slate-200 p-2 text-xs focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-200 p-2 text-xs focus:border-[#2563EB] focus:outline-none"
                   autoFocus
                 />
               </div>
@@ -1922,7 +1777,7 @@ export function InvoiceSettingsStudio() {
                   value={customFieldInput.value}
                   onChange={(e) => setCustomFieldInput({ ...customFieldInput, value: e.target.value })}
                   placeholder="e.g. DL-2024-99182"
-                  className="w-full rounded-xl border border-slate-200 p-2 text-xs focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-200 p-2 text-xs focus:border-[#2563EB] focus:outline-none"
                 />
               </div>
             </div>
@@ -1931,7 +1786,7 @@ export function InvoiceSettingsStudio() {
               <button
                 type="button"
                 onClick={() => setShowCustomFieldModal(null)}
-                className="flex-1 rounded-xl bg-slate-100 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200 transition-colors"
+                className="flex-1 rounded-lg bg-slate-100 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -1939,7 +1794,7 @@ export function InvoiceSettingsStudio() {
                 type="button"
                 onClick={handleAddCustomField}
                 disabled={!customFieldInput.label.trim()}
-                className="flex-1 rounded-xl bg-[#5346F5] py-2 text-xs font-semibold text-white hover:bg-[#4338CA] transition-colors disabled:opacity-50"
+                className="flex-1 rounded-lg bg-[#2563EB] py-2 text-xs font-semibold text-white hover:bg-[#1D4ED8] transition-colors disabled:opacity-50 cursor-pointer"
               >
                 Add Field
               </button>

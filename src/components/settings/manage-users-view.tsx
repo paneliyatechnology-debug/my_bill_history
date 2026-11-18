@@ -370,7 +370,7 @@ export default function ManageUsersView() {
           </div>
           <button
             onClick={() => setShowHelpModal(true)}
-            className="w-8 h-8 rounded-full border border-slate-300 text-slate-500 hover:text-indigo-600 hover:border-indigo-400 flex items-center justify-center transition-colors text-[13px] font-medium shadow-2xs"
+            className="w-8 h-8 rounded-full border border-slate-300 text-slate-500 hover:text-[#1677E8] hover:border-[#1677E8] flex items-center justify-center transition-colors text-[13px] font-medium shadow-2xs cursor-pointer"
             title="Help & Role Permissions Guide"
           >
             ?
@@ -381,8 +381,8 @@ export default function ManageUsersView() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           
           {/* Number of Users card */}
-          <div className="bg-white rounded-xl border-2 border-indigo-200/90 p-4 sm:p-5 shadow-2xs relative overflow-hidden">
-            <div className="flex items-center gap-2 text-indigo-600 font-semibold text-xs sm:text-sm">
+          <div className="bg-white rounded-xl border-2 border-[#BFDBFE] p-4 sm:p-5 shadow-2xs relative overflow-hidden">
+            <div className="flex items-center gap-2 text-[#1677E8] font-semibold text-xs sm:text-sm">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
@@ -502,16 +502,16 @@ export default function ManageUsersView() {
               </div>
 
               {/* CA */}
-              <div className="p-3 rounded-xl border border-indigo-200 bg-indigo-50/50 flex items-center gap-3 shadow-2xs col-span-2">
-                <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-xl shadow-2xs border border-indigo-100 shrink-0">
+              <div className="p-3 rounded-xl border border-[#BFDBFE] bg-[#EFF6FF]/60 flex items-center gap-3 shadow-2xs col-span-2">
+                <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-xl shadow-2xs border border-[#BFDBFE] shrink-0">
                   💻
                 </div>
                 <div className="flex-1 flex items-center justify-between">
                   <div>
-                    <div className="font-bold text-xs text-indigo-950">Chartered Accountant (CA)</div>
-                    <div className="text-[10px] text-indigo-700">Audit, GST & Balance Sheet Only</div>
+                    <div className="font-bold text-xs text-slate-900">Chartered Accountant (CA)</div>
+                    <div className="text-[10px] text-slate-600">Audit, GST & Balance Sheet Only</div>
                   </div>
-                  <span className="text-[10px] font-bold text-indigo-600 bg-white px-2 py-0.5 rounded border border-indigo-200">
+                  <span className="text-[10px] font-bold text-[#1677E8] bg-white px-2 py-0.5 rounded border border-[#BFDBFE]">
                     Read Only
                   </span>
                 </div>
@@ -542,7 +542,7 @@ export default function ManageUsersView() {
                 setFormError("");
                 setShowAddUserModal(true);
               }}
-              className="h-9 px-3.5 bg-[#4c3cce] hover:bg-[#3f31b5] text-white rounded-xl text-[13px] font-medium transition-colors flex items-center gap-2 shadow-xs cursor-pointer"
+              className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium transition-colors flex items-center gap-2 shadow-xs cursor-pointer"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -585,7 +585,7 @@ export default function ManageUsersView() {
               placeholder={lang === "gu" ? "નામ, મોબાઈલ અથવા રોલ શોધો..." : "Search user by name, phone..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-[13px] bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white h-10"
+              className="w-full pl-9 pr-3 py-1.5 text-[13px] bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] focus:bg-white h-10 transition-all"
             />
           </div>
 
@@ -594,9 +594,9 @@ export default function ManageUsersView() {
               <button
                 key={role}
                 onClick={() => setSelectedRoleFilter(role)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                   selectedRoleFilter === role
-                    ? "bg-[#4c3cce] text-white shadow-2xs"
+                    ? "bg-[#1677E8] text-white shadow-2xs"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
@@ -632,7 +632,7 @@ export default function ManageUsersView() {
                       </p>
                       <button
                         onClick={() => setShowAddUserModal(true)}
-                        className="text-xs text-indigo-600 font-semibold hover:underline"
+                        className="text-xs text-[#1677E8] font-semibold hover:underline cursor-pointer"
                       >
                         + Add Team Member
                       </button>
@@ -646,7 +646,7 @@ export default function ManageUsersView() {
                     {/* Name */}
                     <td className="py-3.5 px-4 sm:px-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-xs shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-[#1677E8] font-bold flex items-center justify-center text-xs shrink-0">
                           {u.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
@@ -673,7 +673,7 @@ export default function ManageUsersView() {
                         <select
                           value={u.role}
                           onChange={(e) => handleRoleChange(u.id, e.target.value as UserRoleType)}
-                          className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-[13px] font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 h-10"
+                          className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-[13px] font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] h-10 transition-all cursor-pointer"
                         >
                           <option value="Partner">Partner</option>
                           <option value="Salesman">Salesman (Daybook & Billing)</option>
@@ -767,7 +767,7 @@ export default function ManageUsersView() {
                   placeholder="e.g. Ramesh Bhai Patel"
                   value={newUserName}
                   onChange={(e) => setNewUserName(e.target.value)}
-                  className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4c3cce]/20 focus:border-[#4c3cce] h-10"
+                  className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] h-10 transition-all"
                 />
               </div>
 
@@ -775,7 +775,7 @@ export default function ManageUsersView() {
                 <label className="block text-[12px] font-medium text-slate-700 mb-1">
                   Mobile Number (Login ID) *
                 </label>
-                <div className="flex rounded-lg border border-slate-300 overflow-hidden focus-within:ring-2 focus-within:ring-[#4c3cce]/20 focus-within:border-[#4c3cce]">
+                <div className="flex rounded-lg border border-slate-300 overflow-hidden focus-within:ring-2 focus-within:ring-[#1677E8]/20 focus-within:border-[#1677E8] transition-all">
                   <span className="px-3 py-2 bg-slate-50 text-slate-500 text-xs sm:text-sm border-r border-slate-300 tabular-nums">
                     +91
                   </span>
@@ -800,7 +800,7 @@ export default function ManageUsersView() {
                   placeholder="user@business.com"
                   value={newUserEmail}
                   onChange={(e) => setNewUserEmail(e.target.value)}
-                  className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none h-10"
+                  className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] h-10 transition-all"
                 />
               </div>
 
@@ -812,7 +812,7 @@ export default function ManageUsersView() {
                   <select
                     value={newUserRole}
                     onChange={(e) => setNewUserRole(e.target.value as UserRoleType)}
-                    className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none bg-white h-10"
+                    className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] bg-white h-10 transition-all cursor-pointer"
                   >
                     <option value="Salesman">Salesman (Bills & Orders)</option>
                     <option value="Partner">Partner (Co-owner)</option>
@@ -830,7 +830,7 @@ export default function ManageUsersView() {
                   <select
                     value={newUserBranch}
                     onChange={(e) => setNewUserBranch(e.target.value)}
-                    className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none bg-white h-10"
+                    className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] bg-white h-10 transition-all cursor-pointer"
                   >
                     <option value="All Branches">All Branches</option>
                     {branches && branches.map((b) => (
@@ -855,14 +855,14 @@ export default function ManageUsersView() {
                 <button
                   type="button"
                   onClick={() => setShowAddUserModal(false)}
-                  className="h-9 px-3 border border-slate-300 text-slate-700 rounded-lg text-[13px] font-medium"
+                  className="h-9 px-3.5 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg text-[13px] font-medium transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="h-9 px-3.5 bg-[#4c3cce] hover:bg-[#3f31b5] text-white rounded-lg text-[13px] font-medium shadow-xs disabled:opacity-50"
+                  className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg text-[13px] font-medium shadow-xs disabled:opacity-50 transition-colors cursor-pointer"
                 >
                   {isSubmitting ? "Adding..." : "Add User"}
                 </button>
@@ -933,11 +933,11 @@ export default function ManageUsersView() {
                   placeholder="e.g. Sangani & Co. Chartered Accountants"
                   value={caFirm}
                   onChange={(e) => setCaFirm(e.target.value)}
-                  className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none h-10"
+                  className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] h-10 transition-all"
                 />
               </div>
 
-              <div className="p-3 rounded-xl bg-indigo-50 border border-indigo-200 text-xs text-indigo-900">
+              <div className="p-3 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] text-xs text-slate-800">
                 🔒 Your CA gets secure <strong>Read-Only Access</strong> to GSTR-1, GSTR-3B, Balance Sheet, and Ledgers without access to create or delete bills.
               </div>
 
@@ -945,13 +945,13 @@ export default function ManageUsersView() {
                 <button
                   type="button"
                   onClick={() => setShowAddCaModal(false)}
-                  className="h-9 px-3 border border-slate-300 text-slate-700 rounded-lg text-[13px] font-medium"
+                  className="h-9 px-3.5 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg text-[13px] font-medium transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="h-9 px-3.5 bg-[#4c3cce] hover:bg-[#3f31b5] text-white rounded-lg text-[13px] font-medium shadow-xs"
+                  className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg text-[13px] font-medium shadow-xs transition-colors cursor-pointer"
                 >
                   Send Invite & Save
                 </button>
@@ -969,7 +969,7 @@ export default function ManageUsersView() {
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white z-10">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#1677E8] flex items-center justify-center font-bold">
                   ⚡
                 </div>
                 <div>
@@ -994,7 +994,7 @@ export default function ManageUsersView() {
                       <span className="font-bold text-slate-900">{act.userName}</span>
                       <span className="text-[10px] text-slate-400 tabular-nums">{act.timestamp}</span>
                     </div>
-                    <div className="font-semibold text-indigo-700 mt-1">{act.action}</div>
+                    <div className="font-semibold text-[#1677E8] mt-1">{act.action}</div>
                     <div className="text-[11px] text-slate-500 mt-0.5">{act.details}</div>
                   </div>
                 ))
@@ -1045,7 +1045,7 @@ export default function ManageUsersView() {
             <div className="px-6 py-3 border-t border-slate-100 text-right">
               <button
                 onClick={() => setShowHelpModal(false)}
-                className="px-4 py-1.5 bg-[#4c3cce] text-white rounded-lg text-[13px] font-medium"
+                className="px-4 py-1.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg text-[13px] font-medium transition-colors cursor-pointer"
               >
                 Got It
               </button>

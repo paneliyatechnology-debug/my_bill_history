@@ -19,19 +19,20 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
   const displayName =
     currentCompany?.tradeName ||
     currentCompany?.legalName ||
-    "MODI CHAI";
+    (lang === "gu" ? "મારી કંપની" : "My Business");
   const displayPhone =
     user?.phone ||
     (currentCompany as any)?.phone ||
     currentCompany?.gstin ||
-    "9510442798";
+    "";
   const initialLetter = displayName.charAt(0).toUpperCase() || "M";
 
   // Derive active tab from pathname if not directly provided
   const cleanPath = pathname.replace(/^\//, "");
-  const rawTab = (cleanPath === "settings" || cleanPath === "settings/account")
+  const normalizedPath = cleanPath.replace(/^app\//, "");
+  const rawTab = (normalizedPath === "settings" || normalizedPath === "settings/account")
     ? "account"
-    : cleanPath.replace(/^settings\/?/, "").split("?")[0];
+    : normalizedPath.replace(/^settings\/?/, "").split("?")[0];
 
   const currentTab = activeTab || (() => {
     if (rawTab === "company" || rawTab === "manage-business") return "company";
@@ -179,17 +180,19 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
         {/* Top Section */}
         <div className="flex flex-col min-h-0 flex-1">
           {/* Company Profile Header */}
-          <div className="p-4 border-b border-[#E2E8E5] flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#0F172A] text-white font-semibold text-base flex items-center justify-center shrink-0 shadow-xs uppercase">
+          <div className="p-4 border-b border-slate-100 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#1677E8] text-white font-bold text-base flex items-center justify-center shrink-0 shadow-xs uppercase">
               {initialLetter}
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-sm font-bold text-slate-900 truncate tracking-tight leading-tight">
                 {displayName}
               </span>
-              <span className="text-xs text-[#5A6B66] tabular-nums tracking-wide mt-0.5 truncate">
-                {displayPhone}
-              </span>
+              {displayPhone && (
+                <span className="text-xs text-slate-500 tabular-nums tracking-wide mt-0.5 truncate">
+                  {displayPhone}
+                </span>
+              )}
             </div>
           </div>
 
@@ -198,11 +201,11 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
             <Link
               href="/"
               onClick={onCloseMobile}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-full bg-[#0F172A] hover:bg-[#1E293B] text-white text-[13px] font-medium transition-all shadow-xs group"
+              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium transition-all shadow-xs group"
               title={lang === "gu" ? "મુખ્ય ડેશબોર્ડ પર પાછા જાઓ" : "Back to Dashboard"}
             >
               <svg
-                className="w-3.5 h-3.5 text-emerald-200 group-hover:-translate-x-0.5 transition-transform"
+                className="w-3.5 h-3.5 text-blue-100 group-hover:-translate-x-0.5 transition-transform"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -224,14 +227,14 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
                   key={item.id}
                   href={item.href}
                   onClick={onCloseMobile}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                     isActive
-                      ? "bg-[#EFF6FF] text-[#0F172A] shadow-xs font-bold border-l-2 border-[#1677E8]"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-[#F8FAFC]"
+                      ? "bg-[#1677E8] text-white shadow-xs font-bold"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <span className={isActive ? "text-[#1677E8]" : "text-slate-400 group-hover:text-slate-600"}>
+                    <span className={isActive ? "text-white" : "text-slate-400 group-hover:text-slate-600"}>
                       {item.icon}
                     </span>
                     <span className="truncate">

@@ -264,13 +264,11 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
-  const [bulkForceDelete, setBulkForceDelete] = useState(false);
 
   // Single Delete Confirmation Modal
   const [itemToDelete, setItemToDelete] = useState<Item | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [forceDelete, setForceDelete] = useState(false);
 
   // Success Notification
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -528,9 +526,8 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
     setIsDeleting(true);
     setDeleteError(null);
     try {
-      const shouldForce = forceDelete || itemToDelete.isActive === false;
       const res: any = await apiClient.delete(
-        `/items/${itemToDelete.id}?force=${shouldForce ? "true" : "false"}`
+        `/items/${itemToDelete.id}?force=true`
       );
 
       setItems((prev) => prev.filter((it) => it.id !== itemToDelete.id));
@@ -553,7 +550,6 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
         setSelectedItemId(null);
       }
       setItemToDelete(null);
-      setForceDelete(false);
       await fetchData();
     } catch (err: any) {
       setDeleteError(
@@ -574,14 +570,13 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
       const idsArray = Array.from(selectedIds);
       const res: any = await apiClient.post("/masters/items/bulk-delete", {
         ids: idsArray,
-        force: bulkForceDelete,
+        force: true,
       });
 
       const deletedSet = new Set(idsArray);
       setItems((prev) => prev.filter((it) => !deletedSet.has(it.id)));
       setSelectedIds(new Set());
       setIsBulkDeleteModalOpen(false);
-      setBulkForceDelete(false);
 
       const msg =
         lang === "gu" && res?.messageGujarati
@@ -903,16 +898,6 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
             <span>📊</span>
             <span>{lang === "gu" ? "રિપોર્ટ્સ" : "Reports"}</span>
             <span className="text-[10px]">▼</span>
-          </button>
-          <button
-            type="button"
-            className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200 cursor-pointer"
-            title="Settings"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
           </button>
           <button
             type="button"
@@ -1423,34 +1408,9 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
 
           <p className="text-xs text-slate-600 leading-relaxed">
             {lang === "gu"
-              ? itemToDelete?.isActive === false
-                ? `આ વસ્તુ હાલમાં નિષ્ક્રિય છે. "હા, કાઢી નાખો" દબાવવાથી તે ડેટાબેઝમાંથી કાયમ માટે કાઢી નાખવામાં આવશે.`
-                : `શું તમે ખરેખર "${itemToDelete?.name}" વસ્તુને કાઢી નાખવા માંગો છો? જો આ વસ્તુ કોઈ બિલમાં વપરાયેલ હશે, તો તે સલામત રીતે આર્કાઇવ થશે.`
-              : itemToDelete?.isActive === false
-                ? `This item is currently inactive. Confirming delete will permanently remove it from the catalog.`
-                : `Are you sure you want to delete "${itemToDelete?.name}"? If unused in bills, it will be permanently removed. If used in invoices, it will be safely archived.`}
+              ? `શું તમે ખરેખર "${itemToDelete?.name}" વસ્તુને કાઢી નાખવા માંગો છો? આ ક્રિયાથી વસ્તુ ડેટાબેઝમાંથી કાયમ માટે કાઢી નાખવામાં આવશે.`
+              : `Are you sure you want to delete "${itemToDelete?.name}"? This item will be permanently removed from the system.`}
           </p>
-
-          <label className="flex items-start gap-2 pt-1 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={forceDelete}
-              onChange={(e) => setForceDelete(e.target.checked)}
-              className="w-4 h-4 mt-0.5 text-rose-600 rounded border-slate-300 focus:ring-rose-500"
-            />
-            <div>
-              <span className="text-xs font-semibold text-rose-700 block">
-                {lang === "gu"
-                  ? "કાયમ માટે કાઢી નાખો (Force Permanent Delete)"
-                  : "Permanently delete & remove from database"}
-              </span>
-              <span className="text-[11px] text-slate-500 block">
-                {lang === "gu"
-                  ? "ટેસ્ટ વાઉચર્સ અને રેકોર્ડ્સ સાથેની લિંક સાફ કરી સંપૂર્ણપણે દૂર કરો."
-                  : "Purges linked test line items so that item is completely wiped from system."}
-              </span>
-            </div>
-          </label>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
             <button
@@ -1459,7 +1419,6 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
               onClick={() => {
                 setItemToDelete(null);
                 setDeleteError(null);
-                setForceDelete(false);
               }}
               className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg disabled:opacity-50 cursor-pointer"
             >
@@ -1521,32 +1480,9 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
             </div>
             <p className="text-xs text-rose-700/90 leading-relaxed pl-7">
               {lang === "gu"
-                ? `પસંદ કરેલી આઇટમ્સ કેટલોગમાંથી દૂર થશે. જો કોઈ આઇટમ બિલમાં વપરાયેલ હશે તો તે સુરક્ષિત રીતે આર્કાઇવ થશે.`
-                : `Selected items will be removed from your catalog. Items used in billing records will be safely archived.`}
+                ? `પસંદ કરેલી ${selectedIds.size} આઇટમ્સ ડેટાબેઝમાંથી કાયમ માટે કાઢી નાખવામાં આવશે.`
+                : `Selected ${selectedIds.size} item${selectedIds.size > 1 ? "s" : ""} will be permanently removed from the database.`}
             </p>
-          </div>
-
-          <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-            <label className="flex items-start gap-2.5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={bulkForceDelete}
-                onChange={(e) => setBulkForceDelete(e.target.checked)}
-                className="w-4 h-4 mt-0.5 text-rose-600 rounded border-slate-300 focus:ring-rose-500"
-              />
-              <div>
-                <span className="text-xs font-bold text-slate-800 block">
-                  {lang === "gu"
-                    ? "કાયમ માટે કાઢી નાખો (Force Permanent Delete)"
-                    : "Force Permanent Delete & Purge"}
-                </span>
-                <span className="text-[11px] text-slate-500 block">
-                  {lang === "gu"
-                    ? "ટેસ્ટ વાઉચર્સ સાથેની લિંક સાફ કરી ડેટાબેઝમાંથી સંપૂર્ણ સાફ કરો."
-                    : "Purges linked test line items so that test/junk items are 100% wiped from the database."}
-                </span>
-              </div>
-            </label>
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
@@ -1556,7 +1492,6 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
               onClick={() => {
                 setIsBulkDeleteModalOpen(false);
                 setDeleteError(null);
-                setBulkForceDelete(false);
               }}
               className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-lg disabled:opacity-50 cursor-pointer"
             >

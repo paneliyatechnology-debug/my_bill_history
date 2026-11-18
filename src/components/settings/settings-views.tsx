@@ -326,9 +326,9 @@ function AccountSettingsView() {
       )}
 
       {/* 1. Header Feedback Banner */}
-      <div className="bg-[#FFF8F2] border border-[#FFD8B2] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+      <div className="bg-[#EFF6FF] border border-[#BFDBFE] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#EA580C] text-white flex items-center justify-center shrink-0 shadow-xs">
+          <div className="w-10 h-10 rounded-xl bg-[#1677E8] text-white flex items-center justify-center shrink-0 shadow-xs">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
             </svg>
@@ -348,7 +348,7 @@ function AccountSettingsView() {
         <button
           type="button"
           onClick={() => setShowShareSuggestion(true)}
-          className="h-9 px-3 rounded-xl bg-[#EA580C] hover:bg-[#C2410C] text-white text-[13px] font-medium transition-all shadow-xs flex items-center justify-center gap-1.5 self-start sm:self-center shrink-0 cursor-pointer"
+          className="h-9 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium transition-all shadow-xs flex items-center justify-center gap-1.5 self-start sm:self-center shrink-0 cursor-pointer"
         >
           <span className="text-sm leading-none">+</span>
           <span>{lang === "gu" ? "સૂચન શેર કરો" : "Share Suggestion"}</span>
@@ -372,7 +372,7 @@ function AccountSettingsView() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter full name"
-                className="w-full px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20 focus:border-[#EA580C] font-normal text-slate-800 transition-all h-10"
+                className="w-full px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] font-normal text-slate-800 transition-all h-10"
                 required
               />
             </div>
@@ -406,14 +406,14 @@ function AccountSettingsView() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@business.com"
-                className="w-full px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20 focus:border-[#EA580C] font-medium text-slate-800 transition-all h-10"
+                className="w-full px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] font-medium text-slate-800 transition-all h-10"
               />
             </div>
           </div>
 
           {emailChanged && (
-            <div className="p-3.5 rounded-xl border border-amber-200 bg-amber-50/70 space-y-2">
-              <p className="text-xs text-amber-900 font-medium">
+            <div className="p-3.5 rounded-xl border border-blue-200 bg-blue-50/70 space-y-2">
+              <p className="text-xs text-blue-900 font-medium">
                 {lang === "gu"
                   ? "ઈમેલ બદલવા માટે ચકાસણી કોડ જરૂરી છે. પહેલા કોડ મેળવો, પછી દાખલ કરી સાચવો."
                   : "Changing your email requires a verification code. Request the code first, enter it, then save."}
@@ -426,18 +426,18 @@ function AccountSettingsView() {
                   value={profileOtp}
                   onChange={(e) => setProfileOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   placeholder="6-digit code"
-                  className="w-36 px-3 py-1.5 text-xs bg-white border border-amber-300 rounded-lg tabular-nums tracking-widest text-center"
+                  className="w-36 px-3 py-1.5 text-xs bg-white border border-blue-300 rounded-lg tabular-nums tracking-widest text-center"
                 />
                 <button
                   type="button"
                   disabled={isSaving}
                   onClick={handleSendProfileOtp}
-                  className="h-9 px-3 rounded-lg bg-amber-800 hover:bg-amber-900 text-white text-[13px] font-medium disabled:opacity-50"
+                  className="h-9 px-3 rounded-lg bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium disabled:opacity-50"
                 >
                   {lang === "gu" ? "કોડ મોકલો" : "Send code"}
                 </button>
                 {devOtp && (
-                  <span className="text-xs tabular-nums text-amber-950 font-bold bg-amber-100 px-2 py-1 rounded">
+                  <span className="text-xs tabular-nums text-blue-950 font-bold bg-blue-100 px-2 py-1 rounded">
                     Dev Code: {devOtp}
                   </span>
                 )}
@@ -449,7 +449,7 @@ function AccountSettingsView() {
             <button
               type="submit"
               disabled={isSaving || (emailChanged && profileOtp.length !== 6)}
-              className="h-9 px-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-[13px] font-medium transition-all shadow-xs cursor-pointer disabled:opacity-50"
+              className="h-9 px-3.5 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium transition-all shadow-xs cursor-pointer disabled:opacity-50"
             >
               {isSaving
                 ? lang === "gu" ? "સાચવી રહ્યું છે..." : "Saving..."
@@ -473,7 +473,7 @@ function AccountSettingsView() {
                 placeholder={lang === "gu" ? "હાલનો પાસવર્ડ" : "Current password"}
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20 focus:border-[#EA580C] text-slate-800 h-10"
+                className="w-full px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] text-slate-800 h-10"
                 required
               />
             </div>
@@ -484,7 +484,7 @@ function AccountSettingsView() {
                 placeholder={lang === "gu" ? "નવો પાસવર્ડ (ઓછામાં ઓછા 6 અક્ષર)" : "New password (min 6 characters)"}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20 focus:border-[#EA580C] text-slate-800 h-10"
+                className="w-full px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] text-slate-800 h-10"
                 minLength={6}
                 required
               />
@@ -494,7 +494,7 @@ function AccountSettingsView() {
           <button
             type="submit"
             disabled={isSaving || !currentPassword || newPassword.length < 6}
-            className="h-9 px-3 rounded-xl bg-[#0B1528] hover:bg-[#1E293B] text-white text-[13px] font-medium transition-all shadow-xs cursor-pointer disabled:opacity-50"
+            className="h-9 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium transition-all shadow-xs cursor-pointer disabled:opacity-50"
           >
             {isSaving
               ? lang === "gu" ? "બદલી રહ્યું છે..." : "Updating..."
@@ -515,13 +515,13 @@ function AccountSettingsView() {
             placeholder="REFERRAL CODE"
             value={referralCode}
             onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-            className="flex-1 max-w-md px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl tabular-nums uppercase focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20 focus:border-[#EA580C] text-slate-800 tracking-wider h-10"
+            className="flex-1 max-w-md px-3.5 py-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl tabular-nums uppercase focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] text-slate-800 tracking-wider h-10"
           />
 
           <button
             type="submit"
             disabled={!referralCode.trim()}
-            className="px-6 py-2.5 rounded-xl bg-[#EA580C] hover:bg-[#C2410C] text-white text-[13px] font-medium transition-all shadow-xs cursor-pointer disabled:opacity-50 shrink-0"
+            className="px-6 py-2.5 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium transition-all shadow-xs cursor-pointer disabled:opacity-50 shrink-0"
           >
             {lang === "gu" ? "લાગુ કરો" : "Apply"}
           </button>
@@ -557,7 +557,7 @@ function AccountSettingsView() {
             <div className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 shadow-2xs ${
               isExpired
                 ? "bg-rose-50 border-rose-100 text-rose-600"
-                : "bg-indigo-50 border-indigo-100 text-[#4338CA]"
+                : "bg-[#EFF6FF] border-[#BFDBFE] text-[#1677E8]"
             }`}>
               <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
@@ -611,7 +611,7 @@ function AccountSettingsView() {
               className={`px-4 py-2 rounded-xl text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer ${
                 isExpired
                   ? "bg-rose-600 hover:bg-rose-700 ring-2 ring-rose-300"
-                  : "bg-[#EA580C] hover:bg-[#C2410C]"
+                  : "bg-[#1677E8] hover:bg-[#1268D3]"
               }`}
             >
               <span>{isExpired ? (lang === "gu" ? "હમણાં રિન્યૂ કરો" : "Renew Plan Now") : (lang === "gu" ? "પ્લાન અપગ્રેડ કરો" : "Upgrade Plan")}</span>
@@ -714,8 +714,8 @@ function AccountSettingsView() {
                           Expired
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
-                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#1677E8] bg-[#EFF6FF] border border-[#BFDBFE] px-2 py-0.5 rounded-full">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#1677E8]"></span>
                           {item.paymentStatus}
                         </span>
                       )}
@@ -725,7 +725,7 @@ function AccountSettingsView() {
                       <button
                         type="button"
                         onClick={() => setSelectedReceipt(item)}
-                        className="inline-flex items-center gap-1 text-[#6366F1] hover:text-[#4F46E5] font-medium text-[13px] transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1 text-[#1677E8] hover:text-[#1268D3] font-medium text-[13px] transition-colors cursor-pointer"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -817,7 +817,7 @@ function AccountSettingsView() {
                 </div>
                 <div className="flex justify-between text-xs font-semibold text-slate-900 pt-1 border-t border-slate-200">
                   <span>Total Amount Paid:</span>
-                  <span className="text-[#EA580C] tabular-nums text-sm">{selectedReceipt.formattedAmount || `₹ ${selectedReceipt.amount}`}</span>
+                  <span className="text-[#1677E8] tabular-nums text-sm font-bold">{selectedReceipt.formattedAmount || `₹ ${selectedReceipt.amount}`}</span>
                 </div>
               </div>
             </div>
@@ -860,7 +860,7 @@ function AccountSettingsView() {
                   `);
                   printWin.document.close();
                 }}
-                className="px-4 py-2 text-xs font-bold text-white bg-[#6366F1] hover:bg-[#4F46E5] rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 text-xs font-bold text-white bg-[#1677E8] hover:bg-[#1268D3] rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -878,7 +878,7 @@ function AccountSettingsView() {
           <div className="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <h3 className="text-[15px] font-semibold text-slate-900 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-lg bg-orange-100 text-[#EA580C] flex items-center justify-center text-xs">💡</span>
+                <span className="w-6 h-6 rounded-lg bg-[#EFF6FF] text-[#1677E8] flex items-center justify-center text-xs">💡</span>
                 {lang === "gu" ? "તમારું સૂચન શેર કરો" : "Share Your Suggestion"}
               </h3>
               <button
@@ -920,7 +920,7 @@ function AccountSettingsView() {
                     value={suggestionText}
                     onChange={(e) => setSuggestionText(e.target.value)}
                     placeholder="Describe the feature or workflow that would help your business..."
-                    className="w-full p-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#EA580C]/30 focus:border-[#EA580C]"
+                    className="w-full p-2.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8]"
                     required
                   ></textarea>
                 </div>
@@ -934,7 +934,7 @@ function AccountSettingsView() {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-1.5 text-[13px] font-medium text-white bg-[#EA580C] hover:bg-[#C2410C] rounded-xl shadow-xs"
+                    className="px-4 py-1.5 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] rounded-xl shadow-xs"
                   >
                     Send Suggestion
                   </button>
@@ -951,7 +951,7 @@ function AccountSettingsView() {
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <h3 className="text-[15px] font-semibold text-slate-900 flex items-center gap-2">
-                <span className="text-[#EA580C]">⚡</span>
+                <span className="text-[#1677E8]">⚡</span>
                 {lang === "gu" ? "સબ્સ્ક્રિપ્શન પ્લાન રિન્યૂ / અપગ્રેડ કરો" : "Renew / Upgrade Subscription"}
               </h3>
               <button onClick={() => setShowUpgradeModal(false)} className="text-slate-400 hover:text-slate-600 p-1">✕</button>
@@ -989,7 +989,7 @@ function AccountSettingsView() {
                   key={p.tier}
                   className={`p-3.5 rounded-xl border flex items-center justify-between transition-all ${
                     p.recommended
-                      ? "border-[#EA580C] bg-orange-50/40 ring-1 ring-[#EA580C]/20"
+                      ? "border-[#1677E8] bg-[#EFF6FF]/40 ring-1 ring-[#1677E8]/20"
                       : "border-slate-200 bg-slate-50/50 hover:bg-slate-50"
                   }`}
                 >
@@ -997,7 +997,7 @@ function AccountSettingsView() {
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-xs text-slate-900">{p.name}</span>
                       {p.recommended && (
-                        <span className="text-[9px] font-bold bg-[#EA580C] text-white px-1.5 py-0.2 rounded-full">
+                        <span className="text-[9px] font-bold bg-[#1677E8] text-white px-1.5 py-0.2 rounded-full">
                           POPULAR
                         </span>
                       )}
@@ -1010,7 +1010,7 @@ function AccountSettingsView() {
                       type="button"
                       disabled={isUpgradingPlan}
                       onClick={() => handleUpgradePlan(p.tier, "1year")}
-                      className="h-9 px-3 bg-[#EA580C] hover:bg-[#C2410C] text-white text-[13px] font-medium rounded-lg shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                      className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-lg shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                     >
                       {isUpgradingPlan ? "Activating..." : "Select"}
                     </button>
@@ -1357,7 +1357,7 @@ function ManageBusinessSettingsView() {
   };
 
   const fieldCls =
-    "w-full h-9 px-3 text-[13px] bg-white border border-slate-200 rounded-md focus:outline-none focus:border-[#6366F1] focus:ring-1 focus:ring-[#6366F1]/30";
+    "w-full h-9 px-3 text-[13px] bg-white border border-slate-200 rounded-md focus:outline-none focus:border-[#1677E8] focus:ring-1 focus:ring-[#1677E8]/20";
   const labelCls = "block text-[12px] text-slate-600 mb-1";
   const stateOptions = Object.entries(INDIAN_STATES).filter(([code]) => !["96", "97", "99", "28"].includes(code));
 
@@ -1382,25 +1382,25 @@ function ManageBusinessSettingsView() {
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="h-9 px-3 rounded-md bg-[#EA580C] hover:bg-[#C2410C] text-white text-[12px] font-medium"
+            className="h-9 px-3 rounded-md bg-[#1677E8] hover:bg-[#1268D3] text-white text-[12px] font-medium transition-colors"
           >
             Create new business
           </button>
-          <Link href="/settings/help-support" className="h-9 px-3 rounded-md border border-slate-200 bg-white text-[12px] text-slate-600 inline-flex items-center gap-1">
+          <Link href="/settings/help-support" className="h-9 px-3 rounded-md border border-slate-200 bg-white text-[12px] text-slate-600 inline-flex items-center gap-1 hover:bg-slate-50">
             Chat Support
           </Link>
           <button
             type="button"
             onClick={closeFy}
             disabled={closingFy || !currentFY?.id}
-            className="h-9 px-3 rounded-md border border-slate-200 bg-white text-[12px] text-slate-700"
+            className="h-9 px-3 rounded-md border border-slate-200 bg-white text-[12px] text-slate-700 hover:bg-slate-50"
           >
             {closingFy ? "Closing..." : "Close Financial Year"}
           </button>
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="h-9 px-3 rounded-md border border-slate-200 bg-white text-[12px] text-slate-600"
+            className="h-9 px-3 rounded-md border border-slate-200 bg-white text-[12px] text-slate-600 hover:bg-slate-50"
           >
             Cancel
           </button>
@@ -1408,7 +1408,7 @@ function ManageBusinessSettingsView() {
             type="button"
             onClick={() => handleSubmit()}
             disabled={isSaving}
-            className="h-9 px-4 rounded-md bg-[#6D28D9] hover:bg-[#5B21B6] text-white text-[12px] font-medium"
+            className="h-9 px-4 rounded-md bg-[#1677E8] hover:bg-[#1268D3] text-white text-[12px] font-medium transition-colors shadow-xs"
           >
             {isSaving ? "Saving..." : "Save Changes"}
           </button>
@@ -1482,7 +1482,7 @@ function ManageBusinessSettingsView() {
                 setFormData({ ...formData, addressLine1: line1, addressLine2: rest.join("\n") });
               }}
               placeholder="Enter Billing Address"
-              className="w-full min-h-[72px] px-3 py-2 text-[13px] bg-white border border-slate-200 rounded-md focus:outline-none focus:border-[#6366F1]"
+              className="w-full min-h-[72px] px-3 py-2 text-[13px] bg-white border border-slate-200 rounded-md focus:outline-none focus:border-[#1677E8] focus:ring-1 focus:ring-[#1677E8]/20"
             />
           </div>
 
@@ -1530,7 +1530,7 @@ function ManageBusinessSettingsView() {
                         eInvoiceApplicable: opt.v ? formData.eInvoiceApplicable : false,
                       })
                     }
-                    className="accent-[#6D28D9]"
+                    className="accent-[#1677E8]"
                   />
                   {opt.l}
                 </label>
@@ -1559,7 +1559,7 @@ function ManageBusinessSettingsView() {
                 type="button"
                 disabled={!formData.gstRegistered}
                 onClick={() => setFormData({ ...formData, eInvoiceApplicable: !formData.eInvoiceApplicable })}
-                className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${formData.eInvoiceApplicable && formData.gstRegistered ? "bg-[#1E7A4C]" : "bg-slate-300"}`}
+                className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${formData.eInvoiceApplicable && formData.gstRegistered ? "bg-[#1677E8]" : "bg-slate-300"}`}
               >
                 <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${formData.eInvoiceApplicable && formData.gstRegistered ? "left-5" : "left-0.5"}`} />
               </button>
@@ -1568,7 +1568,7 @@ function ManageBusinessSettingsView() {
               <div className="mt-1.5 flex items-center justify-end">
                 <Link
                   href="/settings/e-invoice"
-                  className="text-[11px] font-semibold text-[#1E7A4C] hover:underline flex items-center gap-1"
+                  className="text-[11px] font-semibold text-[#1677E8] hover:underline flex items-center gap-1"
                 >
                   Configure IRP Credentials & Settings &rarr;
                 </Link>
@@ -1591,7 +1591,7 @@ function ManageBusinessSettingsView() {
             <button
               type="button"
               onClick={() => setFormData({ ...formData, enableTds: !formData.enableTds })}
-              className={`relative w-11 h-6 rounded-full ${formData.enableTds ? "bg-[#6D28D9]" : "bg-slate-300"}`}
+              className={`relative w-11 h-6 rounded-full ${formData.enableTds ? "bg-[#1677E8]" : "bg-slate-300"}`}
             >
               <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${formData.enableTds ? "left-5" : "left-0.5"}`} />
             </button>
@@ -1601,7 +1601,7 @@ function ManageBusinessSettingsView() {
             <button
               type="button"
               onClick={() => setFormData({ ...formData, enableTcs: !formData.enableTcs })}
-              className={`relative w-11 h-6 rounded-full ${formData.enableTcs ? "bg-[#6D28D9]" : "bg-slate-300"}`}
+              className={`relative w-11 h-6 rounded-full ${formData.enableTcs ? "bg-[#1677E8]" : "bg-slate-300"}`}
             >
               <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${formData.enableTcs ? "left-5" : "left-0.5"}`} />
             </button>
@@ -1616,7 +1616,7 @@ function ManageBusinessSettingsView() {
           </div>
 
           <div className="pt-2">
-            <button type="button" onClick={() => setIsModalOpen(true)} className="text-[13px] font-semibold text-[#6D28D9]">
+            <button type="button" onClick={() => setIsModalOpen(true)} className="text-[13px] font-semibold text-[#1677E8] hover:underline">
               Add New Business
             </button>
             <p className="text-[11px] text-slate-400 mt-1">{companies.length} business{companies.length === 1 ? "" : "es"} configured</p>
@@ -1629,7 +1629,7 @@ function ManageBusinessSettingsView() {
             <div className="border border-slate-200 rounded-md p-2 max-h-36 overflow-auto bg-white">
               {(options.businessTypes || []).map((bt: any) => (
                 <label key={bt.id} className="flex items-center gap-2 py-1 px-1 text-[13px] text-slate-700">
-                  <input type="checkbox" checked={formData.businessTypes.includes(bt.id)} onChange={() => toggleBusinessType(bt.id)} className="accent-[#6D28D9]" />
+                  <input type="checkbox" checked={formData.businessTypes.includes(bt.id)} onChange={() => toggleBusinessType(bt.id)} className="accent-[#1677E8]" />
                   {bt.label}
                 </label>
               ))}
@@ -1663,7 +1663,7 @@ function ManageBusinessSettingsView() {
             <button
               type="button"
               onClick={() => setShowSignaturePad((v) => !v)}
-              className="w-[140px] h-[88px] rounded-md border-2 border-dashed border-slate-300 text-[#2563EB] text-[13px] font-medium bg-slate-50 overflow-hidden"
+              className="w-[140px] h-[88px] rounded-md border-2 border-dashed border-slate-300 text-[#1677E8] hover:border-[#1677E8] text-[13px] font-medium bg-slate-50 overflow-hidden transition-colors"
             >
               {signaturePreview ? <img src={signaturePreview} alt="Signature" className="w-full h-full object-contain bg-white" /> : "+ Add Signature"}
             </button>
@@ -1694,10 +1694,10 @@ function ManageBusinessSettingsView() {
                   className="bg-white border border-slate-200 rounded cursor-crosshair touch-none w-full"
                 />
                 <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => signatureInputRef.current?.click()} className="text-[12px] px-2 py-1 border rounded">
+                  <button type="button" onClick={() => signatureInputRef.current?.click()} className="text-[12px] px-2 py-1 border rounded hover:bg-slate-50">
                     Upload PNG/JPG
                   </button>
-                  <button type="button" onClick={saveDrawnSignature} className="text-[12px] px-2 py-1 bg-[#6D28D9] text-white rounded">
+                  <button type="button" onClick={saveDrawnSignature} className="text-[12px] px-2 py-1 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded">
                     Save Signature
                   </button>
                 </div>
@@ -1727,7 +1727,7 @@ function ManageBusinessSettingsView() {
                 placeholder={options.extraDetailKeys?.find((k: any) => k.id === extraKey)?.placeholder || "www.website.com"}
                 className={fieldCls}
               />
-              <button type="button" onClick={addExtraDetail} className="h-9 px-4 rounded-md bg-[#4F46E5] text-white text-[13px] font-medium shrink-0">
+              <button type="button" onClick={addExtraDetail} className="h-9 px-4 rounded-md bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium shrink-0 shadow-xs">
                 Add
               </button>
             </div>
@@ -1890,7 +1890,7 @@ function PrintSettingsView() {
           <button
             type="button"
             onClick={handleSave}
-            className="h-9 px-3.5 bg-[#6366F1] hover:bg-[#4F46E5] text-white text-[13px] font-medium rounded-xl shadow-xs transition-all cursor-pointer"
+            className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs transition-all cursor-pointer"
           >
             {lang === "gu" ? "સાચવો" : "Save Settings"}
           </button>
@@ -2077,7 +2077,7 @@ function PrintSettingsView() {
               onClick={() => setActiveTab("thermal")}
               className={`text-xs font-bold pb-1 transition-all border-b-2 ${
                 activeTab === "thermal"
-                  ? "border-[#6366F1] text-[#6366F1]"
+                  ? "border-[#1677E8] text-[#1677E8]"
                   : "border-transparent text-slate-500 hover:text-slate-800"
               }`}
             >
@@ -2088,7 +2088,7 @@ function PrintSettingsView() {
               onClick={() => setActiveTab("barcode")}
               className={`text-xs font-bold pb-1 transition-all border-b-2 ${
                 activeTab === "barcode"
-                  ? "border-[#6366F1] text-[#6366F1]"
+                  ? "border-[#1677E8] text-[#1677E8]"
                   : "border-transparent text-slate-500 hover:text-slate-800"
               }`}
             >
@@ -2118,7 +2118,7 @@ function PrintSettingsView() {
                   onClick={() => setSelectedTheme(th.id as any)}
                   className={`relative p-2 rounded-xl border text-center transition-all ${
                     selectedTheme === th.id
-                      ? "border-[#6366F1] ring-2 ring-[#6366F1]/20 bg-indigo-50/40"
+                      ? "border-[#1677E8] ring-2 ring-[#1677E8]/20 bg-[#EFF6FF]/40"
                       : "border-slate-200 hover:border-slate-300 bg-white"
                   }`}
                 >
@@ -2149,12 +2149,12 @@ function PrintSettingsView() {
                   onClick={() => setPaperSize("2inch")}
                   className={`p-2.5 rounded-xl border flex items-center justify-between text-xs font-semibold cursor-pointer transition-all ${
                     paperSize === "2inch"
-                      ? "border-[#6366F1] bg-indigo-50/40 text-slate-900"
+                      ? "border-[#1677E8] bg-[#EFF6FF]/40 text-slate-900"
                       : "border-slate-200 text-slate-600 hover:bg-slate-50"
                   }`}
                 >
                   <span>2 inch</span>
-                  <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${paperSize === "2inch" ? "border-[#6366F1] bg-[#6366F1]" : "border-slate-300"}`}>
+                  <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${paperSize === "2inch" ? "border-[#1677E8] bg-[#1677E8]" : "border-slate-300"}`}>
                     {paperSize === "2inch" && <span className="w-1.5 h-1.5 rounded-full bg-white"></span>}
                   </span>
                 </button>
@@ -2164,12 +2164,12 @@ function PrintSettingsView() {
                   onClick={() => setPaperSize("3inch")}
                   className={`p-2.5 rounded-xl border flex items-center justify-between text-xs font-semibold cursor-pointer transition-all ${
                     paperSize === "3inch"
-                      ? "border-[#6366F1] bg-indigo-50/40 text-slate-900"
+                      ? "border-[#1677E8] bg-[#EFF6FF]/40 text-slate-900"
                       : "border-slate-200 text-slate-600 hover:bg-slate-50"
                   }`}
                 >
                   <span>3 inch</span>
-                  <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${paperSize === "3inch" ? "border-[#6366F1] bg-[#6366F1]" : "border-slate-300"}`}>
+                  <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${paperSize === "3inch" ? "border-[#1677E8] bg-[#1677E8]" : "border-slate-300"}`}>
                     {paperSize === "3inch" && <span className="w-1.5 h-1.5 rounded-full bg-white"></span>}
                   </span>
                 </button>
@@ -2205,7 +2205,7 @@ function PrintSettingsView() {
                   type="checkbox"
                   checked={showPartyBalance}
                   onChange={(e) => setShowPartyBalance(e.target.checked)}
-                  className="rounded text-[#6366F1] w-4 h-4"
+                  className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4"
                 />
                 <span className="text-slate-800">Show party balance in invoice</span>
               </label>
@@ -2215,7 +2215,7 @@ function PrintSettingsView() {
                   type="checkbox"
                   checked={showItemDesc}
                   onChange={(e) => setShowItemDesc(e.target.checked)}
-                  className="rounded text-[#6366F1] w-4 h-4"
+                  className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4"
                 />
                 <span className="text-slate-800">Show item description in invoice</span>
               </label>
@@ -2225,7 +2225,7 @@ function PrintSettingsView() {
                   type="checkbox"
                   checked={showTime}
                   onChange={(e) => setShowTime(e.target.checked)}
-                  className="rounded text-[#6366F1] w-4 h-4"
+                  className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4"
                 />
                 <span className="text-slate-800">Show time on Invoices</span>
               </label>
@@ -2235,7 +2235,7 @@ function PrintSettingsView() {
                   type="checkbox"
                   checked={showSavings}
                   onChange={(e) => setShowSavings(e.target.checked)}
-                  className="rounded text-[#6366F1] w-4 h-4"
+                  className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4"
                 />
                 <span className="text-slate-800">Show customer savings line</span>
               </label>
@@ -2245,7 +2245,7 @@ function PrintSettingsView() {
                   type="checkbox"
                   checked={showUpiQr}
                   onChange={(e) => setShowUpiQr(e.target.checked)}
-                  className="rounded text-[#6366F1] w-4 h-4"
+                  className="rounded text-[#1677E8] focus:ring-[#1677E8] w-4 h-4"
                 />
                 <span className="text-slate-800">Show UPI QR code on receipt</span>
               </label>
@@ -2348,7 +2348,7 @@ function RemindersView() {
         <button
           type="button"
           onClick={handleSave}
-          className="h-9 px-3 bg-[#6366F1] hover:bg-[#4F46E5] text-white text-[13px] font-medium rounded-xl shadow-xs transition-all cursor-pointer"
+          className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs transition-all cursor-pointer"
         >
           {lang === "gu" ? "શિડ્યુલ સાચવો" : "Save Schedules"}
         </button>
@@ -2377,7 +2377,7 @@ function RemindersView() {
               type="checkbox"
               checked={reminders.enableWhatsapp}
               onChange={(e) => setReminders({ ...reminders, enableWhatsapp: e.target.checked })}
-              className="w-4 h-4 rounded text-emerald-600"
+              className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
             />
           </label>
           <label className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 cursor-pointer">
@@ -2392,7 +2392,7 @@ function RemindersView() {
               type="checkbox"
               checked={reminders.enableSms}
               onChange={(e) => setReminders({ ...reminders, enableSms: e.target.checked })}
-              className="w-4 h-4 rounded text-indigo-600"
+              className="w-4 h-4 rounded text-[#1677E8] focus:ring-[#1677E8]"
             />
           </label>
         </div>
@@ -2418,7 +2418,7 @@ function RemindersView() {
                 type="checkbox"
                 checked={(reminders as any)[item.key]}
                 onChange={(e) => setReminders({ ...reminders, [item.key]: e.target.checked })}
-                className="w-4 h-4 rounded text-[#6366F1]"
+                className="w-4 h-4 rounded text-[#1677E8] focus:ring-[#1677E8]"
               />
             </label>
           ))}
@@ -2435,7 +2435,7 @@ function RemindersView() {
               rows={5}
               value={templateText}
               onChange={(e) => setTemplateText(e.target.value)}
-              className="w-full p-3 text-[13px] bg-slate-50 border border-slate-200 rounded-xl font-sans"
+              className="w-full p-3 text-[13px] bg-slate-50 border border-slate-200 rounded-xl font-sans focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/20 focus:bg-white transition-all"
             />
             <p className="text-[11px] text-slate-400 mt-1">Available variables: {`{CustomerName}`}, {`{Amount}`}, {`{InvoiceNo}`}, {`{DueDate}`}, {`{UPILink}`}, {`{CompanyName}`}</p>
           </div>
@@ -2585,9 +2585,9 @@ function CaSharingView() {
             onChange={(e) => setCaEmail(e.target.value)}
             placeholder="ca.sharma@auditfirm.com"
             required
-            className="flex-1 px-3 py-2 text-[13px] bg-slate-50 border border-slate-200 rounded-xl h-10"
+            className="flex-1 px-3 py-2 text-[13px] bg-slate-50 border border-slate-200 rounded-xl h-10 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/20 focus:bg-white transition-all"
           />
-          <button type="submit" className="h-9 px-3 bg-[#6366F1] hover:bg-[#4F46E5] text-white text-[13px] font-medium rounded-xl shadow-xs">
+          <button type="submit" className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs transition-all cursor-pointer">
             Send Invite
           </button>
         </form>
@@ -2612,7 +2612,7 @@ function CaSharingView() {
             <button
               type="button"
               onClick={downloadGstr1}
-              className="text-xs font-bold text-[#6366F1] hover:underline self-start flex items-center gap-1 cursor-pointer"
+              className="text-xs font-bold text-[#1677E8] hover:text-[#1268D3] hover:underline self-start flex items-center gap-1 cursor-pointer"
             >
               <span>Download JSON ↓</span>
             </button>
@@ -2627,7 +2627,7 @@ function CaSharingView() {
             <button
               type="button"
               onClick={downloadGstr3b}
-              className="text-xs font-bold text-[#6366F1] hover:underline self-start flex items-center gap-1 cursor-pointer"
+              className="text-xs font-bold text-[#1677E8] hover:text-[#1268D3] hover:underline self-start flex items-center gap-1 cursor-pointer"
             >
               <span>Download CSV ↓</span>
             </button>
@@ -2642,7 +2642,7 @@ function CaSharingView() {
             <button
               type="button"
               onClick={downloadTrialBalance}
-              className="text-xs font-bold text-[#6366F1] hover:underline self-start flex items-center gap-1 cursor-pointer"
+              className="text-xs font-bold text-[#1677E8] hover:text-[#1268D3] hover:underline self-start flex items-center gap-1 cursor-pointer"
             >
               <span>Download CSV ↓</span>
             </button>
@@ -2783,14 +2783,14 @@ function PricingSettingsView() {
             <div
               key={p.name}
               className={`p-6 rounded-2xl border bg-white shadow-2xs flex flex-col justify-between gap-5 transition-all ${
-                p.isCurrent ? "border-[#EA580C] ring-2 ring-[#EA580C]/20" : "border-slate-200 hover:border-slate-300"
+                p.isCurrent ? "border-[#1677E8] ring-2 ring-[#1677E8]/20 bg-[#EFF6FF]/20" : "border-slate-200 hover:border-slate-300"
               }`}
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-[15px] font-semibold text-slate-900">{p.name}</h3>
                   {p.isCurrent && (
-                    <span className="text-[10px] font-bold text-white bg-[#EA580C] px-2 py-0.5 rounded-full">Current Plan</span>
+                    <span className="text-[10px] font-bold text-white bg-[#1677E8] px-2 py-0.5 rounded-full">Current Plan</span>
                   )}
                 </div>
                 <div>
@@ -2815,7 +2815,7 @@ function PricingSettingsView() {
                 className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer ${
                   p.isCurrent
                     ? "bg-slate-100 text-slate-800 hover:bg-slate-200"
-                    : "bg-[#EA580C] text-white hover:bg-[#C2410C]"
+                    : "bg-[#1677E8] text-white hover:bg-[#1268D3]"
                 }`}
               >
                 {p.isCurrent ? "Renew Subscription" : `Select ${p.name}`}
@@ -2858,7 +2858,7 @@ function PricingSettingsView() {
 
               <div className="flex justify-between text-sm font-bold text-slate-900 pt-2 border-t border-slate-100">
                 <span>Total Amount Payable:</span>
-                <span className="text-[#EA580C]">₹ {totalPayable.toLocaleString("en-IN")}</span>
+                <span className="text-[#1677E8]">₹ {totalPayable.toLocaleString("en-IN")}</span>
               </div>
             </div>
 
@@ -2870,7 +2870,7 @@ function PricingSettingsView() {
                   placeholder="Coupon code (e.g. SAVE20)"
                   value={coupon}
                   onChange={(e) => setCoupon(e.target.value.toUpperCase())}
-                  className="flex-1 px-3 py-1.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl tabular-nums uppercase h-10"
+                  className="flex-1 px-3 py-1.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl tabular-nums uppercase h-10 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/20 focus:bg-white transition-all"
                 />
                 <button
                   type="button"
@@ -2879,7 +2879,7 @@ function PricingSettingsView() {
                       setDiscountApplied(true);
                     }
                   }}
-                  className="h-9 px-3 bg-slate-800 text-white text-[13px] font-medium rounded-xl"
+                  className="h-9 px-3.5 bg-slate-800 hover:bg-slate-900 text-white text-[13px] font-medium rounded-xl transition-colors cursor-pointer"
                 >
                   Apply
                 </button>
@@ -2888,14 +2888,14 @@ function PricingSettingsView() {
             </div>
 
             <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
-              <button onClick={() => setSelectedPlan(null)} className="h-9 px-3 text-[13px] text-slate-600 hover:bg-slate-100 rounded-xl">
+              <button onClick={() => setSelectedPlan(null)} className="h-9 px-3.5 text-[13px] text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer">
                 Cancel
               </button>
               <button
                 type="button"
                 disabled={isUpgrading}
                 onClick={handleConfirmPay}
-                className="px-4 py-1.5 text-[13px] font-medium text-white bg-[#EA580C] hover:bg-[#C2410C] rounded-xl shadow-xs disabled:opacity-50 cursor-pointer"
+                className="px-4 py-1.5 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] rounded-xl shadow-xs disabled:opacity-50 cursor-pointer transition-all"
               >
                 {isUpgrading ? "Activating Subscription..." : "Confirm & Pay Now"}
               </button>
@@ -2932,7 +2932,7 @@ function ReferEarnView() {
         </p>
       </div>
 
-      <div className="bg-gradient-to-r from-indigo-50/80 via-white to-indigo-50/80 rounded-2xl border border-indigo-100 p-5 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-[#EFF6FF]/80 via-white to-[#EFF6FF]/80 rounded-2xl border border-[#BFDBFE] p-5 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
           <span className="text-xs font-semibold text-slate-600 block">Your Exclusive Referral Link:</span>
           <div className="flex items-center gap-2 mt-1">
@@ -2942,7 +2942,7 @@ function ReferEarnView() {
             <button
               type="button"
               onClick={copyCode}
-              className="h-9 px-3 bg-[#6366F1] hover:bg-[#4F46E5] text-white text-[13px] font-medium rounded-xl transition-all shadow-xs cursor-pointer"
+              className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl transition-all shadow-xs cursor-pointer"
             >
               {copied ? "Copied! ✓" : "Copy Link"}
             </button>
@@ -2953,7 +2953,7 @@ function ReferEarnView() {
           href={`https://wa.me/?text=Hello!%20I%20am%20using%20myownBillBook%20for%20GST%20Billing%20and%20Accounting.%20Use%20my%20link%20to%20get%20Rs.500%20discount:%20${encodeURIComponent(shareUrl)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs flex items-center gap-2 shrink-0"
+          className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs flex items-center gap-2 shrink-0 transition-colors"
         >
           <span>Share on WhatsApp</span>
         </a>
@@ -2984,9 +2984,9 @@ function ReferEarnView() {
           value={referEmail}
           onChange={(e) => setReferEmail(e.target.value)}
           placeholder="friend@business.com"
-          className="flex-1 px-3 py-2 text-[13px] bg-slate-50 border border-slate-200 rounded-xl h-10"
+          className="flex-1 px-3 py-2 text-[13px] bg-slate-50 border border-slate-200 rounded-xl h-10 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/20 focus:bg-white transition-all"
         />
-        <button type="submit" className="h-9 px-3 bg-[#6366F1] text-white text-[13px] font-medium rounded-xl">
+        <button type="submit" className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs transition-colors cursor-pointer">
           Email referral
         </button>
         {referNote && <p className="text-xs text-slate-600 sm:col-span-2">{referNote}</p>}
@@ -3114,7 +3114,7 @@ function HelpSupportView() {
               required
               className="flex-1 px-3 py-2 text-[13px] bg-slate-50 border border-slate-200 rounded-xl h-10"
             />
-            <button type="submit" className="h-9 px-3.5 bg-[#EA580C] hover:bg-[#C2410C] text-white text-[13px] font-medium rounded-xl shadow-xs">
+            <button type="submit" className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs transition-colors cursor-pointer">
               Call Me
             </button>
           </form>

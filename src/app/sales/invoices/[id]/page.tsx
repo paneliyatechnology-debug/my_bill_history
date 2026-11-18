@@ -1067,19 +1067,26 @@ export default function InvoiceDetailPage() {
             setActionError(null);
             try {
               const companyName = currentCompany?.tradeName || currentCompany?.legalName || "myownbillbook";
+              const invoiceUrl = typeof window !== "undefined" ? window.location.href : "";
+              const formattedGrandTotal = `₹ ${Number(invoice.grandTotal || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+              const formattedBalance = `₹ ${bal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
               const result = await sendAppEmail({
                 to: emailShareTo.trim(),
                 subject: `Invoice ${invoice.invoiceNumber} from ${companyName}`,
                 heading: `Invoice ${invoice.invoiceNumber}`,
-                intro: `${companyName} shared this sales invoice with you.`,
+                intro: `${companyName} shared this tax invoice with you.`,
+                actionUrl: invoiceUrl,
+                actionLabel: "View & Download Invoice →",
+                companyName,
                 details: [
-                  { label: "Invoice", value: invoice.invoiceNumber },
-                  { label: "Date", value: new Date(invoice.invoiceDate).toLocaleDateString("en-IN") },
-                  { label: "Party", value: invoice.party?.name || "—" },
-                  { label: "Grand total", value: `₹${Number(invoice.grandTotal).toFixed(2)}` },
-                  { label: "Balance", value: `₹${bal.toFixed(2)}` },
+                  { label: "Invoice Number", value: invoice.invoiceNumber },
+                  { label: "Invoice Date", value: new Date(invoice.invoiceDate).toLocaleDateString("en-IN") },
+                  { label: "Billed To", value: invoice.party?.name || "—" },
+                  { label: "Grand Total", value: formattedGrandTotal },
+                  { label: "Balance", value: formattedBalance },
                 ],
-                text: "Open the invoice in myownbillbook to print or download the PDF.",
+                text: `Open the invoice in myownbillbook to view, print or download the PDF: ${invoiceUrl}`,
               });
               setActionSuccess(mailResultMessage(result, lang === "gu" ? "gu" : "en"));
               if (result.delivered) setEmailShareOpen(false);

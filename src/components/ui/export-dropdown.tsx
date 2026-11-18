@@ -129,9 +129,9 @@ export function ExportDropdown({
 
   const buttonClasses = {
     default:
-      "h-9 px-3 bg-white hover:bg-[#F8FBFF] text-[#182230] border border-[#E2E8F0] rounded-[10px] text-[13px] font-medium transition-colors hover:border-[#1677E8]",
+      "h-10 px-3.5 bg-white hover:bg-[#F8FBFF] text-[#182230] border border-[#E2E8F0] rounded-xl text-[13px] font-normal transition-colors hover:border-[#1677E8] shadow-2xs",
     outline:
-      "h-9 px-3 bg-white hover:bg-[#F8FBFF] text-[#182230] border border-[#E2E8F0] rounded-[10px] text-[13px] font-medium transition-colors hover:border-[#1677E8]",
+      "h-10 px-3.5 bg-white hover:bg-[#F8FBFF] text-[#182230] border border-[#E2E8F0] rounded-xl text-[13px] font-normal transition-colors hover:border-[#1677E8] shadow-2xs",
     compact:
       "h-9 px-3 bg-white hover:bg-[#F8FBFF] text-[#182230] border border-[#E2E8F0] rounded-[10px] text-[13px] font-medium transition-colors hover:border-[#1677E8]",
   }[buttonVariant];

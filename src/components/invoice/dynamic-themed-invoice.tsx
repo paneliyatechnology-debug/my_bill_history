@@ -470,6 +470,8 @@ export function DynamicThemedInvoice({
           skinId={resolvedDef.uniqueKey}
           variant={resolvedDef.variant}
           customImageUrl={resolvedDef.bgImageSrc}
+          companyLogoUrl={company?.logoUrl}
+          companyName={company?.tradeName || company?.legalName}
         />
 
         <div className="relative z-10 flex flex-col justify-between flex-1 h-full">

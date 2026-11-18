@@ -53,6 +53,7 @@ export interface DataTableProps<T> {
   selectedIds?: Set<string>;
   onSelectionChange?: (selectedIds: Set<string>) => void;
   renderBulkActions?: (selectedIds: Set<string>, clearSelection: () => void) => React.ReactNode;
+  toolbarVariant?: "card" | "clean";
 }
 
 function getCellValue<T>(row: T, col: ColumnDef<T>): any {
@@ -101,6 +102,7 @@ export function DataTable<T>({
   selectedIds,
   onSelectionChange,
   renderBulkActions,
+  toolbarVariant = "card",
 }: DataTableProps<T>) {
   const [internalSelectedIds, setInternalSelectedIds] = useState<Set<string>>(new Set());
   const effectiveSelectedIds = selectedIds !== undefined ? selectedIds : internalSelectedIds;
@@ -472,7 +474,13 @@ export function DataTable<T>({
   return (
     <div className="w-full space-y-4">
       {/* ================= CONTROLS TOOLBAR ================= */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-[#E2E8F0] shadow-xs">
+      <div
+        className={
+          toolbarVariant === "clean"
+            ? "flex flex-col md:flex-row md:items-center justify-between gap-3 py-1"
+            : "flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-[#E2E8F0] shadow-xs"
+        }
+      >
         {/* Left: Page Size Selector & Search */}
         <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full md:w-auto">
           {/* Page size dropdown */}
@@ -498,7 +506,7 @@ export function DataTable<T>({
           {/* Quick Search */}
           {searchable && (
             <div className="relative flex-1 sm:w-72 md:w-80">
-              <span className="absolute left-3 top-2.5 text-slate-400 pointer-events-none">
+              <span className="absolute left-3 top-3 text-slate-400 pointer-events-none">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
@@ -511,7 +519,9 @@ export function DataTable<T>({
                 }
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className={`w-full h-10 pl-8 pr-7 bg-[#F8FBFF] border border-[#E2E8F0] rounded-[10px] text-[13px] font-normal text-[#182230] placeholder:text-[#94A3B8] focus:bg-white focus:outline-none focus:ring-1 ${focusRingClass} transition-all`}
+                className={`w-full h-10 pl-8 pr-7 ${
+                  toolbarVariant === "clean" ? "bg-white" : "bg-[#F8FBFF]"
+                } border border-[#E2E8F0] rounded-xl text-[13px] font-normal text-[#182230] placeholder:text-[#94A3B8] focus:bg-white focus:outline-none focus:ring-1 ${focusRingClass} transition-all shadow-2xs`}
               />
               {searchQuery && (
                 <button

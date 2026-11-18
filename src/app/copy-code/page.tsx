@@ -29,34 +29,47 @@ function CopyCodeContent() {
       : `/login?mode=signup&otp=${code}`;
 
   return (
-    <div className="min-h-[100dvh] bg-[#F8F9FB] flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white border border-[#E5E7EB] rounded-2xl shadow-sm overflow-hidden">
-        <div className="bg-[#1E589D] px-6 py-5">
-          <p className="text-2xl font-semibold tracking-tight">
-            <span className="text-white">myown</span>
-            <span className="text-[#FFB067]">billbook</span>
-          </p>
+    <div className="min-h-[100dvh] bg-[#F8FAFC] flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white border border-[#E2E8F0] rounded-xl shadow-xs overflow-hidden">
+        <div className="bg-[#0F172A] px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-md bg-[#2563EB] text-white font-bold text-sm flex items-center justify-center">
+              M
+            </div>
+            <p className="text-lg font-bold tracking-tight text-white">
+              myown<span className="text-[#38BDF8]">billbook</span>
+            </p>
+          </div>
+          <span className="text-xs font-semibold text-slate-400">Security Verification</span>
         </div>
-        <div className="h-1 bg-[#EA580C]" />
         <div className="p-6 space-y-4">
-          <h1 className="text-xl font-semibold text-[#182230]">Copy verification code</h1>
-          <p className="text-sm text-slate-600">કોડ કોપી કરો, પછી નોંધણી અથવા પાસવર્ડ સ્ક્રીન પર પેસ્ટ કરો.</p>
-          <p className="tabular-nums text-3xl font-semibold tracking-[0.35em] text-[#C2410C] bg-[#FFF7ED] border border-dashed border-[#FDBA74] rounded-xl px-4 py-3 text-center">
-            {code || "------"}
-          </p>
+          <div>
+            <h1 className="text-lg font-bold text-slate-900">Verification Code</h1>
+            <p className="text-xs text-slate-500 mt-1">
+              Copy your verification code and enter it on the verification screen to continue.
+            </p>
+          </div>
+          <div className="bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg p-4 text-center">
+            <p className="tabular-nums font-mono text-3xl font-bold tracking-[0.35em] text-slate-900 select-all cursor-text">
+              {code || "------"}
+            </p>
+            <p className="text-[11px] text-slate-500 mt-2">Click or double-click to select</p>
+          </div>
           <button
             type="button"
             onClick={copy}
             disabled={code.length !== 6}
-            className="w-full py-3 rounded-xl text-[13px] font-medium text-white bg-[#EA580C] hover:bg-[#C2410C] disabled:opacity-50"
+            className="w-full py-2.5 rounded-lg text-sm font-semibold text-white bg-[#2563EB] hover:bg-[#1D4ED8] transition disabled:opacity-50 cursor-pointer"
           >
-            {copied ? "Copied" : "Copy code"}
+            {copied ? "✓ Copied to Clipboard" : "Copy Code"}
           </button>
-          {error && <p className="text-xs font-semibold text-rose-700">{error}</p>}
-          {copied && <p className="text-xs font-semibold text-emerald-700">Code copied to the clipboard.</p>}
-          <Link href={nextHref} className="block text-center text-xs font-bold text-[#1E589D] hover:underline">
-            Continue in myownbillbook
-          </Link>
+          {error && <p className="text-xs font-semibold text-rose-600 text-center">{error}</p>}
+          {copied && <p className="text-xs font-semibold text-emerald-600 text-center">Verification code copied successfully.</p>}
+          <div className="pt-2 text-center">
+            <Link href={nextHref} className="text-xs font-semibold text-[#2563EB] hover:underline">
+              Continue to Login & Verify →
+            </Link>
+          </div>
         </div>
       </div>
     </div>
@@ -65,7 +78,7 @@ function CopyCodeContent() {
 
 export default function CopyCodePage() {
   return (
-    <Suspense fallback={<div className="min-h-[100dvh] bg-[#F8F9FB]" />}>
+    <Suspense fallback={<div className="min-h-[100dvh] bg-[#F8FAFC]" />}>
       <CopyCodeContent />
     </Suspense>
   );
