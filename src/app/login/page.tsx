@@ -282,7 +282,7 @@ function LoginContent() {
 
 
   return (
-    <div className="h-full min-h-[100dvh] w-full bg-[#F6F7F1] flex flex-col justify-center items-center p-4 relative overflow-y-auto">
+    <div className="h-full min-h-[100dvh] w-full bg-[#F7F9FC] flex flex-col justify-center items-center p-4 relative overflow-y-auto">
       {/* Minimalist Abstract Wave Lines Background */}
       <WaveBackground variant="login" />
 
@@ -291,7 +291,7 @@ function LoginContent() {
         <button
           type="button"
           onClick={() => router.push("/")}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-[#F8FAFC] text-xs font-bold text-[#5A6B66] hover:text-[#0F172A] rounded-xl border border-[#E2E8E5] shadow-xs transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-[#F8FAFC] text-xs font-semibold text-[#667085] hover:text-[#172033] rounded-xl border border-[#E5EAF1] shadow-xs transition-all"
         >
           <span>←</span>
           <span>{lang === "gu" ? "મુખ્ય પૃષ્ઠ" : "Home"}</span>
@@ -299,12 +299,12 @@ function LoginContent() {
       </div>
 
       {/* Language Switcher in top corner */}
-      <div className="absolute top-5 right-5 z-10 flex items-center bg-white p-1 rounded-xl border border-[#E2E8E5] shadow-xs">
+      <div className="absolute top-5 right-5 z-10 flex items-center bg-white p-1 rounded-xl border border-[#E5EAF1] shadow-xs">
         <button
           type="button"
           onClick={() => setLang("en")}
-          className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-            lang === "en" ? "bg-[#EFF6FF] text-[#0F172A]" : "text-[#5A6B66] hover:text-[#1A2E2B]"
+          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+            lang === "en" ? "bg-[#EFF6FF] text-[#172033]" : "text-[#667085] hover:text-[#172033]"
           }`}
         >
           English
@@ -312,15 +312,15 @@ function LoginContent() {
         <button
           type="button"
           onClick={() => setLang("gu")}
-          className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all font-gujarati ${
-            lang === "gu" ? "bg-[#EFF6FF] text-[#0F172A]" : "text-[#5A6B66] hover:text-[#1A2E2B]"
+          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all font-gujarati ${
+            lang === "gu" ? "bg-[#EFF6FF] text-[#172033]" : "text-[#667085] hover:text-[#172033]"
           }`}
         >
           ગુજરાતી
         </button>
       </div>
 
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-[#E2E8E5] p-6 sm:p-8 space-y-5 relative z-10 border-t-4 border-t-[#1677E8] my-8">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-[#E5EAF1] p-6 sm:p-8 space-y-5 relative z-10 border-t-4 border-t-[#2563EB] my-8">
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <div className="w-16 h-16 relative mx-auto flex items-center justify-center">
@@ -334,10 +334,10 @@ function LoginContent() {
             />
           </div>
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-            <span className="text-[#0F172A]">MyOwn</span>
-            <span className="text-[#1677E8]">BillBook</span>
+            <span className="text-[#172033]">MyOwn</span>
+            <span className="text-[#2563EB]">BillBook</span>
           </h1>
-          <p className="text-xs text-[#5A6B66] font-medium max-w-xs mx-auto">
+          <p className="text-xs text-[#667085] font-medium max-w-xs mx-auto">
             {lang === "gu"
               ? "ભારતીય જીએસટી વેપાર અને દેશી નામા પ્લેટફોર્મ"
               : "Indian GST Billing, Inventory & Double-Entry Accounting"}
@@ -345,17 +345,17 @@ function LoginContent() {
         </div>
 
         {/* Tab Switcher: Sign In | Sign Up */}
-        <div className="flex bg-[#EEF1E8] p-1 rounded-xl border border-[#E2E8E5]">
+        <div className="flex bg-[#F7F9FC] p-1 rounded-xl border border-[#E5EAF1]">
           <button
             type="button"
             onClick={() => {
               setMode("login");
               setError(null);
             }}
-            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
               mode === "login"
-                ? "bg-white text-[#0F172A] shadow-xs"
-                : "text-[#5A6B66] hover:text-[#1A2E2B]"
+                ? "bg-white text-[#172033] shadow-xs"
+                : "text-[#667085] hover:text-[#172033]"
             }`}
           >
             {lang === "gu" ? "પ્રવેશ કરો (Sign In)" : "Sign In"}
@@ -366,10 +366,10 @@ function LoginContent() {
               setMode("signup");
               setError(null);
             }}
-            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
               mode === "signup"
-                ? "bg-white text-[#0F172A] shadow-xs"
-                : "text-[#5A6B66] hover:text-[#1A2E2B]"
+                ? "bg-white text-[#172033] shadow-xs"
+                : "text-[#667085] hover:text-[#172033]"
             }`}
           >
             {lang === "gu" ? "નવું ખાતું બનાવો (Register)" : "Create Account"}
@@ -434,7 +434,7 @@ function LoginContent() {
         {mode === "login" ? (
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-[#202124] uppercase mb-1.5 tracking-wider">
+              <label className="block text-xs font-semibold text-[#202124] uppercase mb-1.5 tracking-wider">
                 {lang === "gu" ? "મોબાઇલ નંબર અથવા ઇમેઇલ *" : "Phone Number or Email *"}
               </label>
               <div className="relative">
@@ -447,14 +447,14 @@ function LoginContent() {
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder={lang === "gu" ? "98989 90001 અથવા email" : "98989 90001 or email@domain.com"}
-                  className="w-full pl-10 pr-3 py-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm font-medium text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#C24E1D] focus:border-transparent focus:outline-none transition-all"
+                  className="w-full pl-10 pr-3 py-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm font-medium text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:border-transparent focus:outline-none transition-all"
                 />
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-bold text-[#202124] uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-[#202124] uppercase tracking-wider">
                   {lang === "gu" ? "પાસવર્ડ *" : "Password *"}
                 </label>
                 <button
@@ -475,7 +475,7 @@ function LoginContent() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full pl-10 pr-3 py-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm font-medium text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#C24E1D] focus:border-transparent focus:outline-none transition-all"
+                  className="w-full pl-10 pr-3 py-2.5 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm font-medium text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:border-transparent focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -491,7 +491,7 @@ function LoginContent() {
                   setSuccessMsg(null);
                   setDevOtp(null);
                 }}
-                className="text-[11px] font-semibold text-[#1677E8] hover:underline"
+                className="text-[11px] font-semibold text-[#2563EB] hover:underline"
               >
                 {lang === "gu" ? "પાસવર્ડ ભૂલી ગયા?" : "Forgot password?"}
               </button>
@@ -500,7 +500,7 @@ function LoginContent() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 rounded-xl text-sm font-bold text-white shadow-blue-500/20 bg-[#1677E8] hover:bg-[#1268D3] transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 cursor-pointer"
+              className="w-full py-3 px-4 rounded-xl text-sm font-semibold text-white shadow-blue-500/20 bg-[#1677E8] hover:bg-[#1268D3] transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 cursor-pointer"
             >
               {isLoading ? (
                 <>
@@ -518,7 +518,7 @@ function LoginContent() {
         ) : mode === "forgot" ? (
           <form onSubmit={resetSent ? handleResetPassword : handleSendResetOtp} className="space-y-3.5">
             <div>
-              <label className="block text-xs font-bold text-[#202124] uppercase mb-1 tracking-wider">
+              <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
                 {lang === "gu" ? "ખાતાનો ઈમેલ *" : "Account Email *"}
               </label>
               <input
@@ -527,13 +527,13 @@ function LoginContent() {
                 value={resetEmail}
                 onChange={(e) => setResetEmail(e.target.value)}
                 placeholder="business@gmail.com"
-                className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm font-medium text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#C24E1D] focus:outline-none transition-all"
+                className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm font-medium text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
               />
             </div>
             {resetSent && (
               <>
                 <div>
-                  <label className="block text-xs font-bold text-[#202124] uppercase mb-1 tracking-wider">
+                  <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
                     {lang === "gu" ? "ઈમેલ કોડ *" : "Email Code *"}
                   </label>
                   <input
@@ -544,11 +544,11 @@ function LoginContent() {
                     value={resetOtp}
                     onChange={(e) => setResetOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                     placeholder="000000"
-                    className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm tabular-nums tracking-[0.3em] text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#C24E1D] focus:outline-none transition-all"
+                    className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm tabular-nums tracking-[0.3em] text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[#202124] uppercase mb-1 tracking-wider">
+                  <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
                     {lang === "gu" ? "નવો પાસવર્ડ *" : "New Password *"}
                   </label>
                   <input
@@ -558,7 +558,7 @@ function LoginContent() {
                     value={resetPassword}
                     onChange={(e) => setResetPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#C24E1D] focus:outline-none transition-all"
+                    className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
                   />
                 </div>
               </>
@@ -572,7 +572,7 @@ function LoginContent() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 rounded-xl text-sm font-bold text-white shadow-blue-500/20 bg-[#1677E8] hover:bg-[#1268D3] transition-all disabled:opacity-50"
+              className="w-full py-3 px-4 rounded-xl text-sm font-semibold text-white shadow-blue-500/20 bg-[#1677E8] hover:bg-[#1268D3] transition-all disabled:opacity-50"
             >
               {isLoading
                 ? lang === "gu" ? "રાહ જુઓ..." : "Please wait..."
@@ -596,7 +596,7 @@ function LoginContent() {
           /* 2. SIGN UP / REGISTRATION FORM */
           <form onSubmit={handleRegister} className="space-y-3.5">
             <div>
-              <label className="block text-xs font-bold text-[#202124] uppercase mb-1 tracking-wider">
+              <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
                 {lang === "gu" ? "તમારું પૂરું નામ *" : "Your Full Name *"}
               </label>
               <input
@@ -605,13 +605,13 @@ function LoginContent() {
                 value={signupData.fullName}
                 onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
                 placeholder={lang === "gu" ? "દા.ત. રમેશભાઈ પટેલ" : "e.g. Ramesh Patel"}
-                className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm font-medium text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#C24E1D] focus:outline-none transition-all"
+                className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm font-medium text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-[#202124] uppercase mb-1 tracking-wider">
+                <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
                   {lang === "gu" ? "મોબાઇલ નંબર *" : "Phone Number *"}
                 </label>
                 <input
@@ -620,12 +620,12 @@ function LoginContent() {
                   value={signupData.phone}
                   onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
                   placeholder="98980 00000"
-                  className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm tabular-nums text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#C24E1D] focus:outline-none transition-all"
+                  className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm tabular-nums text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#202124] uppercase mb-1 tracking-wider">
+                <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
                   {lang === "gu" ? "ઈમેલ *" : "Email *"}
                 </label>
                 <input
@@ -639,13 +639,13 @@ function LoginContent() {
                     setDevOtp(null);
                   }}
                   placeholder="business@gmail.com"
-                  className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm font-medium text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#C24E1D] focus:outline-none transition-all"
+                  className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm font-medium text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#202124] uppercase mb-1 tracking-wider">
+              <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
                 {lang === "gu" ? "પેઢી / બિઝનેસનું નામ *" : "Business / Store Name *"}
               </label>
               <input
@@ -654,12 +654,12 @@ function LoginContent() {
                 value={signupData.organizationName}
                 onChange={(e) => setSignupData({ ...signupData, organizationName: e.target.value })}
                 placeholder={lang === "gu" ? "દા.ત. શ્રી ગણેશ ટ્રેડિંગ" : "e.g. Shree Ganesh Trading Co."}
-                className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm font-medium text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#C24E1D] focus:outline-none transition-all"
+                className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm font-medium text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#202124] uppercase mb-1 tracking-wider">
+              <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
                 {lang === "gu" ? "જીએસટી નંબર (મરજિયાત)" : "GSTIN (Optional)"}
               </label>
               <input
@@ -668,12 +668,12 @@ function LoginContent() {
                 value={signupData.gstin}
                 onChange={(e) => setSignupData({ ...signupData, gstin: e.target.value.toUpperCase() })}
                 placeholder="24AAAAA0000A1Z5"
-                className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm tabular-nums uppercase text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#C24E1D] focus:outline-none transition-all"
+                className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm tabular-nums uppercase text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#202124] uppercase mb-1 tracking-wider">
+              <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
                 {lang === "gu" ? "પાસવર્ડ સેટ કરો *" : "Create Password *"}
               </label>
               <input
@@ -683,13 +683,13 @@ function LoginContent() {
                 value={signupData.password}
                 onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
                 placeholder="••••••••••••"
-                className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#C24E1D] focus:outline-none transition-all"
+                className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
               />
             </div>
 
             {signupStep === "otp" && (
               <div>
-                <label className="block text-xs font-bold text-[#202124] uppercase mb-1 tracking-wider">
+                <label className="block text-xs font-semibold text-[#202124] uppercase mb-1 tracking-wider">
                   {lang === "gu" ? "ઈમેલ ચકાસણી કોડ *" : "Email Verification Code *"}
                 </label>
                 <input
@@ -700,7 +700,7 @@ function LoginContent() {
                   value={signupOtp}
                   onChange={(e) => setSignupOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   placeholder="000000"
-                  className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm tabular-nums tracking-[0.3em] text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#C24E1D] focus:outline-none transition-all"
+                  className="w-full px-3 py-2 bg-[#F8F9FB] border border-[#E5E7EB] rounded-xl text-sm tabular-nums tracking-[0.3em] text-[#202124] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
                 />
                 <button
                   type="button"
@@ -708,7 +708,7 @@ function LoginContent() {
                     setSignupStep("details");
                     setSignupOtp("");
                   }}
-                  className="mt-1 text-[11px] font-semibold text-[#667085] hover:text-[#C24E1D]"
+                  className="mt-1 text-[11px] font-semibold text-[#667085] hover:text-[#2563EB]"
                 >
                   {lang === "gu" ? "કોડ ફરી મોકલો" : "Send a new code"}
                 </button>
@@ -725,7 +725,7 @@ function LoginContent() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 rounded-xl text-sm font-bold text-white shadow-blue-500/20 bg-[#1677E8] hover:bg-[#1268D3] transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 cursor-pointer mt-2"
+              className="w-full py-3 px-4 rounded-xl text-sm font-semibold text-white shadow-blue-500/20 bg-[#1677E8] hover:bg-[#1268D3] transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 cursor-pointer mt-2"
             >
               {isLoading ? (
                 <>
@@ -750,11 +750,11 @@ function LoginContent() {
           </form>
         )}
 
-        <div className="pt-3 border-t border-[#E2E8E5] flex items-center justify-between text-xs">
+        <div className="pt-3 border-t border-[#E5EAF1] flex items-center justify-between text-xs">
           <button
             type="button"
             onClick={handleFillDemoBusiness}
-            className="text-[11px] text-[#5A6B66] hover:text-[#0F172A] hover:underline font-semibold"
+            className="text-[11px] text-[#667085] hover:text-[#172033] hover:underline font-semibold"
           >
             {lang === "gu" ? "ડેમો બિઝનેસ ભરો" : "Demo Business User"}
           </button>
@@ -769,8 +769,8 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#F6F7F1] flex flex-col justify-center items-center p-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#0F172A] to-[#1677E8] flex items-center justify-center text-white font-bold text-3xl shadow-blue-500/20 animate-pulse">
+        <div className="min-h-screen bg-[#F7F9FC] flex flex-col justify-center items-center p-4">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#0F172A] to-[#1677E8] flex items-center justify-center text-white font-semibold text-3xl shadow-blue-500/20 animate-pulse">
             ₹
           </div>
         </div>

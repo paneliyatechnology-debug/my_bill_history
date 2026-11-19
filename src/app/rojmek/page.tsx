@@ -1,40 +1,13 @@
 import type { Metadata } from "next";
-import { DM_Mono, Manrope, Playfair_Display } from "next/font/google";
-import { MyownbillbookLanding } from "../../components/landing/rojmek-landing";
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  weight: ["500", "600"],
-  variable: "--font-playfair",
-  display: "swap",
-});
-
-const manrope = Manrope({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-manrope",
-  display: "swap",
-});
-
-const dmMono = DM_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-dm-mono",
-  display: "swap",
-});
+import { MyownbillbookLanding } from "../../components/landing/myownbillbook-landing";
 
 export const metadata: Metadata = {
-  title: "Myownbillbook — રોજમેળ",
+  title: "MyOwn BillBook — Modern Indian GST Billing, POS & Accounting ERP",
   description:
-    "Fast GST billing, inventory and ખાતાવહી for retailers, wholesalers, distributors and small manufacturers.",
-  icons: { icon: "/Myownbillbook-mark.svg" },
+    "Fast GST billing, POS counter, inventory management and double-entry accounting for retailers, wholesalers, and distributors.",
+  icons: { icon: "/favicon.ico" },
 };
 
 export default function MyownbillbookPage() {
-  return (
-    <div className={`${playfair.variable} ${manrope.variable} ${dmMono.variable}`}>
-      <MyownbillbookLanding />
-    </div>
-  );
+  return <MyownbillbookLanding />;
 }

@@ -54,14 +54,15 @@ export function BrandLogo({
         <div className="flex flex-col justify-center min-w-0">
           <span
             className={`font-semibold tracking-tight leading-none whitespace-nowrap ${currentSize.text}`}
+            style={{ fontFamily: "var(--font-manrope)" }}
           >
-            <span className={onDark ? "text-white" : "text-slate-900"}>MyOwn</span>
-            <span className={onDark ? "text-blue-300" : "text-slate-900"}>BillBook</span>
+            <span className={onDark ? "text-white" : "text-[#172033]"}>MyOwn</span>
+            <span className={onDark ? "text-blue-400" : "text-[#2563EB]"}>BillBook</span>
           </span>
           {showSubtitle && (
             <span
-              className={`tracking-wider uppercase font-semibold mt-0.5 truncate ${
-                onDark ? "text-[#A7C7C0]" : "text-[#5A6B66]"
+              className={`tracking-wider uppercase font-medium mt-0.5 truncate ${
+                onDark ? "text-slate-400" : "text-[#667085]"
               } ${currentSize.sub}`}
             >
               {subtitle}

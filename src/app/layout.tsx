@@ -51,28 +51,49 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "myownbillbook — Modern Indian GST Billing, Invoicing & ERP Software",
+  title: "MyOwn BillBook — Modern Indian GST Billing, Invoicing & ERP Software",
   description:
-    "Fast, reliable Indian GST billing, inventory, POS, and accounting platform in English & Gujarati",
+    "Fast, reliable Indian GST billing, inventory, POS, and accounting platform in English & Gujarati. Run your business smarter.",
   manifest: "/manifest.json",
   icons: {
     icon: "/favicon.ico",
     apple: "/icon-192.png",
   },
   openGraph: {
-    title: "myownbillbook — Modern Indian GST Billing & Accounting ERP",
+    title: "MyOwn BillBook — Modern Indian GST Billing & Accounting ERP",
     description:
       "Fast GST billing, POS counter, instant bill scanning, inventory and double-entry accounting in English and Gujarati.",
     type: "website",
     locale: "en_IN",
-    siteName: "myownbillbook",
+    siteName: "MyOwn BillBook",
+    url: "https://www.myownbillbook.com",
   },
   twitter: {
     card: "summary_large_image",
-    title: "myownbillbook — Modern Indian GST Billing & Accounting ERP",
+    title: "MyOwn BillBook — Modern Indian GST Billing & Accounting ERP",
     description:
       "Fast GST billing, POS counter, instant bill scanning, inventory and double-entry accounting in English and Gujarati.",
   },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "MyOwn BillBook",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web, Windows, Android, iOS",
+  offers: {
+    "@type": "Offer",
+    price: "399",
+    priceCurrency: "INR",
+  },
+  author: {
+    "@type": "Organization",
+    name: "Paneliya Technology",
+    url: "https://www.myownbillbook.com",
+  },
+  description:
+    "Enterprise-grade Indian GST billing, inventory management, barcode POS counter, and double-entry accounting software.",
 };
 
 export default function RootLayout({
@@ -86,7 +107,13 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${inter.variable} ${manrope.variable} ${ibmPlexMono.variable} ${notoSansGujarati.variable} scroll-smooth`}
     >
-      <body className="antialiased min-h-screen bg-[#F6F7F1] text-[#1A2E2B]">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
+      <body className="antialiased min-h-screen bg-[#F7F9FC] text-[#172033]">
         <PwaRegister />
         <AuthProvider>
           <AppShell>{children}</AppShell>
