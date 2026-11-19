@@ -812,7 +812,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       name: "Data Import (Excel / CSV)",
       nameGujarati: "ડેટા આયાત (Excel / CSV)",
       group: "BUSINESS TOOLS",
-      badge: "Excel/CSV",
+      badge: "",
       href: "/app/data-import",
       icon: (
         <svg
@@ -835,7 +835,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       name: "Payment Reminders",
       nameGujarati: "ઓટો ઉઘરાણી (Follow-ups)",
       group: "BUSINESS TOOLS",
-      badge: "Smart",
+      badge: "",
       href: "/finance/ai-collections",
       icon: (
         <svg
@@ -976,7 +976,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           }`}
         >
           {/* Top Brand Logo matching Reference Image */}
-          <div className="shrink-0 flex items-center justify-between px-4 py-3.5 border-b border-slate-100">
+          <div className="shrink-0 h-[60px] flex items-center justify-between px-4 border-b border-slate-200/80 bg-white">
             <Link href="/" className="flex items-center gap-2.5 overflow-hidden group">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
                 <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none">
@@ -1033,7 +1033,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   return (
                     <React.Fragment key={section.id}>
                       {showGroupHeader && (
-                        <div className="px-3.5 pt-3.5 pb-1 text-[10.5px] font-bold tracking-wider text-slate-400 uppercase">
+                        <div className="px-3.5 pt-3.5 pb-1 text-[11px] font-medium tracking-wider text-slate-400 uppercase">
                           {section.group}
                         </div>
                       )}
@@ -1041,12 +1041,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         href={section.href}
                         className={`flex items-center transition-all ${isSidebarCollapsed
                             ? `w-11 h-11 mx-auto justify-center rounded-xl ${isActive
-                              ? "text-white font-bold shadow-xs bg-[#1677E8]"
-                              : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                              ? "text-[#2563EB] typo-nav-active bg-[#EFF6FF] shadow-2xs"
+                              : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 typo-nav"
                             }`
-                            : `gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold ${isActive
-                              ? "text-white shadow-xs font-bold bg-[#1677E8]"
-                              : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                            : `gap-3 px-3.5 py-2 rounded-xl ${isActive
+                              ? "text-[#2563EB] typo-nav-active bg-[#EFF6FF] shadow-2xs"
+                              : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 typo-nav"
                             }`
                           }`}
                         title={
@@ -1054,7 +1054,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         }
                       >
                         <span
-                          className={isActive ? "text-white" : "text-slate-500"}
+                          className={isActive ? "text-[#2563EB]" : "text-slate-500"}
                         >
                           {section.icon}
                         </span>
@@ -1084,7 +1084,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       <Link
                         href={section.items?.[0]?.href || "#"}
                         className={`w-11 h-11 mx-auto flex items-center justify-center rounded-xl text-xs font-medium transition-all ${hasActiveChild
-                            ? "text-white font-bold shadow-xs bg-[#1677E8]"
+                            ? "text-[#2563EB] font-bold bg-[#EFF6FF] shadow-2xs"
                             : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                           }`}
                         title={
@@ -1093,7 +1093,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       >
                         <span
                           className={
-                            hasActiveChild ? "text-white" : "text-slate-500"
+                            hasActiveChild ? "text-[#2563EB]" : "text-slate-500"
                           }
                         >
                           {section.icon}
@@ -1153,16 +1153,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       <button
                         type="button"
                         onClick={() => toggleSection(section.id)}
-                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${hasActiveChild
-                            ? "text-[#1677E8] font-bold bg-blue-50/70"
-                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                        className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl transition-all ${hasActiveChild
+                            ? "text-[#2563EB] typo-nav-active bg-[#EFF6FF]/70"
+                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 typo-nav"
                           }`}
                         title={section.name}
                       >
                         <div className="flex items-center gap-3 truncate">
                           <span
                             className={
-                              hasActiveChild ? "text-[#1677E8]" : "text-slate-500"
+                              hasActiveChild ? "text-[#2563EB]" : "text-slate-500"
                             }
                           >
                             {section.icon}
@@ -1202,16 +1202,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                               <Link
                                 key={`${item.name}-${item.href}`}
                                 href={item.href}
-                                className={`group relative flex items-center justify-between py-2 px-2.5 rounded-xl text-xs font-medium transition-all duration-150 ${isItemActive
-                                    ? "text-white font-bold shadow-xs bg-[#1677E8]"
-                                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                                className={`group relative flex items-center justify-between py-1.5 px-2.5 rounded-xl transition-all duration-150 ${isItemActive
+                                    ? "text-[#2563EB] typo-nav-active bg-[#EFF6FF] shadow-2xs"
+                                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 typo-nav"
                                   }`}
                               >
                                 <div className="flex items-center gap-2 truncate min-w-0">
                                   {isItemActive && (
                                     <span
                                       aria-hidden="true"
-                                      className="w-1 h-3.5 bg-white/95 rounded-full shrink-0 -ml-0.5 shadow-2xs"
+                                      className="w-1.5 h-1.5 rounded-full bg-[#2563EB] shrink-0"
                                     />
                                   )}
                                   <span className="truncate">
@@ -1233,7 +1233,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       {/* 2. MAIN APPLICATION CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-0 h-full overflow-hidden print:h-auto print:min-h-0 print:overflow-visible print:block print:w-full relative bg-[#F5F8FC]">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 h-full overflow-hidden print:h-auto print:min-h-0 print:overflow-visible print:block print:w-full relative bg-[#F5F7FA]">
         {/* Background treatment: subtle neutral for inner pages, elegant branded depth for dashboard */}
         <WaveBackground variant={pathname === "/" ? "dashboard" : "inner"} />
 
@@ -1263,10 +1263,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* TOPBAR HEADER: In Settings mode, show mobile header with Back to Dashboard; in regular mode, show regular topbar */}
         {isSettingsPage ? (
-          <header className="lg:hidden shrink-0 h-14 bg-white border-b border-[#E5E7EB] px-3 flex items-center justify-between z-20 shadow-xs print:hidden">
+          <header className="lg:hidden shrink-0 h-[60px] bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-3 flex items-center justify-between z-20 shadow-[0_1px_3px_0_rgba(15,23,42,0.03)] print:hidden">
             <Link
               href="/"
-              className="flex items-center gap-1.5 text-[13px] font-medium text-slate-800 hover:text-slate-900 h-9 px-3 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors shadow-2xs"
+              className="flex items-center gap-1.5 text-[13px] font-semibold text-slate-800 hover:text-slate-900 h-9 px-3 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors shadow-2xs"
             >
               <svg className="w-3.5 h-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -1280,7 +1280,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg flex items-center gap-1"
+              className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl flex items-center gap-1 transition-colors"
               title="Settings Menu"
             >
               <span className="text-[11px] font-semibold text-slate-500">Menu</span>
@@ -1290,7 +1290,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
           </header>
         ) : (
-          <header className="shrink-0 h-14 bg-white border-b border-[#E3EAF3] px-3 sm:px-5 flex items-center justify-between z-20 max-w-full min-w-0 print:hidden sticky top-0">
+          <header className="shrink-0 h-[60px] bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-[0_1px_3px_0_rgba(15,23,42,0.03)] px-3 sm:px-5 flex items-center justify-between z-20 max-w-full min-w-0 print:hidden sticky top-0">
             {/* Left: Brand Logo (on full-screen purchase bill) + Active Company Context & Financial Year */}
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
               {/* Brand Logo in header when sidebar is hidden on Purchase Bill page */}
@@ -1305,10 +1305,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     </svg>
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-extrabold text-[15px] leading-tight tracking-tight text-slate-900 group-hover:text-[#1677E8] transition-colors">
+                    <span className="font-semibold text-[15px] leading-tight tracking-tight text-slate-900 group-hover:text-[#1677E8] transition-colors">
                       MyOwn
                     </span>
-                    <span className="font-bold text-[13px] leading-tight tracking-tight text-[#1677E8]">
+                    <span className="font-semibold text-[13px] leading-tight tracking-tight text-[#1677E8]">
                       BillBook
                     </span>
                   </div>
@@ -1319,7 +1319,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {!isPurchaseBillPage && (
                 <button
                   onClick={() => setIsMobileMenuOpen(true)}
-                  className="lg:hidden flex items-center justify-center p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer shrink-0"
+                  className="lg:hidden flex items-center justify-center w-9 h-9 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer shrink-0"
                   title={lang === "gu" ? "મેનૂ ખોલો" : "Open Navigation Menu"}
                   aria-label="Navigation Menu"
                 >
@@ -1330,7 +1330,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               )}
 
               {/* Company Switcher */}
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
                 <CompanySwitcher />
 
                 {/* Financial Year Selector Switcher */}
@@ -1339,17 +1339,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
 
             {/* Center: Prominent Global Search matching Reference Image */}
-            <div className="hidden md:flex items-center flex-1 max-w-lg mx-4 lg:mx-8">
+            <div className="hidden md:flex items-center flex-1 max-w-md lg:max-w-lg xl:max-w-xl mx-3 lg:mx-6">
               <GlobalSearch />
             </div>
 
             {/* Right: Notifications, Help, User Profile matching Reference Image */}
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto pl-1 sm:pl-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto pl-1 sm:pl-2">
               {/* Mobile Search Button (visible on small screens) */}
               <button
                 type="button"
                 onClick={() => setIsMobileSearchOpen(true)}
-                className="md:hidden p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                className="md:hidden w-9 h-9 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
                 title={lang === "gu" ? "શોધો (Ctrl+K)" : "Search (Ctrl+K)"}
                 aria-label="Search"
               >
@@ -1364,13 +1364,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {/* Help Circle Icon */}
               <button
                 type="button"
-                className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                className="w-9 h-9 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl border border-transparent hover:border-slate-200/60 transition-all cursor-pointer"
                 title="Help & Support"
               >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <svg className="w-4 h-4 sm:w-[18px] sm:h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </button>
+
+              {/* Subtle Vertical Divider */}
+              <div className="hidden sm:block h-6 w-px bg-slate-200/80 mx-1 shrink-0" aria-hidden="true" />
 
               {/* User Profile & Account Dropdown */}
               <UserProfileDropdown />
@@ -1379,7 +1382,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {pathname !== "/" && (
                 <button
                   onClick={logout}
-                  className="hidden md:inline-flex items-center justify-center p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors shrink-0"
+                  className="hidden md:inline-flex items-center justify-center w-9 h-9 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors shrink-0"
                   title={lang === "gu" ? "લોગઆઉટ" : "Logout"}
                   aria-label="Logout"
                 >
@@ -1503,11 +1506,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                           href={sec.href}
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${activeNav.isDirectLinkActive(sec.id, sec.href)
-                              ? "bg-[#1677E8] text-white font-bold shadow-xs"
+                              ? "bg-[#EFF6FF] text-[#2563EB] font-bold shadow-2xs"
                               : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                             }`}
                         >
-                          <span className={activeNav.isDirectLinkActive(sec.id, sec.href) ? "text-white" : "text-slate-500"}>
+                          <span className={activeNav.isDirectLinkActive(sec.id, sec.href) ? "text-[#2563EB]" : "text-slate-500"}>
                             {sec.icon}
                           </span>
                           <span>{lang === "gu" ? sec.nameGujarati : sec.name}</span>
@@ -1531,7 +1534,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                   href={item.href}
                                   onClick={() => setIsMobileMenuOpen(false)}
                                   className={`group relative flex items-center justify-between py-2 px-2.5 rounded-xl text-xs font-medium transition-all duration-150 ${isItemActive
-                                      ? "bg-[#1677E8] text-white font-bold shadow-xs"
+                                      ? "bg-[#EFF6FF] text-[#2563EB] font-bold shadow-2xs"
                                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                                     }`}
                                 >

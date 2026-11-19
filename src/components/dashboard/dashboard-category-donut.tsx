@@ -52,16 +52,15 @@ export function DashboardCategoryDonut({
   });
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs flex flex-col justify-between h-full">
-      {/* Header: Gear / Category Icon & Title */}
+    <div className="bg-white rounded-xl border border-[#E2E8F0] p-5 shadow-2xs flex flex-col justify-between h-full">
+      {/* Header: Layers / Category Icon & Title */}
       <div className="flex items-center gap-2.5 mb-2">
-        <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+        <div className="w-7 h-7 rounded-lg bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE]/60 flex items-center justify-center shrink-0 shadow-2xs">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
           </svg>
         </div>
-        <h2 className="text-[15px] font-semibold text-[#182230] tracking-tight">
+        <h2 className="typo-section-heading text-[#1E293B]">
           {lang === "gu" ? "કેટેગરી મુજબ વેચાણ" : "Sales by Category"}
         </h2>
       </div>
@@ -72,20 +71,20 @@ export function DashboardCategoryDonut({
         </div>
       ) : error && categories.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center text-center px-4 py-8 min-h-[180px]">
-          <p className="text-[13px] font-medium text-[#182230]">
+          <p className="text-[13px] font-medium text-[#1E293B]">
             {lang === "gu" ? "કેટેગરી વેચાણ લોડ થઈ શક્યું નહીં" : "Category sales could not be loaded"}
           </p>
           <p className="mt-1 text-[12px] text-[#94A3B8] max-w-[240px]">{error}</p>
           {onRetry ? (
-            <button type="button" onClick={onRetry} className="mt-3 h-8 px-3 rounded-[10px] bg-[#1677E8] text-white text-[12px] font-medium">
+            <button type="button" onClick={onRetry} className="mt-3 h-8 px-3 rounded-lg bg-[#2563EB] text-white text-[12px] font-medium hover:bg-[#1D4ED8] transition-colors">
               {lang === "gu" ? "ફરી પ્રયત્ન કરો" : "Retry"}
             </button>
           ) : null}
         </div>
       ) : categories.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center text-center px-4 py-8 min-h-[180px]">
-          <div className="w-14 h-14 rounded-full border-[10px] border-[#EAF3FF] mb-3" />
-          <p className="text-[13px] font-medium text-[#182230]">
+          <div className="w-14 h-14 rounded-full border-[10px] border-[#EFF6FF] mb-3" />
+          <p className="text-[13px] font-medium text-[#1E293B]">
             {lang === "gu" ? "આ સમયગાળામાં કેટેગરી વેચાણ નથી" : "No category sales in this period"}
           </p>
           <p className="mt-1 text-[12px] text-[#94A3B8] max-w-[240px]">
@@ -105,7 +104,7 @@ export function DashboardCategoryDonut({
               cy={size / 2}
               r={radius}
               fill="transparent"
-              stroke="#F1F5F9"
+              stroke="#EDF0F4"
               strokeWidth={strokeWidth}
             />
 
@@ -131,14 +130,14 @@ export function DashboardCategoryDonut({
             })}
           </svg>
 
-          {/* Center Cutout Text */}
+          {/* Center Cutout Text matching Reference Image */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none px-2">
-            <span className="bb-amount text-[16px] text-[#182230] leading-tight">
+            <span className="typo-amount-secondary text-[#1E293B] leading-tight tabular-nums">
               {formatInr(
                 categories.reduce((sum, cat) => sum + Number(cat.amount || 0), 0) || totalSales
-              ).replace(".00", "")}
+              )}
             </span>
-            <span className="text-[10px] text-slate-400 font-semibold mt-0.5">
+            <span className="typo-badge text-[#94A3B8] mt-0.5">
               Total Sales
             </span>
           </div>
@@ -163,11 +162,11 @@ export function DashboardCategoryDonut({
                     className="w-2.5 h-2.5 rounded-full shrink-0"
                     style={{ backgroundColor: cat.color }}
                   />
-                  <span className="text-[#182230] truncate">{cat.label}</span>
+                  <span className="text-[#1E293B] font-medium truncate">{cat.label}</span>
                 </div>
                 <span className="text-[#64748B] shrink-0 tabular-nums ml-2">
-                  {formatInr(cat.amount || 0).replace(".00", "")}
-                  <span className="text-[#182230] font-medium ml-1">{cat.percentage.toFixed(1)}%</span>
+                  {formatInr(cat.amount || 0)}
+                  <span className="text-[#1E293B] font-semibold ml-1.5">{cat.percentage.toFixed(1)}%</span>
                 </span>
               </div>
             );

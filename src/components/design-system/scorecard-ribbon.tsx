@@ -80,24 +80,24 @@ export function ScorecardRibbon({
             <div className="flex items-center justify-between gap-2 mb-2 w-full">
               <div className="flex items-center gap-2 min-w-0">
                 <span className={`w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
-                <span className="text-[12px] font-medium text-[#64748B] truncate">
+                <span className="typo-card-heading text-[#64748B] truncate">
                   {lang === "gu" && seg.labelGujarati ? seg.labelGujarati : seg.label}
                 </span>
               </div>
               {seg.badge && (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
+                <span className="typo-badge px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
                   {seg.badge}
                 </span>
               )}
             </div>
 
             <div className="space-y-1 w-full">
-              <div className={`bb-amount text-[22px] truncate ${textColor}`}>
+              <div className={`typo-kpi truncate ${textColor}`}>
                 {displayValue}
               </div>
 
               {(seg.subtext || seg.subtextGujarati || seg.count !== undefined) && (
-                <p className="text-[11px] text-[#8E9F9A] font-medium truncate flex items-center justify-between">
+                <p className="typo-card-desc text-[#8E9F9A] truncate flex items-center justify-between">
                   <span>
                     {lang === "gu" && seg.subtextGujarati
                       ? seg.subtextGujarati

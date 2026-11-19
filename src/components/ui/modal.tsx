@@ -75,17 +75,17 @@ export function Modal({
 
       {/* Modal Dialog Card */}
       <div
-        className={`bb-overlay relative z-10 bg-white rounded-xl shadow-card border border-[#E2E8F0] w-full ${widthClasses} max-h-[min(92vh,100%)] flex flex-col overflow-hidden my-auto text-[13px] font-normal text-[#182230] transition-all animate-in fade-in zoom-in-95 duration-150 print:shadow-none print:border-none print:p-0 print:m-0 print:max-h-none print:max-w-none print:w-full print:rounded-none print:overflow-visible`}
-      style={{ fontFamily: "var(--font-inter), var(--font-noto-gujarati), sans-serif" }}
+        className={`bb-overlay relative z-10 bg-white rounded-xl shadow-card border border-[#E2E8F0] w-full ${widthClasses} max-h-[min(92vh,100%)] flex flex-col overflow-hidden my-auto typo-input text-[#182230] transition-all animate-in fade-in zoom-in-95 duration-150 print:shadow-none print:border-none print:p-0 print:m-0 print:max-h-none print:max-w-none print:w-full print:rounded-none print:overflow-visible`}
+        style={{ fontFamily: "var(--font-body)" }}
       >
         {/* Header with Forest Teal & Jade accent bar */}
         <div className="flex items-center justify-between px-5 sm:px-6 py-3.5 border-b border-[#E3EAF3] bg-white border-t-4 border-t-[#1677E8] shrink-0 print:hidden">
           <div className="min-w-0 pr-4">
-            <h3 className="text-[15px] font-semibold text-[#182230] tracking-tight truncate">
+            <h3 className="typo-modal-title text-[#182230] truncate">
               {title}
             </h3>
             {isGu && titleGujarati && (
-              <p className="text-xs text-[#0F172A] font-medium font-gujarati mt-0.5 truncate">
+              <p className="typo-modal-desc font-gujarati mt-0.5 truncate">
                 {titleGujarati}
               </p>
             )}

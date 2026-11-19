@@ -1386,8 +1386,8 @@ function ManageBusinessSettingsView() {
     <div className="max-w-[1180px] mx-auto pb-10">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4">
         <div>
-          <h1 className="text-[22px] font-semibold text-[#182230]">{lang === "gu" ? "વ્યવસાય સેટિંગ્સ" : "Business Settings"}</h1>
-          <p className="text-[12px] text-slate-500">{lang === "gu" ? "તમારી કંપનીની વિગતો અને માહિતી એડિટ કરો" : "Edit Your Company Settings And Information"}</p>
+          <h1 className="typo-page-title text-[#182230]">{lang === "gu" ? "વ્યવસાય સેટિંગ્સ" : "Business Settings"}</h1>
+          <p className="typo-page-subtitle text-slate-500 mt-0.5">{lang === "gu" ? "તમારી કંપનીની વિગતો અને માહિતી એડિટ કરો" : "Edit Your Company Settings And Information"}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -1856,6 +1856,13 @@ function PrintSettingsView() {
   const [isBluetoothPrinting, setIsBluetoothPrinting] = useState<boolean>(false);
   const [bluetoothStatus, setBluetoothStatus] = useState<string | null>(null);
   const [showBluetoothHelp, setShowBluetoothHelp] = useState<boolean>(false);
+  const [currentOrigin, setCurrentOrigin] = useState<string>("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setCurrentOrigin(window.location.origin);
+    }
+  }, []);
 
   // Dynamic Company Details
   const displayName = currentCompany?.tradeName || currentCompany?.legalName || "NV ENTERPRISE";
@@ -2190,7 +2197,7 @@ function PrintSettingsView() {
       <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-[22px] font-semibold text-[#182230]">
+            <h1 className="typo-page-title text-[#182230]">
               {activeTab === "thermal"
                 ? lang === "gu"
                   ? "પ્રિન્ટ સેટિંગ્સ (થર્મલ POS)"
@@ -2316,7 +2323,7 @@ function PrintSettingsView() {
                     />
                   </div>
                 )}
-                <p className="font-extrabold text-sm text-black uppercase tracking-tight">{displayName}</p>
+                <p className="font-semibold text-sm text-black uppercase tracking-tight">{displayName}</p>
                 <p className="text-[9px] text-black leading-tight">{displayAddress}</p>
                 <p className="text-[9px] text-black">
                   Phone No : <b>{displayPhone}</b>
@@ -2454,7 +2461,7 @@ function PrintSettingsView() {
 
               {/* Total */}
               <div className="space-y-0.5 text-[9.5px]">
-                <div className="flex justify-between font-extrabold text-xs">
+                <div className="flex justify-between font-semibold text-xs">
                   <span>TOTAL AMOUNT</span>
                   <span>₹ 9,596.5</span>
                 </div>
@@ -2565,13 +2572,13 @@ function PrintSettingsView() {
                 }`}
               >
                 {barcodeShowCompany && (
-                  <p className="text-[11px] font-black uppercase text-slate-900 tracking-wider truncate w-full">
+                  <p className="text-[11px] font-semibold uppercase text-slate-900 tracking-wider truncate w-full">
                     {displayName}
                   </p>
                 )}
 
                 {barcodeShowItemName && (
-                  <p className="text-[11.5px] font-bold text-slate-800 line-clamp-2 w-full mt-1">
+                  <p className="text-[11.5px] font-semibold text-slate-800 line-clamp-2 w-full mt-1">
                     {barcodeItemName}
                   </p>
                 )}
@@ -2581,7 +2588,7 @@ function PrintSettingsView() {
                 </div>
 
                 {barcodeShowPrice && (
-                  <div className="bg-slate-900 text-white text-[12px] font-black px-2.5 py-0.5 rounded tracking-wide w-full max-w-[200px]">
+                  <div className="bg-slate-900 text-white text-[12px] font-semibold px-2.5 py-0.5 rounded tracking-wide w-full max-w-[200px]">
                     MRP: ₹{Number(barcodePrice).toLocaleString("en-IN")}
                   </div>
                 )}
@@ -3286,7 +3293,7 @@ function PrintSettingsView() {
               <p>
                 Chrome blocks device hardware access (Bluetooth / Camera) when opening an IP address like{" "}
                 <code className="bg-amber-100 px-1 py-0.5 rounded font-mono text-[11px]">
-                  http://192.168.1.112:3000
+                  {currentOrigin || (typeof window !== "undefined" ? window.location.origin : "http://<server-ip>:3000")}
                 </code>{" "}
                 over HTTP. It requires a <b>Secure Origin</b>.
               </p>
@@ -3321,13 +3328,16 @@ function PrintSettingsView() {
                   </p>
                   <div className="flex items-center gap-2">
                     <code className="flex-1 p-2 bg-slate-100 rounded text-[11px] font-mono text-slate-900 select-all border border-slate-200">
-                      http://192.168.1.112:3000
+                      {currentOrigin || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000")}
                     </code>
                     <button
                       type="button"
                       onClick={() => {
-                        navigator.clipboard?.writeText(window.location.origin || "http://192.168.1.112:3000");
-                        alert("Copied URL to clipboard!");
+                        const targetUrl = currentOrigin || (typeof window !== "undefined" ? window.location.origin : "");
+                        if (targetUrl) {
+                          navigator.clipboard?.writeText(targetUrl);
+                          alert("Copied URL to clipboard!");
+                        }
                       }}
                       className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded text-[11px] font-medium cursor-pointer"
                     >
@@ -3428,7 +3438,7 @@ function RemindersView() {
     <div className="max-w-5xl mx-auto space-y-5">
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-[22px] font-semibold text-[#182230]">
+          <h1 className="typo-page-title text-[#182230]">
             {lang === "gu" ? "ઓટોમેટેડ પેમેન્ટ રિમાઇન્ડર્સ" : "Automated Payment Reminders"}
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -3638,7 +3648,7 @@ function CaSharingView() {
   return (
     <div className="max-w-5xl mx-auto space-y-5">
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs">
-        <h1 className="text-[22px] font-semibold text-[#182230]">CA & Tax Consultant Audit Portal</h1>
+        <h1 className="typo-page-title text-[#182230]">CA & Tax Consultant Audit Portal</h1>
         <p className="text-xs text-slate-500 mt-0.5">
           Give your Chartered Accountant read-only access to download GSTR-1, GSTR-3B JSON, ledgers & P&L
         </p>
@@ -3827,7 +3837,7 @@ function PricingSettingsView() {
     <div className="max-w-5xl mx-auto space-y-5">
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-[22px] font-semibold text-[#182230]">
+          <h1 className="typo-page-title text-[#182230]">
             {lang === "gu" ? "સબ્સ્ક્રિપ્શન પ્લાન્સ અને એન્ટાઇટલમેન્ટ્સ" : "Subscription Plans & Entitlements"}
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -4018,7 +4028,7 @@ function ReferEarnView() {
   return (
     <div className="max-w-5xl mx-auto space-y-5">
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs">
-        <h1 className="text-[22px] font-semibold text-[#182230]">Refer Businesses & Earn ₹500 Discount</h1>
+        <h1 className="typo-page-title text-[#182230]">Refer Businesses & Earn ₹500 Discount</h1>
         <p className="text-xs text-slate-500 mt-0.5">
           Share your referral code with fellow business owners. They get ₹500 discount on signup and you get ₹500 on your next renewal.
         </p>
@@ -4141,7 +4151,7 @@ function HelpSupportView() {
   return (
     <div className="max-w-5xl mx-auto space-y-5">
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs">
-        <h1 className="text-[22px] font-semibold text-[#182230]">24x7 Customer Support & Help Center</h1>
+        <h1 className="typo-page-title text-[#182230]">24x7 Customer Support & Help Center</h1>
         <p className="text-xs text-slate-500 mt-0.5">
           Dedicated assistance in Gujarati and English from our certified accounting specialists
         </p>

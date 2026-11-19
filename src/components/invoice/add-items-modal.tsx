@@ -171,7 +171,7 @@ export function AddItemsModal({
         
         {/* Header (Exact MyBillBook style) */}
         <div className="px-6 py-3.5 border-b border-slate-200 flex items-center justify-between bg-white">
-          <h2 className="text-[15px] font-semibold text-[#182230]">
+          <h2 className="typo-modal-title text-[#182230]">
             Add Items to Bill
           </h2>
           <button
@@ -181,7 +181,7 @@ export function AddItemsModal({
             title="Close [ESC]"
             aria-label="Close"
           >
-            <span className="text-base font-bold leading-none">✕</span>
+            <span className="text-base font-semibold leading-none">✕</span>
           </button>
         </div>
 
@@ -199,7 +199,7 @@ export function AddItemsModal({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={handleSearchKeyDown}
-              className="w-full pl-9 pr-10 py-2.5 bg-white border-2 border-indigo-500 rounded-lg text-[13px] text-slate-900 placeholder:text-slate-400 focus:outline-none shadow-xs font-medium h-10"
+              className="w-full pl-9 pr-10 py-2.5 bg-white border-2 border-indigo-500 rounded-lg typo-input text-slate-900 placeholder:text-slate-400 focus:outline-none shadow-xs h-10"
             />
             {/* Barcode scanner icon on the right inside input */}
             <div
@@ -221,7 +221,7 @@ export function AddItemsModal({
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-[13px] font-normal text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer h-10"
+              className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg typo-input text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer h-10"
             >
               <option value="ALL">Select Category</option>
               {categories.filter((c) => c !== "ALL").map((cat) => (
@@ -236,7 +236,7 @@ export function AddItemsModal({
           <button
             type="button"
             onClick={onCreateNewItem}
-            className="h-9 px-3.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg text-[13px] font-medium transition-all shadow-xs shrink-0 cursor-pointer active:scale-95"
+            className="h-9 px-3.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg typo-btn-primary transition-all shadow-xs shrink-0 cursor-pointer active:scale-95"
           >
             Create New Item
           </button>
@@ -245,21 +245,21 @@ export function AddItemsModal({
         {/* Table Content (Matching Screenshot 2 Columns) */}
         <div className="flex-1 overflow-y-auto min-h-[300px]">
           {filteredItems.length === 0 ? (
-            <div className="py-24 text-center text-slate-400">
-              <p className="text-xs font-medium text-slate-400">
+            <div className="py-24 text-center typo-card-desc text-slate-400">
+              <p>
                 Scan Items to add them to your invoice
               </p>
             </div>
           ) : (
             <table className="w-full text-left text-xs border-collapse">
-              <thead className="sticky top-0 bg-[#F8F9FA] border-b border-slate-200 text-slate-600 font-bold text-[11px]">
+              <thead className="sticky top-0 bg-[#F8F9FA] border-b border-slate-200 text-slate-600 typo-table-th">
                 <tr>
-                  <th className="py-2.5 px-4 font-medium">Item Name</th>
-                  <th className="py-2.5 px-3 font-medium text-center">Item Code</th>
-                  <th className="py-2.5 px-3 font-medium text-center">Stock</th>
-                  <th className="py-2.5 px-3 font-medium text-right">Sales Price</th>
-                  <th className="py-2.5 px-3 font-medium text-right">Purchase Price</th>
-                  <th className="py-2.5 px-4 font-medium text-center w-36">Quantity</th>
+                  <th className="py-2.5 px-4">Item Name</th>
+                  <th className="py-2.5 px-3 text-center">Item Code</th>
+                  <th className="py-2.5 px-3 text-center">Stock</th>
+                  <th className="py-2.5 px-3 text-right">Sales Price</th>
+                  <th className="py-2.5 px-3 text-right">Purchase Price</th>
+                  <th className="py-2.5 px-4 text-center w-36">Quantity</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -283,23 +283,23 @@ export function AddItemsModal({
                     >
                       {/* Item Name */}
                       <td className="py-3 px-4">
-                        <p className="font-bold text-slate-900">{it.name}</p>
+                        <p className="font-semibold text-slate-900 typo-table-td">{it.name}</p>
                         {it.category && (
-                          <span className="text-[10px] text-slate-500">
+                          <span className="typo-card-desc text-slate-500">
                             {it.category}
                           </span>
                         )}
                       </td>
 
                       {/* Item Code (or HSN) */}
-                      <td className="py-3 px-3 text-center tabular-nums text-slate-600">
+                      <td className="py-3 px-3 text-center typo-invoice-no text-slate-600">
                         {it.hsnCode || "-"}
                       </td>
 
                       {/* Stock */}
                       <td className="py-3 px-3 text-center">
                         <span
-                          className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
+                          className={`inline-block px-2 py-0.5 rounded typo-badge font-semibold ${
                             stock > 5
                               ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                               : stock > 0
@@ -312,7 +312,7 @@ export function AddItemsModal({
                       </td>
 
                       {/* Sales Price */}
-                      <td className="py-3 px-3 text-right tabular-nums font-medium text-slate-900">
+                      <td className="py-3 px-3 text-right typo-table-amount text-slate-900">
                         <div className="flex flex-col items-end">
                           <span>₹{Number(it.retailPrice || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
                           {it.isPartyRate && (
@@ -324,7 +324,7 @@ export function AddItemsModal({
                       </td>
 
                       {/* Purchase Price */}
-                      <td className="py-3 px-3 text-right tabular-nums text-slate-600">
+                      <td className="py-3 px-3 text-right typo-table-amount text-slate-600">
                         {it.purchasePrice ? `₹${Number(it.purchasePrice).toLocaleString("en-IN", { minimumFractionDigits: 2 })}` : "-"}
                       </td>
 
@@ -335,7 +335,7 @@ export function AddItemsModal({
                             type="button"
                             onClick={() => handleQuantityChange(it.id, -1)}
                             disabled={qty === 0}
-                            className="w-7 h-7 rounded-lg border border-slate-300 hover:bg-slate-100 flex items-center justify-center font-medium text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-[13px] transition-colors"
+                            className="w-7 h-7 rounded-lg border border-slate-300 hover:bg-slate-100 flex items-center justify-center font-medium text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed typo-btn-secondary transition-colors"
                           >
                             -
                           </button>
@@ -347,12 +347,12 @@ export function AddItemsModal({
                             onChange={(e) =>
                               handleDirectInput(it.id, e.target.value)
                             }
-                            className="w-12 h-7 text-center tabular-nums font-bold text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:border-indigo-500"
+                            className="w-12 h-7 text-center typo-input typo-tabular bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:border-indigo-500"
                           />
                           <button
                             type="button"
                             onClick={() => handleQuantityChange(it.id, 1)}
-                            className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 text-indigo-700 flex items-center justify-center font-medium text-[13px] transition-colors"
+                            className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 text-indigo-700 flex items-center justify-center font-medium typo-btn-secondary transition-colors"
                           >
                             +
                           </button>
@@ -369,14 +369,14 @@ export function AddItemsModal({
         {/* Summary & Keyboard Shortcuts Toolbar (Matching Screenshot 2) */}
         <div className="px-6 py-3 bg-[#F8F9FA] border-t border-slate-200 flex flex-wrap items-center justify-between gap-4">
           {/* Left: Selected count & totals */}
-          <div className="flex items-center gap-4 text-xs font-semibold text-slate-700">
+          <div className="flex items-center gap-4 typo-card-desc font-semibold text-slate-700">
             <span>{totalItemsCount} Item(s) Selected</span>
             <span className="text-slate-300">•</span>
-            <span className="tabular-nums text-slate-900 font-bold">
+            <span className="typo-table-amount text-slate-900">
               ₹ {totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </span>
             <span className="text-slate-300">•</span>
-            <span className="tabular-nums text-slate-900">{totalQuantity}</span>
+            <span className="typo-tabular text-slate-900">{totalQuantity}</span>
           </div>
 
           {/* Center: Keyboard Shortcuts Hint */}
@@ -398,7 +398,7 @@ export function AddItemsModal({
             <button
               type="button"
               onClick={onClose}
-              className="h-9 px-3 bg-white border border-slate-300 hover:bg-slate-100 rounded-lg text-[13px] font-medium text-slate-700 transition-colors shadow-2xs"
+              className="h-9 px-3 bg-white border border-slate-300 hover:bg-slate-100 rounded-lg typo-btn-secondary text-slate-700 transition-colors shadow-2xs"
             >
               Cancel [ESC]
             </button>
@@ -406,7 +406,7 @@ export function AddItemsModal({
               type="button"
               onClick={handleApply}
               disabled={totalItemsCount === 0}
-              className="h-9 px-3.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg text-[13px] font-medium shadow-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 active:scale-95"
+              className="h-9 px-3.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg typo-btn-primary shadow-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 active:scale-95"
             >
               <span>Add to Bill [F7]</span>
             </button>

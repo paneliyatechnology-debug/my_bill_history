@@ -433,7 +433,7 @@ export default function SalesReturnsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:px-6 sm:py-3.5 rounded-2xl border border-[#E2E8E5] shadow-xs">
         <div>
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#1677E8]">
+            <span className="typo-badge font-semibold uppercase tracking-widest text-[#1677E8]">
               {isDebitNote
                 ? lang === "gu"
                   ? "ડેબિટ નોટ અને એડજસ્ટમેન્ટ"
@@ -447,12 +447,12 @@ export default function SalesReturnsPage() {
                 : "SALES & RETURNS"}
             </span>
             <span className="text-slate-300">•</span>
-            <span className="text-[10px] font-bold text-slate-500 tabular-nums">
+            <span className="typo-badge font-semibold text-slate-500 typo-tabular">
               {displayedRows.length} {lang === "gu" ? "રેકોર્ડ" : "Records"}
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
+            <h1 className="typo-page-title text-[#182230]">
               {isDebitNote
                 ? lang === "gu"
                   ? "ડેબિટ નોટ રજિસ્ટર (Debit Notes)"
@@ -484,7 +484,7 @@ export default function SalesReturnsPage() {
             type="button"
             onClick={handleExportCsv}
             disabled={displayedRows.length === 0}
-            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#E2E8F0] bg-white text-[13px] font-medium text-[#182230] hover:bg-[#F8FAFC] hover:border-[#93C5FD] disabled:opacity-50 transition-colors shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#E2E8F0] bg-white typo-btn-secondary text-[#182230] hover:bg-[#F8FAFC] hover:border-[#93C5FD] disabled:opacity-50 transition-colors shadow-2xs cursor-pointer"
             title="Export to CSV"
           >
             <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -496,7 +496,7 @@ export default function SalesReturnsPage() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#E2E8F0] bg-white text-[13px] font-medium text-[#182230] hover:bg-[#F8FAFC] hover:border-[#93C5FD] transition-colors shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#E2E8F0] bg-white typo-btn-secondary text-[#182230] hover:bg-[#F8FAFC] hover:border-[#93C5FD] transition-colors shadow-2xs cursor-pointer"
             title="Print Register"
           >
             <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -507,7 +507,7 @@ export default function SalesReturnsPage() {
 
           <Link
             href={isDebitNote ? "/sales/debit-note/create" : isCreditNote ? "/sales/credit-note/create" : "/sales/returns/new"}
-            className="inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium shadow-md shadow-[#0F172A]/20 hover:shadow-lg hover:shadow-[#0F172A]/30 transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white typo-btn-primary shadow-md shadow-[#0F172A]/20 hover:shadow-lg hover:shadow-[#0F172A]/30 transition-all cursor-pointer"
           >
             <svg className="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -666,7 +666,7 @@ export default function SalesReturnsPage() {
       <div className="overflow-visible rounded-2xl border border-[#E2E8E5] bg-white shadow-xs">
         <div className="overflow-x-auto overflow-y-visible">
           <table className="min-w-full text-left text-xs border-collapse">
-            <thead className="bg-[#F8FAF9] border-b border-[#E2E8E5] text-[#5A6B66] font-semibold uppercase tracking-wider text-[11px]">
+            <thead className="bg-[#F8FAF9] border-b border-[#E2E8E5] text-[#5A6B66] typo-table-th uppercase tracking-wider">
               <tr>
                 <th className="px-4 py-3.5 whitespace-nowrap font-medium">Date</th>
                 <th className="px-4 py-3.5 whitespace-nowrap font-medium">{isCreditNote ? "Credit Note #" : "Return #"}</th>
@@ -681,7 +681,7 @@ export default function SalesReturnsPage() {
             <tbody className="divide-y divide-[#E2E8E5]">
               {isLoading && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-16 text-center text-[13px] text-[#5A6B66]">
+                  <td colSpan={7} className="px-4 py-16 text-center typo-card-desc text-[#5A6B66]">
                     <div className="flex items-center justify-center gap-2">
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#1677E8] border-t-transparent" />
                       <span>Loading records...</span>
@@ -699,17 +699,17 @@ export default function SalesReturnsPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                       </div>
-                      <p className="text-base font-bold text-[#1A2E2B]">
+                      <p className="typo-empty-heading text-[#1A2E2B]">
                         {lang === "gu" ? "કોઈ રેકોર્ડ મળ્યા નથી." : "No records found"}
                       </p>
-                      <p className="text-xs text-slate-500 mt-1">
+                      <p className="typo-empty-desc text-slate-500 mt-1">
                         {searchQuery
                           ? "No transactions match your current search filters."
                           : "Issue credit notes for sales returns, rate differences, or invoice adjustments."}
                       </p>
                       <Link
                         href={isCreditNote ? "/sales/credit-note/create" : "/sales/returns/new"}
-                        className="mt-4 rounded-xl bg-[#0F172A] h-9 px-3 text-[13px] font-medium text-white shadow-blue-500/20 hover:bg-[#1268D3] transition-colors"
+                        className="mt-4 rounded-xl bg-[#0F172A] h-9 px-3 typo-btn-primary text-white shadow-blue-500/20 hover:bg-[#1268D3] transition-colors"
                       >
                         {isCreditNote ? "+ Create Credit Note" : "+ Create Sales Return"}
                       </Link>
@@ -730,7 +730,7 @@ export default function SalesReturnsPage() {
                       }`}
                     >
                       {/* Date */}
-                      <td className="px-4 py-3 whitespace-nowrap text-[13px] text-[#182230] font-medium">
+                      <td className="px-4 py-3 whitespace-nowrap typo-table-td text-[#182230]">
                         {formatDisplayDate(row.returnDate)}
                       </td>
 
@@ -740,7 +740,7 @@ export default function SalesReturnsPage() {
                           <button
                             type="button"
                             onClick={() => router.push(`${basePath}/${row.id}`)}
-                            className="tabular-nums font-bold text-[#0F172A] hover:text-[#1677E8] hover:underline transition-colors text-xs cursor-pointer"
+                            className="typo-invoice-no text-[#0F172A] hover:text-[#1677E8] hover:underline transition-colors cursor-pointer"
                           >
                             {row.returnNumber}
                           </button>
@@ -749,23 +749,23 @@ export default function SalesReturnsPage() {
 
                       {/* Customer / Party */}
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="font-semibold text-[#1A2E2B] text-xs">
+                        <div className="font-semibold text-[#1A2E2B] typo-table-td">
                           {row.party?.name || "Cash Sale"}
                         </div>
                         {row.party?.phone && (
-                          <div className="text-[10px] text-slate-400 tabular-nums mt-0.5">
+                          <div className="typo-card-desc typo-tabular text-slate-400 mt-0.5">
                             📞 {row.party.phone}
                           </div>
                         )}
                       </td>
 
                       {/* Original Invoice */}
-                      <td className="px-4 py-3 whitespace-nowrap text-[13px]">
+                      <td className="px-4 py-3 whitespace-nowrap typo-card-desc">
                         {row.salesInvoice?.invoiceNumber ? (
                           <Link
                             href={`/sales/invoices/${row.salesInvoice.id}`}
                             onClick={(e) => e.stopPropagation()}
-                            className="text-[#0F172A] hover:underline tabular-nums font-semibold"
+                            className="text-[#0F172A] hover:underline typo-invoice-no"
                           >
                             #{row.salesInvoice.invoiceNumber}
                           </Link>
@@ -777,12 +777,12 @@ export default function SalesReturnsPage() {
                       {/* Warehouse & Stock Status (Sales Returns Only) */}
                       {!isCreditNote && (
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="font-semibold text-slate-800 text-xs">
+                          <div className="font-semibold text-slate-800 typo-table-td">
                             {row.warehouse?.name || "Main Godown"}
                           </div>
                           {row.disposition ? (
                             <span
-                              className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                              className={`inline-flex items-center px-1.5 py-0.5 rounded typo-badge font-semibold ${
                                 row.disposition === "SELLABLE"
                                   ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                   : "bg-amber-50 text-amber-700 border border-amber-200"
@@ -791,28 +791,28 @@ export default function SalesReturnsPage() {
                               {row.disposition}
                             </span>
                           ) : (
-                            <span className="text-[10px] text-slate-400">Restocked</span>
+                            <span className="typo-badge text-slate-400">Restocked</span>
                           )}
                         </td>
                       )}
 
                       {/* Amount */}
-                      <td className="px-4 py-3 text-right font-medium text-[#182230] whitespace-nowrap tabular-nums text-[13px]">
+                      <td className="px-4 py-3 text-right typo-table-amount text-[#182230] whitespace-nowrap">
                         {formatInr(row.grandTotal)}
                       </td>
 
                       {/* Status */}
                       <td className="px-4 py-3 text-center whitespace-nowrap">
                         {isSettled ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full typo-badge font-semibold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
                             Settled
                           </span>
                         ) : row.status === "CANCELLED" ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full typo-badge font-semibold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
                             Void
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full typo-badge font-semibold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
                             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                             <span>Open</span>
                           </span>

@@ -99,6 +99,57 @@ export const DS_COLORS = {
 } as const;
 
 /**
+ * Official Global Typography System Tokens
+ * Families: Manrope (Headings), Inter (UI & Amounts), IBM Plex Mono (Codes & Invoice Nos)
+ * Enforced Weights: 400 (Regular), 500 (Medium), 600 (Semibold) ONLY.
+ */
+export const DS_TYPOGRAPHY = {
+  fontFamilies: {
+    heading: "var(--font-heading, var(--font-manrope), sans-serif)",
+    body: "var(--font-body, var(--font-inter), sans-serif)",
+    mono: "var(--font-mono, var(--font-ibm-plex-mono), monospace)",
+  },
+  weights: {
+    regular: 400,
+    medium: 500,
+    semibold: 600,
+  },
+  tokens: {
+    pageTitle: { font: "heading", size: "22px", weight: 600, lineHeight: "30px", className: "typo-page-title" },
+    pageSubtitle: { font: "body", size: "13px", weight: 400, lineHeight: "20px", className: "typo-page-subtitle" },
+    sectionHeading: { font: "heading", size: "16px", weight: 600, lineHeight: "24px", className: "typo-section-heading" },
+    cardHeading: { font: "heading", size: "14px", weight: 500, lineHeight: "20px", className: "typo-card-heading" },
+    cardDescription: { font: "body", size: "12px", weight: 400, lineHeight: "18px", className: "typo-card-desc" },
+    kpiAmount: { font: "body", size: "24px", weight: 600, lineHeight: "32px", tabularNums: true, className: "typo-kpi" },
+    secondaryAmount: { font: "body", size: "18px", weight: 500, lineHeight: "26px", tabularNums: true, className: "typo-amount-secondary" },
+    tableHeading: { font: "body", size: "12px", weight: 500, lineHeight: "18px", className: "typo-table-th" },
+    tableContent: { font: "body", size: "13px", weight: 400, lineHeight: "20px", className: "typo-table-td" },
+    tableAmount: { font: "body", size: "13px", weight: 500, lineHeight: "20px", tabularNums: true, className: "typo-table-amount" },
+    sidebarMenu: { font: "body", size: "13px", weight: 400, lineHeight: "20px", className: "typo-nav" },
+    activeSidebar: { font: "body", size: "13px", weight: 500, lineHeight: "20px", className: "typo-nav-active" },
+    primaryButton: { font: "body", size: "13px", weight: 500, lineHeight: "18px", className: "typo-btn-primary" },
+    secondaryButton: { font: "body", size: "12px", weight: 500, lineHeight: "18px", className: "typo-btn-secondary" },
+    inputText: { font: "body", size: "13px", weight: 400, lineHeight: "20px", className: "typo-input" },
+    inputLabel: { font: "body", size: "12px", weight: 500, lineHeight: "18px", className: "typo-label" },
+    placeholder: { font: "body", size: "13px", weight: 400, lineHeight: "20px", className: "typo-placeholder" },
+    dropdownItem: { font: "body", size: "13px", weight: 400, lineHeight: "20px", className: "typo-dropdown-item" },
+    badgeStatus: { font: "body", size: "11px", weight: 500, lineHeight: "16px", className: "typo-badge" },
+    tooltip: { font: "body", size: "12px", weight: 400, lineHeight: "18px", className: "typo-tooltip" },
+    breadcrumb: { font: "body", size: "12px", weight: 400, lineHeight: "18px", className: "typo-breadcrumb" },
+    tabs: { font: "body", size: "13px", weight: 500, lineHeight: "20px", className: "typo-tab" },
+    modalHeading: { font: "heading", size: "18px", weight: 600, lineHeight: "26px", className: "typo-modal-title" },
+    modalDescription: { font: "body", size: "13px", weight: 400, lineHeight: "20px", className: "typo-modal-desc" },
+    formSectionTitle: { font: "heading", size: "15px", weight: 600, lineHeight: "22px", className: "typo-form-section" },
+    invoiceNumber: { font: "mono", size: "12px", weight: 500, lineHeight: "18px", className: "typo-invoice-no" },
+    transactionId: { font: "mono", size: "11px", weight: 400, lineHeight: "16px", className: "typo-tx-id" },
+    chartLabels: { font: "body", size: "11px", weight: 400, lineHeight: "16px", className: "typo-chart-label" },
+    chartValues: { font: "body", size: "12px", weight: 500, lineHeight: "18px", className: "typo-chart-value" },
+    emptyStateHeading: { font: "heading", size: "17px", weight: 600, lineHeight: "24px", className: "typo-empty-title" },
+    emptyStateText: { font: "body", size: "13px", weight: 400, lineHeight: "20px", className: "typo-empty-desc" },
+  },
+} as const;
+
+/**
  * Format Indian Rupee currency with standard Indian Numbering system (Lakhs & Crores)
  * Defensively cleans any pre-existing currency symbols to prevent double symbol bugs
  */

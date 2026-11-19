@@ -455,25 +455,30 @@ export default function CreateEInvoicePage() {
 
   return (
     <div className="min-h-screen bg-slate-50/70 p-4 sm:p-6 lg:p-8">
-      {/* Top Header */}
-      <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      {/* Top Header Card */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
-            <Link href="/sales/e-invoices" className="hover:text-emerald-700 transition">
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-1">
+            <Link href="/sales/e-invoices" className="hover:text-[#1677E8] transition font-medium">
               E-Invoices
             </Link>
-            <span>/</span>
+            <span className="text-slate-400">/</span>
             <span className="font-semibold text-slate-800">New E-Invoice</span>
           </div>
-          <h1 className="text-[22px] font-semibold text-[#182230]">
+          <h1 className="text-[20px] sm:text-[22px] font-bold text-slate-900 tracking-tight">
             {lang === "gu" ? "નવું ઈ-ઇનવોઇસ બનાવો" : "Create Statutory GST E-Invoice"}
           </h1>
+          <p className="mt-0.5 text-xs sm:text-[13px] text-slate-500">
+            {lang === "gu"
+              ? "નવા ઈ-ઇનવોઇસ માટે ગ્રાહક અને માલસામાનની વિગતો દાખલ કરો."
+              : "Enter document, customer, and line item details to register with the IRP."}
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
           <Link
             href="/sales/e-invoices"
-            className="rounded-lg border border-slate-300 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
+            className="rounded-xl border border-slate-200/90 bg-white h-10 px-4 text-[13px] font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 shadow-2xs transition"
           >
             Cancel
           </Link>
@@ -485,8 +490,8 @@ export default function CreateEInvoicePage() {
         <div className="space-y-6 lg:col-span-8">
           {/* SECTION A: Document Details */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-emerald-800 mb-4 flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-[11px] text-emerald-800">1</span>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-800 mb-4 flex items-center gap-2">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-50 text-[11px] font-bold text-[#1677E8] border border-blue-200">1</span>
               A. Document & Supply Details
             </h2>
 
@@ -574,8 +579,8 @@ export default function CreateEInvoicePage() {
 
           {/* SECTION B & C: Supplier and Recipient */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-emerald-800 mb-4 flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-[11px] text-emerald-800">2</span>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-800 mb-4 flex items-center gap-2">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-50 text-[11px] font-bold text-[#1677E8] border border-blue-200">2</span>
               B. Recipient (Buyer) & Place of Supply
             </h2>
 
@@ -839,14 +844,14 @@ export default function CreateEInvoicePage() {
           {/* SECTION D: Item Rows */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-emerald-800 flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-[11px] text-emerald-800">3</span>
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-50 text-[11px] font-bold text-[#1677E8] border border-blue-200">3</span>
                 C. Item Details & Tax Breakdown
               </h2>
               <button
                 type="button"
                 onClick={handleAddItem}
-                className="inline-flex items-center gap-1 rounded bg-emerald-50 px-2.5 py-1 text-[13px] font-medium text-emerald-700 hover:bg-emerald-100 transition"
+                className="inline-flex items-center gap-1 rounded-xl bg-blue-50 px-2.5 py-1 text-xs font-semibold text-[#1677E8] hover:bg-blue-100 transition-colors border border-blue-200/60 cursor-pointer"
               >
                 + Add Item
               </button>
@@ -1173,7 +1178,7 @@ export default function CreateEInvoicePage() {
 
                 <div className="flex justify-between font-bold text-slate-900 text-base border-t border-slate-200 pt-2 font-sans">
                   <span>Grand Total:</span>
-                  <span className="tabular-nums text-emerald-700">₹{formatInr(totals.grandTotal)}</span>
+                  <span className="tabular-nums text-slate-900">₹{formatInr(totals.grandTotal)}</span>
                 </div>
               </div>
             </div>
@@ -1181,8 +1186,8 @@ export default function CreateEInvoicePage() {
             {/* Action Buttons Panel */}
             <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-2.5">
               {statusMessage && (
-                <div className="rounded-md border border-emerald-200 bg-emerald-50 p-2 text-xs text-emerald-900 font-semibold flex items-center gap-2">
-                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent"></div>
+                <div className="rounded-xl border border-blue-200 bg-blue-50 p-2.5 text-xs text-[#1677E8] font-semibold flex items-center gap-2">
+                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#1677E8] border-t-transparent"></div>
                   <span>{statusMessage}</span>
                 </div>
               )}
@@ -1191,7 +1196,7 @@ export default function CreateEInvoicePage() {
                 type="button"
                 onClick={handleGenerateEInvoice}
                 disabled={isSubmitting}
-                className="w-full rounded-lg bg-[#1677E8] py-2.5 text-[13px] font-medium text-white shadow-xs hover:bg-[#1268D3] transition disabled:opacity-50"
+                className="w-full rounded-xl bg-[#1677E8] py-2.5 text-[13px] font-semibold text-white shadow-xs hover:bg-[#1268D3] transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {isSubmitting ? "Processing..." : "Generate E-Invoice on IRP"}
               </button>
@@ -1200,7 +1205,7 @@ export default function CreateEInvoicePage() {
                 type="button"
                 onClick={handleValidateFields}
                 disabled={isSubmitting}
-                className="w-full rounded-lg border border-emerald-600 bg-emerald-50/50 py-2 text-[13px] font-medium text-emerald-800 hover:bg-emerald-100 transition disabled:opacity-50"
+                className="w-full rounded-xl border border-blue-200 bg-blue-50/50 py-2 text-[13px] font-semibold text-[#1677E8] hover:bg-blue-100 transition-colors disabled:opacity-50 cursor-pointer"
               >
                 Pre-Validate Statutory Fields
               </button>
@@ -1209,7 +1214,7 @@ export default function CreateEInvoicePage() {
                 type="button"
                 onClick={handleSaveDraft}
                 disabled={isSubmitting}
-                className="w-full rounded-lg border border-slate-300 bg-white py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition disabled:opacity-50"
+                className="w-full rounded-xl border border-slate-300 bg-white py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50 cursor-pointer"
               >
                 Save as Normal Sales Draft
               </button>

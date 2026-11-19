@@ -614,8 +614,8 @@ export function DataTable<T>({
 
         {/* Desktop Table Presentation (or all screen sizes if mobileCardRender is not supplied) */}
         <div ref={scrollContainerRef} className={`${mobileCardRender ? "hidden md:block" : "block"} overflow-x-auto min-h-[160px]`}>
-          <table className="w-full text-left text-xs">
-            <thead className="bg-[#FAFBFD] border-b border-[#E2E8F0] text-[#64748B] uppercase font-bold text-[11px] tracking-wider select-none">
+          <table className="w-full text-left">
+            <thead className="bg-[#FAFBFD] border-b border-[#E2E8F0] select-none">
               <tr>
                 {tableColumns.map((col, idx) => {
                   const colKey = col.id || (col.accessorKey ? String(col.accessorKey) : null);
@@ -632,7 +632,7 @@ export function DataTable<T>({
                     <th
                       key={colKey || idx}
                       onClick={() => handleSort(col)}
-                      className={`py-3 px-3 font-bold ${alignText} ${stickyThClass} ${col.headerClassName || ""} ${
+                      className={`py-3 px-3 typo-table-th text-[#64748B] uppercase tracking-wider ${alignText} ${stickyThClass} ${col.headerClassName || ""} ${
                         col.sortable ? "cursor-pointer hover:bg-slate-100/70 transition-colors" : ""
                       } ${isSorted ? sortedHeaderClass : ""}`}
                     >
@@ -650,7 +650,7 @@ export function DataTable<T>({
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-[#F1F5F9] text-slate-900">
+            <tbody className="divide-y divide-[#F1F5F9] typo-table-td text-slate-900">
               {paginatedData.length === 0 ? (
                 <tr>
                   <td colSpan={tableColumns.length} className="py-12 text-center text-[#98A2B3]">
@@ -659,11 +659,11 @@ export function DataTable<T>({
                     ) : (
                       <div className="flex flex-col items-center justify-center gap-2">
                         <span className="text-3xl">📄</span>
-                        <p className="text-xs font-bold text-[#667085]">
+                        <p className="typo-empty-heading text-[#667085]">
                           {lang === "gu" ? emptyMessageGujarati : emptyMessage}
                         </p>
                         {searchQuery && (
-                          <p className="text-[11px] text-[#98A2B3]">
+                          <p className="typo-empty-desc text-[#98A2B3]">
                             {lang === "gu"
                               ? `"${searchQuery}" માટે કોઈ પરિણામ મળ્યું નથી.`
                               : `No results matching "${searchQuery}".`}
@@ -707,14 +707,14 @@ export function DataTable<T>({
         </div>
 
         {/* ================= PAGINATION FOOTER ================= */}
-        <div className="p-3.5 sm:p-4 bg-white border-t border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#64748B]">
+        <div className="p-3.5 sm:p-4 bg-white border-t border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between gap-3 typo-card-desc text-[#64748B]">
           {/* Entries summary */}
           <div className="font-medium text-center sm:text-left">
             {lang === "gu" ? (
               <span>
-                કુલ <span className="font-bold text-[#202124]">{totalEntries}</span> માંથી{" "}
-                <span className="font-bold text-[#202124]">{startEntry}</span> થી{" "}
-                <span className="font-bold text-[#202124]">{endEntry}</span> દર્શાવી રહ્યા છીએ
+                કુલ <span className="font-semibold text-[#202124] tabular-nums">{totalEntries}</span> માંથી{" "}
+                <span className="font-semibold text-[#202124] tabular-nums">{startEntry}</span> થી{" "}
+                <span className="font-semibold text-[#202124] tabular-nums">{endEntry}</span> દર્શાવી રહ્યા છીએ
                 {filteredData.length !== data.length && (
                   <span className="text-[#98A2B3] ml-1">
                     (કુલ {data.length} માંથી ફિલ્ટર થયેલ)
@@ -723,9 +723,9 @@ export function DataTable<T>({
               </span>
             ) : (
               <span>
-                Showing <span className="font-bold text-[#202124]">{startEntry}</span> to{" "}
-                <span className="font-bold text-[#202124]">{endEntry}</span> of{" "}
-                <span className="font-bold text-[#202124]">{totalEntries}</span> entries
+                Showing <span className="font-semibold text-[#202124] tabular-nums">{startEntry}</span> to{" "}
+                <span className="font-semibold text-[#202124] tabular-nums">{endEntry}</span> of{" "}
+                <span className="font-semibold text-[#202124] tabular-nums">{totalEntries}</span> entries
                 {filteredData.length !== data.length && (
                   <span className="text-[#98A2B3] ml-1">
                     (filtered from {data.length} total entries)

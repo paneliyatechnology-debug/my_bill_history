@@ -361,10 +361,10 @@ export default function ManageUsersView() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
+            <h1 className="typo-page-title text-[#182230]">
               {lang === "gu" ? "યુઝર્સ મેનેજમેન્ટ (Manage Users)" : "Manage Users"}
             </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="typo-page-subtitle text-slate-500 mt-0.5">
               Organization: <span className="font-semibold text-slate-700">{currentCompany?.legalName || currentCompany?.tradeName || "Current Organization"}</span>
             </p>
           </div>
@@ -382,13 +382,13 @@ export default function ManageUsersView() {
           
           {/* Number of Users card */}
           <div className="bg-white rounded-xl border-2 border-[#BFDBFE] p-4 sm:p-5 shadow-2xs relative overflow-hidden">
-            <div className="flex items-center gap-2 text-[#1677E8] font-semibold text-xs sm:text-sm">
+            <div className="flex items-center gap-2 text-[#1677E8] typo-card-heading">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
               <span>{lang === "gu" ? "કુલ યુઝર્સ સંખ્યા" : "Number of Users"}</span>
             </div>
-            <div className="text-3xl font-bold text-slate-900 mt-2 tabular-nums">
+            <div className="typo-kpi text-slate-900 mt-2">
               {users.length}
             </div>
           </div>
@@ -399,19 +399,19 @@ export default function ManageUsersView() {
             className="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 shadow-2xs hover:border-blue-400 transition-all cursor-pointer relative group"
           >
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-blue-600 font-semibold text-xs sm:text-sm">
+              <div className="flex items-center gap-2 text-blue-600 typo-card-heading">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
                 <span>{lang === "gu" ? "થયેલી પ્રવૃત્તિઓ" : "Activities Performed"}</span>
               </div>
-              <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-md">
+              <span className="typo-badge text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-md">
                 Last 30 Days
               </span>
             </div>
-            <div className="text-3xl font-bold text-slate-900 mt-2 tabular-nums flex items-center justify-between">
+            <div className="typo-kpi text-slate-900 mt-2 flex items-center justify-between">
               <span>{activities.length}</span>
-              <span className="text-xs text-blue-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="typo-btn-secondary text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
                 View Tracker →
               </span>
             </div>

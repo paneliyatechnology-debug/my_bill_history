@@ -104,10 +104,10 @@ export default function GlobalError({
           <h1
             style={{
               fontSize: "22px",
-              fontWeight: 800,
+              fontWeight: 600,
               color: "#0F172A",
               margin: "0 0 8px 0",
-              letterSpacing: "-0.025em",
+              letterSpacing: "-0.015em",
             }}
           >
             Application Encountered an Issue
@@ -160,7 +160,7 @@ export default function GlobalError({
                 border: "none",
                 borderRadius: "12px",
                 fontSize: "13px",
-                fontWeight: 700,
+                fontWeight: 600,
                 cursor: "pointer",
                 boxShadow: "0 4px 12px rgba(23, 75, 67, 0.2)",
               }}
@@ -217,7 +217,7 @@ export default function GlobalError({
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                  <span style={{ fontWeight: 700, color: "#64748B" }}>TECHNICAL LOG</span>
+                  <span style={{ fontWeight: 600, color: "#64748B" }}>TECHNICAL LOG</span>
                   <button
                     onClick={handleCopyDiagnostics}
                     style={{

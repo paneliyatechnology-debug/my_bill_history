@@ -770,8 +770,8 @@ export default function ReportsPage({
               </button>
 
               <div className="min-w-0">
-              <p className="text-[11px] text-[#64748B]">Reports / {currentTabMeta.label}</p>
-              <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight truncate">
+              <p className="typo-breadcrumb text-[#64748B]">Reports / {currentTabMeta.label}</p>
+              <h1 className="typo-page-title text-[#182230] truncate">
                 {activeTab === "gst-purchase-hsn"
                   ? "GST Purchase (With HSN)"
                   : activeTab === "gst-sales-hsn"
@@ -5453,10 +5453,10 @@ export default function ReportsPage({
               <div className="space-y-6">
                 <div className="p-4 bg-white border border-[#E2E8F0] rounded-xl flex items-center justify-between shadow-2xs">
                   <div>
-                    <h3 className="font-semibold text-[#0F172A] text-[15px]">{currentTabMeta.label}</h3>
-                    <p className="text-xs text-[#64748B] mt-0.5">Authoritative financial records for {startDate} to {endDate}</p>
+                    <h3 className="typo-section-heading text-[#0F172A]">{currentTabMeta.label}</h3>
+                    <p className="typo-page-subtitle text-[#64748B] mt-0.5">Authoritative financial records for {startDate} to {endDate}</p>
                   </div>
-                  <span className="px-2.5 py-1 bg-emerald-50 text-[#16834A] border border-emerald-200 rounded-lg text-xs font-bold">
+                  <span className="px-2.5 py-1 bg-emerald-50 text-[#16834A] border border-emerald-200 rounded-lg typo-badge">
                     Statutory Compliant
                   </span>
                 </div>

@@ -174,6 +174,8 @@ function NewPurchaseInvoiceContent() {
   const [scanStepIndex, setScanStepIndex] = useState(0);
   const [autofilledFieldsHighlight, setAutofilledFieldsHighlight] = useState(false);
   const [zoomPreviewModal, setZoomPreviewModal] = useState(false);
+  const [scanError, setScanError] = useState<string | null>(null);
+  const [aiScanStatus, setAiScanStatus] = useState<"IDLE" | "SCANNING" | "SUCCESS" | "ERROR">("IDLE");
 
   // Scanner Modal (full-page AI scanner modal)
   const [isScannerModalOpen, setIsScannerModalOpen] = useState(false);
@@ -1217,13 +1219,30 @@ const [notes, setNotes] = useState("");
     if (!file) return;
     const url = URL.createObjectURL(file);
     setUploadedDocUrl(url);
+    setUploadedDocName(file.name);
     const isPdfFile =
       file.type?.includes("pdf") ||
       file.name.toLowerCase().endsWith(".pdf");
     setUploadedDocType(isPdfFile ? "application/pdf" : file.type || "image/jpeg");
     setUploadedDocFile(file);
     setIsAnalyzingDoc(true);
+    setScanError(null);
+    setAiScanStatus("SCANNING");
     setScanStepIndex(0);
+
+    // Auto-attach file to bill attachments if not already present
+    setAttachments((prev) => {
+      if (prev.some((a) => a.name === file.name)) return prev;
+      return [
+        ...prev,
+        {
+          id: Math.random().toString(36).substring(2, 9),
+          name: file.name,
+          size: (file.size / (1024 * 1024)).toFixed(2) + " MB",
+          file,
+        },
+      ];
+    });
 
     const progressSteps = [
       lang === "gu" ? "દસ્તાવેજ વાંચી રહ્યું છે..." : "Reading document stream...",
@@ -1334,21 +1353,55 @@ const [notes, setNotes] = useState("");
             discountAmount: it.discountAmount ?? it.discount,
           })),
         });
+
+        setAiScanStatus("SUCCESS");
+        setScanError(null);
+        setSuccessBanner(
+          lang === "gu"
+            ? "✨ AI વિઝન સ્કેન સફળ! બિલ વિગતો ફોર્મમાં ભરાઈ ગઈ."
+            : "✨ AI Gemini Vision scan successful! Form populated from your bill."
+        );
       } else {
         // Fallback: extract basic info
         setVendorInvoiceNumber(file.name.replace(/\.[^/.]+$/, "").substring(0, 16));
         setActiveMode("EDIT");
+        setAiScanStatus("SUCCESS");
       }
     } catch (uploadErr: any) {
       console.warn("Upload notice:", uploadErr);
       const fallbackInvNo = file.name.replace(/\.[^/.]+$/, "").substring(0, 16);
-      setVendorInvoiceNumber(fallbackInvNo);
+      if (!vendorInvoiceNumber) {
+        setVendorInvoiceNumber(fallbackInvNo);
+      }
       setActiveMode("EDIT");
-      setSuccessBanner(
-        lang === "gu"
-          ? "બિલ લોડ થયું. કૃપા કરીને વિગતો ચકાસો."
-          : "Bill loaded into invoice editor! Please verify details."
-      );
+      setAiScanStatus("ERROR");
+
+      const errString = String(uploadErr?.message || uploadErr || "");
+      const is502OrNetwork =
+        uploadErr?.status === 502 ||
+        uploadErr?.statusCode === 502 ||
+        errString.includes("502") ||
+        errString.includes("ROUTER_EXTERNAL") ||
+        errString.includes("Network") ||
+        errString.includes("timeout") ||
+        errString.includes("fetch");
+
+      let errorMsg = "";
+      if (is502OrNetwork) {
+        errorMsg =
+          lang === "gu"
+            ? "AI વિઝન સર્વર હાલમાં અનુપલબ્ધ છે (502 Gateway Error). બિલ ફાઇલ એટેચમેન્ટ્સમાં સચવાયેલ છે. કૃપા કરીને વિગતો જાતે દાખલ કરો અથવા ફરી સ્કેન કરો."
+            : "AI Vision Server is temporarily unreachable (502 Bad Gateway). Your document is attached as reference; please enter details manually or click Retry Scan.";
+      } else {
+        errorMsg =
+          uploadErr?.message ||
+          (lang === "gu"
+            ? "AI સ્કેનિંગ પૂર્ણ થઈ શક્યું નથી. કૃપા કરીને વિગતો જાતે ભરો."
+            : "AI scanning could not complete. You can continue filling details manually.");
+      }
+
+      setScanError(errorMsg);
+      setError(errorMsg);
     } finally {
       clearInterval(interval);
       setIsAnalyzingDoc(false);
@@ -1749,7 +1802,7 @@ const [notes, setNotes] = useState("");
       {/* ─────────────────────────────────────────────────────────────
           2. NOTIFICATION ALERTS
          ───────────────────────────────────────────────────────────── */}
-      <div className="w-full px-3 sm:px-6 lg:px-8 pt-4">
+      <div className="w-full max-w-[1680px] 2xl:max-w-[1760px] mx-auto px-3 sm:px-4 lg:px-6 pt-3">
         {error && (
           <div className="mb-4 p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs sm:text-sm text-rose-800 font-semibold flex items-center justify-between shadow-xs">
             <div className="flex items-center gap-2">
@@ -1779,7 +1832,7 @@ const [notes, setNotes] = useState("");
           2.5 TOP DOCUMENT HEADER (Breadcrumb, Title, Actions)
          ───────────────────────────────────────────────────────────── */}
       {activeMode !== "PREVIEW" && (
-        <div className="w-full px-3 sm:px-4 lg:px-6 pt-2 pb-1">
+        <div className="w-full max-w-[1680px] 2xl:max-w-[1760px] mx-auto px-3 sm:px-4 lg:px-6 pt-2 pb-1">
           {/* Breadcrumb matching Reference Image */}
           <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mb-1.5">
             <span>Purchases</span>
@@ -1800,15 +1853,15 @@ const [notes, setNotes] = useState("");
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+                  <h1 className="typo-page-title text-slate-900">
                     {lang === "gu" ? "ખરીદી બિલ" : "Purchase Bill"}
                   </h1>
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-[#1677E8] border border-blue-200/60">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full typo-badge bg-blue-50 text-[#1677E8] border border-blue-200/60">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#1677E8]" />
                     <span>Draft</span>
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="typo-page-subtitle text-slate-500 mt-0.5">
                   {lang === "gu" ? "તમારું ખરીદી બિલ બનાવો અને સ્ટોક અપડેટ કરો" : "Create and manage your purchase bill."}
                 </p>
               </div>
@@ -1917,7 +1970,7 @@ const [notes, setNotes] = useState("");
       {/* ─────────────────────────────────────────────────────────────
           3. MAIN WORKSPACE CONTAINER (3-COLUMN RESPONSIVE LAYOUT)
          ───────────────────────────────────────────────────────────── */}
-      <div className="w-full px-3 sm:px-4 lg:px-6 pt-3">
+      <div className="w-full max-w-[1680px] 2xl:max-w-[1760px] mx-auto px-3 sm:px-4 lg:px-6 pt-2">
         {activeMode === "PREVIEW" ? (
           <div className="space-y-4 animate-fadeIn">
             {/* Preview Top Control Bar */}
@@ -2027,7 +2080,7 @@ const [notes, setNotes] = useState("");
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)_300px] gap-4 items-start w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-[270px_minmax(0,1fr)_290px] xl:grid-cols-[280px_minmax(0,1fr)_300px] gap-4 items-start w-full">
             {/* ── 1. LEFT PANEL: AI AUTOFILL (280px) ── */}
             <aside className="w-full bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 flex flex-col relative overflow-hidden">
               {/* AI Header */}
@@ -2141,6 +2194,8 @@ const [notes, setNotes] = useState("");
                             setUploadedDocName(null);
                             setUploadedDocFile(null);
                             setLastScanRecord(null);
+                            setScanError(null);
+                            setAiScanStatus("IDLE");
                           }}
                           className="p-1 text-slate-400 hover:text-rose-600"
                           title="Remove file"
@@ -2150,12 +2205,59 @@ const [notes, setNotes] = useState("");
                       </div>
                     </div>
                   </div>
+
+                  {/* Scan Error & Retry Action */}
+                  {scanError && !isAnalyzingDoc && (
+                    <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-2 shadow-2xs">
+                      <div className="flex items-start gap-1.5 font-semibold text-[11px] leading-snug">
+                        <span className="text-amber-600 shrink-0">⚠️</span>
+                        <span>{scanError}</span>
+                      </div>
+                      <div className="flex items-center gap-2 pt-0.5">
+                        <button
+                          type="button"
+                          onClick={() => uploadedDocFile && handleFileUpload(uploadedDocFile)}
+                          className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white rounded-lg text-[10px] font-bold shadow-2xs transition-colors inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          <span>Retry AI Scan</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setScanError(null)}
+                          className="text-[10px] text-amber-700 hover:text-amber-900 font-medium hover:underline cursor-pointer"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Scan Success Indicator */}
+                  {aiScanStatus === "SUCCESS" && !isAnalyzingDoc && !scanError && (
+                    <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between shadow-2xs">
+                      <div className="flex items-center gap-1.5 font-semibold text-[11px]">
+                        <span className="text-emerald-600 font-bold">✓</span>
+                        <span>AI Scan Completed</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleOpenScanReview}
+                        className="text-[10px] text-emerald-700 hover:underline font-bold cursor-pointer"
+                      >
+                        Review Data →
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Action Buttons */}
               <button
                 type="button"
+                disabled={isAnalyzingDoc}
                 onClick={() => {
                   if (uploadedDocFile) {
                     handleFileUpload(uploadedDocFile);
@@ -2163,10 +2265,19 @@ const [notes, setNotes] = useState("");
                     fileInputRef.current?.click();
                   }
                 }}
-                className="w-full py-2.5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0E5BB5] text-white rounded-xl text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                className="w-full py-2.5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0E5BB5] text-white rounded-xl text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-60"
               >
-                <span>✨</span>
-                <span>Proceed with AI Autofill</span>
+                {isAnalyzingDoc ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Extracting Details with AI...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>✨</span>
+                    <span>Proceed with AI Autofill</span>
+                  </>
+                )}
               </button>
 
               <button
@@ -2234,7 +2345,7 @@ const [notes, setNotes] = useState("");
                   <svg className="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  <h2 className="text-sm font-bold text-slate-900">
+                  <h2 className="typo-form-section text-slate-900">
                     Supplier & Bill Details
                   </h2>
                 </div>
@@ -2475,7 +2586,7 @@ const [notes, setNotes] = useState("");
                     <svg className="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                     </svg>
-                    <h2 className="text-sm font-bold text-slate-900">
+                    <h2 className="typo-form-section text-slate-900">
                       Items & Services
                     </h2>
                   </div>
@@ -2581,8 +2692,8 @@ const [notes, setNotes] = useState("");
 
                 {/* Items Table */}
                 <div className="border border-slate-200/80 rounded-xl overflow-x-auto scrollbar-thin">
-                  <table className="w-full text-left text-xs border-collapse min-w-[760px]">
-                    <thead className="bg-[#FAFBFD] border-b border-slate-200 text-slate-600 font-bold text-[11px]">
+                  <table className="w-full text-left border-collapse min-w-[760px]">
+                    <thead className="bg-[#FAFBFD] border-b border-slate-200 text-slate-600 typo-table-th uppercase tracking-wider">
                       <tr>
                         <th className="py-2.5 px-2 text-center w-8">#</th>
                         <th className="py-2.5 px-3 min-w-[180px]">Item / Description</th>
@@ -2976,7 +3087,7 @@ const [notes, setNotes] = useState("");
                   <svg className="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
-                  <h3 className="text-sm font-bold text-slate-900">Purchase Summary</h3>
+                  <h3 className="typo-form-section text-slate-900">Purchase Summary</h3>
                 </div>
 
                 <div className="space-y-2 text-xs">
@@ -3036,8 +3147,8 @@ const [notes, setNotes] = useState("");
                   )}
 
                   <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-sm font-bold text-slate-900">Grand Total</span>
-                    <span className="text-base sm:text-lg font-bold text-slate-900 tabular-nums">
+                    <span className="typo-card-heading text-slate-900">Grand Total</span>
+                    <span className="typo-kpi text-slate-900 tabular-nums">
                       {formatInr(totals.grandTotal)}
                     </span>
                   </div>
@@ -3127,45 +3238,47 @@ const [notes, setNotes] = useState("");
           STICKY FULL-WIDTH ACTION FOOTER
          ───────────────────────────────────────────────────────────── */}
       {activeMode !== "PREVIEW" && (
-        <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-4 sm:px-6 py-2.5 flex items-center justify-between z-30 shadow-lg">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-semibold text-slate-700">
-              Ready to save a purchase bill
-            </span>
-          </div>
+        <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-4 sm:px-6 py-2.5 z-30 shadow-lg">
+          <div className="w-full max-w-[1680px] 2xl:max-w-[1760px] mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs font-semibold text-slate-700">
+                Ready to save a purchase bill
+              </span>
+            </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={() => router.push("/purchases")}
-              className="h-9 px-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              disabled={isSubmitting}
-              onClick={() => handleSubmit(true)}
-              className="h-9 px-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
-            >
-              Save as Draft
-            </button>
-            <button
-              type="button"
-              disabled={isSubmitting}
-              onClick={() => handleSubmit(false)}
-              className="h-9 px-5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0E5BB5] text-white rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
-            >
-              {isSubmitting ? (
-                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              )}
-              <span>Save Purchase Bill</span>
-            </button>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => router.push("/purchases")}
+                className="h-9 px-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => handleSubmit(true)}
+                className="h-9 px-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Save as Draft
+              </button>
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => handleSubmit(false)}
+                className="h-9 px-5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0E5BB5] text-white rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {isSubmitting ? (
+                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+                <span>Save Purchase Bill</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -180,8 +180,8 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
         {/* Top Section */}
         <div className="flex flex-col min-h-0 flex-1">
           {/* Company Profile Header */}
-          <div className="p-4 border-b border-slate-100 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#1677E8] text-white font-bold text-base flex items-center justify-center shrink-0 shadow-xs uppercase">
+          <div className="h-[60px] px-4 border-b border-slate-200/80 flex items-center gap-3 bg-white shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-[#1677E8] text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-2xs uppercase">
               {initialLetter}
             </div>
             <div className="flex flex-col min-w-0">

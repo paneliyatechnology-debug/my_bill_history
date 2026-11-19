@@ -685,7 +685,7 @@ const [notes, setNotes] = useState("");
                   addItemLabel="+ Add Item"
                 >
                   <table className="w-full text-left text-xs border-collapse">
-                    <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 font-bold text-[11px] uppercase tracking-wider">
+                    <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 typo-table-th uppercase tracking-wider">
                       <tr>
                         <th className="py-3 px-3.5 text-center w-12">#</th>
                         <th className="py-3 px-3.5">Item / Description</th>
@@ -785,7 +785,7 @@ const [notes, setNotes] = useState("");
                             />
                           </td>
 
-                          <td className="py-3 px-3 text-right tabular-nums font-semibold text-slate-900 text-[13px]">
+                          <td className="py-3 px-3 text-right typo-table-amount text-slate-900">
                             ₹ {row.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </td>
 

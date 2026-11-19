@@ -689,7 +689,7 @@ export function InvoiceSettingsStudio() {
       />
 
       {/* 1. TOP BREADCRUMB & PAGE HEADER (Compact Design) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 mb-1.5 border-b border-slate-200/60">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 mb-2 border-b border-slate-200/80">
         <div>
           <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[11px] text-slate-500 mb-0.5">
             <Link href="/settings" className="hover:text-slate-800 transition-colors">Settings</Link>
@@ -698,16 +698,16 @@ export function InvoiceSettingsStudio() {
           </nav>
 
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 text-[#2563EB] flex items-center justify-center shrink-0 shadow-2xs">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200/60 text-[#1677E8] flex items-center justify-center shrink-0 shadow-2xs">
+              <svg className="w-4 h-4 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
             <div>
-              <h1 className="text-base sm:text-lg font-bold tracking-tight text-[#111827]">
+              <h1 className="typo-page-title text-slate-900">
                 Invoice Settings
               </h1>
-              <p className="text-[11px] text-slate-500 leading-none mt-0.5">
+              <p className="typo-page-subtitle text-slate-500 mt-0.5">
                 Customize invoice appearance, theme, and details for your business.
               </p>
             </div>
@@ -717,7 +717,7 @@ export function InvoiceSettingsStudio() {
         {/* Right Action Buttons */}
         <div className="flex items-center gap-2 shrink-0">
           {saveBanner && (
-            <div className="hidden md:flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 animate-in fade-in">
+            <div className="hidden md:flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 animate-in fade-in">
               <svg className="w-3 h-3 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
               </svg>
@@ -728,7 +728,7 @@ export function InvoiceSettingsStudio() {
           <button
             type="button"
             onClick={handleRevertToOriginal}
-            className="flex items-center gap-1 rounded-lg border border-slate-200/90 bg-white hover:bg-slate-50 h-8 px-2.5 text-xs font-semibold text-slate-700 shadow-2xs transition-all active:scale-95 cursor-pointer"
+            className="flex items-center gap-1 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 hover:border-slate-300 h-8 px-2.5 text-xs font-semibold text-slate-700 shadow-2xs transition-all active:scale-95 cursor-pointer"
           >
             <svg className="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -740,7 +740,7 @@ export function InvoiceSettingsStudio() {
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="flex items-center gap-1 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] h-8 px-3.5 text-xs font-semibold text-white shadow-xs transition-all active:scale-95 disabled:opacity-60 cursor-pointer"
+            className="flex items-center gap-1 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] h-8 px-3.5 text-xs font-semibold text-white shadow-xs transition-all active:scale-95 disabled:opacity-60 cursor-pointer"
           >
             {isSaving ? (
               <>
@@ -959,7 +959,7 @@ export function InvoiceSettingsStudio() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
-                    <h3 className="text-xs font-bold text-slate-900">Invoice Theme</h3>
+                    <h3 className="typo-card-heading text-slate-900">Invoice Theme</h3>
                   </div>
 
                   {state.festiveTheme && (
@@ -1130,7 +1130,7 @@ export function InvoiceSettingsStudio() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4 4 4 0 014-4h2.586a1 1 0 00.707-.293l8.414-8.414a2 2 0 112.828 2.828l-8.414 8.414a1 1 0 00-.293.707V17a4 4 0 01-4 4H7z" />
                     </svg>
                   </div>
-                  <h3 className="text-xs font-bold text-slate-900">Color Theme</h3>
+                  <h3 className="typo-card-heading text-slate-900">Color Theme</h3>
                 </div>
 
                 {/* 8 Preset Circular Swatches (Small Circles) */}
@@ -1223,7 +1223,7 @@ export function InvoiceSettingsStudio() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                     </div>
-                    <h3 className="text-xs font-bold text-slate-900">Theme Settings</h3>
+                    <h3 className="typo-card-heading text-slate-900">Theme Settings</h3>
                   </div>
 
                   <button
@@ -1311,7 +1311,7 @@ export function InvoiceSettingsStudio() {
               {/* SECTION D: Standard Templates (Compact) */}
               <div className="rounded-xl border border-slate-200/90 bg-white p-2.5 sm:p-3 shadow-2xs space-y-2">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-800">Standard Templates</h3>
+                  <h3 className="typo-card-heading uppercase text-slate-800">Standard Templates</h3>
                   <button
                     type="button"
                     onClick={() => setShowAllThemesModal(true)}

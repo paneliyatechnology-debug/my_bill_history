@@ -539,7 +539,7 @@ export function BillScannerModal({
       setIsCameraReady(false);
       setIsCameraOpen(true);
     } else {
-      // In local LAN IP access (e.g. http://192.168.1.112:3000), browsers restrict getUserMedia.
+      // In non-secure contexts (e.g. HTTP over LAN IP), browsers restrict getUserMedia.
       // Automatically open the mobile device's native camera shutter without any error!
       if (mobileCameraInputRef.current) {
         mobileCameraInputRef.current.click();

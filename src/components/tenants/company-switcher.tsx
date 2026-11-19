@@ -138,22 +138,22 @@ export function CompanySwitcher() {
         aria-label={`Current business: ${displayName}`}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className="group flex items-center gap-2.5 h-9 px-3 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 text-left transition-all duration-150 focus:outline-none focus:ring-1 focus:ring-blue-500 max-w-[170px] sm:max-w-[260px] md:max-w-[320px] shadow-2xs select-none shrink min-w-0"
+        className="group flex items-center gap-2.5 h-10 px-3 rounded-xl border border-slate-200/90 hover:border-slate-300 bg-white hover:bg-slate-50/80 text-left transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500/20 max-w-[170px] sm:max-w-[260px] md:max-w-[320px] shadow-2xs hover:shadow-xs select-none shrink min-w-0"
       >
         {/* Blue Building / Store Icon */}
-        <div className="w-8 h-8 rounded-lg bg-[#1677E8] text-white flex items-center justify-center shrink-0 shadow-2xs">
-          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div className="w-7 h-7 rounded-lg bg-[#1677E8] text-white flex items-center justify-center shrink-0 shadow-2xs">
+          <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
           </svg>
         </div>
 
         <div className="min-w-0 flex-1 overflow-hidden">
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="block text-[13px] font-medium text-[#182230] truncate leading-tight">
+            <span className="block typo-btn-primary text-slate-800 truncate leading-tight">
               {displayName}
             </span>
           </div>
-          <p className="text-[10.5px] text-slate-500 truncate leading-tight mt-0.5">
+          <p className="typo-badge text-slate-400 truncate leading-tight mt-0.5">
             {displayCity}
           </p>
         </div>

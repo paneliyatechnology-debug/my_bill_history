@@ -628,7 +628,7 @@ export default function ExpensesPage() {
       {/* Top Header matching MyBillBook screenshot */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
         <div>
-          <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">Expenses</h1>
+          <h1 className="typo-page-title text-[#182230]">Expenses</h1>
         </div>
 
         {/* Top Right Action Buttons */}
@@ -848,13 +848,13 @@ export default function ExpensesPage() {
               <div className="absolute top-2 right-2 text-slate-400 font-bold text-sm">✕</div>
             </div>
 
-            <p className="text-sm font-semibold text-slate-500 mb-4">
+            <p className="typo-empty-heading text-slate-500 mb-4">
               No Transactions Matching the current filter
             </p>
 
             <Link
               href="/finance/expenses/create"
-              className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white font-medium text-[13px] rounded-lg shadow-sm transition-all"
+              className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white typo-btn-primary rounded-lg shadow-sm transition-all"
             >
               + Create Expense
             </Link>
@@ -864,9 +864,9 @@ export default function ExpensesPage() {
           <div className="w-full">
             {/* Desktop Table View */}
             <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
+              <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-[#EDF2F7] text-slate-600 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                  <tr className="bg-[#EDF2F7] text-slate-600 typo-table-th uppercase tracking-wider border-b border-slate-200">
                     <th
                       onClick={() => {
                         if (sortField === "date") setSortAsc(!sortAsc);

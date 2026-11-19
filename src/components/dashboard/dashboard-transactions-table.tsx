@@ -117,14 +117,14 @@ export function DashboardTransactionsTable({
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h2 className="text-sm sm:text-[15px] font-semibold text-[#182230] tracking-tight truncate">
+            <h2 className="typo-section-heading text-[#182230] truncate">
               {lang === "gu" ? "તાજેતરના વ્યવહારો" : "Recent Transactions"}
             </h2>
           </div>
 
           <Link
             href="/app/home/vouchers/all_transactions"
-            className="text-xs font-bold text-[#1677E8] hover:text-[#125CC0] flex items-center gap-1 group transition-colors shrink-0"
+            className="typo-btn-secondary text-[#1677E8] hover:text-[#125CC0] flex items-center gap-1 group transition-colors shrink-0"
           >
             <span>{lang === "gu" ? "બધા વ્યવહારો જુઓ" : "View All Transactions"}</span>
             <span className="group-hover:translate-x-0.5 transition-transform">→</span>
@@ -133,9 +133,9 @@ export function DashboardTransactionsTable({
 
         {/* Transactions Table: fully responsive with smooth horizontal scroll */}
         <div className="overflow-x-auto min-h-[260px] scrollbar-thin scrollbar-thumb-slate-200">
-          <table className="w-full min-w-[580px] text-left text-xs border-collapse">
+          <table className="w-full min-w-[580px] text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-100 bg-[#FAFBFD] text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <tr className="border-b border-slate-100 bg-[#FAFBFD] typo-table-th text-slate-500 uppercase tracking-wider">
                 <th className="px-4 sm:px-5 py-3 whitespace-nowrap">{lang === "gu" ? "તારીખ" : "Date"}</th>
                 <th className="px-3 sm:px-4 py-3 whitespace-nowrap">{lang === "gu" ? "પ્રકાર" : "Type"}</th>
                 <th className="px-3 sm:px-4 py-3 whitespace-nowrap">{lang === "gu" ? "વાઉચર #" : "Voucher No."}</th>
@@ -158,7 +158,7 @@ export function DashboardTransactionsTable({
                 ))
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center text-[13px] text-slate-400">
+                  <td colSpan={6} className="px-5 py-12 text-center typo-empty-desc text-slate-400">
                     {lang === "gu" ? "હજુ કોઈ વ્યવહાર નથી." : "No transactions yet."}
                   </td>
                 </tr>
@@ -174,36 +174,36 @@ export function DashboardTransactionsTable({
                       className="hover:bg-slate-50/70 transition-colors cursor-pointer group"
                     >
                       {/* Date */}
-                      <td className="px-4 sm:px-5 py-3 sm:py-3.5 text-slate-600 font-medium whitespace-nowrap">
+                      <td className="px-4 sm:px-5 py-3 sm:py-3.5 typo-table-td text-slate-600 whitespace-nowrap">
                         {row.date}
                       </td>
 
                       {/* Type - Clean text without background */}
-                      <td className="px-3 sm:px-4 py-3 sm:py-3.5 whitespace-nowrap text-xs font-medium text-slate-700">
+                      <td className="px-3 sm:px-4 py-3 sm:py-3.5 whitespace-nowrap typo-table-td text-slate-700">
                         {typeLabel}
                       </td>
 
-                      {/* Voucher No. */}
-                      <td className="px-3 sm:px-4 py-3 sm:py-3.5 font-medium text-slate-700 whitespace-nowrap group-hover:text-[#1677E8] transition-colors">
+                      {/* Voucher No. (IBM Plex Mono) */}
+                      <td className="px-3 sm:px-4 py-3 sm:py-3.5 typo-invoice-no text-slate-700 whitespace-nowrap group-hover:text-[#1677E8] transition-colors">
                         {row.txnNo}
                       </td>
 
                       {/* Party */}
                       <td
-                        className="px-4 sm:px-5 py-3 sm:py-3.5 font-semibold text-slate-900 max-w-[130px] sm:max-w-[200px] truncate whitespace-nowrap"
+                        className="px-4 sm:px-5 py-3 sm:py-3.5 typo-table-td font-medium text-slate-900 max-w-[130px] sm:max-w-[200px] truncate whitespace-nowrap"
                         title={row.partyName}
                       >
                         {row.partyName}
                       </td>
 
                       {/* Amount */}
-                      <td className="px-4 sm:px-5 py-3 sm:py-3.5 text-right bb-amount text-[13px] font-semibold text-[#182230] whitespace-nowrap tabular-nums">
+                      <td className="px-4 sm:px-5 py-3 sm:py-3.5 text-right typo-table-amount text-[#182230] whitespace-nowrap tabular-nums">
                         {formatInr(row.amount)}
                       </td>
 
                       {/* Status - Clean typography with subtle dot, NO background color */}
                       <td className="px-4 sm:px-5 py-3 sm:py-3.5 text-center whitespace-nowrap">
-                        <span className={`inline-flex items-center justify-center gap-1.5 text-xs font-semibold ${statusInfo.textColor}`}>
+                        <span className={`inline-flex items-center justify-center gap-1.5 typo-badge ${statusInfo.textColor}`}>
                           <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusInfo.dotColor}`} />
                           <span>{statusInfo.label}</span>
                         </span>

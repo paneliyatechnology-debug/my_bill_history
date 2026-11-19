@@ -209,13 +209,13 @@ function NewVoucherForm() {
             </Link>
           </div>
           <div className="flex items-center gap-2">
-            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
+            <h1 className="typo-page-title text-[#182230]">
               {lang === "gu"
                 ? "દ્વિનોંધી નામા વાઉચર લખો (New Double-Entry Voucher)"
                 : "Record New Journal / Voucher"}
             </h1>
           </div>
-          <p className="text-xs text-muted mt-1">
+          <p className="typo-page-subtitle text-muted mt-1">
             {lang === "gu"
               ? "ઉધાર અને જમા સરખા હોવા આવશ્યક છે (Total Debits == Total Credits)"
               : "Strict double-entry accounting invariants enforced on client and authoritative server"}
@@ -234,13 +234,13 @@ function NewVoucherForm() {
         {/* Voucher Meta Card */}
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div>
-            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
+            <label className="block typo-label text-slate-700 uppercase mb-1">
               Voucher Type *
             </label>
             <select
               value={voucherType}
               onChange={(e: any) => setVoucherType(e.target.value)}
-              className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-lg font-normal text-slate-900 focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
+              className="w-full typo-input p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
             >
               <option value="JOURNAL">{lang === "gu" ? "જર્નલ નોંધ (JOURNAL)" : "JOURNAL"}</option>
               <option value="RECEIPT">{lang === "gu" ? "પહોંચ / આવક (RECEIPT)" : "RECEIPT"}</option>
@@ -250,7 +250,7 @@ function NewVoucherForm() {
           </div>
 
           <div>
-            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
+            <label className="block typo-label text-slate-700 uppercase mb-1">
               Voucher Number *
             </label>
             <input
@@ -258,12 +258,12 @@ function NewVoucherForm() {
               required
               value={voucherNumber}
               onChange={(e) => setVoucherNumber(e.target.value)}
-              className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-lg tabular-nums font-normal text-slate-900 focus:bg-white h-10"
+              className="w-full typo-invoice-no p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:bg-white h-10"
             />
           </div>
 
           <div>
-            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
+            <label className="block typo-label text-slate-700 uppercase mb-1">
               Voucher Date *
             </label>
             <input
@@ -271,12 +271,12 @@ function NewVoucherForm() {
               required
               value={voucherDate}
               onChange={(e) => setVoucherDate(e.target.value)}
-              className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-lg tabular-nums text-slate-900 focus:bg-white h-10"
+              className="w-full typo-input p-2.5 bg-slate-50 border border-slate-300 rounded-lg tabular-nums text-slate-900 focus:bg-white h-10"
             />
           </div>
 
           <div>
-            <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
+            <label className="block typo-label text-slate-700 uppercase mb-1">
               Reference / Cheque No.
             </label>
             <input
@@ -284,7 +284,7 @@ function NewVoucherForm() {
               value={referenceNo}
               onChange={(e) => setReferenceNo(e.target.value)}
               placeholder="CHQ-991202"
-              className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-lg tabular-nums text-slate-900 focus:bg-white h-10"
+              className="w-full typo-input p-2.5 bg-slate-50 border border-slate-300 rounded-lg tabular-nums text-slate-900 focus:bg-white h-10"
             />
           </div>
         </div>
@@ -292,7 +292,7 @@ function NewVoucherForm() {
         {/* Journal Lines Table */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-            <h2 className="text-xs font-semibold text-[#182230] uppercase tracking-wider">
+            <h2 className="typo-form-section text-[#182230] uppercase tracking-wider">
               {lang === "gu"
                 ? "નામા લાઈનો (Journal Lines)"
                 : "Journal Lines (Double-Entry Debit / Credit)"}
@@ -300,7 +300,7 @@ function NewVoucherForm() {
             <button
               type="button"
               onClick={handleAddLine}
-              className="text-[13px] text-emerald-700 hover:text-emerald-800 font-medium flex items-center gap-1 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200"
+              className="typo-btn-secondary text-emerald-700 hover:text-emerald-800 flex items-center gap-1 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200"
             >
               <span>+ Add Row</span>
             </button>
@@ -309,7 +309,7 @@ function NewVoucherForm() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold">
+                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 typo-table-th uppercase tracking-wider">
                   <th className="py-2.5 px-3 w-10">#</th>
                   <th className="py-2.5 px-3 w-64">
                     {lang === "gu" ? "ખાતું" : "Ledger Account"}

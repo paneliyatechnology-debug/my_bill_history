@@ -52,10 +52,10 @@ export function StatCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1 min-w-0 flex-1">
-          <p className="text-xs font-semibold text-[#667085] uppercase tracking-wider truncate">
+          <p className="typo-card-heading text-[#667085] uppercase tracking-wider truncate">
             {isGu && titleGujarati ? titleGujarati : title}
           </p>
-          <div className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-[#202124] tabular-nums truncate">
+          <div className="typo-kpi text-[#202124] truncate">
             {value}
           </div>
         </div>
@@ -67,7 +67,7 @@ export function StatCard({
       </div>
 
       {(subtext || trend) && (
-        <div className="mt-3 flex items-center justify-between text-xs text-[#667085] pt-2 border-t border-[#E5E7EB] min-w-0 flex-wrap gap-1">
+        <div className="mt-3 flex items-center justify-between typo-card-desc pt-2 border-t border-[#E5E7EB] min-w-0 flex-wrap gap-1">
           {subtext && <span className="truncate">{subtext}</span>}
           {trend && (
             <span

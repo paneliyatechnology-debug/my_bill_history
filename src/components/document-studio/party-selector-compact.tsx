@@ -70,11 +70,11 @@ export function PartySelectorCompact({
         /* Selected Party Chip */
         <div className="flex items-center justify-between py-1.5 px-2.5 bg-[#F8FAFC] border border-[#93C5FD]/60 rounded-xl shadow-2xs">
           <div className="min-w-0 pr-1">
-            <p className="text-xs font-bold text-[#0F172A] truncate">
+            <p className="typo-label font-semibold text-[#0F172A] truncate">
               {selectedParty.name}
             </p>
             {(selectedParty.phone || selectedParty.gstin) && (
-              <p className="text-[10px] text-slate-500 tabular-nums truncate">
+              <p className="typo-card-desc typo-tabular text-slate-500 truncate">
                 {selectedParty.gstin ? `GST: ${selectedParty.gstin}` : selectedParty.phone}
               </p>
             )}
@@ -106,7 +106,7 @@ export function PartySelectorCompact({
               }}
               onFocus={() => onOpenChange(true)}
               placeholder={placeholder}
-              className="w-full py-1 pl-6 pr-1 text-xs font-normal bg-white border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 placeholder:text-[11px] focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs h-8.5"
+              className="w-full py-1 pl-6 pr-1 typo-input bg-white border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 placeholder:text-[11px] focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs h-8.5"
             />
           </div>
 
@@ -128,7 +128,7 @@ export function PartySelectorCompact({
       {/* Autocomplete Dropdown */}
       {isOpen && !selectedParty && (
         <div className="absolute left-0 top-full mt-1.5 w-72 sm:w-80 z-50 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden max-h-64 flex flex-col animate-in fade-in slide-in-from-top-1">
-          <div className="p-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+          <div className="p-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between typo-badge font-semibold text-slate-500 uppercase tracking-wider">
             <span>Select Party</span>
             {onAddNew && (
               <button
@@ -142,7 +142,7 @@ export function PartySelectorCompact({
                   onOpenChange(false);
                   onAddNew();
                 }}
-                className="text-[#0F172A] hover:underline font-bold"
+                className="text-[#0F172A] hover:underline font-semibold"
               >
                 + Add New
               </button>
@@ -150,7 +150,7 @@ export function PartySelectorCompact({
           </div>
           <div className="overflow-y-auto divide-y divide-slate-100 flex-1">
             {filteredParties.length === 0 ? (
-              <div className="p-3 text-center text-xs text-slate-500">
+              <div className="p-3 text-center typo-card-desc text-slate-500">
                 <p>No matches found</p>
                 {onAddNew && (
                   <button
@@ -164,7 +164,7 @@ export function PartySelectorCompact({
                       onOpenChange(false);
                       onAddNew();
                     }}
-                    className="mt-1 text-xs text-[#0F172A] font-bold hover:underline"
+                    className="mt-1 text-xs text-[#0F172A] font-semibold hover:underline"
                   >
                     Create &quot;{searchTerm}&quot;
                   </button>
@@ -186,13 +186,13 @@ export function PartySelectorCompact({
                   className="p-2.5 hover:bg-[#F8FAFC] cursor-pointer transition-colors text-xs flex items-center justify-between"
                 >
                   <div className="min-w-0 pr-2">
-                    <p className="font-bold text-slate-900 truncate">{p.name}</p>
-                    <p className="text-[10px] text-slate-500 tabular-nums truncate">
+                    <p className="font-semibold text-slate-900 truncate">{p.name}</p>
+                    <p className="text-[10px] text-slate-500 typo-tabular truncate">
                       {p.phone || p.gstin || "No contact info"}
                     </p>
                   </div>
                   {p.outstandingBalance !== undefined && p.outstandingBalance !== 0 && (
-                    <span className="text-[10px] tabular-nums font-bold text-slate-600 shrink-0">
+                    <span className="typo-table-amount text-slate-600 shrink-0">
                       ₹{p.outstandingBalance.toFixed(0)}
                     </span>
                   )}

@@ -9,8 +9,8 @@ export function DocumentInfoStrip({ fields }: DocumentInfoStripProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 items-end">
         {fields.map((field) => (
           <div key={field.id} className="space-y-1 min-w-0">
-            <label className="block text-[11px] font-medium text-slate-700 tracking-wide truncate">
-              {field.label} {field.required && <span className="text-rose-500 font-bold">*</span>}
+            <label className="block typo-label text-slate-700 truncate">
+              {field.label} {field.required && <span className="text-rose-500 font-semibold">*</span>}
             </label>
 
             {field.customRender ? (
@@ -20,7 +20,7 @@ export function DocumentInfoStrip({ fields }: DocumentInfoStripProps) {
                 <select
                   value={field.value ?? ""}
                   onChange={(e) => field.onChange?.(e.target.value)}
-                  className="w-full py-1 px-2 text-xs font-normal bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs appearance-none pr-6 cursor-pointer h-8.5 truncate"
+                  className="w-full py-1 px-2 typo-input bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs appearance-none pr-6 cursor-pointer h-8.5 truncate"
                 >
                   {field.placeholder && <option value="">{field.placeholder}</option>}
                   {field.options?.map((opt) => (
@@ -41,7 +41,7 @@ export function DocumentInfoStrip({ fields }: DocumentInfoStripProps) {
                   type="date"
                   value={field.value ?? ""}
                   onChange={(e) => field.onChange?.(e.target.value)}
-                  className="w-full py-1 px-1.5 text-[11px] sm:text-xs tabular-nums font-normal bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs cursor-pointer h-8.5"
+                  className="w-full py-1 px-1.5 typo-input tabular-nums bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs cursor-pointer h-8.5"
                 />
               </div>
             ) : (
@@ -50,7 +50,7 @@ export function DocumentInfoStrip({ fields }: DocumentInfoStripProps) {
                 value={field.value ?? ""}
                 onChange={(e) => field.onChange?.(e.target.value)}
                 placeholder={field.placeholder}
-                className="w-full py-1 px-2 text-xs font-normal bg-white border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 placeholder:text-[11px] focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs h-8.5 truncate"
+                className="w-full py-1 px-2 typo-input bg-white border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 placeholder:text-[11px] focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs h-8.5 truncate"
               />
             )}
           </div>

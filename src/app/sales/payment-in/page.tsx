@@ -448,16 +448,16 @@ export default function PaymentInPage() {
         {/* Left: Module identity & title */}
         <div>
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#1677E8]">
+            <span className="typo-badge font-semibold uppercase tracking-widest text-[#1677E8]">
               {lang === "gu" ? "રોકડ અને બેંક જમા (CASH & BANK)" : "RECEIPTS & CASH INFLOW"}
             </span>
             <span className="text-slate-300">•</span>
-            <span className="text-[10px] font-bold text-slate-500 tabular-nums">
+            <span className="typo-badge font-semibold text-slate-500 typo-tabular">
               {displayedRows.length} {lang === "gu" ? "રસીદો" : "Receipts"}
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
+            <h1 className="typo-page-title text-[#182230]">
               {lang === "gu" ? "આવક ચૂકવણી (Payment In)" : "Payment In Receipts"}
             </h1>
             <button
@@ -479,7 +479,7 @@ export default function PaymentInPage() {
             type="button"
             onClick={handleExportCsv}
             disabled={displayedRows.length === 0}
-            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#E2E8F0] bg-white text-[13px] font-medium text-[#182230] hover:bg-[#F8FAFC] hover:border-[#93C5FD] disabled:opacity-50 transition-colors shadow-2xs"
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#E2E8F0] bg-white typo-btn-secondary text-[#182230] hover:bg-[#F8FAFC] hover:border-[#93C5FD] disabled:opacity-50 transition-colors shadow-2xs"
             title="Export to CSV"
           >
             <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -491,7 +491,7 @@ export default function PaymentInPage() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#E2E8F0] bg-white text-[13px] font-medium text-[#182230] hover:bg-[#F8FAFC] hover:border-[#93C5FD] transition-colors shadow-2xs"
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#E2E8F0] bg-white typo-btn-secondary text-[#182230] hover:bg-[#F8FAFC] hover:border-[#93C5FD] transition-colors shadow-2xs"
             title="Print Ledger"
           >
             <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -502,7 +502,7 @@ export default function PaymentInPage() {
 
           <Link
             href="/sales/payment-in/new"
-            className="inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium shadow-md shadow-[#0F172A]/20 hover:shadow-lg hover:shadow-[#0F172A]/30 transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white typo-btn-primary shadow-md shadow-[#0F172A]/20 hover:shadow-lg hover:shadow-[#0F172A]/30 transition-all cursor-pointer"
           >
             <svg className="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -661,27 +661,27 @@ export default function PaymentInPage() {
       <div className="overflow-visible rounded-2xl border border-[#E2E8E5] bg-white shadow-xs">
         <div className="overflow-x-auto overflow-y-visible">
           <table className="min-w-full text-left text-xs border-collapse">
-            <thead className="bg-[#F8FAF9] border-b border-[#E2E8E5] text-[#5A6B66] font-semibold uppercase tracking-wider text-[11px]">
+            <thead className="bg-[#F8FAF9] border-b border-[#E2E8E5] text-[#5A6B66] typo-table-th uppercase tracking-wider">
               <tr>
-                <th className="px-4 py-3.5 whitespace-nowrap font-medium">
+                <th className="px-4 py-3.5 whitespace-nowrap">
                   <div className="flex items-center gap-1">
                     <span>{lang === "gu" ? "તારીખ" : "Date"}</span>
                     <span className="text-slate-300 text-[10px]">⇅</span>
                   </div>
                 </th>
-                <th className="px-4 py-3.5 whitespace-nowrap font-medium">{lang === "gu" ? "વાઉચર / રસીદ નંબર" : "Voucher / Receipt No"}</th>
-                <th className="px-4 py-3.5 whitespace-nowrap font-medium">{lang === "gu" ? "પાર્ટી નામ" : "Customer / Party Name"}</th>
-                <th className="px-4 py-3.5 text-right whitespace-nowrap font-medium">{lang === "gu" ? "સેટલ રકમ" : "Settled on Bills"}</th>
-                <th className="px-4 py-3.5 text-right whitespace-nowrap font-medium">{lang === "gu" ? "મળેલી રકમ" : "Total Inflow"}</th>
-                <th className="px-4 py-3.5 whitespace-nowrap font-medium">{lang === "gu" ? "ચુકવણી પદ્ધતિ" : "Payment Mode"}</th>
-                <th className="px-4 py-3.5 text-center whitespace-nowrap font-medium">Status</th>
-                <th className="px-4 py-3.5 w-10 text-center whitespace-nowrap font-medium">Actions</th>
+                <th className="px-4 py-3.5 whitespace-nowrap">{lang === "gu" ? "વાઉચર / રસીદ નંબર" : "Voucher / Receipt No"}</th>
+                <th className="px-4 py-3.5 whitespace-nowrap">{lang === "gu" ? "પાર્ટી નામ" : "Customer / Party Name"}</th>
+                <th className="px-4 py-3.5 text-right whitespace-nowrap">{lang === "gu" ? "સેટલ રકમ" : "Settled on Bills"}</th>
+                <th className="px-4 py-3.5 text-right whitespace-nowrap">{lang === "gu" ? "મળેલી રકમ" : "Total Inflow"}</th>
+                <th className="px-4 py-3.5 whitespace-nowrap">{lang === "gu" ? "ચુકવણી પદ્ધતિ" : "Payment Mode"}</th>
+                <th className="px-4 py-3.5 text-center whitespace-nowrap">Status</th>
+                <th className="px-4 py-3.5 w-10 text-center whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E8E5]">
               {isLoading && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-16 text-center text-[13px] text-[#5A6B66]">
+                  <td colSpan={8} className="px-4 py-16 text-center typo-card-desc text-[#5A6B66]">
                     <div className="flex items-center justify-center gap-2">
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#1677E8] border-t-transparent" />
                       <span>{lang === "gu" ? "લોડ થઈ રહ્યું છે..." : "Loading receipts..."}</span>
@@ -700,17 +700,17 @@ export default function PaymentInPage() {
                           <line x1="2" y1="10" x2="22" y2="10" />
                         </svg>
                       </div>
-                      <p className="text-base font-bold text-[#1A2E2B]">
+                      <p className="typo-empty-heading text-[#1A2E2B]">
                         {lang === "gu" ? "કોઈ ચુકવણી રેકોર્ડ મળી નથી." : "No payment receipts found"}
                       </p>
-                      <p className="text-xs text-slate-500 mt-1">
+                      <p className="typo-empty-desc text-slate-500 mt-1">
                         {searchQuery
-                          ? "No transactions matched your current search filters."
+                           ? "No transactions matched your current search filters."
                           : "Record incoming customer payments to clear sales invoices and track your cash inflow."}
                       </p>
                       <Link
                         href="/sales/payment-in/new"
-                        className="mt-4 rounded-xl bg-[#0F172A] h-9 px-3 text-[13px] font-medium text-white shadow-blue-500/20 hover:bg-[#1268D3] transition-colors"
+                        className="mt-4 rounded-xl bg-[#0F172A] h-9 px-3 typo-btn-primary text-white shadow-blue-500/20 hover:bg-[#1268D3] transition-colors"
                       >
                         {lang === "gu" ? "+ નવી આવક ચૂકવણી" : "+ Record Payment In"}
                       </Link>
@@ -729,7 +729,7 @@ export default function PaymentInPage() {
                     }`}
                   >
                     {/* Date */}
-                    <td className="px-4 py-3 text-[#182230] whitespace-nowrap font-medium text-[13px]">
+                    <td className="px-4 py-3 text-[#182230] whitespace-nowrap typo-table-td">
                       {formatPaymentDate(row.paymentDate)}
                     </td>
 
@@ -737,7 +737,7 @@ export default function PaymentInPage() {
                     <td className="px-4 py-3 whitespace-nowrap">
                       <button
                         type="button"
-                        className="text-[#0F172A] hover:text-[#1677E8] hover:underline transition-colors tabular-nums font-bold text-xs"
+                        className="text-[#0F172A] hover:text-[#1677E8] hover:underline transition-colors typo-invoice-no"
                         onClick={() => router.push(`/sales/payment-in/${row.id}`)}
                       >
                         {row.paymentNumber || row.voucherNumber || "RCPT"}
@@ -745,7 +745,7 @@ export default function PaymentInPage() {
                     </td>
 
                     {/* Party Name */}
-                    <td className="px-4 py-3 font-semibold text-[#182230] whitespace-nowrap">
+                    <td className="px-4 py-3 font-semibold text-[#182230] whitespace-nowrap typo-table-td">
                       {row.partyId ? (
                         <Link
                           href={`/parties/${row.partyId}`}
@@ -760,12 +760,12 @@ export default function PaymentInPage() {
                     </td>
 
                     {/* Total Settled */}
-                    <td className="px-4 py-3 text-right font-medium text-slate-600 whitespace-nowrap tabular-nums">
+                    <td className="px-4 py-3 text-right typo-table-amount text-slate-600 whitespace-nowrap">
                       {formatInr(row.totalSettled)}
                     </td>
 
                     {/* Total Inflow Received */}
-                    <td className="px-4 py-3 text-right font-medium text-[#182230] whitespace-nowrap tabular-nums text-[13px]">
+                    <td className="px-4 py-3 text-right typo-table-amount text-[#182230] whitespace-nowrap">
                       {formatInr(row.amountReceived)}
                     </td>
 

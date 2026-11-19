@@ -631,8 +631,8 @@ export default function SharedLedgerPage() {
             {/* Header Row */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-[22px] font-semibold text-[#182230]">SharedLedger</h1>
-                <div className="mt-1 flex items-center gap-2 text-xs font-medium text-slate-600">
+                <h1 className="typo-page-title text-[#182230]">SharedLedger</h1>
+                <div className="mt-1 flex items-center gap-2 typo-page-subtitle text-slate-600">
                   <svg
                     className="h-4 w-4 text-slate-700"
                     fill="none"

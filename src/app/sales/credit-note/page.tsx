@@ -283,16 +283,16 @@ function CreditNoteListPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:px-6 sm:py-3.5 rounded-2xl border border-[#E2E8E5] shadow-xs">
         <div>
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#1677E8]">
+            <span className="typo-badge font-semibold uppercase tracking-widest text-[#1677E8]">
               {lang === "gu" ? "વેચાણ અને ક્રેડિટ એડજસ્ટમેન્ટ" : "SALES & CREDIT ADJUSTMENTS"}
             </span>
             <span className="text-slate-300">•</span>
-            <span className="text-[10px] font-bold text-slate-500 tabular-nums">
+            <span className="typo-badge font-semibold text-slate-500 typo-tabular">
               {displayedRows.length} {lang === "gu" ? "રેકોર્ડ" : "Records"}
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
+            <h1 className="typo-page-title text-[#182230]">
               {lang === "gu" ? "ક્રેડિટ નોટ રજિસ્ટર (Credit Notes)" : "Credit Notes Register"}
             </h1>
             <button
@@ -313,7 +313,7 @@ function CreditNoteListPage() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#E2E8F0] bg-white text-[13px] font-medium text-[#182230] hover:bg-[#F8FAFC] transition-colors shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#E2E8F0] bg-white typo-btn-secondary text-[#182230] hover:bg-[#F8FAFC] transition-colors shadow-2xs cursor-pointer"
           >
             <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -323,7 +323,7 @@ function CreditNoteListPage() {
 
           <Link
             href="/sales/credit-note/create"
-            className="inline-flex items-center gap-2 h-9 px-3.5 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium shadow-md shadow-[#0F172A]/20 transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 h-9 px-3.5 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white typo-btn-primary shadow-md shadow-[#0F172A]/20 transition-all cursor-pointer"
           >
             <svg className="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -423,24 +423,24 @@ function CreditNoteListPage() {
       <div className="overflow-visible rounded-2xl border border-[#E2E8E5] bg-white shadow-xs">
         <div className="overflow-x-auto overflow-y-visible">
           <table className="min-w-full text-left text-xs border-collapse">
-            <thead className="bg-[#F8FAF9] border-b border-[#E2E8E5] text-[#5A6B66] font-semibold uppercase tracking-wider text-[11px]">
+            <thead className="bg-[#F8FAF9] border-b border-[#E2E8E5] text-[#5A6B66] typo-table-th uppercase tracking-wider">
               <tr>
-                <th className="px-4 py-3.5 whitespace-nowrap font-medium">Date</th>
-                <th className="px-4 py-3.5 whitespace-nowrap font-medium">Credit Note #</th>
-                <th className="px-4 py-3.5 whitespace-nowrap font-medium">Customer Name</th>
-                <th className="px-4 py-3.5 whitespace-nowrap font-medium">Original Invoice</th>
-                <th className="px-4 py-3.5 whitespace-nowrap font-medium">Type & Category</th>
-                <th className="px-4 py-3.5 text-right whitespace-nowrap font-medium">Taxable Amount</th>
-                <th className="px-4 py-3.5 text-right whitespace-nowrap font-medium">GST Tax</th>
-                <th className="px-4 py-3.5 text-right whitespace-nowrap font-medium">Credit Total</th>
-                <th className="px-4 py-3.5 text-center whitespace-nowrap font-medium">Status</th>
-                <th className="px-4 py-3.5 text-right whitespace-nowrap font-medium">Actions</th>
+                <th className="px-4 py-3.5 whitespace-nowrap">Date</th>
+                <th className="px-4 py-3.5 whitespace-nowrap">Credit Note #</th>
+                <th className="px-4 py-3.5 whitespace-nowrap">Customer Name</th>
+                <th className="px-4 py-3.5 whitespace-nowrap">Original Invoice</th>
+                <th className="px-4 py-3.5 whitespace-nowrap">Type & Category</th>
+                <th className="px-4 py-3.5 text-right whitespace-nowrap">Taxable Amount</th>
+                <th className="px-4 py-3.5 text-right whitespace-nowrap">GST Tax</th>
+                <th className="px-4 py-3.5 text-right whitespace-nowrap">Credit Total</th>
+                <th className="px-4 py-3.5 text-center whitespace-nowrap">Status</th>
+                <th className="px-4 py-3.5 text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E8E5]">
               {isLoading && (
                 <tr>
-                  <td colSpan={10} className="px-4 py-16 text-center text-[13px] text-[#5A6B66]">
+                  <td colSpan={10} className="px-4 py-16 text-center typo-card-desc text-[#5A6B66]">
                     <div className="flex items-center justify-center gap-2">
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#1677E8] border-t-transparent" />
                       <span>Loading credit notes...</span>
@@ -458,15 +458,15 @@ function CreditNoteListPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                       </div>
-                      <p className="text-base font-bold text-[#1A2E2B]">
+                      <p className="typo-empty-heading text-[#1A2E2B]">
                         {lang === "gu" ? "કોઈ ક્રેડિટ નોટ મળી નથી." : "No credit notes found"}
                       </p>
-                      <p className="text-xs text-slate-500 mt-1">
+                      <p className="typo-empty-desc text-slate-500 mt-1">
                         Issue financial adjustments, Section 34 tax credits, or post-sale rebates.
                       </p>
                       <Link
                         href="/sales/credit-note/create"
-                        className="mt-4 rounded-xl bg-[#1677E8] h-9 px-3.5 text-[13px] font-medium text-white shadow-xs hover:bg-[#1268D3] transition-colors"
+                        className="mt-4 rounded-xl bg-[#1677E8] h-9 px-3.5 typo-btn-primary text-white shadow-xs hover:bg-[#1268D3] transition-colors"
                       >
                         + Create Credit Note
                       </Link>
@@ -489,32 +489,32 @@ function CreditNoteListPage() {
                         row.status === "CANCELLED" ? "opacity-60 bg-slate-50/50" : ""
                       }`}
                     >
-                      <td className="px-4 py-3 whitespace-nowrap text-[13px] text-slate-800 font-medium">
+                      <td className="px-4 py-3 whitespace-nowrap typo-table-td text-slate-800">
                         {formatDisplayDate(row.returnDate)}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="tabular-nums font-bold text-[#0F172A] hover:text-[#1677E8] text-xs">
+                        <span className="typo-invoice-no text-[#0F172A] hover:text-[#1677E8]">
                           {row.returnNumber}
                         </span>
                         {row.linkedReturnId && (
-                          <span className="ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200" title="Linked to Physical Sales Return">
+                          <span className="ml-1.5 px-1.5 py-0.5 rounded typo-badge font-semibold bg-amber-50 text-amber-700 border border-amber-200" title="Linked to Physical Sales Return">
                             Return Linked
                           </span>
                         )}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="font-semibold text-slate-900 text-xs">
+                        <div className="font-semibold text-slate-900 typo-table-td">
                           {row.party?.name || "Customer"}
                         </div>
                         {row.party?.phone && (
-                          <div className="text-[10px] text-slate-400 tabular-nums">
+                          <div className="typo-card-desc typo-tabular text-slate-400">
                             {row.party.phone}
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-xs">
+                      <td className="px-4 py-3 whitespace-nowrap typo-card-desc">
                         {row.salesInvoice?.invoiceNumber ? (
-                          <span className="tabular-nums font-medium text-slate-800">
+                          <span className="typo-invoice-no text-slate-800">
                             #{row.salesInvoice.invoiceNumber}
                           </span>
                         ) : (
@@ -524,7 +524,7 @@ function CreditNoteListPage() {
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex flex-col gap-0.5">
                           <span
-                            className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                            className={`inline-block px-1.5 py-0.5 rounded typo-badge font-semibold ${
                               row.creditNoteType === "AMOUNT_BASED"
                                 ? "bg-purple-50 text-purple-700 border border-purple-200"
                                 : "bg-blue-50 text-blue-700 border border-blue-200"
@@ -533,7 +533,7 @@ function CreditNoteListPage() {
                             {row.creditNoteType === "AMOUNT_BASED" ? "Amount-Based" : "Item-Based"}
                           </span>
                           <span
-                            className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                            className={`inline-block px-1.5 py-0.5 rounded typo-badge font-semibold ${
                               isCommercial
                                 ? "bg-orange-50 text-orange-700 border border-orange-200"
                                 : "bg-emerald-50 text-emerald-700 border border-emerald-200"
@@ -543,30 +543,30 @@ function CreditNoteListPage() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-right font-medium text-slate-800 tabular-nums text-[13px]">
+                      <td className="px-4 py-3 text-right typo-table-amount text-slate-800">
                         {formatInr(row.taxableAmount)}
                       </td>
-                      <td className="px-4 py-3 text-right font-medium tabular-nums text-[13px]">
+                      <td className="px-4 py-3 text-right typo-table-amount">
                         {isCommercial ? (
                           <span className="text-slate-400 text-[11px]">— Commercial —</span>
                         ) : (
                           <span className="text-emerald-700 font-semibold">{formatInr(tax)}</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-right font-bold text-slate-900 tabular-nums text-[13px]">
+                      <td className="px-4 py-3 text-right typo-table-amount text-slate-900">
                         {formatInr(row.grandTotal)}
                       </td>
                       <td className="px-4 py-3 text-center whitespace-nowrap">
                         {isSettled ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full typo-badge font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                             Settled
                           </span>
                         ) : row.status === "CANCELLED" ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full typo-badge font-semibold bg-slate-100 text-slate-600 border border-slate-200">
                             Void
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full typo-badge font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                             <span>Open Credit</span>
                           </span>

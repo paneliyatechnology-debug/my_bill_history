@@ -162,13 +162,13 @@ export default function ChartOfAccountsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
+            <h1 className="typo-page-title text-[#182230]">
               {lang === "gu"
                 ? "ખાતાવહી માળખું (Chart of Accounts)"
                 : "Chart of Accounts (COA)"}
             </h1>
           </div>
-          <p className="text-xs text-muted mt-1">
+          <p className="typo-page-subtitle text-muted mt-1">
             {lang === "gu"
               ? "મિલકતો, દેવા, આવક અને ખર્ચના ખાતા જૂથો"
               : "Standard double-entry accounting hierarchy: Assets, Liabilities, Equity, Revenue, Expenses"}
@@ -179,7 +179,7 @@ export default function ChartOfAccountsPage() {
           <button
             onClick={handleSeedStandard}
             disabled={seeding}
-            className="inline-flex items-center gap-2 h-9 px-3.5 bg-saffron-light hover:bg-[#FFE6D0] text-primary border border-primary/25 text-[13px] font-medium rounded-xl transition-all shadow-sm"
+            className="inline-flex items-center gap-2 h-9 px-3.5 bg-saffron-light hover:bg-[#FFE6D0] text-primary border border-primary/25 typo-btn-secondary rounded-xl transition-all shadow-sm"
           >
             {seeding ? (
               <span className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -204,7 +204,7 @@ export default function ChartOfAccountsPage() {
               setFormError(null);
               setIsModalOpen(true);
             }}
-            className="inline-flex items-center gap-2 h-9 px-3.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white text-[13px] font-medium rounded-xl shadow-card hover:shadow-hover transition-all"
+            className="inline-flex items-center gap-2 h-9 px-3.5 bg-primary hover:bg-primary-hover active:bg-primary-pressed text-white typo-btn-primary rounded-xl shadow-card hover:shadow-hover transition-all"
           >
             <svg
               className="w-4 h-4"

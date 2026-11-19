@@ -1279,7 +1279,7 @@ export default function PosTerminalPage() {
 
         {/* Center Title */}
         <div className="flex items-center gap-2">
-          <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight leading-tight">
+          <h1 className="typo-page-title text-[#182230] leading-tight">
             POS Billing
           </h1>
         </div>

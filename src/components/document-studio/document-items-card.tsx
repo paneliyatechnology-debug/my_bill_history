@@ -26,10 +26,10 @@ export function DocumentItemsCard({
             </svg>
           </div>
           <div>
-            <h2 className="text-sm sm:text-[15px] font-semibold text-[#182230] tracking-tight">
+            <h2 className="typo-form-section text-[#182230]">
               {title}
             </h2>
-            <p className="text-[11px] text-slate-500 font-medium">
+            <p className="typo-card-desc text-slate-500">
               {itemsCount} {itemsCount === 1 ? "line item" : "line items"} added
             </p>
           </div>
@@ -41,7 +41,7 @@ export function DocumentItemsCard({
             <button
               type="button"
               onClick={onScanItem}
-              className="inline-flex items-center gap-1.5 h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 rounded-xl text-[13px] font-medium shadow-2xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 rounded-xl typo-btn-secondary shadow-2xs transition-colors cursor-pointer"
             >
               <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
@@ -54,7 +54,7 @@ export function DocumentItemsCard({
             <button
               type="button"
               onClick={onImportItems}
-              className="inline-flex items-center gap-1.5 h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 rounded-xl text-[13px] font-medium shadow-2xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 rounded-xl typo-btn-secondary shadow-2xs transition-colors cursor-pointer"
             >
               <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -67,7 +67,7 @@ export function DocumentItemsCard({
             <button
               type="button"
               onClick={onAddItem}
-              className="inline-flex items-center gap-1.5 h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl typo-btn-primary shadow-xs transition-colors cursor-pointer"
             >
               <span>{addItemLabel}</span>
               <svg className="w-3.5 h-3.5 text-emerald-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -84,13 +84,13 @@ export function DocumentItemsCard({
       </div>
 
       {/* Card Footer */}
-      <div className="p-3 sm:px-6 sm:py-3.5 border-t border-slate-200/80 bg-white flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="p-3 sm:px-6 sm:py-3.5 border-t border-slate-200/80 bg-white flex flex-wrap items-center justify-between gap-3 typo-card-desc">
         <div className="flex items-center gap-2">
           {onAddBlankRow && (
             <button
               type="button"
               onClick={onAddBlankRow}
-              className="inline-flex items-center gap-1.5 h-9 px-3 bg-[#F8FAFC] hover:bg-[#EFF6FF] text-[#0F172A] border border-[#93C5FD]/40 rounded-xl font-medium transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 h-9 px-3 bg-[#F8FAFC] hover:bg-[#EFF6FF] text-[#0F172A] border border-[#93C5FD]/40 rounded-xl typo-btn-secondary transition-colors cursor-pointer"
             >
               <span className="font-semibold">+</span>
               <span>Add More Item</span>
@@ -99,12 +99,12 @@ export function DocumentItemsCard({
         </div>
 
         {(totalQty !== undefined || itemsTotal !== undefined) && (
-          <div className="flex items-center gap-4 text-slate-600 tabular-nums font-medium">
+          <div className="flex items-center gap-4 text-slate-600 typo-tabular">
             {totalQty !== undefined && (
-              <span>Total Qty: <strong className="text-slate-900">{totalQty}</strong></span>
+              <span>Total Qty: <strong className="text-slate-900 font-semibold">{totalQty}</strong></span>
             )}
             {itemsTotal !== undefined && (
-              <span>Items Total: <strong className="text-slate-900 text-sm">{itemsTotal}</strong></span>
+              <span>Items Total: <strong className="text-slate-900 typo-table-amount">{itemsTotal}</strong></span>
             )}
           </div>
         )}

@@ -5,14 +5,14 @@ import { MyownbillbookLanding } from "../../components/landing/rojmek-landing";
 const playfair = Playfair_Display({
   subsets: ["latin"],
   style: ["normal", "italic"],
-  weight: ["500", "600", "700"],
+  weight: ["500", "600"],
   variable: "--font-playfair",
   display: "swap",
 });
 
 const manrope = Manrope({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600"],
   variable: "--font-manrope",
   display: "swap",
 });

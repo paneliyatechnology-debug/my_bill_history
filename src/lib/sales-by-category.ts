@@ -12,7 +12,7 @@ export interface CategorySalesSlice {
   color: string;
 }
 
-const PALETTE = ["#1677E8", "#38BDF8", "#0EA5E9", "#125CC0", "#94A3B8", "#64748B"];
+const PALETTE = ["#2563EB", "#3B82F6", "#60A5FA", "#93C5FD", "#1D4ED8", "#64748B"];
 
 export function isoLocal(date: Date): string {
   const year = date.getFullYear();

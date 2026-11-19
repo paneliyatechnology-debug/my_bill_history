@@ -17,7 +17,6 @@ export interface DashboardWelcomeBannerProps {
 
 export function DashboardWelcomeBanner({
   userName = "",
-  companyName = "",
   financialYear = "",
   lastUpdated = "",
   isRefreshing = false,
@@ -42,11 +41,11 @@ export function DashboardWelcomeBanner({
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 pb-1">
       {/* Left: Heading & Subtitle */}
       <div>
-        <h1 className="text-[20px] sm:text-[22px] font-semibold text-[#182230] tracking-tight flex items-center gap-2">
+        <h1 className="typo-page-title text-[#1E293B] flex items-center gap-2">
           <span>{greeting}{displayName ? `, ${displayName}` : ""}!</span>
-          <span className="inline-block text-xl sm:text-2xl select-none">👋</span>
+          <span className="inline-block text-xl select-none">👋</span>
         </h1>
-        <p className="mt-0.5 text-xs sm:text-sm text-slate-500 font-medium">
+        <p className="typo-page-subtitle text-[#64748B] mt-0.5">
           {lang === "gu"
             ? `${financialYear || "ચાલુ નાણાકીય વર્ષ"} માટે તમારા વેપારનો સારાંશ.`
             : `Here's your business summary for ${financialYear || "the current financial year"}.`}
@@ -55,9 +54,9 @@ export function DashboardWelcomeBanner({
 
       {/* Right: Last Updated pill + Refresh button */}
       <div className="flex items-center gap-2 self-start sm:self-auto">
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200/90 rounded-xl shadow-2xs text-xs font-semibold text-slate-700">
+        <div className="flex items-center gap-2 h-9 px-3 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs typo-btn-secondary text-[#1E293B]">
           <svg
-            className="w-4 h-4 text-slate-500 shrink-0"
+            className="w-4 h-4 text-[#64748B] shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -69,8 +68,8 @@ export function DashboardWelcomeBanner({
               d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
             />
           </svg>
-          <span className="font-normal text-slate-500">Last Updated:</span>
-          <span className="font-bold text-slate-800">{lastUpdated || "—"}</span>
+          <span className="font-normal text-[#64748B]">Last Updated:</span>
+          <span className="font-medium text-[#1E293B] tabular-nums">{lastUpdated || "—"}</span>
         </div>
 
         <button
@@ -79,10 +78,10 @@ export function DashboardWelcomeBanner({
           disabled={isRefreshing}
           aria-label="Refresh dashboard data"
           title="Refresh dashboard data"
-          className="p-2 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl shadow-2xs text-slate-600 hover:text-slate-900 transition-all cursor-pointer disabled:opacity-50 active:scale-95"
+          className="w-9 h-9 flex items-center justify-center bg-white hover:bg-slate-50 border border-[#E2E8F0] hover:border-slate-300 rounded-xl shadow-2xs text-[#64748B] hover:text-[#1E293B] transition-all cursor-pointer disabled:opacity-50 active:scale-95"
         >
           <svg
-            className={`w-4 h-4 ${isRefreshing ? "animate-spin text-blue-600" : ""}`}
+            className={`w-4 h-4 ${isRefreshing ? "animate-spin text-[#2563EB]" : ""}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"

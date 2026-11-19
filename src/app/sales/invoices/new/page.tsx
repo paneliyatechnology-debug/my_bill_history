@@ -1901,7 +1901,7 @@ const [notes, setNotes] = useState("");
                   addItemLabel="+ Add Item"
                 >
                   <table className="w-full text-left text-xs border-collapse">
-                    <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 font-bold text-[11px] uppercase tracking-wider">
+                    <thead className="bg-[#FAFBF7] border-b border-slate-200 text-slate-700 typo-table-th uppercase tracking-wider">
                       <tr>
                         <th className="py-3 px-3.5 text-center w-12">#</th>
                         <th className="py-3 px-3.5">Item / Description</th>
@@ -1920,12 +1920,12 @@ const [notes, setNotes] = useState("");
                           <td colSpan={9} className="py-12 text-center text-slate-400">
                             <div className="max-w-xs mx-auto space-y-2">
                               <span className="text-2xl">📦</span>
-                              <p className="font-bold text-slate-700">No items added yet</p>
-                              <p className="text-[11px] text-slate-400">Add an item from catalog or enter details below</p>
+                              <p className="typo-empty-heading text-slate-700">No items added yet</p>
+                              <p className="typo-empty-desc text-slate-400">Add an item from catalog or enter details below</p>
                               <button
                                 type="button"
                                 onClick={() => setIsAddItemsModalOpen(true)}
-                                className="h-9 px-3 bg-[#0F172A] text-white rounded-xl text-[13px] font-medium shadow-2xs cursor-pointer"
+                                className="h-9 px-3 bg-[#0F172A] text-white rounded-xl typo-btn-primary shadow-2xs cursor-pointer"
                               >
                                 + Add From Catalog
                               </button>
@@ -1946,7 +1946,7 @@ const [notes, setNotes] = useState("");
 
                           return (
                             <tr key={row.rowId || `row-${idx}`} className="hover:bg-slate-50/70 transition-colors">
-                              <td className="py-3 px-3 text-center text-slate-400 tabular-nums text-[11px]">
+                              <td className="py-3 px-3 text-center text-slate-400 typo-tabular text-[11px]">
                                 {idx + 1}
                               </td>
 
@@ -1956,7 +1956,7 @@ const [notes, setNotes] = useState("");
                                     <select
                                       value={row.itemId}
                                       onChange={(e) => handleItemSelect(idx, e.target.value)}
-                                      className="w-full text-[13px] py-1.5 px-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#1677E8] rounded-xl font-normal text-slate-800 h-10"
+                                      className="w-full typo-input py-1.5 px-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#1677E8] rounded-xl text-slate-800 h-10"
                                     >
                                       {items.map((it) => (
                                         <option key={it.id} value={it.id}>
@@ -1973,7 +1973,7 @@ const [notes, setNotes] = useState("");
                                   type="text"
                                   value={row.hsnCode}
                                   onChange={(e) => handleRowChange(idx, "hsnCode", e.target.value)}
-                                  className="w-full text-[13px] py-1.5 px-2 text-center tabular-nums bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white h-10"
+                                  className="w-full typo-invoice-no py-1.5 px-2 text-center bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:bg-white h-10"
                                   placeholder="6205"
                                 />
                               </td>
@@ -1986,7 +1986,7 @@ const [notes, setNotes] = useState("");
                                     step="any"
                                     value={row.quantity}
                                     onChange={(e) => handleRowChange(idx, "quantity", e.target.value)}
-                                    className="w-full text-[13px] text-right tabular-nums font-normal text-slate-800 bg-transparent focus:outline-none h-10"
+                                    className="w-full typo-input text-right typo-tabular bg-transparent focus:outline-none h-10"
                                   />
                                 </div>
                               </td>
@@ -1998,7 +1998,7 @@ const [notes, setNotes] = useState("");
                                   step="any"
                                   value={row.unitPrice}
                                   onChange={(e) => handleRowChange(idx, "unitPrice", e.target.value)}
-                                  className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
+                                  className="w-full typo-input py-1.5 px-2 text-right typo-tabular bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
                                 />
                               </td>
 
@@ -2011,7 +2011,7 @@ const [notes, setNotes] = useState("");
                                     value={row.discountPercent}
                                     onChange={(e) => handleRowChange(idx, "discountPercent", e.target.value)}
                                     placeholder="0"
-                                    className="w-full text-[13px] text-right tabular-nums bg-transparent focus:outline-none h-10"
+                                    className="w-full typo-input text-right typo-tabular bg-transparent focus:outline-none h-10"
                                   />
                                   <span className="text-[10px] text-slate-400">%</span>
                                 </div>
@@ -2025,13 +2025,13 @@ const [notes, setNotes] = useState("");
                                     value={row.taxRate}
                                     onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value) || 0)}
                                     placeholder="5"
-                                    className="w-full text-[13px] text-right tabular-nums font-normal bg-transparent focus:outline-none h-10"
+                                    className="w-full typo-input text-right typo-tabular bg-transparent focus:outline-none h-10"
                                   />
                                   <span className="text-[10px] text-slate-400">%</span>
                                 </div>
                               </td>
 
-                              <td className="py-3 px-3 text-right tabular-nums font-semibold text-slate-900 text-[13px]">
+                              <td className="py-3 px-3 text-right typo-table-amount text-slate-900">
                                 ₹ {lineTotal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </td>
 

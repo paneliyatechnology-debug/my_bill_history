@@ -149,16 +149,16 @@ export function DashboardSalesChart({
     : 0;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs flex flex-col justify-between h-full">
+    <div className="bg-white rounded-xl border border-[#E2E8F0] p-5 shadow-2xs flex flex-col justify-between h-full">
       {/* Header: Title with Bar chart icon & Dropdown period selector */}
       <div className="flex items-center justify-between gap-3 mb-2">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE]/60 flex items-center justify-center shrink-0 shadow-2xs">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           </div>
-          <h2 className="text-[15px] font-semibold text-[#182230] tracking-tight">
+          <h2 className="typo-section-heading text-[#1E293B]">
             {lang === "gu" ? "વેચાણ ટ્રેન્ડ" : "Sales Trend"}
           </h2>
         </div>
@@ -168,7 +168,7 @@ export function DashboardSalesChart({
           <select
             value={period}
             onChange={(e) => onPeriodChange?.(e.target.value)}
-            className="text-[13px] font-normal text-slate-700 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 pr-7 appearance-none focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer shadow-2xs h-10"
+            className="typo-btn-secondary text-[#1E293B] bg-white hover:bg-slate-50 border border-[#E2E8F0] hover:border-slate-300 rounded-lg px-2.5 py-1 pr-7 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer shadow-2xs h-8"
           >
             <option value="7">{lang === "gu" ? "છેલ્લા 7 દિવસ" : "Last 7 Days"}</option>
             <option value="30">{lang === "gu" ? "છેલ્લા 30 દિવસ" : "Last 30 Days"}</option>
@@ -208,8 +208,8 @@ export function DashboardSalesChart({
         >
           <defs>
             <linearGradient id="salesBlueGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#1677E8" stopOpacity="0.22" />
-              <stop offset="100%" stopColor="#1677E8" stopOpacity="0.01" />
+              <stop offset="0%" stopColor="#2563EB" stopOpacity="0.22" />
+              <stop offset="100%" stopColor="#2563EB" stopOpacity="0.01" />
             </linearGradient>
           </defs>
 
@@ -224,7 +224,7 @@ export function DashboardSalesChart({
                     y1={yPos}
                     x2={width - paddingRight}
                     y2={yPos}
-                    stroke="#EEF3F9"
+                    stroke="#EDF0F4"
                     strokeWidth={1}
                   />
                 ) : null}
@@ -234,8 +234,8 @@ export function DashboardSalesChart({
                   textAnchor="end"
                   fill="#94A3B8"
                   fontSize="11"
-                  fontWeight="500"
-                  fontFamily="Inter, sans-serif"
+                  fontWeight="400"
+                  fontFamily="var(--font-body), Inter, sans-serif"
                 >
                   {lbl}
                 </text>
@@ -251,7 +251,7 @@ export function DashboardSalesChart({
             <path
               d={pathD}
               fill="none"
-              stroke="#1677E8"
+              stroke="#2563EB"
               strokeWidth={2.8}
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -276,7 +276,7 @@ export function DashboardSalesChart({
                     cy={pt.y}
                     r={isActive ? 4.5 : 2.5}
                     fill="#FFFFFF"
-                    stroke="#1677E8"
+                    stroke="#2563EB"
                     strokeWidth={isActive ? 2.2 : 1.6}
                   />
                 ) : null}
@@ -296,13 +296,13 @@ export function DashboardSalesChart({
                 width={badgeWidth}
                 height="22"
                 rx="6"
-                fill="#1677E8"
-                filter="drop-shadow(0 2px 5px rgba(30,107,255,0.35))"
+                fill="#2563EB"
+                filter="drop-shadow(0 2px 5px rgba(37,99,235,0.35))"
               />
               {/* Downward Pointer Triangle pointing to dot */}
               <polygon
                 points={`${activePoint.x - 4},${activePoint.y - 14} ${activePoint.x + 4},${activePoint.y - 14} ${activePoint.x},${activePoint.y - 8}`}
-                fill="#1677E8"
+                fill="#2563EB"
               />
               {/* Value Text */}
               <text
@@ -310,9 +310,9 @@ export function DashboardSalesChart({
                 y={activePoint.y - 21}
                 textAnchor="middle"
                 fill="#FFFFFF"
-                fontSize="10"
-                fontWeight="800"
-                fontFamily="sans-serif"
+                fontSize="11"
+                fontWeight="500"
+                fontFamily="var(--font-body), Inter, sans-serif"
               >
                 ₹ {activePoint.data.sales.toLocaleString("en-IN")}
               </text>
@@ -329,8 +329,8 @@ export function DashboardSalesChart({
                 textAnchor="middle"
                 fill={idx === activePointIndex ? "#182230" : "#64748B"}
                 fontSize="11"
-                fontWeight="500"
-                fontFamily="Inter, sans-serif"
+                fontWeight="400"
+                fontFamily="var(--font-body), Inter, sans-serif"
               >
                 {formatAxisDate(pt.data)}
               </text>

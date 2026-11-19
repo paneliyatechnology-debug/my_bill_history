@@ -127,50 +127,50 @@ export function UpcomingDuesAlertCard() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden mb-6">
+    <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-2xs overflow-hidden">
       {/* Header with Title, Stats, and Clean Segmented Filters */}
-      <div className="px-4 sm:px-5 py-3.5 sm:py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+      <div className="px-4 sm:px-5 py-3.5 sm:py-4 border-b border-[#EDF0F4] flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-[#EFF6FF] border border-[#BFDBFE]/60 text-[#2563EB] flex items-center justify-center shrink-0 shadow-2xs">
             <svg
               className="w-4 h-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth={2.2}
+              strokeWidth={2}
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
               />
             </svg>
           </div>
 
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-sm sm:text-[15px] font-semibold text-slate-900 tracking-tight">
+              <h2 className="typo-section-heading text-[#1E293B]">
                 {lang === "gu" ? "આગામી બાકી રકમ (ડ્યુ)" : "Upcoming Dues"}
               </h2>
               {count > 0 && (
-                <span className="text-[11px] font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
+                <span className="typo-badge text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
                   {count} {lang === "gu" ? "બિલ બાકી" : "Bills Due"}
                 </span>
               )}
             </div>
 
-            <p className="text-xs text-slate-500 mt-0.5 truncate">
+            <p className="typo-page-subtitle text-[#64748B] mt-0.5 truncate">
               {lang === "gu"
                 ? `આગામી ${daysFilter} દિવસમાં બાકી લેણી/ચૂકવણી`
                 : `Due within next ${daysFilter} days`}
               {totalDue > 0 && (
-                <span className="ml-1.5 font-semibold text-slate-800">
+                <span className="ml-1.5 font-medium text-[#1E293B]">
                   • {lang === "gu" ? "કુલ: " : "Total: "}
                   {formatCurrency(totalDue)}
                 </span>
               )}
               {Boolean(data?.totalOverdueAmount && data.totalOverdueAmount > 0) && (
-                <span className="ml-1.5 font-semibold text-rose-600">
+                <span className="ml-1.5 font-medium text-[#D45B5B]">
                   ({formatCurrency(data?.totalOverdueAmount || 0)}{" "}
                   {lang === "gu" ? "મુદત વીતી ગઈ" : "overdue"})
                 </span>
@@ -179,17 +179,17 @@ export function UpcomingDuesAlertCard() {
           </div>
         </div>
 
-        {/* Filter Controls: Clean & Minimalist */}
-        <div className="flex items-center gap-2 self-start md:self-center shrink-0 flex-wrap">
+        {/* Filter Controls: Clean Minimalist Segmented Pills */}
+        <div className="flex items-center gap-2.5 self-start md:self-center shrink-0 flex-wrap">
           {/* Type Filter: ALL, SALES, PURCHASES */}
-          <div className="inline-flex rounded-lg bg-slate-100 p-0.5 text-xs font-medium">
+          <div className="inline-flex rounded-xl bg-slate-100/90 p-1 text-xs border border-slate-200/80">
             <button
               type="button"
               onClick={() => setTypeFilter("ALL")}
-              className={`px-2.5 py-1 rounded-md transition ${
+              className={`px-3 py-1 rounded-lg transition-all ${
                 typeFilter === "ALL"
-                  ? "bg-white text-slate-900 shadow-2xs font-semibold"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-[#2563EB] text-white shadow-2xs font-semibold"
+                  : "text-[#64748B] hover:text-[#1E293B] font-medium"
               }`}
             >
               {lang === "gu" ? "બધા" : "All"}
@@ -198,10 +198,10 @@ export function UpcomingDuesAlertCard() {
             <button
               type="button"
               onClick={() => setTypeFilter("SALES")}
-              className={`px-2.5 py-1 rounded-md transition ${
+              className={`px-3 py-1 rounded-lg transition-all ${
                 typeFilter === "SALES"
-                  ? "bg-white text-slate-900 shadow-2xs font-semibold"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-[#2563EB] text-white shadow-2xs font-semibold"
+                  : "text-[#64748B] hover:text-[#1E293B] font-medium"
               }`}
             >
               {lang === "gu" ? "લેવાના" : "Receivables"}
@@ -210,10 +210,10 @@ export function UpcomingDuesAlertCard() {
             <button
               type="button"
               onClick={() => setTypeFilter("PURCHASES")}
-              className={`px-2.5 py-1 rounded-md transition ${
+              className={`px-3 py-1 rounded-lg transition-all ${
                 typeFilter === "PURCHASES"
-                  ? "bg-white text-slate-900 shadow-2xs font-semibold"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-[#2563EB] text-white shadow-2xs font-semibold"
+                  : "text-[#64748B] hover:text-[#1E293B] font-medium"
               }`}
             >
               {lang === "gu" ? "ચૂકવવાના" : "Payables"}
@@ -222,14 +222,14 @@ export function UpcomingDuesAlertCard() {
           </div>
 
           {/* Days Horizon Filter: 3 Days, 7 Days */}
-          <div className="inline-flex rounded-lg bg-slate-100 p-0.5 text-xs font-medium">
+          <div className="inline-flex rounded-xl bg-slate-100/90 p-1 text-xs border border-slate-200/80">
             <button
               type="button"
               onClick={() => setDaysFilter(3)}
-              className={`px-2.5 py-1 rounded-md transition ${
+              className={`px-3 py-1 rounded-lg transition-all ${
                 daysFilter === 3
-                  ? "bg-white text-slate-900 shadow-2xs font-semibold"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-[#2563EB] text-white shadow-2xs font-semibold"
+                  : "text-[#64748B] hover:text-[#1E293B] font-medium"
               }`}
             >
               3 {lang === "gu" ? "દિવસ" : "Days"}
@@ -237,10 +237,10 @@ export function UpcomingDuesAlertCard() {
             <button
               type="button"
               onClick={() => setDaysFilter(7)}
-              className={`px-2.5 py-1 rounded-md transition ${
+              className={`px-3 py-1 rounded-lg transition-all ${
                 daysFilter === 7
-                  ? "bg-white text-slate-900 shadow-2xs font-semibold"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-[#2563EB] text-white shadow-2xs font-semibold"
+                  : "text-[#64748B] hover:text-[#1E293B] font-medium"
               }`}
             >
               7 {lang === "gu" ? "દિવસ" : "Days"}
@@ -252,15 +252,15 @@ export function UpcomingDuesAlertCard() {
       {/* Dues Cards Grid */}
       <div className="p-4 sm:p-5">
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-28 bg-slate-100 rounded-xl animate-pulse" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-32 bg-slate-50 border border-slate-200/60 rounded-xl animate-pulse" />
             ))}
           </div>
         ) : count === 0 ? (
           /* Empty state for filtered tab */
           <div className="py-8 px-4 text-center flex flex-col items-center justify-center">
-            <p className="text-xs font-medium text-slate-500">
+            <p className="text-xs font-medium text-[#64748B]">
               {typeFilter === "SALES"
                 ? lang === "gu"
                   ? "કોઈ સેલ્સ લેણી બાકી નથી."
@@ -272,51 +272,53 @@ export function UpcomingDuesAlertCard() {
             <button
               type="button"
               onClick={() => setTypeFilter("ALL")}
-              className="mt-2 text-xs font-semibold text-[#1677E8] hover:underline cursor-pointer"
+              className="mt-2 text-xs font-semibold text-[#2563EB] hover:underline cursor-pointer"
             >
               {lang === "gu" ? "તમામ ડ્યુ જુઓ" : "Show All Dues"}
             </button>
           </div>
         ) : (
-          /* Responsive Cards Grid */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+          /* Responsive 3-Column Cards Grid matching Reference Image */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {duesList.map((item) => {
               const isOverdue = item.daysRemaining < 0;
               const isToday = item.daysRemaining === 0;
               const isTomorrow = item.daysRemaining === 1;
               const isSales = item.type === "SALES_INVOICE";
 
+              const leftBorderColor = isOverdue
+                ? "border-l-[#D45B5B]"
+                : isSales
+                ? "border-l-[#2563EB]"
+                : "border-l-[#E58A45]";
+
+              const statusBadgeClass = isOverdue
+                ? "bg-rose-50 text-[#D45B5B] border border-rose-200/60"
+                : isSales
+                ? "bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE]/60"
+                : "bg-[#FFF7ED] text-[#E58A45] border border-[#FED7AA]/60";
+
+              const dotColor = isOverdue
+                ? "bg-[#D45B5B]"
+                : isSales
+                ? "bg-[#2563EB]"
+                : "bg-[#E58A45]";
+
               return (
                 <div
                   key={`${item.type}-${item.id}`}
-                  className="p-3.5 sm:p-4 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-2xs transition-all flex flex-col justify-between"
+                  className={`p-4 rounded-xl border border-[#E2E8F0] border-l-4 ${leftBorderColor} bg-white hover:border-slate-300 hover:shadow-xs transition-all flex flex-col justify-between`}
                 >
                   <div>
-                    {/* Urgency Status Dot and Type Label */}
+                    {/* Top row: Status Pill with Dot + Type Badge */}
                     <div className="flex items-center justify-between gap-2 mb-2">
-                      <div className="flex items-center gap-1.5 text-xs font-medium">
-                        <span
-                          className={`w-2 h-2 rounded-full shrink-0 ${
-                            isOverdue
-                              ? "bg-rose-500"
-                              : isToday
-                              ? "bg-amber-500"
-                              : "bg-blue-500"
-                          }`}
-                        />
-                        <span
-                          className={
-                            isOverdue
-                              ? "text-rose-600 font-semibold"
-                              : isToday
-                              ? "text-amber-600 font-semibold"
-                              : "text-slate-600"
-                          }
-                        >
+                      <div className={`flex items-center gap-1.5 typo-badge px-2.5 py-0.5 rounded-full ${statusBadgeClass}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`} />
+                        <span>
                           {isOverdue
                             ? lang === "gu"
                               ? `${Math.abs(item.daysRemaining)} દિવસ મોડું`
-                              : `Overdue ${Math.abs(item.daysRemaining)}d`
+                              : `Overdue in ${Math.abs(item.daysRemaining)}d`
                             : isToday
                             ? lang === "gu"
                               ? "આજે બાકી"
@@ -324,14 +326,18 @@ export function UpcomingDuesAlertCard() {
                             : isTomorrow
                             ? lang === "gu"
                               ? "આવતીકાલે"
-                              : "Tomorrow"
+                              : "Due in 1 day"
                             : lang === "gu"
                             ? `${item.daysRemaining} દિવસમાં`
-                            : `In ${item.daysRemaining}d`}
+                            : `Due in ${item.daysRemaining} days`}
                         </span>
                       </div>
 
-                      <span className="text-[11px] font-medium text-slate-500">
+                      <span className={`typo-badge px-2 py-0.5 rounded-md border ${
+                        isSales
+                          ? "bg-slate-50 text-[#64748B] border-slate-200/60"
+                          : "bg-orange-50/60 text-[#E58A45] border-orange-200/60"
+                      }`}>
                         {isSales
                           ? lang === "gu"
                             ? "લેવાના"
@@ -344,31 +350,31 @@ export function UpcomingDuesAlertCard() {
 
                     {/* Party Name */}
                     <h4
-                      className="text-sm font-semibold text-slate-900 truncate"
+                      className="typo-card-heading text-[#1E293B] truncate mt-2"
                       title={item.partyName}
                     >
                       {item.partyName}
                     </h4>
 
                     {/* Invoice No & Due Date */}
-                    <div className="flex items-center justify-between gap-2 mt-1 text-xs text-slate-500">
+                    <div className="flex items-center justify-between gap-2 mt-1">
                       <Link
                         href={item.deepLink}
-                        className="font-medium text-[#1677E8] hover:underline truncate"
+                        className="typo-invoice-no text-[#2563EB] hover:underline truncate"
                         title={item.invoiceNumber}
                       >
                         {item.invoiceNumber}
                       </Link>
-                      <span className="tabular-nums shrink-0">
+                      <span className="typo-card-desc text-[#64748B] tabular-nums shrink-0">
                         {formatDueDate(item.dueDate)}
                       </span>
                     </div>
                   </div>
 
                   {/* Amount and Action CTA */}
-                  <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <div className="pt-3 mt-3 border-t border-[#EDF0F4] flex items-center justify-between gap-2">
                     <div>
-                      <span className="text-[10px] text-slate-400 block font-medium uppercase tracking-wider">
+                      <span className="typo-badge text-[#94A3B8] block uppercase tracking-wider">
                         {isSales
                           ? lang === "gu"
                             ? "બાકી રકમ"
@@ -377,7 +383,7 @@ export function UpcomingDuesAlertCard() {
                           ? "ચૂકવવાપાત્ર"
                           : "Payable"}
                       </span>
-                      <span className="text-sm sm:text-[15px] font-bold text-slate-900 tabular-nums">
+                      <span className="typo-amount-secondary text-[#1E293B] tabular-nums">
                         {formatCurrency(item.balanceAmount)}
                       </span>
                     </div>
@@ -392,10 +398,10 @@ export function UpcomingDuesAlertCard() {
                           ? `/sales/payment-in/new?partyId=${item.partyId || ""}&invoiceId=${item.id}&amount=${item.balanceAmount}`
                           : `/purchases/payment-out/new?partyId=${item.partyId || ""}&billId=${item.id}&amount=${item.balanceAmount}`
                       }
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold shadow-2xs transition flex items-center gap-1 shrink-0 ${
+                      className={`px-3.5 py-1.5 rounded-lg typo-btn-secondary shadow-2xs transition flex items-center gap-1 shrink-0 ${
                         isSales
-                          ? "bg-[#1677E8] hover:bg-blue-600 text-white"
-                          : "bg-slate-900 hover:bg-slate-800 text-white"
+                          ? "bg-[#EFF6FF] hover:bg-blue-100 text-[#2563EB] border border-[#BFDBFE]/60"
+                          : "bg-[#FFF7ED] hover:bg-orange-100 text-[#E58A45] border border-[#FED7AA]/60"
                       }`}
                     >
                       <span>

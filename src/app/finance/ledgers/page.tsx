@@ -408,12 +408,12 @@ export default function FinanceLedgersPage() {
               <span>{lang === "gu" ? "રોજમેળ & વાઉચરો" : "Cash Book & Vouchers"}</span>
             </Link>
           </div>
-          <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
+          <h1 className="typo-page-title text-[#182230]">
             {lang === "gu"
               ? "બેંક ખાતા અને ખાતાવહી (Bank & Ledger Accounts)"
               : "Bank & Ledger Accounts Register"}
           </h1>
-          <p className="text-xs sm:text-sm text-muted mt-1">
+          <p className="typo-page-subtitle text-muted mt-1">
             {lang === "gu"
               ? "રોકડ, બેંક, ગ્રાહકો, સપ્લાયર્સ અને ખર્ચના ખાતાઓનું લાઈવ સિલક સંચાલન"
               : "Live balances, double-entry accounts, and chart of accounts management"}

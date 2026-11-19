@@ -1179,11 +1179,11 @@ export default function PartiesPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h2 className="text-[15px] sm:text-[15px] font-semibold text-[#182230]">
+                        <h2 className="typo-section-heading text-[#182230]">
                           {selectedParty.name}
                         </h2>
                         {lang === "gu" && selectedParty.nameGujarati && (
-                          <span className="text-xs text-slate-500 font-normal">
+                          <span className="typo-page-subtitle text-slate-500">
                             ({selectedParty.nameGujarati})
                           </span>
                         )}
@@ -1202,7 +1202,7 @@ export default function PartiesPage() {
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600 mt-1">
                         <span className="tabular-nums">📞 {selectedParty.phone || "—"}</span>
                         {selectedParty.gstin && (
-                          <span className="tabular-nums bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded border border-emerald-200 font-semibold text-[11px]">
+                          <span className="tabular-nums bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded border border-emerald-200 font-medium typo-invoice-no">
                             GST: {selectedParty.gstin}
                           </span>
                         )}
@@ -1217,7 +1217,7 @@ export default function PartiesPage() {
                   <div className="flex items-center gap-2">
                     <Link
                       href="/app/home/shared-ledger"
-                      className="p-2 rounded-xl bg-[#EFF6FF] hover:bg-teal-100 text-[#1677E8] border border-teal-200 text-[13px] font-medium transition-colors inline-flex items-center gap-1"
+                      className="p-2 rounded-xl bg-[#EFF6FF] hover:bg-teal-100 text-[#1677E8] border border-teal-200 typo-btn-secondary transition-colors inline-flex items-center gap-1"
                       title="Open Shared Ledger"
                     >
                       🔗 Shared Ledger
@@ -1235,7 +1235,7 @@ export default function PartiesPage() {
                             : `https://wa.me/?text=${encodeURIComponent(text)}`;
                           window.open(waUrl, "_blank");
                         }}
-                        className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold transition-colors cursor-pointer"
+                        className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 typo-btn-secondary transition-colors cursor-pointer"
                         title="Send Statement via WhatsApp"
                       >
                         💬 WhatsApp
@@ -1244,7 +1244,7 @@ export default function PartiesPage() {
                     <button
                       type="button"
                       onClick={() => handleOpenEditModal(selectedParty)}
-                      className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors cursor-pointer"
+                      className="h-9 px-3 typo-btn-secondary text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors cursor-pointer"
                     >
                       ✏️ Edit
                     </button>
@@ -1254,11 +1254,11 @@ export default function PartiesPage() {
                 {/* Balance & Limits Strip */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-3.5 border-t border-slate-200/70">
                   <div className="bg-white p-2.5 rounded-xl border border-slate-200/80">
-                    <div className="text-[11px] font-semibold text-slate-500">
+                    <div className="typo-label text-slate-500">
                       {selectedParty.type === "SUPPLIER" ? "You'll Give" : "You'll Get"} (Balance)
                     </div>
                     <div
-                      className={`text-sm font-bold tabular-nums mt-0.5 ${
+                      className={`typo-amount-secondary mt-0.5 ${
                         Number(selectedParty.balance || 0) <= 0
                           ? "text-slate-700"
                           : selectedParty.type === "SUPPLIER"
@@ -1273,8 +1273,8 @@ export default function PartiesPage() {
                   </div>
 
                   <div className="bg-white p-2.5 rounded-xl border border-slate-200/80">
-                    <div className="text-[11px] font-semibold text-slate-500">Credit Limit</div>
-                    <div className="text-sm font-bold tabular-nums text-slate-800 mt-0.5">
+                    <div className="typo-label text-slate-500">Credit Limit</div>
+                    <div className="typo-amount-secondary text-slate-800 mt-0.5">
                       {selectedParty.creditLimit
                         ? `₹ ${Number(selectedParty.creditLimit).toLocaleString("en-IN")}`
                         : "No Limit"}
@@ -1282,15 +1282,15 @@ export default function PartiesPage() {
                   </div>
 
                   <div className="bg-white p-2.5 rounded-xl border border-slate-200/80">
-                    <div className="text-[11px] font-semibold text-slate-500">Credit Period</div>
-                    <div className="text-sm font-bold tabular-nums text-slate-800 mt-0.5">
+                    <div className="typo-label text-slate-500">Credit Period</div>
+                    <div className="typo-amount-secondary text-slate-800 mt-0.5">
                       {selectedParty.creditDays || 30} Days
                     </div>
                   </div>
 
                   <div className="bg-white p-2.5 rounded-xl border border-slate-200/80">
-                    <div className="text-[11px] font-semibold text-slate-500">Total Vouchers</div>
-                    <div className="text-sm font-bold tabular-nums text-slate-800 mt-0.5">
+                    <div className="typo-label text-slate-500">Total Vouchers</div>
+                    <div className="typo-amount-secondary text-slate-800 mt-0.5">
                       {partyTransactions.length}
                     </div>
                   </div>
@@ -1302,14 +1302,14 @@ export default function PartiesPage() {
                 <button
                   type="button"
                   onClick={() => setPartyDetailTab("transactions")}
-                  className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-4 py-2.5 typo-tab border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
                     partyDetailTab === "transactions"
                       ? "border-teal-600 text-teal-600"
                       : "border-transparent text-slate-500 hover:text-slate-800"
                   }`}
                 >
                   <span>{lang === "gu" ? "વ્યવહારો" : "Transactions"}</span>
-                  <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full tabular-nums">
+                  <span className="bg-slate-100 text-slate-600 typo-badge px-1.5 py-0.5 rounded-full">
                     {partyTransactions.length}
                   </span>
                 </button>
@@ -1317,7 +1317,7 @@ export default function PartiesPage() {
                 <button
                   type="button"
                   onClick={() => setPartyDetailTab("profile")}
-                  className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
+                  className={`px-4 py-2.5 typo-tab border-b-2 transition-colors cursor-pointer ${
                     partyDetailTab === "profile"
                       ? "border-teal-600 text-teal-600"
                       : "border-transparent text-slate-500 hover:text-slate-800"
@@ -1329,14 +1329,14 @@ export default function PartiesPage() {
                 <button
                   type="button"
                   onClick={() => setPartyDetailTab("notes")}
-                  className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-4 py-2.5 typo-tab border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
                     partyDetailTab === "notes"
                       ? "border-teal-600 text-teal-600"
                       : "border-transparent text-slate-500 hover:text-slate-800"
                   }`}
                 >
                   <span>📝 {lang === "gu" ? "નોંધ" : "Notes"}</span>
-                  <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full tabular-nums">
+                  <span className="bg-slate-100 text-slate-600 typo-badge px-1.5 py-0.5 rounded-full">
                     {partyNotes.length}
                   </span>
                 </button>
@@ -1895,10 +1895,10 @@ export default function PartiesPage() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-2xs">
             <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-tight">
+              <h1 className="typo-page-title text-slate-900 leading-tight">
                 {lang === "gu" ? "વેપારીઓ / ગ્રાહક ખાતાઓ" : "Parties & Customer Accounts"}
               </h1>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed break-words font-normal">
+              <p className="typo-page-subtitle text-slate-500 mt-1">
                 {lang === "gu"
                   ? "ગ્રાહકો, સપ્લાયરો, જીએસટી નંબર અને ખાતાની માહિતી મેનેજ કરો"
                   : "Manage customers, suppliers, GSTINs, credit terms, and ledger limits"}
@@ -1909,7 +1909,7 @@ export default function PartiesPage() {
               <button
                 type="button"
                 onClick={() => setIsImportModalOpen(true)}
-                className="inline-flex items-center justify-center gap-2 h-10 px-4 bg-white hover:bg-emerald-50/50 text-[#166534] border border-[#86EFAC] text-[13px] font-medium rounded-xl shadow-2xs transition-all w-full sm:w-auto shrink-0 cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 h-10 px-4 bg-white hover:bg-emerald-50/50 text-[#166534] border border-[#86EFAC] typo-btn-secondary rounded-xl shadow-2xs transition-all w-full sm:w-auto shrink-0 cursor-pointer"
                 title="Import Parties from Excel or CSV"
               >
                 <svg className="w-4 h-4 text-[#15803D]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1920,7 +1920,7 @@ export default function PartiesPage() {
 
               <button
                 onClick={handleOpenCreateModal}
-                className="inline-flex items-center justify-center gap-1.5 h-10 px-4 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] text-white text-[13px] font-medium rounded-xl shadow-xs transition-all w-full sm:w-auto shrink-0 cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 h-10 px-4 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] text-white typo-btn-primary rounded-xl shadow-xs transition-all w-full sm:w-auto shrink-0 cursor-pointer"
               >
                 <span className="text-base font-semibold leading-none">+</span>
                 <span>{lang === "gu" ? "નવો વેપારી ઉમેરો" : "Add New Party"}</span>
@@ -1944,10 +1944,10 @@ export default function PartiesPage() {
                   </svg>
                 </div>
                 <div>
-                  <span className="text-xs sm:text-[13px] font-medium text-slate-600 block">
+                  <span className="typo-card-heading text-slate-600 block">
                     {lang === "gu" ? "ગ્રાહકો" : "Customers"}
                   </span>
-                  <div className="text-2xl sm:text-[28px] font-bold tabular-nums text-slate-900 tracking-tight mt-0.5 leading-none">
+                  <div className="typo-kpi text-slate-900 mt-0.5 leading-none">
                     {totalCustomers}
                   </div>
                 </div>
@@ -1974,10 +1974,10 @@ export default function PartiesPage() {
                   </svg>
                 </div>
                 <div>
-                  <span className="text-xs sm:text-[13px] font-medium text-slate-600 block">
+                  <span className="typo-card-heading text-slate-600 block">
                     {lang === "gu" ? "સપ્લાયરો" : "Suppliers"}
                   </span>
-                  <div className="text-2xl sm:text-[28px] font-bold tabular-nums text-slate-900 tracking-tight mt-0.5 leading-none">
+                  <div className="typo-kpi text-slate-900 mt-0.5 leading-none">
                     {totalSuppliers}
                   </div>
                 </div>
@@ -1995,14 +1995,14 @@ export default function PartiesPage() {
               className="bg-[#F0FDF4] rounded-2xl border border-[#BBF7D0] p-4 sm:p-5 flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
             >
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-12 h-12 rounded-2xl bg-[#DCFCE7] text-[#15803D] font-bold text-xl flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-[#DCFCE7] text-[#15803D] font-semibold text-xl flex items-center justify-center shrink-0">
                   ₹
                 </div>
                 <div className="min-w-0">
-                  <span className="text-xs sm:text-[13px] font-medium text-[#15803D] block truncate">
+                  <span className="typo-card-heading text-[#15803D] block truncate">
                     {lang === "gu" ? "લેવાની રકમ (Receivable)" : "To Collect (Receivable)"}
                   </span>
-                  <div className="text-2xl sm:text-[28px] font-bold tabular-nums text-[#15803D] tracking-tight mt-0.5 leading-none truncate">
+                  <div className="typo-kpi text-[#15803D] mt-0.5 leading-none truncate">
                     ₹ {totalToCollect.toLocaleString("en-IN")}
                   </div>
                 </div>
@@ -2026,10 +2026,10 @@ export default function PartiesPage() {
                   </svg>
                 </div>
                 <div className="min-w-0">
-                  <span className="text-xs sm:text-[13px] font-medium text-[#DC2626] block truncate">
+                  <span className="typo-card-heading text-[#DC2626] block truncate">
                     {lang === "gu" ? "ચૂકવવાની રકમ (Payable)" : "To Pay (Payable)"}
                   </span>
-                  <div className="text-2xl sm:text-[28px] font-bold tabular-nums text-[#DC2626] tracking-tight mt-0.5 leading-none truncate">
+                  <div className="typo-kpi text-[#DC2626] mt-0.5 leading-none truncate">
                     ₹ {totalToPay.toLocaleString("en-IN")}
                   </div>
                 </div>

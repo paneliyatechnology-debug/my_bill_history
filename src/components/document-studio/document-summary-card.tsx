@@ -31,24 +31,24 @@ export function DocumentSummaryCard({
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
           </svg>
         </div>
-        <h3 className="text-xs sm:text-[15px] font-semibold text-[#182230] tracking-tight">
+        <h3 className="typo-form-section text-[#182230]">
           {title}
         </h3>
       </div>
 
       {/* Rows */}
-      <div className="p-4 sm:p-5 space-y-2.5 text-xs">
+      <div className="p-4 sm:p-5 space-y-2.5">
         {/* Items Subtotal */}
-        <div className="flex items-center justify-between text-slate-600 font-medium">
+        <div className="flex items-center justify-between typo-label text-slate-600">
           <span>Items Subtotal</span>
-          <span className="tabular-nums font-bold text-slate-800">{formatCur(subtotal)}</span>
+          <span className="typo-table-amount text-slate-800">{formatCur(subtotal)}</span>
         </div>
 
         {/* Discount */}
         {discount !== undefined && discount !== null && Number(discount) !== 0 && (
-          <div className="flex items-center justify-between text-slate-600 font-medium">
+          <div className="flex items-center justify-between typo-label text-slate-600">
             <span>Discount</span>
-            <span className="tabular-nums font-bold text-rose-600">
+            <span className="typo-table-amount text-rose-600">
               - {formatCur(discount)}
             </span>
           </div>
@@ -56,29 +56,29 @@ export function DocumentSummaryCard({
 
         {/* Taxes */}
         {cgst !== undefined && cgst !== null && Number(cgst) > 0 && (
-          <div className="flex items-center justify-between text-slate-600 font-medium">
+          <div className="flex items-center justify-between typo-label text-slate-600">
             <span>CGST</span>
-            <span className="tabular-nums font-bold text-slate-800">{formatCur(cgst)}</span>
+            <span className="typo-table-amount text-slate-800">{formatCur(cgst)}</span>
           </div>
         )}
         {sgst !== undefined && sgst !== null && Number(sgst) > 0 && (
-          <div className="flex items-center justify-between text-slate-600 font-medium">
+          <div className="flex items-center justify-between typo-label text-slate-600">
             <span>SGST</span>
-            <span className="tabular-nums font-bold text-slate-800">{formatCur(sgst)}</span>
+            <span className="typo-table-amount text-slate-800">{formatCur(sgst)}</span>
           </div>
         )}
         {igst !== undefined && igst !== null && Number(igst) > 0 && (
-          <div className="flex items-center justify-between text-slate-600 font-medium">
+          <div className="flex items-center justify-between typo-label text-slate-600">
             <span>IGST</span>
-            <span className="tabular-nums font-bold text-slate-800">{formatCur(igst)}</span>
+            <span className="typo-table-amount text-slate-800">{formatCur(igst)}</span>
           </div>
         )}
 
         {/* Custom Rows */}
         {customRows.map((row, idx) => (
-          <div key={idx} className={`flex items-center justify-between text-slate-600 font-medium ${row.className || ""}`}>
+          <div key={idx} className={`flex items-center justify-between typo-label text-slate-600 ${row.className || ""}`}>
             <span>{row.label}</span>
-            <span className={`tabular-nums font-bold ${row.isDeduction ? "text-rose-600" : "text-slate-800"}`}>
+            <span className={`typo-table-amount ${row.isDeduction ? "text-rose-600" : "text-slate-800"}`}>
               {row.isDeduction ? "- " : ""}{typeof row.value === "number" ? formatCur(row.value) : row.value}
             </span>
           </div>
@@ -86,9 +86,9 @@ export function DocumentSummaryCard({
 
         {/* Round Off */}
         {roundOff !== undefined && roundOff !== null && (
-          <div className="flex items-center justify-between text-slate-500 font-medium pt-1 border-t border-slate-100">
+          <div className="flex items-center justify-between typo-label text-slate-500 pt-1 border-t border-slate-100">
             <span>Round Off</span>
-            <span className="tabular-nums font-semibold text-slate-700">
+            <span className="typo-table-amount text-slate-700">
               {Number(roundOff) >= 0 ? `+ ${formatCur(roundOff)}` : `- ${formatCur(Math.abs(Number(roundOff)))}`}
             </span>
           </div>
@@ -96,8 +96,8 @@ export function DocumentSummaryCard({
 
         {/* Grand Total */}
         <div className="pt-2 border-t-2 border-slate-100 flex items-baseline justify-between">
-          <span className="text-sm font-semibold text-[#1A2E2B]">Grand Total</span>
-          <span className="text-lg sm:text-xl font-semibold tabular-nums text-[#0F172A]">
+          <span className="typo-section-heading text-[#1A2E2B]">Grand Total</span>
+          <span className="typo-kpi text-[#0F172A]">
             {formatCur(grandTotal)}
           </span>
         </div>
@@ -105,7 +105,7 @@ export function DocumentSummaryCard({
         {/* Amount in words banner */}
         {amountInWords && (
           <div className="mt-3 p-2.5 bg-[#F8FAFC] border border-[#93C5FD]/40 rounded-xl text-center">
-            <span className="text-[11px] font-bold text-[#0F172A] tracking-wide block capitalize">
+            <span className="typo-card-desc font-semibold text-[#0F172A] tracking-wide block capitalize">
               {amountInWords}
             </span>
           </div>
@@ -141,18 +141,18 @@ export function DocumentPaymentCard({
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
           </svg>
         </div>
-        <h3 className="text-xs sm:text-[15px] font-semibold text-[#182230] tracking-tight">
+        <h3 className="typo-form-section text-[#182230]">
           Payment Details
         </h3>
       </div>
 
-      <div className="p-4 sm:p-5 space-y-3.5 text-xs">
+      <div className="p-4 sm:p-5 space-y-3.5">
         {/* Amount Received Input + Paid in Full button */}
         <div className="space-y-1.5">
-          <label className="text-[11px] font-medium text-slate-700 block">Amount Received</label>
+          <label className="typo-label text-slate-700 block">Amount Received</label>
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-xs">₹</span>
               <input
                 type="number"
                 min="0"
@@ -160,17 +160,17 @@ export function DocumentPaymentCard({
                 value={amountReceived}
                 onChange={(e) => onAmountReceivedChange(e.target.value === "" ? "" : parseFloat(e.target.value))}
                 placeholder="0.00"
-                className="w-full pl-6 pr-2.5 py-1.5 bg-white border border-slate-200 rounded-xl tabular-nums font-normal text-slate-800 focus:outline-none focus:border-[#1677E8] shadow-2xs text-xs h-9"
+                className="w-full pl-6 pr-2.5 py-1.5 bg-white border border-slate-200 rounded-xl typo-input text-slate-800 focus:outline-none focus:border-[#1677E8] shadow-2xs h-9"
               />
             </div>
             {onPaidInFull && (
               <button
                 type="button"
                 onClick={onPaidInFull}
-                className="h-9 px-2.5 sm:px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-semibold shrink-0 transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
+                className="h-9 px-2.5 sm:px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl typo-btn-secondary shrink-0 transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
               >
                 <span>Paid In Full</span>
-                <span className="text-emerald-300 font-bold">✓</span>
+                <span className="text-emerald-300 font-semibold">✓</span>
               </button>
             )}
           </div>
@@ -178,12 +178,12 @@ export function DocumentPaymentCard({
 
         {/* Payment Mode Selector */}
         <div className="space-y-1.5">
-          <label className="text-[11px] font-medium text-slate-700 block">Payment Mode</label>
+          <label className="typo-label text-slate-700 block">Payment Mode</label>
           <div className="relative">
             <select
               value={paymentMode}
               onChange={(e) => onPaymentModeChange(e.target.value)}
-              className="w-full py-1.5 px-2.5 bg-white border border-slate-200 rounded-xl font-normal text-slate-800 focus:outline-none focus:border-[#1677E8] shadow-2xs appearance-none pr-7 cursor-pointer text-xs h-9"
+              className="w-full py-1.5 px-2.5 bg-white border border-slate-200 rounded-xl typo-input text-slate-800 focus:outline-none focus:border-[#1677E8] shadow-2xs appearance-none pr-7 cursor-pointer h-9"
             >
               <option value="Cash">Cash</option>
               <option value="UPI">UPI</option>
@@ -202,7 +202,7 @@ export function DocumentPaymentCard({
         {/* Balance Due Pill matching Reference Image */}
         <div className="pt-1">
           <div
-            className={`p-2.5 rounded-xl border text-center font-semibold text-xs flex items-center justify-center gap-2 ${
+            className={`p-2.5 rounded-xl border text-center typo-badge font-semibold flex items-center justify-center gap-2 ${
               isFullyPaid
                 ? "bg-[#EFF6FF] border-[#BFDBFE] text-[#1677E8]"
                 : "bg-amber-50 border-amber-200 text-amber-800"

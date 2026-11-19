@@ -730,7 +730,7 @@ function CreateExpenseForm() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </Link>
-          <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
+          <h1 className="typo-page-title text-[#182230]">
             {editingVoucherId ? `Edit Expense #${expenseNumber}` : "Create Expense"}
           </h1>
         </div>
@@ -760,7 +760,7 @@ function CreateExpenseForm() {
           {/* Cancel button */}
           <Link
             href="/finance/expenses"
-            className="h-9 px-3.5 text-[13px] font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg shadow-sm transition-all"
+            className="h-9 px-3.5 typo-btn-secondary text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg shadow-sm transition-all flex items-center justify-center"
           >
             Cancel
           </Link>
@@ -770,7 +770,7 @@ function CreateExpenseForm() {
             type="button"
             onClick={handleSaveExpense}
             disabled={isSaving}
-            className="px-6 py-2 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] disabled:opacity-60 rounded-lg shadow-md transition-all flex items-center gap-1.5"
+            className="px-6 py-2 typo-btn-primary text-white bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] disabled:opacity-60 rounded-lg shadow-md transition-all flex items-center gap-1.5"
           >
             {isSaving ? (
               <>
@@ -1112,7 +1112,7 @@ function CreateExpenseForm() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-[#EDF2F7] text-slate-600 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                <tr className="bg-[#EDF2F7] text-slate-600 typo-table-th uppercase tracking-wider border-b border-slate-200">
                   <th className="py-3 px-3 text-center w-12">NO</th>
                   <th className="py-3 px-4 min-w-[200px]">ITEMS</th>
                   {expenseWithGst && <th className="py-3 px-3 w-28">HSN</th>}
@@ -1381,16 +1381,16 @@ function CreateExpenseForm() {
                 </div>
 
                 <div className="border-t border-slate-200 pt-3 flex items-center justify-between">
-                  <span className="text-sm font-bold text-slate-900">Total Amount</span>
-                  <span className="text-xl font-semibold text-slate-900 tabular-nums">
+                  <span className="typo-section-heading text-slate-900">Total Amount</span>
+                  <span className="typo-kpi text-slate-900">
                     ₹ {totals.finalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                   </span>
                 </div>
               </>
             ) : (
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-slate-900">Total Expense Amount</span>
-                <span className="text-xl font-semibold text-slate-900 tabular-nums">
+                <span className="typo-section-heading text-slate-900">Total Expense Amount</span>
+                <span className="typo-kpi text-slate-900">
                   ₹ {totals.finalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                 </span>
               </div>

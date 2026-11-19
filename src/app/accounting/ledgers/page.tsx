@@ -125,7 +125,7 @@ export default function LedgersPage() {
       accessorKey: "code",
       sortable: true,
       cell: (l) => (
-        <span className="tabular-nums font-bold text-slate-800">{l.code}</span>
+        <span className="typo-invoice-no text-slate-800">{l.code}</span>
       ),
     },
     {
@@ -134,7 +134,7 @@ export default function LedgersPage() {
       sortable: true,
       cell: (l) => (
         <div>
-          <div className="font-semibold text-slate-900">{l.name}</div>
+          <div className="typo-table-td font-medium text-slate-900">{l.name}</div>
           {lang === "gu" && l.nameGujarati && (
             <div className="text-[11px] font-normal text-slate-500">
               {l.nameGujarati}
@@ -148,7 +148,7 @@ export default function LedgersPage() {
       accessorKey: "groupId",
       sortable: true,
       cell: (l) => (
-        <span className="text-slate-600">{l.group?.name || "Standard Group"}</span>
+        <span className="typo-table-td text-slate-600">{l.group?.name || "Standard Group"}</span>
       ),
     },
     {
@@ -157,7 +157,7 @@ export default function LedgersPage() {
       sortable: true,
       className: "text-right",
       cell: (l) => (
-        <span className="tabular-nums font-semibold text-slate-800">
+        <span className="typo-table-amount text-slate-800">
           ₹{Number(l.openingBalance || 0).toFixed(2)}{" "}
           <span className="text-[10px] text-slate-500 font-normal">
             ({l.openingBalanceType === "DEBIT" ? "Dr" : "Cr"})
@@ -180,13 +180,13 @@ export default function LedgersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight leading-tight">
+            <h1 className="typo-page-title text-[#182230] leading-tight">
               {lang === "gu"
                 ? "ખાતાઓનું રજિસ્ટર (Ledger Accounts)"
                 : "Ledger Accounts Register"}
             </h1>
           </div>
-          <p className="text-xs sm:text-sm text-[#667085] mt-1 leading-relaxed break-words font-normal">
+          <p className="typo-page-subtitle text-[#667085] mt-1 leading-relaxed break-words font-normal">
             {lang === "gu"
               ? "રોકડ, બેંક, ગ્રાહકો, સપ્લાયર્સ અને ખર્ચના ખાતાઓ"
               : "Manage individual ledgers, opening balances, and double-entry postings"}
@@ -206,7 +206,7 @@ export default function LedgersPage() {
             setFormError(null);
             setIsModalOpen(true);
           }}
-          className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] text-white text-[13px] font-medium rounded-xl shadow-xs transition-all w-full sm:w-auto shrink-0"
+          className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] text-white typo-btn-primary rounded-xl shadow-xs transition-all w-full sm:w-auto shrink-0"
         >
           <svg
             className="w-4 h-4"

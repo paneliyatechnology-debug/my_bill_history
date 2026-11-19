@@ -47,17 +47,17 @@ export function DocumentHeaderCard({
 
         <div className="min-w-0 space-y-0.5">
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight truncate">
+            <h1 className="typo-page-title text-[#182230] truncate">
               {title}
             </h1>
             {status && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide bg-[#EFF6FF] text-[#1677E8] border border-[#BFDBFE]">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full typo-badge bg-[#EFF6FF] text-[#1677E8] border border-[#BFDBFE]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#1677E8]" />
                 <span>{status}</span>
               </span>
             )}
           </div>
-          <p className="text-xs text-slate-500 font-medium">
+          <p className="typo-page-subtitle text-slate-500">
             {subtitle}
           </p>
         </div>
@@ -69,7 +69,7 @@ export function DocumentHeaderCard({
           <button
             type="button"
             onClick={onPreview}
-            className="inline-flex items-center gap-1.5 h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 rounded-xl text-[13px] font-medium shadow-2xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 rounded-xl typo-btn-secondary shadow-2xs transition-colors cursor-pointer"
             title="Preview document"
           >
             <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -84,7 +84,7 @@ export function DocumentHeaderCard({
           <button
             type="button"
             onClick={onPrint}
-            className="inline-flex items-center gap-1.5 h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 rounded-xl text-[13px] font-medium shadow-2xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 rounded-xl typo-btn-secondary shadow-2xs transition-colors cursor-pointer"
             title="Print document"
           >
             <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -99,7 +99,7 @@ export function DocumentHeaderCard({
             <button
               type="button"
               onClick={() => setIsMoreOpen(!isMoreOpen)}
-              className="inline-flex items-center gap-1 h-9 px-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-[13px] font-medium shadow-2xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 h-9 px-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl typo-btn-secondary shadow-2xs transition-colors cursor-pointer"
             >
               <span>More</span>
               <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -117,7 +117,7 @@ export function DocumentHeaderCard({
                       setIsMoreOpen(false);
                       item.onClick();
                     }}
-                    className={`w-full text-left px-3.5 py-2 text-xs font-medium flex items-center gap-2 hover:bg-slate-50 transition-colors ${
+                    className={`w-full text-left px-3.5 py-2 typo-card-desc flex items-center gap-2 hover:bg-slate-50 transition-colors ${
                       item.danger ? "text-rose-600 hover:bg-rose-50" : "text-slate-700"
                     }`}
                   >
@@ -135,7 +135,7 @@ export function DocumentHeaderCard({
             type="button"
             onClick={onSave}
             disabled={isSaving}
-            className="h-9 px-4 bg-[#1677E8] hover:bg-[#1268D3] text-white font-semibold text-[13px] rounded-xl shadow-xs transition-all active:scale-[0.98] disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+            className="h-9 px-4 bg-[#1677E8] hover:bg-[#1268D3] text-white typo-btn-primary rounded-xl shadow-xs transition-all active:scale-[0.98] disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
           >
             {isSaving ? (
               <>

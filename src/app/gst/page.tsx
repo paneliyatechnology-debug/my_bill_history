@@ -87,9 +87,9 @@ function DashboardBody() {
           <p>Next step: import GSTR-2B for {period.returnPeriod}, then review exceptions before reading the GSTR-3B draft.</p>
         </div>
         <div className="bg-white border border-slate-200 rounded-xl p-4">
-          <h2 className="font-medium mb-2">Recent GST activity</h2>
+          <h2 className="typo-section-heading mb-2">Recent GST activity</h2>
           {(data?.audit?.rows || []).length === 0 ? (
-            <p className="text-sm text-slate-500">No provider audit rows for this company.</p>
+            <p className="typo-empty-desc text-slate-500">No provider audit rows for this company.</p>
           ) : (
             <ul className="text-sm space-y-1">
               {data.audit.rows.slice(0, 8).map((row: any) => (
@@ -108,9 +108,9 @@ function DashboardBody() {
 function Card({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-3">
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="text-sm sm:text-base font-semibold break-words">{value || "0.00"}</p>
-      {hint ? <p className="text-[11px] text-slate-400">{hint}</p> : null}
+      <p className="typo-card-desc text-slate-500">{label}</p>
+      <p className="typo-kpi text-slate-900 break-words">{value || "0.00"}</p>
+      {hint ? <p className="typo-card-desc text-slate-400">{hint}</p> : null}
     </div>
   );
 }

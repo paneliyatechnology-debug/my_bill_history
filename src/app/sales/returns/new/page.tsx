@@ -941,15 +941,15 @@ function CreateSalesReturnForm() {
           )}
 
           <div className="flex items-center justify-between text-sm pt-2 border-t border-slate-200">
-            <span className="font-bold text-slate-900">Total Return Value</span>
-            <span className="font-extrabold text-blue-700 text-base tabular-nums">
+            <span className="typo-section-heading text-slate-900">Total Return Value</span>
+            <span className="typo-kpi text-blue-700">
               ₹{financials.grandTotal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
 
-          <div className="bg-slate-50 rounded-xl p-3 text-[11px] text-slate-500 mt-2">
+          <div className="bg-slate-50 rounded-xl p-3 typo-card-desc text-slate-500 mt-2">
             Stock will be updated for {lineItems.filter((i) => i.returnQty > 0 && i.disposition === "SELLABLE").length} items marked as{" "}
-            <span className="font-bold text-emerald-700">Sellable</span>. Damaged or scrapped items will not be returned to sellable stock.
+            <span className="font-semibold text-emerald-700">Sellable</span>. Damaged or scrapped items will not be returned to sellable stock.
           </div>
         </div>
       </div>

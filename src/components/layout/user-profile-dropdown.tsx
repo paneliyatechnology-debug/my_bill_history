@@ -66,19 +66,19 @@ export function UserProfileDropdown() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 pl-2 border-l border-slate-200 hover:opacity-90 transition-opacity cursor-pointer select-none group"
+        className="group flex items-center gap-2 h-10 pl-1.5 pr-2.5 rounded-xl border border-slate-200/80 hover:border-slate-300 bg-white hover:bg-slate-50 transition-all cursor-pointer select-none shadow-2xs hover:shadow-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         aria-haspopup="true"
         aria-expanded={isOpen}
         title={lang === "gu" ? "વપરાશકર્તા પ્રોફાઇલ અને સેટિંગ્સ" : "User Profile & Settings"}
       >
-        <div className="w-8 h-8 rounded-full bg-[#1677E8] text-white flex items-center justify-center font-bold text-xs shadow-2xs uppercase group-hover:ring-2 group-hover:ring-blue-200 transition-all">
+        <div className="w-7 h-7 rounded-lg bg-[#1677E8] text-white flex items-center justify-center font-semibold text-xs shadow-2xs uppercase group-hover:ring-2 group-hover:ring-blue-200 transition-all">
           {initial}
         </div>
-        <div className="hidden lg:flex items-center gap-1 text-[13px] font-medium text-[#182230]">
+        <div className="hidden lg:flex items-center gap-1.5 typo-btn-primary text-slate-800">
           <span className="truncate max-w-[120px]">{userName}</span>
           <svg
-            className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
-              isOpen ? "rotate-180" : ""
+            className={`w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-transform duration-200 ${
+              isOpen ? "rotate-180 text-blue-600" : ""
             }`}
             fill="none"
             viewBox="0 0 24 24"

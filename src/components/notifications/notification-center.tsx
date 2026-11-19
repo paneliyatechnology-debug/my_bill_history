@@ -258,7 +258,7 @@ export function NotificationCenter() {
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="relative p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer focus:outline-none"
+        className="relative w-9 h-9 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl border border-transparent hover:border-slate-200/60 transition-all cursor-pointer focus:outline-none"
         title="Notifications"
         aria-label="Notifications"
       >

@@ -325,16 +325,16 @@ export default function QuotationsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:px-6 sm:py-3.5 rounded-2xl border border-[#E2E8E5] shadow-xs">
         <div>
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-[#1677E8]">
+            <span className="typo-badge font-semibold uppercase tracking-widest text-[#1677E8]">
               {lang === "gu" ? "વેચાણ અને અંદાજપત્ર" : "SALES & ESTIMATES"}
             </span>
             <span className="text-slate-300">•</span>
-            <span className="text-[10px] font-bold text-slate-500 tabular-nums">
+            <span className="typo-badge font-semibold text-slate-500 typo-tabular">
               {filteredQuotations.length} {lang === "gu" ? "કવોટેશન" : "Quotations"}
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
+            <h1 className="typo-page-title text-[#182230]">
               {lang === "gu" ? "કવોટેશન રજિસ્ટર (Quotations)" : "Quotations & Estimates"}
             </h1>
             <button
@@ -356,7 +356,7 @@ export default function QuotationsPage() {
             type="button"
             onClick={handleExportCsv}
             disabled={filteredQuotations.length === 0}
-            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#E2E8F0] bg-white text-[13px] font-medium text-[#182230] hover:bg-[#F8FAFC] hover:border-[#93C5FD] disabled:opacity-50 transition-colors shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#E2E8F0] bg-white typo-btn-secondary text-[#182230] hover:bg-[#F8FAFC] hover:border-[#93C5FD] disabled:opacity-50 transition-colors shadow-2xs cursor-pointer"
             title="Export to CSV"
           >
             <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -368,7 +368,7 @@ export default function QuotationsPage() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#E2E8F0] bg-white text-[13px] font-medium text-[#182230] hover:bg-[#F8FAFC] hover:border-[#93C5FD] transition-colors shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#E2E8F0] bg-white typo-btn-secondary text-[#182230] hover:bg-[#F8FAFC] hover:border-[#93C5FD] transition-colors shadow-2xs cursor-pointer"
             title="Print Quotations Register"
           >
             <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -379,7 +379,7 @@ export default function QuotationsPage() {
 
           <Link
             href="/sales/quotations/new"
-            className="inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium shadow-md shadow-[#0F172A]/20 hover:shadow-lg hover:shadow-[#0F172A]/30 transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white typo-btn-primary shadow-md shadow-[#0F172A]/20 hover:shadow-lg hover:shadow-[#0F172A]/30 transition-all cursor-pointer"
           >
             <svg className="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -483,20 +483,20 @@ export default function QuotationsPage() {
       <div className="overflow-visible rounded-2xl border border-[#E2E8E5] bg-white shadow-xs">
         <div className="overflow-x-auto overflow-y-visible">
           <table className="min-w-full text-left text-xs border-collapse">
-            <thead className="bg-[#F8FAF9] border-b border-[#E2E8E5] text-[#5A6B66] font-semibold uppercase tracking-wider text-[11px]">
+            <thead className="bg-[#F8FAF9] border-b border-[#E2E8E5] text-[#5A6B66] typo-table-th uppercase tracking-wider">
               <tr>
-                <th className="px-4 py-3.5 whitespace-nowrap font-medium">{lang === "gu" ? "કવોટેશન નં." : "Quotation No."}</th>
-                <th className="px-4 py-3.5 whitespace-nowrap font-medium">{lang === "gu" ? "તારીખ અને માન્યતા" : "Date & Validity"}</th>
-                <th className="px-4 py-3.5 whitespace-nowrap font-medium">{lang === "gu" ? "ગ્રાહક (Party)" : "Customer / Party"}</th>
-                <th className="px-4 py-3.5 text-right whitespace-nowrap font-medium">{lang === "gu" ? "અંદાજિત રકમ" : "Estimated Amount"}</th>
-                <th className="px-4 py-3.5 text-center whitespace-nowrap font-medium">{lang === "gu" ? "સ્થિતિ" : "Status"}</th>
-                <th className="px-4 py-3.5 text-right whitespace-nowrap font-medium">Actions</th>
+                <th className="px-4 py-3.5 whitespace-nowrap">{lang === "gu" ? "કવોટેશન નં." : "Quotation No."}</th>
+                <th className="px-4 py-3.5 whitespace-nowrap">{lang === "gu" ? "તારીખ અને માન્યતા" : "Date & Validity"}</th>
+                <th className="px-4 py-3.5 whitespace-nowrap">{lang === "gu" ? "ગ્રાહક (Party)" : "Customer / Party"}</th>
+                <th className="px-4 py-3.5 text-right whitespace-nowrap">{lang === "gu" ? "અંદાજિત રકમ" : "Estimated Amount"}</th>
+                <th className="px-4 py-3.5 text-center whitespace-nowrap">{lang === "gu" ? "સ્થિતિ" : "Status"}</th>
+                <th className="px-4 py-3.5 text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E8E5]">
               {isLoading && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-16 text-center text-[13px] text-[#5A6B66]">
+                  <td colSpan={6} className="px-4 py-16 text-center typo-card-desc text-[#5A6B66]">
                     <div className="flex items-center justify-center gap-2">
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#1677E8] border-t-transparent" />
                       <span>{lang === "gu" ? "લોડ થઈ રહ્યું છે..." : "Loading quotations..."}</span>
@@ -514,17 +514,17 @@ export default function QuotationsPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                       </div>
-                      <p className="text-base font-bold text-[#1A2E2B]">
+                      <p className="typo-empty-heading text-[#1A2E2B]">
                         {lang === "gu" ? "કોઈ કવોટેશન મળ્યા નથી." : "No quotations found"}
                       </p>
-                      <p className="text-xs text-slate-500 mt-1">
+                      <p className="typo-empty-desc text-slate-500 mt-1">
                         {searchTerm
                           ? "No quotations match your current search filters."
                           : "Create professional sales quotations and convert them to GST Tax Invoices in 1-click."}
                       </p>
                       <Link
                         href="/sales/quotations/new"
-                        className="mt-4 rounded-xl bg-[#0F172A] h-9 px-3 text-[13px] font-medium text-white shadow-blue-500/20 hover:bg-[#1268D3] transition-colors"
+                        className="mt-4 rounded-xl bg-[#0F172A] h-9 px-3 typo-btn-primary text-white shadow-blue-500/20 hover:bg-[#1268D3] transition-colors"
                       >
                         {lang === "gu" ? "+ નવું કવોટેશન" : "+ Create Quotation"}
                       </Link>
@@ -549,18 +549,18 @@ export default function QuotationsPage() {
                         <div className="flex items-center gap-2">
                           <Link
                             href={`/sales/invoices/${q.id}`}
-                            className="tabular-nums font-bold text-[#0F172A] hover:text-[#1677E8] hover:underline transition-colors text-xs"
+                            className="typo-invoice-no text-[#0F172A] hover:text-[#1677E8] hover:underline transition-colors"
                           >
                             {q.invoiceNumber}
                           </Link>
-                          <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200/60">
+                          <span className="typo-badge font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200/60">
                             Estimate
                           </span>
                         </div>
                       </td>
 
                       {/* Date & Validity */}
-                      <td className="px-4 py-3 whitespace-nowrap text-[13px] text-[#182230]">
+                      <td className="px-4 py-3 whitespace-nowrap typo-table-td text-[#182230]">
                         <div>
                           {q.invoiceDate
                             ? new Date(q.invoiceDate).toLocaleDateString("en-GB", {
@@ -571,7 +571,7 @@ export default function QuotationsPage() {
                             : "—"}
                         </div>
                         {q.dueDate && (
-                          <div className="text-[10px] text-slate-400 font-medium mt-0.5">
+                          <div className="typo-card-desc text-slate-400 mt-0.5">
                             Valid till: {new Date(q.dueDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}
                           </div>
                         )}
@@ -579,35 +579,35 @@ export default function QuotationsPage() {
 
                       {/* Customer / Party */}
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="font-semibold text-[#1A2E2B] text-xs">
+                        <div className="font-semibold text-[#1A2E2B] typo-table-td">
                           {q.party?.name || "Cash Customer"}
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] text-slate-400 tabular-nums mt-0.5">
+                        <div className="flex items-center gap-2 typo-card-desc typo-tabular text-slate-400 mt-0.5">
                           {q.party?.phone && <span>📞 {q.party.phone}</span>}
                           {q.party?.gstin && <span>GST: {q.party.gstin}</span>}
                         </div>
                       </td>
 
                       {/* Amount */}
-                      <td className="px-4 py-3 text-right font-medium text-[#182230] whitespace-nowrap tabular-nums text-[13px]">
+                      <td className="px-4 py-3 text-right typo-table-amount text-[#182230] whitespace-nowrap">
                         {formatInr(q.grandTotal)}
                       </td>
 
                       {/* Status */}
                       <td className="px-4 py-3 text-center whitespace-nowrap">
                         {isConverted ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full typo-badge font-semibold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
                             <svg className="w-3 h-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
                             <span>Converted</span>
                           </span>
                         ) : q.status === "CANCELLED" ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full typo-badge font-semibold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
                             Void
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full typo-badge font-semibold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
                             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                             <span>Open Quote</span>
                           </span>

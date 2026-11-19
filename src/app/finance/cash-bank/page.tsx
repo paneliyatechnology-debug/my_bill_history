@@ -1317,7 +1317,7 @@ export default function CashAndBankPage() {
       {/* Top Header matching MyBillBook */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
         <div>
-          <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
+          <h1 className="typo-page-title text-[#182230]">
             {lang === "gu" ? "રોકડ અને બેંક (Cash and Bank)" : "Cash and Bank"}
           </h1>
         </div>
@@ -1501,10 +1501,10 @@ export default function CashAndBankPage() {
         <div className="hidden lg:flex w-full lg:w-[320px] xl:w-[350px] shrink-0 border-b lg:border-b-0 lg:border-r border-[#E2E8F0] bg-white flex-col">
           {/* Total Balance Strip */}
           <div className="px-4 py-3.5 flex items-center justify-between border-b border-[#E2E8F0]">
-            <span className="text-xs font-medium text-slate-700">
+            <span className="typo-label text-slate-700">
               {lang === "gu" ? "કુલ સિલક:" : "Total Balance:"}
             </span>
-            <span className="text-sm font-bold text-slate-900 tabular-nums">
+            <span className="typo-amount-secondary text-slate-900">
               {formatINR(totalBalance)}
             </span>
           </div>
@@ -1894,10 +1894,10 @@ export default function CashAndBankPage() {
                   <rect x="24" y="44" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="2" />
                   <path d="M46 49h10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
                 </svg>
-                <h3 className="mt-4 text-[15px] font-semibold text-slate-800">
+                <h3 className="mt-4 typo-empty-heading text-slate-800">
                   {lang === "gu" ? "કોઈ વ્યવહાર મળ્યા નથી" : "No Transactions"}
                 </h3>
-                <p className="mt-1 text-xs text-slate-400">
+                <p className="mt-1 typo-empty-desc text-slate-400">
                   {lang === "gu"
                     ? "પસંદ કરેલા સમયગાળા માટે કોઈ વ્યવહાર મળ્યો નથી."
                     : "Your don't have any transaction in selected period"}

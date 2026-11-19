@@ -56,17 +56,139 @@
   --danger-bg: #FEF0F0;
   --info: #1677E8;
 
-  --font-family-base: var(--font-inter), var(--font-noto-gujarati), sans-serif;
-  --font-size-page-title: 22px;
-  --font-size-section-title: 15px;
-  --font-size-card-title: 13px;
-  --font-size-body: 13px;
-  --font-size-table: 13px;
-  --font-size-label: 12px;
-  --font-size-button: 13px;
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
+  --font-family-base: var(--font-body);
+  --font-heading: var(--font-manrope), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: var(--font-inter), var(--font-noto-gujarati), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Backward Compatibility Aliases */
+  --font-playfair: var(--font-heading);
+  --font-dm-mono: var(--font-mono);
+
+  /* Centralized Typography Scale & Tokens (Official Standard) */
+  --text-page-title: 22px;
+  --fw-page-title: 600;
+  --lh-page-title: 30px;
+
+  --text-page-subtitle: 13px;
+  --fw-page-subtitle: 400;
+  --lh-page-subtitle: 20px;
+
+  --text-section-heading: 16px;
+  --fw-section-heading: 600;
+  --lh-section-heading: 24px;
+
+  --text-card-heading: 14px;
+  --fw-card-heading: 500;
+  --lh-card-heading: 20px;
+
+  --text-card-desc: 12px;
+  --fw-card-desc: 400;
+  --lh-card-desc: 18px;
+
+  --text-kpi: 24px;
+  --fw-kpi: 600;
+  --lh-kpi: 32px;
+
+  --text-amount-secondary: 18px;
+  --fw-amount-secondary: 500;
+  --lh-amount-secondary: 26px;
+
+  --text-table-th: 12px;
+  --fw-table-th: 500;
+  --lh-table-th: 18px;
+
+  --text-table-td: 13px;
+  --fw-table-td: 400;
+  --lh-table-td: 20px;
+
+  --text-table-amount: 13px;
+  --fw-table-amount: 500;
+  --lh-table-amount: 20px;
+
+  --text-nav: 13px;
+  --fw-nav: 400;
+  --lh-nav: 20px;
+
+  --text-nav-active: 13px;
+  --fw-nav-active: 500;
+  --lh-nav-active: 20px;
+
+  --text-btn-primary: 13px;
+  --fw-btn-primary: 500;
+  --lh-btn-primary: 18px;
+
+  --text-btn-secondary: 12px;
+  --fw-btn-secondary: 500;
+  --lh-btn-secondary: 18px;
+
+  --text-input: 13px;
+  --fw-input: 400;
+  --lh-input: 20px;
+
+  --text-label: 12px;
+  --fw-label: 500;
+  --lh-label: 18px;
+
+  --text-placeholder: 13px;
+  --fw-placeholder: 400;
+  --lh-placeholder: 20px;
+
+  --text-dropdown-item: 13px;
+  --fw-dropdown-item: 400;
+  --lh-dropdown-item: 20px;
+
+  --text-badge: 11px;
+  --fw-badge: 500;
+  --lh-badge: 16px;
+
+  --text-tooltip: 12px;
+  --fw-tooltip: 400;
+  --lh-tooltip: 18px;
+
+  --text-breadcrumb: 12px;
+  --fw-breadcrumb: 400;
+  --lh-breadcrumb: 18px;
+
+  --text-tab: 13px;
+  --fw-tab: 500;
+  --lh-tab: 20px;
+
+  --text-modal-title: 18px;
+  --fw-modal-title: 600;
+  --lh-modal-title: 26px;
+
+  --text-modal-desc: 13px;
+  --fw-modal-desc: 400;
+  --lh-modal-desc: 20px;
+
+  --text-form-section: 15px;
+  --fw-form-section: 600;
+  --lh-form-section: 22px;
+
+  --text-invoice-no: 12px;
+  --fw-invoice-no: 500;
+  --lh-invoice-no: 18px;
+
+  --text-tx-id: 11px;
+  --fw-tx-id: 400;
+  --lh-tx-id: 16px;
+
+  --text-chart-label: 11px;
+  --fw-chart-label: 400;
+  --lh-chart-label: 16px;
+
+  --text-chart-value: 12px;
+  --fw-chart-value: 500;
+  --lh-chart-value: 18px;
+
+  --text-empty-title: 17px;
+  --fw-empty-title: 600;
+  --lh-empty-title: 24px;
+
+  --text-empty-desc: 13px;
+  --fw-empty-desc: 400;
+  --lh-empty-desc: 20px;
 
   --radius-card: 12px;
   --radius-control: 10px;
@@ -96,10 +218,32 @@ html {
 body {
   color: var(--text-main);
   background: var(--bg-main);
-  font-family: var(--font-family-base, var(--font-inter), var(--font-noto-gujarati), "Shruti", "Nirmala UI", "Gujarati Sangam MN", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 20px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+/* Headings use Manrope by default */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+/* Technical codes and references use IBM Plex Mono */
+code, kbd, samp, pre, .font-mono, .bb-code-mono {
+  font-family: var(--font-mono);
+}
+
+/* Enforce Strict Typography Weights: 400, 500, 600 ONLY (Never 700 or 800) */
+.font-bold,
+.font-extrabold,
+.font-black,
+b,
+strong {
+  font-weight: 600 !important;
 }
 
 button,
@@ -109,11 +253,285 @@ textarea {
   font-family: inherit;
 }
 
-/* Application numerals stay in Inter. The mono utility is reserved for code and print templates outside the workspace. */
-#main-content .font-mono {
-  font-family: var(--font-inter), var(--font-noto-gujarati), sans-serif;
+/* Tabular Numerals for Financial Data Alignment */
+.tabular-nums,
+.bb-amount,
+.typo-kpi,
+.typo-amount-secondary,
+.typo-table-amount,
+.typo-invoice-no,
+.typo-tx-id {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
+}
+
+/* ==========================================================================
+   OFFICIAL GLOBAL TYPOGRAPHY SCALE CLASSES (CENTRALIZED TOKENS)
+   ========================================================================== */
+
+/* 1. Page Title (Manrope, 22px, 600, 30px) */
+.typo-page-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-page-title);
+  font-weight: var(--fw-page-title);
+  line-height: var(--lh-page-title);
+  letter-spacing: -0.015em;
+}
+
+/* 2. Page Subtitle (Inter, 13px, 400, 20px) */
+.typo-page-subtitle {
+  font-family: var(--font-body);
+  font-size: var(--text-page-subtitle);
+  font-weight: var(--fw-page-subtitle);
+  line-height: var(--lh-page-subtitle);
+  color: var(--text-secondary);
+}
+
+/* 3. Section Heading (Manrope, 16px, 600, 24px) */
+.typo-section-heading {
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: var(--fw-section-heading);
+  line-height: var(--lh-section-heading);
+  letter-spacing: -0.01em;
+}
+
+/* 4. Card Heading (Manrope, 14px, 500, 20px) */
+.typo-card-heading {
+  font-family: var(--font-heading);
+  font-size: var(--text-card-heading);
+  font-weight: var(--fw-card-heading);
+  line-height: var(--lh-card-heading);
+}
+
+/* 5. Card Description (Inter, 12px, 400, 18px) */
+.typo-card-desc {
+  font-family: var(--font-body);
+  font-size: var(--text-card-desc);
+  font-weight: var(--fw-card-desc);
+  line-height: var(--lh-card-desc);
+  color: var(--text-secondary);
+}
+
+/* 6. KPI Amount (Inter, 24px, 600, 32px, tabular-nums) */
+.typo-kpi {
+  font-family: var(--font-body);
+  font-size: var(--text-kpi);
+  font-weight: var(--fw-kpi);
+  line-height: var(--lh-kpi);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* 7. Secondary Amount (Inter, 18px, 500, 26px, tabular-nums) */
+.typo-amount-secondary {
+  font-family: var(--font-body);
+  font-size: var(--text-amount-secondary);
+  font-weight: var(--fw-amount-secondary);
+  line-height: var(--lh-amount-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 8. Table Heading (Inter, 12px, 500, 18px) */
+.typo-table-th {
+  font-family: var(--font-body);
+  font-size: var(--text-table-th);
+  font-weight: var(--fw-table-th);
+  line-height: var(--lh-table-th);
+}
+
+/* 9. Table Content (Inter, 13px, 400, 20px) */
+.typo-table-td {
+  font-family: var(--font-body);
+  font-size: var(--text-table-td);
+  font-weight: var(--fw-table-td);
+  line-height: var(--lh-table-td);
+}
+
+/* 10. Table Amount (Inter, 13px, 500, 20px, tabular-nums) */
+.typo-table-amount {
+  font-family: var(--font-body);
+  font-size: var(--text-table-amount);
+  font-weight: var(--fw-table-amount);
+  line-height: var(--lh-table-amount);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 11. Sidebar Menu (Inter, 13px, 400, 20px) */
+.typo-nav {
+  font-family: var(--font-body);
+  font-size: var(--text-nav);
+  font-weight: var(--fw-nav);
+  line-height: var(--lh-nav);
+}
+
+/* 12. Active Sidebar (Inter, 13px, 500, 20px) */
+.typo-nav-active {
+  font-family: var(--font-body);
+  font-size: var(--text-nav-active);
+  font-weight: var(--fw-nav-active);
+  line-height: var(--lh-nav-active);
+}
+
+/* 13. Primary Button (Inter, 13px, 500, 18px) */
+.typo-btn-primary {
+  font-family: var(--font-body);
+  font-size: var(--text-btn-primary);
+  font-weight: var(--fw-btn-primary);
+  line-height: var(--lh-btn-primary);
+}
+
+/* 14. Secondary Button (Inter, 12px, 500, 18px) */
+.typo-btn-secondary {
+  font-family: var(--font-body);
+  font-size: var(--text-btn-secondary);
+  font-weight: var(--fw-btn-secondary);
+  line-height: var(--lh-btn-secondary);
+}
+
+/* 15. Input Text (Inter, 13px, 400, 20px) */
+.typo-input {
+  font-family: var(--font-body);
+  font-size: var(--text-input);
+  font-weight: var(--fw-input);
+  line-height: var(--lh-input);
+}
+
+/* 16. Input Label (Inter, 12px, 500, 18px) */
+.typo-label {
+  font-family: var(--font-body);
+  font-size: var(--text-label);
+  font-weight: var(--fw-label);
+  line-height: var(--lh-label);
+}
+
+/* 17. Placeholder (Inter, 13px, 400, 20px) */
+.typo-placeholder::placeholder {
+  font-family: var(--font-body);
+  font-size: var(--text-placeholder);
+  font-weight: var(--fw-placeholder);
+  line-height: var(--lh-placeholder);
+}
+
+/* 18. Dropdown Item (Inter, 13px, 400, 20px) */
+.typo-dropdown-item {
+  font-family: var(--font-body);
+  font-size: var(--text-dropdown-item);
+  font-weight: var(--fw-dropdown-item);
+  line-height: var(--lh-dropdown-item);
+}
+
+/* 19. Badge / Status (Inter, 11px, 500, 16px) */
+.typo-badge {
+  font-family: var(--font-body);
+  font-size: var(--text-badge);
+  font-weight: var(--fw-badge);
+  line-height: var(--lh-badge);
+}
+
+/* 20. Tooltip (Inter, 12px, 400, 18px) */
+.typo-tooltip {
+  font-family: var(--font-body);
+  font-size: var(--text-tooltip);
+  font-weight: var(--fw-tooltip);
+  line-height: var(--lh-tooltip);
+}
+
+/* 21. Breadcrumb (Inter, 12px, 400, 18px) */
+.typo-breadcrumb {
+  font-family: var(--font-body);
+  font-size: var(--text-breadcrumb);
+  font-weight: var(--fw-breadcrumb);
+  line-height: var(--lh-breadcrumb);
+}
+
+/* 22. Tabs (Inter, 13px, 500, 20px) */
+.typo-tab {
+  font-family: var(--font-body);
+  font-size: var(--text-tab);
+  font-weight: var(--fw-tab);
+  line-height: var(--lh-tab);
+}
+
+/* 23. Modal Heading (Manrope, 18px, 600, 26px) */
+.typo-modal-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-modal-title);
+  font-weight: var(--fw-modal-title);
+  line-height: var(--lh-modal-title);
+  letter-spacing: -0.015em;
+}
+
+/* 24. Modal Description (Inter, 13px, 400, 20px) */
+.typo-modal-desc {
+  font-family: var(--font-body);
+  font-size: var(--text-modal-desc);
+  font-weight: var(--fw-modal-desc);
+  line-height: var(--lh-modal-desc);
+  color: var(--text-secondary);
+}
+
+/* 25. Form Section Title (Manrope, 15px, 600, 22px) */
+.typo-form-section {
+  font-family: var(--font-heading);
+  font-size: var(--text-form-section);
+  font-weight: var(--fw-form-section);
+  line-height: var(--lh-form-section);
+  letter-spacing: -0.01em;
+}
+
+/* 26. Invoice Number (IBM Plex Mono, 12px, 500, 18px) */
+.typo-invoice-no {
+  font-family: var(--font-mono);
+  font-size: var(--text-invoice-no);
+  font-weight: var(--fw-invoice-no);
+  line-height: var(--lh-invoice-no);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* 27. Transaction ID (IBM Plex Mono, 11px, 400, 16px) */
+.typo-tx-id {
+  font-family: var(--font-mono);
+  font-size: var(--text-tx-id);
+  font-weight: var(--fw-tx-id);
+  line-height: var(--lh-tx-id);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 28. Chart Labels (Inter, 11px, 400, 16px) */
+.typo-chart-label {
+  font-family: var(--font-body);
+  font-size: var(--text-chart-label);
+  font-weight: var(--fw-chart-label);
+  line-height: var(--lh-chart-label);
+}
+
+/* 29. Chart Values (Inter, 12px, 500, 18px, tabular-nums) */
+.typo-chart-value {
+  font-family: var(--font-body);
+  font-size: var(--text-chart-value);
+  font-weight: var(--fw-chart-value);
+  line-height: var(--lh-chart-value);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 30. Empty State Heading (Manrope, 17px, 600, 24px) */
+.typo-empty-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-empty-title);
+  font-weight: var(--fw-empty-title);
+  line-height: var(--lh-empty-title);
+  letter-spacing: -0.015em;
+}
+
+/* 31. Empty State Text (Inter, 13px, 400, 20px) */
+.typo-empty-desc {
+  font-family: var(--font-body);
+  font-size: var(--text-empty-desc);
+  font-weight: var(--fw-empty-desc);
+  line-height: var(--lh-empty-desc);
+  color: var(--text-secondary);
 }
 
 /* Gujarati Typography Calibration: Prevent glyph cramping and faux-bold smearing */

@@ -237,27 +237,35 @@ export default function EInvoicesListPage() {
       )}
 
       {/* Header Banner */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-[22px] font-semibold tracking-tight text-[#182230]">
-              {lang === "gu" ? "જીએસટી ઈ-ઇન્વોઇસિંગ (IRN)" : "GST E-Invoicing (IRN)"}
-            </h1>
-            <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
-              NIC Standard v1.1
-            </span>
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-start sm:items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200/60 flex items-center justify-center text-[#1677E8] shrink-0 shadow-2xs">
+            <svg className="w-5 h-5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
           </div>
-          <p className="mt-1 text-xs text-slate-600 sm:text-sm">
-            {lang === "gu"
-              ? "IRP પોર્ટલ પરથી IRN મેળવો, ડિજિટલ સહી કરેલો QR કોડ જનરેટ કરો અને સંચાલન કરો."
-              : "Generate real IRNs, official signed QR codes, validate statutory schema, and reconcile IRP status."}
-          </p>
+          <div>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="text-[20px] sm:text-[22px] font-bold tracking-tight text-slate-900">
+                {lang === "gu" ? "જીએસટી ઈ-ઇન્વોઇસિંગ (IRN)" : "GST E-Invoicing (IRN)"}
+              </h1>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-[#1677E8] border border-blue-200/60">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#1677E8]" />
+                NIC Standard v1.1
+              </span>
+            </div>
+            <p className="mt-0.5 text-xs sm:text-[13px] text-slate-500">
+              {lang === "gu"
+                ? "IRP પોર્ટલ પરથી IRN મેળવો, ડિજિટલ સહી કરેલો QR કોડ જનરેટ કરો અને સંચાલન કરો."
+                : "Generate real IRNs, official signed QR codes, validate statutory schema, and reconcile IRP status."}
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
           <Link
             href="/settings/e-invoice"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 shadow-xs hover:bg-slate-50 transition"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200/90 bg-white h-10 px-3.5 text-[13px] font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition"
           >
             <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -268,7 +276,7 @@ export default function EInvoicesListPage() {
 
           <Link
             href="/reports/e-invoice-reconciliation"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 shadow-xs hover:bg-slate-50 transition"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200/90 bg-white h-10 px-3.5 text-[13px] font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition"
           >
             <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -278,7 +286,7 @@ export default function EInvoicesListPage() {
 
           <Link
             href="/sales/e-invoices/new"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#1677E8] h-9 px-3 text-[13px] font-medium text-white shadow-xs hover:bg-[#1268D3] transition"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#1677E8] h-10 px-4 text-[13px] font-semibold text-white shadow-xs hover:bg-[#1268D3] transition active:scale-[0.98]"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
@@ -290,53 +298,68 @@ export default function EInvoicesListPage() {
 
       {/* Alert if no GSTIN on file */}
       {!currentCompany?.gstin && (
-        <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-xs text-amber-900 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-xs">
+        <div className="mb-6 rounded-2xl border border-blue-200/80 bg-blue-50/40 p-4 text-xs text-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-2xs">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-200 text-amber-800 shrink-0 font-bold">!</span>
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-[#1677E8] shrink-0 font-bold text-sm">ℹ️</span>
             <div>
-              <p className="font-bold text-amber-900">GST Registration Required</p>
-              <p className="text-amber-700">Your company has no GSTIN on file. Add your GSTIN in Company Settings to register invoices on IRP.</p>
+              <p className="font-bold text-slate-900">GST Registration Required</p>
+              <p className="text-slate-600">Your company has no GSTIN on file. Add your GSTIN in Company Settings to register invoices on IRP.</p>
             </div>
           </div>
           <Link
             href="/settings/company"
-            className="inline-flex items-center h-9 px-3 rounded-lg bg-amber-700 hover:bg-amber-800 text-white font-medium text-[13px] shrink-0 self-start sm:self-auto transition"
+            className="inline-flex items-center h-9 px-4 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white font-semibold text-xs shrink-0 self-start sm:self-auto transition-colors shadow-2xs"
           >
             Add GSTIN in Settings &rarr;
           </Link>
         </div>
       )}
 
-      {/* Summary Metrics Cards */}
+      {/* Summary Metrics Cards — Consistent Unified White Cards */}
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-xs">
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs hover:border-slate-300 transition-colors">
           <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Eligible</div>
-          <div className="mt-1 text-2xl font-semibold text-slate-900">{summary.total}</div>
+          <div className="mt-1 text-2xl font-bold text-slate-900">{summary.total}</div>
         </div>
 
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3.5 shadow-xs">
-          <div className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">Registered (IRN)</div>
-          <div className="mt-1 text-2xl font-semibold text-emerald-800">{summary.registered}</div>
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs hover:border-slate-300 transition-colors">
+          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+            <span>Registered (IRN)</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+          </div>
+          <div className="mt-1 text-2xl font-bold text-slate-900">{summary.registered}</div>
         </div>
 
-        <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-3.5 shadow-xs">
-          <div className="text-[11px] font-bold text-blue-700 uppercase tracking-wider">Ready to Submit</div>
-          <div className="mt-1 text-2xl font-semibold text-blue-800">{summary.ready}</div>
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs hover:border-slate-300 transition-colors">
+          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+            <span>Ready to Submit</span>
+            <span className="w-2 h-2 rounded-full bg-[#1677E8]" />
+          </div>
+          <div className="mt-1 text-2xl font-bold text-slate-900">{summary.ready}</div>
         </div>
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-3.5 shadow-xs">
-          <div className="text-[11px] font-bold text-amber-700 uppercase tracking-wider">Incomplete Draft</div>
-          <div className="mt-1 text-2xl font-semibold text-amber-800">{summary.draft}</div>
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs hover:border-slate-300 transition-colors">
+          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+            <span>Incomplete Draft</span>
+            <span className="w-2 h-2 rounded-full bg-amber-500" />
+          </div>
+          <div className="mt-1 text-2xl font-bold text-slate-900">{summary.draft}</div>
         </div>
 
-        <div className="rounded-xl border border-purple-200 bg-purple-50/50 p-3.5 shadow-xs">
-          <div className="text-[11px] font-bold text-purple-700 uppercase tracking-wider">Reconcile Pending</div>
-          <div className="mt-1 text-2xl font-semibold text-purple-800">{summary.reconcile}</div>
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs hover:border-slate-300 transition-colors">
+          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+            <span>Reconcile Pending</span>
+            <span className="w-2 h-2 rounded-full bg-slate-400" />
+          </div>
+          <div className="mt-1 text-2xl font-bold text-slate-900">{summary.reconcile}</div>
         </div>
 
-        <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-3.5 shadow-xs">
-          <div className="text-[11px] font-bold text-rose-700 uppercase tracking-wider">Failed / Rejected</div>
-          <div className="mt-1 text-2xl font-semibold text-rose-800">{summary.rejected}</div>
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs hover:border-slate-300 transition-colors">
+          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+            <span>Failed / Rejected</span>
+            <span className="w-2 h-2 rounded-full bg-rose-500" />
+          </div>
+          <div className="mt-1 text-2xl font-bold text-slate-900">{summary.rejected}</div>
         </div>
       </div>
 
@@ -410,8 +433,8 @@ export default function EInvoicesListPage() {
       {/* Main Table */}
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+          <table className="w-full text-left">
+            <thead className="border-b border-slate-200 bg-slate-50 typo-table-th text-slate-700 uppercase tracking-wider">
               <tr>
                 <th className="py-3 px-4">Document</th>
                 <th className="py-3 px-4">Customer & GSTIN</th>
@@ -428,7 +451,7 @@ export default function EInvoicesListPage() {
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-slate-500">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent"></div>
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#1677E8] border-t-transparent"></div>
                       <span>Loading e-invoice records...</span>
                     </div>
                   </td>
@@ -439,7 +462,7 @@ export default function EInvoicesListPage() {
                     <div>{error}</div>
                     <button
                       onClick={loadData}
-                      className="mt-2 text-xs font-bold text-emerald-700 underline"
+                      className="mt-2 text-xs font-bold text-[#1677E8] hover:underline cursor-pointer"
                     >
                       Try again
                     </button>
@@ -470,37 +493,37 @@ export default function EInvoicesListPage() {
                       <td className="py-3 px-4">
                         <Link
                           href={`/sales/e-invoices/${row.id}`}
-                          className="font-bold text-slate-900 hover:text-emerald-700 transition"
+                          className="typo-invoice-no text-slate-900 hover:text-[#1677E8] transition-colors block"
                         >
                           {row.invoiceNumber}
                         </Link>
-                        <div className="text-[10px] text-slate-400">
+                        <div className="typo-card-desc text-slate-400 mt-0.5">
                           {row.invoiceDate} · <span className="uppercase">{row.category.replace("_", " ")}</span>
                         </div>
                       </td>
 
                       {/* Customer Column */}
                       <td className="py-3 px-4">
-                        <div className="font-semibold text-slate-900">{row.party?.name || "Cash Customer"}</div>
+                        <div className="typo-table-td font-medium text-slate-900">{row.party?.name || "Cash Customer"}</div>
                         {row.party?.gstin ? (
-                          <div className="tabular-nums text-[10.5px] text-slate-600">{row.party.gstin}</div>
+                          <div className="typo-tx-id tabular-nums text-slate-600 mt-0.5">{row.party.gstin}</div>
                         ) : (
-                          <span className="text-[10px] text-amber-700 font-semibold">Missing GSTIN</span>
+                          <span className="typo-badge text-amber-600 font-medium">Missing GSTIN</span>
                         )}
                       </td>
 
                       {/* POS */}
-                      <td className="py-3 px-4 tabular-nums text-slate-700">
+                      <td className="py-3 px-4 tabular-nums typo-table-td text-slate-700">
                         {row.placeOfSupply ? `Code ${row.placeOfSupply}` : "-"}
                       </td>
 
                       {/* Taxable */}
-                      <td className="py-3 px-4 text-right tabular-nums text-slate-700">
+                      <td className="py-3 px-4 text-right typo-table-amount text-slate-700">
                         ₹{formatInr(row.taxableAmount)}
                       </td>
 
                       {/* Grand Total */}
-                      <td className="py-3 px-4 text-right font-medium tabular-nums text-slate-900">
+                      <td className="py-3 px-4 text-right typo-table-amount text-slate-900">
                         ₹{formatInr(row.grandTotal)}
                       </td>
 
@@ -528,7 +551,7 @@ export default function EInvoicesListPage() {
                           </span>
                         )}
                         {isReconcile && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-[10px] font-bold text-purple-800 animate-pulse">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-0.5 text-[10px] font-bold">
                             Reconcile
                           </span>
                         )}
@@ -549,7 +572,7 @@ export default function EInvoicesListPage() {
                             <button
                               onClick={() => copyToClipboard(row.eInvoice!.irn)}
                               title="Copy full IRN"
-                              className="text-slate-400 hover:text-emerald-700 transition"
+                              className="text-slate-400 hover:text-[#1677E8] transition-colors cursor-pointer"
                             >
                               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -561,7 +584,7 @@ export default function EInvoicesListPage() {
                             {row.lastAttempt.errorCode || row.lastAttempt.errorMessage || "Submission rejected"}
                           </div>
                         ) : isReconcile ? (
-                          <span className="text-[10px] text-purple-700">Timeout / Pending Check</span>
+                          <span className="text-[10px] text-slate-600">Timeout / Pending Check</span>
                         ) : (
                           <span className="text-[10px] text-slate-400">Not generated</span>
                         )}
@@ -580,13 +603,13 @@ export default function EInvoicesListPage() {
                               </Link>
                               <Link
                                 href={`/sales/e-invoices/${row.id}/preview`}
-                                className="rounded px-2 py-1 text-[11px] font-medium text-emerald-700 hover:bg-emerald-50 transition"
+                                className="rounded px-2 py-1 text-[11px] font-semibold text-[#1677E8] hover:bg-blue-50 transition-colors"
                               >
                                 Preview
                               </Link>
                               <button
                                 onClick={() => setCancelInvoice(row)}
-                                className="rounded px-2 py-1 text-[11px] font-medium text-rose-600 hover:bg-rose-50 transition"
+                                className="rounded px-2 py-1 text-[11px] font-medium text-rose-600 hover:bg-rose-50 transition cursor-pointer"
                               >
                                 Cancel
                               </button>
@@ -595,7 +618,7 @@ export default function EInvoicesListPage() {
                             <>
                               <button
                                 onClick={() => handleValidate(row)}
-                                className="rounded px-2 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-100 transition"
+                                className="rounded px-2 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-100 transition cursor-pointer"
                               >
                                 Validate
                               </button>
@@ -604,14 +627,14 @@ export default function EInvoicesListPage() {
                                 <button
                                   onClick={() => handleReconcile(row)}
                                   disabled={isReconciling === row.id}
-                                  className="rounded bg-purple-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-purple-700 transition disabled:opacity-50"
+                                  className="rounded bg-[#1677E8] px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-[#1268D3] transition-colors disabled:opacity-50 cursor-pointer"
                                 >
                                   {isReconciling === row.id ? "Checking..." : "Reconcile"}
                                 </button>
                               ) : (
                                 <button
                                   onClick={() => setGenerateInvoice(row)}
-                                  className="rounded bg-[#1677E8] px-2.5 py-1 text-[11px] font-medium text-white hover:bg-[#1268D3] transition"
+                                  className="rounded bg-[#1677E8] px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-[#1268D3] transition-colors shadow-2xs cursor-pointer"
                                 >
                                   Generate IRN
                                 </button>
@@ -686,7 +709,7 @@ export default function EInvoicesListPage() {
             <div className="max-h-[60vh] overflow-y-auto p-5 space-y-4">
               {isValidating ? (
                 <div className="py-8 text-center text-slate-500">
-                  <div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent mb-2"></div>
+                  <div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-[#1677E8] border-t-transparent mb-2"></div>
                   <span>Running local schema validation...</span>
                 </div>
               ) : validationResult ? (
@@ -838,8 +861,8 @@ export default function EInvoicesListPage() {
               </div>
 
               {generateProgress && (
-                <div className="flex items-center gap-2 text-emerald-700 font-semibold">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent"></div>
+                <div className="flex items-center gap-2 text-[#1677E8] font-semibold">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#1677E8] border-t-transparent"></div>
                   <span>{generateProgress}</span>
                 </div>
               )}

@@ -727,11 +727,11 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
         header: lang === "gu" ? "આઇટમ કોડ" : "Item Code",
         accessorFn: (it) => it.sku || it.barcode || "-",
         sortable: true,
-        className: "tabular-nums text-slate-600",
+        className: "typo-invoice-no text-slate-600",
         cell: (it) => {
           const code = it.sku || it.barcode;
           if (!code) return <span className="text-slate-400">-</span>;
-          return <span className="tabular-nums text-xs text-slate-700">{code}</span>;
+          return <span className="typo-invoice-no text-slate-700">{code}</span>;
         },
       },
       {
@@ -753,17 +753,17 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
           const isLow = min > 0 && stock <= min;
 
           return (
-            <div className="inline-flex items-center gap-1.5 font-medium text-xs">
+            <div className="inline-flex items-center gap-1.5 typo-table-td">
               <span
                 className={`tabular-nums ${
-                  isLow ? "text-amber-600 font-bold" : "text-slate-800 font-semibold"
+                  isLow ? "text-amber-600 font-semibold" : "text-slate-800 font-medium"
                 }`}
               >
                 {stock} {uom}
               </span>
               {isLow && (
                 <span
-                  className="text-[10px] text-amber-500 font-bold"
+                  className="text-[10px] text-amber-500 font-semibold"
                   title={`Low stock alert (Min: ${min} ${uom})`}
                 >
                   ⚠️
@@ -782,7 +782,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
           const price = Number(it.retailPrice);
           if (!price) return <span className="text-slate-400">-</span>;
           return (
-            <span className="tabular-nums text-xs font-semibold text-slate-800">
+            <span className="typo-table-amount text-slate-800">
               ₹ {price.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
             </span>
           );
@@ -797,7 +797,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
           const price = Number(it.purchaseRate);
           if (!price) return <span className="text-slate-400">-</span>;
           return (
-            <span className="tabular-nums text-xs font-semibold text-slate-800">
+            <span className="typo-table-amount text-slate-800">
               ₹ {price.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
             </span>
           );
@@ -877,7 +877,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
           {/* 1. TOP HEADER BAR matching MyBillBook                         */}
           {/* ============================================================ */}
       <div className="flex items-center justify-between">
-        <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
+        <h1 className="typo-page-title text-[#182230]">
           {lang === "gu" ? "વસ્તુઓ (Items)" : "Items"}
         </h1>
 
@@ -885,7 +885,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
           <button
             type="button"
             onClick={() => setShowPromoBanner(!showPromoBanner)}
-            className="h-9 px-3 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-[13px] font-medium rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="h-9 px-3 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 typo-btn-secondary rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <span>🚫</span>
             <span>{lang === "gu" ? "ઑફર્સ મેનેજ કરો" : "Manage Offer"}</span>
@@ -893,7 +893,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
           <button
             type="button"
             onClick={() => alert("Items Reports: Stock Summary, Item Sales, Low Stock Report")}
-            className="h-9 px-3 border border-slate-300 text-slate-700 hover:bg-slate-50 text-[13px] font-medium rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="h-9 px-3 border border-slate-300 text-slate-700 hover:bg-slate-50 typo-btn-secondary rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <span>📊</span>
             <span>{lang === "gu" ? "રિપોર્ટ્સ" : "Reports"}</span>
@@ -913,14 +913,14 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
 
       {/* Success Banner */}
       {successMessage && (
-        <div className="flex items-center justify-between p-3.5 bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-medium rounded-xl shadow-xs">
+        <div className="flex items-center justify-between p-3.5 bg-emerald-50 border border-emerald-200 typo-card-desc text-emerald-800 font-medium rounded-xl shadow-xs">
           <div className="flex items-center gap-2">
-            <span className="text-emerald-600 font-bold text-base">✓</span>
+            <span className="text-emerald-600 font-semibold text-base">✓</span>
             <span>{successMessage}</span>
           </div>
           <button
             onClick={() => setSuccessMessage(null)}
-            className="text-emerald-600 hover:text-emerald-800 text-sm font-bold ml-3 cursor-pointer"
+            className="text-emerald-600 hover:text-emerald-800 text-sm font-semibold ml-3 cursor-pointer"
           >
             ×
           </button>
@@ -929,7 +929,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
 
       {/* Error Banner */}
       {error && (
-        <div className="p-3.5 bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium rounded-xl">
+        <div className="p-3.5 bg-rose-50 border border-rose-200 typo-card-desc text-rose-700 font-medium rounded-xl">
           {error}
         </div>
       )}
@@ -940,10 +940,10 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
           <div className="flex items-center gap-3">
             <span className="text-2xl">🎁</span>
             <div>
-              <p className="font-bold text-slate-900 text-xs sm:text-sm">
+              <p className="typo-card-heading text-slate-900">
                 {lang === "gu" ? "તમારા માલ પર ઑફર્સ અને ડિસ્કાઉન્ટ સ્કીમ શરૂ કરો" : "Launch Offers on Your Items"}
               </p>
-              <p className="text-[11px] sm:text-xs text-slate-600">
+              <p className="typo-card-desc text-slate-600">
                 {lang === "gu" ? "ગ્રાહકોને આકર્ષવા માટે જથ્થાબંધ ડિસ્કાઉન્ટ અને સ્કીમ ભાવ સેટ કરો" : "Boost sales with volume discounts, seasonal prices and wholesale customer rates"}
               </p>
             </div>
@@ -951,7 +951,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => handleOpenCreateModal()}
-              className="h-9 px-3 bg-white hover:bg-slate-50 text-slate-800 text-[13px] font-medium rounded-lg border border-slate-200 shadow-2xs transition-all cursor-pointer"
+              className="h-9 px-3 bg-white hover:bg-slate-50 text-slate-800 typo-btn-secondary rounded-lg border border-slate-200 shadow-2xs transition-all cursor-pointer"
             >
               Create Offer Now
             </button>
@@ -972,14 +972,14 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
         {/* Stock Value Card */}
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
-            <div className="flex items-center gap-1.5 text-xs font-medium text-slate-600">
+            <div className="flex items-center gap-1.5 typo-card-heading text-slate-600">
               <svg className="w-4 h-4 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
               <span>{lang === "gu" ? "સ્ટોક કિંમત" : "Stock Value"}</span>
               <span className="cursor-help text-slate-400" title="Total stock valuation based on purchase rates">ⓘ</span>
             </div>
-            <p className="text-2xl tabular-nums font-bold text-slate-900 mt-2">
+            <p className="typo-kpi text-slate-900 mt-2">
               ₹ {totalStockValue.toLocaleString("en-IN", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
             </p>
           </div>
@@ -996,11 +996,11 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
           }`}
         >
           <div>
-            <div className="flex items-center gap-1.5 text-xs font-medium text-amber-700">
+            <div className="flex items-center gap-1.5 typo-card-heading text-amber-700">
               <span className="text-amber-500">📦</span>
               <span>{lang === "gu" ? "ઓછો સ્ટોક (Low Stock)" : "Low Stock"}</span>
             </div>
-            <p className={`text-2xl tabular-nums font-bold mt-2 ${lowStockCount > 0 ? "text-amber-600" : "text-slate-900"}`}>
+            <p className={`typo-kpi mt-2 ${lowStockCount > 0 ? "text-amber-600" : "text-slate-900"}`}>
               {lowStockCount}
             </p>
           </div>

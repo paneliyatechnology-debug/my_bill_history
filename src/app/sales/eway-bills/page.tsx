@@ -299,7 +299,7 @@ export default function EWayBillsPage() {
             <div>
               <Link
                 href={linkHref}
-                className="tabular-nums text-xs font-semibold text-slate-800 hover:text-indigo-600 hover:underline block"
+                className="typo-invoice-no text-slate-800 hover:text-indigo-600 hover:underline block"
               >
                 {item.docNumber}
               </Link>
@@ -313,10 +313,10 @@ export default function EWayBillsPage() {
       accessorKey: "partyName",
       cell: (item: EWayBillListItem) => (
         <div className="space-y-0.5">
-          <div className="font-semibold text-xs text-slate-900 truncate max-w-[180px]">
+          <div className="font-semibold typo-table-td text-slate-900 truncate max-w-[180px]">
             {item.partyName}
           </div>
-          <div className="text-[10px] tabular-nums text-slate-500">
+          <div className="typo-card-desc typo-tabular text-slate-500">
             {item.partyGstin ? `GSTIN: ${item.partyGstin}` : "Unregistered (URP)"}
           </div>
         </div>
@@ -328,7 +328,7 @@ export default function EWayBillsPage() {
       cell: (item: EWayBillListItem) => (
         <div className="space-y-1">
           <div className="flex items-center gap-1.5">
-            <span className="tabular-nums font-bold text-slate-800 text-xs bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 uppercase">
+            <span className="typo-invoice-no text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 uppercase">
               {item.vehicleNumber || "NOT ASSIGNED"}
             </span>
             {item.status === "ACT" && !item.isExpired && (
@@ -445,14 +445,14 @@ export default function EWayBillsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
+            <h1 className="typo-page-title text-[#182230]">
               {lang === "gu" ? "ઈ-વે બિલ રજીસ્ટર અને પાલન" : "E-Way Bills Register"}
             </h1>
-            <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-orange-100 text-orange-800 border border-orange-200">
+            <span className="px-2 py-0.5 rounded-full typo-badge font-semibold bg-orange-100 text-orange-800 border border-orange-200">
               Rule 138 GST
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="typo-page-subtitle text-slate-500 mt-0.5">
             {lang === "gu"
               ? "માલસામાનની હેરફેર માટે કાનૂની ઈ-વે બિલ જનરેશન, વાહન અપડેટ અને માન્ય Form GST EWB-01 સ્લિપ પ્રિન્ટિંગ."
               : "Statutory goods movement compliance under Section 68 of CGST Act. Vehicle updates (Part-B) & official Form GST EWB-01 slips."}
@@ -462,7 +462,7 @@ export default function EWayBillsPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={handleOpenLinkModal}
-            className="h-9 px-3 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-lg text-[13px] font-medium shadow-sm flex items-center gap-1.5 transition-colors"
+            className="h-9 px-3 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-lg typo-btn-secondary shadow-sm flex items-center gap-1.5 transition-colors"
           >
             <svg className="w-4 h-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -472,7 +472,7 @@ export default function EWayBillsPage() {
 
           <Link
             href="/sales/delivery-challans"
-            className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg text-[13px] font-medium shadow-sm flex items-center gap-1.5 transition-colors"
+            className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg typo-btn-primary shadow-sm flex items-center gap-1.5 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -487,7 +487,7 @@ export default function EWayBillsPage() {
         {/* Active E-Way Bills */}
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">
+            <span className="typo-card-desc text-slate-500">
               {lang === "gu" ? "ચાલુ ઈ-વે બિલ" : "Active Consignments"}
             </span>
             <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
@@ -496,10 +496,10 @@ export default function EWayBillsPage() {
               </svg>
             </span>
           </div>
-          <div className="mt-2 text-2xl font-bold text-slate-900 tabular-nums">
+          <div className="mt-2 typo-kpi text-slate-900">
             {summary.activeCount}
           </div>
-          <p className="text-[11px] text-emerald-600 mt-1 font-medium">
+          <p className="typo-card-desc text-emerald-600 mt-1">
             Valid & moving on road
           </p>
         </div>
@@ -507,7 +507,7 @@ export default function EWayBillsPage() {
         {/* In-Transit Consignment Value */}
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">
+            <span className="typo-card-desc text-slate-500">
               {lang === "gu" ? "ટ્રાન્સિટ માલ કિંમત" : "In-Transit Value"}
             </span>
             <span className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
@@ -516,10 +516,10 @@ export default function EWayBillsPage() {
               </svg>
             </span>
           </div>
-          <div className="mt-2 text-xl sm:text-2xl font-bold text-slate-900 tabular-nums truncate">
+          <div className="mt-2 typo-kpi text-slate-900 truncate">
             ₹{Number(summary.inTransitValue).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
           </div>
-          <p className="text-[11px] text-slate-500 mt-1">
+          <p className="typo-card-desc text-slate-500 mt-1">
             Active goods in transit
           </p>
         </div>
@@ -527,7 +527,7 @@ export default function EWayBillsPage() {
         {/* Expiring Soon */}
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">
+            <span className="typo-card-desc text-slate-500">
               {lang === "gu" ? "ટૂંક સમયમાં પૂર્ણ (<૨૪ કલાક)" : "Expiring Soon (< 24h)"}
             </span>
             <span className="p-1.5 rounded-lg bg-amber-50 text-amber-600">
@@ -536,10 +536,10 @@ export default function EWayBillsPage() {
               </svg>
             </span>
           </div>
-          <div className="mt-2 text-2xl font-bold text-amber-700 tabular-nums">
+          <div className="mt-2 typo-kpi text-amber-700">
             {summary.expiringSoonCount}
           </div>
-          <p className="text-[11px] text-amber-700 mt-1 font-medium">
+          <p className="typo-card-desc text-amber-700 mt-1">
             Requires extension or vehicle update
           </p>
         </div>
@@ -547,7 +547,7 @@ export default function EWayBillsPage() {
         {/* Cancelled / Expired */}
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">
+            <span className="typo-card-desc text-slate-500">
               {lang === "gu" ? "રદ / મુદત વીતી ગયેલ" : "Cancelled / Expired"}
             </span>
             <span className="p-1.5 rounded-lg bg-slate-100 text-slate-600">

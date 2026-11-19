@@ -338,12 +338,12 @@ export default function HsnMasterPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-border shadow-subtle">
         <div>
-          <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
+          <h1 className="typo-page-title text-[#182230]">
             {lang === "gu"
               ? "એચએસએન અને એસએસી કોડ માસ્ટર"
               : "HSN & SAC Code Master"}
           </h1>
-          <p className="text-xs text-muted mt-1">
+          <p className="typo-page-subtitle text-muted mt-1">
             {lang === "gu"
               ? "કેન્દ્રીય જીએસટી વર્ગીકરણ, માન્ય કર સ્લેબ અને કંપની કસ્ટમ કોડ્સ"
               : "Centralized GST goods & services classification, statutory tax slabs & company custom codes."}
@@ -620,9 +620,9 @@ export default function HsnMasterPage() {
         )}
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider typo-table-th">
                 <th className="py-3 px-4 w-32">
                   {lang === "gu" ? "કોડ (Code)" : "HSN/SAC Code"}
                 </th>
@@ -693,7 +693,7 @@ export default function HsnMasterPage() {
                     {/* Code */}
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-1.5">
-                        <span className="tabular-nums font-bold text-xs text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                        <span className="typo-invoice-no text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                           {item.code}
                         </span>
                       </div>

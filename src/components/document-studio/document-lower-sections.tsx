@@ -23,7 +23,7 @@ export function DocumentNotesAndTermsCard({
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <h3 className="text-xs sm:text-[15px] font-semibold text-[#182230] tracking-tight">
+          <h3 className="typo-form-section text-[#182230]">
             Notes & Terms
           </h3>
         </div>
@@ -33,7 +33,7 @@ export function DocumentNotesAndTermsCard({
           <button
             type="button"
             onClick={() => onTabChange("notes")}
-            className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+            className={`px-3 py-1 rounded-md typo-tab transition-all cursor-pointer ${
               activeTab === "notes"
                 ? "bg-white text-[#0F172A] shadow-xs"
                 : "text-slate-500 hover:text-slate-800"
@@ -44,7 +44,7 @@ export function DocumentNotesAndTermsCard({
           <button
             type="button"
             onClick={() => onTabChange("terms")}
-            className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+            className={`px-3 py-1 rounded-md typo-tab transition-all cursor-pointer ${
               activeTab === "terms"
                 ? "bg-white text-[#0F172A] shadow-xs"
                 : "text-slate-500 hover:text-slate-800"
@@ -63,7 +63,7 @@ export function DocumentNotesAndTermsCard({
             value={notes}
             onChange={(e) => onNotesChange(e.target.value)}
             placeholder="Enter notes for customer..."
-            className="w-full text-[13px] p-3 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs resize-none"
+            className="w-full typo-input p-3 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs resize-none"
           />
         ) : (
           <textarea
@@ -71,7 +71,7 @@ export function DocumentNotesAndTermsCard({
             value={terms}
             onChange={(e) => onTermsChange(e.target.value)}
             placeholder="Enter terms and conditions..."
-            className="w-full text-[13px] p-3 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs resize-none font-sans"
+            className="w-full typo-input p-3 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs resize-none"
           />
         )}
       </div>
@@ -88,10 +88,10 @@ export function DocumentNotesAndTermsCard({
           <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
         </svg>
         <div className="text-center">
-          <span className="text-xs font-bold text-slate-700 group-hover:text-[#0F172A]">
+          <span className="typo-label font-semibold text-slate-700 group-hover:text-[#0F172A] block">
             Attach Files
           </span>
-          <span className="text-[10px] text-slate-400 block font-medium">
+          <span className="typo-card-desc text-slate-400 block">
             PDF, Images (Max 5MB) {attachedFilesCount > 0 ? `• ${attachedFilesCount} attached` : ""}
           </span>
         </div>
@@ -121,7 +121,7 @@ export function DocumentAdditionalInfoCard({
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
         </div>
-        <h3 className="text-xs sm:text-[15px] font-semibold text-[#182230] tracking-tight">
+        <h3 className="typo-form-section text-[#182230]">
           Additional Information
         </h3>
       </div>
@@ -129,15 +129,15 @@ export function DocumentAdditionalInfoCard({
       {customFields ? (
         customFields
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           {/* Transport Mode */}
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-slate-600 block">Transport Mode</label>
+            <label className="typo-label text-slate-600 block">Transport Mode</label>
             <div className="relative">
               <select
                 value={transportMode}
                 onChange={(e) => onTransportModeChange?.(e.target.value)}
-                className="w-full py-1.5 px-2.5 bg-white border border-slate-200 rounded-xl font-normal text-slate-800 focus:outline-none focus:border-[#1677E8] shadow-2xs appearance-none pr-7 cursor-pointer text-xs h-9"
+                className="w-full py-1.5 px-2.5 bg-white border border-slate-200 rounded-xl typo-input text-slate-800 focus:outline-none focus:border-[#1677E8] shadow-2xs appearance-none pr-7 cursor-pointer h-9"
               >
                 <option value="Road">Road</option>
                 <option value="Rail">Rail</option>
@@ -154,36 +154,36 @@ export function DocumentAdditionalInfoCard({
 
           {/* Vehicle No */}
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-slate-600 block">Vehicle No.</label>
+            <label className="typo-label text-slate-600 block">Vehicle No.</label>
             <input
               type="text"
               value={vehicleNo}
               onChange={(e) => onVehicleNoChange?.(e.target.value)}
               placeholder="e.g. GJ-01-AB-1234"
-              className="w-full py-1.5 px-2.5 bg-white border border-slate-200 rounded-xl tabular-nums font-normal text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1677E8] shadow-2xs uppercase text-xs h-9"
+              className="w-full py-1.5 px-2.5 bg-white border border-slate-200 rounded-xl typo-input typo-invoice-no text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1677E8] shadow-2xs uppercase h-9"
             />
           </div>
 
           {/* E-Way Bill No */}
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-slate-600 block">E-Way Bill No.</label>
+            <label className="typo-label text-slate-600 block">E-Way Bill No.</label>
             <input
               type="text"
               value={ewayBillNo}
               onChange={(e) => onEwayBillNoChange?.(e.target.value)}
               placeholder="Enter E-Way Bill No."
-              className="w-full py-1.5 px-2.5 bg-white border border-slate-200 rounded-xl tabular-nums font-normal text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1677E8] shadow-2xs text-xs h-9"
+              className="w-full py-1.5 px-2.5 bg-white border border-slate-200 rounded-xl typo-input typo-invoice-no text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1677E8] shadow-2xs h-9"
             />
           </div>
 
           {/* Dispatch Date */}
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-slate-600 block">Dispatch Date</label>
+            <label className="typo-label text-slate-600 block">Dispatch Date</label>
             <input
               type="date"
               value={dispatchDate}
               onChange={(e) => onDispatchDateChange?.(e.target.value)}
-              className="w-full py-1.5 px-2 bg-white border border-slate-200 rounded-xl tabular-nums font-normal text-slate-800 focus:outline-none focus:border-[#1677E8] shadow-2xs cursor-pointer text-xs h-9"
+              className="w-full py-1.5 px-2 bg-white border border-slate-200 rounded-xl typo-input tabular-nums text-slate-800 focus:outline-none focus:border-[#1677E8] shadow-2xs cursor-pointer h-9"
             />
           </div>
         </div>

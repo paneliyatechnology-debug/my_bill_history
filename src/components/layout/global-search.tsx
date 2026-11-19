@@ -286,7 +286,7 @@ export function GlobalSearch({ isMobileDrawer, onCloseMobileDrawer }: GlobalSear
               ? "પાર્ટી, ઇનવોઇસ, વસ્તુઓ શોધો... (Ctrl+K)"
               : "Search parties, invoices, items... (Ctrl+K)"
           }
-          className="w-full h-10 pl-9 pr-14 bg-[#F8FBFF] hover:bg-white border border-[#E2E8F0] rounded-[10px] text-[13px] font-normal text-[#182230] placeholder:text-[#94A3B8] focus:bg-white focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/20 transition-all outline-none"
+          className="w-full h-10 pl-10 pr-16 bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200/90 hover:border-slate-300 focus:border-[#1677E8] focus:ring-4 focus:ring-[#1677E8]/10 rounded-xl typo-input typo-placeholder text-slate-800 placeholder:text-slate-400 shadow-[0_1px_2px_0_rgba(15,23,42,0.02)] transition-all outline-none"
         />
 
         {/* Right side icons: Loading spinner, Clear button, Keyboard shortcut badge */}
@@ -316,7 +316,7 @@ export function GlobalSearch({ isMobileDrawer, onCloseMobileDrawer }: GlobalSear
             <button
               type="button"
               onClick={handleClear}
-              className="p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+              className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
               title="Clear search"
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
@@ -328,8 +328,9 @@ export function GlobalSearch({ isMobileDrawer, onCloseMobileDrawer }: GlobalSear
               </svg>
             </button>
           ) : (
-            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-slate-400 bg-white border border-slate-200 rounded shadow-xs">
-              ⌘K
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10.5px] font-semibold text-slate-400 bg-white border border-slate-200/90 rounded-md shadow-2xs select-none">
+              <span>⌘</span>
+              <span>K</span>
             </kbd>
           )}
         </div>

@@ -18,55 +18,41 @@ export function WaveBackground({
   className = "",
   variant = "dashboard",
 }: WaveBackgroundProps) {
-  // 1. INNER PAGE VARIANT: Clean, distraction-free professional accounting canvas
-  if (variant === "inner") {
+  // 1. INNER PAGE & DASHBOARD: Clean, distraction-free neutral canvas with subtle light grey structure
+  if (variant === "inner" || variant === "dashboard") {
     return (
       <div
         className={`absolute inset-0 pointer-events-none select-none overflow-hidden z-0 print:hidden ${className}`}
         aria-hidden="true"
-        data-testid="inner-page-background"
+        data-testid="page-background"
       >
-        {/* Subtle, soft ambient gradient wash near the top of content canvas */}
-        <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-[#EFF6FF]/40 via-[#F6F7F1]/70 to-transparent pointer-events-none" />
-
-        {/* Faint soft glow orbs strictly behind header area (Zero harsh lines) */}
-        <div className="absolute -top-24 right-1/4 w-[480px] h-[340px] rounded-full bg-gradient-to-br from-[#1677E8]/[0.035] via-[#0F172A]/[0.02] to-transparent blur-3xl pointer-events-none" />
-        <div className="absolute -top-20 left-8 w-[380px] h-[280px] rounded-full bg-gradient-to-tr from-[#1677E8]/[0.025] to-transparent blur-2xl pointer-events-none" />
+        {/* Subtle soft ambient wash near the top */}
+        <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-[#EFF6FF]/30 to-transparent pointer-events-none" />
       </div>
     );
   }
 
-  // 2. DASHBOARD / LOGIN VARIANT: Subtle spatial depth & elegant harmonic curves
-  const isDashboard = variant === "dashboard";
-
+  // 2. LOGIN VARIANT: Branded decorative wave backdrop for auth screens
   return (
     <div
       className={`absolute inset-0 pointer-events-none select-none overflow-hidden z-0 print:hidden ${className}`}
       aria-hidden="true"
-      data-testid="dashboard-wave-background"
+      data-testid="login-wave-background"
     >
       {/* Ambient Glow Orbs for Subtle Spatial Depth */}
       <div
-        className={`absolute -top-32 right-0 ${
-          isDashboard ? "w-[500px] h-[500px] opacity-70" : "w-[550px] h-[550px]"
-        } rounded-full bg-gradient-to-br from-[#1677E8]/8 via-[#0F172A]/5 to-transparent blur-3xl`}
+        className="absolute -top-32 right-0 w-[550px] h-[550px] rounded-full bg-gradient-to-br from-[#1677E8]/8 via-[#0F172A]/5 to-transparent blur-3xl"
       />
       <div
-        className={`absolute top-1/4 -left-32 ${
-          isDashboard ? "w-[500px] h-[500px] opacity-40" : "w-[650px] h-[650px]"
-        } rounded-full bg-gradient-to-tr from-[#0F172A]/6 via-[#94A3B8]/6 to-transparent blur-3xl`}
+        className="absolute top-1/4 -left-32 w-[650px] h-[650px] rounded-full bg-gradient-to-tr from-[#0F172A]/6 via-[#94A3B8]/6 to-transparent blur-3xl"
       />
       <div
-        className={`absolute -bottom-32 right-1/4 ${
-          isDashboard ? "w-[500px] h-[500px] opacity-60" : "w-[600px] h-[600px]"
-        } rounded-full bg-gradient-to-tl from-[#1677E8]/6 via-[#93C5FD]/5 to-transparent blur-3xl`}
+        className="absolute -bottom-32 right-1/4 w-[600px] h-[600px] rounded-full bg-gradient-to-tl from-[#1677E8]/6 via-[#93C5FD]/5 to-transparent blur-3xl"
       />
 
       {/* Precision Minimalist Abstract Wave Lines SVG */}
       <svg
-        className={`w-full h-full object-cover ${
-          isDashboard ? "opacity-35" : "opacity-75"
-        }`}
+        className="w-full h-full object-cover opacity-75"
         viewBox="0 0 1440 900"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"

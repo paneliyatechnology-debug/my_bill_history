@@ -69,13 +69,13 @@ export function FinancialYearSwitcher() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="hidden sm:flex items-center gap-1.5 h-9 px-3 bg-white hover:bg-slate-50 border border-[#E2E8F0] hover:border-slate-300 rounded-[10px] text-[13px] font-medium text-[#182230] cursor-pointer transition-colors shadow-2xs select-none active:scale-[0.98]"
+        className="hidden sm:flex items-center gap-2 h-10 px-3 bg-white hover:bg-slate-50/80 border border-slate-200/90 hover:border-slate-300 rounded-xl typo-btn-primary text-slate-800 cursor-pointer transition-all shadow-2xs hover:shadow-xs select-none active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         title={lang === "gu" ? "નાણાકીય વર્ષ બદલો" : "Switch Financial Year"}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
         <svg
-          className="w-3.5 h-3.5 text-slate-500"
+          className="w-4 h-4 text-slate-400 group-hover:text-[#1677E8] transition-colors shrink-0"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -87,16 +87,16 @@ export function FinancialYearSwitcher() {
             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
           />
         </svg>
-        <span>{displayName}</span>
+        <span className="truncate">{displayName}</span>
         {isSwitching ? (
-          <svg className="w-3 h-3 text-[#1677E8] animate-spin" fill="none" viewBox="0 0 24 24">
+          <svg className="w-3.5 h-3.5 text-[#1677E8] animate-spin" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
           </svg>
         ) : (
           <svg
-            className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${
-              isOpen ? "rotate-180" : ""
+            className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+              isOpen ? "rotate-180 text-blue-600" : ""
             }`}
             fill="none"
             viewBox="0 0 24 24"

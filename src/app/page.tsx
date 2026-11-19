@@ -370,7 +370,7 @@ function DashboardContent() {
       />
 
       {/* 2. 4 FINANCIAL KPI CARDS IN ONE MODULAR HORIZONTAL ROW */}
-      <div className="grid grid-cols-1 min-[680px]:grid-cols-2 xl:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: To Collect (Receivables) */}
         <DashboardKpiCard
           id="collect"
@@ -417,15 +417,12 @@ function DashboardContent() {
         />
       </div>
 
-      {/* 2.3 UPCOMING DUE & OVERDUE COLLECTIONS ALERT (NEXT 3 DAYS with RED BLINKING INDICATOR) */}
+      {/* 3. UPCOMING DUES - IMPORTANT SECTION */}
       <UpcomingDuesAlertCard />
 
-      {/* 2.5 REAL-TIME BUSINESS ACTIVITY FEED */}
-      <RecentActivityFeed />
-
-      {/* 3. MIDDLE MODULAR ROW: SALES TREND (WIDE) | SALES BY CATEGORY (DONUT) | QUICK ACTIONS (2x2) */}
+      {/* 4. ANALYTICS ROW: SALES TREND (5-col) | SALES BY CATEGORY (4-col) | QUICK ACTIONS (3-col) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-        {/* Left Widget: Sales Trend Line Chart (5 cols on xl, 6 on lg) */}
+        {/* Left Widget: Sales Trend Line Chart (5 cols on xl, 12 on lg) */}
         <div className="lg:col-span-12 xl:col-span-5 flex flex-col min-w-0">
           <DashboardSalesChart
             chartDays={chartDays}
@@ -438,7 +435,7 @@ function DashboardContent() {
           />
         </div>
 
-        {/* Middle Widget: Sales by Category Donut Chart (4 cols on xl, 3 on lg) */}
+        {/* Middle Widget: Sales by Category Donut Chart (4 cols on xl, 6 on lg) */}
         <div className="lg:col-span-6 xl:col-span-4 flex flex-col min-w-0">
           <DashboardCategoryDonut
             totalSales={sevenDaysSales}
@@ -450,13 +447,13 @@ function DashboardContent() {
           />
         </div>
 
-        {/* Right Widget: Quick Actions Grid (3 cols on lg/xl) */}
+        {/* Right Widget: Quick Actions Grid (3 cols on xl, 6 on lg) */}
         <div className="lg:col-span-6 xl:col-span-3 flex flex-col min-w-0">
           <DashboardQuickActions lang={lang} />
         </div>
       </div>
 
-      {/* 4. BOTTOM MODULAR ROW: RECENT TRANSACTIONS TABLE (8-col) | BUSINESS SNAPSHOT (4-col) */}
+      {/* 5. BOTTOM ROW: RECENT TRANSACTIONS TABLE (8-col) | BUSINESS SNAPSHOT (4-col) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         {/* Left: Detailed Recent Transactions Stream */}
         <div className="lg:col-span-8 flex flex-col">
@@ -472,6 +469,9 @@ function DashboardContent() {
           <DashboardBusinessSnapshot metrics={snapshot} lang={lang} />
         </div>
       </div>
+
+      {/* 6. REAL-TIME BUSINESS ACTIVITY FEED */}
+      <RecentActivityFeed />
 
       {/* 5. MODALS INTEGRATION PRESERVED 100% */}
       <BillScannerModal
@@ -492,7 +492,7 @@ function DashboardContent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-2xs p-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-base text-slate-900">
+              <h3 className="typo-modal-title text-slate-900">
                 myownbillbook Desktop App
               </h3>
               <button
@@ -502,7 +502,7 @@ function DashboardContent() {
                 ✕
               </button>
             </div>
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="typo-modal-desc text-slate-600 leading-relaxed">
               Experience ultra-fast offline billing, thermal printer driver
               support, barcode scanner pairing, and automatic background data
               backup.
@@ -510,13 +510,13 @@ function DashboardContent() {
             <div className="pt-2 flex gap-3">
               <button
                 onClick={() => setActiveModal(null)}
-                className="flex-1 py-2.5 bg-[#1677E8] text-white text-xs font-bold rounded-xl hover:bg-[#1268D3] transition-colors cursor-pointer"
+                className="flex-1 py-2.5 bg-[#1677E8] text-white typo-btn-primary rounded-xl hover:bg-[#1268D3] transition-colors cursor-pointer"
               >
                 Download for Windows (x64)
               </button>
               <button
                 onClick={() => setActiveModal(null)}
-                className="px-4 py-2.5 border border-slate-300 text-xs font-bold text-slate-700 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
+                className="px-4 py-2.5 border border-slate-300 typo-btn-secondary text-slate-700 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 Close
               </button>
@@ -530,7 +530,7 @@ function DashboardContent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-2xs p-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-base text-slate-900">
+              <h3 className="typo-modal-title text-slate-900">
                 What&apos;s New in myownbillbook
               </h3>
               <button
@@ -540,16 +540,16 @@ function DashboardContent() {
                 ✕
               </button>
             </div>
-            <div className="space-y-3 text-xs text-slate-600">
+            <div className="space-y-3 typo-modal-desc text-slate-600">
               <div className="p-3 bg-[#E6FBF5] border border-[#B9EBDD] rounded-xl">
-                <span className="font-bold text-[#1677E8] block">
+                <span className="font-semibold text-[#1677E8] block">
                   Automated Payment Reminders
                 </span>
                 Automatic WhatsApp and SMS follow-ups for outstanding customer
                 balances.
               </div>
               <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-                <span className="font-bold text-emerald-800 block">
+                <span className="font-semibold text-emerald-800 block">
                   Digital Bill Scanner
                 </span>
                 Snap vendor paper bills or upload PDFs to auto-extract items and
@@ -558,7 +558,7 @@ function DashboardContent() {
             </div>
             <button
               onClick={() => setActiveModal(null)}
-              className="w-full py-2 bg-[#1677E8] text-white text-xs font-bold rounded-xl hover:bg-[#1268D3] transition-colors cursor-pointer"
+              className="w-full py-2 bg-[#1677E8] text-white typo-btn-primary rounded-xl hover:bg-[#1268D3] transition-colors cursor-pointer"
             >
               Got it
             </button>
@@ -573,19 +573,19 @@ function DashboardContent() {
             <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-2xl">
               🎁
             </div>
-            <h3 className="font-bold text-base text-slate-900">
+            <h3 className="typo-modal-title text-slate-900">
               Refer & Earn ₹500
             </h3>
-            <p className="text-xs text-slate-600">
+            <p className="typo-modal-desc text-slate-600">
               Invite your fellow business owners to myownbillbook. When they
               subscribe to an annual plan, both of you receive ₹500 in credit.
             </p>
-            <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl tabular-nums text-xs font-bold text-slate-800 select-all">
+            <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl typo-invoice-no text-slate-800 select-all">
               MYOWN-{user?.id?.slice(0, 6)?.toUpperCase() || "BILL500"}
             </div>
             <button
               onClick={() => setActiveModal(null)}
-              className="w-full py-2.5 bg-[#1677E8] text-white text-xs font-bold rounded-xl hover:bg-[#1268D3] transition-colors cursor-pointer"
+              className="w-full py-2.5 bg-[#1677E8] text-white typo-btn-primary rounded-xl hover:bg-[#1268D3] transition-colors cursor-pointer"
             >
               Copy Referral Link
             </button>
@@ -598,7 +598,7 @@ function DashboardContent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-2xs p-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-base text-slate-900">
+              <h3 className="typo-modal-title text-slate-900">
                 Priority Support & Assistance
               </h3>
               <button
@@ -608,31 +608,31 @@ function DashboardContent() {
                 ✕
               </button>
             </div>
-            <p className="text-xs text-slate-600">
+            <p className="typo-modal-desc text-slate-600">
               Our accounting and billing specialists are available 7 days a
               week (9 AM to 8 PM).
             </p>
             <div className="space-y-2 text-xs">
               <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
                 <div>
-                  <span className="font-bold text-slate-900 block">
+                  <span className="font-semibold text-slate-900 block">
                     Customer Care Hotline
                   </span>
-                  <span className="text-slate-500 tabular-nums">+91 98765 43210</span>
+                  <span className="text-slate-500 typo-tx-id">+91 98765 43210</span>
                 </div>
                 <a
                   href="tel:+919876543210"
-                  className="px-3 py-1 bg-[#1677E8] text-white rounded-lg font-bold text-[11px]"
+                  className="px-3 py-1 bg-[#1677E8] text-white rounded-lg typo-badge"
                 >
                   Call Now
                 </a>
               </div>
               <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
                 <div>
-                  <span className="font-bold text-emerald-900 block">
+                  <span className="font-semibold text-emerald-900 block">
                     WhatsApp Support Desk
                   </span>
-                  <span className="text-emerald-700 text-[11px]">
+                  <span className="text-emerald-700 typo-badge">
                     Instant response
                   </span>
                 </div>
@@ -640,7 +640,7 @@ function DashboardContent() {
                   href="https://wa.me/919876543210"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3 py-1 bg-[#1677E8] text-white rounded-lg font-bold text-[11px]"
+                  className="px-3 py-1 bg-[#1677E8] text-white rounded-lg typo-badge"
                 >
                   Chat
                 </a>
@@ -655,7 +655,7 @@ function DashboardContent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-2xs p-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-base text-slate-900">
+              <h3 className="typo-modal-title text-slate-900">
                 Upgrade to Annual Plan (Save 65%)
               </h3>
               <button
@@ -665,20 +665,20 @@ function DashboardContent() {
                 ✕
               </button>
             </div>
-            <p className="text-xs text-slate-600">
+            <p className="typo-modal-desc text-slate-600">
               Get unlimited GST invoices, multi-branch access, automated
               WhatsApp reminders, and dedicated account manager support.
             </p>
             <div className="bg-gradient-to-r from-[#E6FBF5] to-white p-4 border border-[#B9EBDD] rounded-xl space-y-2 text-xs">
               <div className="flex justify-between items-center">
-                <span className="font-bold text-[#1677E8]">
+                <span className="font-semibold text-[#1677E8]">
                   Enterprise Annual Suite
                 </span>
-                <span className="font-bold text-[#1677E8] text-sm tabular-nums">
+                <span className="font-semibold text-[#1677E8] typo-amount-secondary tabular-nums">
                   ₹4,999 / year
                 </span>
               </div>
-              <p className="text-[11px] text-[#526780]">
+              <p className="typo-card-desc text-[#526780]">
                 Includes all modules with zero setup fee.
               </p>
             </div>
@@ -687,13 +687,13 @@ function DashboardContent() {
                 href="https://wa.me/919876543210?text=I%20want%20to%20upgrade%20to%20Annual%20Plan%20with%2065%25%20discount"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 py-2.5 bg-[#1677E8] text-white text-center text-xs font-bold rounded-xl hover:bg-[#1268D3] transition-colors"
+                className="flex-1 py-2.5 bg-[#1677E8] text-white text-center typo-btn-primary rounded-xl hover:bg-[#1268D3] transition-colors"
               >
                 Connect with Sales
               </a>
               <button
                 onClick={() => setActiveModal(null)}
-                className="px-4 py-2.5 border border-slate-300 text-xs font-bold text-slate-700 rounded-xl hover:bg-slate-50 cursor-pointer"
+                className="px-4 py-2.5 border border-slate-300 typo-btn-secondary text-slate-700 rounded-xl hover:bg-slate-50 cursor-pointer"
               >
                 Cancel
               </button>

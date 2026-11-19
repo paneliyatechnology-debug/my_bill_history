@@ -84,11 +84,11 @@ export function GstFrame({
       <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight leading-tight">{title}</h1>
+            <h1 className="typo-page-title text-[#182230] leading-tight">{title}</h1>
           </div>
-          <p className="text-xs sm:text-sm text-[#667085] mt-1 leading-relaxed break-words font-normal">
+          <p className="typo-page-subtitle text-[#667085] mt-1 leading-relaxed break-words font-normal">
             {currentCompany?.tradeName || currentCompany?.legalName || "No company selected"} · GSTIN:{" "}
-            <span className="tabular-nums font-bold text-[#F47721]">{currentCompany?.gstin || "Not configured"}</span> · {currentFY?.name || "Financial Year"}
+            <span className="typo-invoice-no text-[#F47721]">{currentCompany?.gstin || "Not configured"}</span> · {currentFY?.name || "Financial Year"}
           </p>
         </div>
       </div>
@@ -99,8 +99,8 @@ export function GstFrame({
             <Link
               key={link.href}
               href={link.href}
-              className={`shrink-0 rounded-xl px-3.5 py-2 text-xs font-semibold border transition-all ${
-                active ? "bg-[#F47721] text-white border-[#F47721] shadow-saffron font-bold" : "bg-white text-[#202124] border-[#E5E7EB] hover:border-[#F47721]/40 hover:bg-[#FFFAF5]"
+              className={`shrink-0 rounded-xl px-3.5 py-2 typo-tab border transition-all ${
+                active ? "bg-[#F47721] text-white border-[#F47721] shadow-saffron" : "bg-white text-[#202124] border-[#E5E7EB] hover:border-[#F47721]/40 hover:bg-[#FFFAF5]"
               }`}
             >
               {link.label}
@@ -109,10 +109,10 @@ export function GstFrame({
         })}
       </div>
       <div className="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-subtle flex flex-wrap gap-4 items-end">
-        <label className="text-[12px] font-medium text-[#667085]">
+        <label className="typo-label text-[#667085]">
           {lang === "gu" ? "મહિનો (Month)" : "Month"}
           <select
-            className="mt-1 block border border-[#E5E7EB] rounded-xl px-3 py-1.5 text-[13px] font-normal text-[#182230] bg-[#F8FAFC] focus:bg-white focus:ring-2 focus:ring-[#F47721]/20 focus:border-[#F47721] transition-all cursor-pointer h-10"
+            className="mt-1 block border border-[#E5E7EB] rounded-xl px-3 py-1.5 typo-input text-[#182230] bg-[#F8FAFC] focus:bg-white focus:ring-2 focus:ring-[#F47721]/20 focus:border-[#F47721] transition-all cursor-pointer h-10"
             value={period.month}
             onChange={(event) => period.setMonth(Number(event.target.value))}
           >

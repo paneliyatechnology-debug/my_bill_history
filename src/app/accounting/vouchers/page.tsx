@@ -117,7 +117,7 @@ export default function VouchersPage() {
       accessorKey: "voucherNumber",
       sortable: true,
       cell: (v) => (
-        <span className="tabular-nums font-bold text-slate-900">
+        <span className="typo-invoice-no text-slate-900">
           {v.voucherNumber}
         </span>
       ),
@@ -127,7 +127,7 @@ export default function VouchersPage() {
       accessorKey: "voucherDate",
       sortable: true,
       cell: (v) => (
-        <span className="tabular-nums text-slate-600">
+        <span className="tabular-nums typo-table-td text-slate-600">
           {new Date(v.voucherDate).toLocaleDateString("en-IN")}
         </span>
       ),
@@ -143,7 +143,7 @@ export default function VouchersPage() {
         };
         return (
           <span
-            className={`inline-flex items-center gap-1.5 text-xs font-semibold ${style.text}`}
+            className={`inline-flex items-center gap-1.5 typo-badge ${style.text}`}
           >
             <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
             <span>{v.voucherType}</span>
@@ -155,7 +155,7 @@ export default function VouchersPage() {
       header: lang === "gu" ? "વિગત / લખાણ" : "Narration",
       accessorKey: "narration",
       cell: (v) => (
-        <span className="text-slate-600 max-w-xs truncate block">
+        <span className="typo-table-td text-slate-600 max-w-xs truncate block">
           {v.narration || "—"}
         </span>
       ),
@@ -166,7 +166,7 @@ export default function VouchersPage() {
       sortable: true,
       className: "text-right",
       cell: (v) => (
-        <span className="tabular-nums font-bold text-slate-900">
+        <span className="typo-table-amount text-slate-900">
           ₹{Number(v.totalAmount).toFixed(2)}
         </span>
       ),
@@ -212,13 +212,13 @@ export default function VouchersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E5E7EB] shadow-subtle">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight leading-tight">
+            <h1 className="typo-page-title text-[#182230] leading-tight">
               {lang === "gu"
                 ? "નામા વાઉચર રજિસ્ટર (Vouchers Register)"
                 : "Double-Entry Voucher Register"}
             </h1>
           </div>
-          <p className="text-xs sm:text-sm text-[#667085] mt-1 leading-relaxed break-words font-normal">
+          <p className="typo-page-subtitle text-[#667085] mt-1 leading-relaxed break-words font-normal">
             {lang === "gu"
               ? "રોજમેળ, જમા-ઉધાર, જર્નલ, બેંક અને રોકડ વાઉચરોનું રજિસ્ટર"
               : "Immutable journal entries, receipts, payments, and contra vouchers"}
@@ -227,7 +227,7 @@ export default function VouchersPage() {
 
         <Link
           href="/accounting/vouchers/new"
-          className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] text-white text-[13px] font-medium rounded-xl shadow-xs transition-all w-full sm:w-auto shrink-0"
+          className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] text-white typo-btn-primary rounded-xl shadow-xs transition-all w-full sm:w-auto shrink-0"
         >
           <svg
             className="w-4 h-4"

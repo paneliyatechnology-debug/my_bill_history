@@ -608,7 +608,7 @@ export default function SalesInvoicesDashboardPage() {
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight leading-tight">
+            <h1 className="typo-page-title text-[#182230] leading-tight">
               {lang === "gu" ? "વેચાણ બિલ (Sales Invoices)" : "Sales Invoices"}
             </h1>
             <button
@@ -831,7 +831,7 @@ export default function SalesInvoicesDashboardPage() {
                   key={st}
                   type="button"
                   onClick={() => setStatusFilter(st)}
-                  className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 typo-tab rounded-lg transition-all cursor-pointer ${
                     statusFilter === st
                       ? "bg-white text-[#0F172A] shadow-xs border border-[#93C5FD]"
                       : "text-slate-600 hover:text-slate-900"
@@ -868,13 +868,13 @@ export default function SalesInvoicesDashboardPage() {
           {/* Right: Selected records action bar */}
           {selectedIds.size > 0 && (
             <div className="flex items-center gap-2 self-end md:self-auto shrink-0 bg-[#EFF6FF] border border-[#93C5FD] px-3 py-1.5 rounded-xl">
-              <span className="text-xs font-bold text-[#0F172A]">
+              <span className="typo-badge text-[#0F172A]">
                 {selectedIds.size} {lang === "gu" ? "પસંદ કરેલ" : "Selected"}
               </span>
               <button
                 type="button"
                 onClick={() => setIsBulkDeleteModalOpen(true)}
-                className="text-xs font-bold text-rose-700 hover:text-rose-800 bg-white hover:bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200 transition-colors cursor-pointer"
+                className="typo-btn-secondary text-rose-700 hover:text-rose-800 bg-white hover:bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200 transition-colors cursor-pointer"
               >
                 {lang === "gu" ? "ડિલીટ" : "Delete"}
               </button>
@@ -892,7 +892,7 @@ export default function SalesInvoicesDashboardPage() {
         {/* Active Filters Summary line if filters are applied */}
         {(statusFilter !== "ALL" || dateRangePreset !== "LAST_365_DAYS" || searchQuery) && (
           <div className="flex items-center gap-2 pt-1 border-t border-slate-100 text-xs text-slate-500">
-            <span className="text-[11px] font-bold text-[#5A6B66] uppercase tracking-wider">
+            <span className="typo-label text-[#5A6B66] uppercase tracking-wider">
               {lang === "gu" ? "સક્રિય ફિલ્ટર્સ:" : "Active Filters:"}
             </span>
             {statusFilter !== "ALL" && (
@@ -931,8 +931,8 @@ export default function SalesInvoicesDashboardPage() {
       {/* 4. ENTERPRISE DATA GRID */}
       <div className="bg-white border border-[#E2E8E5] rounded-2xl shadow-xs overflow-hidden">
         <div className="overflow-x-auto min-h-[400px]">
-          <table className="w-full text-left text-xs border-collapse min-w-[800px]">
-            <thead className="bg-[#FAFBFD] text-[#5A6B66] uppercase tracking-wider font-semibold border-b border-[#E2E8E5] text-[11px]">
+          <table className="w-full text-left border-collapse min-w-[800px]">
+            <thead className="bg-[#FAFBFD] text-[#5A6B66] uppercase tracking-wider typo-table-th border-b border-[#E2E8E5]">
               <tr>
                 <th className="py-3 px-3.5 w-10 text-center">
                   <input
@@ -957,7 +957,7 @@ export default function SalesInvoicesDashboardPage() {
                 <tr>
                   <td colSpan={8} className="py-20 text-center text-slate-400">
                     <div className="inline-block animate-spin rounded-full h-8 w-8 border-3 border-[#1677E8] border-t-transparent mb-2" />
-                    <p className="text-xs font-bold text-[#0F172A]">
+                    <p className="typo-empty-desc text-[#0F172A]">
                       {lang === "gu" ? "વેચાણ બિલ લોડ થઈ રહ્યાં છે..." : "Loading sales invoices..."}
                     </p>
                   </td>
@@ -972,10 +972,10 @@ export default function SalesInvoicesDashboardPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                       </div>
-                      <h3 className="text-sm font-bold text-[#1A2E2B]">
+                      <h3 className="typo-empty-heading text-[#1A2E2B]">
                         {lang === "gu" ? "કોઈ બિલ મળ્યા નથી" : "No Sales Invoices Found"}
                       </h3>
-                      <p className="text-xs text-[#5A6B66]">
+                      <p className="typo-empty-desc text-[#5A6B66]">
                         {lang === "gu"
                           ? "તારીખ અથવા ફિલ્ટર બદલીને ફરી તપાસો, અથવા નવું બિલ બનાવો."
                           : "Try adjusting your search query, status filter, or date range."}
@@ -988,13 +988,13 @@ export default function SalesInvoicesDashboardPage() {
                             setDateRangePreset("LAST_365_DAYS");
                             setSearchQuery("");
                           }}
-                          className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                          className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl typo-btn-secondary transition-colors cursor-pointer"
                         >
                           {lang === "gu" ? "ફિલ્ટર્સ સાફ કરો" : "Reset Filters"}
                         </button>
                         <Link
                           href="/sales/invoices/new"
-                          className="px-4 py-1.5 bg-[#0F172A] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                          className="px-4 py-1.5 bg-[#0F172A] hover:bg-[#123B35] text-white rounded-xl typo-btn-primary shadow-xs transition-colors cursor-pointer"
                         >
                           {lang === "gu" ? "+ નવું બિલ" : "+ Create Invoice"}
                         </Link>
@@ -1038,7 +1038,7 @@ export default function SalesInvoicesDashboardPage() {
                       </td>
 
                       {/* Date */}
-                      <td className="py-3 px-3 text-slate-700 font-medium whitespace-nowrap">
+                      <td className="py-3 px-3 text-slate-700 font-medium whitespace-nowrap typo-table-td">
                         <div>
                           {new Date(inv.invoiceDate).toLocaleDateString("en-IN", {
                             day: "2-digit",
@@ -1053,12 +1053,12 @@ export default function SalesInvoicesDashboardPage() {
                         <div className="flex items-center gap-1.5">
                           <Link
                             href={`/sales/invoices/${inv.id}`}
-                            className="text-[13px] font-normal text-[#182230] hover:text-[#1677E8] transition-colors"
+                            className="typo-invoice-no text-[#182230] hover:text-[#1677E8] transition-colors"
                           >
                             {inv.invoiceNumber}
                           </Link>
                           {inv.isB2B && (
-                            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                            <span className="typo-badge px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
                               B2B
                             </span>
                           )}
@@ -1068,16 +1068,16 @@ export default function SalesInvoicesDashboardPage() {
                       {/* Party Name with avatar chip */}
                       <td className="py-3 px-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-[#EFF6FF] text-[#0F172A] border border-[#BFDBFE] flex items-center justify-center font-bold text-xs shrink-0">
+                          <div className="w-7 h-7 rounded-lg bg-[#EFF6FF] text-[#0F172A] border border-[#BFDBFE] flex items-center justify-center font-medium text-xs shrink-0">
                             {(inv.party?.name || "C")[0].toUpperCase()}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-[13px] font-normal text-[#182230] leading-tight truncate">
+                            <p className="typo-table-td text-[#182230] leading-tight truncate">
                               {inv.party?.name || "Cash Customer"}
                             </p>
                             <div className="flex items-center gap-1.5 text-[11px] text-[#94A3B8] font-normal mt-0.5">
                               {inv.party?.gstin && (
-                                <span className="text-slate-600 font-semibold">
+                                <span className="text-slate-600 font-medium typo-invoice-no">
                                   GSTIN: {inv.party.gstin}
                                 </span>
                               )}
@@ -1092,7 +1092,7 @@ export default function SalesInvoicesDashboardPage() {
                       {/* Due In */}
                       <td className="py-3 px-3 whitespace-nowrap">
                         <span
-                          className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                          className={`typo-badge px-2 py-0.5 rounded-full ${
                             dueInfo.isOverdue
                               ? "bg-rose-50 text-rose-700 border border-rose-200"
                               : dueInfo.isDueToday
@@ -1106,19 +1106,19 @@ export default function SalesInvoicesDashboardPage() {
 
                       {/* Amount */}
                       <td className="py-3 px-3 text-right whitespace-nowrap">
-                        <div className="bb-amount text-[13px] text-[#182230]">
+                        <div className="typo-table-amount text-[#182230]">
                           {formatInr(total)}
                         </div>
                         {(inv as any).isFullyReturned ? (
-                          <div className="text-[10px] text-purple-600 font-semibold">
+                          <div className="text-[10px] text-purple-600 font-medium">
                             Fully Returned
                           </div>
                         ) : unpaid > 0.01 ? (
-                          <div className="text-[10px] text-amber-700 font-semibold">
+                          <div className="text-[10px] text-amber-700 font-medium">
                             {formatInr(unpaid)} due
                           </div>
                         ) : (
-                          <div className="text-[10px] text-emerald-600 font-semibold">
+                          <div className="text-[10px] text-emerald-600 font-medium">
                             Fully Paid
                           </div>
                         )}
@@ -1127,25 +1127,25 @@ export default function SalesInvoicesDashboardPage() {
                       {/* Status Badge */}
                       <td className="py-3 px-3 text-center whitespace-nowrap">
                         {status === "PAID" && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 typo-badge rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                             {lang === "gu" ? "ચૂકવાયેલ" : "Paid"}
                           </span>
                         )}
                         {status === "PARTIALLY_PAID" && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 typo-badge rounded-full bg-amber-50 text-amber-800 border border-amber-200">
                             <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                             {lang === "gu" ? "અંશતઃ ચૂકવાયેલ" : "Partially Paid"}
                           </span>
                         )}
                         {status === "UNPAID" && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 typo-badge rounded-full bg-rose-50 text-rose-700 border border-rose-200">
                             <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                             {lang === "gu" ? "બાકી" : "Unpaid"}
                           </span>
                         )}
                         {status === "CANCELLED" && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 typo-badge rounded-full bg-slate-100 text-slate-600 border border-slate-200">
                             <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
                             {lang === "gu" ? "રદ કરેલ" : "Void"}
                           </span>
@@ -1321,13 +1321,13 @@ export default function SalesInvoicesDashboardPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-              <h2 className="text-base font-bold text-slate-900">
+              <h2 className="typo-modal-title text-slate-900">
                 {lang === "gu" ? "ઇન્વોઇસ બલ્ક ડાઉનલોડ" : "Invoice Bulk Export & CA Bundle"}
               </h2>
               <button
                 type="button"
                 onClick={() => setIsBulkDownloadOpen(false)}
-                className="text-slate-400 hover:text-slate-700 text-lg font-bold p-1 cursor-pointer"
+                className="text-slate-400 hover:text-slate-700 text-lg font-semibold p-1 cursor-pointer"
               >
                 ✕
               </button>
@@ -1336,13 +1336,13 @@ export default function SalesInvoicesDashboardPage() {
             <div className="p-6 space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                  <label className="block typo-label text-slate-600 uppercase mb-1">
                     {lang === "gu" ? "તારીખ રેન્જ" : "Date Range"}
                   </label>
                   <select
                     value={bulkDownloadDateRange}
                     onChange={(e) => setBulkDownloadDateRange(e.target.value as DateRangePreset)}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium focus:bg-white focus:outline-none"
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 typo-input focus:bg-white focus:outline-none"
                   >
                     {Object.entries(DATE_PRESET_LABELS).map(([k, labelObj]) => (
                       <option key={k} value={k}>
@@ -1353,13 +1353,13 @@ export default function SalesInvoicesDashboardPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                  <label className="block typo-label text-slate-600 uppercase mb-1">
                     {lang === "gu" ? "પાર્ટી (વૈકલ્પિક)" : "Select Party (Optional)"}
                   </label>
                   <select
                     value={bulkDownloadPartyId}
                     onChange={(e) => setBulkDownloadPartyId(e.target.value)}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium focus:bg-white focus:outline-none"
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 typo-input focus:bg-white focus:outline-none"
                   >
                     <option value="">{lang === "gu" ? "બધી પાર્ટીઓ" : "All Parties"}</option>
                     {parties.map((p) => (
@@ -1372,7 +1372,7 @@ export default function SalesInvoicesDashboardPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                <label className="block typo-label text-slate-600 uppercase mb-1">
                   {lang === "gu" ? "તમારું ઇમેઇલ" : "Your Email"}
                 </label>
                 <input
@@ -1380,7 +1380,7 @@ export default function SalesInvoicesDashboardPage() {
                   value={bulkDownloadEmail}
                   onChange={(e) => setBulkDownloadEmail(e.target.value)}
                   placeholder="name@business.com"
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:outline-none"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 typo-input focus:bg-white focus:outline-none"
                 />
               </div>
 
@@ -1392,14 +1392,14 @@ export default function SalesInvoicesDashboardPage() {
                     onChange={(e) => setBulkDownloadSendToCa(e.target.checked)}
                     className="w-4 h-4 text-[#0F172A] rounded accent-[#0F172A]"
                   />
-                  <span className="font-bold text-slate-800">
+                  <span className="font-semibold text-slate-800 typo-label">
                     {lang === "gu" ? "સીધા CA / એકાઉન્ટન્ટને મોકલો" : "Send Directly to CA / Tax Auditor"}
                   </span>
                 </label>
 
                 {bulkDownloadSendToCa && (
                   <div>
-                    <label className="block text-[10px] font-semibold text-slate-500 mb-1">
+                    <label className="block typo-label text-slate-500 mb-1">
                       {lang === "gu" ? "CA નું ઇમેઇલ દાખલ કરો" : "Enter CA's Email"}
                     </label>
                     <input
@@ -1407,7 +1407,7 @@ export default function SalesInvoicesDashboardPage() {
                       value={bulkDownloadCaEmail}
                       onChange={(e) => setBulkDownloadCaEmail(e.target.value)}
                       placeholder="ca@taxconsultant.in"
-                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:outline-none"
+                      className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 typo-input focus:bg-white focus:outline-none"
                     />
                   </div>
                 )}
@@ -1415,14 +1415,14 @@ export default function SalesInvoicesDashboardPage() {
             </div>
 
             <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-500 tabular-nums">
+              <span className="typo-card-desc text-slate-500 tabular-nums">
                 {filteredInvoices.length} {lang === "gu" ? "બિલ તૈયાર" : "Invoices in Scope"}
               </span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setIsBulkDownloadOpen(false)}
-                  className="px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+                  className="px-4 py-2 border border-slate-300 rounded-xl typo-btn-secondary text-slate-700 hover:bg-slate-100 transition-colors"
                 >
                   Cancel
                 </button>
@@ -1430,7 +1430,7 @@ export default function SalesInvoicesDashboardPage() {
                   type="button"
                   onClick={handleBulkDownloadSubmit}
                   disabled={isExporting}
-                  className="px-6 py-2 bg-[#0F172A] hover:bg-[#123B35] text-white rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
+                  className="px-6 py-2 bg-[#0F172A] hover:bg-[#123B35] text-white rounded-xl typo-btn-primary shadow-xs transition-colors disabled:opacity-50"
                 >
                   {isExporting ? "Generating..." : bulkDownloadSendToCa ? "Email Bundle" : "Download Bundle"}
                 </button>
@@ -1454,17 +1454,17 @@ export default function SalesInvoicesDashboardPage() {
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-[#E2E8E5]">
             <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
               <div>
-                <h2 className="text-sm font-bold text-slate-900">
+                <h2 className="typo-modal-title text-slate-900">
                   {lang === "gu" ? "પેમેન્ટ નોંધો (Record Payment)" : "Record Payment"}
                 </h2>
-                <p className="text-[11px] text-slate-500 tabular-nums">
+                <p className="typo-modal-desc tabular-nums">
                   Invoice #{paymentInvoice.invoiceNumber} • {paymentInvoice.party?.name || "Cash Customer"}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsPaymentModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 text-lg font-bold p-1"
+                className="text-slate-400 hover:text-slate-700 text-lg font-semibold p-1"
               >
                 ✕
               </button>
@@ -1472,16 +1472,16 @@ export default function SalesInvoicesDashboardPage() {
 
             <div className="p-6 space-y-3.5 text-xs">
               <div className="p-3 bg-[#EFF6FF]/50 border border-[#93C5FD] rounded-xl flex items-center justify-between">
-                <span className="text-[#0F172A] font-semibold">
+                <span className="text-[#0F172A] font-medium typo-label">
                   {lang === "gu" ? "કુલ બાકી રકમ:" : "Total Outstanding Balance:"}
                 </span>
-                <span className="tabular-nums font-bold text-[#0F172A] text-sm">
+                <span className="tabular-nums font-semibold text-[#0F172A] typo-amount-secondary">
                   {formatInr(paymentInvoice.outstandingBalance)}
                 </span>
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                <label className="block typo-label text-slate-600 uppercase mb-1">
                   {lang === "gu" ? "ચૂકવણી રકમ (₹)" : "Payment Amount (₹)"}
                 </label>
                 <input
@@ -1490,19 +1490,19 @@ export default function SalesInvoicesDashboardPage() {
                   step="any"
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value === "" ? "" : Number(e.target.value))}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 tabular-nums text-sm font-bold focus:bg-white focus:outline-none"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 typo-input focus:bg-white focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                  <label className="block typo-label text-slate-600 uppercase mb-1">
                     {lang === "gu" ? "ચૂકવણી પદ્ધતિ" : "Payment Mode"}
                   </label>
                   <select
                     value={paymentMode}
                     onChange={(e) => setPaymentMode(e.target.value)}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium focus:bg-white focus:outline-none"
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 typo-input focus:bg-white focus:outline-none"
                   >
                     <option value="CASH">Cash</option>
                     <option value="BANK_TRANSFER">Bank Transfer / NEFT</option>
@@ -1511,20 +1511,20 @@ export default function SalesInvoicesDashboardPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                  <label className="block typo-label text-slate-600 uppercase mb-1">
                     {lang === "gu" ? "ચૂકવણી તારીખ" : "Payment Date"}
                   </label>
                   <input
                     type="date"
                     value={paymentDate}
                     onChange={(e) => setPaymentDate(e.target.value)}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 tabular-nums focus:bg-white focus:outline-none"
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 typo-input focus:bg-white focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                <label className="block typo-label text-slate-600 uppercase mb-1">
                   {lang === "gu" ? "નોંધ / સંદર્ભ" : "Notes / Reference"}
                 </label>
                 <input
@@ -1532,7 +1532,7 @@ export default function SalesInvoicesDashboardPage() {
                   value={paymentNotes}
                   onChange={(e) => setPaymentNotes(e.target.value)}
                   placeholder="e.g. UTR / Cheque No / Reference"
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:outline-none"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 typo-input focus:bg-white focus:outline-none"
                 />
               </div>
             </div>
@@ -1541,7 +1541,7 @@ export default function SalesInvoicesDashboardPage() {
               <button
                 type="button"
                 onClick={() => setIsPaymentModalOpen(false)}
-                className="px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+                className="px-4 py-2 border border-slate-300 rounded-xl typo-btn-secondary text-slate-700 hover:bg-slate-100 transition-colors"
               >
                 Cancel
               </button>
@@ -1549,7 +1549,7 @@ export default function SalesInvoicesDashboardPage() {
                 type="button"
                 onClick={handleRecordPaymentSubmit}
                 disabled={isSubmittingPayment}
-                className="px-5 py-2 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
+                className="px-5 py-2 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl typo-btn-primary shadow-xs transition-colors disabled:opacity-50"
               >
                 {isSubmittingPayment ? "Recording..." : "Record Payment"}
               </button>
@@ -1632,29 +1632,29 @@ export default function SalesInvoicesDashboardPage() {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-2xs flex items-center justify-center p-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-[#E2E8E5]">
             <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-rose-700">
+              <h2 className="typo-modal-title text-rose-700">
                 {lang === "gu" ? "વેચાણ બિલ રદ કરો" : "Cancel Sales Invoice"}
               </h2>
               <button
                 type="button"
                 onClick={() => setIsCancelModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 text-lg font-bold p-1"
+                className="text-slate-400 hover:text-slate-700 text-lg font-semibold p-1"
               >
                 ✕
               </button>
             </div>
 
             <div className="p-6 space-y-3 text-xs">
-              <p className="text-slate-700">
+              <p className="text-slate-700 typo-input">
                 Are you sure you want to cancel invoice{" "}
-                <strong className="tabular-nums text-slate-900">#{cancelInvoice.invoiceNumber}</strong>?
+                <strong className="tabular-nums text-slate-900 typo-invoice-no">#{cancelInvoice.invoiceNumber}</strong>?
               </p>
-              <p className="text-[11px] text-slate-500">
+              <p className="typo-modal-desc text-slate-500">
                 Cancelling this invoice will reverse inventory deductions and mark the bill as void.
               </p>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                <label className="block typo-label text-slate-600 uppercase mb-1">
                   Cancellation Reason
                 </label>
                 <input
@@ -1662,7 +1662,7 @@ export default function SalesInvoicesDashboardPage() {
                   value={cancelReason}
                   onChange={(e) => setCancelReason(e.target.value)}
                   placeholder="e.g. Returned by customer, Order voided"
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:outline-none"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 typo-input focus:bg-white focus:outline-none"
                 />
               </div>
             </div>
@@ -1671,7 +1671,7 @@ export default function SalesInvoicesDashboardPage() {
               <button
                 type="button"
                 onClick={() => setIsCancelModalOpen(false)}
-                className="px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+                className="px-4 py-2 border border-slate-300 rounded-xl typo-btn-secondary text-slate-700 hover:bg-slate-100 transition-colors"
               >
                 Keep Invoice
               </button>
@@ -1679,7 +1679,7 @@ export default function SalesInvoicesDashboardPage() {
                 type="button"
                 onClick={handleCancelInvoiceSubmit}
                 disabled={isCancelling}
-                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl typo-btn-primary shadow-xs transition-colors disabled:opacity-50"
               >
                 {isCancelling ? "Cancelling..." : "Confirm Cancellation"}
               </button>
@@ -1693,21 +1693,21 @@ export default function SalesInvoicesDashboardPage() {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-2xs flex items-center justify-center p-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-[#E2E8E5]">
             <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-rose-700">Delete Invoices</h2>
+              <h2 className="typo-modal-title text-rose-700">Delete Invoices</h2>
               <button
                 type="button"
                 onClick={() => setIsBulkDeleteModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 text-lg font-bold p-1"
+                className="text-slate-400 hover:text-slate-700 text-lg font-semibold p-1"
               >
                 ✕
               </button>
             </div>
 
             <div className="p-6 space-y-3 text-xs">
-              <p className="text-slate-700">
-                You have selected <strong className="text-slate-900">{selectedIds.size} invoices</strong> for deletion.
+              <p className="text-slate-700 typo-input">
+                You have selected <strong className="text-slate-900 font-semibold">{selectedIds.size} invoices</strong> for deletion.
               </p>
-              <p className="text-[11px] text-slate-500">
+              <p className="typo-modal-desc text-slate-500">
                 This action is irreversible and associated accounting entries will be removed.
               </p>
             </div>
@@ -1716,7 +1716,7 @@ export default function SalesInvoicesDashboardPage() {
               <button
                 type="button"
                 onClick={() => setIsBulkDeleteModalOpen(false)}
-                className="px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+                className="px-4 py-2 border border-slate-300 rounded-xl typo-btn-secondary text-slate-700 hover:bg-slate-100 transition-colors"
               >
                 Cancel
               </button>
@@ -1724,7 +1724,7 @@ export default function SalesInvoicesDashboardPage() {
                 type="button"
                 onClick={handleBulkDeleteSubmit}
                 disabled={isBulkDeleting}
-                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl typo-btn-primary shadow-xs transition-colors disabled:opacity-50"
               >
                 {isBulkDeleting ? "Deleting..." : `Delete ${selectedIds.size} Invoices`}
               </button>
