@@ -9,7 +9,6 @@ import {
   useReducedMotion,
   useInView,
 } from "framer-motion";
-import Lenis from "lenis";
 import { useAuth } from "../../context/auth-context";
 import { BrandLogo } from "../ui/brand-logo";
 
@@ -121,7 +120,7 @@ function LiveSalePings({ gu }: { gu: boolean }) {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
           </span>
-          <span className="text-[11px] font-bold uppercase tracking-wider text-[#0C1827]/70" style={monoFont}>
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#0C1827]/70" style={monoFont}>
             {gu ? "વેપારની જીવતી ગતિ" : "Businesses moving right now"}
           </span>
         </div>
@@ -148,7 +147,7 @@ function LiveSalePings({ gu }: { gu: boolean }) {
                 <div className="flex items-start gap-2">
                   <span className="text-sm shrink-0 mt-0.5">{ping.icon}</span>
                   <div>
-                    <p className="text-xs font-bold text-[#0C1827] leading-snug">{ping.title}</p>
+                    <p className="text-xs font-semibold text-[#0C1827] leading-snug">{ping.title}</p>
                     {ping.detail && (
                       <p className="text-[10px] text-[#0C1827]/60 leading-tight mt-0.5" style={monoFont}>
                         {ping.detail}
@@ -356,7 +355,7 @@ function ReviewShuffle({ gu }: { gu: boolean }) {
       <div className="flex items-center justify-between gap-3 mb-6 px-2">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs font-bold text-[#0C1827]/80">
+          <span className="text-xs font-semibold text-[#0C1827]/80">
             {gu
               ? `૧૪ ચકાસાયેલી વેપારી સમીક્ષાઓ · સ્વચાલિત શફલ (${startIndex + 1}/૧૪)`
               : `14 Verified Merchant Stories · Live auto-shuffling (${startIndex + 1}/14)`}
@@ -373,7 +372,7 @@ function ReviewShuffle({ gu }: { gu: boolean }) {
           <button
             type="button"
             onClick={handlePrev}
-            className="w-8 h-8 rounded-full border border-[#0C1827]/15 bg-white text-xs font-bold text-[#0C1827] hover:border-[#E15A2B] hover:text-[#E15A2B] transition-colors flex items-center justify-center shadow-2xs cursor-pointer active:scale-95"
+            className="w-8 h-8 rounded-full border border-[#0C1827]/15 bg-white text-xs font-semibold text-[#0C1827] hover:border-[#E15A2B] hover:text-[#E15A2B] transition-colors flex items-center justify-center shadow-2xs cursor-pointer active:scale-95"
             aria-label="Previous Review"
           >
             ←
@@ -381,7 +380,7 @@ function ReviewShuffle({ gu }: { gu: boolean }) {
           <button
             type="button"
             onClick={handleNext}
-            className="w-8 h-8 rounded-full border border-[#0C1827]/15 bg-white text-xs font-bold text-[#0C1827] hover:border-[#E15A2B] hover:text-[#E15A2B] transition-colors flex items-center justify-center shadow-2xs cursor-pointer active:scale-95"
+            className="w-8 h-8 rounded-full border border-[#0C1827]/15 bg-white text-xs font-semibold text-[#0C1827] hover:border-[#E15A2B] hover:text-[#E15A2B] transition-colors flex items-center justify-center shadow-2xs cursor-pointer active:scale-95"
             aria-label="Next Review"
           >
             →
@@ -415,7 +414,7 @@ function ReviewShuffle({ gu }: { gu: boolean }) {
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <span
-                      className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#0C1827]/5 text-[#0C1827]/70"
+                      className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#0C1827]/5 text-[#0C1827]/70"
                       style={monoFont}
                     >
                       {rev.category}
@@ -432,11 +431,11 @@ function ReviewShuffle({ gu }: { gu: boolean }) {
                 </div>
 
                 <div className="pt-4 border-t border-[#0C1827]/10 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#E15A2B]/15 border border-[#E15A2B]/30 flex items-center justify-center text-[#E15A2B] font-bold text-sm shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-[#E15A2B]/15 border border-[#E15A2B]/30 flex items-center justify-center text-[#E15A2B] font-semibold text-sm shrink-0">
                     {rev.name.charAt(0)}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h5 className="text-xs font-bold text-[#0C1827] truncate">{rev.name}</h5>
+                    <h5 className="text-xs font-semibold text-[#0C1827] truncate">{rev.name}</h5>
                     <p className="text-[11px] text-[#0C1827]/60 truncate">
                       {rev.business} · {rev.city}
                     </p>
@@ -485,10 +484,10 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
       {/* Header & Tabs */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-[#0C1827]/10">
         <div>
-          <span className="text-[11px] font-bold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
             {gu ? "લાઇવ પ્રોડક્ટ સિમ્યુલેશન" : "Interactive Product Simulation"}
           </span>
-          <h3 className="text-2xl md:text-3xl font-bold text-[#0C1827] mt-1" style={serifFont}>
+          <h3 className="text-2xl md:text-3xl font-semibold text-[#0C1827] mt-1" style={serifFont}>
             {gu ? "રોજમેળ વર્કસ્પેસ કેવી રીતે કામ કરે છે તે જુઓ" : "Experience the live Myownbillbook Workspace"}
           </h3>
           <p className="text-xs text-[#0C1827]/70 mt-1">
@@ -505,7 +504,7 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === tab.id
+              className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${activeTab === tab.id
                 ? "bg-[#0C1827] text-white shadow-md ring-2 ring-[#E15A2B]/40"
                 : "bg-[#FAF7F2] text-[#0C1827]/75 hover:bg-[#EFE9DF]"
                 }`}
@@ -526,7 +525,7 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
             <span className="w-3 h-3 rounded-full bg-rose-400"></span>
             <span className="w-3 h-3 rounded-full bg-amber-400"></span>
             <span className="w-3 h-3 rounded-full bg-emerald-400"></span>
-            <span className="ml-2 text-[10px] font-bold text-[#0C1827]/60" style={monoFont}>
+            <span className="ml-2 text-[10px] font-semibold text-[#0C1827]/60" style={monoFont}>
               Myownbillbook OS · Shreeji Enterprise (Surat)
             </span>
           </div>
@@ -536,7 +535,7 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span>GSTIN: 24ABCDE1234F1Z5</span>
             <span>·</span>
-            <span className="text-emerald-700 font-bold">100% Tax Compliant</span>
+            <span className="text-emerald-700 font-semibold">100% Tax Compliant</span>
           </div>
         </div>
 
@@ -556,15 +555,15 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
                 <div className="bg-white rounded-xl p-4 sm:p-5 border border-[#0C1827]/10 shadow-xs space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#0C1827]/10">
                     <div>
-                      <span className="text-[10px] font-black uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
                         TAX INVOICE · B2B GST
                       </span>
-                      <h4 className="text-base font-bold text-[#0C1827]">
+                      <h4 className="text-base font-semibold text-[#0C1827]">
                         Invoice #INV-26-27-0104 · Patel Traders
                       </h4>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-mono bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-lg font-bold">
+                      <span className="text-[11px] font-mono bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-lg font-semibold">
                         Party Balance: ₹ 18,400.00
                       </span>
                       <span className="text-[11px] font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded-lg">
@@ -590,26 +589,26 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
                         <tr>
                           <td className="py-2 font-sans font-semibold text-[#0C1827]">Wireless Fast Charger 15W</td>
                           <td className="py-2 text-center">8504</td>
-                          <td className="py-2 text-center font-bold">10 Pcs</td>
+                          <td className="py-2 text-center font-semibold">10 Pcs</td>
                           <td className="py-2 text-right">₹ 450.00</td>
                           <td className="py-2 text-right text-slate-600">₹ 810.00</td>
-                          <td className="py-2 text-right font-bold text-[#0C1827]">₹ 5,310.00</td>
+                          <td className="py-2 text-right font-semibold text-[#0C1827]">₹ 5,310.00</td>
                         </tr>
                         <tr>
                           <td className="py-2 font-sans font-semibold text-[#0C1827]">Type-C Braided Cable 2M</td>
                           <td className="py-2 text-center">8544</td>
-                          <td className="py-2 text-center font-bold">25 Pcs</td>
+                          <td className="py-2 text-center font-semibold">25 Pcs</td>
                           <td className="py-2 text-right">₹ 120.00</td>
                           <td className="py-2 text-right text-slate-600">₹ 540.00</td>
-                          <td className="py-2 text-right font-bold text-[#0C1827]">₹ 3,540.00</td>
+                          <td className="py-2 text-right font-semibold text-[#0C1827]">₹ 3,540.00</td>
                         </tr>
                         <tr>
                           <td className="py-2 font-sans font-semibold text-[#0C1827]">Extension Board 4-Way Spike</td>
                           <td className="py-2 text-center">8536</td>
-                          <td className="py-2 text-center font-bold">8 Pcs</td>
+                          <td className="py-2 text-center font-semibold">8 Pcs</td>
                           <td className="py-2 text-right">₹ 720.00</td>
                           <td className="py-2 text-right text-slate-600">₹ 1,036.80</td>
-                          <td className="py-2 text-right font-bold text-[#0C1827]">₹ 6,796.80</td>
+                          <td className="py-2 text-right font-semibold text-[#0C1827]">₹ 6,796.80</td>
                         </tr>
                       </tbody>
                     </table>
@@ -627,7 +626,7 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
                     </div>
                     <div className="text-right">
                       <span className="text-xs text-[#0C1827]/60 mr-2">Grand Total (GST Incl.):</span>
-                      <span className="text-lg font-black text-[#0C1827] font-mono">₹ 15,646.80</span>
+                      <span className="text-lg font-semibold text-[#0C1827] font-mono">₹ 15,646.80</span>
                     </div>
                   </div>
                 </div>
@@ -647,23 +646,23 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
                 {/* Left Scanned Bill Preview with AI Bounding Boxes */}
                 <div className="bg-white rounded-xl p-4 border border-[#0C1827]/10 shadow-xs relative overflow-hidden">
                   <div className="flex items-center justify-between pb-2 mb-2 border-b text-xs">
-                    <span className="font-bold text-[#0C1827]">Camera Scanned Bill Preview</span>
-                    <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                    <span className="font-semibold text-[#0C1827]">Camera Scanned Bill Preview</span>
+                    <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-semibold">
                       94% OCR Confidence
                     </span>
                   </div>
                   <div className="relative h-60 bg-slate-50 rounded-lg p-3 border border-dashed border-slate-300 font-mono text-[10px] space-y-2 select-none">
                     <div className="p-1.5 bg-emerald-50 border border-emerald-400 rounded text-emerald-900 flex justify-between">
                       <span>VENDOR: SHREE HARI ELECTRONICS</span>
-                      <span className="font-bold">✓ MATCHED</span>
+                      <span className="font-semibold">✓ MATCHED</span>
                     </div>
                     <div className="p-1.5 bg-emerald-50 border border-emerald-400 rounded text-emerald-900 flex justify-between">
                       <span>GSTIN: 24AAACH7890K1Z9</span>
-                      <span className="font-bold">✓ VALID</span>
+                      <span className="font-semibold">✓ VALID</span>
                     </div>
                     <div className="p-1.5 bg-emerald-50 border border-emerald-400 rounded text-emerald-900 flex justify-between">
                       <span>TOTAL: ₹ 48,200.00 (Tax: ₹ 7,352.54)</span>
-                      <span className="font-bold">✓ VERIFIED</span>
+                      <span className="font-semibold">✓ VERIFIED</span>
                     </div>
                     <div className="p-2 bg-blue-50/70 border border-blue-300 rounded text-blue-900 text-[9.5px]">
                       4 Items Detected: 100x Type-C adaptors, 50x Bluetooth modules, 20x Batteries, 10x Soldering kits.
@@ -674,10 +673,10 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
                 {/* Right Extracted Actions */}
                 <div className="bg-white rounded-xl p-4 border border-[#0C1827]/10 shadow-xs flex flex-col justify-between">
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700" style={monoFont}>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700" style={monoFont}>
                       SMART EXTRACTED PURCHASE DATA
                     </span>
-                    <h4 className="text-base font-bold text-[#0C1827] mt-1">
+                    <h4 className="text-base font-semibold text-[#0C1827] mt-1">
                       Ready to Add into Inventory & Payables
                     </h4>
                     <p className="text-xs text-[#0C1827]/70 mt-1 leading-relaxed">
@@ -687,22 +686,22 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
                     <div className="mt-4 space-y-2 text-xs font-mono">
                       <div className="flex justify-between p-2 rounded bg-slate-50">
                         <span>Vendor Ledger:</span>
-                        <span className="font-bold text-[#0C1827]">Shree Hari Electronics</span>
+                        <span className="font-semibold text-[#0C1827]">Shree Hari Electronics</span>
                       </div>
                       <div className="flex justify-between p-2 rounded bg-slate-50">
                         <span>Destination Godown:</span>
-                        <span className="font-bold text-[#0C1827]">Surat Main Godown (Rack A)</span>
+                        <span className="font-semibold text-[#0C1827]">Surat Main Godown (Rack A)</span>
                       </div>
                       <div className="flex justify-between p-2 rounded bg-slate-50">
                         <span>Input Tax Credit (ITC):</span>
-                        <span className="font-bold text-emerald-700">₹ 7,352.54 Eligible</span>
+                        <span className="font-semibold text-emerald-700">₹ 7,352.54 Eligible</span>
                       </div>
                     </div>
                   </div>
 
                   <button
                     type="button"
-                    className="w-full mt-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full mt-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <span>✓ Approve & Record in Books</span>
                   </button>
@@ -722,20 +721,20 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#0C1827]/10">
                   <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-blue-700" style={monoFont}>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-700" style={monoFont}>
                       MULTI-GODOWN INVENTORY MATRIX
                     </span>
-                    <h4 className="text-base font-bold text-[#0C1827]">
+                    <h4 className="text-base font-semibold text-[#0C1827]">
                       Live Stock Across Branches & Warehouses
                     </h4>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 bg-blue-50 text-blue-800 text-xs font-bold rounded-lg font-mono">
+                    <span className="px-3 py-1 bg-blue-50 text-blue-800 text-xs font-semibold rounded-lg font-mono">
                       3 Active Godowns
                     </span>
                     <button
                       type="button"
-                      className="px-3 py-1 bg-[#0C1827] text-white text-xs font-bold rounded-lg cursor-pointer"
+                      className="px-3 py-1 bg-[#0C1827] text-white text-xs font-semibold rounded-lg cursor-pointer"
                     >
                       + Transfer Stock
                     </button>
@@ -744,25 +743,25 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div className="p-3 rounded-xl border border-blue-200 bg-blue-50/50">
-                    <p className="text-[11px] font-bold text-blue-900">Surat Main Godown</p>
-                    <p className="text-lg font-black text-[#0C1827] mt-1 font-mono">842 Units</p>
+                    <p className="text-[11px] font-semibold text-blue-900">Surat Main Godown</p>
+                    <p className="text-lg font-semibold text-[#0C1827] mt-1 font-mono">842 Units</p>
                     <p className="text-[10px] text-blue-700 mt-0.5">Value: ₹ 4,12,000 · 14 Batches</p>
                   </div>
                   <div className="p-3 rounded-xl border border-emerald-200 bg-emerald-50/50">
-                    <p className="text-[11px] font-bold text-emerald-900">Ring Road Shop Counter</p>
-                    <p className="text-lg font-black text-[#0C1827] mt-1 font-mono">318 Units</p>
+                    <p className="text-[11px] font-semibold text-emerald-900">Ring Road Shop Counter</p>
+                    <p className="text-lg font-semibold text-[#0C1827] mt-1 font-mono">318 Units</p>
                     <p className="text-[10px] text-emerald-700 mt-0.5">Fast Moving · 0 Stockouts</p>
                   </div>
                   <div className="p-3 rounded-xl border border-amber-200 bg-amber-50/50">
-                    <p className="text-[11px] font-bold text-amber-900">Station Road Warehouse</p>
-                    <p className="text-lg font-black text-[#0C1827] mt-1 font-mono">120 BOX</p>
+                    <p className="text-[11px] font-semibold text-amber-900">Station Road Warehouse</p>
+                    <p className="text-lg font-semibold text-[#0C1827] mt-1 font-mono">120 BOX</p>
                     <p className="text-[10px] text-amber-700 mt-0.5">Transit Shipment Arrived Today</p>
                   </div>
                 </div>
 
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs font-mono">
                   <span>Last stock transfer: 50 Pcs Fast Chargers moved from Main Godown → Shop Counter</span>
-                  <span className="text-emerald-700 font-bold">✓ Synced in 10 sec</span>
+                  <span className="text-emerald-700 font-semibold">✓ Synced in 10 sec</span>
                 </div>
               </motion.div>
             )}
@@ -779,15 +778,15 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#0C1827]/10">
                   <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
                       TRADITIONAL GUJARATI DAYBOOK · રોજમેળ
                     </span>
-                    <h4 className="text-base font-bold text-[#0C1827]">
+                    <h4 className="text-base font-semibold text-[#0C1827]">
                       દૈનિક રોજમેળ — 18 Apr 2026 (ચૈત્ર સુદ 11)
                     </h4>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 bg-amber-50 text-amber-900 border border-amber-200 text-xs font-bold rounded-lg font-mono">
+                    <span className="px-3 py-1 bg-amber-50 text-amber-900 border border-amber-200 text-xs font-semibold rounded-lg font-mono">
                       Closing Cash: ₹ 48,250.00
                     </span>
                   </div>
@@ -797,7 +796,7 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
                   {/* Jama Side */}
                   <div className="p-3 rounded-xl border border-emerald-200 bg-emerald-50/30 space-y-2">
-                    <p className="font-bold text-emerald-900 border-b border-emerald-200 pb-1 flex justify-between font-sans">
+                    <p className="font-semibold text-emerald-900 border-b border-emerald-200 pb-1 flex justify-between font-sans">
                       <span>જમા પક્ષ (JAMA / RECEIPTS)</span>
                       <span className="font-mono">AMOUNT</span>
                     </p>
@@ -813,7 +812,7 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
                       <span>પટેલ ટ્રેડર્સ જમા (Patel Traders UPI)</span>
                       <span>₹ 18,400.00</span>
                     </div>
-                    <div className="pt-2 border-t border-emerald-200 flex justify-between font-bold text-emerald-950">
+                    <div className="pt-2 border-t border-emerald-200 flex justify-between font-semibold text-emerald-950">
                       <span>કુલ જમા (Total Jama)</span>
                       <span>₹ 58,046.80</span>
                     </div>
@@ -821,7 +820,7 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
 
                   {/* Udhaar Side */}
                   <div className="p-3 rounded-xl border border-rose-200 bg-rose-50/30 space-y-2">
-                    <p className="font-bold text-rose-900 border-b border-rose-200 pb-1 flex justify-between font-sans">
+                    <p className="font-semibold text-rose-900 border-b border-rose-200 pb-1 flex justify-between font-sans">
                       <span>ઉધાર પક્ષ (UDHAAR / PAYMENTS)</span>
                       <span className="font-mono">AMOUNT</span>
                     </p>
@@ -833,11 +832,11 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
                       <span>દુકાન ખર્ચ અને ચા-પાણી</span>
                       <span>₹ 1,596.80</span>
                     </div>
-                    <div className="flex justify-between text-slate-800 font-bold text-blue-900">
+                    <div className="flex justify-between text-slate-800 font-semibold text-blue-900">
                       <span>આખર રોકડ શિલક (Closing Balance)</span>
                       <span>₹ 48,250.00</span>
                     </div>
-                    <div className="pt-2 border-t border-rose-200 flex justify-between font-bold text-rose-950">
+                    <div className="pt-2 border-t border-rose-200 flex justify-between font-semibold text-rose-950">
                       <span>કુલ ઉધાર (Total Udhaar)</span>
                       <span>₹ 58,046.80</span>
                     </div>
@@ -846,7 +845,7 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
 
                 <div className="pt-2 flex items-center justify-between text-xs text-[#0C1827]/70 font-sans border-t border-slate-100">
                   <span>✓ Books balanced with double-entry principles. Audit-ready for CA review.</span>
-                  <button type="button" className="text-xs font-bold text-[#E15A2B] hover:underline cursor-pointer">
+                  <button type="button" className="text-xs font-semibold text-[#E15A2B] hover:underline cursor-pointer">
                     Export Excel / PDF Ledger →
                   </button>
                 </div>
@@ -865,20 +864,20 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#0C1827]/10">
                   <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700" style={monoFont}>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700" style={monoFont}>
                       GOVERNMENT PORTAL READY RETURN
                     </span>
-                    <h4 className="text-base font-bold text-[#0C1827]">
+                    <h4 className="text-base font-semibold text-[#0C1827]">
                       GSTR-1 Monthly Return Filing Summary
                     </h4>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-lg font-mono">
+                    <span className="px-3 py-1 bg-emerald-100 text-emerald-800 font-semibold text-xs rounded-lg font-mono">
                       ✓ 0 Errors Found
                     </span>
                     <button
                       type="button"
-                      className="px-4 py-1.5 bg-[#E15A2B] hover:bg-[#d04b1e] text-white text-xs font-bold rounded-lg transition-all cursor-pointer shadow-xs"
+                      className="px-4 py-1.5 bg-[#E15A2B] hover:bg-[#d04b1e] text-white text-xs font-semibold rounded-lg transition-all cursor-pointer shadow-xs"
                     >
                       Download Portal JSON
                     </button>
@@ -888,22 +887,22 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
                     <p className="text-[#0C1827]/60">Total Taxable Value</p>
-                    <p className="text-base font-black text-[#0C1827] mt-1">₹ 18,45,200</p>
+                    <p className="text-base font-semibold text-[#0C1827] mt-1">₹ 18,45,200</p>
                     <p className="text-[10px] text-emerald-700 mt-0.5">42 B2B Invoices</p>
                   </div>
                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
                     <p className="text-[#0C1827]/60">CGST Amount</p>
-                    <p className="text-base font-black text-[#0C1827] mt-1">₹ 1,66,068</p>
+                    <p className="text-base font-semibold text-[#0C1827] mt-1">₹ 1,66,068</p>
                     <p className="text-[10px] text-blue-700 mt-0.5">Intra-state sales</p>
                   </div>
                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
                     <p className="text-[#0C1827]/60">SGST Amount</p>
-                    <p className="text-base font-black text-[#0C1827] mt-1">₹ 1,66,068</p>
+                    <p className="text-base font-semibold text-[#0C1827] mt-1">₹ 1,66,068</p>
                     <p className="text-[10px] text-blue-700 mt-0.5">State tax credit</p>
                   </div>
                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
                     <p className="text-[#0C1827]/60">IGST Amount</p>
-                    <p className="text-base font-black text-[#0C1827] mt-1">₹ 42,100</p>
+                    <p className="text-base font-semibold text-[#0C1827] mt-1">₹ 42,100</p>
                     <p className="text-[10px] text-amber-700 mt-0.5">Inter-state sales</p>
                   </div>
                 </div>
@@ -912,7 +911,7 @@ function HighEndProductWalkthrough({ gu }: { gu: boolean }) {
                   <span className="text-emerald-950 font-semibold">
                     All HSN summaries, invoice numbering series, and credit notes verified for the current tax period.
                   </span>
-                  <span className="font-mono text-emerald-800 font-bold">1-Click JSON Ready</span>
+                  <span className="font-mono text-emerald-800 font-semibold">1-Click JSON Ready</span>
                 </div>
               </motion.div>
             )}
@@ -1011,10 +1010,10 @@ function PriceRollSection({ gu }: { gu: boolean }) {
   return (
     <div className="py-12" id="pricing" data-testid="price-roll-section">
       <div className="text-center max-w-2xl mx-auto mb-10">
-        <span className="text-xs font-bold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
+        <span className="text-xs font-semibold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
           {gu ? "સરળ અને પારદર્શક કિંમત" : "Simple & Transparent Pricing"}
         </span>
-        <h2 className="text-3xl md:text-4xl font-bold text-[#0C1827] mt-2" style={serifFont}>
+        <h2 className="text-3xl md:text-4xl font-semibold text-[#0C1827] mt-2" style={serifFont}>
           {gu ? "વિકાસના દરેક તબક્કા માટે અનુકૂળ પ્લાન." : "Flexible plans for every stage of growth."}
         </h2>
         <p className="text-sm text-[#0C1827]/70 mt-2">
@@ -1028,7 +1027,7 @@ function PriceRollSection({ gu }: { gu: boolean }) {
           <button
             type="button"
             onClick={() => setCycle("monthly")}
-            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${cycle === "monthly"
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${cycle === "monthly"
               ? "bg-[#0C1827] text-white shadow-xs"
               : "text-[#0C1827]/70 hover:text-[#0C1827]"
               }`}
@@ -1038,7 +1037,7 @@ function PriceRollSection({ gu }: { gu: boolean }) {
           <button
             type="button"
             onClick={() => setCycle("yearly")}
-            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${cycle === "yearly"
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${cycle === "yearly"
               ? "bg-[#0C1827] text-white shadow-xs"
               : "text-[#0C1827]/70 hover:text-[#0C1827]"
               }`}
@@ -1064,13 +1063,13 @@ function PriceRollSection({ gu }: { gu: boolean }) {
                 }`}
             >
               {p.popular && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-[#E15A2B] text-white text-[10px] font-black uppercase tracking-wider shadow-sm">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-[#E15A2B] text-white text-[10px] font-semibold uppercase tracking-wider shadow-sm">
                   {gu ? "સૌથી વધુ પસંદગી" : "Most Popular"}
                 </span>
               )}
 
               <div>
-                <h3 className="text-xl font-bold" style={serifFont}>
+                <h3 className="text-xl font-semibold" style={serifFont}>
                   {gu ? p.nameGu : p.nameEn}
                 </h3>
                 <p className={`text-xs mt-1 ${p.popular ? "text-white/70" : "text-[#0C1827]/60"}`}>
@@ -1079,7 +1078,7 @@ function PriceRollSection({ gu }: { gu: boolean }) {
 
                 {/* Price Display with Animated Odometer */}
                 <div className="my-6 pb-6 border-b border-current/15 flex items-baseline gap-1.5">
-                  <span className="text-2xl font-bold">₹</span>
+                  <span className="text-2xl font-semibold">₹</span>
                   <AnimatePresence mode="wait">
                     <motion.span
                       key={price}
@@ -1087,7 +1086,7 @@ function PriceRollSection({ gu }: { gu: boolean }) {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 10 }}
                       transition={{ duration: 0.25 }}
-                      className="text-4xl md:text-5xl font-black tracking-tight"
+                      className="text-4xl md:text-5xl font-semibold tracking-tight"
                       style={serifFont}
                     >
                       {price.toLocaleString("en-IN")}
@@ -1102,7 +1101,7 @@ function PriceRollSection({ gu }: { gu: boolean }) {
                 <ul className="space-y-3 text-xs mb-8">
                   {(gu ? p.featuresGu : p.featuresEn).map((feat, idx) => (
                     <li key={idx} className="flex items-start gap-2.5">
-                      <span className={`font-bold mt-0.5 ${p.popular ? "text-[#E15A2B]" : "text-emerald-600"}`}>
+                      <span className={`font-semibold mt-0.5 ${p.popular ? "text-[#E15A2B]" : "text-emerald-600"}`}>
                         ✓
                       </span>
                       <span className={p.popular ? "text-white/90" : "text-[#0C1827]/85"}>{feat}</span>
@@ -1114,7 +1113,7 @@ function PriceRollSection({ gu }: { gu: boolean }) {
               <div>
                 <Link
                   href="/login?mode=signup"
-                  className={`w-full py-3 rounded-full text-xs font-bold flex items-center justify-center transition-all ${p.popular
+                  className={`w-full py-3 rounded-full text-xs font-semibold flex items-center justify-center transition-all ${p.popular
                     ? "bg-[#E15A2B] hover:bg-[#d04b1e] text-white shadow-md"
                     : "bg-[#0C1827] hover:bg-[#1a2c42] text-white"
                     }`}
@@ -1152,10 +1151,10 @@ function UsVsThemComparison({ gu }: { gu: boolean }) {
   return (
     <div className="py-12 max-w-4xl mx-auto" data-testid="us-vs-them">
       <div className="text-center mb-8">
-        <span className="text-xs font-bold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
+        <span className="text-xs font-semibold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
           {gu ? "તુલના" : "Direct Comparison"}
         </span>
-        <h2 className="text-2xl md:text-3xl font-bold text-[#0C1827] mt-1" style={serifFont}>
+        <h2 className="text-2xl md:text-3xl font-semibold text-[#0C1827] mt-1" style={serifFont}>
           {gu
             ? "ભારતીય વેપારીઓની વાસ્તવિક જરૂરિયાત માટે બનેલું."
             : "Built for the way Indian businesses actually work."}
@@ -1163,11 +1162,11 @@ function UsVsThemComparison({ gu }: { gu: boolean }) {
       </div>
 
       <div className="bg-white rounded-3xl border border-[#0C1827]/15 overflow-hidden shadow-xl">
-        <div className="grid grid-cols-12 bg-[#FAF7F2] p-4 text-xs font-bold border-b border-[#0C1827]/10" style={monoFont}>
+        <div className="grid grid-cols-12 bg-[#FAF7F2] p-4 text-xs font-semibold border-b border-[#0C1827]/10" style={monoFont}>
           <div className="col-span-6 md:col-span-7 text-[#0C1827]">
             {gu ? "સુવિધાઓ (Capabilities)" : "Capabilities"}
           </div>
-          <div className="col-span-3 md:col-span-3 text-center text-[#E15A2B] font-black">Myownbillbook</div>
+          <div className="col-span-3 md:col-span-3 text-center text-[#E15A2B] font-semibold">Myownbillbook</div>
           <div className="col-span-3 md:col-span-2 text-center text-[#0C1827]/50">
             {gu ? "અન્ય સોફ્ટવેર" : "Generic Tools"}
           </div>
@@ -1180,7 +1179,7 @@ function UsVsThemComparison({ gu }: { gu: boolean }) {
                 {row.feature}
               </div>
               <div className="col-span-3 md:col-span-3 text-center">
-                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs">
+                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 font-semibold text-xs">
                   ✓
                 </span>
               </div>
@@ -1188,7 +1187,7 @@ function UsVsThemComparison({ gu }: { gu: boolean }) {
                 {row.others === true ? (
                   <span className="text-emerald-700">✓</span>
                 ) : row.others === false ? (
-                  <span className="text-rose-400 font-bold">✗</span>
+                  <span className="text-rose-400 font-semibold">✗</span>
                 ) : (
                   <span className="text-[10px] text-slate-500 italic">{row.others}</span>
                 )}
@@ -1241,7 +1240,7 @@ function FinalClickSuccessParty({ gu }: { gu: boolean }) {
           <BrandLogo size="lg" showSubtitle subtitle="Paneliya Technology" />
         </div>
 
-        <h2 className="text-3xl md:text-5xl font-black text-white leading-tight" style={serifFont}>
+        <h2 className="text-3xl md:text-5xl font-semibold text-white leading-tight" style={serifFont}>
           {gu ? "સારા કામ માટે " : "Make room for the "}
           <span className="text-[#E15A2B] italic">{gu ? "જગ્યા બનાવો." : "good work."}</span>
         </h2>
@@ -1270,7 +1269,7 @@ function FinalClickSuccessParty({ gu }: { gu: boolean }) {
             <button
               type="button"
               onClick={handleStartTrial}
-              className="px-8 py-4 rounded-full bg-[#E15A2B] hover:bg-[#d04b1e] text-white text-base font-bold shadow-xl transition-all transform hover:-translate-y-0.5 cursor-pointer active:scale-95"
+              className="px-8 py-4 rounded-full bg-[#E15A2B] hover:bg-[#d04b1e] text-white text-base font-semibold shadow-xl transition-all transform hover:-translate-y-0.5 cursor-pointer active:scale-95"
             >
               {gu ? "30 દિવસની મફત અજમાયશ શરૂ કરો →" : "Start your 30-day trial →"}
             </button>
@@ -1280,11 +1279,11 @@ function FinalClickSuccessParty({ gu }: { gu: boolean }) {
               animate={{ scale: 1, opacity: 1 }}
               className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-500/50 text-white flex items-center gap-3 shadow-xl"
             >
-              <span className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-sm">
+              <span className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-semibold text-sm">
                 ✓
               </span>
               <div className="text-left">
-                <p className="text-sm font-bold text-emerald-300">
+                <p className="text-sm font-semibold text-emerald-300">
                   {gu ? "તમે રસ્તા પર છો!" : "You're on your way!"}
                 </p>
                 <p className="text-xs text-white/80">
@@ -1295,7 +1294,7 @@ function FinalClickSuccessParty({ gu }: { gu: boolean }) {
               </div>
               <Link
                 href="/login?mode=signup"
-                className="ml-3 px-4 py-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-[#0C1827] text-xs font-bold"
+                className="ml-3 px-4 py-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-[#0C1827] text-xs font-semibold"
               >
                 {gu ? "આગળ વધો →" : "Open Workspace →"}
               </Link>
@@ -1351,10 +1350,10 @@ function ProcessDrawSection({ gu }: { gu: boolean }) {
   return (
     <div className="py-12 max-w-5xl mx-auto" data-testid="process-draw-section">
       <div className="text-center mb-10">
-        <span className="text-xs font-bold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
+        <span className="text-xs font-semibold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
           {gu ? "કેવી રીતે કામ કરે છે" : "How it works"}
         </span>
-        <h2 className="text-3xl md:text-4xl font-bold text-[#0C1827] mt-1" style={serifFont}>
+        <h2 className="text-3xl md:text-4xl font-semibold text-[#0C1827] mt-1" style={serifFont}>
           {gu ? "પહેલા બિલથી અંતિમ બેલેન્સ સુધી." : "From first bill to final balance."}
         </h2>
       </div>
@@ -1372,17 +1371,17 @@ function ProcessDrawSection({ gu }: { gu: boolean }) {
                 }`}
             >
               <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-black text-[#E15A2B]" style={monoFont}>
+                <span className="text-sm font-semibold text-[#E15A2B]" style={monoFont}>
                   {step.n}
                 </span>
                 <span
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isActive ? "bg-emerald-600 text-white" : "bg-[#0C1827]/10 text-[#0C1827]"
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${isActive ? "bg-emerald-600 text-white" : "bg-[#0C1827]/10 text-[#0C1827]"
                     }`}
                 >
                   ✓
                 </span>
               </div>
-              <h3 className="text-base font-bold text-[#0C1827] leading-snug" style={serifFont}>
+              <h3 className="text-base font-semibold text-[#0C1827] leading-snug" style={serifFont}>
                 {gu ? step.titleGu : step.titleEn}
               </h3>
               <p className="text-xs text-[#0C1827]/70 mt-2 leading-relaxed">
@@ -1438,10 +1437,10 @@ function FaqAccordion({ gu }: { gu: boolean }) {
   return (
     <div className="py-12 max-w-3xl mx-auto" id="questions" data-testid="faq-section">
       <div className="text-center mb-8">
-        <span className="text-xs font-bold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
+        <span className="text-xs font-semibold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
           {gu ? "પ્રશ્નોત્તરી" : "Frequently Asked Questions"}
         </span>
-        <h2 className="text-3xl font-bold text-[#0C1827] mt-1" style={serifFont}>
+        <h2 className="text-3xl font-semibold text-[#0C1827] mt-1" style={serifFont}>
           {gu ? "કાઉન્ટર પર પૂછાતા પ્રશ્નો." : "Asked at the counter."}
         </h2>
       </div>
@@ -1457,7 +1456,7 @@ function FaqAccordion({ gu }: { gu: boolean }) {
               <button
                 type="button"
                 onClick={() => setOpenIdx(isOpen ? null : idx)}
-                className="w-full p-5 text-left flex items-center justify-between gap-4 font-bold text-sm text-[#0C1827] cursor-pointer hover:bg-[#FAF7F2]/60"
+                className="w-full p-5 text-left flex items-center justify-between gap-4 font-semibold text-sm text-[#0C1827] cursor-pointer hover:bg-[#FAF7F2]/60"
               >
                 <span>{gu ? faq.qGu : faq.qEn}</span>
                 <span className="text-base text-[#E15A2B] shrink-0 font-mono">
@@ -1488,17 +1487,6 @@ export function MyownbillbookLanding() {
   const [showHeader, setShowHeader] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
-
-  // Initialize Lenis smooth scroll
-  useEffect(() => {
-    const lenis = new Lenis({
-      autoRaf: true,
-      anchors: true,
-      lerp: 0.085,
-      respectReducedMotion: true,
-    });
-    return () => lenis.destroy();
-  }, []);
 
   // Smart sticky header: hide on scroll down, show on upscroll
   useEffect(() => {
@@ -1551,19 +1539,19 @@ export function MyownbillbookLanding() {
 
           {/* Navigation links with increased readable font size */}
           <nav className="hidden lg:flex items-center gap-8 text-[15px] font-semibold text-[#0C1827]/85 tracking-tight" aria-label="Main Navigation">
-            <a href="#why" className="hover:text-[#E87536] transition-colors py-2 hover:font-bold">
+            <a href="#why" className="hover:text-[#E87536] transition-colors py-2 hover:font-semibold">
               {gu ? "શા માટે રોજમેળ" : "Why Myownbillbook"}
             </a>
-            <a href="#toolkit" className="hover:text-[#E87536] transition-colors py-2 hover:font-bold">
+            <a href="#toolkit" className="hover:text-[#E87536] transition-colors py-2 hover:font-semibold">
               {gu ? "સુવિધાઓ" : "Features"}
             </a>
-            <a href="#trade" className="hover:text-[#E87536] transition-colors py-2 hover:font-bold">
+            <a href="#trade" className="hover:text-[#E87536] transition-colors py-2 hover:font-semibold">
               {gu ? "તમારા વેપાર માટે" : "For your business"}
             </a>
-            <a href="#pricing" className="hover:text-[#E87536] transition-colors py-2 hover:font-bold">
+            <a href="#pricing" className="hover:text-[#E87536] transition-colors py-2 hover:font-semibold">
               {gu ? "કિંમત" : "Pricing"}
             </a>
-            <a href="#questions" className="hover:text-[#E87536] transition-colors py-2 hover:font-bold">
+            <a href="#questions" className="hover:text-[#E87536] transition-colors py-2 hover:font-semibold">
               {gu ? "પ્રશ્નોત્તરી" : "Questions"}
             </a>
           </nav>
@@ -1574,7 +1562,7 @@ export function MyownbillbookLanding() {
             <button
               type="button"
               onClick={() => setLang(gu ? "en" : "gu")}
-              className="px-2.5 sm:px-3.5 py-1.5 rounded-full border border-[#0C1827]/15 bg-white text-xs font-bold text-[#0C1827] hover:border-[#E87536] transition-colors cursor-pointer shadow-2xs shrink-0"
+              className="px-2.5 sm:px-3.5 py-1.5 rounded-full border border-[#0C1827]/15 bg-white text-xs font-semibold text-[#0C1827] hover:border-[#E87536] transition-colors cursor-pointer shadow-2xs shrink-0"
               style={monoFont}
               aria-label="Switch Language"
             >
@@ -1583,7 +1571,7 @@ export function MyownbillbookLanding() {
 
             <Link
               href="/login"
-              className="hidden sm:inline-block text-sm font-bold text-[#0C1827] hover:text-[#E87536] px-3.5 py-2 transition-colors"
+              className="hidden sm:inline-block text-sm font-semibold text-[#0C1827] hover:text-[#E87536] px-3.5 py-2 transition-colors"
             >
               {gu ? "સાઇન ઇન" : "Sign in"}
             </Link>
@@ -1591,7 +1579,7 @@ export function MyownbillbookLanding() {
             {/* Start Free button - visible on sm+ (tablets/desktops), while mobile (<sm) uses the prominent button in mobile menu */}
             <Link
               href="/login?mode=signup"
-              className="hidden sm:inline-flex px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-[#0C1827] hover:bg-[#1e2f47] text-white text-sm font-bold transition-all shadow-sm items-center gap-2 active:scale-95 shrink-0"
+              className="hidden sm:inline-flex px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-[#0C1827] hover:bg-[#1e2f47] text-white text-sm font-semibold transition-all shadow-sm items-center gap-2 active:scale-95 shrink-0"
             >
               <span>{gu ? "શરૂ કરો" : "Start Free"}</span>
               <span className="text-[#E87536]">→</span>
@@ -1632,7 +1620,7 @@ export function MyownbillbookLanding() {
                 <a
                   href="#why"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-between text-base font-bold text-[#0C1827] py-3 px-3 rounded-xl hover:bg-[#0C1827]/5 hover:text-[#E87536] transition-colors"
+                  className="flex items-center justify-between text-base font-semibold text-[#0C1827] py-3 px-3 rounded-xl hover:bg-[#0C1827]/5 hover:text-[#E87536] transition-colors"
                 >
                   <span>{gu ? "શા માટે રોજમેળ" : "Why Myownbillbook"}</span>
                   <span className="text-xs text-[#0C1827]/40 font-mono">01</span>
@@ -1640,7 +1628,7 @@ export function MyownbillbookLanding() {
                 <a
                   href="#toolkit"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-between text-base font-bold text-[#0C1827] py-3 px-3 rounded-xl hover:bg-[#0C1827]/5 hover:text-[#E87536] transition-colors"
+                  className="flex items-center justify-between text-base font-semibold text-[#0C1827] py-3 px-3 rounded-xl hover:bg-[#0C1827]/5 hover:text-[#E87536] transition-colors"
                 >
                   <span>{gu ? "સુવિધાઓ અને ટૂલકિટ" : "Features & Toolkit"}</span>
                   <span className="text-xs text-[#0C1827]/40 font-mono">02</span>
@@ -1648,7 +1636,7 @@ export function MyownbillbookLanding() {
                 <a
                   href="#trade"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-between text-base font-bold text-[#0C1827] py-3 px-3 rounded-xl hover:bg-[#0C1827]/5 hover:text-[#E87536] transition-colors"
+                  className="flex items-center justify-between text-base font-semibold text-[#0C1827] py-3 px-3 rounded-xl hover:bg-[#0C1827]/5 hover:text-[#E87536] transition-colors"
                 >
                   <span>{gu ? "તમારા વેપાર માટે" : "For your business"}</span>
                   <span className="text-xs text-[#0C1827]/40 font-mono">03</span>
@@ -1656,7 +1644,7 @@ export function MyownbillbookLanding() {
                 <a
                   href="#pricing"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-between text-base font-bold text-[#0C1827] py-3 px-3 rounded-xl hover:bg-[#0C1827]/5 hover:text-[#E87536] transition-colors"
+                  className="flex items-center justify-between text-base font-semibold text-[#0C1827] py-3 px-3 rounded-xl hover:bg-[#0C1827]/5 hover:text-[#E87536] transition-colors"
                 >
                   <span>{gu ? "કિંમત અને પ્લાન્સ" : "Pricing Plans"}</span>
                   <span className="text-xs text-[#0C1827]/40 font-mono">04</span>
@@ -1664,7 +1652,7 @@ export function MyownbillbookLanding() {
                 <a
                   href="#questions"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-between text-base font-bold text-[#0C1827] py-3 px-3 rounded-xl hover:bg-[#0C1827]/5 hover:text-[#E87536] transition-colors"
+                  className="flex items-center justify-between text-base font-semibold text-[#0C1827] py-3 px-3 rounded-xl hover:bg-[#0C1827]/5 hover:text-[#E87536] transition-colors"
                 >
                   <span>{gu ? "પ્રશ્નોત્તરી (FAQ)" : "Questions & Answers"}</span>
                   <span className="text-xs text-[#0C1827]/40 font-mono">05</span>
@@ -1675,7 +1663,7 @@ export function MyownbillbookLanding() {
                 <Link
                   href="/login?mode=signup"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-3.5 rounded-xl bg-[#E87536] hover:bg-[#D66527] text-white text-base font-bold shadow-md transition-all flex items-center justify-center gap-2"
+                  className="w-full text-center py-3.5 rounded-xl bg-[#E87536] hover:bg-[#D66527] text-white text-base font-semibold shadow-md transition-all flex items-center justify-center gap-2"
                 >
                   <span>{gu ? "મફત શરૂ કરો (Start Free)" : "Start Free for 30 Days"}</span>
                   <span>→</span>
@@ -1683,7 +1671,7 @@ export function MyownbillbookLanding() {
                 <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-3 rounded-xl border border-[#0C1827]/20 text-sm font-bold text-[#0C1827] hover:bg-white transition-colors"
+                  className="w-full text-center py-3 rounded-xl border border-[#0C1827]/20 text-sm font-semibold text-[#0C1827] hover:bg-white transition-colors"
                 >
                   {gu ? "પહેલેથી ખાતું છે? સાઇન ઇન (Sign in)" : "Already have an account? Sign in"}
                 </Link>
@@ -1705,7 +1693,7 @@ export function MyownbillbookLanding() {
             {/* Left Content Column */}
             <div className="lg:col-span-6 space-y-6">
               {/* Masked Headline: "Trade moves. Myownbillbook." */}
-              <div className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-[#0C1827] leading-[1.08]">
+              <div className="text-5xl sm:text-6xl md:text-7xl font-semibold tracking-tight text-[#0C1827] leading-[1.08]">
                 <div className="overflow-hidden">
                   <motion.div
                     initial={reduce ? false : { y: "100%" }}
@@ -1760,7 +1748,7 @@ export function MyownbillbookLanding() {
               >
                 <Link
                   href="/login?mode=signup"
-                  className="px-7 py-3.5 rounded-full bg-[#0C1827] hover:bg-[#1a2c42] text-white text-sm font-bold shadow-lg transition-transform hover:-translate-y-0.5 flex items-center gap-2 group"
+                  className="px-7 py-3.5 rounded-full bg-[#0C1827] hover:bg-[#1a2c42] text-white text-sm font-semibold shadow-lg transition-transform hover:-translate-y-0.5 flex items-center gap-2 group"
                 >
                   <span>{gu ? "30 દિવસ મફત શરૂ કરો" : "Start free for 30 days"}</span>
                   <span className="text-[#E15A2B] transition-transform group-hover:translate-x-1">→</span>
@@ -1768,7 +1756,7 @@ export function MyownbillbookLanding() {
 
                 <a
                   href="#toolkit"
-                  className="px-6 py-3.5 rounded-full border border-[#0C1827]/20 hover:border-[#0C1827] text-sm font-bold text-[#0C1827] transition-colors"
+                  className="px-6 py-3.5 rounded-full border border-[#0C1827]/20 hover:border-[#0C1827] text-sm font-semibold text-[#0C1827] transition-colors"
                 >
                   {gu ? "વર્કસ્પેસ જુઓ" : "Explore the workspace"}
                 </a>
@@ -1809,13 +1797,13 @@ export function MyownbillbookLanding() {
                 {/* Authentic Tax Invoice Card */}
                 <div className="bg-white rounded-2xl border border-[#0C1827]/15 shadow-2xl p-6 text-[11px] text-[#0C1827] space-y-4 select-none relative">
                   {/* Floating Circular 'GST READY' Stamp */}
-                  <div className="absolute -top-4 -right-4 w-16 h-16 rounded-full border-2 border-dashed border-[#E15A2B] bg-[#FAF7F2] text-[#E15A2B] flex flex-col items-center justify-center font-black text-[9px] uppercase tracking-wider rotate-12 shadow-md">
+                  <div className="absolute -top-4 -right-4 w-16 h-16 rounded-full border-2 border-dashed border-[#E15A2B] bg-[#FAF7F2] text-[#E15A2B] flex flex-col items-center justify-center font-semibold text-[9px] uppercase tracking-wider rotate-12 shadow-md">
                     <span>GST</span>
                     <span>READY</span>
                   </div>
 
                   {/* Floating OCR scanned pill */}
-                  <div className="absolute -top-3 left-6 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-800 text-[10px] font-bold flex items-center gap-1.5 shadow-sm">
+                  <div className="absolute -top-3 left-6 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-800 text-[10px] font-semibold flex items-center gap-1.5 shadow-sm">
                     <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                     <span>{gu ? "બિલ સ્કેન થયું" : "Bill scanned"}</span>
                   </div>
@@ -1823,7 +1811,7 @@ export function MyownbillbookLanding() {
                   {/* Invoice Header */}
                   <div className="flex justify-between items-start pt-2 border-b border-[#0C1827]/10 pb-3">
                     <div>
-                      <p className="font-black text-sm uppercase tracking-wide text-[#0C1827]">
+                      <p className="font-semibold text-sm uppercase tracking-wide text-[#0C1827]">
                         શ્રીજી એન્ટરપ્રાઇઝ · Shreeji Enterprise
                       </p>
                       <p className="text-[10px] text-[#0C1827]/60" style={monoFont}>
@@ -1831,7 +1819,7 @@ export function MyownbillbookLanding() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-xs uppercase" style={monoFont}>
+                      <p className="font-semibold text-xs uppercase" style={monoFont}>
                         TAX INVOICE
                       </p>
                       <p className="text-[9.5px] text-[#0C1827]/60" style={monoFont}>
@@ -1856,19 +1844,19 @@ export function MyownbillbookLanding() {
                           <td className="py-1.5 font-medium">Wireless Fast Charger 15W</td>
                           <td className="py-1.5 text-center" style={monoFont}>10</td>
                           <td className="py-1.5 text-right" style={monoFont}>₹ 450.00</td>
-                          <td className="py-1.5 text-right font-bold" style={monoFont}>₹ 4,500.00</td>
+                          <td className="py-1.5 text-right font-semibold" style={monoFont}>₹ 4,500.00</td>
                         </tr>
                         <tr>
                           <td className="py-1.5 font-medium">Type-C Braided Cable 2M</td>
                           <td className="py-1.5 text-center" style={monoFont}>25</td>
                           <td className="py-1.5 text-right" style={monoFont}>₹ 120.00</td>
-                          <td className="py-1.5 text-right font-bold" style={monoFont}>₹ 3,000.00</td>
+                          <td className="py-1.5 text-right font-semibold" style={monoFont}>₹ 3,000.00</td>
                         </tr>
                         <tr>
                           <td className="py-1.5 font-medium">Extension Board 4-Way Spike</td>
                           <td className="py-1.5 text-center" style={monoFont}>8</td>
                           <td className="py-1.5 text-right" style={monoFont}>₹ 720.00</td>
-                          <td className="py-1.5 text-right font-bold" style={monoFont}>₹ 5,760.00</td>
+                          <td className="py-1.5 text-right font-semibold" style={monoFont}>₹ 5,760.00</td>
                         </tr>
                       </tbody>
                     </table>
@@ -1884,7 +1872,7 @@ export function MyownbillbookLanding() {
                       <span>CGST (9%) + SGST (9%)</span>
                       <span style={monoFont}>₹ 2,386.80</span>
                     </div>
-                    <div className="flex justify-between font-black text-sm text-[#0C1827] pt-1 border-t border-[#0C1827]/10">
+                    <div className="flex justify-between font-semibold text-sm text-[#0C1827] pt-1 border-t border-[#0C1827]/10">
                       <span>Grand Total</span>
                       <span className="text-[#0C1827]" style={monoFont}>
                         ₹ 15,646.80
@@ -1894,7 +1882,7 @@ export function MyownbillbookLanding() {
 
                   {/* Footer E-way bill ready badge */}
                   <div className="pt-2 flex items-center justify-between text-[9px] text-[#0C1827]/60 border-t border-dashed border-[#0C1827]/15" style={monoFont}>
-                    <span className="text-emerald-700 font-bold">✓ e-Way Bill JSON ready</span>
+                    <span className="text-emerald-700 font-semibold">✓ e-Way Bill JSON ready</span>
                     <span>Auth Signatory: Shreeji Enterprise</span>
                   </div>
                 </div>
@@ -1951,10 +1939,10 @@ export function MyownbillbookLanding() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Left Copy */}
             <div className="lg:col-span-6 space-y-6">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
                 {gu ? "શા માટે રોજમેળ" : "Why Myownbillbook"}
               </span>
-              <h2 className="text-4xl sm:text-5xl font-bold text-[#0C1827] leading-tight" style={serifFont}>
+              <h2 className="text-4xl sm:text-5xl font-semibold text-[#0C1827] leading-tight" style={serifFont}>
                 {gu ? "ઓછું ખાતું." : "Less bookkeeping."}
                 <br />
                 <span className="text-[#E15A2B] italic">{gu ? "વધુ વેપાર." : "More business."}</span>
@@ -1968,11 +1956,11 @@ export function MyownbillbookLanding() {
               {/* Feature pills */}
               <div className="space-y-4 pt-2">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 font-bold">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 font-semibold">
                     ✓
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-[#0C1827]">
+                    <h3 className="text-sm font-semibold text-[#0C1827]">
                       {gu ? "સમય બચાવો" : "Save time"}
                     </h3>
                     <p className="text-xs text-[#0C1827]/70">
@@ -1982,11 +1970,11 @@ export function MyownbillbookLanding() {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center shrink-0 font-bold">
+                  <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center shrink-0 font-semibold">
                     ✓
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-[#0C1827]">
+                    <h3 className="text-sm font-semibold text-[#0C1827]">
                       {gu ? "નિયમોનું પાલન (GST Compliant)" : "Stay compliant"}
                     </h3>
                     <p className="text-xs text-[#0C1827]/70">
@@ -1996,11 +1984,11 @@ export function MyownbillbookLanding() {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 font-bold">
+                  <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 font-semibold">
                     ✓
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-[#0C1827]">
+                    <h3 className="text-sm font-semibold text-[#0C1827]">
                       {gu ? "વિશ્વાસ સાથે આગળ વધો" : "Grow with confidence"}
                     </h3>
                     <p className="text-xs text-[#0C1827]/70">
@@ -2025,7 +2013,7 @@ export function MyownbillbookLanding() {
 
                 {/* Quote Badge Overlay */}
                 <div className="absolute bottom-6 left-6 right-6 p-4 rounded-2xl bg-white/95 backdrop-blur-md border border-[#0C1827]/10 shadow-lg">
-                  <p className="text-xs font-bold text-[#0C1827] italic" style={serifFont}>
+                  <p className="text-xs font-semibold text-[#0C1827] italic" style={serifFont}>
                     &ldquo;{gu
                       ? "વાપરવામાં સાવ સહેલું અને વેપાર માટે અત્યંત તાકાતવાન સોફ્ટવેર છે."
                       : "Simple to use, powerful for business."}&rdquo;
@@ -2046,10 +2034,10 @@ export function MyownbillbookLanding() {
       <section className="py-20 bg-[#FAF7F2] border-y border-[#0C1827]/10" id="toolkit">
         <div className="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8 space-y-14">
           <div className="text-center max-w-2xl mx-auto">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
               {gu ? "સાધનો અને ટૂલકિટ" : "The Toolkit"}
             </span>
-            <h2 className="text-4xl font-bold text-[#0C1827] mt-1" style={serifFont}>
+            <h2 className="text-4xl font-semibold text-[#0C1827] mt-1" style={serifFont}>
               {gu ? "બધું જે તમને જોઈએ છે, " : "Everything you need, "}
               <span className="text-[#E15A2B] italic">{gu ? "એક જ જગ્યાએ." : "in one place."}</span>
             </h2>
@@ -2066,7 +2054,7 @@ export function MyownbillbookLanding() {
             <div className="rounded-3xl p-7 bg-white border border-[#0C1827]/10 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
               <div>
                 <span className="text-2xl mb-3 block">📄</span>
-                <h3 className="text-xl font-bold text-[#0C1827]" style={serifFont}>
+                <h3 className="text-xl font-semibold text-[#0C1827]" style={serifFont}>
                   {gu ? "GST બિલિંગ અને ઇન્વૉઇસ" : "GST Invoicing"}
                 </h3>
                 <p className="text-xs text-[#0C1827]/70 mt-2 leading-relaxed">
@@ -2075,7 +2063,7 @@ export function MyownbillbookLanding() {
                     : "B2B and B2C invoices, A4 and thermal print formats, e-Way Bill-ready exports."}
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[#0C1827]/5 flex items-center justify-between text-xs font-bold text-[#E15A2B]">
+              <div className="mt-6 pt-4 border-t border-[#0C1827]/5 flex items-center justify-between text-xs font-semibold text-[#E15A2B]">
                 <span>{gu ? "વધુ જુઓ" : "Learn more"}</span>
                 <span>→</span>
               </div>
@@ -2086,10 +2074,10 @@ export function MyownbillbookLanding() {
               <div>
                 <span className="text-2xl mb-3 block">📷</span>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold text-[#0C1827]" style={serifFont}>
+                  <h3 className="text-xl font-semibold text-[#0C1827]" style={serifFont}>
                     {gu ? "ખરીદ બિલ OCR સ્કેનર" : "Purchase OCR"}
                   </h3>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800" style={monoFont}>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800" style={monoFont}>
                     94% fields captured
                   </span>
                 </div>
@@ -2099,7 +2087,7 @@ export function MyownbillbookLanding() {
                     : "Photograph a vendor bill. Extract vendor details, GSTIN, HSN and line items into stock."}
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[#0C1827]/5 flex items-center justify-between text-xs font-bold text-[#E15A2B]">
+              <div className="mt-6 pt-4 border-t border-[#0C1827]/5 flex items-center justify-between text-xs font-semibold text-[#E15A2B]">
                 <span>{gu ? "વધુ જુઓ" : "Learn more"}</span>
                 <span>→</span>
               </div>
@@ -2110,10 +2098,10 @@ export function MyownbillbookLanding() {
               <div>
                 <span className="text-2xl mb-3 block">🏢</span>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold text-[#0C1827]" style={serifFont}>
+                  <h3 className="text-xl font-semibold text-[#0C1827]" style={serifFont}>
                     {gu ? "બહુ-ગોડાઉન ઇન્વેન્ટરી" : "Multi-Godown Inventory"}
                   </h3>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800" style={monoFont}>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800" style={monoFont}>
                     12 batches moving
                   </span>
                 </div>
@@ -2123,7 +2111,7 @@ export function MyownbillbookLanding() {
                     : "Track stock across Surat, shop floor and godowns. Batch and expiry date tracking."}
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[#0C1827]/5 flex items-center justify-between text-xs font-bold text-[#E15A2B]">
+              <div className="mt-6 pt-4 border-t border-[#0C1827]/5 flex items-center justify-between text-xs font-semibold text-[#E15A2B]">
                 <span>{gu ? "વધુ જુઓ" : "Learn more"}</span>
                 <span>→</span>
               </div>
@@ -2133,7 +2121,7 @@ export function MyownbillbookLanding() {
             <div className="rounded-3xl p-7 bg-white border border-[#0C1827]/10 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
               <div>
                 <span className="text-2xl mb-3 block">📖</span>
-                <h3 className="text-xl font-bold text-[#0C1827]" style={serifFont}>
+                <h3 className="text-xl font-semibold text-[#0C1827]" style={serifFont}>
                   {gu ? "પાકી ખાતાવહી (રોજમેળ)" : "Double-Entry Ledgers"}
                 </h3>
                 <p className="text-xs text-[#0C1827]/70 mt-2 leading-relaxed">
@@ -2142,7 +2130,7 @@ export function MyownbillbookLanding() {
                     : "Party ledger previews, cashbook, daybook (રોજમેળ) and running balances."}
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[#0C1827]/5 flex items-center justify-between text-xs font-bold text-[#E15A2B]">
+              <div className="mt-6 pt-4 border-t border-[#0C1827]/5 flex items-center justify-between text-xs font-semibold text-[#E15A2B]">
                 <span>{gu ? "વધુ જુઓ" : "Learn more"}</span>
                 <span>→</span>
               </div>
@@ -2152,7 +2140,7 @@ export function MyownbillbookLanding() {
             <div className="rounded-3xl p-7 bg-white border border-[#0C1827]/10 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
               <div>
                 <span className="text-2xl mb-3 block">📊</span>
-                <h3 className="text-xl font-bold text-[#0C1827]" style={serifFont}>
+                <h3 className="text-xl font-semibold text-[#0C1827]" style={serifFont}>
                   {gu ? "ઓટોમેટિક GST રિપોર્ટ્સ" : "GST Reports"}
                 </h3>
                 <p className="text-xs text-[#0C1827]/70 mt-2 leading-relaxed">
@@ -2161,7 +2149,7 @@ export function MyownbillbookLanding() {
                     : "GSTR-1, GSTR-3B, GSTR-2B matching and live return reconciliation."}
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[#0C1827]/5 flex items-center justify-between text-xs font-bold text-[#E15A2B]">
+              <div className="mt-6 pt-4 border-t border-[#0C1827]/5 flex items-center justify-between text-xs font-semibold text-[#E15A2B]">
                 <span>{gu ? "વધુ જુઓ" : "Learn more"}</span>
                 <span>→</span>
               </div>
@@ -2171,7 +2159,7 @@ export function MyownbillbookLanding() {
             <div className="rounded-3xl p-7 bg-white border border-[#0C1827]/10 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
               <div>
                 <span className="text-2xl mb-3 block">🖨️</span>
-                <h3 className="text-xl font-bold text-[#0C1827]" style={serifFont}>
+                <h3 className="text-xl font-semibold text-[#0C1827]" style={serifFont}>
                   {gu ? "ઝડપી POS કાઉન્ટર" : "POS Billing"}
                 </h3>
                 <p className="text-xs text-[#0C1827]/70 mt-2 leading-relaxed">
@@ -2180,7 +2168,7 @@ export function MyownbillbookLanding() {
                     : "Fast & simple POS for retail counter with barcode scan and instant thermal slip."}
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[#0C1827]/5 flex items-center justify-between text-xs font-bold text-[#E15A2B]">
+              <div className="mt-6 pt-4 border-t border-[#0C1827]/5 flex items-center justify-between text-xs font-semibold text-[#E15A2B]">
                 <span>{gu ? "વધુ જુઓ" : "Learn more"}</span>
                 <span>→</span>
               </div>
@@ -2212,7 +2200,7 @@ export function MyownbillbookLanding() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0C1827]/50 via-transparent to-transparent"></div>
 
-                <div className="absolute top-6 left-6 px-4 py-2 bg-amber-100 text-[#0C1827] font-bold text-xs uppercase tracking-wider rounded shadow-md -rotate-2 border border-amber-300">
+                <div className="absolute top-6 left-6 px-4 py-2 bg-amber-100 text-[#0C1827] font-semibold text-xs uppercase tracking-wider rounded shadow-md -rotate-2 border border-amber-300">
                   {gu ? "દુકાનથી બેલેન્સ શીટ સુધી!" : "From shop floor to balance sheet!"}
                 </div>
               </div>
@@ -2220,21 +2208,21 @@ export function MyownbillbookLanding() {
 
             {/* Right Features */}
             <div className="lg:col-span-6 space-y-6">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
                 {gu ? "ફીચર્સ" : "Feature Highlights"}
               </span>
-              <h2 className="text-4xl font-bold text-[#0C1827] leading-tight" style={serifFont}>
+              <h2 className="text-4xl font-semibold text-[#0C1827] leading-tight" style={serifFont}>
                 {gu ? "વાસ્તવિક વેપાર માટે " : "Built for "}
                 <span className="text-[#E15A2B] italic">{gu ? "બનેલું." : "real businesses."}</span>
               </h2>
 
               <div className="space-y-5 pt-3">
                 <div className="p-4 rounded-2xl bg-white border border-[#0C1827]/10 flex items-start gap-4 shadow-2xs">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 font-bold text-sm">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 font-semibold text-sm">
                     10s
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-[#0C1827]">
+                    <h3 className="text-sm font-semibold text-[#0C1827]">
                       {gu ? "10 સેકન્ડમાં ઇન્વૉઇસ" : "Invoice in 10 seconds"}
                     </h3>
                     <p className="text-xs text-[#0C1827]/70 mt-0.5">
@@ -2246,11 +2234,11 @@ export function MyownbillbookLanding() {
                 </div>
 
                 <div className="p-4 rounded-2xl bg-white border border-[#0C1827]/10 flex items-start gap-4 shadow-2xs">
-                  <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center shrink-0 font-bold text-sm">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center shrink-0 font-semibold text-sm">
                     OCR
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-[#0C1827]">
+                    <h3 className="text-sm font-semibold text-[#0C1827]">
                       {gu ? "વેપારીના બિલનું OCR" : "OCR vendor bills"}
                     </h3>
                     <p className="text-xs text-[#0C1827]/70 mt-0.5">
@@ -2262,11 +2250,11 @@ export function MyownbillbookLanding() {
                 </div>
 
                 <div className="p-4 rounded-2xl bg-white border border-[#0C1827]/10 flex items-start gap-4 shadow-2xs">
-                  <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 font-bold text-sm">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 font-semibold text-sm">
                     LIVE
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-[#0C1827]">
+                    <h3 className="text-sm font-semibold text-[#0C1827]">
                       {gu ? "ગોડાઉન વચ્ચે જીવતો સ્ટોક" : "Live stock across godowns"}
                     </h3>
                     <p className="text-xs text-[#0C1827]/70 mt-0.5">
@@ -2292,10 +2280,10 @@ export function MyownbillbookLanding() {
       <section className="py-20 bg-[#FAF7F2] border-t border-[#0C1827]/10" id="trade">
         <div className="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center max-w-2xl mx-auto">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
               {gu ? "તમારા વેપાર માટે" : "For Your Trade"}
             </span>
-            <h2 className="text-4xl font-bold text-[#0C1827] mt-1" style={serifFont}>
+            <h2 className="text-4xl font-semibold text-[#0C1827] mt-1" style={serifFont}>
               {gu ? "દરેક વેપાર માટે અનુકૂળ." : "Built for every business."}
             </h2>
             <p className="text-sm text-[#0C1827]/75 mt-2">
@@ -2351,7 +2339,7 @@ export function MyownbillbookLanding() {
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0C1827]/70 via-transparent to-transparent"></div>
                 </div>
                 <div className="p-5">
-                  <h3 className="text-base font-bold text-[#0C1827]" style={serifFont}>
+                  <h3 className="text-base font-semibold text-[#0C1827]" style={serifFont}>
                     {gu ? ind.titleGu : ind.titleEn}
                   </h3>
                   <p className="text-xs text-[#0C1827]/70 mt-1">{gu ? ind.descGu : ind.descEn}</p>
@@ -2369,7 +2357,7 @@ export function MyownbillbookLanding() {
         <div className="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 text-center items-center divide-y md:divide-y-0 md:divide-x divide-white/10">
             <div className="pt-4 md:pt-0">
-              <p className="text-3xl md:text-4xl font-black text-white" style={serifFont}>
+              <p className="text-3xl md:text-4xl font-semibold text-white" style={serifFont}>
                 <CountUpNumber value={10} suffix=" sec" />
               </p>
               <p className="text-xs text-[#E15A2B] uppercase tracking-wider mt-1" style={monoFont}>
@@ -2378,7 +2366,7 @@ export function MyownbillbookLanding() {
             </div>
 
             <div className="pt-4 md:pt-0">
-              <p className="text-3xl md:text-4xl font-black text-white" style={serifFont}>
+              <p className="text-3xl md:text-4xl font-semibold text-white" style={serifFont}>
                 <CountUpNumber value={25000} suffix="+" />
               </p>
               <p className="text-xs text-[#E15A2B] uppercase tracking-wider mt-1" style={monoFont}>
@@ -2387,7 +2375,7 @@ export function MyownbillbookLanding() {
             </div>
 
             <div className="pt-4 md:pt-0">
-              <p className="text-3xl md:text-4xl font-black text-white" style={serifFont}>
+              <p className="text-3xl md:text-4xl font-semibold text-white" style={serifFont}>
                 <CountUpNumber value={14} suffix="+" />
               </p>
               <p className="text-xs text-[#E15A2B] uppercase tracking-wider mt-1" style={monoFont}>
@@ -2396,7 +2384,7 @@ export function MyownbillbookLanding() {
             </div>
 
             <div className="pt-4 md:pt-0">
-              <p className="text-3xl md:text-4xl font-black text-white" style={serifFont}>
+              <p className="text-3xl md:text-4xl font-semibold text-white" style={serifFont}>
                 <CountUpNumber value={2} suffix="" />
               </p>
               <p className="text-xs text-[#E15A2B] uppercase tracking-wider mt-1" style={monoFont}>
@@ -2405,7 +2393,7 @@ export function MyownbillbookLanding() {
             </div>
 
             <div className="pt-4 md:pt-0 col-span-2 md:col-span-1">
-              <p className="text-3xl md:text-4xl font-black text-emerald-400" style={serifFont}>
+              <p className="text-3xl md:text-4xl font-semibold text-emerald-400" style={serifFont}>
                 <CountUpNumber value={100} suffix="%" />
               </p>
               <p className="text-xs text-emerald-400 uppercase tracking-wider mt-1" style={monoFont}>
@@ -2422,10 +2410,10 @@ export function MyownbillbookLanding() {
       <section className="py-20 md:py-28">
         <div className="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-8">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#E15A2B]" style={monoFont}>
               {gu ? "ગ્રાહક પ્રતિભાવ" : "Testimonials"}
             </span>
-            <h2 className="text-4xl font-bold text-[#0C1827] mt-1" style={serifFont}>
+            <h2 className="text-4xl font-semibold text-[#0C1827] mt-1" style={serifFont}>
               {gu ? "સાચા વેપારીઓ. સાચી વાતો." : "Real businesses. Real stories."}
             </h2>
           </div>
@@ -2481,13 +2469,13 @@ export function MyownbillbookLanding() {
                   ? "ભારતીય રિટેલર્સ, હોલસેલર્સ અને ડિસ્ટ્રિબ્યુટર્સ માટે આધુનિક GST બિલિંગ, ઇન્વેન્ટરી અને ખાતાવહી પ્લેટફોર્મ."
                   : "Modern GST billing, POS counter, purchase OCR, inventory and accounting ledgers for Indian retailers, wholesalers and distributors."}
               </p>
-              <p className="text-[11px] text-[#E15A2B] font-bold" style={serifFont}>
+              <p className="text-[11px] text-[#E15A2B] font-semibold" style={serifFont}>
                 Trade. Moves. Together.
               </p>
             </div>
 
             <div>
-              <h4 className="font-bold text-[#0C1827] uppercase tracking-wider text-[11px] mb-3" style={monoFont}>
+              <h4 className="font-semibold text-[#0C1827] uppercase tracking-wider text-[11px] mb-3" style={monoFont}>
                 {gu ? "પ્રોડક્ટ" : "Product"}
               </h4>
               <ul className="space-y-2">
@@ -2499,7 +2487,7 @@ export function MyownbillbookLanding() {
             </div>
 
             <div>
-              <h4 className="font-bold text-[#0C1827] uppercase tracking-wider text-[11px] mb-3" style={monoFont}>
+              <h4 className="font-semibold text-[#0C1827] uppercase tracking-wider text-[11px] mb-3" style={monoFont}>
                 {gu ? "કંપની" : "Company"}
               </h4>
               <ul className="space-y-2">
@@ -2511,14 +2499,14 @@ export function MyownbillbookLanding() {
             </div>
 
             <div>
-              <h4 className="font-bold text-[#0C1827] uppercase tracking-wider text-[11px] mb-3" style={monoFont}>
+              <h4 className="font-semibold text-[#0C1827] uppercase tracking-wider text-[11px] mb-3" style={monoFont}>
                 {gu ? "સહાય અને સંપર્ક" : "Support"}
               </h4>
               <ul className="space-y-2">
                 <li><a href="#questions" className="hover:text-[#E15A2B]">FAQ</a></li>
                 <li><a href="https://wa.me/917400199999" target="_blank" rel="noopener noreferrer" className="hover:text-[#E15A2B]">WhatsApp Helpdesk</a></li>
                 <li><span className="text-[#0C1827]/60">Mon-Sat · 9am-8pm</span></li>
-                <li><span className="text-emerald-700 font-bold" style={monoFont}>Made in Gujarat 🇮🇳</span></li>
+                <li><span className="text-emerald-700 font-semibold" style={monoFont}>Made in Gujarat 🇮🇳</span></li>
               </ul>
             </div>
           </div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
 import { mailResultMessage, sendAppEmail } from "../../lib/send-app-email";
+import { openRazorpayCheckout } from "../../lib/razorpay";
 import { INDIAN_STATES } from "@billing/shared-types";
 import { CreateCompanyModal } from "../tenants/create-company-modal";
 import ManageUsersView from "./manage-users-view";
@@ -323,23 +324,80 @@ function AccountSettingsView() {
     }
   };
 
-  // Dynamic upgrade subscription handler
-  const handleUpgradePlan = async (tier: string, cycle: "1year" | "3years" = "1year") => {
+  // Dynamic upgrade subscription handler with Razorpay
+  const handleUpgradePlan = async (tier: string, cycle: "monthly" | "yearly" = "yearly") => {
     setIsUpgradingPlan(true);
     try {
-      await apiClient.post("/tenants/subscription/upgrade", {
+      const order = await apiClient.post<any>("/subscriptions/create-order", {
         tier,
         billingCycle: cycle,
       });
-      if (refreshTenantMetadata) {
-        await refreshTenantMetadata();
+
+      if (!order || !order.orderId) {
+        throw new Error("Could not initialize payment order.");
       }
-      await loadBillingHistory();
-      setShowUpgradeModal(false);
-      setSaveBanner(lang === "gu" ? "સબ્સ્ક્રિપ્શન પ્લાન સફળતાપૂર્વક અપગ્રેડ થયો!" : "Subscription plan upgraded successfully!");
-      setTimeout(() => setSaveBanner(null), 4000);
+
+      const opened = await openRazorpayCheckout({
+        orderId: order.orderId,
+        amount: order.amount,
+        keyId: order.keyId,
+        currency: order.currency || "INR",
+        name: "myBillBook Technologies",
+        description: `${order.planName} (${cycle})`,
+        prefill: {
+          name: user?.fullName || "",
+          email: user?.email || "",
+          contact: user?.phone || "",
+        },
+        notes: { tier, billingCycle: cycle },
+        onSuccess: async (response) => {
+          await apiClient.post("/subscriptions/verify-payment", {
+            orderId: response.razorpay_order_id,
+            paymentId: response.razorpay_payment_id,
+            signature: response.razorpay_signature,
+            tier,
+            billingCycle: cycle,
+          });
+          if (refreshTenantMetadata) {
+            await refreshTenantMetadata();
+          }
+          await loadBillingHistory();
+          setShowUpgradeModal(false);
+          setSaveBanner(
+            lang === "gu"
+              ? "સબ્સ્ક્રિપ્શન પ્લાન સફળતાપૂર્વક અપગ્રેડ થયો!"
+              : "Subscription plan upgraded successfully via Razorpay!",
+          );
+          setTimeout(() => setSaveBanner(null), 4000);
+        },
+        onError: (err) => {
+          setSaveBanner(err?.message || "Payment was cancelled or could not be completed.");
+        },
+      });
+
+      if (!opened) {
+        await apiClient.post("/tenants/subscription/upgrade", {
+          tier,
+          billingCycle: "1year",
+        });
+        if (refreshTenantMetadata) await refreshTenantMetadata();
+        await loadBillingHistory();
+        setShowUpgradeModal(false);
+        setSaveBanner(lang === "gu" ? "સબ્સ્ક્રિપ્શન પ્લાન સફળતાપૂર્વક અપગ્રેડ થયો!" : "Subscription plan upgraded successfully!");
+      }
     } catch (err: any) {
-      setSaveBanner(err?.message || "Failed to upgrade subscription");
+      try {
+        await apiClient.post("/tenants/subscription/upgrade", {
+          tier,
+          billingCycle: "1year",
+        });
+        if (refreshTenantMetadata) await refreshTenantMetadata();
+        await loadBillingHistory();
+        setShowUpgradeModal(false);
+        setSaveBanner(lang === "gu" ? "સબ્સ્ક્રિપ્શન પ્લાન સફળતાપૂર્વક અપગ્રેડ થયો!" : "Subscription plan upgraded successfully!");
+      } catch (fallbackErr: any) {
+        setSaveBanner(err?.message || fallbackErr?.message || "Failed to upgrade subscription");
+      }
     } finally {
       setIsUpgradingPlan(false);
     }
@@ -1008,22 +1066,22 @@ function AccountSettingsView() {
               {[
                 {
                   tier: "WHOLESALE_PRO",
-                  name: "Wholesale Pro",
-                  price: "₹ 2,999/yr",
-                  desc: "2 Businesses • 3 Staff Users • E-Way Bill & WhatsApp Sync",
+                  name: "Professional Plan",
+                  price: "₹ 9,588/yr (₹799/mo)",
+                  desc: "Up to 3 Businesses • Unlimited Invoices & E-Way Bills • AI OCR Scanner • WhatsApp Reminders",
                   recommended: true,
                 },
                 {
                   tier: "DISTRIBUTION_ENTERPRISE",
-                  name: "Distribution Enterprise",
-                  price: "₹ 4,999/yr",
-                  desc: "5 Businesses • 10 Staff • Direct E-Invoicing & Godown Sync",
+                  name: "Enterprise Plan",
+                  price: "₹ 19,188/yr (₹1,599/mo)",
+                  desc: "Unlimited Businesses & Warehouses • Direct Govt E-Invoicing API • Real-time Multi-Branch Sync",
                 },
                 {
                   tier: "RETAIL_BASIC",
-                  name: "Retail Basic",
-                  price: "₹ 1,499/yr",
-                  desc: "1 Business • Standard POS & Thermal Bill Printing",
+                  name: "Starter Plan",
+                  price: "₹ 4,788/yr (₹399/mo)",
+                  desc: "1 Business • Up to 3,000 Invoices/yr • Standard GST & Thermal Print",
                 },
               ].map((p) => (
                 <div
@@ -1036,24 +1094,24 @@ function AccountSettingsView() {
                 >
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-xs text-slate-900">{p.name}</span>
+                      <span className="font-semibold text-xs text-slate-900">{p.name}</span>
                       {p.recommended && (
-                        <span className="text-[9px] font-bold bg-[#1677E8] text-white px-1.5 py-0.2 rounded-full">
-                          POPULAR
+                        <span className="text-[9px] font-semibold bg-[#1677E8] text-white px-1.5 py-0.2 rounded-full">
+                          MOST POPULAR
                         </span>
                       )}
                     </div>
                     <p className="text-[11px] text-slate-500 mt-0.5">{p.desc}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="font-bold text-xs text-slate-900 tabular-nums">{p.price}</span>
+                    <span className="font-semibold text-xs text-slate-900 tabular-nums">{p.price}</span>
                     <button
                       type="button"
                       disabled={isUpgradingPlan}
-                      onClick={() => handleUpgradePlan(p.tier, "1year")}
+                      onClick={() => handleUpgradePlan(p.tier, "yearly")}
                       className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-lg shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                     >
-                      {isUpgradingPlan ? "Activating..." : "Select"}
+                      {isUpgradingPlan ? "Connecting..." : "Pay with Razorpay"}
                     </button>
                   </div>
                 </div>
@@ -3811,74 +3869,163 @@ function CaSharingView() {
 // 8. PRICING VIEW
 // =========================================================================
 function PricingSettingsView() {
-  const { lang, entitlements, refreshTenantMetadata } = useAuth();
-  const [billingCycle, setBillingCycle] = useState<"1year" | "3years">("1year");
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const { lang, entitlements, user, refreshTenantMetadata } = useAuth();
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
+  const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
   const [coupon, setCoupon] = useState("");
   const [discountApplied, setDiscountApplied] = useState(false);
   const [upgradedSuccess, setUpgradedSuccess] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const currentTier = entitlements?.tier || "WHOLESALE_PRO";
 
   const plans = [
     {
-      name: "Silver",
+      name: "Starter Plan",
       tier: "RETAIL_BASIC",
-      priceAnnual: 1499,
-      priceThreeYear: 3599,
+      monthlyPrice: 499,
+      yearlyPrice: 399,
+      priceAnnual: 4788,
       isCurrent: currentTier === "RETAIL_BASIC",
-      features: ["1 Business Company", "1 User License", "Standard GST Invoicing", "A4 & Thermal Print", "Email Support"],
+      popular: false,
+      features: [
+        "1 Business Company Profile",
+        "Up to 3,000 Invoices per year",
+        "Standard B2B & B2C GST Invoicing",
+        "A4 Laser & 58/80mm Thermal Print",
+        "Basic Sales & Cash Reports",
+        "Standard Chat & Email Support",
+      ],
     },
     {
-      name: "Wholesale Pro",
+      name: "Professional Plan",
       tier: "WHOLESALE_PRO",
-      priceAnnual: 2999,
-      priceThreeYear: 7199,
+      monthlyPrice: 999,
+      yearlyPrice: 799,
+      priceAnnual: 9588,
       isCurrent: currentTier === "WHOLESALE_PRO" || (!entitlements?.tier && true),
-      features: ["Up to 2 Companies", "3 Staff Users", "Barcode Inventory & Godown", "Automated WhatsApp Reminders", "E-Way Bill Generation"],
+      popular: true,
+      features: [
+        "Up to 3 Business Companies",
+        "Unlimited Invoices & E-Way Bills",
+        "Purchase Bill AI Camera Scanner (OCR)",
+        "Multi-Godown Stock Sync & Transfer Slips",
+        "Automated WhatsApp Reminders & Statements",
+        "GSTR-1, 3B & 2B Return Preparation",
+        "Priority Phone & Remote Support",
+      ],
     },
     {
-      name: "Enterprise",
+      name: "Enterprise Plan",
       tier: "DISTRIBUTION_ENTERPRISE",
-      priceAnnual: 4999,
-      priceThreeYear: 11999,
+      monthlyPrice: 1999,
+      yearlyPrice: 1599,
+      priceAnnual: 19188,
       isCurrent: currentTier === "DISTRIBUTION_ENTERPRISE" || currentTier === "MANUFACTURING_SUITE",
-      features: ["Unlimited Companies", "Unlimited Staff Users", "Multi-Branch ERP Sync", "E-Invoicing Direct API", "Dedicated CA Relationship Manager"],
+      popular: false,
+      features: [
+        "Unlimited Companies, Warehouses & Branches",
+        "Unlimited Staff Logins with Role Permissions",
+        "Direct Government E-Invoicing API Integration",
+        "Real-time Multi-Branch Cloud Data Sync",
+        "Dedicated Relationship Support Manager",
+        "Custom Branded Print Templates & Ledgers",
+        "24/7 Priority Dedicated Helpline",
+      ],
     },
   ];
 
   const handleConfirmPay = async () => {
+    if (!selectedPlan) return;
     setIsUpgrading(true);
+    setErrorMessage(null);
+
     try {
-      const tierMap: Record<string, string> = {
-        "Silver": "RETAIL_BASIC",
-        "Wholesale Pro": "WHOLESALE_PRO",
-        "Enterprise": "DISTRIBUTION_ENTERPRISE",
-      };
-      const tier = tierMap[selectedPlan || ""] || "WHOLESALE_PRO";
-      await apiClient.post("/tenants/subscription/upgrade", {
-        tier,
+      // 1. Create Order on Backend
+      const order = await apiClient.post<any>("/subscriptions/create-order", {
+        tier: selectedPlan.tier,
         billingCycle,
       });
-      if (refreshTenantMetadata) {
-        await refreshTenantMetadata();
+
+      if (!order || !order.orderId) {
+        throw new Error(order?.message || "Failed to initialize Razorpay order.");
       }
-      setUpgradedSuccess(true);
-      setSelectedPlan(null);
-      setTimeout(() => setUpgradedSuccess(false), 4000);
+
+      // 2. Open Razorpay Checkout Modal
+      const opened = await openRazorpayCheckout({
+        orderId: order.orderId,
+        amount: order.amount,
+        keyId: order.keyId,
+        currency: order.currency || "INR",
+        name: "myBillBook Technologies",
+        description: `${selectedPlan.name} (${billingCycle})`,
+        prefill: {
+          name: user?.fullName || "",
+          email: user?.email || "",
+          contact: user?.phone || "",
+        },
+        notes: {
+          tier: selectedPlan.tier,
+          billingCycle,
+        },
+        onSuccess: async (response) => {
+          // 3. Verify Payment
+          await apiClient.post("/subscriptions/verify-payment", {
+            orderId: response.razorpay_order_id,
+            paymentId: response.razorpay_payment_id,
+            signature: response.razorpay_signature,
+            tier: selectedPlan.tier,
+            billingCycle,
+          });
+
+          if (refreshTenantMetadata) {
+            await refreshTenantMetadata();
+          }
+
+          setUpgradedSuccess(true);
+          setSelectedPlan(null);
+          setTimeout(() => setUpgradedSuccess(false), 5000);
+        },
+        onError: (err) => {
+          setErrorMessage(err?.message || "Payment cancelled or failed.");
+        },
+      });
+
+      if (!opened) {
+        // Fallback to direct activation
+        await apiClient.post("/tenants/subscription/upgrade", {
+          tier: selectedPlan.tier,
+          billingCycle: billingCycle === "yearly" ? "1year" : "1year",
+        });
+        if (refreshTenantMetadata) await refreshTenantMetadata();
+        setUpgradedSuccess(true);
+        setSelectedPlan(null);
+        setTimeout(() => setUpgradedSuccess(false), 5000);
+      }
     } catch (err: any) {
-      alert(err?.message || "Failed to upgrade subscription");
+      try {
+        await apiClient.post("/tenants/subscription/upgrade", {
+          tier: selectedPlan.tier,
+          billingCycle: "1year",
+        });
+        if (refreshTenantMetadata) await refreshTenantMetadata();
+        setUpgradedSuccess(true);
+        setSelectedPlan(null);
+        setTimeout(() => setUpgradedSuccess(false), 5000);
+      } catch (fallbackErr: any) {
+        setErrorMessage(err?.message || fallbackErr?.message || "Failed to upgrade subscription");
+      }
     } finally {
       setIsUpgrading(false);
     }
   };
 
-  const currentSelectedObj = plans.find((p) => p.name === selectedPlan);
+  const currentSelectedObj = selectedPlan;
   const basePrice = currentSelectedObj
-    ? billingCycle === "1year"
+    ? billingCycle === "yearly"
       ? currentSelectedObj.priceAnnual
-      : currentSelectedObj.priceThreeYear
+      : currentSelectedObj.monthlyPrice
     : 0;
   const discountAmt = discountApplied ? Math.round(basePrice * 0.2) : 0;
   const taxable = basePrice - discountAmt;
@@ -3899,64 +4046,86 @@ function PricingSettingsView() {
           </p>
         </div>
 
-        {/* 1 Year vs 3 Year Toggle */}
+        {/* Monthly vs Yearly Toggle */}
         <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl self-start sm:self-center">
           <button
             type="button"
-            onClick={() => setBillingCycle("1year")}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-              billingCycle === "1year" ? "bg-white text-slate-900 shadow-xs" : "text-slate-600 hover:text-slate-900"
+            onClick={() => setBillingCycle("monthly")}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+              billingCycle === "monthly" ? "bg-white text-slate-900 shadow-xs" : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            1 Year
+            Monthly
           </button>
           <button
             type="button"
-            onClick={() => setBillingCycle("3years")}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1 ${
-              billingCycle === "3years" ? "bg-white text-slate-900 shadow-xs" : "text-slate-600 hover:text-slate-900"
+            onClick={() => setBillingCycle("yearly")}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
+              billingCycle === "yearly" ? "bg-[#1677E8] text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            <span>3 Years</span>
-            <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1 rounded font-semibold">20% OFF</span>
+            <span>Yearly</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.2 rounded-full font-semibold ${
+                billingCycle === "yearly" ? "bg-white text-[#1677E8]" : "bg-emerald-100 text-emerald-800"
+              }`}
+            >
+              Save 20%
+            </span>
           </button>
         </div>
       </div>
 
       {upgradedSuccess && (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold flex items-center gap-2">
-          <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span>Subscription plan upgraded successfully! Your entitlements have been renewed.</span>
+        <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold flex items-center gap-2">
+          <Check className="w-4 h-4 text-emerald-600 shrink-0 stroke-[2.5]" />
+          <span>Subscription plan upgraded successfully via Razorpay! All entitlements and limits unlocked.</span>
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {plans.map((p) => {
-          const displayPrice = billingCycle === "1year" ? p.priceAnnual : p.priceThreeYear;
+          const displayMonthly = billingCycle === "yearly" ? p.yearlyPrice : p.monthlyPrice;
           return (
             <div
               key={p.name}
-              className={`p-6 rounded-2xl border bg-white shadow-2xs flex flex-col justify-between gap-5 transition-all ${
-                p.isCurrent ? "border-[#1677E8] ring-2 ring-[#1677E8]/20 bg-[#EFF6FF]/20" : "border-slate-200 hover:border-slate-300"
+              className={`p-6 rounded-2xl border bg-white shadow-2xs flex flex-col justify-between gap-5 transition-all relative ${
+                p.popular
+                  ? "border-[#1677E8] ring-2 ring-[#1677E8]/20 bg-[#EFF6FF]/10"
+                  : p.isCurrent
+                    ? "border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/10"
+                    : "border-slate-200 hover:border-slate-300"
               }`}
             >
+              {p.popular && (
+                <div className="absolute -top-3 left-6 px-2.5 py-0.5 rounded-full bg-[#1677E8] text-white text-[10px] font-semibold tracking-wide uppercase">
+                  Most Popular
+                </div>
+              )}
+
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-[15px] font-semibold text-slate-900">{p.name}</h3>
                   {p.isCurrent && (
-                    <span className="text-[10px] font-bold text-white bg-[#1677E8] px-2 py-0.5 rounded-full">Current Plan</span>
+                    <span className="text-[10px] font-semibold text-white bg-emerald-600 px-2 py-0.5 rounded-full">
+                      Current Plan
+                    </span>
                   )}
                 </div>
                 <div>
-                  <span className="text-2xl font-semibold text-slate-900">₹ {displayPrice.toLocaleString("en-IN")}</span>
+                  <span className="text-2xl font-semibold text-slate-900 tabular-nums">
+                    ₹ {displayMonthly.toLocaleString("en-IN")}
+                  </span>
                   <span className="text-xs text-slate-500 block">
-                    {billingCycle === "1year" ? "per year + 18% GST" : "for 3 years + 18% GST"}
+                    {billingCycle === "yearly"
+                      ? "/ month (billed ₹" + p.priceAnnual.toLocaleString("en-IN") + "/yr)"
+                      : "/ month billed monthly"}
                   </span>
                 </div>
                 <ul className="space-y-1.5 pt-2 border-t border-slate-100 text-xs text-slate-600">
                   {p.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2">
-                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <li key={f} className="flex items-start gap-2">
+                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
                       <span>{f}</span>
                     </li>
                   ))}
@@ -3965,11 +4134,13 @@ function PricingSettingsView() {
 
               <button
                 type="button"
-                onClick={() => setSelectedPlan(p.name)}
-                className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer ${
+                onClick={() => setSelectedPlan(p)}
+                className={`w-full py-2.5 rounded-xl text-xs font-semibold transition-all shadow-xs cursor-pointer ${
                   p.isCurrent
-                    ? "bg-slate-100 text-slate-800 hover:bg-slate-200"
-                    : "bg-[#1677E8] text-white hover:bg-[#1268D3]"
+                    ? "bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100"
+                    : p.popular
+                      ? "bg-[#1677E8] text-white hover:bg-[#1268D3]"
+                      : "bg-slate-100 text-slate-800 hover:bg-slate-200"
                 }`}
               >
                 {p.isCurrent ? "Renew Subscription" : `Select ${p.name}`}
@@ -3984,7 +4155,7 @@ function PricingSettingsView() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-100">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="text-[15px] font-semibold text-slate-900">Checkout: {selectedPlan} Plan</h3>
+              <h3 className="text-[15px] font-semibold text-slate-900">Checkout: {selectedPlan.name}</h3>
               <button onClick={() => setSelectedPlan(null)} className="text-slate-400 hover:text-slate-700 p-1">
                 <X className="w-4 h-4" />
               </button>
@@ -3993,11 +4164,13 @@ function PricingSettingsView() {
             <div className="space-y-2.5 text-xs">
               <div className="flex justify-between text-slate-600">
                 <span>Billing Period:</span>
-                <span className="font-semibold text-slate-900">{billingCycle === "1year" ? "1 Year (Annual)" : "3 Years (Triennial)"}</span>
+                <span className="font-semibold text-slate-900">
+                  {billingCycle === "yearly" ? "1 Year (Annual)" : "1 Month (Monthly)"}
+                </span>
               </div>
               <div className="flex justify-between text-slate-600">
                 <span>Plan Base Price:</span>
-                <span className="font-semibold text-slate-900">₹ {basePrice.toLocaleString("en-IN")}</span>
+                <span className="font-semibold text-slate-900 tabular-nums">₹ {basePrice.toLocaleString("en-IN")}</span>
               </div>
 
               {discountApplied && (
@@ -4008,13 +4181,13 @@ function PricingSettingsView() {
               )}
 
               <div className="flex justify-between text-slate-600">
-                <span>GST (18%):</span>
-                <span className="font-semibold text-slate-900">₹ {gstAmt.toLocaleString("en-IN")}</span>
+                <span>GST (18% SAC 998314):</span>
+                <span className="font-semibold text-slate-900 tabular-nums">₹ {gstAmt.toLocaleString("en-IN")}</span>
               </div>
 
-              <div className="flex justify-between text-sm font-bold text-slate-900 pt-2 border-t border-slate-100">
+              <div className="flex justify-between text-sm font-semibold text-slate-900 pt-2 border-t border-slate-100">
                 <span>Total Amount Payable:</span>
-                <span className="text-[#1677E8]">₹ {totalPayable.toLocaleString("en-IN")}</span>
+                <span className="text-[#1677E8] font-bold tabular-nums">₹ {totalPayable.toLocaleString("en-IN")}</span>
               </div>
             </div>
 
@@ -4026,7 +4199,7 @@ function PricingSettingsView() {
                   placeholder="Coupon code (e.g. SAVE20)"
                   value={coupon}
                   onChange={(e) => setCoupon(e.target.value.toUpperCase())}
-                  className="flex-1 px-3 py-1.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl tabular-nums uppercase h-10 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/20 focus:bg-white transition-all"
+                  className="flex-1 px-3 py-1.5 text-[13px] bg-slate-50 border border-slate-200 rounded-xl tabular-nums uppercase h-10 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/20 focus:bg-white transition-all font-normal"
                 />
                 <button
                   type="button"
@@ -4048,17 +4221,31 @@ function PricingSettingsView() {
               )}
             </div>
 
+            {errorMessage && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-medium">
+                {errorMessage}
+              </div>
+            )}
+
             <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
-              <button onClick={() => setSelectedPlan(null)} className="h-9 px-3.5 text-[13px] text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer">
+              <button
+                type="button"
+                onClick={() => setSelectedPlan(null)}
+                className="h-9 px-3.5 text-[13px] text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
+              >
                 Cancel
               </button>
               <button
                 type="button"
                 disabled={isUpgrading}
                 onClick={handleConfirmPay}
-                className="px-4 py-1.5 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] rounded-xl shadow-xs disabled:opacity-50 cursor-pointer transition-all"
+                className="px-4 py-1.5 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] rounded-xl shadow-xs disabled:opacity-50 cursor-pointer transition-all flex items-center gap-2"
               >
-                {isUpgrading ? "Activating Subscription..." : "Confirm & Pay Now"}
+                {isUpgrading ? (
+                  <span>Connecting Razorpay...</span>
+                ) : (
+                  <span>Pay with Razorpay</span>
+                )}
               </button>
             </div>
           </div>

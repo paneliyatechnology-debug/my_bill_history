@@ -202,17 +202,19 @@ nextjs-portal,
   display: none !important;
 }
 
-html,
+html {
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
+}
+
 body {
   min-height: 100%;
   margin: 0;
   padding: 0;
   max-width: 100%;
-  overflow-x: hidden;
-}
-
-html {
-  scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 body {

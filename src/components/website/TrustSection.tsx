@@ -1,84 +1,93 @@
 "use client";
 
 import React from "react";
-import { ReceiptText, ShoppingCart, Package, Files, Calculator, ShieldCheck } from "lucide-react";
+import {
+  FileText,
+  Package,
+  ShoppingCart,
+  BookOpen,
+  Receipt,
+  BarChart3,
+  ArrowRight,
+} from "lucide-react";
 
 export interface TrustSectionProps {
   lang?: "en" | "gu";
 }
 
-export function TrustSection({ lang = "en" }: TrustSectionProps) {
+export function TrustSection({ lang = "en", }: TrustSectionProps) {
   const gu = lang === "gu";
 
   const capabilities = [
     {
-      icon: <ReceiptText className="w-[18px] h-[18px] text-[#2563EB]" strokeWidth={1.75} />,
-      title: gu ? "100% GST અને ઇ-વે બિલ" : "Statutory GST & E-Way Bills",
-      desc: gu
-        ? "B2B/B2C ઇન્વોઇસિંગ, HSN લુકઅપ અને ૧-ક્લિક GSTR-1 & 3B ફોર્મેટ્સ."
-        : "Compliant B2B & B2C invoicing with auto-tax and 1-click GSTR returns.",
+      title: gu ? "GST ઇન્વોઇસિંગ" : "GST Invoicing",
+      desc: gu ? "B2B, B2C, e-Way & e-Invoice" : "B2B, B2C, e-Way Bill & E-Invoice",
+      icon: <FileText className="w-5 h-5 text-[#2563EB]" strokeWidth={1.75} />,
+      href: "#features",
     },
     {
-      icon: <ShoppingCart className="w-[18px] h-[18px] text-[#2563EB]" strokeWidth={1.75} />,
-      title: gu ? "હાઇ-સ્પીડ બારકોડ POS" : "High-Speed Barcode POS",
-      desc: gu
-        ? "કાઉન્ટર પર ૫ સેકન્ડમાં બિલિંગ અને ૫૮/૮૦mm થર્મલ પ્રિન્ટિંગ."
-        : "5-second retail checkout with thermal receipts & keyboard shortcuts.",
+      title: gu ? "સ્માર્ટ ઇન્વેન્ટરી" : "Inventory",
+      desc: gu ? "મલ્ટી-ગોડાઉન, સ્ટોક & બેચ" : "Multi-Godown, Stock & Batches",
+      icon: <Package className="w-5 h-5 text-[#2563EB]" strokeWidth={1.75} />,
+      href: "#features",
     },
     {
-      icon: <Package className="w-[18px] h-[18px] text-[#2563EB]" strokeWidth={1.75} />,
-      title: gu ? "મલ્ટી-ગોડાઉન સ્ટોક" : "Multi-Godown Stock",
-      desc: gu
-        ? "દરેક ગોડાઉનનો અલગ સ્ટોક, બેચ ટ્રેકિંગ અને લો-સ્ટોક ચેતવણી."
-        : "Live warehouse tracking, batch dates and smart reorder alerts.",
+      title: gu ? "વેચાણ & ખરીદી" : "Sales & Purchases",
+      desc: gu ? "ઓર્ડર્સ, બિલ સ્કેનર & રિટર્ન" : "Orders, Bill OCR Scanner & Returns",
+      icon: <ShoppingCart className="w-5 h-5 text-[#2563EB]" strokeWidth={1.75} />,
+      href: "#features",
     },
     {
-      icon: <Files className="w-[18px] h-[18px] text-[#2563EB]" strokeWidth={1.75} />,
-      title: gu ? "ખરીદી બિલ AI સ્કેનર" : "Purchase Bill OCR Scanner",
-      desc: gu
-        ? "સપ્લાયરના બિલનો ફોટો પાડો — તમામ આઇટમો સીધી સ્ટોકમાં જમા."
-        : "Instant optical scan of vendor paper bills with auto-stock entry.",
+      title: gu ? "ડબલ-એન્ટ્રી ખાતાવહી" : "Accounting",
+      desc: gu ? "રોજમેળ, લેજર & જર્નલ એન્ટ્રી" : "Double-Entry, Daybook & Ledgers",
+      icon: <BookOpen className="w-5 h-5 text-[#2563EB]" strokeWidth={1.75} />,
+      href: "#features",
     },
     {
-      icon: <Calculator className="w-[18px] h-[18px] text-[#2563EB]" strokeWidth={1.75} />,
-      title: gu ? "ડબલ-એન્ટ્રી ખાતાવહી" : "Double-Entry Ledgers",
-      desc: gu
-        ? "P&L, બેલેન્સ શીટ, પાર્ટી ખાતા અને ઓડિટ રિપોર્ટ્સ આપોઆપ."
-        : "Real-time P&L, balance sheets & party ledger khata accounts.",
+      title: gu ? "ઝડપી POS બિલિંગ" : "POS Billing",
+      desc: gu ? "બારકોડ સ્કેન & થર્મલ પ્રિન્ટ" : "Barcode Scan & Thermal Receipts",
+      icon: <Receipt className="w-5 h-5 text-[#2563EB]" strokeWidth={1.75} />,
+      href: "#features",
     },
     {
-      icon: <ShieldCheck className="w-[18px] h-[18px] text-[#2563EB]" strokeWidth={1.75} />,
-      title: gu ? "256-બીટ બેંક સુરક્ષા" : "256-Bit Cloud Security",
-      desc: gu
-        ? "રોજિંદો ઓટોમેટિક બેકઅપ અને સુરક્ષિત સ્ટાફ રોલ કંટ્રોલ."
-        : "Bank-grade data encryption, audit trails & staff permission rules.",
+      title: gu ? "નાણાકીય રિપોર્ટ્સ" : "Financial Reports",
+      desc: gu ? "P&L, બેલેન્સ શીટ & GSTR" : "P&L, Balance Sheet & GSTR Returns",
+      icon: <BarChart3 className="w-5 h-5 text-[#2563EB]" strokeWidth={1.75} />,
+      href: "#features",
     },
   ];
 
   return (
-    <section id="trust" className="py-8 sm:py-10 bg-[#F7F9FC] border-b border-[#E5EAF1]">
+    <section className="bg-white py-8 sm:py-10 border-b border-[#E5EAF1]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 sm:gap-4 divide-y sm:divide-y-0 sm:divide-x divide-[#E5EAF1]">
-          {capabilities.map((item, idx) => (
-            <div
-              key={idx}
-              className={`flex flex-col justify-start pt-4 sm:pt-0 ${
-                idx !== 0 ? "sm:pl-4 xl:pl-4" : ""
-              }`}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+          {capabilities.map((cap, i) => (
+            <a
+              key={i}
+              href={cap.href}
+              className="p-4 rounded-xl bg-[#F7F9FC] border border-[#E5EAF1] hover:border-[#2563EB]/40 hover:bg-white transition-all duration-200 group flex flex-col justify-between"
             >
-              <div className="flex items-center gap-2 mb-1.5">
-                {item.icon}
-                <h3
-                  className="text-xs sm:text-[13px] font-semibold text-[#172033] leading-snug"
+              <div className="w-10 h-10 rounded-lg bg-white border border-[#E5EAF1] flex items-center justify-center mb-3 shadow-2xs group-hover:scale-105 transition-transform">
+                {cap.icon}
+              </div>
+
+              <div>
+                <h4
+                  className="text-xs sm:text-sm font-semibold text-[#172033] group-hover:text-[#2563EB] transition-colors leading-tight"
                   style={{ fontFamily: "var(--font-manrope)" }}
                 >
-                  {item.title}
-                </h3>
+                  {cap.title}
+                </h4>
+                <p className="text-[11px] text-[#667085] mt-1 line-clamp-1">
+                  {cap.desc}
+                </p>
               </div>
-              <p className="text-[11px] sm:text-xs text-[#667085] leading-relaxed font-normal">
-                {item.desc}
-              </p>
-            </div>
+
+              <div className="mt-2.5 pt-2 border-t border-[#E5EAF1]/60 flex items-center gap-1 text-[10px] font-semibold text-[#2563EB] opacity-0 group-hover:opacity-100 transition-opacity">
+                <span>{gu ? "જુઓ" : "Explore"}</span>
+                <ArrowRight className="w-3 h-3" />
+              </div>
+            </a>
           ))}
         </div>
       </div>

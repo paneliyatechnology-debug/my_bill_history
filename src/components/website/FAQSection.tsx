@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ChevronDown, MessageSquare } from "lucide-react";
+import { ChevronDown, HelpCircle, MessageSquare } from "lucide-react";
 
 export interface FAQSectionProps {
   lang?: "en" | "gu";
@@ -14,116 +14,172 @@ export function FAQSection({ lang = "en" }: FAQSectionProps) {
   const faqs = [
     {
       q: gu
-        ? "MyOwn BillBook કયા પ્રકારના વેપાર માટે સૌથી વધુ અનુકૂળ છે?"
-        : "What types of businesses is MyOwn BillBook designed for?",
+        ? "MyOwnBillBook શું છે?"
+        : "What is MyOwnBillBook?",
       a: gu
-        ? "આ સોફ્ટવેર ખાસ કરીને ભારતીય રિટેલ સ્ટોર્સ, સુપરમાર્કેટ્સ, હોલસેલર્સ, ડિસ્ટ્રિબ્યુટર્સ, C&F એજન્ટ્સ અને નાના ઉત્પાદકો માટે તૈયાર કરવામાં આવ્યું છે જ્યાં ઝડપી GST બિલિંગ, બારકોડ કાઉન્ટર, ગોડાઉન ઇન્વેન્ટરી અને પાકી ખાતાવહી જરૂરી હોય છે."
-        : "MyOwn BillBook is engineered specifically for Indian retail shops, supermarkets, wholesale bulk traders, distributors, and manufacturing MSMEs requiring fast GST tax invoicing, POS barcode counters, multi-godown stock, and double-entry ledger khatas.",
+        ? "MyOwnBillBook એ ભારતીય વેપારીઓ, રિટેલર્સ, હોલસેલર્સ અને ઉત્પાદકો માટે રચાયેલ સંપૂર્ણ GST બિલિંગ, ઇન્વેન્ટરી, ખરીદી અને ડબલ-એન્ટ્રી એકાઉન્ટિંગ સોફ્ટવેર છે. તે કાઉન્ટર સેલથી લઈને P&L રિપોર્ટ્સ સુધીના તમામ રોજિંદા વ્યાપારિક કાર્યોનું એક જ પ્લેટફોર્મ પરથી સરળ સંચાલન પૂરું પાડે છે."
+        : "MyOwnBillBook is a comprehensive cloud-enabled accounting, GST billing, inventory, and POS platform engineered specifically for Indian SMEs, retailers, wholesalers, and manufacturers. It centralizes your counter billing, stock tracking, vendor purchases, and financial balance sheets in one intuitive workspace.",
     },
     {
       q: gu
-        ? "શું આ સોફ્ટવેર સરકારી જીએસટી નિયમો અને ઇ-વે બિલ માટે ૧૦૦% માન્ય છે?"
-        : "Is MyOwn BillBook 100% compliant with statutory Indian GST rules?",
+        ? "શું હું GST અને નોન-GST (બિન-જીએસટી) બંને પ્રકારના ઇન્વૉઇસ બનાવી શકું?"
+        : "Can I create GST and non-GST invoices?",
       a: gu
-        ? "હા. સિસ્ટમ ભારતીય GST કાઉન્સિલના તમામ નિયમો (B2B, B2C, SEZ, રિવર્સ ચાર્જ) મુજબ ગ્રાહકના GSTIN પરથી આપોઆપ CGST/SGST કે આંતરરાજ્ય IGST નક્કી કરે છે. તેમજ સરકારી પોર્ટલ માટે સીધા જ GSTR-1 અને GSTR-3B ફાઈલો બનાવે છે."
-        : "Yes, 100%. The system complies with all statutory GST Council requirements. It automatically detects intra-state (CGST + SGST) vs inter-state (IGST) from customer GSTIN numbers, calculates HSN-wise tax rates, and exports portal-compliant GSTR-1 and GSTR-3B filings.",
+        ? "હા, ચોક્કસ. તમે નિયમિત GST કર ઇન્વૉઇસ (B2B, B2C, સેઝ, ઇન્ટ્રા-સ્ટેટ CGST+SGST અને ઇન્ટર-સ્ટેટ IGST) તેમજ નાના વ્યવસાયો માટે કમ્પોઝિશન બિલ ઓફ સપ્લાય અથવા નોન-GST સામાન્ય એસ્ટિમેટ બિલ બનાવી શકો છો."
+        : "Yes, absolutely. You can generate full statutory GST tax invoices (B2B with customer GSTIN, B2C retail, SEZ, reverse charge) with automated CGST/SGST/IGST tax splits, as well as non-GST estimate slips, bill of supply for composition dealers, and cash memos.",
     },
     {
       q: gu
-        ? "બિલ બનાવવા માટે સતત ઇન્ટરનેટ કનેક્શન હોવું જરૂરી છે?"
-        : "Does the software require continuous internet connectivity to generate bills?",
+        ? "શું હું એક કરતાં વધુ ગોડાઉન (Multiple Godowns) નું સંચાલન કરી શકું?"
+        : "Can I manage multiple godowns?",
       a: gu
-        ? "ના. સામાન્ય કાઉન્ટર બિલિંગ અને લોકલ પ્રિન્ટિંગ ઇન્ટરનેટ ધીમું હોય કે થોડો સમય બંધ હોય તો પણ અટક્યા વગર ચાલે છે. ઇન્ટરનેટ ઉપલબ્ધ થતાં જ તમામ વ્યવહારો ક્લાઉડ પર આપોઆપ સુરક્ષિત રીતે સિન્ક થઈ જાય છે."
-        : "No. Counter billing and local printing remain operational even during temporary internet fluctuations. Once connectivity resumes, all transaction ledgers and stock balances synchronize securely to the cloud.",
+        ? "હા. તમે મુખ્ય દુકાન અને વિવિધ ગોડાઉનો બનાવી શકો છો. દરેક ગોડાઉનનો આઇટમ વાઇઝ અલગ સ્ટોક ટ્રેક થાય છે અને ગોડાઉન-ટુ-ગોડાઉન ઇન્ટરનલ સ્ટોક ટ્રાન્સફર સ્લિપ બનાવીને વાસ્તવિક સ્ટોક મુવમેન્ટ મેન્ટેન કરી શકાય છે."
+        : "Yes. You can configure multiple warehouses, store backrooms, or godowns. The system tracks item-level real-time stock per location and allows seamless internal stock transfer vouchers with delivery dispatch slips.",
     },
     {
       q: gu
-        ? "કયા પ્રિન્ટર્સ અને બારકોડ સ્કેનર્સ સપોર્ટેડ છે?"
-        : "Which hardware printers and barcode scanners are supported?",
+        ? "શું MyOwnBillBook ખરીદી વ્યવસ્થાપન (Purchase Management) ને સપોર્ટ કરે છે?"
+        : "Does MyOwnBillBook support purchase management?",
       a: gu
-        ? "કોઈપણ સામાન્ય USB કે વાયરલેસ બારકોડ સ્કેનર સીધું જ ચાલે છે. પ્રિન્ટિંગ માટે A4/A5 લેસર પ્રિન્ટર્સ તેમજ 58mm અને 80mm ના થર્મલ રિસિપ્ટ પ્રિન્ટર્સ કોઈપણ વધારાના ડ્રાઈવર વગર સીધા સપોર્ટેડ છે."
-        : "All standard USB, Bluetooth, and wireless barcode scanners work plug-and-play. For printing, the software supports A4/A5 desktop laser printers as well as standard 58mm and 80mm thermal receipt roll printers.",
+        ? "હા. તમે સપ્લાયર્સ પાસેથી મળેલા ખરીદી ઇન્વૉઇસ નોંધી શકો છો, પેપર બિલનો ફોટો પાડીને AI OCR દ્વારા સીધો સ્ટોક અપડેટ કરી શકો છો, પરચેઝ રિટર્ન (ડેબિટ નોટ) બનાવી શકો છો અને વેન્ડર વાઇઝ બાકી પેમેન્ટનું ટ્રેકિંગ કરી શકો છો."
+        : "Yes. MyOwnBillBook offers full vendor purchase management: record supplier bills, capture paper invoices via AI camera OCR scanner to bypass typing, manage purchase returns (debit notes), and track supplier payment balances and credit periods.",
     },
     {
       q: gu
-        ? "ખરીદી બિલ AI સ્કેનર (OCR) કેવી રીતે કામ કરે છે?"
-        : "How does the AI purchase bill OCR scanner work?",
+        ? "શું હું ગ્રાહકો અને સપ્લાયર્સના બાકી હિસાબ (Outstanding Balances) ટ્રેક કરી શકું?"
+        : "Can I manage customer and supplier outstanding balances?",
       a: gu
-        ? "જ્યારે સપ્લાયર તરફથી કાગળનું બિલ આવે, ત્યારે તમે મોબાઈલ કે વેબકેમથી તેનો ફોટો પાડી શકો છો. અમારું ઓપ્ટિકલ સ્કેનર બિલમાંથી વેન્ડર GSTIN, આઇટમો, HSN અને દરો આપોઆપ ઓળખીને સીધા સ્ટોક લેજરમાં ઉમેરી દે છે."
-        : "Simply snap a picture or upload a PDF of your supplier's paper purchase bill. The optical OCR engine automatically parses line items, HSN codes, tax rates, and purchase amounts directly into your stock ledger without manual typing.",
+        ? "હા. દરેક ગ્રાહક (Sundry Debtors) અને સપ્લાયર (Sundry Creditors) નું અલગ પાકું ખાતાવહી (Ledger) જળવાય છે. તમે બાકી રકમ પર નજર રાખી શકો છો, એક-ક્લિકમાં સ્ટેટમેન્ટ ડાઉનલોડ કરી શકો છો અને વોટ્સએપ પર પેમેન્ટ રિમાઇન્ડર મોકલી શકો છો."
+        : "Yes. The platform provides detailed ledger khatas for every customer (receivables) and supplier (payables). You can set credit limits, view ageing balances, and send automated WhatsApp payment reminders with integrated UPI payment links.",
     },
     {
       q: gu
-        ? "અમારો વ્યવસાયિક અને નાણાકીય ડેટા કેટલો સુરક્ષિત છે?"
-        : "How secure is our financial and business accounting data?",
+        ? "શું સિસ્ટમ પ્રોફિટ & લોસ (P&L) અને બેલેન્સ શીટ રિપોર્ટ્સ બનાવી આપે છે?"
+        : "Can I generate Profit & Loss and Balance Sheet reports?",
       a: gu
-        ? "તમારો ડેટા 256-બીટ બેંક-ગ્રેડ SSL એન્ક્રિપ્શન સાથે સુરક્ષિત રહે છે. રોજિંદો ઓટોમેટિક ક્લાઉડ બેકઅપ થાય છે અને સ્ટાફ રોલ કંટ્રોલ દ્વારા તમે નક્કી કરી શકો છો કે કયો કર્મચારી કેટલો ડેટા જોઈ શકે."
-        : "Your business records are protected with bank-grade 256-bit encryption. Automated daily cloud backups ensure zero data loss, while role-based staff access permissions restrict unauthorized views.",
+        ? "હા. સિસ્ટમ સાચી ડબલ-એન્ટ્રી એકાઉન્ટિંગ પદ્ધતિ પર કામ કરે છે, જેથી ગ્રોસ પ્રોફિટ, નેટ પ્રોફિટ, ટ્રેડિંગ એકાઉન્ટ, પ્રોફિટ એન્ડ લોસ સ્ટેટમેન્ટ અને બેલેન્સ શીટ કોઈપણ તારીખ ગાળા માટે આપમેળે તૈયાર થાય છે."
+        : "Yes. Operating on standard double-entry bookkeeping rules, MyOwnBillBook automatically compiles your Profit & Loss Statement, Balance Sheet, Trial Balance, Cash Flow, and Daybook in real time without manual tallying.",
     },
     {
       q: gu
-        ? "જૂના એકાઉન્ટ્સ અથવા Tally / Excel માંથી ડેટા લાવી શકાય?"
-        : "Can we import existing items, parties, and accounts from Excel or Tally?",
+        ? "શું આમાં POS કાઉન્ટર બિલિંગની સુવિધા છે?"
+        : "Does it support POS billing?",
       a: gu
-        ? "હા. MyOwn BillBook માં ઇનબિલ્ટ એક્સેલ/CSV ડેટા ઇમ્પોર્ટ ટૂલ છે જેના દ્વારા તમારી તમામ પ્રોડક્ટ્સ, કસ્ટમર ફોન નંબર્સ અને પ્રારંભિક સ્ટોક બેલેન્સ માત્ર ૨ મિનિટમાં અપલોડ કરી શકાય છે."
-        : "Yes. Our built-in Excel/CSV data import utility allows you to seamlessly migrate existing inventory items, customer contacts, supplier records, and opening balances in under two minutes.",
+        ? "હા. સુપરમાર્કેટ અને રિટેલ કાઉન્ટર માટે ખાસ અતિ-ઝડપી POS મોડ આપવામાં આવ્યો છે. તેમાં બારકોડ સ્કેનિંગ, શોર્ટકટ કીઝ, ૫૮mm/૮૦mm થર્મલ પ્રિન્ટિંગ અને રોકડ/UPI મલ્ટિ-પેમેન્ટ મોડ્સ ઉપલબ્ધ છે."
+        : "Yes. An ultra-fast Point of Sale (POS) counter interface is built-in. It supports plug-and-play barcode scanning, keyboard speed shortcuts, thermal roll printing (58mm/80mm), and split cash/UPI/card tender collection.",
+    },
+    {
+      q: gu
+        ? "શું હું જુદા જુદા ઉપકરણો (Devices) પરથી મારો વ્યવસાય ડેટા એક્સેસ કરી શકું?"
+        : "Can I access my business data from different devices?",
+      a: gu
+        ? "હા. MyOwnBillBook ક્લાઉડ ટેકનોલોજી પર કાર્યરત હોવાથી તમે ડેસ્કટોપ કોમ્પ્યુટર, લેપટોપ, ટેબ્લેટ કે મોબાઇલ ફોન દ્વારા બ્રાઉઝર કે એપથી ગમે ત્યારે ગમે ત્યાંથી સુરક્ષિત લોગિન કરીને તમારો બિઝનેસ ડેટા જોઈ શકો છો."
+        : "Yes. You can access your business workspace anytime from any web browser on desktop, laptop, tablet, or smartphone. Multi-user role permissions allow staff to bill on counter while owners inspect reports remotely.",
+    },
+    {
+      q: gu
+        ? "શું હું મારા ઇન્વૉઇસ અને નાણાકીય રિપોર્ટ્સ એક્સપોર્ટ (Export) કરી શકું?"
+        : "Can I export my invoices and reports?",
+      a: gu
+        ? "હા. તમામ સેલ્સ ઇન્વૉઇસ, પરચેઝ બિલો અને લેજરો સુંદર PDF ફોર્મેટમાં પ્રિન્ટ કે શેર કરી શકાય છે. તેમજ એકાઉન્ટિંગ રિપોર્ટ્સ, સ્ટોક શીટ્સ અને GSTR ડેટા Excel (XLSX) અને JSON ફોર્મેટમાં એક્સપોર્ટ કરી શકાય છે."
+        : "Yes. All invoices can be printed, downloaded as high-resolution PDFs, or shared instantly via WhatsApp and Email. Financial statements, stock registers, and GST returns export to Excel (XLSX), CSV, and portal JSON formats.",
+    },
+    {
+      q: gu
+        ? "શું આમાં ફ્રી ટ્રાયલ (Free Trial) ઉપલબ્ધ છે?"
+        : "Is there a free trial?",
+      a: gu
+        ? "હા! દરેક નવા બિઝનેસ માટે ૩૦ દિવસની પૂર્ણ સુવિધાયુક્ત ફ્રી ટ્રાયલ ઉપલબ્ધ છે. કોઈ ક્રેડિટ કાર્ડની જરૂર નથી. તમે તમામ ફીચર્સનો ઉપયોગ કરીને તમારા વ્યાપારને સુવ્યવસ્થિત કરી શકો છો."
+        : "Yes! We offer a full 30-day free trial on all plans. No credit card is required to explore features, test billing, scan purchases, and evaluate business reporting.",
+    },
+    {
+      q: gu
+        ? "શું MyOwnBillBook ગુજરાતી ભાષાને સપોર્ટ કરે છે?"
+        : "Does MyOwnBillBook support Gujarati?",
+      a: gu
+        ? "હા! MyOwnBillBook સંપૂર્ણપણે દ્વિભાષી (English અને ગુજરાતી) છે. માત્ર એક ક્લિકથી તમે સમગ્ર વેબસાઇટ, બિલિંગ શરતો અને મેનૂ ગુજરાતીમાં ફેરવી શકો છો."
+        : "Yes! MyOwnBillBook provides native bilingual support for English and Gujarati (ગુજરાતી). You can toggle languages anytime with the top navbar switcher to work in your preferred language.",
+    },
+    {
+      q: gu
+        ? "મને ટેકનિકલ સપોર્ટ (Technical Support) કેવી રીતે મળશે?"
+        : "How can I get technical support?",
+      a: gu
+        ? "અમારી ટીમ ફોન કૉલ, WhatsApp સપોર્ટ, એનીડેસ્ક/ટીમવ્યુઅર રિમોટ ડેસ્કટોપ સહાય અને ડેડિકેટેડ હેલ્પડેસ્ક દ્વારા સોમવારથી શનિવાર ઉપલબ્ધ રહે છે. તેમજ મફત ટ્રેનિંગ અને ડેટા માઇગ્રેશન સપોર્ટ આપવામાં આવે છે."
+        : "Our support team is available via direct phone, WhatsApp chat, email, and live remote desktop assistance (AnyDesk/TeamViewer). We also provide free onboarding, staff walkthroughs, and Excel data migration guidance.",
     },
   ];
 
   return (
-    <section id="faq" className="py-16 sm:py-24 bg-[#F7F9FC] border-b border-[#E5EAF1]">
+    <section id="faq" className="py-20 sm:py-28 bg-[#F7F9FC] border-b border-[#E5EAF1] scroll-mt-20">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="mb-10 sm:mb-14 text-left">
-          <span className="text-xs font-semibold text-[#2563EB] uppercase tracking-wider block mb-2">
-            {gu ? "પ્રશ્નોત્તરી અને માર્ગદર્શન" : "Frequently Asked Questions"}
+        <div className="mb-12 sm:mb-16 text-left">
+          <span className="text-xs font-semibold text-[#2563EB] uppercase tracking-wider block mb-2.5">
+            {gu ? "પ્રશ્નોત્તરી અને માર્ગદર્શન" : "FREQUENTLY ASKED QUESTIONS"}
           </span>
           <h2
-            className="text-2xl sm:text-4xl font-semibold text-[#172033] tracking-tight leading-[1.12]"
+            className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-[#172033] tracking-tight leading-[1.15]"
             style={{ fontFamily: "var(--font-manrope)" }}
           >
             {gu
-              ? "તમારા પ્રશ્નોના સ્પષ્ટ અને સાચા જવાબો."
-              : "Clear Answers to Common Questions."}
+              ? "પ્રશ્નો? અમારી પાસે છે સ્પષ્ટ જવાબો."
+              : "Questions? We've Got Answers."}
           </h2>
-          <p className="text-[15px] sm:text-base text-[#667085] mt-3 font-normal leading-relaxed">
+          <p className="text-base sm:text-lg text-[#667085] mt-4 font-normal leading-relaxed">
             {gu
-              ? "GST સુસંગતતા, બારકોડ સપોર્ટ, ઇન્ટરનેટ અને ડેટા સુરક્ષા સંબંધિત વારંવાર પૂછાતી માહિતી."
-              : "Everything you need to know about GST compliance, printer hardware, data privacy, and daily operation."}
+              ? "GST બિલિંગ, ઇન્વેન્ટરી, પ્રિન્ટર્સ અને ડેટા સિક્યોરિટી સંબંધિત વારંવાર પૂછાતી માહિતી."
+              : "Clear, factual answers to help you understand how MyOwnBillBook works for your business."}
           </p>
         </div>
 
-        {/* Clean Text-First Accordion */}
-        <div className="space-y-3">
+        {/* Accordion List */}
+        <div className="space-y-3.5">
           {faqs.map((faq, idx) => {
             const isOpen = openIdx === idx;
             return (
               <div
                 key={idx}
-                className="rounded-xl border border-[#E5EAF1] bg-white overflow-hidden transition-colors"
+                className={`rounded-2xl border bg-white overflow-hidden transition-all duration-200 ${
+                  isOpen
+                    ? "border-[#2563EB] shadow-sm ring-1 ring-[#2563EB]/20"
+                    : "border-[#E5EAF1] hover:border-[#172033]/30"
+                }`}
               >
                 <button
                   type="button"
                   onClick={() => setOpenIdx(isOpen ? null : idx)}
-                  className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-50/60 transition-colors"
+                  aria-expanded={isOpen}
+                  className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-[#F7F9FC]/50 transition-colors"
                 >
-                  <span
-                    className="text-sm sm:text-base font-semibold text-[#172033]"
-                    style={{ fontFamily: "var(--font-manrope)" }}
-                  >
-                    {faq.q}
-                  </span>
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <span
+                      className={`text-xs font-semibold w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${
+                        isOpen
+                          ? "bg-[#2563EB] text-white"
+                          : "bg-[#F7F9FC] text-[#667085] border border-[#E5EAF1]"
+                      }`}
+                    >
+                      {String(idx + 1).padStart(2, "0")}
+                    </span>
+                    <span
+                      className="text-base sm:text-lg font-semibold text-[#172033]"
+                      style={{ fontFamily: "var(--font-manrope)" }}
+                    >
+                      {faq.q}
+                    </span>
+                  </div>
                   <ChevronDown
-                    className={`w-4 h-4 text-[#667085] shrink-0 transition-transform duration-200 ${
-                      isOpen ? "rotate-180 text-[#2563EB]" : ""
+                    className={`w-5 h-5 shrink-0 transition-transform duration-200 ${
+                      isOpen ? "rotate-180 text-[#2563EB]" : "text-[#667085]"
                     }`}
-                    strokeWidth={1.75}
+                    strokeWidth={2}
                   />
                 </button>
 
                 {isOpen && (
-                  <div className="px-4 sm:px-5 pb-5 text-xs sm:text-sm text-[#667085] leading-relaxed font-normal border-t border-[#E5EAF1]/70 pt-3">
-                    {faq.a}
+                  <div className="px-5 sm:px-6 pb-6 pt-1 text-sm sm:text-base text-[#667085] leading-relaxed border-t border-[#E5EAF1]/60 font-normal">
+                    <p className="pl-9.5">{faq.a}</p>
                   </div>
                 )}
               </div>
@@ -131,26 +187,28 @@ export function FAQSection({ lang = "en" }: FAQSectionProps) {
           })}
         </div>
 
-        {/* Support Helpdesk Callout */}
-        <div className="mt-10 p-5 rounded-xl border border-[#E5EAF1] bg-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <div className="text-xs sm:text-sm font-semibold text-[#172033]">
-              {gu ? "હજી કોઈ પ્રશ્ન બાકી છે?" : "Have a question not listed here?"}
+        {/* Still Have Questions Box */}
+        <div className="mt-12 p-6 rounded-2xl bg-white border border-[#E5EAF1] flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+          <div className="flex items-center gap-3 text-left">
+            <div className="w-10 h-10 rounded-xl bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center shrink-0">
+              <HelpCircle className="w-5 h-5" />
             </div>
-            <div className="text-xs text-[#667085] mt-0.5 font-normal">
-              {gu
-                ? "અમારી ટેકનિકલ સપોર્ટ ટીમ સોમથી શનિ સવારે ૯ થી રાત્રે ૮ વાગ્યા સુધી WhatsApp પર લાઈવ છે."
-                : "Our dedicated technical team is available on WhatsApp Mon–Sat from 9am to 8pm IST."}
+            <div>
+              <div className="text-sm font-semibold text-[#172033]">
+                {gu ? "હજુ કંઈક પૂછવું છે?" : "Have a question not listed here?"}
+              </div>
+              <div className="text-xs text-[#667085] mt-0.5">
+                {gu
+                  ? "અમારી કસ્ટમર સપોર્ટ ટીમ તમને મદદ કરવા તૈયાર છે."
+                  : "Our team in Gujarat is ready to assist you via phone or WhatsApp."}
+              </div>
             </div>
           </div>
           <a
-            href="https://wa.me/917400199999"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-50 text-[#159B72] border border-emerald-200 text-xs sm:text-sm font-medium hover:bg-emerald-100 transition-colors shrink-0"
+            href="tel:+919898000000"
+            className="h-10 px-5 rounded-xl bg-[#172033] hover:bg-[#172033] text-white text-xs font-semibold flex items-center justify-center shrink-0 transition-colors shadow-2xs"
           >
-            <MessageSquare className="w-4 h-4" strokeWidth={1.75} />
-            <span>{gu ? "WhatsApp પર વાત કરો" : "Chat on WhatsApp"}</span>
+            {gu ? "સપોર્ટ સંપર્ક કરો" : "Contact Support"}
           </a>
         </div>
       </div>

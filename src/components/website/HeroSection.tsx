@@ -2,9 +2,15 @@
 
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { motion } from "framer-motion";
-import { ArrowRight, Check, Zap, FileText, TrendingUp } from "lucide-react";
+import {
+  Check,
+  ArrowRight,
+  Receipt,
+  Smartphone,
+  ShieldCheck,
+  Calendar,
+  Share2,
+} from "lucide-react";
 
 export interface HeroSectionProps {
   lang?: "en" | "gu";
@@ -14,191 +20,312 @@ export interface HeroSectionProps {
 export function HeroSection({ lang = "en", onOpenDemo }: HeroSectionProps) {
   const gu = lang === "gu";
 
-  return (
-    <section className="relative overflow-hidden pt-8 sm:pt-14 lg:pt-20 pb-16 sm:pb-22 lg:pb-26 bg-white border-b border-[#E5EAF1]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-          {/* Left Column: Editorial Headline & Actions */}
-          <div className="lg:col-span-6 space-y-5 sm:space-y-6 text-left">
-            {/* Small Eyebrow */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35 }}
-              className="inline-flex items-center gap-2 text-xs font-semibold text-[#2563EB] tracking-wider uppercase"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB]" />
-              <span>GST BILLING • ACCOUNTING • INVENTORY • POS</span>
-            </motion.div>
+  const benefits = [
+    gu ? "ઝડપી GST & થર્મલ POS બિલિંગ" : "10-Second GST & Thermal POS Invoicing",
+    gu ? "મલ્ટી-ગોડાઉન સ્ટોક & બારકોડ સપોર્ટ" : "Multi-Godown Stock & Barcode Billing",
+    gu ? "ગ્રાહક ખાતાવહી & WhatsApp રિમાઇન્ડર" : "Party Ledgers & WhatsApp Reminders",
+    gu ? "P&L રિપોર્ટ્સ, રોજમેળ & બેલેન્સ શીટ" : "Real-Time Balance Sheet & P&L",
+  ];
 
-            {/* Main Editorial Headline: 58-68px Desktop */}
-            <motion.h1
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.06 }}
-              className="text-3xl xs:text-4xl sm:text-5xl lg:text-[56px] xl:text-[64px] font-semibold text-[#172033] tracking-tight leading-[1.08]"
+  return (
+    <section className="relative overflow-hidden bg-[#F7F9FC] pt-10 pb-16 sm:pt-14 sm:pb-24 border-b border-[#E5EAF1]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+          {/* Left Column: Value Proposition & CTAs */}
+          <div className="lg:col-span-6 space-y-6 text-left">
+            {/* Authentic Trust Badge (Clean & Non-AI) */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-[#E5EAF1] shadow-2xs">
+              <span className="text-xs font-medium text-[#172033]">
+                {gu
+                  ? "🇮🇳 ભારતીય રિટેલર્સ, હોલસેલર્સ અને ડિસ્ટ્રિબ્યુટર્સ માટે ખાસ"
+                  : "🇮🇳 Designed for Indian Retailers, Wholesalers & Distributors"}
+              </span>
+            </div>
+
+            {/* Main Heading */}
+            <h1
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-[48px] font-bold text-[#172033] tracking-tight leading-[1.16]"
               style={{ fontFamily: "var(--font-manrope)" }}
             >
               {gu ? (
                 <>
-                  તમારા વેપારને બનાવો{" "}
-                  <span className="text-[#2563EB]">સ્માર્ટ</span>.{" "}
-                  બિલ બનાવો{" "}
-                  <span className="text-[#2563EB]">ઝડપથી</span>.{" "}
-                  વધારો તમારો{" "}
-                  <span className="text-[#2563EB]">નફો</span>.
+                  સરળ GST બિલિંગ, ગોડાઉન સ્ટોક અને{" "}
+                  <span className="text-[#2563EB]">સંપૂર્ણ એકાઉન્ટિંગ સોફ્ટવેર</span>
                 </>
               ) : (
                 <>
-                  Run Your Business{" "}
-                  <span className="text-[#2563EB]">Smarter</span>.{" "}
-                  Bill <span className="text-[#2563EB]">Faster</span>.{" "}
-                  Grow <span className="text-[#2563EB]">Bigger</span>.
+                  Complete GST Billing, Inventory &{" "}
+                  <span className="text-[#2563EB]">Accounting Software</span>
                 </>
               )}
-            </motion.h1>
+            </h1>
 
-            {/* Description: 15-16px */}
-            <motion.p
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.12 }}
-              className="text-[15px] sm:text-base text-[#667085] leading-relaxed max-w-xl font-normal"
+            {/* Subtitle Description */}
+            <p
+              className="text-base sm:text-lg text-[#475467] leading-relaxed max-w-xl font-normal"
+              style={{ fontFamily: "var(--font-inter)" }}
             >
               {gu
-                ? "GST બિલિંગ, ઇન્વેન્ટરી, ખરીદી, પેમેન્ટ્સ અને રોજમેળ ખાતાવહી મેનેજ કરવા માટેનું સંપૂર્ણ સોલ્યુશન — તમામ એક જ શક્તિશાળી પ્લેટફોર્મ પર."
-                : "Everything you need to manage GST billing, inventory, purchases, payments and business accounts — all in one powerful platform."}
-            </motion.p>
+                ? "માત્ર ૧૦ સેકન્ડમાં પાકા GST ઇન્વોઇસ બનાવો, ગોડાઉન વાઇઝ સ્ટોક મેનેજ કરો, પાર્ટીઓની ઉધારી ખાતાવહી સાચવો અને WhatsApp પર બિલ મોકલો. ભારતના નાના-મોટા વેપાર માટે તૈયાર."
+                : "Generate statutory GST tax invoices in seconds, manage multi-godown inventory, track customer udhari ledgers, and share instant bills on WhatsApp. Built for fast counter billing and error-free books."}
+            </p>
 
-            {/* CTAs */}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.18 }}
-              className="pt-2 flex flex-col xs:flex-row items-stretch xs:items-center gap-3"
-            >
-              <Link
-                href="/login?mode=signup"
-                className="h-11 px-6 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-sm font-medium rounded-xl flex items-center justify-center gap-2 shadow-xs transition-all active:scale-98"
+            {/* 4 Supporting Feature Checkpoints */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              {benefits.map((b, i) => (
+                <div key={i} className="flex items-center gap-2.5">
+                  <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
+                    <Check className="w-3 h-3 text-emerald-600" strokeWidth={2.5} />
+                  </div>
+                  <span className="text-xs sm:text-[13px] font-semibold text-[#172033]">
+                    {b}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Action CTAs */}
+            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
+              <a
+                href="#pricing"
+                className="h-12 px-7 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-xs transition-all active:scale-98 cursor-pointer"
+                style={{ fontFamily: "var(--font-inter)" }}
               >
-                <span>{gu ? "મફત શરૂ કરો" : "Get Started Free"}</span>
-                <ArrowRight className="w-4 h-4" strokeWidth={1.75} />
-              </Link>
+                <span>{gu ? "૩૦ દિવસ મફત ટ્રાયલ શરૂ કરો" : "Start 30-Day Free Trial"}</span>
+                <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
+              </a>
 
               {onOpenDemo && (
                 <button
                   type="button"
                   onClick={onOpenDemo}
-                  className="h-11 px-5 border border-[#E5EAF1] bg-white hover:bg-[#F7F9FC] text-[#172033] text-sm font-medium rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-2xs"
+                  className="h-12 px-6 rounded-xl border border-[#D0D5DD] bg-white hover:bg-[#F9FAFB] text-[#172033] text-sm font-semibold flex items-center justify-center gap-2 transition-colors shadow-2xs cursor-pointer"
+                  style={{ fontFamily: "var(--font-inter)" }}
                 >
-                  <Zap className="w-4 h-4 text-[#2563EB]" strokeWidth={1.75} />
-                  <span>{gu ? "ડેમો બુક કરો" : "Book a Demo"}</span>
+                  <Calendar className="w-4 h-4 text-[#2563EB]" strokeWidth={2} />
+                  <span>{gu ? "લાઇવ ડેમો બુક કરો" : "Schedule Live Demo"}</span>
                 </button>
               )}
-            </motion.div>
+            </div>
 
-            {/* 4 Trust Indicators below CTA */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4, delay: 0.24 }}
-              className="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 border-t border-[#E5EAF1]"
-            >
-              <div className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-[#172033]">
-                <Check className="w-4 h-4 text-[#159B72] shrink-0" strokeWidth={2} />
-                <span>GST Billing</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-[#172033]">
-                <Check className="w-4 h-4 text-[#159B72] shrink-0" strokeWidth={2} />
-                <span>Easy to Use</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-[#172033]">
-                <Check className="w-4 h-4 text-[#159B72] shrink-0" strokeWidth={2} />
-                <span>Business Control</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-[#172033]">
-                <Check className="w-4 h-4 text-[#159B72] shrink-0" strokeWidth={2} />
-                <span>Web & Desktop</span>
-              </div>
-            </motion.div>
+            {/* Reassurance text */}
+            <div className="flex items-center gap-2 text-xs text-[#667085] pt-1">
+              <Check className="w-4 h-4 text-emerald-600 shrink-0" strokeWidth={2.5} />
+              <span>
+                {gu
+                  ? "કોઈ ક્રેડિટ કાર્ડ જરૂરી નથી · માત્ર ૨ મિનિટમાં સેટઅપ · ૧૦૦% સુરક્ષિત ક્લાઉડ"
+                  : "No credit card required · Setup in 2 minutes · 100% secure cloud"}
+              </span>
+            </div>
           </div>
 
-          {/* Right Column: Real Software Interface Showcase */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.12 }}
-            className="lg:col-span-6 relative mt-4 lg:mt-0"
-          >
-            {/* Main Application Window Frame */}
-            <div className="relative rounded-2xl border border-[#E5EAF1] bg-white shadow-xl overflow-hidden group">
-              {/* Window Chrome Header */}
-              <div className="h-8 bg-[#F7F9FC] border-b border-[#E5EAF1] px-3.5 flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#CBD5E1]" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#CBD5E1]" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#CBD5E1]" />
+          {/* Right Column: Realistic Software Dashboard + Mobile UI Mockup */}
+          <div className="lg:col-span-6 relative">
+            {/* Desktop Dashboard Card */}
+            <div className="rounded-2xl bg-white border border-[#E5EAF1] shadow-lg p-5 sm:p-6 space-y-4">
+              {/* App Window Top Header */}
+              <div className="flex items-center justify-between pb-3.5 border-b border-[#E5EAF1]">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-[#EFF6FF] text-[#2563EB] font-semibold text-xs flex items-center justify-center border border-[#2563EB]/20">
+                    SG
+                  </div>
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-semibold text-[#172033] leading-none">
+                      Shree Ganesh Trading Co.
+                    </h4>
+                    <span className="text-[10px] text-[#667085] mt-0.5 block">
+                      GSTIN: 24ABCDE1234F1Z5 • FY 2026-27
+                    </span>
+                  </div>
                 </div>
-                <div className="px-3 py-0.5 rounded-md bg-white border border-[#E5EAF1] text-[11px] text-[#667085] font-mono flex items-center gap-1.5 shadow-2xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                  <span>app.myownbillbook.com</span>
-                </div>
-                <div className="text-[11px] text-[#667085] font-medium hidden sm:block">
-                  FY 2026-27
+
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    GST Active
+                  </span>
+                  <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[#EFF6FF] text-[#2563EB] border border-[#2563EB]/30">
+                    Pro Edition
+                  </span>
                 </div>
               </div>
 
-              {/* Actual Project Dashboard Screenshot */}
-              <div className="relative aspect-[16/10] w-full bg-[#F5F8FC] overflow-hidden">
-                <Image
-                  src="/themes/dashboard-current.png"
-                  alt="MyOwn BillBook Dashboard Interface"
-                  fill
-                  priority
-                  sizes="(min-width: 1024px) 640px, 100vw"
-                  className="object-cover object-top"
-                />
+              {/* 4 Financial KPI Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <div className="p-3 rounded-xl bg-[#F7F9FC] border border-[#E5EAF1]">
+                  <span className="text-[10px] font-medium text-[#667085] block">
+                    {gu ? "આજનું વેચાણ" : "Today's Sales"}
+                  </span>
+                  <span className="text-sm sm:text-base font-semibold text-[#172033] tabular-nums mt-0.5 block">
+                    ₹ 4,82,500
+                  </span>
+                  <span className="text-[9px] font-semibold text-emerald-600 mt-0.5 block">
+                    +14.2% vs last wk
+                  </span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[#F7F9FC] border border-[#E5EAF1]">
+                  <span className="text-[10px] font-medium text-[#667085] block">
+                    {gu ? "કુલ ખરીદી" : "Total Purchases"}
+                  </span>
+                  <span className="text-sm sm:text-base font-semibold text-[#172033] tabular-nums mt-0.5 block">
+                    ₹ 2,94,100
+                  </span>
+                  <span className="text-[9px] font-medium text-[#667085] mt-0.5 block">
+                    18 vendor bills
+                  </span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[#F7F9FC] border border-[#E5EAF1]">
+                  <span className="text-[10px] font-medium text-[#667085] block">
+                    {gu ? "લેણી રકમ (ઉધારી)" : "Receivables"}
+                  </span>
+                  <span className="text-sm sm:text-base font-semibold text-[#2563EB] tabular-nums mt-0.5 block">
+                    ₹ 1,18,400
+                  </span>
+                  <span className="text-[9px] font-medium text-[#2563EB] mt-0.5 block">
+                    3 parties pending
+                  </span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[#F7F9FC] border border-[#E5EAF1]">
+                  <span className="text-[10px] font-medium text-[#667085] block">
+                    {gu ? "દેણી રકમ" : "Payables"}
+                  </span>
+                  <span className="text-sm sm:text-base font-semibold text-[#172033] tabular-nums mt-0.5 block">
+                    ₹ 62,800
+                  </span>
+                  <span className="text-[9px] font-medium text-[#667085] mt-0.5 block">
+                    Due in 4 days
+                  </span>
+                </div>
+              </div>
+
+              {/* Middle Row: Trend Chart & Category Split */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                {/* Sales Trend Chart */}
+                <div className="sm:col-span-2 p-3.5 rounded-xl bg-[#F7F9FC] border border-[#E5EAF1] space-y-2">
+                  <div className="flex items-center justify-between text-[11px] font-semibold text-[#172033]">
+                    <span>{gu ? "વેચાણ ટ્રેન્ડ (છેલ્લા ૭ દિવસ)" : "Weekly Sales Trend"}</span>
+                    <span className="text-[10px] text-emerald-600 font-semibold">₹ 1,48,200 avg/wk</span>
+                  </div>
+                  {/* Bar Chart */}
+                  <div className="h-16 flex items-end justify-between gap-1.5 pt-2">
+                    {[
+                      { day: "Mon", h: "45%", val: "₹18k" },
+                      { day: "Tue", h: "60%", val: "₹24k" },
+                      { day: "Wed", h: "52%", val: "₹21k" },
+                      { day: "Thu", h: "78%", val: "₹31k" },
+                      { day: "Fri", h: "68%", val: "₹27k" },
+                      { day: "Sat", h: "92%", val: "₹37k" },
+                      { day: "Sun", h: "40%", val: "₹16k" },
+                    ].map((bar, idx) => (
+                      <div key={idx} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                        <div
+                          className="w-full rounded-t-sm transition-all duration-300"
+                          style={{
+                            height: bar.h,
+                            backgroundColor: idx === 5 ? "#2563EB" : "#172033",
+                            opacity: idx === 5 ? 1 : 0.8,
+                          }}
+                        />
+                        <span className="text-[9px] text-[#667085] font-medium">{bar.day}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Category Split */}
+                <div className="p-3.5 rounded-xl bg-[#F7F9FC] border border-[#E5EAF1] flex flex-col justify-between">
+                  <span className="text-[11px] font-semibold text-[#172033]">
+                    {gu ? "કેટેગરી વાઇઝ વેચાણ" : "Revenue by Category"}
+                  </span>
+                  <div className="space-y-1.5 py-1">
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="text-[#667085]">Groceries</span>
+                      <span className="font-semibold text-[#172033]">48%</span>
+                    </div>
+                    <div className="w-full bg-[#E5EAF1] h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-[#2563EB] h-full w-[48%]" />
+                    </div>
+
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="text-[#667085]">FMCG Goods</span>
+                      <span className="font-semibold text-[#172033]">32%</span>
+                    </div>
+                    <div className="w-full bg-[#E5EAF1] h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-[#172033] h-full w-[32%]" />
+                    </div>
+
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="text-[#667085]">Packaging</span>
+                      <span className="font-semibold text-[#172033]">20%</span>
+                    </div>
+                    <div className="w-full bg-[#E5EAF1] h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-slate-400 h-full w-[20%]" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom: Recent Transaction Table Row */}
+              <div className="pt-2 border-t border-[#E5EAF1]">
+                <div className="flex items-center justify-between text-[11px] font-semibold text-[#667085] mb-2">
+                  <span>{gu ? "તાજેતરના ઇન્વોઇસ" : "Today's Invoices"}</span>
+                  <span className="text-[#2563EB] text-[10px] font-medium">All Branches</span>
+                </div>
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-[#F7F9FC] text-[11px]">
+                    <div className="flex items-center gap-2">
+                      <Receipt className="w-3.5 h-3.5 text-[#2563EB]" />
+                      <span className="font-semibold text-[#172033]">INV-2026-089</span>
+                      <span className="text-[#667085] truncate max-w-[120px]">Krishna Supermarket</span>
+                    </div>
+                    <div className="flex items-center gap-2 font-medium">
+                      <span className="tabular-nums font-semibold text-[#172033]">₹ 14,850</span>
+                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-semibold">PAID</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-[#F7F9FC] text-[11px]">
+                    <div className="flex items-center gap-2">
+                      <Receipt className="w-3.5 h-3.5 text-[#172033]" />
+                      <span className="font-semibold text-[#172033]">INV-2026-088</span>
+                      <span className="text-[#667085] truncate max-w-[120px]">Patel Traders (B2B)</span>
+                    </div>
+                    <div className="flex items-center gap-2 font-medium">
+                      <span className="tabular-nums font-semibold text-[#172033]">₹ 42,600</span>
+                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-semibold">DUE 15D</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Secondary Realistic Layered Detail: Live Invoice Preview Snippet */}
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, delay: 0.3 }}
-              className="hidden sm:flex absolute -bottom-6 -left-6 bg-white rounded-xl border border-[#E5EAF1] p-3 shadow-xl z-10 items-center gap-3 max-w-[260px]"
-            >
-              <div className="w-9 h-9 rounded-lg bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center shrink-0">
-                <FileText className="w-5 h-5" strokeWidth={1.75} />
-              </div>
-              <div className="min-w-0 text-left">
-                <div className="text-xs font-semibold text-[#172033] truncate">
-                  ₹ 1,52,515.00 GST Bill
+            {/* Floating Mobile App Preview Card (Beside / Overlap) */}
+            <div className="hidden sm:flex absolute -bottom-6 -right-3 w-56 rounded-2xl bg-white text-[#172033] p-3.5 shadow-xl border border-[#E5EAF1] flex-col gap-2.5 animate-in slide-in-from-bottom duration-300">
+              <div className="flex items-center justify-between border-b border-[#E5EAF1] pb-2">
+                <div className="flex items-center gap-1.5">
+                  <Smartphone className="w-3.5 h-3.5 text-[#2563EB]" />
+                  <span className="text-[11px] font-semibold text-[#172033] tracking-wide">POS Mobile Billing</span>
                 </div>
-                <div className="text-[11px] text-[#667085] flex items-center gap-1 truncate mt-0.5">
-                  <span className="truncate">Jaydeep Traders</span>
-                  <span>·</span>
-                  <span className="text-[#159B72] font-medium">B2B Paid</span>
-                </div>
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">Ready</span>
               </div>
-            </motion.div>
 
-            {/* Small Sales Analytics Detail: Growth Metric */}
-            <motion.div
-              initial={{ opacity: 0, y: -15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, delay: 0.35 }}
-              className="hidden sm:flex absolute -top-4 -right-4 bg-white rounded-xl border border-[#E5EAF1] py-2 px-3 shadow-lg z-10 items-center gap-2"
-            >
-              <div className="w-7 h-7 rounded-md bg-emerald-50 text-[#159B72] flex items-center justify-center">
-                <TrendingUp className="w-4 h-4" strokeWidth={1.75} />
+              <div className="space-y-1">
+                <div className="text-[10px] text-[#667085]">Quick Counter Bill #412</div>
+                <div className="text-base font-semibold text-[#172033] tabular-nums">₹ 1,450.00</div>
+                <div className="text-[9px] text-emerald-600 font-medium">✓ Cash Tendered & Stock Updated</div>
               </div>
-              <div className="text-left">
-                <span className="text-[10px] text-[#667085] block font-medium">Sales Growth</span>
-                <span className="text-xs font-semibold text-[#172033] tabular-nums">+18.6% vs Last Month</span>
+
+              <div className="pt-1.5 border-t border-[#E5EAF1] flex items-center justify-between text-[10px]">
+                <span className="text-[#667085] flex items-center gap-1">
+                  <Share2 className="w-3 h-3 text-[#2563EB]" />
+                  WhatsApp Bill
+                </span>
+                <span className="text-[#2563EB] font-semibold">Sent ✓</span>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

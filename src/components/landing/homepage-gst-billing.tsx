@@ -38,7 +38,7 @@ export function HomepageGstBilling({ lang = "en" }: HomepageGstBillingProps) {
   const themeColors = {
     blue: { primary: "#2563EB", light: "#EFF6FF", border: "#BFDBFE" },
     emerald: { primary: "#159B72", light: "#E6FBF5", border: "#A7F3D0" },
-    saffron: { primary: "#C2410C", light: "#FFF7ED", border: "#FED7AA" },
+    saffron: { primary: "#2563EB", light: "#EFF6FF", border: "#BFDBFE" },
     navy: { primary: "#1E293B", light: "#F1F5F9", border: "#CBD5E1" },
   };
 

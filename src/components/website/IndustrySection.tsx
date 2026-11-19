@@ -1,8 +1,23 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
-import { Store, Building2, Truck, Factory, Briefcase, Check } from "lucide-react";
+import Link from "next/link";
+import {
+  Check,
+  ArrowRight,
+  Store,
+  Building2,
+  Truck,
+  Factory,
+  Briefcase,
+  Barcode,
+  Layers,
+  FileCheck2,
+  Calendar,
+  CreditCard,
+  QrCode,
+  Sparkles,
+} from "lucide-react";
 
 export interface IndustrySectionProps {
   lang?: "en" | "gu";
@@ -14,148 +29,261 @@ export function IndustrySection({ lang = "en" }: IndustrySectionProps) {
   const industries = [
     {
       id: "retail",
-      title: gu ? "રિટેલ સ્ટોર્સ અને સુપરમાર્કેટ્સ" : "Retailers & Kirana Stores",
+      icon: Store,
+      badge: gu ? "રિટેલ & કાઉન્ટર" : "Retail & POS",
+      title: gu ? "રિટેલ સ્ટોર્સ અને સુપરમાર્કેટ્સ" : "Retailers & Supermarkets",
       desc: gu
-        ? "કાઉન્ટર પર ૫ સેકન્ડમાં બારકોડ સ્કેનિંગ, કેશ ટેન્ડર ગણતરી અને થર્મલ રિસિપ્ટ પ્રિન્ટિંગ."
-        : "Fast retail checkout with barcode scanning, instant cash change calculations, and 58mm/80mm thermal receipts.",
-      image: "/landing/shopkeeper.jpg",
-      icon: <Store className="w-5 h-5 text-[#2563EB]" strokeWidth={1.75} />,
-      points: [
-        gu ? "બારકોડ સ્કેનર અને F2/F4 શોર્ટકટ્સ" : "Barcode scanner & F2/F4 keyboard shortcuts",
-        gu ? "58mm/80mm થર્મલ રિસિપ્ટ સપોર્ટ" : "58mm and 80mm thermal receipt printing",
-        gu ? "ગ્રાહક ફોન નંબર આધારિત ઉધાર ખાતું" : "Customer phone number-linked credit khata",
+        ? "કાઉન્ટર પર ઝડપી બારકોડ સ્કેનિંગ, ૫૮mm/૮૦mm થર્મલ પ્રિન્ટ અને ગ્રાહક ખાતાવહી."
+        : "High-speed barcode counter billing, thermal receipts, cash drawer tracking, and customer khata accounts.",
+      preview: {
+        headline: "POS Counter Checkout",
+        tag: "Thermal 80mm",
+        row1: { label: "Amul Butter 500g (x2)", val: "₹ 540.00" },
+        row2: { label: "Fortune Sunflower 1L", val: "₹ 165.00" },
+        metric: "₹ 705.00",
+        metricLabel: "Total Tendered (Cash + UPI)",
+        status: "Stock Auto-Deducted",
+      },
+      capabilities: [
+        gu ? "બારકોડ સ્કેનર અને ઝડપી F2/F4 શૉર્ટકટ્સ" : "Barcode scanner & instant keyboard shortcuts",
+        gu ? "૫૮mm / ૮૦mm થર્મલ રસીદ અને UPI QR" : "58mm / 80mm thermal print with UPI QR",
+        gu ? "ગ્રાહક બાકી લેણી રકમ અને WhatsApp બિલ" : "Customer credit ledger & WhatsApp bills",
       ],
     },
     {
       id: "wholesale",
-      title: gu ? "હોલસેલર્સ અને બલ્ક ટ્રેડર્સ" : "Wholesalers & Bulk Traders",
+      icon: Building2,
+      badge: gu ? "હોલસેલ & ટ્રેડર્સ" : "Wholesale & B2B",
+      title: gu ? "હોલસેલ અને B2B ટ્રેડર્સ" : "Wholesalers & B2B Traders",
       desc: gu
-        ? "પાર્ટી વાઇઝ સ્પેશિયલ રેટ્સ, ઉધાર ક્રેડિટ લિમિટ કંટ્રોલ અને વોટ્સએપ સ્ટેટમેન્ટ્સ."
-        : "Tiered party pricing, past price memory, strict credit limit warnings, and automated WhatsApp balance reminders.",
-      image: "/landing/wholesale.jpg",
-      icon: <Building2 className="w-5 h-5 text-[#2563EB]" strokeWidth={1.75} />,
-      points: [
-        gu ? "પાર્ટી મુજબ અગાઉના રેટ્સ આપોઆપ યાદ રાખે" : "Automatic memory of custom party prices",
-        gu ? "ઉધાર મર્યાદા વટાવી જાય ત્યારે ચેતવણી" : "Credit limit warnings preventing bad debts",
-        gu ? "૧-ક્લિકમાં WhatsApp લેજર સ્ટેટમેન્ટ પીડીએફ" : "1-Click WhatsApp payment reminders & ledger PDF",
+        ? "મોટા જથ્થાના ઓર્ડર, પાર્ટી ક્રેડિટ મર્યાદા, e-Way બિલ અને ઓટોમેટિક પેમેન્ટ રિમાઇન્ડર્સ."
+        : "Bulk multi-unit packaging, party-specific rates, credit limits, e-Way Bills, and payment reminders.",
+      preview: {
+        headline: "B2B Bulk Tax Invoice",
+        tag: "Tiered Pricing",
+        row1: { label: "Basmati Rice 25kg (50 Bags)", val: "₹ 92,500" },
+        row2: { label: "ITC Eligible (CGST+SGST 5%)", val: "₹ 4,625" },
+        metric: "₹ 97,125.00",
+        metricLabel: "Grand Total (e-Way Bill Ready)",
+        status: "GSTR-1 Auto-Prepared",
+      },
+      capabilities: [
+        gu ? "પાર્ટી વાઇઝ સ્પેશિયલ રેટ્સ અને ડિસ્કાઉન્ટ" : "Party-wise tiered pricing & past price memory",
+        gu ? "સરકારી e-Way Bill અને E-Invoice સપોર્ટ" : "Direct Government e-Way Bill & E-Invoice",
+        gu ? "પાર્ટી બાકી લેણી રકમ અને ક્રેડિટ લિમિટ" : "Party credit limits with warning triggers",
       ],
     },
     {
       id: "distribution",
-      title: gu ? "ડિસ્ટ્રિબ્યુટર્સ અને એજન્સીઓ" : "Distributors & C&F Agents",
+      icon: Truck,
+      badge: gu ? "ડિસ્ટ્રિબ્યુશન & ગોડાઉન" : "Distribution & Logistics",
+      title: gu ? "ડિસ્ટ્રિબ્યુશન અને ગોડાઉન ટ્રેડિંગ" : "Distributors & C&F Agencies",
       desc: gu
-        ? "ગોડાઉન-ટુ-ગોડાઉન સ્ટોક ટ્રાન્સફર ચલણ, વાન સેલ્સ ડિસ્પેચ અને સપ્લાયર POs."
-        : "Multi-godown stock movement, dispatch delivery challans, vendor purchase orders, and sales rep route tracking.",
-      image: "/landing/godown.jpg",
-      icon: <Truck className="w-5 h-5 text-[#2563EB]" strokeWidth={1.75} />,
-      points: [
-        gu ? "ગોડાઉન ટ્રાન્સફર ચલણ અને ટ્રાન્ઝિટ ટ્રેકિંગ" : "Godown-to-godown stock transfer slips",
-        gu ? "ચલણને ૧-ક્લિકમાં પાકા બિલમાં ફેરવો" : "Convert dispatch challan to tax invoice in 1 click",
-        gu ? "સપ્લાયર ખરીદી બિલ કેમેરાથી OCR સ્કેન" : "Scan vendor invoices with camera OCR",
+        ? "મલ્ટીપલ વેરહાઉસ વચ્ચે સ્ટોક ટ્રાન્સફર, ડિલિવરી ચલણ અને ડિસ્ટ્રિબ્યુટર નેટવર્ક."
+        : "Multi-godown stock management, dispatch delivery challans, stock transfers and batch expiry tracking.",
+      preview: {
+        headline: "Warehouse Stock Transfer",
+        tag: "Challan #DC-104",
+        row1: { label: "Main Godown A → Van 02", val: "120 Units" },
+        row2: { label: "Batch: #BAT-2026-88", val: "Exp: Nov 2027" },
+        metric: "3 Godowns Synced",
+        metricLabel: "Real-Time Stock Audit Trail",
+        status: "Dispatch In-Transit",
+      },
+      capabilities: [
+        gu ? "બહુ-ગોડાઉન સ્ટોક સિન્ક અને ટ્રાન્સફર ચલણ" : "Multi-warehouse real-time stock sync & transfer slips",
+        gu ? "બેચ નંબર, મેન્યુફેક્ચરિંગ & એક્સપાયરી ટ્રેકિંગ" : "Batch & expiry tracking with damage logs",
+        gu ? "ડિલિવરી ચલણથી સીધું ટેક્સ ઇન્વોઇસ કન્વર્ઝન" : "1-click delivery challan to tax invoice conversion",
       ],
     },
     {
       id: "manufacturing",
-      title: gu ? "મેન્યુફેક્ચરિંગ અને વર્કશોપ્સ" : "Manufacturers & Fabricators",
+      icon: Factory,
+      badge: gu ? "મેન્યુફેક્ચરિંગ" : "Manufacturing",
+      title: gu ? "ઉત્પાદકો અને વર્કશોપ્સ" : "Manufacturers & Fabricators",
       desc: gu
-        ? "કાચો માલ ટ્રેકિંગ, બિલ ઓફ મટિરિયલ્સ (BOM), બેચ નંબરિંગ અને તૈયાર માલનું બિલિંગ."
-        : "Raw material tracking, batch manufacturing numbers, Bill of Materials (BOM), job work challans, and finished goods invoicing.",
-      image: "/landing/workshop.jpg",
-      icon: <Factory className="w-5 h-5 text-[#2563EB]" strokeWidth={1.75} />,
-      points: [
-        gu ? "કાચો માલ vs તૈયાર માલ વર્ગીકરણ" : "Raw material vs finished goods classification",
-        gu ? "બેચ ટ્રેકિંગ અને ક્વોલિટી ઇન્સ્પેક્શન લોગ" : "Batch tracking with quality inspection logs",
-        gu ? "જોબ વર્ક ચલણ અને આઉટવર્ડ ડિસ્પેચ" : "Job work inward/outward delivery challans",
+        ? "કાચા માલનું બિલ ઓફ મટીરીયલ્સ (BOM), પ્રોડક્શન કોસ્ટિંગ અને ફિનિશ્ડ ગુડ્સ સ્ટોક."
+        : "Bill of Materials (BOM), raw material tracking, production costing, and finished goods inventory.",
+      preview: {
+        headline: "Production Order & BOM",
+        tag: "BOM #BOM-204",
+        row1: { label: "Raw Steel 500kg Inward", val: "₹ 34,000" },
+        row2: { label: "Overhead & Labor Cost", val: "₹ 6,500" },
+        metric: "45 Finished Units",
+        metricLabel: "Yield Cost: ₹ 900.00 / Unit",
+        status: "Quality Checked ✓",
+      },
+      capabilities: [
+        gu ? "બિલ ઓફ મટીરીયલ્સ (BOM) અને રેસિપી સેટઅપ" : "Multi-level Bill of Materials (BOM) setup",
+        gu ? "કાચા માલનો વપરાશ અને ફિનિશ્ડ ગુડ્સ સ્ટોક" : "Automatic raw material consumption & FG in-stock",
+        gu ? "પ્રોડક્શન બેચ કોસ્ટિંગ અને ઓવરહેડ ખર્ચ" : "Production batch costing & overhead allocation",
       ],
     },
     {
       id: "services",
-      title: gu ? "સર્વિસ પ્રોવાઇડર્સ અને એજન્સીઝ" : "Service Providers & Agencies",
+      icon: Briefcase,
+      badge: gu ? "સર્વિસ બિઝનેસ" : "Services & Agencies",
+      title: gu ? "સર્વિસ બિઝનેસ અને એજન્સીઓ" : "Service Providers & Agencies",
       desc: gu
-        ? "SAC કોડ આધારિત પ્રોફેશનલ બિલિંગ, પ્રોફોર્મા કોટેશન્સ, TDS ટ્રેકિંગ અને ઓડિટ રિપોર્ટ્સ."
-        : "SAC code billing, professional proforma invoices, milestone billing, TDS deduction tracking, and audit sheets.",
-      image: "/landing/gst-desk.jpg",
-      icon: <Briefcase className="w-5 h-5 text-[#2563EB]" strokeWidth={1.75} />,
-      points: [
-        gu ? "સત્તાવાર SAC કોડ્સની રેડી ડિરેક્ટરી" : "Pre-loaded official statutory SAC code list",
-        gu ? "પ્રોફોર્મા અને એસ્ટિમેટ ઇન્વોઇસિંગ" : "Milestone estimates convertible to tax invoices",
-        gu ? "TDS ટેક્સ કપાત ટ્રેકિંગ અને રિકોન્સિલિએશન" : "TDS receivable tracking & reconciliation",
+        ? "SAC કોડ સાથે સર્વિસ ઇન્વોઇસિંગ, માસિક રિકરિંગ બિલિંગ અને ક્લાયન્ટ પેમેન્ટ હિસાબ."
+        : "SAC code invoicing, periodic retainer billing, client payment tracking, and milestone accounts.",
+      preview: {
+        headline: "Service Proforma & Retainer",
+        tag: "SAC: 998311",
+        row1: { label: "IT Consulting - Q3 Retainer", val: "₹ 45,000" },
+        row2: { label: "TDS Deduction (10% 194J)", val: "- ₹ 4,500" },
+        metric: "₹ 48,600.00",
+        metricLabel: "With 18% GST (Payment Link Sent)",
+        status: "Auto-Reminder Set",
+      },
+      capabilities: [
+        gu ? "સર્વિસ SAC કોડ્સ અને પ્રોફેશનલ ફી બિલિંગ" : "SAC codes & official service tax calculations",
+        gu ? "રિકરિંગ ઇન્વોઇસિંગ અને ઓટો-રિમાઇન્ડર્સ" : "Recurring invoices & dynamic client UPI payment QR",
+        gu ? "ઓપરેશનલ ખર્ચ અને ચોખ્ખો નફો ટ્રેકિંગ" : "Operational overhead tracking & net service margins",
       ],
     },
   ];
 
   return (
-    <section id="solutions" className="py-16 sm:py-24 bg-[#F7F9FC] border-b border-[#E5EAF1]">
+    <section id="solutions" className="py-16 sm:py-24 bg-white border-b border-[#E5EAF1] scroll-mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="max-w-3xl mb-12 sm:mb-16 text-left">
-          <span className="text-xs font-semibold text-[#2563EB] uppercase tracking-wider block mb-2">
-            {gu ? "ઉદ્યોગ-વિશિષ્ટ વર્કફ્લો" : "Tailored Industry Solutions"}
+          <span
+            className="text-xs font-semibold text-[#2563EB] uppercase tracking-wider block mb-2"
+            style={{ fontFamily: "var(--font-inter)" }}
+          >
+            {gu ? "તમારા વ્યવસાય મુજબ તૈયાર" : "TAILORED INDUSTRY SOLUTIONS"}
           </span>
           <h2
-            className="text-2xl sm:text-4xl lg:text-[42px] font-semibold text-[#172033] tracking-tight leading-[1.12]"
+            className="text-2xl sm:text-3xl md:text-4xl font-semibold text-[#172033] tracking-tight leading-tight"
             style={{ fontFamily: "var(--font-manrope)" }}
           >
-            {gu
-              ? "દરેક પ્રકારના ભારતીય વેપાર માટે ખાસ તૈયાર."
-              : "Built for Every Type of Indian Business."}
+            {gu ? (
+              <>
+                એક પ્લેટફોર્મ.
+                <br />
+                દરેક વેપારની જરૂરિયાતો.
+              </>
+            ) : (
+              <>
+                Built for Every Type of Indian Business.
+              </>
+            )}
           </h2>
-          <p className="text-[15px] sm:text-base text-[#667085] mt-3 font-normal leading-relaxed max-w-2xl">
+          <p
+            className="text-sm sm:text-base text-[#667085] mt-3 leading-relaxed max-w-2xl font-normal"
+            style={{ fontFamily: "var(--font-inter)" }}
+          >
             {gu
-              ? "રિટેલર હોય, હોલસેલર હોય કે મેન્યુફેક્ચરિંગ વર્કશોપ — તમારી જરૂરિયાતો મુજબ સોફ્ટવેર એકદમ સરળતાથી સેટ થઈ જાય છે."
-              : "Tailored workflows for your industry's specific billing, inventory control, and statutory ledger compliance."}
+              ? "ભલે તમે રિટેલ દુકાન ચલાવતા હોવ, હોલસેલ વેપાર કરતા હોવ, ડિસ્ટ્રિબ્યુશન નેટવર્ક હોય કે ફેક્ટરી — MyOwnBillBook તમારા ચોપડાને સંપૂર્ણપણે નિયંત્રણમાં રાખે છે."
+              : "Tailored workflows designed specifically for your industry's billing, inventory and tax compliance requirements."}
           </p>
         </div>
 
-        {/* 5 Editorial Industry Blocks with Photography */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {industries.map((ind) => (
-            <div
-              key={ind.id}
-              className="bg-white rounded-2xl border border-[#E5EAF1] overflow-hidden shadow-xs hover:border-[#2563EB]/40 hover:shadow-md transition-all duration-200 flex flex-col justify-between group"
-            >
-              <div>
-                {/* Real High-Quality Photography Frame */}
-                <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
-                  <Image
-                    src={ind.image}
-                    alt={ind.title}
-                    fill
-                    sizes="(min-width: 1024px) 400px, 100vw"
-                    className="object-cover group-hover:scale-102 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
-                  <div className="absolute bottom-3 left-3 text-white flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-white/90 backdrop-blur-xs text-[#2563EB] flex items-center justify-center">
-                      {ind.icon}
+        {/* 5 Industry Cards (Responsive Grid) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
+          {industries.map((ind) => {
+            const Icon = ind.icon;
+            return (
+              <div
+                key={ind.id}
+                className="rounded-2xl bg-[#F7F9FC] border border-[#E5EAF1] shadow-2xs hover:border-[#2563EB]/40 hover:bg-white hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col justify-between group"
+              >
+                <div>
+                  {/* Clean Visual Preview Card Header (Replaces Grainy Stock Photos) */}
+                  <div className="p-4 sm:p-5 border-b border-[#E5EAF1] bg-white">
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center shrink-0 border border-[#2563EB]/20">
+                          <Icon className="w-4 h-4" strokeWidth={1.75} />
+                        </div>
+                        <span className="text-[11px] font-semibold text-[#172033]">
+                          {ind.preview.headline}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#F7F9FC] border border-[#E5EAF1] text-[#667085]">
+                        {ind.preview.tag}
+                      </span>
+                    </div>
+
+                    {/* Simulated Clean Data Rows */}
+                    <div className="rounded-xl bg-[#F7F9FC] border border-[#E5EAF1] p-3 space-y-1.5 text-xs">
+                      <div className="flex items-center justify-between text-[#667085] text-[11px]">
+                        <span>{ind.preview.row1.label}</span>
+                        <span className="font-semibold text-[#172033] tabular-nums">
+                          {ind.preview.row1.val}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-[#667085] text-[11px]">
+                        <span>{ind.preview.row2.label}</span>
+                        <span className="font-semibold text-[#172033] tabular-nums">
+                          {ind.preview.row2.val}
+                        </span>
+                      </div>
+                      <div className="pt-1.5 border-t border-[#E5EAF1] flex items-center justify-between">
+                        <div>
+                          <span className="text-[9px] text-[#667085] block uppercase font-medium">
+                            {ind.preview.metricLabel}
+                          </span>
+                          <span className="text-xs sm:text-sm font-semibold text-[#2563EB] tabular-nums">
+                            {ind.preview.metric}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                          {ind.preview.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card Content */}
+                  <div className="p-5 sm:p-6 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-[#2563EB]">
+                        {ind.badge}
+                      </span>
+                    </div>
+
+                    <h3
+                      className="text-base font-semibold text-[#172033] group-hover:text-[#2563EB] transition-colors leading-snug"
+                      style={{ fontFamily: "var(--font-manrope)" }}
+                    >
+                      {ind.title}
+                    </h3>
+                    <p
+                      className="text-xs text-[#667085] leading-relaxed font-normal"
+                      style={{ fontFamily: "var(--font-inter)" }}
+                    >
+                      {ind.desc}
+                    </p>
+
+                    {/* Capabilities Bullets */}
+                    <div className="space-y-2 pt-3 border-t border-[#E5EAF1]">
+                      {ind.capabilities.map((cap, idx) => (
+                        <div key={idx} className="flex items-start gap-2 text-xs text-[#172033] font-medium">
+                          <Check className="w-3.5 h-3.5 text-[#2563EB] shrink-0 mt-0.5" strokeWidth={2.5} />
+                          <span className="leading-tight">{cap}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
 
-                {/* Content */}
-                <div className="p-5 sm:p-6 space-y-3">
-                  <h3
-                    className="text-base sm:text-lg font-semibold text-[#172033] leading-snug group-hover:text-[#2563EB] transition-colors"
-                    style={{ fontFamily: "var(--font-manrope)" }}
+                {/* Action Link */}
+                <div className="p-5 sm:p-6 pt-0">
+                  <Link
+                    href="/features"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#172033] group-hover:text-[#2563EB] transition-colors"
+                    style={{ fontFamily: "var(--font-inter)" }}
                   >
-                    {ind.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-[#667085] leading-relaxed font-normal">
-                    {ind.desc}
-                  </p>
-
-                  <div className="space-y-2 pt-2 border-t border-[#E5EAF1]">
-                    {ind.points.map((pt, i) => (
-                      <div key={i} className="flex items-start gap-2 text-xs text-[#172033] font-medium">
-                        <Check className="w-3.5 h-3.5 text-[#159B72] shrink-0 mt-0.5" strokeWidth={2} />
-                        <span className="leading-snug">{pt}</span>
-                      </div>
-                    ))}
-                  </div>
+                    <span>{gu ? "વિગતો અને ફીચર્સ જુઓ" : "View Industry Modules"}</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  </Link>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

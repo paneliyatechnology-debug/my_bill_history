@@ -1,20 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Lenis from "lenis";
+import React, { useState } from "react";
 import { useAuth } from "../../context/auth-context";
 
-// Premium Human-Designed Website Components (V2)
+// Premium SAAS Website Components (Redesigned per Official Guidelines)
 import { Navbar } from "../website/Navbar";
 import { HeroSection } from "../website/HeroSection";
 import { TrustSection } from "../website/TrustSection";
+import { WhyUsSection } from "../website/WhyUsSection";
 import { FeaturesSection } from "../website/FeaturesSection";
-import { ProductShowcase } from "../website/ProductShowcase";
-import { InvoicingSection } from "../website/InvoicingSection";
-import { InventorySection } from "../website/InventorySection";
-import { AccountingSection } from "../website/AccountingSection";
+import { HowItWorksSection } from "../website/HowItWorksSection";
 import { IndustrySection } from "../website/IndustrySection";
-import { BenefitsSection } from "../website/BenefitsSection";
+import { AccountingSection } from "../website/AccountingSection";
+import { ProductShowcase } from "../website/ProductShowcase";
+import { ComparisonSection } from "../website/ComparisonSection";
 import { TestimonialsSection } from "../website/TestimonialsSection";
 import { PricingSection } from "../website/PricingSection";
 import { FAQSection } from "../website/FAQSection";
@@ -27,17 +26,6 @@ export function MyownbillbookLanding() {
   const gu = lang === "gu";
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
 
-  // Initialize smooth scrolling with Lenis
-  useEffect(() => {
-    const lenis = new Lenis({
-      autoRaf: true,
-      anchors: true,
-      lerp: 0.09,
-      respectReducedMotion: true,
-    });
-    return () => lenis.destroy();
-  }, []);
-
   const handleToggleLang = () => {
     setLang(gu ? "en" : "gu");
   };
@@ -48,12 +36,12 @@ export function MyownbillbookLanding() {
 
   return (
     <div
-      className="min-h-screen bg-white text-[#172033] selection:bg-[#2563EB]/20 selection:text-[#172033] overflow-x-hidden"
+      className="min-h-screen bg-[#F7F9FC] text-[#172033] selection:bg-[#2563EB]/20 selection:text-[#172033] overflow-x-clip"
       style={{
         fontFamily: "var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       }}
     >
-      {/* 1. EDITORIAL HEADER & NAVIGATION */}
+      {/* 2. HEADER & NAVIGATION */}
       <Navbar
         lang={lang}
         onToggleLang={handleToggleLang}
@@ -61,62 +49,62 @@ export function MyownbillbookLanding() {
       />
 
       <main>
-        {/* 2. EDITORIAL HERO SECTION */}
+        {/* 3. HERO SECTION */}
         <HeroSection
           lang={lang}
           onOpenDemo={handleOpenDemo}
         />
 
-        {/* 3. MINIMAL TEXT-FIRST TRUST & CAPABILITIES STRIP */}
+        {/* 4. PRODUCT TRUST STRIP */}
         <TrustSection lang={lang} />
 
-        {/* 4. ASYMMETRIC EDITORIAL FEATURES SECTION */}
+        {/* 5. WHY MYOWNBILLBOOK SECTION */}
+        <WhyUsSection lang={lang} />
+
+        {/* 6. COMPLETE PRODUCT FEATURES (8 DETAILED CARDS) */}
         <FeaturesSection lang={lang} />
 
-        {/* 5. INTERACTIVE PRODUCT EXPERIENCE & REAL SCREENSHOTS */}
-        <ProductShowcase lang={lang} />
+        {/* 7. HOW IT WORKS (4-STEP TIMELINE) */}
+        <HowItWorksSection lang={lang} />
 
-        {/* 6. STATUTORY GST INVOICING SECTION */}
-        <InvoicingSection lang={lang} />
-
-        {/* 7. LIVE MULTI-GODOWN INVENTORY SECTION */}
-        <InventorySection lang={lang} />
-
-        {/* 8. DOUBLE-ENTRY ACCOUNTING & P&L SECTION */}
-        <AccountingSection lang={lang} />
-
-        {/* 9. TAILORED INDUSTRY SOLUTIONS (PHOTOGRAPHY-DRIVEN) */}
+        {/* 8. BUSINESS SOLUTIONS (5 INDUSTRY CARDS WITH REAL PHOTOGRAPHY) */}
         <IndustrySection lang={lang} />
 
-        {/* 10. WHY MYOWN BILLBOOK (5 CORE PILLARS) */}
-        <BenefitsSection lang={lang} />
+        {/* 9. ACCOUNTING & FINANCIAL VISIBILITY (STATEMENTS MOCKUP) */}
+        <AccountingSection lang={lang} />
 
-        {/* 11. VERIFIED CUSTOMER TESTIMONIALS */}
+        {/* 10. INTERACTIVE PRODUCT DEMO (6 FUNCTIONAL TABS) */}
+        <ProductShowcase lang={lang} />
+
+        {/* 11. WHY BUSINESSES CHOOSE US (MANUAL VS MYOWNBILLBOOK) */}
+        <ComparisonSection lang={lang} />
+
+        {/* 12. CUSTOMER TESTIMONIALS */}
         <TestimonialsSection lang={lang} />
 
-        {/* 12. TRANSPARENT PRICING & SUBSCRIPTIONS */}
+        {/* 13. PRICING SECTION (WITH WORKING RAZORPAY PAYMENT & REGISTRATION) */}
         <PricingSection
           lang={lang}
           onOpenDemo={handleOpenDemo}
         />
 
-        {/* 13. FREQUENTLY ASKED QUESTIONS (TEXT-FIRST ACCORDION) */}
+        {/* 14. FAQ SECTION (12 ACCORDION QUESTIONS) */}
         <FAQSection lang={lang} />
 
-        {/* 14. POWERFUL CLOSING CTA */}
+        {/* 15. FINAL CTA (PREMIUM DEEP NAVY BLOCK) */}
         <FinalCTA
           lang={lang}
           onOpenDemo={handleOpenDemo}
         />
       </main>
 
-      {/* 15. MINIMAL MULTI-COLUMN FOOTER */}
+      {/* 16. FOOTER (DEEP NAVY 5-COLUMN FOOTER) */}
       <Footer
         lang={lang}
         onToggleLang={handleToggleLang}
       />
 
-      {/* 16. BOOK A DEMO MODAL */}
+      {/* INTERACTIVE BOOK A DEMO MODAL */}
       <BookDemoModal
         isOpen={isDemoModalOpen}
         onClose={() => setIsDemoModalOpen(false)}

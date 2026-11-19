@@ -1,8 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
-import { Check, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Check, ArrowRight, Loader2, ShieldCheck, X, Zap, CreditCard, Sparkles } from "lucide-react";
+import { useAuth } from "../../context/auth-context";
+import { apiClient } from "../../lib/api-client";
+import { openRazorpayCheckout } from "../../lib/razorpay";
 
 export interface PricingSectionProps {
   lang?: "en" | "gu";
@@ -11,15 +14,47 @@ export interface PricingSectionProps {
 
 export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps) {
   const gu = lang === "gu";
+  const router = useRouter();
+  const { user, entitlements, login, refreshTenantMetadata } = useAuth();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
+
+  // Interactive checkout modal state
+  const [checkoutPlan, setCheckoutPlan] = useState<any | null>(null);
+  const [checkoutStep, setCheckoutStep] = useState<"payment" | "register" | "success">("payment");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Customer Contact for Payment (Step 1)
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+
+  // Verified Payment Data (Passed to Step 2)
+  const [verifiedPayment, setVerifiedPayment] = useState<{
+    orderId: string;
+    paymentId: string;
+    signature: string;
+    tier: string;
+    billingCycle: "monthly" | "yearly";
+    amountRupees: number;
+  } | null>(null);
+
+  // Account Registration Fields (Step 2)
+  const [businessName, setBusinessName] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [gstin, setGstin] = useState("");
 
   const plans = [
     {
       id: "starter",
+      tier: "RETAIL_BASIC",
       name: gu ? "સ્ટાર્ટર પ્લાન (Starter)" : "Starter Plan",
       subtitle: gu ? "નાની દુકાનો અને સિંગલ કાઉન્ટર માટે" : "For single retail counters & independent shops",
       monthlyPrice: 499,
-      yearlyPrice: 399,
+      yearlyPrice: 399, // ₹399/mo billed annually = ₹4,788/yr
+      annualTotal: 4788,
       popular: false,
       features: [
         gu ? "૧ કંપની અથવા દુકાન પ્રોફાઇલ" : "1 Business Company Profile",
@@ -30,14 +65,15 @@ export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps)
         gu ? "સ્ટાન્ડર્ડ ચેટ અને ઇમેઇલ હેલ્પડેસ્ક" : "Standard Chat & Email Support",
       ],
       ctaText: gu ? "સ્ટાર્ટર શરૂ કરો" : "Start Free Trial",
-      ctaHref: "/login?mode=signup",
     },
     {
       id: "professional",
+      tier: "WHOLESALE_PRO",
       name: gu ? "પ્રોફેશનલ પ્લાન (Professional)" : "Professional Plan",
       subtitle: gu ? "હોલસેલર્સ અને વધતા વ્યવસાયો માટે" : "For growing wholesalers, traders & multi-counter shops",
       monthlyPrice: 999,
-      yearlyPrice: 799,
+      yearlyPrice: 799, // ₹799/mo billed annually = ₹9,588/yr
+      annualTotal: 9588,
       popular: true,
       features: [
         gu ? "૩ કંપનીઓ અથવા બ્રાન્ચ સુધી" : "Up to 3 Business Companies",
@@ -49,14 +85,15 @@ export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps)
         gu ? "પ્રાથમિક ફોન અને રિમોટ સપોર્ટ" : "Priority Phone & Remote Support",
       ],
       ctaText: gu ? "સૌથી લોકપ્રિય — શરૂ કરો" : "Get Started Free",
-      ctaHref: "/login?mode=signup",
     },
     {
       id: "enterprise",
+      tier: "DISTRIBUTION_ENTERPRISE",
       name: gu ? "એન્ટરપ્રાઇઝ પ્લાન (Enterprise)" : "Enterprise Plan",
       subtitle: gu ? "મોટા ડિસ્ટ્રિબ્યુટર્સ અને ફેક્ટરીઓ માટે" : "For large distributors, factories & multi-branch enterprises",
       monthlyPrice: 1999,
-      yearlyPrice: 1599,
+      yearlyPrice: 1599, // ₹1,599/mo billed annually = ₹19,188/yr
+      annualTotal: 19188,
       popular: false,
       features: [
         gu ? "અનલિમિટેડ કંપનીઓ અને ગોડાઉન" : "Unlimited Companies, Warehouses & Branches",
@@ -68,40 +105,241 @@ export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps)
         gu ? "૨૪/૭ પ્રાથમિક હેલ્પલાઇન સપોર્ટ" : "24/7 Priority Dedicated Helpline",
       ],
       ctaText: gu ? "એન્ટરપ્રાઇઝ ડેમો બુક કરો" : "Book Enterprise Demo",
-      ctaHref: "/login?mode=signup",
     },
   ];
 
+  const handlePlanClick = (plan: (typeof plans)[0]) => {
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    setCheckoutPlan(plan);
+    setCheckoutStep("payment");
+
+    if (user) {
+      setCustomerName(user.fullName || user.name || "");
+      setCustomerPhone(user.phone || "");
+      setCustomerEmail(user.email || "");
+    }
+  };
+
+  // STEP 1: Process Razorpay Payment
+  const handleInitiatePayment = async () => {
+    if (!checkoutPlan) return;
+    setErrorMsg(null);
+
+    // Validation for new users
+    if (!user) {
+      if (!customerName.trim()) {
+        setErrorMsg(gu ? "કૃપા કરીને તમારું પૂરું નામ દાખલ કરો." : "Please enter your full name.");
+        return;
+      }
+      if (!customerPhone.trim() || customerPhone.replace(/\D/g, "").length < 10) {
+        setErrorMsg(gu ? "કૃપા કરીને માન્ય ૧૦-અંકનો મોબાઇલ નંબર દાખલ કરો." : "Please enter a valid 10-digit mobile number.");
+        return;
+      }
+      if (!customerEmail.trim() || !customerEmail.includes("@")) {
+        setErrorMsg(gu ? "કૃપા કરીને માન્ય ઈમેલ દાખલ કરો." : "Please enter a valid email address.");
+        return;
+      }
+    }
+
+    setIsProcessing(true);
+
+    try {
+      let orderRes: any;
+
+      if (user) {
+        // Authenticated user upgrade
+        orderRes = await apiClient.post<any>("/subscriptions/create-order", {
+          tier: checkoutPlan.tier,
+          billingCycle,
+        });
+      } else {
+        // Unauthenticated user public order before registration
+        orderRes = await apiClient.post<any>("/subscriptions/public-order", {
+          tier: checkoutPlan.tier,
+          billingCycle,
+          customerName: customerName.trim(),
+          customerPhone: customerPhone.trim(),
+          customerEmail: customerEmail.trim().toLowerCase(),
+        });
+      }
+
+      if (!orderRes || !orderRes.orderId) {
+        throw new Error(orderRes?.message || "Failed to create subscription payment order.");
+      }
+
+      const opened = await openRazorpayCheckout({
+        orderId: orderRes.orderId,
+        amount: orderRes.amount,
+        keyId: orderRes.keyId,
+        currency: orderRes.currency || "INR",
+        name: "MyOwnBillBook",
+        description: `${checkoutPlan.name} (${billingCycle === "yearly" ? "Annual" : "Monthly"})`,
+        prefill: {
+          name: customerName || user?.fullName || "",
+          email: customerEmail || user?.email || "",
+          contact: customerPhone || user?.phone || "",
+        },
+        notes: {
+          tier: checkoutPlan.tier,
+          billingCycle,
+        },
+        onSuccess: async (response) => {
+          if (user) {
+            // Existing user: direct verification & instant upgrade
+            try {
+              const verifyRes = await apiClient.post<any>("/subscriptions/verify-payment", {
+                orderId: response.razorpay_order_id,
+                paymentId: response.razorpay_payment_id,
+                signature: response.razorpay_signature,
+                tier: checkoutPlan.tier,
+                billingCycle,
+              });
+
+              if (refreshTenantMetadata) {
+                await refreshTenantMetadata();
+              }
+
+              setSuccessMsg(
+                verifyRes?.message ||
+                  (gu
+                    ? `તમારો ${checkoutPlan.name} સફળતાપૂર્વક સક્રિય થયો છે!`
+                    : `Successfully upgraded to ${checkoutPlan.name}! All tier features are now active.`),
+              );
+              setCheckoutStep("success");
+            } catch (err: any) {
+              setErrorMsg(err?.message || "Payment verification failed. Please contact support.");
+            }
+          } else {
+            // New user: Save payment verification token and advance to Step 2 (Registration)
+            setVerifiedPayment({
+              orderId: response.razorpay_order_id,
+              paymentId: response.razorpay_payment_id,
+              signature: response.razorpay_signature,
+              tier: checkoutPlan.tier,
+              billingCycle,
+              amountRupees: orderRes.amountRupees || Math.round(orderRes.amount / 100),
+            });
+            if (!businessName.trim() && customerName.trim()) {
+              setBusinessName(`${customerName.trim()} Enterprises`);
+            }
+            setCheckoutStep("register");
+          }
+          setIsProcessing(false);
+        },
+        onError: (err) => {
+          setErrorMsg(err?.message || "Payment was cancelled or could not be completed.");
+          setIsProcessing(false);
+        },
+        onDismiss: () => {
+          setIsProcessing(false);
+        },
+      });
+
+      if (!opened) {
+        setIsProcessing(false);
+      }
+    } catch (err: any) {
+      setErrorMsg(err?.message || "Could not initiate payment. Please try again.");
+      setIsProcessing(false);
+    }
+  };
+
+  // STEP 2: Complete Registration with Verified Payment
+  const handleCompleteRegistration = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!verifiedPayment) {
+      setErrorMsg("Payment verification required before registration.");
+      return;
+    }
+
+    const finalBusinessName = businessName.trim() || `${customerName.trim() || "My"} Enterprises`;
+
+    if (password.length < 6) {
+      setErrorMsg(gu ? "પાસવર્ડ ઓછામાં ઓછો ૬ અક્ષરનો હોવો જોઈએ." : "Password must be at least 6 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMsg(gu ? "પાસવર્ડ મેળ ખાતો નથી." : "Passwords do not match.");
+      return;
+    }
+
+    setIsProcessing(true);
+    setErrorMsg(null);
+
+    try {
+      const regRes: any = await apiClient.post("/auth/register", {
+        fullName: customerName.trim(),
+        phone: customerPhone.trim(),
+        email: customerEmail.trim().toLowerCase(),
+        password,
+        organizationName: finalBusinessName,
+        companyLegalName: finalBusinessName,
+        stateCode: "24",
+        gstin: gstin.trim().toUpperCase() || undefined,
+        preferredLang: lang,
+        paymentDetails: verifiedPayment,
+      });
+
+      if (regRes?.accessToken) {
+        await login({
+          accessToken: regRes.accessToken,
+          refreshToken: regRes.refreshToken,
+          user: regRes.user,
+          defaultContext: regRes.defaultContext,
+        });
+
+        setCheckoutPlan(null);
+        router.push("/dashboard");
+      } else {
+        setSuccessMsg(
+          gu
+            ? "નોંધણી સફળ થઈ! તમારા એકાઉન્ટમાં લોગિન કરો."
+            : "Registration complete! Redirecting to your business dashboard...",
+        );
+        setTimeout(() => {
+          setCheckoutPlan(null);
+          router.push("/dashboard");
+        }, 1500);
+      }
+    } catch (err: any) {
+      setErrorMsg(err?.message || "Registration failed. Please try again or contact support.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
-    <section id="pricing" className="py-16 sm:py-24 bg-white border-b border-[#E5EAF1]">
+    <section id="pricing" className="py-20 sm:py-28 bg-[#F7F9FC] border-b border-[#E5EAF1] scroll-mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="max-w-3xl mb-10 sm:mb-14 text-left">
-          <span className="text-xs font-semibold text-[#2563EB] uppercase tracking-wider block mb-2">
-            {gu ? "પારદર્શક સબ્સ્ક્રિપ્શન" : "Transparent Pricing"}
+        <div className="max-w-3xl mb-12 sm:mb-16 text-left">
+          <span className="text-xs font-semibold text-[#2563EB] uppercase tracking-wider block mb-2.5">
+            {gu ? "સબ્સ્ક્રિપ્શન પ્લાન" : "PRICING PLANS"}
           </span>
           <h2
-            className="text-2xl sm:text-4xl lg:text-[42px] font-semibold text-[#172033] tracking-tight leading-[1.12]"
+            className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-[#172033] tracking-tight leading-[1.15]"
             style={{ fontFamily: "var(--font-manrope)" }}
           >
             {gu
-              ? "તમારા વેપારના કદ મુજબ અનુકૂળ પ્લાન પસંદ કરો."
-              : "Flexible Plans for Every Stage of Growth."}
+              ? "વધતા વ્યવસાયો માટે સરળ અને સ્પષ્ટ પ્લાન."
+              : "Simple Plans for Growing Businesses."}
           </h2>
-          <p className="text-[15px] sm:text-base text-[#667085] mt-3 font-normal leading-relaxed max-w-2xl">
+          <p className="text-base sm:text-lg text-[#667085] mt-4 font-normal leading-relaxed">
             {gu
-              ? "કોઈ પણ હિડન ચાર્જ નહીં. ૧૪ દિવસની ફ્રી ટ્રાયલ સાથે તમામ પ્લાન ઉપલબ્ધ છે."
-              : "No hidden setup fees. Free software updates included. 14-day free trial on all plans."}
+              ? "તમારા વ્યવસાયના કામકાજને અનુરૂપ પ્લાન પસંદ કરો. કોઈ હિડન ચાર્જ નહીં."
+              : "Choose a plan that fits the way you work. All plans include 30-day free access and real customer support."}
           </p>
 
           {/* Billing Cycle Toggle */}
-          <div className="mt-6 inline-flex items-center p-1 bg-[#F7F9FC] border border-[#E5EAF1] rounded-xl">
+          <div className="mt-8 inline-flex items-center p-1.5 bg-white border border-[#E5EAF1] rounded-xl shadow-2xs">
             <button
               type="button"
               onClick={() => setBillingCycle("monthly")}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+              className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                 billingCycle === "monthly"
-                  ? "bg-white text-[#172033] shadow-2xs font-semibold"
+                  ? "bg-[#172033] text-white shadow-2xs"
                   : "text-[#667085] hover:text-[#172033]"
               }`}
             >
@@ -110,15 +348,15 @@ export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps)
             <button
               type="button"
               onClick={() => setBillingCycle("yearly")}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer ${
                 billingCycle === "yearly"
-                  ? "bg-[#2563EB] text-white shadow-2xs font-semibold"
+                  ? "bg-[#2563EB] text-white shadow-2xs"
                   : "text-[#667085] hover:text-[#172033]"
               }`}
             >
               <span>{gu ? "વાર્ષિક બિલિંગ" : "Yearly Billing"}</span>
               <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-full font-medium ${
+                className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ${
                   billingCycle === "yearly" ? "bg-white text-[#2563EB]" : "bg-[#EFF6FF] text-[#2563EB]"
                 }`}
               >
@@ -133,48 +371,60 @@ export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps)
           {plans.map((p) => {
             const price = billingCycle === "yearly" ? p.yearlyPrice : p.monthlyPrice;
             const isEnterprise = p.id === "enterprise";
+            const isCurrentPlan = user && entitlements?.tier === p.tier;
 
             return (
               <div
                 key={p.id}
-                className={`rounded-2xl border p-6 sm:p-8 flex flex-col justify-between transition-all duration-200 ${
+                className={`rounded-2xl border p-7 sm:p-9 flex flex-col justify-between transition-all duration-300 ${
                   p.popular
-                    ? "bg-[#F7F9FC] border-[#2563EB] shadow-md ring-1 ring-[#2563EB]/30 relative"
-                    : "bg-white border-[#E5EAF1] shadow-xs hover:border-[#2563EB]/40"
+                    ? "bg-white border-[#2563EB] shadow-xl ring-2 ring-[#2563EB]/20 relative"
+                    : "bg-white border-[#E5EAF1] shadow-xs hover:border-[#172033]/40 hover:shadow-md"
                 }`}
               >
                 {p.popular && (
-                  <div className="absolute -top-3 left-6 px-3 py-0.5 rounded-full bg-[#2563EB] text-white text-[11px] font-semibold tracking-wide uppercase">
-                    {gu ? "સૌથી લોકપ્રિય" : "Most Popular"}
+                  <div className="absolute -top-3 left-8 px-3.5 py-1 rounded-full bg-[#2563EB] text-white text-[11px] font-semibold tracking-wider uppercase shadow-xs flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 fill-white" />
+                    <span>{gu ? "સૌથી લોકપ્રિય" : "Most Popular"}</span>
                   </div>
                 )}
 
                 <div>
-                  <h3
-                    className="text-lg font-semibold text-[#172033]"
-                    style={{ fontFamily: "var(--font-manrope)" }}
-                  >
-                    {p.name}
-                  </h3>
-                  <p className="text-xs text-[#667085] mt-1 mb-4 font-normal">
+                  <div className="flex items-center justify-between">
+                    <h3
+                      className="text-xl font-semibold text-[#172033]"
+                      style={{ fontFamily: "var(--font-manrope)" }}
+                    >
+                      {p.name}
+                    </h3>
+                    {isCurrentPlan && (
+                      <span className="text-[11px] font-semibold text-white bg-[#172033] px-2.5 py-0.5 rounded-full">
+                        {gu ? "હાલનો પ્લાન" : "Current Active"}
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-[#667085] mt-1.5 mb-6 font-normal">
                     {p.subtitle}
                   </p>
 
                   {/* Price Block */}
-                  <div className="pb-5 mb-5 border-b border-[#E5EAF1] flex items-baseline gap-1.5">
-                    <span className="text-3xl sm:text-4xl font-semibold text-[#172033] tabular-nums">
+                  <div className="pb-6 mb-6 border-b border-[#E5EAF1] flex items-baseline gap-1.5">
+                    <span className="text-4xl sm:text-5xl font-semibold text-[#172033] tabular-nums">
                       ₹{price}
                     </span>
-                    <span className="text-xs text-[#667085] font-normal">
-                      {gu ? "/ મહિને (વાર્ષિક બિલ)" : "/ month (billed annually)"}
+                    <span className="text-xs sm:text-sm text-[#667085] font-normal">
+                      {billingCycle === "yearly"
+                        ? gu ? "/ મહિને (વાર્ષિક બિલ)" : "/ month (billed annually)"
+                        : gu ? "/ મહિને" : "/ month"}
                     </span>
                   </div>
 
                   {/* Feature Bullets */}
-                  <div className="space-y-2.5">
+                  <div className="space-y-3">
                     {p.features.map((feat, i) => (
-                      <div key={i} className="flex items-start gap-2 text-xs sm:text-[13px] text-[#172033] font-medium">
-                        <Check className="w-4 h-4 text-[#159B72] shrink-0 mt-0.5" strokeWidth={2} />
+                      <div key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#172033] font-medium">
+                        <Check className="w-4 h-4 text-[#2563EB] shrink-0 mt-0.5" strokeWidth={2.5} />
                         <span className="leading-snug">{feat}</span>
                       </div>
                     ))}
@@ -182,28 +432,29 @@ export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps)
                 </div>
 
                 {/* CTA Action */}
-                <div className="pt-6 mt-6 border-t border-[#E5EAF1]">
-                  {isEnterprise && onOpenDemo ? (
+                <div className="pt-8 mt-8 border-t border-[#E5EAF1] space-y-2.5">
+                  <button
+                    type="button"
+                    onClick={() => handlePlanClick(p)}
+                    className={`w-full h-12 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-xs active:scale-98 cursor-pointer ${
+                      p.popular
+                        ? "bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-md shadow-[#2563EB]/20"
+                        : isCurrentPlan
+                          ? "bg-[#EFF6FF] border border-[#2563EB]/40 text-[#2563EB] hover:bg-[#FFE6DA]"
+                          : "bg-[#172033] hover:bg-[#172033] text-white"
+                    }`}
+                  >
+                    <span>{isCurrentPlan ? (gu ? "પ્લાન રિન્યૂ કરો" : "Renew Plan") : p.ctaText}</span>
+                    <ArrowRight className="w-4 h-4" strokeWidth={2} />
+                  </button>
+                  {isEnterprise && onOpenDemo && (
                     <button
                       type="button"
                       onClick={onOpenDemo}
-                      className="w-full h-11 rounded-xl border border-[#E5EAF1] bg-white hover:bg-slate-50 text-xs sm:text-sm font-medium text-[#172033] flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                      className="w-full text-center text-xs font-semibold text-[#667085] hover:text-[#2563EB] py-1 transition-colors cursor-pointer"
                     >
-                      <span>{p.ctaText}</span>
-                      <ArrowRight className="w-4 h-4" strokeWidth={1.75} />
+                      {gu ? "અથવા ૧-ઓન-૧ ડેમો કૉલ બુક કરો" : "Or schedule a 1-on-1 personalized demo"}
                     </button>
-                  ) : (
-                    <Link
-                      href={p.ctaHref}
-                      className={`w-full h-11 rounded-xl text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-98 ${
-                        p.popular
-                          ? "bg-[#2563EB] hover:bg-[#1D4ED8] text-white"
-                          : "bg-white hover:bg-slate-50 border border-[#E5EAF1] text-[#172033]"
-                      }`}
-                    >
-                      <span>{p.ctaText}</span>
-                      <ArrowRight className="w-4 h-4" strokeWidth={1.75} />
-                    </Link>
                   )}
                 </div>
               </div>
@@ -211,6 +462,341 @@ export function PricingSection({ lang = "en", onOpenDemo }: PricingSectionProps)
           })}
         </div>
       </div>
+
+      {/* RAZORPAY PAYMENT FIRST -> THEN REGISTRATION MODAL */}
+      {checkoutPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#172033]/70 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-[#E5EAF1] space-y-5 max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-[#E5EAF1]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#EFF6FF] flex items-center justify-center text-[#2563EB] shrink-0">
+                  <Zap className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-[#172033]">
+                    {checkoutPlan.name}
+                  </h3>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-xs font-medium text-[#667085]">
+                      {billingCycle === "yearly" ? "Annual Billing (Save 20%)" : "Monthly Billing"}
+                    </span>
+                    <span className="text-[#E5EAF1]">•</span>
+                    <span className="text-xs font-semibold text-[#2563EB]">
+                      {checkoutStep === "payment"
+                        ? "Step 1:  Payment"
+                        : checkoutStep === "register"
+                          ? "Step 2: Business Registration"
+                          : "Completed"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setCheckoutPlan(null);
+                  setErrorMsg(null);
+                  setSuccessMsg(null);
+                  setVerifiedPayment(null);
+                }}
+                className="text-[#667085] hover:text-[#172033] p-1.5 rounded-lg hover:bg-[#F7F9FC] transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Error Message Box */}
+            {errorMsg && (
+              <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-medium">
+                {errorMsg}
+              </div>
+            )}
+
+            {/* SUCCESS SCREEN */}
+            {checkoutStep === "success" && (
+              <div className="space-y-4 py-4 text-center">
+                <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+                  <Check className="w-7 h-7 stroke-[2.5]" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-[#172033]">Payment Captured & Plan Active!</h4>
+                  <p className="text-xs text-[#667085] mt-1.5 max-w-sm mx-auto">
+                    {successMsg || "Your subscription is now active with full features and entitlements unlocked."}
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCheckoutPlan(null);
+                      router.push("/dashboard");
+                    }}
+                    className="w-full h-11 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
+                  >
+                    Open Dashboard & Access App
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 1: PAYMENT FIRST */}
+            {checkoutStep === "payment" && (
+              <div className="space-y-4">
+                {/* Notice Banner */}
+                <div className="p-3.5 bg-[#EFF6FF] border border-[#2563EB]/30 rounded-xl flex items-center gap-3 text-xs text-[#172033] font-medium">
+                  <CreditCard className="w-4 h-4 shrink-0 text-[#2563EB]" />
+                  <span>
+                    {gu
+                      ? "પ્રથમ પેમેન્ટ: રેઝરપે દ્વારા પેમેન્ટ સફળ થયા બાદ તરત જ તમારું બિઝનેસ રજીસ્ટ્રેશન થશે."
+                      : "First Payment, Then Access: Complete payment via Razorpay to unlock instant business account registration."}
+                  </span>
+                </div>
+
+                {/* Pre-fill Contact Inputs if unauthenticated */}
+                {!user && (
+                  <div className="space-y-3 pt-1">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#172033] uppercase mb-1 tracking-wider">
+                        Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="e.g. Rajesh Patel"
+                        className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#E5EAF1] rounded-xl text-xs sm:text-sm font-medium text-[#172033] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-[#172033] uppercase mb-1 tracking-wider">
+                          Mobile Number *
+                        </label>
+                        <input
+                          type="tel"
+                          required
+                          maxLength={10}
+                          value={customerPhone}
+                          onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, ""))}
+                          placeholder="98980 00000"
+                          className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#E5EAF1] rounded-xl text-xs sm:text-sm tabular-nums font-medium text-[#172033] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-[#172033] uppercase mb-1 tracking-wider">
+                          Email Address *
+                        </label>
+                        <input
+                          type="email"
+                          required
+                          value={customerEmail}
+                          onChange={(e) => setCustomerEmail(e.target.value)}
+                          placeholder="business@example.com"
+                          className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#E5EAF1] rounded-xl text-xs sm:text-sm font-medium text-[#172033] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Price Summary Card */}
+                <div className="p-4 rounded-xl bg-[#F7F9FC] border border-[#E5EAF1] space-y-2.5 text-xs">
+                  <div className="flex justify-between text-[#667085]">
+                    <span>Plan Duration:</span>
+                    <span className="font-semibold text-[#172033]">
+                      {billingCycle === "yearly" ? "12 Months (1 Year Access)" : "1 Month Access"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-[#667085]">
+                    <span>Base Subscription Amount:</span>
+                    <span className="font-semibold text-[#172033] tabular-nums">
+                      ₹ {billingCycle === "yearly" ? checkoutPlan.annualTotal.toLocaleString("en-IN") : checkoutPlan.monthlyPrice.toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-[#667085]">
+                    <span>GST (18% SAC 998314):</span>
+                    <span className="font-semibold text-[#172033] tabular-nums">
+                      ₹ {Math.round((billingCycle === "yearly" ? checkoutPlan.annualTotal : checkoutPlan.monthlyPrice) * 0.18).toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                  <div className="pt-2.5 border-t border-[#E5EAF1] flex justify-between text-sm font-semibold text-[#172033]">
+                    <span>Total Amount Payable:</span>
+                    <span className="text-[#2563EB] tabular-nums font-semibold text-base">
+                      ₹ {Math.round((billingCycle === "yearly" ? checkoutPlan.annualTotal : checkoutPlan.monthlyPrice) * 1.18).toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Action CTA */}
+                <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+              
+
+                  <button
+                    type="button"
+                    disabled={isProcessing}
+                    onClick={handleInitiatePayment}
+                    className="w-full sm:w-auto h-11 px-7 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Opening Razorpay...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Pay via Razorpay & Continue</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 2: REGISTRATION FORM (UNLOCKED AFTER PAYMENT) */}
+            {checkoutStep === "register" && verifiedPayment && (
+              <form onSubmit={handleCompleteRegistration} className="space-y-4">
+                {/* Verified Payment Ribbon */}
+                <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                    <Check className="w-4 h-4 stroke-[3]" />
+                  </div>
+                  <div className="text-xs">
+                    <span className="font-semibold text-emerald-900 block">
+                      Payment Verified! (Order #{verifiedPayment.orderId.slice(-8)})
+                    </span>
+                    <span className="text-emerald-700 text-[11px]">
+                      {checkoutPlan.name} is reserved. Complete registration below to access your account.
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-3 text-left">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#172033] uppercase mb-1 tracking-wider">
+                      Your Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#E5EAF1] rounded-xl text-xs sm:text-sm font-medium text-[#172033] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#172033] uppercase mb-1 tracking-wider">
+                        Mobile Number *
+                      </label>
+                      <input
+                        type="tel"
+                        disabled
+                        value={customerPhone}
+                        className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#E5EAF1] rounded-xl text-xs sm:text-sm tabular-nums font-medium text-[#667085] cursor-not-allowed"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-[#172033] uppercase mb-1 tracking-wider">
+                        Email Address *
+                      </label>
+                      <input
+                        type="email"
+                        disabled
+                        value={customerEmail}
+                        className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#E5EAF1] rounded-xl text-xs sm:text-sm font-medium text-[#667085] cursor-not-allowed"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#172033] uppercase mb-1 tracking-wider">
+                      Business / Store Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={businessName}
+                      onChange={(e) => setBusinessName(e.target.value)}
+                      placeholder="e.g. Shree Ganesh Enterprises"
+                      className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#E5EAF1] rounded-xl text-xs sm:text-sm font-medium text-[#172033] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#172033] uppercase mb-1 tracking-wider">
+                        Create Password *
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        minLength={6}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#E5EAF1] rounded-xl text-xs sm:text-sm font-medium text-[#172033] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-[#172033] uppercase mb-1 tracking-wider">
+                        Confirm Password *
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        minLength={6}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#E5EAF1] rounded-xl text-xs sm:text-sm font-medium text-[#172033] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#172033] uppercase mb-1 tracking-wider">
+                      GSTIN (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={15}
+                      value={gstin}
+                      onChange={(e) => setGstin(e.target.value.toUpperCase())}
+                      placeholder="24AAAAA0000A1Z5"
+                      className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#E5EAF1] rounded-xl text-xs sm:text-sm tabular-nums uppercase font-medium text-[#172033] focus:bg-white focus:ring-2 focus:ring-[#2563EB] focus:outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Submit Registration Button */}
+                <div className="pt-3">
+                  <button
+                    type="submit"
+                    disabled={isProcessing}
+                    className="w-full h-12 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Creating Business Account...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Complete Registration & Access App</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
