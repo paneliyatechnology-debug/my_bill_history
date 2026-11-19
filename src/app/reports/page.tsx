@@ -12,6 +12,27 @@ import { EmailExcelModal } from "./components/email-excel-modal";
 import { ExportDropdown } from "../../components/ui/export-dropdown";
 import { ExportFormat } from "../../lib/export/export-types";
 import { exportReportData } from "./lib/report-export-adapter";
+import { DataTablePagination } from "../../components/ui/data-table-pagination";
+import {
+  Star,
+  Search,
+  X,
+  Mail,
+  Download,
+  Printer,
+  AlertTriangle,
+  FileText,
+  Package,
+  Users,
+  Tag,
+  Warehouse,
+  Scale,
+  CreditCard,
+  RefreshCw,
+  Clock,
+  TrendingUp,
+  Info,
+} from "lucide-react";
 
 type ReportTab =
   | "sales-register"
@@ -79,134 +100,18 @@ function ReportPagination({
   onPageSizeChange,
   lang,
 }: ReportPaginationProps) {
-  const totalPages = Math.max(1, Math.ceil(totalEntries / pageSize));
-  const safePage = Math.min(Math.max(1, currentPage), totalPages);
-  const startEntry = totalEntries === 0 ? 0 : (safePage - 1) * pageSize + 1;
-  const endEntry = Math.min(safePage * pageSize, totalEntries);
-
-  const getPageNumbers = () => {
-    const pages: (number | "ellipsis")[] = [];
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      pages.push(1);
-      if (safePage > 3) pages.push("ellipsis");
-      const start = Math.max(2, safePage - 1);
-      const end = Math.min(totalPages - 1, safePage + 1);
-      for (let i = start; i <= end; i++) pages.push(i);
-      if (safePage < totalPages - 2) pages.push("ellipsis");
-      pages.push(totalPages);
-    }
-    return pages;
-  };
-
   return (
-    <div className="p-3.5 sm:p-4 bg-white border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#667085]">
-      {/* Left: Rows Per Page Selector & Summary */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-1.5 font-medium">
-          <span>{lang === "gu" ? "પ્રતિ પેજ:" : "Rows per page:"}</span>
-          <select
-            value={pageSize}
-            onChange={(e) => {
-              onPageSizeChange(Number(e.target.value));
-              onPageChange(1);
-            }}
-            className="px-2 py-1 rounded-lg border border-[#E5E7EB] bg-slate-50 text-[#182230] font-normal text-[13px] focus:ring-1 focus:ring-[#0F172A] cursor-pointer h-10"
-          >
-            <option value={10}>10</option>
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
-        </div>
-
-        <div className="font-medium text-[#667085]">
-          {lang === "gu" ? (
-            <span>
-              કુલ <span className="font-bold text-[#202124]">{totalEntries}</span> માંથી{" "}
-              <span className="font-bold text-[#202124]">{startEntry}</span> થી{" "}
-              <span className="font-bold text-[#202124]">{endEntry}</span> દર્શાવી રહ્યા છીએ
-            </span>
-          ) : (
-            <span>
-              Showing <span className="font-bold text-[#202124]">{startEntry}</span> to{" "}
-              <span className="font-bold text-[#202124]">{endEntry}</span> of{" "}
-              <span className="font-bold text-[#202124]">{totalEntries}</span> entries
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Right: Navigation Controls */}
-      {totalPages > 1 && (
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => onPageChange(1)}
-            disabled={safePage === 1}
-            className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#182230] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-all font-medium cursor-pointer shadow-2xs"
-            title={lang === "gu" ? "પ્રથમ પેજ" : "First Page"}
-          >
-            «
-          </button>
-          <button
-            type="button"
-            onClick={() => onPageChange(Math.max(1, safePage - 1))}
-            disabled={safePage === 1}
-            className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#182230] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-all font-medium cursor-pointer shadow-2xs"
-            title={lang === "gu" ? "અગાઉનું પેજ" : "Previous Page"}
-          >
-            {lang === "gu" ? "અગાઉનું" : "Previous"}
-          </button>
-
-          <span className="sm:hidden tabular-nums font-bold text-[#202124] px-1.5 text-xs">
-            {safePage} / {totalPages}
-          </span>
-
-          <div className="hidden sm:flex items-center gap-1">
-            {getPageNumbers().map((p, idx) =>
-              p === "ellipsis" ? (
-                <span key={`ellipsis-${idx}`} className="px-2 text-slate-400 tabular-nums">
-                  …
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  key={p}
-                  onClick={() => onPageChange(p)}
-                  className={`min-w-[32px] h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                    safePage === p
-                      ? "bg-[#0F172A] text-white shadow-2xs"
-                      : "bg-white border border-[#E5E7EB] text-[#202124] hover:bg-slate-50"
-                  }`}
-                >
-                  {p}
-                </button>
-              )
-            )}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => onPageChange(Math.min(totalPages, safePage + 1))}
-            disabled={safePage === totalPages}
-            className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#182230] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-all font-medium cursor-pointer shadow-2xs"
-            title={lang === "gu" ? "આગળનું પેજ" : "Next Page"}
-          >
-            {lang === "gu" ? "આગળનું" : "Next"}
-          </button>
-          <button
-            type="button"
-            onClick={() => onPageChange(totalPages)}
-            disabled={safePage === totalPages}
-            className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#182230] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-all font-medium cursor-pointer shadow-2xs"
-            title={lang === "gu" ? "છેલ્લું પેજ" : "Last Page"}
-          >
-            »
-          </button>
-        </div>
-      )}
+    <div className="bg-white border-t border-[#E2E8F0] px-4 py-1">
+      <DataTablePagination
+        currentPage={currentPage}
+        pageSize={pageSize}
+        totalRecords={totalEntries}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+        pageSizeOptions={[10, 25, 50, 100]}
+        lang={lang}
+        showFirstLast
+      />
     </div>
   );
 }
@@ -684,52 +589,51 @@ export default function ReportsPage({
     id: ReportTab;
     label: string;
     labelGu: string;
-    icon: string;
   }> = [
     // Sales
-    { id: "sales-register", label: "Sales Register", labelGu: "વેચાણ રજિસ્ટર", icon: "📑" },
-    { id: "sales-summary", label: "Sales Summary - Staff Wise", labelGu: "વેચાણ સારાંશ", icon: "📊" },
-    { id: "bill-wise-profit", label: "Bill Wise Profit & Margin", labelGu: "બીલ દીઠ નફો અને માર્જિન", icon: "📈" },
-    { id: "item-sales-report", label: "Item-Wise Sales", labelGu: "આઇટમ મુજબ વેચાણ", icon: "📦" },
-    { id: "party-sales-report", label: "Customer-Wise Sales", labelGu: "ગ્રાહક મુજબ વેચાણ", icon: "👥" },
-    { id: "sales-returns", label: "Sales Returns (Credit Notes)", labelGu: "વેચાણ પરત (ક્રેડિટ નોટ્સ)", icon: "↩️" },
-    { id: "quotations", label: "Quotations & Estimates", labelGu: "અંદાજ / કોટેશન પત્રક", icon: "📝" },
-    { id: "delivery-challans", label: "Delivery Challans", labelGu: "ડિલિવરી ચલણ રજિસ્ટર", icon: "🚚" },
+    { id: "sales-register", label: "Sales Register", labelGu: "વેચાણ રજિસ્ટર" },
+    { id: "sales-summary", label: "Sales Summary - Staff Wise", labelGu: "વેચાણ સારાંશ" },
+    { id: "bill-wise-profit", label: "Bill Wise Profit & Margin", labelGu: "બીલ દીઠ નફો અને માર્જિન" },
+    { id: "item-sales-report", label: "Item-Wise Sales", labelGu: "આઇટમ મુજબ વેચાણ" },
+    { id: "party-sales-report", label: "Customer-Wise Sales", labelGu: "ગ્રાહક મુજબ વેચાણ" },
+    { id: "sales-returns", label: "Sales Returns (Credit Notes)", labelGu: "વેચાણ પરત (ક્રેડિટ નોટ્સ)" },
+    { id: "quotations", label: "Quotations & Estimates", labelGu: "અંદાજ / કોટેશન પત્રક" },
+    { id: "delivery-challans", label: "Delivery Challans", labelGu: "ડિલિવરી ચલણ રજિસ્ટર" },
 
     // Purchases
-    { id: "purchase-register", label: "Purchase Register", labelGu: "ખરીદ રજિસ્ટર", icon: "🛒" },
-    { id: "purchase-summary", label: "Purchase Summary", labelGu: "ખરીદી સારાંશ પત્રક", icon: "📑" },
-    { id: "item-purchase-report", label: "Item-Wise Purchase", labelGu: "આઇટમ મુજબ ખરીદી", icon: "📦" },
-    { id: "party-purchase-report", label: "Supplier-Wise Purchase", labelGu: "વેપારી મુજબ ખરીદી", icon: "👥" },
-    { id: "purchase-returns", label: "Purchase Returns (Debit Notes)", labelGu: "ખરીદ પરત (ડેબિટ નોટ્સ)", icon: "↪️" },
+    { id: "purchase-register", label: "Purchase Register", labelGu: "ખરીદ રજિસ્ટર" },
+    { id: "purchase-summary", label: "Purchase Summary", labelGu: "ખરીદી સારાંશ પત્રક" },
+    { id: "item-purchase-report", label: "Item-Wise Purchase", labelGu: "આઇટમ મુજબ ખરીદી" },
+    { id: "party-purchase-report", label: "Supplier-Wise Purchase", labelGu: "વેપારી મુજબ ખરીદી" },
+    { id: "purchase-returns", label: "Purchase Returns (Debit Notes)", labelGu: "ખરીદ પરત (ડેબિટ નોટ્સ)" },
 
     // Inventory / Items
-    { id: "stock-summary", label: "Stock Summary", labelGu: "સ્ટોક સિલક રિપોર્ટ", icon: "📦" },
-    { id: "stock-movement", label: "Stock Movements", labelGu: "સ્ટોક હિલચાલ", icon: "🔄" },
-    { id: "item-batch-report", label: "Item Batch & Expiry", labelGu: "આઇટમ બેચ અને એક્સપાયરી", icon: "🏷️" },
-    { id: "low-stock-alert", label: "Low Stock Alert", labelGu: "ઓછા સ્ટોકની ચેતવણી", icon: "⚠️" },
+    { id: "stock-summary", label: "Stock Summary", labelGu: "સ્ટોક સિલક રિપોર્ટ" },
+    { id: "stock-movement", label: "Stock Movements", labelGu: "સ્ટોક હિલચાલ" },
+    { id: "item-batch-report", label: "Item Batch & Expiry", labelGu: "આઇટમ બેચ અને એક્સપાયરી" },
+    { id: "low-stock-alert", label: "Low Stock Alert", labelGu: "ઓછા સ્ટોકની ચેતવણી" },
 
     // Parties
-    { id: "party-ledger", label: "Party Statement (Khata)", labelGu: "પાર્ટી ખાતાવહી (લેજર)", icon: "📜" },
-    { id: "party-aging", label: "Receivables Aging", labelGu: "ઉઘરાણી મુદત વિશ્લેષણ", icon: "⏳" },
-    { id: "outstanding", label: "Outstanding Balances", labelGu: "બાકી સિલક (લેણાં-દેવાં)", icon: "⚖️" },
+    { id: "party-ledger", label: "Party Statement (Khata)", labelGu: "પાર્ટી ખાતાવહી (લેજર)" },
+    { id: "party-aging", label: "Receivables Aging", labelGu: "ઉઘરાણી મુદત વિશ્લેષણ" },
+    { id: "outstanding", label: "Outstanding Balances", labelGu: "બાકી સિલક (લેણાં-દેવાં)" },
 
     // Financial
-    { id: "profit-loss", label: "Profit & Loss", labelGu: "નફા-નુકસાન ખાતું", icon: "📈" },
-    { id: "balance-sheet", label: "Balance Sheet", labelGu: "પાકું સરવૈયું", icon: "🏛️" },
-    { id: "trial-balance", label: "Trial Balance", labelGu: "કાચું સરવૈયું", icon: "📊" },
-    { id: "cash-flow", label: "Cash Flow Statement", labelGu: "રોકડ પ્રવાહ પત્રક", icon: "💵" },
-    { id: "daybook", label: "Day Book (Rojmel)", labelGu: "રોજમેળ / આવડ", icon: "📖" },
-    { id: "receipt-payment", label: "Receipt / Payment", labelGu: "આવક / જાવક રજિસ્ટર", icon: "💳" },
-    { id: "expense-category", label: "Expense Category Report", labelGu: "ખર્ચ કેટેગરી પત્રક", icon: "💸" },
-    { id: "audit-trail", label: "Audit Trail", labelGu: "ઓડિટ ટ્રેઇલ & ક્રિયા લોગ", icon: "🔍" },
+    { id: "profit-loss", label: "Profit & Loss", labelGu: "નફા-નુકસાન ખાતું" },
+    { id: "balance-sheet", label: "Balance Sheet", labelGu: "પાકું સરવૈયું" },
+    { id: "trial-balance", label: "Trial Balance", labelGu: "કાચું સરવૈયું" },
+    { id: "cash-flow", label: "Cash Flow Statement", labelGu: "રોકડ પ્રવાહ પત્રક" },
+    { id: "daybook", label: "Day Book (Rojmel)", labelGu: "રોજમેળ / આવડ" },
+    { id: "receipt-payment", label: "Receipt / Payment", labelGu: "આવક / જાવક રજિસ્ટર" },
+    { id: "expense-category", label: "Expense Category Report", labelGu: "ખર્ચ કેટેગરી પત્રક" },
+    { id: "audit-trail", label: "Audit Trail", labelGu: "ઓડિટ ટ્રેઇલ & ક્રિયા લોગ" },
 
     // GST
-    { id: "gstr-1", label: "GSTR-1 Return Prep", labelGu: "જીએસટીઆર-૧ તૈયારી", icon: "🇮🇳" },
-    { id: "gstr-3b", label: "GSTR-3B Monthly Return", labelGu: "જીએસટીઆર-૩બી પત્રક", icon: "📋" },
-    { id: "gst-purchase-hsn", label: "GST Purchase (With HSN)", labelGu: "જીએસટી ખરીદી (HSN સાથે)", icon: "🛒" },
-    { id: "gst-sales-hsn", label: "GST Sales (With HSN)", labelGu: "જીએસટી વેચાણ (HSN સાથે)", icon: "📑" },
-    { id: "hsn-sales-summary", label: "HSN Wise Sales Summary", labelGu: "HSN વાઈઝ વેચાણ સારાંશ", icon: "🏷️" },
+    { id: "gstr-1", label: "GSTR-1 Return Prep", labelGu: "જીએસટીઆર-૧ તૈયારી" },
+    { id: "gstr-3b", label: "GSTR-3B Monthly Return", labelGu: "જીએસટીઆર-૩બી પત્રક" },
+    { id: "gst-purchase-hsn", label: "GST Purchase (With HSN)", labelGu: "જીએસટી ખરીદી (HSN સાથે)" },
+    { id: "gst-sales-hsn", label: "GST Sales (With HSN)", labelGu: "જીએસટી વેચાણ (HSN સાથે)" },
+    { id: "hsn-sales-summary", label: "HSN Wise Sales Summary", labelGu: "HSN વાઈઝ વેચાણ સારાંશ" },
   ];
 
   const currentTabMeta = tabs.find((t) => t.id === activeTab) || tabs[0];
@@ -799,15 +703,19 @@ export default function ReportsPage({
               <button
                 type="button"
                 onClick={() => toggleFavorite(activeTab)}
-                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium border transition-all cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-all cursor-pointer ${
                   favorites.includes(activeTab)
                     ? "bg-[#FFFBEB] border-amber-300 text-amber-800"
                     : "bg-white border-slate-300 text-slate-700 hover:bg-slate-50"
                 }`}
               >
-                <span className={favorites.includes(activeTab) ? "text-[#F59E0B]" : "text-slate-400"}>
-                  {favorites.includes(activeTab) ? "★" : "☆"}
-                </span>
+                <Star
+                  className={`w-3.5 h-3.5 ${
+                    favorites.includes(activeTab)
+                      ? "text-[#F59E0B] fill-amber-400"
+                      : "text-slate-400"
+                  }`}
+                />
                 <span>Favourite</span>
               </button>
             </div>
@@ -817,7 +725,7 @@ export default function ReportsPage({
           {activeTab === "balance-sheet" && (
             <div className="p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl text-amber-900 text-xs font-medium flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span>ℹ</span>
+                <Info className="w-3.5 h-3.5 text-amber-700 shrink-0" />
                 <span>Balance sheet figures come from the accounting report for the selected period. Missing sections stay at zero instead of sample amounts.</span>
               </div>
             </div>
@@ -872,16 +780,16 @@ export default function ReportsPage({
                   onChange={(e) => handleSelectDatePreset(e.target.value)}
                   className="px-3.5 py-1.5 text-[13px] bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:bg-white focus:outline-none cursor-pointer shadow-2xs hover:bg-[#F8FAFC] h-10"
                 >
-                  <option value="Today">📅 Today</option>
-                  <option value="Yesterday">📅 Yesterday</option>
-                  <option value="This Week">📅 This Week</option>
-                  <option value="This Month">📅 This Month</option>
-                  <option value="Last Month">📅 Last Month</option>
-                  <option value="Last 30 Days">📅 Last 30 Days</option>
-                  <option value="This Quarter">📅 This Quarter</option>
-                  <option value="This FY">📅 This FY</option>
-                  <option value="Last FY">📅 Last FY</option>
-                  <option value="Custom">📅 Custom Range</option>
+                  <option value="Today">Today</option>
+                  <option value="Yesterday">Yesterday</option>
+                  <option value="This Week">This Week</option>
+                  <option value="This Month">This Month</option>
+                  <option value="Last Month">Last Month</option>
+                  <option value="Last 30 Days">Last 30 Days</option>
+                  <option value="This Quarter">This Quarter</option>
+                  <option value="This FY">This FY</option>
+                  <option value="Last FY">Last FY</option>
+                  <option value="Custom">Custom Range</option>
                 </select>
 
                 {selectedDatePreset === "Custom" && (
@@ -916,17 +824,17 @@ export default function ReportsPage({
                     onChange={(e) => setFilterPartyQuery(e.target.value)}
                     className="w-full pl-7 pr-6 py-1.5 text-[13px] bg-white border border-[#CBD5E1] rounded-md focus:outline-none focus:ring-1 focus:ring-slate-400 placeholder:text-slate-400 text-slate-700 shadow-2xs h-10"
                   />
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none">
-                    🔍
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                    <Search className="w-3.5 h-3.5" />
                   </span>
                   {filterPartyQuery && (
                     <button
                       type="button"
                       onClick={() => setFilterPartyQuery("")}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-0.5"
                       title="Clear search"
                     >
-                      ✕
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
@@ -1032,39 +940,39 @@ export default function ReportsPage({
               <button
                 type="button"
                 onClick={() => setIsEmailModalOpen(true)}
-                className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] rounded-md shadow-2xs transition-colors flex items-center gap-2 cursor-pointer"
+                className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] rounded-md shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
               >
+                <Mail className="w-3.5 h-3.5 text-slate-500" />
                 <span>Email Excel</span>
-                <span className="text-slate-400 text-xs">✉</span>
               </button>
 
               {activeTab === "gstr-1" ? (
                 <button
                   type="button"
                   onClick={() => handleExportReport("json" as any)}
-                  className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] rounded-md shadow-2xs transition-colors flex items-center gap-2 cursor-pointer"
+                  className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] rounded-md shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
+                  <Download className="w-3.5 h-3.5 text-slate-500" />
                   <span>Download JSON</span>
-                  <span className="text-slate-400 text-xs">📥</span>
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={() => handleExportReport("xlsx")}
-                  className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] rounded-md shadow-2xs transition-colors flex items-center gap-2 cursor-pointer"
+                  className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] rounded-md shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
+                  <Download className="w-3.5 h-3.5 text-slate-500" />
                   <span>Download Excel</span>
-                  <span className="text-slate-400 text-[10px]">▼</span>
                 </button>
               )}
 
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] rounded-md shadow-2xs transition-colors flex items-center gap-2 cursor-pointer"
+                className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] rounded-md shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
               >
+                <Printer className="w-3.5 h-3.5 text-slate-500" />
                 <span className="hidden sm:inline">Print PDF</span>
-                <span className="text-slate-400 text-xs">🖨</span>
               </button>
             </div>
           </div>
@@ -1073,7 +981,7 @@ export default function ReportsPage({
           {isDateRangeInvalid && (
             <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <span>⚠️</span>
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
                 <span className="font-semibold">
                   {lang === "gu"
                     ? "શરૂઆતની તારીખ અંતિમ તારીખ પછીની ન હોઈ શકે. કૃપા કરીને યોગ્ય તારીખ પસંદ કરો."
@@ -1095,7 +1003,7 @@ export default function ReportsPage({
             {error && (
               <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                 <div className="flex items-center gap-2.5">
-                  <span className="text-base shrink-0">⚠️</span>
+                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
                   <span className="font-semibold leading-relaxed">{error}</span>
                 </div>
                 <button
@@ -1582,7 +1490,8 @@ export default function ReportsPage({
                           : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
                       }`}
                     >
-                      <span>📑 All Documents</span>
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>All Documents</span>
                       <span className={`px-1.5 py-0.2 rounded-full text-[10px] tabular-nums ${
                         salesReturnsSubTab === "all" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
                       }`}>
@@ -1599,7 +1508,8 @@ export default function ReportsPage({
                           : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
                       }`}
                     >
-                      <span>📦 Item-Wise</span>
+                      <Package className="w-3.5 h-3.5" />
+                      <span>Item-Wise</span>
                       <span className={`px-1.5 py-0.2 rounded-full text-[10px] tabular-nums ${
                         salesReturnsSubTab === "item-wise" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
                       }`}>
@@ -1616,7 +1526,8 @@ export default function ReportsPage({
                           : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
                       }`}
                     >
-                      <span>👥 Customer-Wise</span>
+                      <Users className="w-3.5 h-3.5" />
+                      <span>Customer-Wise</span>
                       <span className={`px-1.5 py-0.2 rounded-full text-[10px] tabular-nums ${
                         salesReturnsSubTab === "customer-wise" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
                       }`}>
@@ -1633,7 +1544,8 @@ export default function ReportsPage({
                           : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
                       }`}
                     >
-                      <span>🏷️ Reason-Wise</span>
+                      <Tag className="w-3.5 h-3.5" />
+                      <span>Reason-Wise</span>
                       <span className={`px-1.5 py-0.2 rounded-full text-[10px] tabular-nums ${
                         salesReturnsSubTab === "reason-wise" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
                       }`}>
@@ -1650,7 +1562,8 @@ export default function ReportsPage({
                           : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
                       }`}
                     >
-                      <span>🏬 Warehouse</span>
+                      <Warehouse className="w-3.5 h-3.5" />
+                      <span>Warehouse</span>
                       <span className={`px-1.5 py-0.2 rounded-full text-[10px] tabular-nums ${
                         salesReturnsSubTab === "warehouse-wise" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
                       }`}>
@@ -1667,7 +1580,8 @@ export default function ReportsPage({
                           : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
                       }`}
                     >
-                      <span>⚖️ GST Schedule</span>
+                      <Scale className="w-3.5 h-3.5" />
+                      <span>GST Schedule</span>
                     </button>
 
                     <button
@@ -1679,7 +1593,8 @@ export default function ReportsPage({
                           : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
                       }`}
                     >
-                      <span>💳 Credits & Refunds</span>
+                      <CreditCard className="w-3.5 h-3.5" />
+                      <span>Credits & Refunds</span>
                     </button>
                   </div>
                 </div>
@@ -3336,7 +3251,7 @@ export default function ReportsPage({
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 min-w-0">
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#64748B] font-semibold uppercase flex items-center gap-1.5">
-                      <span>🔄</span>
+                      <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
                       <span>Total Receivable</span>
                     </span>
                     <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">
@@ -3346,7 +3261,7 @@ export default function ReportsPage({
 
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-amber-600 font-semibold uppercase flex items-center gap-1.5">
-                      <span>⏳</span>
+                      <Clock className="w-3.5 h-3.5 text-amber-600" />
                       <span>Overdue Amount</span>
                     </span>
                     <p className="tabular-nums font-bold text-lg text-amber-700 mt-1">
@@ -3356,7 +3271,7 @@ export default function ReportsPage({
 
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#0047BA] font-semibold uppercase flex items-center gap-1.5">
-                      <span>📈</span>
+                      <TrendingUp className="w-3.5 h-3.5 text-[#0047BA]" />
                       <span>Total Sales</span>
                     </span>
                     <p className="tabular-nums font-bold text-lg text-[#0F172A] mt-1">
@@ -3366,7 +3281,7 @@ export default function ReportsPage({
 
                   <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs">
                     <span className="text-[11px] text-[#16834A] font-semibold uppercase flex items-center gap-1.5">
-                      <span>💳</span>
+                      <CreditCard className="w-3.5 h-3.5 text-[#16834A]" />
                       <span>Total Received</span>
                     </span>
                     <p className="tabular-nums font-bold text-lg text-[#16834A] mt-1">
@@ -3377,8 +3292,8 @@ export default function ReportsPage({
 
                 {!selectedPartyId ? (
                   <div className="py-24 text-center space-y-3 bg-white border border-[#E2E8F0] rounded-xl">
-                    <div className="w-14 h-14 mx-auto rounded-full bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-xl text-slate-400">
-                      🔍
+                    <div className="w-14 h-14 mx-auto rounded-full bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-slate-400">
+                      <Search className="w-6 h-6 text-slate-400" />
                     </div>
                     <p className="text-xs sm:text-sm font-semibold text-slate-500">
                       {lang === "gu" ? "રિપોર્ટ જોવા માટે પ્રથમ પાર્ટી પસંદ કરો" : "Select a Party first to see the reports"}
@@ -3920,7 +3835,7 @@ export default function ReportsPage({
                     {!isBalanced && differenceAmount > 0.01 && (
                       <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl text-amber-900 text-xs flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span>⚠️</span>
+                          <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
                           <span>
                             <strong>Unbalanced Books Notice:</strong> There is an accounting difference of ₹{differenceAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })} between Total Assets (₹{totalAssets.toLocaleString("en-IN", { minimumFractionDigits: 2 })}) and Total Liabilities & Equity (₹{totalLiabilitiesAndEquity.toLocaleString("en-IN", { minimumFractionDigits: 2 })}). This difference originates from unbalanced opening balances in the General Ledger.
                           </span>
@@ -4893,13 +4808,14 @@ export default function ReportsPage({
                         setGstr1SubTab("sales");
                         setGstr1Page(1);
                       }}
-                      className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
+                      className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                         gstr1SubTab === "sales"
                           ? "bg-[#0047BA] text-white shadow-xs"
                           : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
                       }`}
                     >
-                      <span>📑 {lang === "gu" ? "વેચાણ" : "Sales"}</span>
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>{lang === "gu" ? "વેચાણ" : "Sales"}</span>
                       <span className={`px-1.5 py-0.2 rounded-full text-[10px] tabular-nums ${
                         gstr1SubTab === "sales" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
                       }`}>
@@ -5385,7 +5301,7 @@ export default function ReportsPage({
 
                 {/* 4. Statutory Verification Notice (matching screenshot) */}
                 <div className="p-3.5 bg-slate-50 border border-[#E2E8F0] rounded-xl text-xs text-[#475569] flex items-start sm:items-center gap-2.5">
-                  <span className="text-base shrink-0">ℹ️</span>
+                  <Info className="w-4 h-4 text-slate-500 shrink-0 mt-0.5 sm:mt-0" />
                   <p className="leading-relaxed">
                     {lang === "gu"
                       ? "IRP/પોર્ટલ પર પુશ થયેલ ઇનવોઇસ સરકારી જીએસટી પોર્ટલ પર આપમેળે દેખાશે. તેમ છતાં, કોઈપણ ક્ષતિ નિવારવા માટે ફાઇલિંગ વખતે કરદાતાએ તમામ ડેટાની યોગ્ય ચકાસણી કરવી જોઈએ."

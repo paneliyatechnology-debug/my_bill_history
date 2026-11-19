@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
 import { automatedBillingApi, formatCurrency } from "@/lib/automated-billing";
+import { X } from "lucide-react";
 
 interface MasterParty {
   id: string;
@@ -642,9 +643,9 @@ export default function CreateAutomatedBillingPage() {
                           <button
                             type="button"
                             onClick={() => handleRemoveLine(index)}
-                            className="text-gray-400 hover:text-rose-600 transition"
+                            className="text-gray-400 hover:text-rose-600 transition inline-flex items-center justify-center"
                           >
-                            ✕
+                            <X className="w-3.5 h-3.5" />
                           </button>
                         )}
                       </td>

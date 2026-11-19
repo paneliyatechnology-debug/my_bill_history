@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Camera, ArrowRight } from "lucide-react";
 
 export interface DashboardScannerCardProps {
   onOpenScanner: () => void;
@@ -57,7 +58,7 @@ export function DashboardScannerCard({
         {/* Right: Copy & Scan Action Button */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-1">
-            <span className="text-sm">📷</span>
+            <Camera className="w-4 h-4 text-emerald-600 shrink-0" />
             <h4 className="text-xs sm:text-sm font-semibold text-[#10233F] tracking-tight truncate">
               {lang === "gu" ? "AI બિલ સ્કેનર" : "AI Vendor Bill Scanner"}
             </h4>
@@ -72,7 +73,7 @@ export function DashboardScannerCard({
           <div className="mt-3">
             <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#1677E8] hover:bg-[#1268D3] text-white text-[11px] font-bold shadow-2xs group-hover:scale-105 transition-all">
               <span>{lang === "gu" ? "દસ્તાવેજ સ્કેન કરો" : "Scan Document"}</span>
-              <span>→</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </span>
           </div>
         </div>

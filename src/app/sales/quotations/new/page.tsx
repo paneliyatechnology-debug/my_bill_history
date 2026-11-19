@@ -17,6 +17,7 @@ import {
 } from "@/components/invoice/quick-settings-modal";
 import { ShortcutsModal } from "@/components/invoice/shortcuts-modal";
 import { SignatureModal } from "@/components/invoice/signature-modal";
+import { Check, AlertTriangle, X, Printer, Package } from "lucide-react";
 import {
   InvoiceCustomization,
   loadInvoiceCustomization,
@@ -680,7 +681,9 @@ const [notes, setNotes] = useState("");
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-[#0F172A] text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-fade-in text-xs font-semibold border border-[#93C5FD]/40">
-          <span className="w-4 h-4 rounded-full bg-emerald-400 text-[#0F172A] flex items-center justify-center text-[10px] font-semibold">✓</span>
+          <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+          </span>
           <span>{toastMessage}</span>
         </div>
       )}
@@ -698,14 +701,15 @@ const [notes, setNotes] = useState("");
         {error && (
           <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs font-semibold text-rose-800 flex items-center justify-between shadow-xs">
             <div className="flex items-center gap-2">
-              <span className="text-base">⚠️</span>
+              <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
               <span>{error}</span>
             </div>
             <button
               onClick={() => setError(null)}
-              className="text-rose-500 hover:text-rose-800 font-bold p-1 cursor-pointer"
+              className="text-rose-500 hover:text-rose-800 p-0.5 cursor-pointer"
+              title="Dismiss error"
             >
-              ✕
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
@@ -746,7 +750,8 @@ const [notes, setNotes] = useState("");
                   onClick={() => window.print()}
                   className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
-                  <span>🖨️ {lang === "gu" ? "પ્રિન્ટ" : "Print Quotation"}</span>
+                  <Printer className="w-4 h-4" />
+                  <span>{lang === "gu" ? "પ્રિન્ટ" : "Print Quotation"}</span>
                 </button>
               </div>
             </div>
@@ -943,7 +948,7 @@ const [notes, setNotes] = useState("");
                         <tr>
                           <td colSpan={9} className="py-12 text-center text-slate-400">
                             <div className="max-w-xs mx-auto space-y-2">
-                              <span className="text-2xl">📦</span>
+                              <Package className="w-8 h-8 text-slate-300 mx-auto" />
                               <p className="font-bold text-slate-700">No items added yet</p>
                               <p className="text-[11px] text-slate-400">Add an item from catalog or enter details below</p>
                               <button
@@ -1278,7 +1283,7 @@ const [notes, setNotes] = useState("");
                 onClick={() => setIsCreatePartyModalOpen(false)}
                 className="text-slate-400 hover:text-slate-600 text-sm"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

@@ -7,6 +7,7 @@ import { apiClient, extractList } from "@/lib/api-client";
 import { Modal } from "@/components/ui/modal";
 import { StatusBadge } from "@/components/ui/badge";
 import { DataTable, ColumnDef } from "@/components/ui/data-table";
+import { Check, Zap, AlertCircle, Banknote, Landmark, FileText, FolderTree, Receipt, TrendingUp, Users, Search } from "lucide-react";
 
 interface LedgerAccount {
   id: string;
@@ -391,7 +392,7 @@ export default function FinanceLedgersPage() {
       {/* Toast */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 animate-fade-in text-xs font-semibold">
-          <span>✓</span>
+          <Check className="w-4 h-4 text-white" />
           <span>{toastMessage}</span>
         </div>
       )}
@@ -425,9 +426,10 @@ export default function FinanceLedgersPage() {
             <button
               onClick={handleSeedCOA}
               disabled={isSeeding}
-              className="h-9 px-3.5 text-[13px] font-medium text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition-all flex items-center gap-1.5"
+              className="h-9 px-3.5 text-[13px] font-medium text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              {isSeeding ? "Seeding..." : "⚡ Seed Standard Chart of Accounts"}
+              <Zap className="w-3.5 h-3.5 text-amber-700" />
+              <span>{isSeeding ? "Seeding..." : "Seed Standard Chart of Accounts"}</span>
             </button>
           )}
 
@@ -444,7 +446,7 @@ export default function FinanceLedgersPage() {
               setFormError(null);
               setIsCreateModalOpen(true);
             }}
-            className="h-9 px-3.5 text-[13px] font-medium text-white bg-primary hover:bg-primary-hover active:bg-primary-pressed rounded-xl shadow-card hover:shadow-hover transition-all flex items-center gap-2"
+            className="h-9 px-3.5 text-[13px] font-medium text-white bg-primary hover:bg-primary-hover active:bg-primary-pressed rounded-xl shadow-card hover:shadow-hover transition-all flex items-center gap-2 cursor-pointer"
           >
             <span>+</span>
             <span>{lang === "gu" ? "નવું ખાતું બનાવો" : "Create New Ledger"}</span>
@@ -454,7 +456,7 @@ export default function FinanceLedgersPage() {
 
       {error && (
         <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-semibold flex items-center gap-2">
-          <span>⚠️</span>
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
           <span>{error}</span>
         </div>
       )}
@@ -464,7 +466,9 @@ export default function FinanceLedgersPage() {
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-subtle">
           <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
             <span>{lang === "gu" ? "કુલ રોકડ સિલક" : "Cash in Hand"}</span>
-            <span className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg text-sm">💵</span>
+            <span className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg">
+              <Banknote className="w-4 h-4 text-emerald-600" />
+            </span>
           </div>
           <div className="text-2xl font-bold text-slate-900 tabular-nums">
             ₹{kpis.cashTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
@@ -477,7 +481,9 @@ export default function FinanceLedgersPage() {
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-subtle">
           <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
             <span>{lang === "gu" ? "કુલ બેંક સિલક" : "Total Bank Balances"}</span>
-            <span className="p-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm">🏦</span>
+            <span className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
+              <Landmark className="w-4 h-4 text-blue-600" />
+            </span>
           </div>
           <div className="text-2xl font-bold text-slate-900 tabular-nums">
             ₹{kpis.bankTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
@@ -490,7 +496,9 @@ export default function FinanceLedgersPage() {
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-subtle">
           <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
             <span>{lang === "gu" ? "કુલ સક્રિય ખાતાઓ" : "Active Ledgers"}</span>
-            <span className="p-1.5 bg-violet-50 text-violet-600 rounded-lg text-sm">📑</span>
+            <span className="p-1.5 bg-violet-50 text-violet-600 rounded-lg">
+              <FileText className="w-4 h-4 text-violet-600" />
+            </span>
           </div>
           <div className="text-2xl font-bold text-slate-900 tabular-nums">
             {kpis.activeCount} <span className="text-sm font-normal text-slate-400">/ {kpis.totalCount}</span>
@@ -503,7 +511,9 @@ export default function FinanceLedgersPage() {
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-subtle">
           <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
             <span>{lang === "gu" ? "ખાતાવહી ગ્રૂપ્સ" : "Chart of Accounts Groups"}</span>
-            <span className="p-1.5 bg-amber-50 text-amber-600 rounded-lg text-sm">📂</span>
+            <span className="p-1.5 bg-amber-50 text-amber-600 rounded-lg">
+              <FolderTree className="w-4 h-4 text-amber-600" />
+            </span>
           </div>
           <div className="text-2xl font-bold text-slate-900 tabular-nums">
             {groups.length}
@@ -520,7 +530,7 @@ export default function FinanceLedgersPage() {
         <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
           <button
             onClick={() => setActiveTab("ALL")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === "ALL" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
             }`}
           >
@@ -528,43 +538,48 @@ export default function FinanceLedgersPage() {
           </button>
           <button
             onClick={() => setActiveTab("BANK")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === "BANK" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            🏦 {lang === "gu" ? "બેંક ખાતા" : "Banks"}
+            <Landmark className="w-3.5 h-3.5 text-blue-600" />
+            <span>{lang === "gu" ? "બેંક ખાતા" : "Banks"}</span>
           </button>
           <button
             onClick={() => setActiveTab("CASH")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === "CASH" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            💵 {lang === "gu" ? "રોકડ ખાતા" : "Cash"}
+            <Banknote className="w-3.5 h-3.5 text-emerald-600" />
+            <span>{lang === "gu" ? "રોકડ ખાતા" : "Cash"}</span>
           </button>
           <button
             onClick={() => setActiveTab("EXPENSE")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === "EXPENSE" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            📋 {lang === "gu" ? "ખર્ચાઓ" : "Expenses"}
+            <Receipt className="w-3.5 h-3.5 text-rose-600" />
+            <span>{lang === "gu" ? "ખર્ચાઓ" : "Expenses"}</span>
           </button>
           <button
             onClick={() => setActiveTab("INCOME")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === "INCOME" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            📈 {lang === "gu" ? "આવક / વેચાણ" : "Income"}
+            <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
+            <span>{lang === "gu" ? "આવક / વેચાણ" : "Income"}</span>
           </button>
           <button
             onClick={() => setActiveTab("CUSTOMERS_SUPPLIERS")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === "CUSTOMERS_SUPPLIERS" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            👥 {lang === "gu" ? "ગ્રાહક / સપ્લાયર" : "Parties"}
+            <Users className="w-3.5 h-3.5 text-violet-600" />
+            <span>{lang === "gu" ? "ગ્રાહક / સપ્લાયર" : "Parties"}</span>
           </button>
         </div>
 
@@ -572,7 +587,7 @@ export default function FinanceLedgersPage() {
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative min-w-[220px]">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
-              🔍
+              <Search className="w-4 h-4 text-slate-400" />
             </span>
             <input
               type="text"
@@ -626,7 +641,7 @@ export default function FinanceLedgersPage() {
         <form onSubmit={handleCreateLedger} className="space-y-4">
           {formError && (
             <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-semibold flex items-center gap-2">
-              <span>⚠️</span>
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
               <span>{formError}</span>
             </div>
           )}
@@ -759,7 +774,7 @@ export default function FinanceLedgersPage() {
           <form onSubmit={handleUpdateLedger} className="space-y-4">
             {editError && (
               <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-semibold flex items-center gap-2">
-                <span>⚠️</span>
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
                 <span>{editError}</span>
               </div>
             )}

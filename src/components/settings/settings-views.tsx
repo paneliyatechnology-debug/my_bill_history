@@ -21,6 +21,25 @@ import {
   generateUpiQrDataUrl,
 } from "../../lib/thermal-printer";
 import JsBarcode from "jsbarcode";
+import {
+  X,
+  Check,
+  CheckCheck,
+  Lightbulb,
+  Zap,
+  Cloud,
+  Printer,
+  Smartphone,
+  Tag,
+  Scissors,
+  Lock,
+  Sparkles,
+  MessageSquare,
+  BarChart3,
+  FileText,
+  Folder,
+  Phone,
+} from "lucide-react";
 
 export interface SettingsViewProps {
   tab: string;
@@ -332,7 +351,9 @@ function AccountSettingsView() {
       {saveBanner && (
         <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold flex items-center justify-between shadow-2xs animate-in fade-in duration-150">
           <span>{saveBanner}</span>
-          <button type="button" onClick={() => setSaveBanner(null)} className="text-emerald-700 hover:text-emerald-900 font-bold ml-2">✕</button>
+          <button type="button" onClick={() => setSaveBanner(null)} className="text-emerald-700 hover:text-emerald-900 p-0.5 ml-2">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -758,13 +779,17 @@ function AccountSettingsView() {
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">✓</span>
+                <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">
+                  <Check className="w-4 h-4 text-emerald-700" />
+                </span>
                 <div>
                   <h3 className="text-[15px] font-semibold text-slate-900">Tax Invoice / Receipt</h3>
                   <p className="text-[11px] text-slate-500 tabular-nums">{selectedReceipt.referenceNo}</p>
                 </div>
               </div>
-              <button onClick={() => setSelectedReceipt(null)} className="text-slate-400 hover:text-slate-700 p-1">✕</button>
+              <button onClick={() => setSelectedReceipt(null)} className="text-slate-400 hover:text-slate-700 p-1">
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
             {/* Printable Area */}
@@ -889,7 +914,9 @@ function AccountSettingsView() {
           <div className="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <h3 className="text-[15px] font-semibold text-slate-900 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-lg bg-[#EFF6FF] text-[#1677E8] flex items-center justify-center text-xs">💡</span>
+                <span className="w-6 h-6 rounded-lg bg-[#EFF6FF] text-[#1677E8] flex items-center justify-center text-xs">
+                  <Lightbulb className="w-3.5 h-3.5" />
+                </span>
                 {lang === "gu" ? "તમારું સૂચન શેર કરો" : "Share Your Suggestion"}
               </h3>
               <button
@@ -897,13 +924,14 @@ function AccountSettingsView() {
                 onClick={() => setShowShareSuggestion(false)}
                 className="text-slate-400 hover:text-slate-600 p-1"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {suggestionSuccess ? (
-              <div className="py-6 text-center text-emerald-600 font-bold text-sm">
-                ✓ Thank you! Your suggestion has been shared with the myBillBook product team.
+              <div className="py-6 text-center text-emerald-600 font-bold text-sm flex items-center justify-center gap-1.5">
+                <Check className="w-4 h-4 text-emerald-600" />
+                <span>Thank you! Your suggestion has been shared with the myBillBook product team.</span>
               </div>
             ) : (
               <form onSubmit={handleSendSuggestion} className="space-y-3">
@@ -962,10 +990,12 @@ function AccountSettingsView() {
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <h3 className="text-[15px] font-semibold text-slate-900 flex items-center gap-2">
-                <span className="text-[#1677E8]">⚡</span>
+                <Zap className="w-4 h-4 text-[#1677E8]" />
                 {lang === "gu" ? "સબ્સ્ક્રિપ્શન પ્લાન રિન્યૂ / અપગ્રેડ કરો" : "Renew / Upgrade Subscription"}
               </h3>
-              <button onClick={() => setShowUpgradeModal(false)} className="text-slate-400 hover:text-slate-600 p-1">✕</button>
+              <button onClick={() => setShowUpgradeModal(false)} className="text-slate-400 hover:text-slate-600 p-1">
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
             <p className="text-xs text-slate-600">
@@ -1444,7 +1474,7 @@ function ManageBusinessSettingsView() {
                 <img src={logoPreview} alt="Logo" className="w-full h-full object-contain bg-white" />
               ) : (
                 <>
-                  <span className="text-[22px] text-slate-400">☁</span>
+                  <Cloud className="w-6 h-6 text-slate-400" />
                   <span className="text-[11px] font-semibold text-slate-600 mt-1">Upload Logo</span>
                   <span className="text-[10px] text-slate-400 px-2">PNG/JPG, max 5 MB</span>
                 </>
@@ -2227,8 +2257,9 @@ function PrintSettingsView() {
 
         <div className="flex items-center gap-2 flex-wrap">
           {savedBanner && (
-            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl animate-fade-in">
-              ✓ {lang === "gu" ? "સેટિંગ્સ સચવાયા!" : "Settings Saved!"}
+            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl animate-fade-in flex items-center gap-1">
+              <Check className="w-3.5 h-3.5" />
+              <span>{lang === "gu" ? "સેટિંગ્સ સચવાયા!" : "Settings Saved!"}</span>
             </span>
           )}
 
@@ -2247,7 +2278,7 @@ function PrintSettingsView() {
                 className="h-9 px-4 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
                 title="Print test slip on connected POS printer (USB / Bluetooth / Network)"
               >
-                <span>🖨️</span>
+                <Printer className="w-3.5 h-3.5" />
                 <span>{isPrinting ? "Printing..." : "Print Test Slip"}</span>
               </button>
 
@@ -2259,7 +2290,7 @@ function PrintSettingsView() {
                   className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[13px] font-medium rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
                   title="Direct print to Bluetooth 58mm/80mm POS slip printer"
                 >
-                  <span>📱</span>
+                  <Smartphone className="w-3.5 h-3.5" />
                   <span>{isBluetoothPrinting ? "Connecting..." : "Bluetooth POS"}</span>
                 </button>
                 <button
@@ -2281,7 +2312,7 @@ function PrintSettingsView() {
               className="h-9 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[13px] font-medium rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
               title="Print test barcode sticker label"
             >
-              <span>🏷️</span>
+              <Tag className="w-3.5 h-3.5" />
               <span>Print Test Sticker</span>
             </button>
           )}
@@ -2541,8 +2572,9 @@ function PrintSettingsView() {
 
               {/* Tear-off / Cutter space indicator */}
               <div className="pt-3 text-center border-t border-dotted border-slate-400 mt-2">
-                <span className="text-[7.5px] text-slate-400 uppercase tracking-widest">
-                  ✂️ Tear / Auto-Cutter Line
+                <span className="text-[7.5px] text-slate-400 uppercase tracking-widest flex items-center justify-center gap-1">
+                  <Scissors className="w-3 h-3" />
+                  <span>Tear / Auto-Cutter Line</span>
                 </span>
               </div>
             </div>
@@ -2664,7 +2696,7 @@ function PrintSettingsView() {
                   >
                     <div className="flex items-start justify-between">
                       <div className="w-7 h-7 rounded-lg bg-blue-100/70 text-[#1677E8] flex items-center justify-center text-sm">
-                        📱
+                        <Smartphone className="w-4 h-4" />
                       </div>
                       <span
                         className={`w-4 h-4 rounded-full border flex items-center justify-center ${
@@ -2694,7 +2726,7 @@ function PrintSettingsView() {
                   >
                     <div className="flex items-start justify-between">
                       <div className="w-7 h-7 rounded-lg bg-blue-100/70 text-[#1677E8] flex items-center justify-center text-sm">
-                        🖨️
+                        <Printer className="w-4 h-4" />
                       </div>
                       <span
                         className={`w-4 h-4 rounded-full border flex items-center justify-center ${
@@ -3224,9 +3256,10 @@ function PrintSettingsView() {
                         onClick={() =>
                           setBarcodeValue(`890${Math.floor(100000000 + Math.random() * 900000000)}`)
                         }
-                        className="text-[10px] text-[#1677E8] font-bold hover:underline cursor-pointer"
+                        className="text-[10px] text-[#1677E8] font-bold hover:underline cursor-pointer flex items-center gap-1"
                       >
-                        ⚡ Generate Code
+                        <Zap className="w-3 h-3 text-amber-500" />
+                        <span>Generate Code</span>
                       </button>
                     </div>
                     <input
@@ -3269,7 +3302,7 @@ function PrintSettingsView() {
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <span className="text-xl">📱</span>
+                <Smartphone className="w-5 h-5 text-slate-700" />
                 <div>
                   <h3 className="text-base font-bold text-slate-900">
                     How to Enable Bluetooth in Chrome on Mobile
@@ -3284,12 +3317,15 @@ function PrintSettingsView() {
                 onClick={() => setShowBluetoothHelp(false)}
                 className="text-slate-400 hover:text-slate-700 font-bold p-1"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 leading-relaxed">
-              <p className="font-bold mb-1">🔒 Google Chrome Security Rule:</p>
+              <p className="font-bold mb-1 flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5 text-amber-800" />
+                <span>Google Chrome Security Rule:</span>
+              </p>
               <p>
                 Chrome blocks device hardware access (Bluetooth / Camera) when opening an IP address like{" "}
                 <code className="bg-amber-100 px-1 py-0.5 rounded font-mono text-[11px]">
@@ -3360,7 +3396,10 @@ function PrintSettingsView() {
               </div>
 
               <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 mt-2">
-                <p className="font-bold">✨ Production Live Note:</p>
+                <p className="font-bold flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>Production Live Note:</span>
+                </p>
                 <p className="text-slate-600 text-[11px] mt-0.5">
                   When deployed on your live domain with SSL (e.g. <b>https://myownbillbook.com</b>), Web Bluetooth works automatically for every phone, tablet, and Sunmi machine without touching any flags!
                 </p>
@@ -3458,7 +3497,7 @@ function RemindersView() {
 
       {saved && (
         <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold flex items-center gap-2">
-          <span>✓</span>
+          <Check className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{lang === "gu" ? "પેમેન્ટ રિમાઇન્ડર શિડ્યુલ અને ટેમ્પલેટ સાચવાયા!" : "Payment reminder schedules & WhatsApp template saved successfully!"}</span>
         </div>
       )}
@@ -3469,7 +3508,9 @@ function RemindersView() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 cursor-pointer">
             <div className="flex items-center gap-2.5">
-              <span className="text-xl">💬</span>
+              <span className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <MessageSquare className="w-4 h-4" />
+              </span>
               <div>
                 <p className="text-xs font-bold text-slate-900">WhatsApp Reminders</p>
                 <p className="text-[11px] text-slate-500">Highest open rate (98%) with 1-click UPI payment button</p>
@@ -3484,7 +3525,9 @@ function RemindersView() {
           </label>
           <label className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 cursor-pointer">
             <div className="flex items-center gap-2.5">
-              <span className="text-xl">📱</span>
+              <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                <Smartphone className="w-4 h-4" />
+              </span>
               <div>
                 <p className="text-xs font-bold text-slate-900">SMS Alerts</p>
                 <p className="text-[11px] text-slate-500">Instant DLT-approved SMS to customer phone</p>
@@ -3551,8 +3594,8 @@ function RemindersView() {
                   <span className="text-[9px] text-slate-400">10:00 AM</span>
                 </div>
                 <p className="text-xs text-slate-800 leading-relaxed whitespace-pre-wrap">{previewMessage}</p>
-                <div className="flex justify-end gap-1 text-[10px] text-slate-400">
-                  <span>✓✓</span>
+                <div className="flex justify-end gap-1 text-[10px] text-blue-500">
+                  <CheckCheck className="w-3.5 h-3.5" />
                 </div>
               </div>
             </div>
@@ -3695,7 +3738,10 @@ function CaSharingView() {
         </form>
 
         {invited && !inviteError && (
-          <p className="text-xs text-emerald-700 font-semibold">✓ Audit portal invitation sent to your CA.</p>
+          <p className="text-xs text-emerald-700 font-semibold flex items-center gap-1.5">
+            <Check className="w-3.5 h-3.5" />
+            <span>Audit portal invitation sent to your CA.</span>
+          </p>
         )}
         {inviteError && (
           <p className="text-xs text-amber-800 font-semibold">{inviteError}</p>
@@ -3707,7 +3753,9 @@ function CaSharingView() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between gap-3">
             <div>
-              <span className="text-xl">📊</span>
+              <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#1677E8] flex items-center justify-center mb-1">
+                <BarChart3 className="w-4 h-4" />
+              </div>
               <p className="text-xs font-bold text-slate-900 mt-1">GSTR-1 JSON Package</p>
               <p className="text-[11px] text-slate-500 mt-0.5">B2B, B2C, HSN summary ready for official GST portal offline upload</p>
             </div>
@@ -3722,7 +3770,9 @@ function CaSharingView() {
 
           <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between gap-3">
             <div>
-              <span className="text-xl">📑</span>
+              <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#1677E8] flex items-center justify-center mb-1">
+                <FileText className="w-4 h-4" />
+              </div>
               <p className="text-xs font-bold text-slate-900 mt-1">GSTR-3B Tax Summary</p>
               <p className="text-[11px] text-slate-500 mt-0.5">Section 3.1 outward liability & eligible ITC summary CSV</p>
             </div>
@@ -3737,7 +3787,9 @@ function CaSharingView() {
 
           <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between gap-3">
             <div>
-              <span className="text-xl">📁</span>
+              <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#1677E8] flex items-center justify-center mb-1">
+                <Folder className="w-4 h-4" />
+              </div>
               <p className="text-xs font-bold text-slate-900 mt-1">Complete Trial Balance</p>
               <p className="text-[11px] text-slate-500 mt-0.5">Opening balance, debit/credit totals & closing balances for all heads</p>
             </div>
@@ -3873,7 +3925,7 @@ function PricingSettingsView() {
 
       {upgradedSuccess && (
         <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold flex items-center gap-2">
-          <span>✓</span>
+          <Check className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>Subscription plan upgraded successfully! Your entitlements have been renewed.</span>
         </div>
       )}
@@ -3904,7 +3956,7 @@ function PricingSettingsView() {
                 <ul className="space-y-1.5 pt-2 border-t border-slate-100 text-xs text-slate-600">
                   {p.features.map((f) => (
                     <li key={f} className="flex items-center gap-2">
-                      <span className="text-emerald-600 font-bold">✓</span>
+                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                       <span>{f}</span>
                     </li>
                   ))}
@@ -3933,7 +3985,9 @@ function PricingSettingsView() {
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <h3 className="text-[15px] font-semibold text-slate-900">Checkout: {selectedPlan} Plan</h3>
-              <button onClick={() => setSelectedPlan(null)} className="text-slate-400 hover:text-slate-700 p-1">✕</button>
+              <button onClick={() => setSelectedPlan(null)} className="text-slate-400 hover:text-slate-700 p-1">
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
             <div className="space-y-2.5 text-xs">
@@ -3986,7 +4040,12 @@ function PricingSettingsView() {
                   Apply
                 </button>
               </div>
-              {discountApplied && <p className="text-[11px] text-emerald-600 mt-1 font-semibold">✓ Coupon applied successfully!</p>}
+              {discountApplied && (
+                <p className="text-[11px] text-emerald-600 mt-1 font-semibold flex items-center gap-1">
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Coupon applied successfully!</span>
+                </p>
+              )}
             </div>
 
             <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
@@ -4044,9 +4103,16 @@ function ReferEarnView() {
             <button
               type="button"
               onClick={copyCode}
-              className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl transition-all shadow-xs cursor-pointer"
+              className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
             >
-              {copied ? "Copied! ✓" : "Copy Link"}
+              {copied ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-white" />
+                  <span>Copied!</span>
+                </>
+              ) : (
+                <span>Copy Link</span>
+              )}
             </button>
           </div>
         </div>
@@ -4164,7 +4230,9 @@ function HelpSupportView() {
           rel="noopener noreferrer"
           className="p-5 rounded-2xl border border-emerald-200 bg-emerald-50/60 hover:bg-emerald-100/70 transition-colors flex items-center gap-3.5"
         >
-          <div className="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg">WA</div>
+          <div className="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-sm">
+            <MessageSquare className="w-6 h-6" />
+          </div>
           <div>
             <p className="text-sm font-bold text-slate-900">WhatsApp Live Support</p>
             <p className="text-xs text-slate-600 mt-0.5">Instant chat with support engineer (9 AM - 9 PM)</p>
@@ -4175,7 +4243,9 @@ function HelpSupportView() {
           href="tel:08035002000"
           className="p-5 rounded-2xl border border-blue-200 bg-blue-50/60 hover:bg-blue-100/70 transition-colors flex items-center gap-3.5"
         >
-          <div className="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg">📞</div>
+          <div className="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
+            <Phone className="w-5 h-5" />
+          </div>
           <div>
             <p className="text-sm font-bold text-slate-900">Helpline: 080-3500-2000</p>
             <p className="text-xs text-slate-600 mt-0.5">Direct phone assistance for billing & GST issues</p>
@@ -4187,8 +4257,9 @@ function HelpSupportView() {
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs space-y-3">
         <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Request an Immediate Callback</h2>
         {callbackDone ? (
-          <p className="text-xs text-emerald-700 font-bold p-3 bg-emerald-50 rounded-xl">
-            ✓ Confirmation emailed. Our representative will call the number you entered.
+          <p className="text-xs text-emerald-700 font-bold p-3 bg-emerald-50 rounded-xl flex items-center gap-1.5">
+            <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Confirmation emailed. Our representative will call the number you entered.</span>
           </p>
         ) : (
           <form onSubmit={handleCallback} className="flex flex-col sm:flex-row gap-3 max-w-lg">

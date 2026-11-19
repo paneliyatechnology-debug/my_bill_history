@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { X } from "lucide-react";
 
 export interface FilterToolbarProps {
   searchQuery: string;
@@ -62,10 +63,10 @@ export function FilterToolbar({
           {searchQuery && (
             <button
               onClick={() => onSearchChange("")}
-              className="absolute right-2.5 top-2.5 text-xs text-slate-400 hover:text-slate-700"
+              className="absolute right-2.5 top-3 text-slate-400 hover:text-slate-700"
               title="Clear search"
             >
-              ✕
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>

@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/auth-context";
 import { einvoiceApi } from "@/lib/einvoice";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { X } from "lucide-react";
 
 export default function EInvoiceReconciliationPage() {
   const { tenantContext, lang } = useAuth();
@@ -85,6 +87,18 @@ export default function EInvoiceReconciliationPage() {
     return true;
   });
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [outcomeFilter, search]);
+
+  const paginatedLogs = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredLogs.slice(start, start + pageSize);
+  }, [filteredLogs, currentPage, pageSize]);
+
   const metrics = {
     total: logs.length,
     succeeded: logs.filter((l) => l.outcome === "SUCCEEDED").length,
@@ -106,8 +120,8 @@ export default function EInvoiceReconciliationPage() {
           }`}
         >
           <span>{actionMessage.text}</span>
-          <button onClick={() => setActionMessage(null)} className="font-bold text-slate-400 hover:text-slate-700">
-            ✕
+          <button onClick={() => setActionMessage(null)} className="p-0.5 text-slate-400 hover:text-slate-700 cursor-pointer">
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -244,7 +258,7 @@ export default function EInvoiceReconciliationPage() {
                   </td>
                 </tr>
               ) : (
-                filteredLogs.map((log) => {
+                paginatedLogs.map((log) => {
                   const isSuccess = log.outcome === "SUCCEEDED";
                   const isFail = log.outcome === "FAILED" || log.outcome === "VALIDATION_FAILED";
                   const isUncertain = log.outcome === "UNKNOWN" || log.outcome === "PENDING";
@@ -324,6 +338,19 @@ export default function EInvoiceReconciliationPage() {
               )}
             </tbody>
           </table>
+        </div>
+        <div className="bg-white border-t border-slate-200 px-3.5 sm:px-4 py-1">
+          <DataTablePagination
+            currentPage={currentPage}
+            pageSize={pageSize}
+            totalRecords={filteredLogs.length}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(newSize) => {
+              setPageSize(newSize);
+              setCurrentPage(1);
+            }}
+            lang={lang}
+          />
         </div>
       </div>
     </div>

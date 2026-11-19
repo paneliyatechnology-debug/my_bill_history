@@ -18,6 +18,8 @@ import { ImportWizardModal } from "../../components/imports/import-wizard-modal"
 import { ImportModuleType } from "@billing/shared-types";
 import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/scorecard-ribbon";
 import { formatInr } from "@/components/design-system/tokens";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { Check, X, Camera, Phone } from "lucide-react";
 
 interface PurchaseInvoice {
   id: string;
@@ -157,12 +159,14 @@ export default function PurchasesPage() {
   // Tabs: "ALL" | "INCOMPLETE_SCANS"
   const [activeTab, setActiveTab] = useState<"ALL" | "INCOMPLETE_SCANS">("ALL");
 
-  // Filters
+  // Filters & Pagination
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "PAID" | "UNPAID">("ALL");
   const [dateRangePreset, setDateRangePreset] = useState<DateRangePreset>("LAST_365_DAYS");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
   // Dropdowns & Modals
   const [activeActionMenuId, setActiveActionMenuId] = useState<string | null>(null);
@@ -396,6 +400,17 @@ export default function PurchasesPage() {
 
     return result;
   }, [dateFilteredInvoices, statusFilter, searchQuery]);
+
+  // Reset page when filter criteria changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, dateRangePreset, customStartDate, customEndDate]);
+
+  // Paginated Invoices slice for standard table view
+  const paginatedInvoices = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredInvoices.slice(start, start + pageSize);
+  }, [filteredInvoices, currentPage, pageSize]);
 
   // Duplicate Bill
   const handleDuplicatePurchase = async (inv: PurchaseInvoice) => {
@@ -777,11 +792,11 @@ export default function PurchasesPage() {
       {successBanner && (
         <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex items-center justify-between text-xs font-medium shadow-xs">
           <div className="flex items-center gap-2">
-            <span>✓</span>
+            <Check className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{successBanner}</span>
           </div>
-          <button onClick={() => setSuccessBanner(null)} className="text-emerald-700 font-bold hover:underline cursor-pointer">
-            ✕
+          <button onClick={() => setSuccessBanner(null)} className="text-emerald-700 hover:text-emerald-900 p-1 cursor-pointer">
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
@@ -821,9 +836,10 @@ export default function PurchasesPage() {
                     <button
                       type="button"
                       onClick={() => setSearchQuery("")}
-                      className="absolute right-2.5 top-2.5 text-xs text-slate-400 hover:text-slate-600"
+                      className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 p-0.5 rounded transition-colors"
+                      title="Clear search"
                     >
-                      ✕
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
@@ -891,19 +907,19 @@ export default function PurchasesPage() {
                 {statusFilter !== "ALL" && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium text-[11px]">
                     Status: {statusFilter}
-                    <button type="button" onClick={() => setStatusFilter("ALL")} className="text-slate-400 hover:text-slate-600">✕</button>
+                    <button type="button" onClick={() => setStatusFilter("ALL")} className="text-slate-400 hover:text-slate-600"><X className="w-3 h-3" /></button>
                   </span>
                 )}
                 {dateRangePreset !== "LAST_365_DAYS" && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium text-[11px]">
                     Range: {DATE_PRESET_LABELS[dateRangePreset][lang === "gu" ? "gu" : "en"]}
-                    <button type="button" onClick={() => setDateRangePreset("LAST_365_DAYS")} className="text-slate-400 hover:text-slate-600">✕</button>
+                    <button type="button" onClick={() => setDateRangePreset("LAST_365_DAYS")} className="text-slate-400 hover:text-slate-600"><X className="w-3 h-3" /></button>
                   </span>
                 )}
                 {searchQuery && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium text-[11px]">
                     Query: &quot;{searchQuery}&quot;
-                    <button type="button" onClick={() => setSearchQuery("")} className="text-slate-400 hover:text-slate-600">✕</button>
+                    <button type="button" onClick={() => setSearchQuery("")} className="text-slate-400 hover:text-slate-600"><X className="w-3 h-3" /></button>
                   </span>
                 )}
                 <button
@@ -966,9 +982,10 @@ export default function PurchasesPage() {
                             <button
                               type="button"
                               onClick={() => setIsScannerModalOpen(true)}
-                              className="px-3.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 typo-btn-secondary rounded-xl cursor-pointer"
+                              className="px-3.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 typo-btn-secondary rounded-xl cursor-pointer inline-flex items-center gap-1.5"
                             >
-                              📷 Scan Bill
+                              <Camera className="w-3.5 h-3.5" />
+                              <span>Scan Bill</span>
                             </button>
                             <Link
                               href="/purchases/new"
@@ -981,7 +998,7 @@ export default function PurchasesPage() {
                       </td>
                     </tr>
                   ) : (
-                    filteredInvoices.map((inv) => {
+                    paginatedInvoices.map((inv) => {
                       const status = getPurchaseStatus(inv);
                       const total = Number(inv.grandTotal || 0);
                       const paid = Number(inv.paidAmount || 0);
@@ -1028,7 +1045,7 @@ export default function PurchasesPage() {
                                     </span>
                                   )}
                                   {inv.party?.phone && (
-                                    <span>• 📞 {inv.party.phone}</span>
+                                    <span className="inline-flex items-center gap-1">• <Phone className="w-2.5 h-2.5" /> {inv.party.phone}</span>
                                   )}
                                 </div>
                               </div>
@@ -1206,6 +1223,23 @@ export default function PurchasesPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* STANDARDIZED GLOBAL PAGINATION COMPONENT */}
+            <div className="bg-white border-t border-slate-200 px-4 py-1 rounded-b-2xl">
+              <DataTablePagination
+                currentPage={currentPage}
+                pageSize={pageSize}
+                totalRecords={filteredInvoices.length}
+                onPageChange={(p) => setCurrentPage(p)}
+                onPageSizeChange={(newSize) => {
+                  setPageSize(newSize);
+                  setCurrentPage(1);
+                }}
+                pageSizeOptions={[10, 25, 50, 100]}
+                lang={lang}
+                showFirstLast
+              />
+            </div>
           </div>
         </>
       ) : (
@@ -1230,7 +1264,7 @@ export default function PurchasesPage() {
                 className="text-amber-800 hover:text-slate-900 font-bold ml-3 cursor-pointer text-xs p-1"
                 title="Dismiss"
               >
-                ✕
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           )}

@@ -12,6 +12,8 @@ import { QuickSettingsModal, DEFAULT_QUICK_SETTINGS, QuickSettingsConfig } from 
 import { ShortcutsModal } from "@/components/invoice/shortcuts-modal";
 import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/scorecard-ribbon";
 import { formatInr } from "@/components/design-system/tokens";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { Phone, X, Ban } from "lucide-react";
 
 interface ProformaInvoiceItem {
   id: string;
@@ -202,6 +204,20 @@ export default function ProformaInvoiceListingPage() {
       return true;
     });
   }, [invoices, statusFilter, dateRangePreset, searchQuery]);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, dateRangePreset, searchQuery]);
+
+  const totalInvoices = filteredInvoices.length;
+  const paginatedInvoices = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredInvoices.slice(start, start + pageSize);
+  }, [filteredInvoices, currentPage, pageSize]);
 
   // Scorecard segments for ribbon
   const scorecardSegments: ScorecardSegment[] = [
@@ -436,9 +452,9 @@ export default function ProformaInvoiceListingPage() {
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-2.5 text-xs text-slate-400 hover:text-slate-700"
+                className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-700"
               >
-                ✕
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -486,7 +502,7 @@ export default function ProformaInvoiceListingPage() {
       {error && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700 flex items-center justify-between shadow-2xs">
           <span>{error}</span>
-          <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700">✕</button>
+          <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700"><X className="w-4 h-4" /></button>
         </div>
       )}
 
@@ -545,7 +561,7 @@ export default function ProformaInvoiceListingPage() {
               )}
 
               {!isLoading &&
-                filteredInvoices.map((inv) => {
+                paginatedInvoices.map((inv) => {
                   const isClosed = inv.status === "CLOSED" || inv.status === "PAID" || inv.category === "TAX_INVOICE";
                   const amt = inv.grandTotal !== undefined ? inv.grandTotal : inv.totalAmount || 0;
                   return (
@@ -595,7 +611,7 @@ export default function ProformaInvoiceListingPage() {
                           {inv.party?.name || inv.partyName || "Cash Customer"}
                         </div>
                         <div className="flex items-center gap-2 typo-card-desc typo-tabular text-slate-400 mt-0.5">
-                          {inv.party?.phone && <span>📞 {inv.party.phone}</span>}
+                          {inv.party?.phone && <span className="inline-flex items-center gap-1"><Phone className="w-3 h-3 text-slate-400" /> {inv.party.phone}</span>}
                           {inv.party?.gstin && <span>GST: {inv.party.gstin}</span>}
                         </div>
                       </td>
@@ -661,7 +677,7 @@ export default function ProformaInvoiceListingPage() {
                               className="p-1.5 text-[13px] text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
                               title="Cancel Proforma"
                             >
-                              ✕
+                              <Ban className="w-3.5 h-3.5" />
                             </button>
                           )}
 
@@ -683,6 +699,17 @@ export default function ProformaInvoiceListingPage() {
             </tbody>
           </table>
         </div>
+        <DataTablePagination
+          currentPage={currentPage}
+          totalPages={Math.max(1, Math.ceil(totalInvoices / pageSize))}
+          totalItems={totalInvoices}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {/* MODALS */}

@@ -14,6 +14,7 @@ import { useActiveInvoiceTheme } from "@/lib/use-active-invoice-theme";
 import { DynamicThemedInvoice } from "@/components/invoice/dynamic-themed-invoice";
 import { InvoiceLivePreviewModal } from "@/components/invoice/invoice-live-preview-modal";
 import { DEFAULT_INVOICE_CUSTOMIZATION } from "@/lib/invoice-theme";
+import { Edit3, Eye, Settings, X, Printer, AlertTriangle, Package, ArrowLeft } from "lucide-react";
 import { INDIAN_STATES } from "@billing/shared-types";
 import {
   DocumentHeaderCard,
@@ -502,7 +503,7 @@ const [notes, setNotes] = useState("");
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <span>📝</span>
+              <Edit3 className="w-3.5 h-3.5" />
               <span>Edit Mode</span>
             </button>
             <button
@@ -514,7 +515,7 @@ const [notes, setNotes] = useState("");
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <span>👁️</span>
+              <Eye className="w-3.5 h-3.5" />
               <span>Preview Mode</span>
             </button>
           </div>
@@ -530,7 +531,7 @@ const [notes, setNotes] = useState("");
               className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg transition-colors cursor-pointer shadow-2xs"
               title="Quick Settings"
             >
-              ⚙️
+              <Settings className="w-4 h-4" />
             </button>
 
             <button
@@ -576,7 +577,7 @@ const [notes, setNotes] = useState("");
           <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-semibold flex items-center justify-between">
             <span>{error}</span>
             <button onClick={() => setError(null)} className="text-rose-500 font-bold hover:underline">
-              ✕
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -594,7 +595,8 @@ const [notes, setNotes] = useState("");
                   onClick={() => setViewMode("edit")}
                   className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[13px] font-medium transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
-                  <span>← {lang === "gu" ? "એડિટ મોડ પર પાછા જાઓ" : "Back to Edit Mode"}</span>
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>{lang === "gu" ? "એડિટ મોડ પર પાછા જાઓ" : "Back to Edit Mode"}</span>
                 </button>
                 <div>
                   <h2 className="text-sm font-semibold text-[#182230] flex items-center gap-2">
@@ -617,7 +619,8 @@ const [notes, setNotes] = useState("");
                   onClick={() => window.print()}
                   className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
-                  <span>🖨️ {lang === "gu" ? "પ્રિન્ટ" : "Print Challan"}</span>
+                  <Printer className="w-4 h-4" />
+                  <span>{lang === "gu" ? "પ્રિન્ટ" : "Print Challan"}</span>
                 </button>
               </div>
             </div>
@@ -706,11 +709,11 @@ const [notes, setNotes] = useState("");
             {error && (
               <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs font-semibold text-rose-800 flex items-center justify-between shadow-xs">
                 <div className="flex items-center gap-2">
-                  <span className="text-base">⚠️</span>
+                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
                   <span>{error}</span>
                 </div>
                 <button onClick={() => setError(null)} className="text-rose-500 font-bold hover:underline">
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             )}
@@ -852,7 +855,7 @@ const [notes, setNotes] = useState("");
                     <tr>
                       <td colSpan={9} className="py-12 text-center text-slate-400">
                         <div className="max-w-xs mx-auto space-y-2">
-                          <span className="text-2xl">📦</span>
+                          <Package className="w-8 h-8 text-slate-300 mx-auto" />
                           <p className="font-bold text-slate-700">No goods added to challan yet</p>
                           <p className="text-[11px] text-slate-400">Add an item from catalog or enter details below</p>
                           <button

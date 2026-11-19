@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { apiClient } from "../../../lib/api-client";
+import { X } from "lucide-react";
 
 export interface ReportItem {
   id: string;
@@ -1160,8 +1161,9 @@ export function ReportsOverview({
               type="button"
               onClick={() => setSearchQuery("")}
               className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+              title="Clear search"
             >
-              ✕
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>

@@ -7,6 +7,8 @@ import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/scorecard-ribbon";
 import { formatInr } from "@/components/design-system/tokens";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { Phone, Check, X, Zap } from "lucide-react";
 
 type DateRangePreset =
   | "ALL"
@@ -350,6 +352,20 @@ export default function SalesReturnsPage() {
     );
   }, [rows, statusFilter, searchQuery]);
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, searchQuery, dateRangePreset]);
+
+  const totalRows = displayedRows.length;
+  const paginatedRows = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return displayedRows.slice(start, start + pageSize);
+  }, [displayedRows, currentPage, pageSize]);
+
   // Scorecard segments for ribbon
   const scorecardSegments: ScorecardSegment[] = [
     {
@@ -542,9 +558,9 @@ export default function SalesReturnsPage() {
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-2.5 text-xs text-slate-400 hover:text-slate-700"
+                className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-700"
               >
-                ✕
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -590,7 +606,7 @@ export default function SalesReturnsPage() {
                       }`}
                     >
                       <span>{label}</span>
-                      {dateRangePreset === key && <span className="text-[#1677E8] font-bold">✓</span>}
+                      {dateRangePreset === key && <Check className="w-3.5 h-3.5 text-[#1677E8]" />}
                     </button>
                   ))}
                 </div>
@@ -658,7 +674,7 @@ export default function SalesReturnsPage() {
       {error && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700 flex items-center justify-between shadow-2xs">
           <span>{error}</span>
-          <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700">✕</button>
+          <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700"><X className="w-4 h-4" /></button>
         </div>
       )}
 
@@ -719,7 +735,7 @@ export default function SalesReturnsPage() {
               )}
 
               {!isLoading &&
-                displayedRows.map((row) => {
+                paginatedRows.map((row) => {
                   const isSettled = row.status === "CLOSED" || row.status === "REFUNDED" || row.status === "PAID";
                   return (
                     <tr
@@ -754,7 +770,7 @@ export default function SalesReturnsPage() {
                         </div>
                         {row.party?.phone && (
                           <div className="typo-card-desc typo-tabular text-slate-400 mt-0.5">
-                            📞 {row.party.phone}
+                            <span className="inline-flex items-center gap-1"><Phone className="w-3 h-3 text-slate-400" /> {row.party.phone}</span>
                           </div>
                         )}
                       </td>
@@ -826,10 +842,11 @@ export default function SalesReturnsPage() {
                             <button
                               type="button"
                               onClick={() => handleCreateCreditNote(row)}
-                              className="px-2 py-1 text-[11px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors shadow-2xs cursor-pointer"
+                              className="px-2 py-1 text-[11px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors shadow-2xs cursor-pointer flex items-center gap-1"
                               title="1-Click Create Credit Note"
                             >
-                              ⚡ Credit Note
+                              <Zap className="w-3 h-3 text-blue-600" />
+                              <span>Credit Note</span>
                             </button>
                           )}
 
@@ -873,6 +890,17 @@ export default function SalesReturnsPage() {
             </tbody>
           </table>
         </div>
+        <DataTablePagination
+          currentPage={currentPage}
+          totalPages={Math.max(1, Math.ceil(totalRows / pageSize))}
+          totalItems={totalRows}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {/* View Return Modal */}
@@ -893,7 +921,7 @@ export default function SalesReturnsPage() {
                 onClick={() => setSelectedReturnForView(null)}
                 className="text-slate-400 hover:text-slate-600 cursor-pointer"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -1008,7 +1036,7 @@ export default function SalesReturnsPage() {
                 onClick={() => setHistoryTarget(null)}
                 className="text-slate-400 hover:text-slate-600 cursor-pointer"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 

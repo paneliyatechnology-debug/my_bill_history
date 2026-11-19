@@ -4,6 +4,21 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../../context/auth-context";
+import {
+  User,
+  Building2,
+  FileText,
+  ShieldCheck,
+  Printer,
+  Users,
+  Bell,
+  Share2,
+  CreditCard,
+  Gift,
+  HelpCircle,
+  LogOut,
+  ChevronLeft,
+} from "lucide-react";
 
 export interface SettingsSidebarProps {
   activeTab?: string;
@@ -54,33 +69,21 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
       href: "/settings/account",
       label: "Account",
       labelGujarati: "ખાતું અને સબ્સ્ક્રિપ્શન",
-      icon: (
-        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-      ),
+      icon: <User className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
     {
       id: "company",
       href: "/settings/company",
       label: "Company Settings",
       labelGujarati: "કંપની સેટિંગ્સ",
-      icon: (
-        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-        </svg>
-      ),
+      icon: <Building2 className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
     {
       id: "invoice",
       href: "/settings/invoice",
       label: "Invoice Settings",
       labelGujarati: "ઇન્વોઇસ સેટિંગ્સ",
-      icon: (
-        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-      ),
+      icon: <FileText className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
     {
       id: "e-invoice",
@@ -88,11 +91,7 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
       label: "E-Invoice Settings",
       labelGujarati: "ઈ-ઇનવોઇસ સેટિંગ્સ",
       badge: currentCompany?.eInvoiceApplicable ? "Active" : (!currentCompany?.gstin ? "Setup" : undefined),
-      icon: (
-        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-        </svg>
-      ),
+      icon: <ShieldCheck className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
     {
       id: "thermal-print",
@@ -100,77 +99,49 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
       label: "Thermal Print",
       labelGujarati: "થર્મલ પ્રિન્ટ સેટિંગ્સ",
       badge: "New",
-      icon: (
-        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-        </svg>
-      ),
+      icon: <Printer className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
     {
       id: "user-management",
       href: "/settings/user-management",
       label: "Manage Users",
       labelGujarati: "યુઝર્સ મેનેજમેન્ટ",
-      icon: (
-        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-      ),
+      icon: <Users className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
     {
       id: "reminders",
       href: "/settings/reminders",
       label: "Reminders",
       labelGujarati: "પેમેન્ટ રિમાઇન્ડર્સ",
-      icon: (
-        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
+      icon: <Bell className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
     {
       id: "ca-reports-sharing",
       href: "/settings/ca-reports-sharing",
       label: "CA Reports Sharing",
       labelGujarati: "CA રિપોર્ટ શેરિંગ",
-      icon: (
-        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-        </svg>
-      ),
+      icon: <Share2 className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
     {
       id: "pricing",
       href: "/settings/pricing",
       label: "Pricing",
       labelGujarati: "પ્લાન અને પ્રાઇસિંગ",
-      icon: (
-        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 8h6m-5 3h4m-4 3h2m-6 4h10a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-      ),
+      icon: <CreditCard className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
     {
       id: "refer-and-earn",
       href: "/settings/refer-and-earn",
       label: "Refer & Earn",
       labelGujarati: "રેફર અને કમાઓ",
-      icon: (
-        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
-        </svg>
-      ),
+      icon: <Gift className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
     {
       id: "help-support",
       href: "/settings/help-support",
       label: "Help And Support",
       labelGujarati: "સહાય અને સપોર્ટ",
-      icon: (
-        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
+      icon: <HelpCircle className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
   ];
 
@@ -204,15 +175,7 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
               className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium transition-all shadow-xs group"
               title={lang === "gu" ? "મુખ્ય ડેશબોર્ડ પર પાછા જાઓ" : "Back to Dashboard"}
             >
-              <svg
-                className="w-3.5 h-3.5 text-blue-100 group-hover:-translate-x-0.5 transition-transform"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
+              <ChevronLeft className="w-4 h-4 text-blue-100 group-hover:-translate-x-0.5 transition-transform" strokeWidth={2} />
               <span>{lang === "gu" ? "મુખ્ય ડેશબોર્ડ" : "Back to Dashboard"}</span>
             </Link>
           </div>
@@ -272,9 +235,7 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
               onClick={() => setShowLogoutModal(true)}
               className="w-full flex items-center gap-2.5 h-9 px-3 rounded-xl text-[13px] font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition-colors"
             >
-              <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
+              <LogOut className="w-[18px] h-[18px] text-slate-400 group-hover:text-rose-600 shrink-0" strokeWidth={1.75} />
               <span>{lang === "gu" ? "લોગઆઉટ" : "Logout"}</span>
             </button>
           </nav>

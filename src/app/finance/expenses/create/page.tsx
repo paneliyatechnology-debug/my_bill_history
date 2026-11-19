@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { apiClient, extractList } from "@/lib/api-client";
+import { AlertTriangle, X, Phone, Check, Calendar, Trash2 } from "lucide-react";
 
 // Standard categories matching MyBillBook
 const DEFAULT_EXPENSE_CATEGORIES = [
@@ -791,11 +792,11 @@ function CreateExpenseForm() {
         {errorMessage && (
           <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span>⚠️</span>
+              <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
               <span>{errorMessage}</span>
             </div>
-            <button onClick={() => setErrorMessage(null)} className="text-rose-500 hover:text-rose-800">
-              ✕
+            <button onClick={() => setErrorMessage(null)} className="text-rose-500 hover:text-rose-800 p-0.5 rounded cursor-pointer">
+              <X className="w-4 h-4" />
             </button>
           </div>
         )}
@@ -853,9 +854,9 @@ function CreateExpenseForm() {
                           e.stopPropagation();
                           setSelectedPartyId("");
                         }}
-                        className="text-slate-400 hover:text-slate-600 p-0.5"
+                        className="text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer"
                       >
-                        ✕
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     )}
                     <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -891,7 +892,12 @@ function CreateExpenseForm() {
                           >
                             <div>
                               <span className="font-semibold block">{p.name}</span>
-                              {p.mobile && <span className="text-[10px] text-slate-400">📱 {p.mobile}</span>}
+                              {p.mobile && (
+                                <span className="text-[10px] text-slate-400 inline-flex items-center gap-1">
+                                  <Phone className="w-2.5 h-2.5" />
+                                  <span>{p.mobile}</span>
+                                </span>
+                              )}
                             </div>
                             {p.gstin && (
                               <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">
@@ -938,9 +944,9 @@ function CreateExpenseForm() {
                         e.stopPropagation();
                         setSelectedCategory("");
                       }}
-                      className="text-slate-400 hover:text-slate-600 p-0.5"
+                      className="text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer"
                     >
-                      ✕
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   )}
                   <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -965,7 +971,7 @@ function CreateExpenseForm() {
                         }`}
                       >
                         <span>{cat}</span>
-                        {selectedCategory === cat && <span className="text-[#0F172A]">✓</span>}
+                        {selectedCategory === cat && <Check className="w-4 h-4 text-[#0F172A]" />}
                       </div>
                     ))}
                   </div>
@@ -1032,8 +1038,8 @@ function CreateExpenseForm() {
                     onChange={(e) => setVoucherDate(e.target.value)}
                     className="w-full pl-3.5 pr-8 py-2.5 bg-white border border-slate-200 rounded-lg text-[13px] font-normal text-slate-800 outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-teal-100 h-10"
                   />
-                  <span className="absolute right-3 top-2.5 pointer-events-none text-slate-400 text-xs">
-                    📅
+                  <span className="absolute right-3 top-2.5 pointer-events-none text-slate-400">
+                    <Calendar className="w-4 h-4 text-slate-400" />
                   </span>
                 </div>
               </div>
@@ -1121,7 +1127,9 @@ function CreateExpenseForm() {
                   {expenseWithGst && <th className="py-3 px-3 w-36">DISCOUNT</th>}
                   {expenseWithGst && <th className="py-3 px-3 w-40">TAX</th>}
                   <th className="py-3 px-4 text-right w-36">AMOUNT</th>
-                  <th className="py-3 px-3 text-center w-12">✕</th>
+                  <th className="py-3 px-3 text-center w-12">
+                    <Trash2 className="w-3.5 h-3.5 mx-auto text-slate-400" />
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -1429,9 +1437,9 @@ function CreateExpenseForm() {
                   setIsManageCategoryModalOpen(false);
                   setCategoryModalMode("list");
                 }}
-                className="text-slate-400 hover:text-slate-700 p-2 rounded-lg hover:bg-slate-100 text-[13px] font-medium transition-colors cursor-pointer"
+                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1549,9 +1557,9 @@ function CreateExpenseForm() {
               <button
                 type="button"
                 onClick={() => setIsAddPartyModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
             <form onSubmit={handleSaveQuickParty} className="p-6 space-y-4">

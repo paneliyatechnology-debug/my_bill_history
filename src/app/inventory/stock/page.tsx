@@ -7,6 +7,7 @@ import { useAuth } from "../../../context/auth-context";
 import { apiClient } from "../../../lib/api-client";
 import { Badge } from "../../../components/ui/badge";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
+import { StockQuantityDisplay } from "../../../components/inventory/stock-quantity-display";
 
 interface StockSummaryRow {
   itemId: string;
@@ -145,7 +146,15 @@ function StockSummaryContent() {
         header: lang === "gu" ? "આખર સ્ટોક" : "Closing Qty",
         accessorKey: "closingQty",
         sortable: true,
-        className: "text-right tabular-nums font-bold text-slate-900",
+        className: "text-right tabular-nums",
+        cell: (s) => (
+          <StockQuantityDisplay
+            quantity={s.closingQty}
+            uom={s.uom}
+            minStockLevel={s.minStockLevel}
+            lang={lang}
+          />
+        ),
       },
       {
         id: "valuationRate",
@@ -167,6 +176,13 @@ function StockSummaryContent() {
         id: "status",
         header: lang === "gu" ? "સ્થિતિ" : "Stock Alert",
         cell: (s) => {
+          if (s.closingQty < 0) {
+            return (
+              <Badge variant="danger">
+                {lang === "gu" ? "સ્ટોક વિસંગતતા" : "Stock Discrepancy"}
+              </Badge>
+            );
+          }
           const isLow = isLowStockRow(s);
           return isLow ? (
             <Badge variant="danger">

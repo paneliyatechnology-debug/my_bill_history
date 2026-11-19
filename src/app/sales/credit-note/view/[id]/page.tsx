@@ -12,6 +12,7 @@ import {
   DynamicInvoiceData,
   DynamicCompanyData,
 } from "@/components/invoice/dynamic-themed-invoice";
+import { Palette, Zap, Link2, Mail, X } from "lucide-react";
 
 // Helper: Indian Rupee Formatter
 function formatInr(val: number | string | undefined): string {
@@ -540,7 +541,7 @@ export default function CreditNoteViewPage() {
             className="inline-flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs"
             title="Change Invoice Theme in Settings"
           >
-            <span className="text-sm">🎨</span>
+            <Palette className="w-4 h-4 text-slate-500" />
             <span className="hidden sm:inline">Theme</span>
           </Link>
 
@@ -552,7 +553,8 @@ export default function CreditNoteViewPage() {
               disabled={isCreatingCN}
               className="inline-flex items-center gap-1.5 rounded-lg border border-blue-600 bg-blue-600 h-9 px-3.5 text-[13px] font-bold text-white shadow-xs hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50"
             >
-              <span>{isCreatingCN ? "Generating..." : "⚡ Create Credit Note"}</span>
+              <Zap className="w-3.5 h-3.5" />
+              <span>{isCreatingCN ? "Generating..." : "Create Credit Note"}</span>
             </button>
           )}
 
@@ -565,7 +567,8 @@ export default function CreditNoteViewPage() {
               }
               className="inline-flex items-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 h-9 px-3 text-[12px] font-bold text-purple-800 hover:bg-purple-100 transition-colors"
             >
-              <span>{data.docType === "CREDIT_NOTE" ? "🔗 View Linked Sales Return" : "🔗 View Linked Credit Note"}</span>
+              <Link2 className="w-3.5 h-3.5" />
+              <span>{data.docType === "CREDIT_NOTE" ? "View Linked Sales Return" : "View Linked Credit Note"}</span>
             </Link>
           )}
 
@@ -684,7 +687,7 @@ export default function CreditNoteViewPage() {
                   onClick={handleEmailCreditNote}
                   className="flex w-full items-center gap-2 h-9 px-3 text-slate-700 hover:bg-slate-50 border-t border-slate-100 cursor-pointer"
                 >
-                  <span>✉️</span>
+                  <Mail className="w-3.5 h-3.5 text-slate-500" />
                   <span>Email {docTitle}</span>
                 </button>
               </div>
@@ -756,7 +759,7 @@ export default function CreditNoteViewPage() {
                 onClick={() => setIsHistoryModalOpen(false)}
                 className="text-slate-400 hover:text-slate-600"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

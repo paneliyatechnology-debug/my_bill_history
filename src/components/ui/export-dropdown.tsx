@@ -7,6 +7,7 @@ import {
   ExportFormat,
 } from "../../lib/export/export-types";
 import { executeExport } from "../../lib/export/export-engine";
+import { Check, AlertTriangle, X, FileSpreadsheet, FileText, File } from "lucide-react";
 
 export interface ExportDropdownProps {
   /** If providing data directly to the dropdown */
@@ -154,14 +155,18 @@ export function ExportDropdown({
               : "bg-rose-50 border-rose-200 text-rose-800"
           }`}
         >
-          <span>{toastMessage.type === "success" ? "✅" : "⚠️"}</span>
+          {toastMessage.type === "success" ? (
+            <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+          ) : (
+            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+          )}
           <span>{toastMessage.text}</span>
           <button
             type="button"
             onClick={() => setToastMessage(null)}
-            className="ml-2 text-slate-400 hover:text-slate-600 text-sm font-bold"
+            className="ml-2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
           >
-            ✕
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
@@ -254,7 +259,7 @@ export function ExportDropdown({
             >
               <div className="flex items-center gap-2.5">
                 <span className="w-6 h-6 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0 group-hover:scale-105 transition-transform">
-                  📊
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
                 </span>
                 <div>
                   <p className="font-semibold text-slate-800 group-hover:text-emerald-900">
@@ -278,7 +283,7 @@ export function ExportDropdown({
             >
               <div className="flex items-center gap-2.5">
                 <span className="w-6 h-6 rounded-md bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xs shrink-0 group-hover:scale-105 transition-transform">
-                  📄
+                  <FileText className="w-3.5 h-3.5" />
                 </span>
                 <div>
                   <p className="font-semibold text-slate-800 group-hover:text-sky-900">
@@ -302,7 +307,7 @@ export function ExportDropdown({
             >
               <div className="flex items-center gap-2.5">
                 <span className="w-6 h-6 rounded-md bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-xs shrink-0 group-hover:scale-105 transition-transform">
-                  📑
+                  <File className="w-3.5 h-3.5" />
                 </span>
                 <div>
                   <p className="font-semibold text-slate-800 group-hover:text-rose-900">

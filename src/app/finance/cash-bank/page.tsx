@@ -7,6 +7,8 @@ import { useAuth } from "@/context/auth-context";
 import { apiClient, extractList } from "@/lib/api-client";
 import { Modal } from "@/components/ui/modal";
 import { ExportDropdown } from "@/components/ui/export-dropdown";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { Banknote, Check } from "lucide-react";
 
 interface LedgerGroup {
   id: string;
@@ -1422,7 +1424,7 @@ export default function CashAndBankPage() {
               }`}
             >
               <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold">
-                💵
+                <Banknote className="w-3.5 h-3.5" />
               </div>
               <span>{lang === "gu" ? "હાથ પર રોકડ" : "Cash in hand"}</span>
               <span className="tabular-nums text-[11px] font-bold">
@@ -2093,48 +2095,17 @@ export default function CashAndBankPage() {
 
             {/* Bottom Pagination Strip */}
             {filteredTransactions.length > 0 && (
-              <div className="p-2.5 sm:p-3 border-t border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-slate-600 bg-white">
-                <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-2">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] sm:text-xs text-slate-500">Rows:</span>
-                    <select
-                      value={pageSize}
-                      onChange={(e) => {
-                        setPageSize(Number(e.target.value));
-                        setCurrentPage(1);
-                      }}
-                      className="border border-[#CBD5E1] rounded px-1.5 py-0.5 bg-white text-[11px] sm:text-[13px] text-slate-800 h-10"
-                    >
-                      <option value={15}>15</option>
-                      <option value={25}>25</option>
-                      <option value={50}>50</option>
-                    </select>
-                  </div>
-                  <span className="text-[11px] sm:text-xs text-slate-500">
-                    {Math.min((currentPage - 1) * pageSize + 1, filteredTransactions.length)}-{Math.min(currentPage * pageSize, filteredTransactions.length)} of {filteredTransactions.length}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-center w-full sm:w-auto gap-1">
-                  <button
-                    disabled={currentPage <= 1}
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    className="px-2.5 py-1 text-xs border border-[#CBD5E1] rounded text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
-                  >
-                    Previous
-                  </button>
-                  <span className="px-2 py-1 text-xs text-slate-700 font-semibold">
-                    {currentPage} / {totalPages}
-                  </span>
-                  <button
-                    disabled={currentPage >= totalPages}
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    className="px-2.5 py-1 text-[13px] border border-[#CBD5E1] rounded text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
+              <DataTablePagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filteredTransactions.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={(newSize) => {
+                  setPageSize(newSize);
+                  setCurrentPage(1);
+                }}
+              />
             )}
           </div>
         </div>
@@ -2272,8 +2243,8 @@ export default function CashAndBankPage() {
                       </span>
                     )}
                     {ifscVerified && !ifscLoading && (
-                      <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-0.5">
-                        ✓ Verified
+                      <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+                        <Check className="w-3 h-3" /> Verified
                       </span>
                     )}
                   </div>

@@ -2,6 +2,22 @@
 
 import React, { useState } from "react";
 import {
+  Eye,
+  Palette,
+  Settings,
+  Check,
+  Tag,
+  Scale,
+  Package,
+  FileText,
+  Zap,
+  Landmark,
+  PenTool,
+  Coins,
+  RotateCcw,
+  ArrowRight,
+} from "lucide-react";
+import {
   InvoiceCustomization,
   InvoiceThemeId,
   INVOICE_THEMES,
@@ -88,7 +104,7 @@ export function InvoiceThemeSidebar({
           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FFF3E8] hover:bg-[#FFE6D0] text-[#F47721] border border-[#F47721]/30 text-xs font-bold rounded-lg transition-all shadow-xs"
           title={lang === "gu" ? "લાઇવ બિલ પ્રિવ્યૂ જુઓ" : "Open Live Preview"}
         >
-          <span>👁️</span>
+          <Eye className="w-3.5 h-3.5" />
           <span>{lang === "gu" ? "પ્રિવ્યૂ" : "Preview"}</span>
         </button>
       </div>
@@ -104,7 +120,7 @@ export function InvoiceThemeSidebar({
               : "text-[#667085] hover:text-[#202124]"
           }`}
         >
-          <span>🎨</span>
+          <Palette className="w-3.5 h-3.5 text-[#2563EB]" />
           <span>{lang === "gu" ? "૫ થીમ્સ (Themes)" : "5 Themes"}</span>
         </button>
         <button
@@ -116,7 +132,7 @@ export function InvoiceThemeSidebar({
               : "text-[#667085] hover:text-[#202124]"
           }`}
         >
-          <span>⚙️</span>
+          <Settings className="w-3.5 h-3.5" />
           <span>{lang === "gu" ? "કસ્ટમાઇઝ (Customise)" : "Customise"}</span>
         </button>
       </div>
@@ -179,8 +195,9 @@ export function InvoiceThemeSidebar({
                           {lang === "gu" ? item.nameGujarati : item.name}
                         </h4>
                         {isSelected && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.2 bg-[#F47721] text-white rounded-md shrink-0">
-                            ✓ {lang === "gu" ? "પસંદ કરેલ" : "Active"}
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[#F47721] text-white rounded-md shrink-0 flex items-center gap-1">
+                            <Check className="w-3 h-3 stroke-[2.5]" />
+                            <span>{lang === "gu" ? "પસંદ કરેલ" : "Active"}</span>
                           </span>
                         )}
                       </div>
@@ -273,25 +290,28 @@ export function InvoiceThemeSidebar({
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { id: "banner", label: "Banner (બેનર)", icon: "🏷️" },
-                  { id: "split", label: "Split (સ્પ્લિટ)", icon: "⚖️" },
-                  { id: "boxed", label: "Boxed (બોક્સ્ડ)", icon: "📦" },
-                  { id: "minimal", label: "Minimal (મિનિમલ)", icon: "📄" },
-                ].map((hl) => (
-                  <button
-                    key={hl.id}
-                    type="button"
-                    onClick={() => handleUpdate({ headerLayout: hl.id as InvoiceHeaderLayout })}
-                    className={`p-2 rounded-lg border text-left text-xs font-bold transition-all flex items-center gap-2 ${
-                      customization.headerLayout === hl.id
-                        ? "border-[#F47721] bg-[#FFF8F3] text-[#F47721]"
-                        : "border-[#E5E7EB] hover:bg-slate-50 text-[#202124]"
-                    }`}
-                  >
-                    <span>{hl.icon}</span>
-                    <span className="truncate">{hl.label}</span>
-                  </button>
-                ))}
+                  { id: "banner", label: "Banner (બેનર)", icon: Tag },
+                  { id: "split", label: "Split (સ્પ્લિટ)", icon: Scale },
+                  { id: "boxed", label: "Boxed (બોક્સ્ડ)", icon: Package },
+                  { id: "minimal", label: "Minimal (મિનિમલ)", icon: FileText },
+                ].map((hl) => {
+                  const IconComp = hl.icon;
+                  return (
+                    <button
+                      key={hl.id}
+                      type="button"
+                      onClick={() => handleUpdate({ headerLayout: hl.id as InvoiceHeaderLayout })}
+                      className={`p-2 rounded-lg border text-left text-xs font-bold transition-all flex items-center gap-2 ${
+                        customization.headerLayout === hl.id
+                          ? "border-[#F47721] bg-[#FFF8F3] text-[#F47721]"
+                          : "border-[#E5E7EB] hover:bg-slate-50 text-[#202124]"
+                      }`}
+                    >
+                      <IconComp className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{hl.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -330,7 +350,7 @@ export function InvoiceThemeSidebar({
               <div className="space-y-2 bg-[#F8F9FB] p-3 rounded-xl border border-[#E5E7EB]">
                 <label className="flex items-center justify-between text-xs cursor-pointer">
                   <span className="text-[#202124] font-medium flex items-center gap-1.5">
-                    <span>⚡</span> {lang === "gu" ? "UPI QR કોડ (Pay via UPI)" : "UPI Payment QR Code"}
+                    <Zap className="w-3.5 h-3.5 text-amber-500" /> {lang === "gu" ? "UPI QR કોડ (Pay via UPI)" : "UPI Payment QR Code"}
                   </span>
                   <input
                     type="checkbox"
@@ -342,7 +362,7 @@ export function InvoiceThemeSidebar({
 
                 <label className="flex items-center justify-between text-xs cursor-pointer">
                   <span className="text-[#202124] font-medium flex items-center gap-1.5">
-                    <span>🏦</span> {lang === "gu" ? "બેંક વિગતો (Bank Details)" : "Bank Transfer Details"}
+                    <Landmark className="w-3.5 h-3.5 text-blue-500" /> {lang === "gu" ? "બેંક વિગતો (Bank Details)" : "Bank Transfer Details"}
                   </span>
                   <input
                     type="checkbox"
@@ -354,7 +374,7 @@ export function InvoiceThemeSidebar({
 
                 <label className="flex items-center justify-between text-xs cursor-pointer">
                   <span className="text-[#202124] font-medium flex items-center gap-1.5">
-                    <span>✍️</span> {lang === "gu" ? "સહી / સિક્કો બોક્સ (Signatory Stamp)" : "Authorized Signatory Box"}
+                    <PenTool className="w-3.5 h-3.5 text-purple-500" /> {lang === "gu" ? "સહી / સિક્કો બોક્સ (Signatory Stamp)" : "Authorized Signatory Box"}
                   </span>
                   <input
                     type="checkbox"
@@ -366,7 +386,7 @@ export function InvoiceThemeSidebar({
 
                 <label className="flex items-center justify-between text-xs cursor-pointer">
                   <span className="text-[#202124] font-medium flex items-center gap-1.5">
-                    <span>🏷️</span> {lang === "gu" ? "HSN કોડ કોલમ (HSN Column)" : "HSN/SAC Code Column"}
+                    <Tag className="w-3.5 h-3.5 text-slate-500" /> {lang === "gu" ? "HSN કોડ કોલમ (HSN Column)" : "HSN/SAC Code Column"}
                   </span>
                   <input
                     type="checkbox"
@@ -378,7 +398,7 @@ export function InvoiceThemeSidebar({
 
                 <label className="flex items-center justify-between text-xs cursor-pointer">
                   <span className="text-[#202124] font-medium flex items-center gap-1.5">
-                    <span>💰</span> {lang === "gu" ? "વટાવ કોલમ (Discount %)" : "Discount % Column"}
+                    <Coins className="w-3.5 h-3.5 text-emerald-500" /> {lang === "gu" ? "વટાવ કોલમ (Discount %)" : "Discount % Column"}
                   </span>
                   <input
                     type="checkbox"
@@ -424,9 +444,10 @@ export function InvoiceThemeSidebar({
               <button
                 type="button"
                 onClick={handleResetToDefault}
-                className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-[#667085] hover:text-[#202124] text-xs font-semibold rounded-lg transition-colors"
+                className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-[#667085] hover:text-[#202124] text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5"
               >
-                ↺ {lang === "gu" ? "મૂળભૂત સેટિંગ્સ ફરી લાવો" : "Reset Customizations"}
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>{lang === "gu" ? "મૂળભૂત સેટિંગ્સ ફરી લાવો" : "Reset Customizations"}</span>
               </button>
             </div>
           </div>
@@ -448,7 +469,8 @@ export function InvoiceThemeSidebar({
           onClick={onOpenPreview}
           className="text-xs font-bold text-[#F47721] hover:underline flex items-center gap-1"
         >
-          <span>{lang === "gu" ? "પ્રિવ્યૂ જુઓ →" : "View Preview →"}</span>
+          <span>{lang === "gu" ? "પ્રિવ્યૂ જુઓ" : "View Preview"}</span>
+          <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>

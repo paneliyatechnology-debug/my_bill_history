@@ -9,6 +9,7 @@ import {
   AutomatedBillingRun,
   formatCurrency,
 } from "@/lib/automated-billing";
+import { X } from "lucide-react";
 
 export default function AutomatedBillingDetailPage() {
   const params = useParams();
@@ -156,7 +157,7 @@ export default function AutomatedBillingDetailPage() {
             onClick={() => setNotification(null)}
             className="text-gray-400 hover:text-gray-700 font-bold ml-4"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}

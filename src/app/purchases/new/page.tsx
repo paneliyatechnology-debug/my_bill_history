@@ -20,6 +20,25 @@ import { useActiveInvoiceTheme } from "@/lib/use-active-invoice-theme";
 import { DynamicThemedInvoice } from "@/components/invoice/dynamic-themed-invoice";
 import { INDIAN_STATES } from "@billing/shared-types";
 import {
+  Sparkles,
+  Search,
+  Check,
+  X,
+  AlertTriangle,
+  AlertCircle,
+  Trash2,
+  Settings,
+  Printer,
+  Package,
+  Plus,
+  FileText,
+  FileSpreadsheet,
+  Paperclip,
+  HelpCircle,
+  BarChart2,
+  Keyboard,
+} from "lucide-react";
+import {
   DocumentHeaderCard,
   DocumentInfoStrip,
   DocumentItemsCard,
@@ -1209,8 +1228,8 @@ const [notes, setNotes] = useState("");
       "";
     setSuccessBanner(
       lang === "gu"
-        ? `✨ AI સ્કેન સફળ! બિલ વિગતો ફોર્મમાં ભરાઈ ગઈ: ${partyName ? partyName + ", " : ""}બિલ #${scannedData.vendorInvoiceNumber || ""}, ${scannedData.items?.length || 1} આઇટમ્સ`
-        : `✨ AI Gemini Vision scan successful! Form populated: ${partyName ? partyName + ", " : ""}Invoice #${scannedData.vendorInvoiceNumber || ""}, ${scannedData.items?.length || 1} items extracted.`
+        ? `AI સ્કેન સફળ! બિલ વિગતો ફોર્મમાં ભરાઈ ગઈ: ${partyName ? partyName + ", " : ""}બિલ #${scannedData.vendorInvoiceNumber || ""}, ${scannedData.items?.length || 1} આઇટમ્સ`
+        : `AI Gemini Vision scan successful! Form populated: ${partyName ? partyName + ", " : ""}Invoice #${scannedData.vendorInvoiceNumber || ""}, ${scannedData.items?.length || 1} items extracted.`
     );
   };
 
@@ -1358,8 +1377,8 @@ const [notes, setNotes] = useState("");
         setScanError(null);
         setSuccessBanner(
           lang === "gu"
-            ? "✨ AI વિઝન સ્કેન સફળ! બિલ વિગતો ફોર્મમાં ભરાઈ ગઈ."
-            : "✨ AI Gemini Vision scan successful! Form populated from your bill."
+            ? "AI વિઝન સ્કેન સફળ! બિલ વિગતો ફોર્મમાં ભરાઈ ગઈ."
+            : "AI Gemini Vision scan successful! Form populated from your bill."
         );
       } else {
         // Fallback: extract basic info
@@ -1811,7 +1830,9 @@ const [notes, setNotes] = useState("");
               </svg>
               <span>{error}</span>
             </div>
-            <button onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700 font-bold">✕</button>
+            <button onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700 cursor-pointer p-0.5">
+              <X className="w-4 h-4" />
+            </button>
           </div>
         )}
 
@@ -1823,7 +1844,9 @@ const [notes, setNotes] = useState("");
               </svg>
               <span>{successBanner}</span>
             </div>
-            <button onClick={() => setSuccessBanner(null)} className="text-emerald-600 hover:text-emerald-800 font-bold">✕</button>
+            <button onClick={() => setSuccessBanner(null)} className="text-emerald-600 hover:text-emerald-800 cursor-pointer p-0.5">
+              <X className="w-4 h-4" />
+            </button>
           </div>
         )}
       </div>
@@ -1916,7 +1939,7 @@ const [notes, setNotes] = useState("");
                       }}
                       className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2 cursor-pointer"
                     >
-                      <span>⚙️</span>
+                      <Settings className="w-4 h-4 text-slate-500 shrink-0" strokeWidth={1.75} />
                       <span>Quick Settings</span>
                     </button>
                     <button
@@ -1927,7 +1950,7 @@ const [notes, setNotes] = useState("");
                       }}
                       className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2 cursor-pointer"
                     >
-                      <span>⌨️</span>
+                      <Keyboard className="w-4 h-4 text-slate-500 shrink-0" strokeWidth={1.75} />
                       <span>Keyboard Shortcuts</span>
                     </button>
                     <button
@@ -1940,7 +1963,7 @@ const [notes, setNotes] = useState("");
                       }}
                       className="w-full text-left px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 rounded-lg flex items-center gap-2 cursor-pointer"
                     >
-                      <span>🗑️</span>
+                      <Trash2 className="w-4 h-4 text-rose-500 shrink-0" strokeWidth={1.75} />
                       <span>Reset Form</span>
                     </button>
                   </div>
@@ -2004,7 +2027,8 @@ const [notes, setNotes] = useState("");
                   onClick={() => window.print()}
                   className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
-                  <span>🖨️ {lang === "gu" ? "પ્રિન્ટ" : "Print Voucher"}</span>
+                  <Printer className="w-4 h-4 text-white shrink-0" strokeWidth={1.75} />
+                  <span>{lang === "gu" ? "પ્રિન્ટ" : "Print Voucher"}</span>
                 </button>
                 <button
                   type="button"
@@ -2012,7 +2036,8 @@ const [notes, setNotes] = useState("");
                   disabled={isSubmitting}
                   className="h-9 px-4 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-semibold shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
-                  <span>✓ {lang === "gu" ? "બિલ સાચવો" : "Save Purchase Bill"}</span>
+                  <Check className="w-4 h-4 text-white shrink-0" strokeWidth={2} />
+                  <span>{lang === "gu" ? "બિલ સાચવો" : "Save Purchase Bill"}</span>
                 </button>
               </div>
             </div>
@@ -2086,7 +2111,7 @@ const [notes, setNotes] = useState("");
               {/* AI Header */}
               <div className="flex items-start gap-2.5 mb-2">
                 <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200/60 text-[#1677E8] flex items-center justify-center font-bold text-sm shadow-2xs shrink-0">
-                  ✨
+                  <Sparkles className="w-4 h-4 text-[#1677E8]" strokeWidth={2} />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 leading-tight">
@@ -2185,7 +2210,7 @@ const [notes, setNotes] = useState("");
                           className="p-1 text-slate-500 hover:text-[#1677E8]"
                           title="Zoom preview"
                         >
-                          🔍
+                          <Search className="w-3.5 h-3.5" strokeWidth={2} />
                         </button>
                         <button
                           type="button"
@@ -2200,7 +2225,7 @@ const [notes, setNotes] = useState("");
                           className="p-1 text-slate-400 hover:text-rose-600"
                           title="Remove file"
                         >
-                          ✕
+                          <X className="w-3.5 h-3.5" strokeWidth={2} />
                         </button>
                       </div>
                     </div>
@@ -2210,7 +2235,7 @@ const [notes, setNotes] = useState("");
                   {scanError && !isAnalyzingDoc && (
                     <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-2 shadow-2xs">
                       <div className="flex items-start gap-1.5 font-semibold text-[11px] leading-snug">
-                        <span className="text-amber-600 shrink-0">⚠️</span>
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" strokeWidth={2} />
                         <span>{scanError}</span>
                       </div>
                       <div className="flex items-center gap-2 pt-0.5">
@@ -2239,7 +2264,7 @@ const [notes, setNotes] = useState("");
                   {aiScanStatus === "SUCCESS" && !isAnalyzingDoc && !scanError && (
                     <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between shadow-2xs">
                       <div className="flex items-center gap-1.5 font-semibold text-[11px]">
-                        <span className="text-emerald-600 font-bold">✓</span>
+                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" strokeWidth={2} />
                         <span>AI Scan Completed</span>
                       </div>
                       <button
@@ -2274,7 +2299,7 @@ const [notes, setNotes] = useState("");
                   </>
                 ) : (
                   <>
-                    <span>✨</span>
+                    <Sparkles className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
                     <span>Proceed with AI Autofill</span>
                   </>
                 )}
@@ -2385,7 +2410,7 @@ const [notes, setNotes] = useState("");
                             className="w-6 h-6 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center text-xs shrink-0 cursor-pointer"
                             title="Change supplier"
                           >
-                            ✕
+                            <X className="w-3.5 h-3.5" strokeWidth={2} />
                           </button>
                         </div>
                       ) : (
@@ -2419,7 +2444,7 @@ const [notes, setNotes] = useState("");
                                     className="w-full h-8.5 pl-8 pr-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#1677E8]"
                                   />
                                   <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400">
-                                    🔍
+                                    <Search className="w-3.5 h-3.5" strokeWidth={1.75} />
                                   </span>
                                 </div>
                                 <button
@@ -2618,7 +2643,7 @@ const [notes, setNotes] = useState("");
                             }}
                             className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2 cursor-pointer"
                           >
-                            <span>📦</span>
+                            <Package className="w-3.5 h-3.5 text-slate-500 shrink-0" strokeWidth={1.75} />
                             <span>From Items Catalog</span>
                           </button>
                           <button
@@ -2629,7 +2654,7 @@ const [notes, setNotes] = useState("");
                             }}
                             className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2 cursor-pointer"
                           >
-                            <span>📊</span>
+                            <BarChart2 className="w-3.5 h-3.5 text-slate-500 shrink-0" strokeWidth={1.75} />
                             <span>From Excel / CSV</span>
                           </button>
                         </div>
@@ -2659,7 +2684,7 @@ const [notes, setNotes] = useState("");
                             }}
                             className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2 cursor-pointer"
                           >
-                            <span>📦</span>
+                            <Package className="w-3.5 h-3.5 text-slate-500 shrink-0" strokeWidth={1.75} />
                             <span>Pick from Catalog</span>
                           </button>
                           <button
@@ -2670,7 +2695,7 @@ const [notes, setNotes] = useState("");
                             }}
                             className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2 cursor-pointer"
                           >
-                            <span>✨</span>
+                            <Sparkles className="w-3.5 h-3.5 text-indigo-500 shrink-0" strokeWidth={1.75} />
                             <span>Create New Item</span>
                           </button>
                           <button
@@ -2681,7 +2706,7 @@ const [notes, setNotes] = useState("");
                             }}
                             className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2 cursor-pointer"
                           >
-                            <span>➕</span>
+                            <Plus className="w-3.5 h-3.5 text-slate-500 shrink-0" strokeWidth={1.75} />
                             <span>Add Blank Line Row</span>
                           </button>
                         </div>
@@ -2899,7 +2924,7 @@ const [notes, setNotes] = useState("");
                         : "text-slate-500 hover:text-slate-700"
                     }`}
                   >
-                    <span>📝</span>
+                    <FileText className="w-3.5 h-3.5" strokeWidth={1.75} />
                     <span>Notes</span>
                   </button>
                   <button
@@ -2911,7 +2936,7 @@ const [notes, setNotes] = useState("");
                         : "text-slate-500 hover:text-slate-700"
                     }`}
                   >
-                    <span>📋</span>
+                    <FileSpreadsheet className="w-3.5 h-3.5" strokeWidth={1.75} />
                     <span>Terms & Conditions</span>
                   </button>
                   <button
@@ -2923,7 +2948,7 @@ const [notes, setNotes] = useState("");
                         : "text-slate-500 hover:text-slate-700"
                     }`}
                   >
-                    <span>ℹ</span>
+                    <HelpCircle className="w-3.5 h-3.5" strokeWidth={1.75} />
                     <span>Additional Information</span>
                   </button>
                   <button
@@ -2935,7 +2960,7 @@ const [notes, setNotes] = useState("");
                         : "text-slate-500 hover:text-slate-700"
                     }`}
                   >
-                    <span>📎</span>
+                    <Paperclip className="w-3.5 h-3.5" strokeWidth={1.75} />
                     <span>Attachments ({attachments.length})</span>
                   </button>
                 </div>
@@ -3066,9 +3091,9 @@ const [notes, setNotes] = useState("");
                             <button
                               type="button"
                               onClick={() => setAttachments((prev) => prev.filter((a) => a.id !== att.id))}
-                              className="text-slate-400 hover:text-rose-600 font-bold ml-1 cursor-pointer"
+                              className="text-slate-400 hover:text-rose-600 ml-1 cursor-pointer"
                             >
-                              ✕
+                              <X className="w-3.5 h-3.5" strokeWidth={2} />
                             </button>
                           </div>
                         ))}
@@ -3519,7 +3544,7 @@ const [notes, setNotes] = useState("");
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-fade-in text-xs font-semibold">
-          <span className="text-base">✓</span>
+          <Check className="w-4 h-4 text-white shrink-0" strokeWidth={2} />
           <span>{toastMessage}</span>
         </div>
       )}

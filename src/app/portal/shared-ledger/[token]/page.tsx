@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useMemo, use } from "react";
 import { apiClient } from "@/lib/api-client";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { Link as LinkIcon, AlertCircle, Phone, MapPin, Zap, Check, Smartphone, Landmark, Printer, MessageSquare } from "lucide-react";
 
 interface PublicPortalData {
   company: {
@@ -92,6 +94,13 @@ export default function PublicSharedLedgerPortalPage({
   }, [token]);
 
   // Filter transactions by period
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterPeriod]);
+
   const filteredTransactions = useMemo(() => {
     if (!data?.transactions) return [];
     if (filterPeriod === "ALL") return data.transactions;
@@ -103,11 +112,16 @@ export default function PublicSharedLedgerPortalPage({
     return data.transactions.filter((t) => new Date(t.date) >= cutoff);
   }, [data?.transactions, filterPeriod]);
 
+  const paginatedTransactions = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredTransactions.slice(start, start + pageSize);
+  }, [filteredTransactions, currentPage, pageSize]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-        <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-2xl font-bold animate-bounce mb-4 shadow-lg shadow-indigo-500/20">
-          🔗
+        <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white mb-4 shadow-lg shadow-indigo-500/20">
+          <LinkIcon className="w-6 h-6 animate-pulse" />
         </div>
         <p className="text-slate-600 font-semibold text-sm">
           Loading verified live ledger statement...
@@ -122,8 +136,8 @@ export default function PublicSharedLedgerPortalPage({
   if (error || !data) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 text-center">
-        <div className="w-16 h-16 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center text-3xl mb-4 border border-rose-200">
-          ⚠️
+        <div className="w-16 h-16 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mb-4 border border-rose-200">
+          <AlertCircle className="w-8 h-8" />
         </div>
         <h2 className="text-[15px] font-semibold text-[#182230]">Statement Not Found</h2>
         <p className="text-xs text-slate-500 max-w-sm mt-1">{error}</p>
@@ -172,10 +186,20 @@ export default function PublicSharedLedgerPortalPage({
                     Verified
                   </span>
                 </div>
-                <div className="text-xs text-indigo-200 mt-1 flex flex-wrap gap-x-3 gap-y-0.5 tabular-nums">
+                <div className="text-xs text-indigo-200 mt-1 flex flex-wrap gap-x-3 gap-y-0.5 tabular-nums items-center">
                   {company.gstin && <span>GSTIN: {company.gstin}</span>}
-                  {company.phone && <span>📞 {company.phone}</span>}
-                  {company.address && <span>📍 {company.address}</span>}
+                  {company.phone && (
+                    <span className="inline-flex items-center gap-1">
+                      <Phone className="w-3 h-3 text-indigo-300" />
+                      {company.phone}
+                    </span>
+                  )}
+                  {company.address && (
+                    <span className="inline-flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-indigo-300" />
+                      {company.address}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -241,7 +265,9 @@ export default function PublicSharedLedgerPortalPage({
             <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-indigo-50 rounded-2xl p-5 border border-emerald-200/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">⚡</span>
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
+                    <Zap className="w-4 h-4" />
+                  </div>
                   <h3 className="font-semibold text-slate-900 text-[15px]">
                     Instant Online Settlement
                   </h3>
@@ -258,9 +284,16 @@ export default function PublicSharedLedgerPortalPage({
                     <button
                       type="button"
                       onClick={() => copyToClipboard(company.upiId!, "upi")}
-                      className="text-xs text-indigo-600 hover:text-indigo-800 font-bold cursor-pointer"
+                      className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-bold cursor-pointer"
                     >
-                      {copiedKey === "upi" ? "✓ Copied!" : "Copy"}
+                      {copiedKey === "upi" ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Copied!</span>
+                        </>
+                      ) : (
+                        "Copy"
+                      )}
                     </button>
                   </div>
                 )}
@@ -272,7 +305,8 @@ export default function PublicSharedLedgerPortalPage({
                     href={upiPayUrl}
                     className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white font-medium text-[13px] rounded-xl shadow-md transition-all flex items-center gap-1.5"
                   >
-                    <span>📱</span> Pay ₹{balance.toLocaleString("en-IN")} via UPI
+                    <Smartphone className="w-4 h-4" />
+                    <span>Pay ₹{balance.toLocaleString("en-IN")} via UPI</span>
                   </a>
                 )}
               </div>
@@ -283,7 +317,8 @@ export default function PublicSharedLedgerPortalPage({
           {company.bankDetails?.accountNo && (
             <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-xs text-slate-600 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 font-bold text-slate-800">
-                <span>🏦</span> Bank Transfer (NEFT/RTGS/IMPS):
+                <Landmark className="w-4 h-4 text-slate-600" />
+                <span>Bank Transfer (NEFT/RTGS/IMPS):</span>
               </div>
               <div className="flex flex-wrap items-center gap-3 tabular-nums">
                 <span>
@@ -306,9 +341,16 @@ Bank: ${company.bankDetails?.bankName}`,
                     "bank",
                   )
                 }
-                className="text-indigo-600 font-bold hover:underline cursor-pointer"
+                className="inline-flex items-center gap-1 text-indigo-600 font-bold hover:underline cursor-pointer"
               >
-                {copiedKey === "bank" ? "✓ Details Copied" : "Copy Bank Details"}
+                {copiedKey === "bank" ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Details Copied</span>
+                  </>
+                ) : (
+                  "Copy Bank Details"
+                )}
               </button>
             </div>
           )}
@@ -351,71 +393,90 @@ Bank: ${company.bankDetails?.bankName}`,
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-[13px] rounded-xl transition-all cursor-pointer flex items-center gap-1"
+                className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-[13px] rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
                 title="Print or Save as PDF"
               >
-                🖨️ Print
+                <Printer className="w-3.5 h-3.5 text-slate-600" />
+                <span>Print</span>
               </button>
             </div>
           </div>
 
           {/* Table */}
-          <div className="overflow-x-auto border border-slate-200 rounded-2xl">
-            {filteredTransactions.length === 0 ? (
-              <div className="py-12 text-center text-xs text-slate-400">
-                No transactions found for this period.
-              </div>
-            ) : (
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase text-[10px]">
-                  <tr>
-                    <th className="p-3.5">Date</th>
-                    <th className="p-3.5">Voucher Number</th>
-                    <th className="p-3.5">Type</th>
-                    <th className="p-3.5 text-right">Debit (₹)</th>
-                    <th className="p-3.5 text-right">Credit (₹)</th>
-                    <th className="p-3.5 text-right">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredTransactions.map((t) => (
-                    <tr key={t.id} className="hover:bg-slate-50/70 transition-colors">
-                      <td className="p-3.5 text-slate-600 whitespace-nowrap">
-                        {new Date(t.date).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </td>
-                      <td className="p-3.5 tabular-nums font-medium text-slate-900">
-                        {t.voucherNumber}
-                      </td>
-                      <td className="p-3.5 text-slate-700">
-                        {t.typeLabel || t.type}
-                      </td>
-                      <td className="p-3.5 text-right font-medium text-slate-900">
-                        {t.debit > 0 ? `₹${t.debit.toLocaleString("en-IN")}` : "—"}
-                      </td>
-                      <td className="p-3.5 text-right font-medium text-emerald-600">
-                        {t.credit > 0 ? `₹${t.credit.toLocaleString("en-IN")}` : "—"}
-                      </td>
-                      <td className="p-3.5 text-right">
-                        <span
-                          className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
-                            t.status === "PAID"
-                              ? "bg-emerald-50 text-emerald-700"
-                              : t.status === "PARTIAL"
-                              ? "bg-amber-50 text-amber-700"
-                              : "bg-slate-100 text-slate-600"
-                          }`}
-                        >
-                          {t.status || "CONFIRMED"}
-                        </span>
-                      </td>
+          <div className="border border-slate-200 rounded-2xl overflow-hidden">
+            <div className="overflow-x-auto">
+              {filteredTransactions.length === 0 ? (
+                <div className="py-12 text-center text-xs text-slate-400">
+                  No transactions found for this period.
+                </div>
+              ) : (
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase text-[10px]">
+                    <tr>
+                      <th className="p-3.5">Date</th>
+                      <th className="p-3.5">Voucher Number</th>
+                      <th className="p-3.5">Type</th>
+                      <th className="p-3.5 text-right">Debit (₹)</th>
+                      <th className="p-3.5 text-right">Credit (₹)</th>
+                      <th className="p-3.5 text-right">Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {paginatedTransactions.map((t) => (
+                      <tr key={t.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="p-3.5 text-slate-600 whitespace-nowrap">
+                          {new Date(t.date).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </td>
+                        <td className="p-3.5 tabular-nums font-medium text-slate-900">
+                          {t.voucherNumber}
+                        </td>
+                        <td className="p-3.5 text-slate-700">
+                          {t.typeLabel || t.type}
+                        </td>
+                        <td className="p-3.5 text-right font-medium text-slate-900">
+                          {t.debit > 0 ? `₹${t.debit.toLocaleString("en-IN")}` : "—"}
+                        </td>
+                        <td className="p-3.5 text-right font-medium text-emerald-600">
+                          {t.credit > 0 ? `₹${t.credit.toLocaleString("en-IN")}` : "—"}
+                        </td>
+                        <td className="p-3.5 text-right">
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
+                              t.status === "PAID"
+                                ? "bg-emerald-50 text-emerald-700"
+                                : t.status === "PARTIAL"
+                                ? "bg-amber-50 text-amber-700"
+                                : "bg-slate-100 text-slate-600"
+                            }`}
+                          >
+                            {t.status || "CONFIRMED"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {filteredTransactions.length > 0 && (
+              <div className="bg-white border-t border-slate-200 px-3.5 sm:px-4 py-1">
+                <DataTablePagination
+                  currentPage={currentPage}
+                  pageSize={pageSize}
+                  totalRecords={filteredTransactions.length}
+                  onPageChange={setCurrentPage}
+                  onPageSizeChange={(newSize) => {
+                    setPageSize(newSize);
+                    setCurrentPage(1);
+                  }}
+                  lang="en"
+                />
+              </div>
             )}
           </div>
 
@@ -431,9 +492,10 @@ Bank: ${company.bankDetails?.bankName}`,
                   href={`https://wa.me/91${company.phone.replace(/[^0-9]/g, "").slice(-10)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-emerald-600 font-bold hover:underline"
+                  className="inline-flex items-center gap-1 text-emerald-600 font-bold hover:underline"
                 >
-                  💬 Chat with {company.name} on WhatsApp
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Chat with {company.name} on WhatsApp</span>
                 </a>
               </div>
             )}

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAuth } from "../../../../../context/auth-context";
 import { apiClient, extractList } from "../../../../../lib/api-client";
 import { getPartyItemPrice } from "../../../../../lib/party-item-pricing";
+import { Pencil, Save, AlertTriangle, Check, X } from "lucide-react";
 
 interface PartyOption {
   id: string;
@@ -338,7 +339,7 @@ export default function EditInvoicePage() {
             </span>
           </div>
           <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight flex items-center gap-2">
-            <span>✏️</span>
+            <Pencil className="w-5 h-5 text-primary" />
             <span>
               {lang === "gu" ? "વેચાણ બિલ સુધારો" : "Edit Sales Invoice"} #{invoiceNumber}
             </span>
@@ -369,7 +370,7 @@ export default function EditInvoicePage() {
               </>
             ) : (
               <>
-                <span>💾</span>
+                <Save className="w-4 h-4" />
                 <span>{lang === "gu" ? "બિલ અપડેટ કરો" : "Update Sales Invoice"}</span>
               </>
             )}
@@ -379,7 +380,7 @@ export default function EditInvoicePage() {
 
       {error && (
         <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs font-medium flex items-center gap-2">
-          <span>⚠️</span>
+          <AlertTriangle className="w-4 h-4 text-rose-600" />
           <span>{error}</span>
         </div>
       )}
@@ -479,8 +480,18 @@ export default function EditInvoicePage() {
               placeholder="24"
               className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] tabular-nums font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none h-10"
             />
-            <span className="text-[10px] text-slate-400 mt-0.5 block">
-              {isInterState ? "⚠️ Inter-State (IGST Applicable)" : "✓ Intra-State (CGST + SGST Applicable)"}
+            <span className="text-[10px] text-slate-400 mt-0.5 inline-flex items-center gap-1">
+              {isInterState ? (
+                <>
+                  <AlertTriangle className="w-3 h-3 text-amber-500" />
+                  <span>Inter-State (IGST Applicable)</span>
+                </>
+              ) : (
+                <>
+                  <Check className="w-3 h-3 text-emerald-600" />
+                  <span>Intra-State (CGST + SGST Applicable)</span>
+                </>
+              )}
             </span>
           </div>
 
@@ -638,10 +649,11 @@ export default function EditInvoicePage() {
                         <button
                           type="button"
                           onClick={() => handleRemoveRow(idx)}
-                          className="text-slate-400 hover:text-rose-600 transition-colors p-1"
+                          className="text-slate-400 hover:text-rose-600 transition-colors p-1 rounded"
                           title="Remove Line Item"
+                          aria-label="Remove Line Item"
                         >
-                          ✕
+                          <X className="w-4 h-4" />
                         </button>
                       )}
                     </td>
@@ -664,7 +676,11 @@ export default function EditInvoicePage() {
           </p>
           {existingPaidAmount > 0 && (
             <div className="p-2.5 bg-emerald-50 rounded-lg border border-emerald-200 text-emerald-800">
-              <span className="font-bold">✓ Already Paid Amount:</span> ₹{existingPaidAmount.toFixed(2)}
+              <span className="font-bold inline-flex items-center gap-1">
+                <Check className="w-3.5 h-3.5" />
+                <span>Already Paid Amount:</span>
+              </span>{" "}
+              ₹{existingPaidAmount.toFixed(2)}
             </div>
           )}
         </div>
@@ -744,7 +760,7 @@ export default function EditInvoicePage() {
             </>
           ) : (
             <>
-              <span>💾</span>
+              <Save className="w-4 h-4" />
               <span>{lang === "gu" ? "બિલ અપડેટ કરો (Update Invoice)" : "Update Sales Invoice"}</span>
             </>
           )}

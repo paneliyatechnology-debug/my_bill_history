@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
+import { X, Search, Tag } from "lucide-react";
+import { StockQuantityDisplay } from "../inventory/stock-quantity-display";
 
 export interface CatalogItem {
   id: string;
@@ -181,7 +183,7 @@ export function AddItemsModal({
             title="Close [ESC]"
             aria-label="Close"
           >
-            <span className="text-base font-semibold leading-none">✕</span>
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -189,9 +191,7 @@ export function AddItemsModal({
         <div className="p-4 bg-white border-b border-slate-200 flex flex-wrap items-center gap-3">
           {/* Search Input with Barcode icon */}
           <div className="relative flex-1 min-w-[280px]">
-            <span className="absolute left-3.5 top-2.5 text-slate-400 text-sm">
-              🔍
-            </span>
+            <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400 pointer-events-none" />
             <input
               ref={searchInputRef}
               type="text"
@@ -298,17 +298,7 @@ export function AddItemsModal({
 
                       {/* Stock */}
                       <td className="py-3 px-3 text-center">
-                        <span
-                          className={`inline-block px-2 py-0.5 rounded typo-badge font-semibold ${
-                            stock > 5
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              : stock > 0
-                              ? "bg-amber-50 text-amber-700 border border-amber-200"
-                              : "bg-slate-100 text-slate-500"
-                          }`}
-                        >
-                          {stock > 0 ? `${stock} ${it.unit || "PCS"}` : "-"}
-                        </span>
+                        <StockQuantityDisplay quantity={stock} unit={it.unit || "PCS"} />
                       </td>
 
                       {/* Sales Price */}
@@ -316,8 +306,9 @@ export function AddItemsModal({
                         <div className="flex flex-col items-end">
                           <span>₹{Number(it.retailPrice || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
                           {it.isPartyRate && (
-                            <span className="text-[9px] font-semibold text-purple-700 bg-purple-50 border border-purple-200 px-1 rounded inline-block mt-0.5">
-                              🏷️ Party Rate
+                            <span className="text-[9px] font-semibold text-purple-700 bg-purple-50 border border-purple-200 px-1 rounded inline-flex items-center gap-0.5 mt-0.5">
+                              <Tag className="w-2.5 h-2.5" />
+                              <span>Party Rate</span>
                             </span>
                           )}
                         </div>

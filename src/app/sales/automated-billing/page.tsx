@@ -9,6 +9,8 @@ import {
   AutomatedBillingSummary,
   formatCurrency,
 } from "@/lib/automated-billing";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { X } from "lucide-react";
 
 export default function AutomatedBillingPage() {
   const router = useRouter();
@@ -26,6 +28,7 @@ export default function AutomatedBillingPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [limit, setLimit] = useState(15);
 
   // Modals and action loading states
   const [runningId, setRunningId] = useState<string | null>(null);
@@ -58,7 +61,7 @@ export default function AutomatedBillingPage() {
           status: activeTab === "ALL" ? undefined : activeTab,
           search: searchTerm.trim() || undefined,
           page,
-          limit: 15,
+          limit,
         }),
       ]);
 
@@ -147,9 +150,9 @@ export default function AutomatedBillingPage() {
           <span>{notification.text}</span>
           <button
             onClick={() => setNotification(null)}
-            className="text-gray-400 hover:text-gray-700 font-bold ml-4"
+            className="text-gray-400 hover:text-gray-700 ml-4"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -563,32 +566,17 @@ export default function AutomatedBillingPage() {
         </div>
 
         {/* Pagination Footer */}
-        {totalItems > 0 && (
-          <div className="p-4 border-t border-gray-200 flex items-center justify-between text-xs text-gray-500">
-            <span>
-              Showing {schedules.length} of {totalItems} schedules
-            </span>
-            <div className="flex items-center gap-2">
-              <button
-                disabled={page <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <span>
-                Page {page} of {totalPages}
-              </span>
-              <button
-                disabled={page >= totalPages}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="h-9 px-3 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
+        <DataTablePagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={limit}
+          onPageChange={setPage}
+          onPageSizeChange={(newLimit) => {
+            setLimit(newLimit);
+            setPage(1);
+          }}
+        />
       </div>
 
       {/* Confirmation Modal for Stopping Schedule */}

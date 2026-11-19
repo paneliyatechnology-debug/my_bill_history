@@ -6,6 +6,7 @@ import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
 import { WaveBackground } from "../../components/ui/wave-background";
 import Image from "next/image";
+import { Lock, Ban, Check, AlertTriangle, Smartphone } from "lucide-react";
 
 function LoginContent() {
   const router = useRouter();
@@ -377,7 +378,7 @@ function LoginContent() {
 
         {reasonParam === "session_expired" && !error && !logoutNotice && (
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 font-semibold flex items-center gap-2 animate-fadeIn">
-            <span className="text-base">🔒</span>
+            <Lock className="w-4 h-4 text-amber-600 shrink-0" />
             <span>
               {lang === "gu"
                 ? "તમારું સત્ર સમાપ્ત થઈ ગયું છે. કૃપા કરીને ફરીથી લોગિન કરો."
@@ -388,7 +389,7 @@ function LoginContent() {
 
         {reasonParam === "suspended" && !error && !logoutNotice && (
           <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-semibold flex items-center gap-2 animate-fadeIn">
-            <span className="text-base">🚫</span>
+            <Ban className="w-4 h-4 text-rose-600 shrink-0" />
             <span>
               {lang === "gu"
                 ? "તમારું ટેનન્ટ સુપરએડમિન દ્વારા સસ્પેન્ડ કરવામાં આવ્યું છે."
@@ -399,7 +400,7 @@ function LoginContent() {
 
         {reasonParam === "session_revoked" && !error && !logoutNotice && (
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 font-semibold flex items-center gap-2 animate-fadeIn">
-            <span className="text-base">🔒</span>
+            <Lock className="w-4 h-4 text-amber-600 shrink-0" />
             <span>
               {lang === "gu"
                 ? "સુરક્ષા ફેરફારને કારણે સત્ર બંધ કરવામાં આવ્યું છે. ફરી લોગિન કરો."
@@ -410,21 +411,21 @@ function LoginContent() {
 
         {logoutNotice && !error && (
           <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-semibold flex items-center gap-2 animate-fadeIn">
-            <span className="text-base">🚫</span>
+            <Ban className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{logoutNotice}</span>
           </div>
         )}
 
         {successMsg && (
           <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-semibold flex items-center gap-2 animate-fadeIn">
-            <span className="text-base">✓</span>
+            <Check className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{successMsg}</span>
           </div>
         )}
 
         {error && (
           <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-semibold flex items-center gap-2 animate-fadeIn">
-            <span className="text-base">⚠️</span>
+            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{error}</span>
           </div>
         )}
@@ -437,8 +438,8 @@ function LoginContent() {
                 {lang === "gu" ? "મોબાઇલ નંબર અથવા ઇમેઇલ *" : "Phone Number or Email *"}
               </label>
               <div className="relative">
-                <span className="absolute left-3.5 top-2.5 text-xs font-semibold text-[#98A2B3]">
-                  📱
+                <span className="absolute left-3.5 top-3 text-[#98A2B3]">
+                  <Smartphone className="w-4 h-4" />
                 </span>
                 <input
                   type="text"
@@ -465,8 +466,8 @@ function LoginContent() {
                 </button>
               </div>
               <div className="relative">
-                <span className="absolute left-3.5 top-2.5 text-xs font-semibold text-[#98A2B3]">
-                  🔒
+                <span className="absolute left-3.5 top-3 text-[#98A2B3]">
+                  <Lock className="w-4 h-4" />
                 </span>
                 <input
                   type={showPassword ? "text" : "password"}

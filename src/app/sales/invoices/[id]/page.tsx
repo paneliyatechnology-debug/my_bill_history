@@ -29,6 +29,28 @@ import {
   getCachedThermalSettings,
   ThermalReceiptData,
 } from "@/lib/thermal-printer";
+import {
+  Settings,
+  Printer,
+  Mail,
+  CreditCard,
+  Briefcase,
+  Pencil,
+  Truck,
+  Building2,
+  RotateCcw,
+  Ban,
+  AlertTriangle,
+  Check,
+  X,
+  Zap,
+  Link2,
+  Receipt,
+  Smartphone,
+  Wifi,
+  FileText,
+  MessageSquare,
+} from "lucide-react";
 
 interface InvoiceDetail {
   id: string;
@@ -773,7 +795,8 @@ export default function InvoiceDetailPage() {
                       className="text-xs font-bold text-[#0F172A] hover:text-[#1677E8] hover:underline flex items-center gap-1"
                       title="Open Invoice Settings Studio"
                     >
-                      <span>⚙️ Studio</span>
+                      <Settings className="w-3.5 h-3.5" />
+                      <span>Studio</span>
                       <span>→</span>
                     </Link>
                   </div>
@@ -795,9 +818,7 @@ export default function InvoiceDetailPage() {
                 className="h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 text-[13px] font-medium rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                 title="Print Invoice"
               >
-                <svg className="w-3.5 h-3.5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                </svg>
+                <Printer className="w-3.5 h-3.5 text-slate-600" />
                 <span>{lang === "gu" ? "પ્રિન્ટ" : "Print"}</span>
                 <span className="text-[10px] text-slate-400">▾</span>
               </button>
@@ -813,7 +834,7 @@ export default function InvoiceDetailPage() {
                     }}
                     className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
                   >
-                    <span>🖨️</span>
+                    <Printer className="w-3.5 h-3.5 text-slate-600" />
                     <span>Print Standard A4</span>
                   </button>
                   <button
@@ -823,7 +844,7 @@ export default function InvoiceDetailPage() {
                     }}
                     className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
                   >
-                    <span>🧾</span>
+                    <Receipt className="w-4 h-4 text-slate-500" />
                     <span>Thermal Printer (3 inch / 80mm)</span>
                   </button>
                   <button
@@ -833,7 +854,7 @@ export default function InvoiceDetailPage() {
                     }}
                     className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
                   >
-                    <span>📱</span>
+                    <Smartphone className="w-4 h-4 text-slate-500" />
                     <span>Thermal Printer (2 inch / 58mm)</span>
                   </button>
                   <button
@@ -843,7 +864,7 @@ export default function InvoiceDetailPage() {
                     }}
                     className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-blue-700 font-medium cursor-pointer"
                   >
-                    <span>📶</span>
+                    <Wifi className="w-4 h-4 text-blue-600" />
                     <span>Bluetooth POS Machine</span>
                   </button>
                 </div>
@@ -883,7 +904,7 @@ export default function InvoiceDetailPage() {
                     }}
                     className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
                   >
-                    <span>📄</span>
+                    <FileText className="w-4 h-4 text-slate-500" />
                     <span>Regular A4 Tax PDF</span>
                   </button>
                   <button
@@ -893,7 +914,7 @@ export default function InvoiceDetailPage() {
                     }}
                     className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
                   >
-                    <span>🧾</span>
+                    <Receipt className="w-4 h-4 text-slate-500" />
                     <span>Thermal Slip (80mm)</span>
                   </button>
                 </div>
@@ -938,7 +959,7 @@ export default function InvoiceDetailPage() {
                     }}
                     className="w-full text-left px-3.5 py-2 hover:bg-emerald-50 flex items-center gap-2 text-emerald-800 font-semibold cursor-pointer"
                   >
-                    <span>💬</span>
+                    <MessageSquare className="w-4 h-4 text-emerald-600" />
                     <span>Share on WhatsApp</span>
                   </button>
                   <button
@@ -949,7 +970,7 @@ export default function InvoiceDetailPage() {
                     }}
                     className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
                   >
-                    <span>🔗</span>
+                    <Link2 className="w-3.5 h-3.5 text-slate-600" />
                     <span>Copy Invoice Link</span>
                   </button>
                   <button
@@ -960,7 +981,7 @@ export default function InvoiceDetailPage() {
                     }}
                     className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 border-t border-slate-100 cursor-pointer"
                   >
-                    <span>✉️</span>
+                    <Mail className="w-3.5 h-3.5 text-slate-600" />
                     <span>Email Invoice</span>
                   </button>
                 </div>
@@ -997,7 +1018,7 @@ export default function InvoiceDetailPage() {
                 }}
                 className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
               >
-                <span>💳</span>
+                <CreditCard className="w-3.5 h-3.5" />
                 <span>{lang === "gu" ? "ચુકવણી નોંધો" : "Record Payment In"}</span>
               </button>
             ) : null}
@@ -1032,7 +1053,7 @@ export default function InvoiceDetailPage() {
                     }}
                     className="w-full text-left h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer font-medium"
                   >
-                    <span>💼</span>
+                    <Briefcase className="w-3.5 h-3.5 text-slate-600" />
                     <span>{lang === "gu" ? "નફો વિગતો" : "Profit Details"}</span>
                   </button>
 
@@ -1042,7 +1063,7 @@ export default function InvoiceDetailPage() {
                       href={`/sales/invoices/${invoice.id}/edit`}
                       className="h-9 px-3 hover:bg-slate-50 flex items-center gap-2 text-slate-700 font-medium"
                     >
-                      <span>✏️</span>
+                      <Pencil className="w-3.5 h-3.5 text-slate-600" />
                       <span>{lang === "gu" ? "બિલમાં ફેરફાર કરો" : "Edit Invoice"}</span>
                     </Link>
                   )}
@@ -1057,7 +1078,7 @@ export default function InvoiceDetailPage() {
                         }}
                         className="w-full text-left h-9 px-3 hover:bg-sky-50 flex items-center gap-2 text-sky-800 font-medium cursor-pointer"
                       >
-                        <span>🚚</span>
+                        <Truck className="w-3.5 h-3.5 text-sky-700" />
                         <span>View EWB Slip ({invoice.eWayBillRecord.ewbNumber})</span>
                       </button>
                     ) : (
@@ -1078,7 +1099,7 @@ export default function InvoiceDetailPage() {
                         }}
                         className="w-full text-left h-9 px-3 hover:bg-sky-50 flex items-center gap-2 text-sky-800 font-medium cursor-pointer"
                       >
-                        <span>🚚</span>
+                        <Truck className="w-3.5 h-3.5 text-sky-700" />
                         <span>{lang === "gu" ? "જનરેટ ઈ-વે બિલ" : "Generate E-way Bill"}</span>
                       </button>
                     )
@@ -1093,7 +1114,7 @@ export default function InvoiceDetailPage() {
                       }}
                       className="w-full text-left h-9 px-3 hover:bg-blue-50 flex items-center gap-2 text-blue-800 font-medium cursor-pointer"
                     >
-                      <span>🏛️</span>
+                      <Building2 className="w-3.5 h-3.5 text-blue-700" />
                       <span>{lang === "gu" ? "જનરેટ e-Invoice" : "Generate e-Invoice"}</span>
                     </button>
                   )}
@@ -1104,7 +1125,7 @@ export default function InvoiceDetailPage() {
                       href={`/sales/returns?invoiceId=${invoice.id}`}
                       className="h-9 px-3 hover:bg-amber-50 flex items-center gap-2 text-amber-800 font-medium"
                     >
-                      <span>↩</span>
+                      <RotateCcw className="w-3.5 h-3.5 text-amber-700" />
                       <span>{lang === "gu" ? "ક્રેડિટ નોટ બનાવો" : "Create Credit Note"}</span>
                     </Link>
                   )}
@@ -1120,7 +1141,7 @@ export default function InvoiceDetailPage() {
                       }}
                       className="w-full text-left h-9 px-3 hover:bg-rose-50 flex items-center gap-2 text-rose-600 font-medium border-t border-slate-100 cursor-pointer"
                     >
-                      <span>✕</span>
+                      <Ban className="w-3.5 h-3.5 text-rose-600" />
                       <span>{lang === "gu" ? "બિલ રદ કરો" : "Cancel Invoice"}</span>
                     </button>
                   )}
@@ -1135,14 +1156,15 @@ export default function InvoiceDetailPage() {
       {actionError && (
         <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center justify-between shadow-2xs print:hidden animate-in fade-in duration-150">
           <div className="flex items-center gap-2">
-            <span className="text-base">⚠️</span>
+            <AlertTriangle className="w-4 h-4 text-rose-600" />
             <span>{actionError}</span>
           </div>
           <button
             onClick={() => setActionError(null)}
             className="text-rose-500 hover:text-rose-700 font-medium px-2 py-0.5 rounded cursor-pointer"
+            aria-label="Dismiss error"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -1150,14 +1172,15 @@ export default function InvoiceDetailPage() {
       {actionSuccess && (
         <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between shadow-2xs print:hidden animate-in fade-in duration-150">
           <div className="flex items-center gap-2">
-            <span className="text-base">✓</span>
+            <Check className="w-4 h-4 text-emerald-600" />
             <span className="font-semibold">{actionSuccess}</span>
           </div>
           <button
             onClick={() => setActionSuccess(null)}
             className="text-emerald-500 hover:text-emerald-700 font-medium px-2 py-0.5 rounded cursor-pointer"
+            aria-label="Dismiss success"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -1244,7 +1267,7 @@ export default function InvoiceDetailPage() {
               <div className="px-5 py-4 border-b border-slate-100 bg-[#F6F8F7] flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-xl bg-[#0F172A]/10 text-[#0F172A] flex items-center justify-center font-bold text-sm">
-                    📋
+                    <CreditCard className="w-4 h-4 text-[#0F172A]" />
                   </div>
                   <div>
                     <h3 id="payment-drawer-title" className="font-semibold text-slate-900 text-[15px]">
@@ -1259,10 +1282,11 @@ export default function InvoiceDetailPage() {
                   id="btn-close-payment-drawer"
                   type="button"
                   onClick={() => setShowPaymentHistory(false)}
-                  className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 flex items-center justify-center transition-colors cursor-pointer text-base"
+                  className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 flex items-center justify-center transition-colors cursor-pointer"
                   title="Close Drawer"
+                  aria-label="Close Drawer"
                 >
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
@@ -1363,7 +1387,7 @@ export default function InvoiceDetailPage() {
                     }}
                     className="w-full py-2.5 px-4 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <span>💳</span>
+                    <CreditCard className="w-4 h-4" />
                     <span>{lang === "gu" ? "ચુકવણી નોંધો (Record Payment In)" : "Record Payment In"}</span>
                   </button>
                 </div>
@@ -1740,9 +1764,19 @@ export default function InvoiceDetailPage() {
         maxWidth="2xl"
         footer={
           <div className="flex items-center justify-between w-full">
-            <div className="text-[11px] text-slate-500 hidden sm:block">
-              {ewbTab === "GENERATE" && "⚡ Rule 138: 1 day per 200 KM calculation"}
-              {ewbTab === "LINK" && "🔗 Official 12-digit portal number verification"}
+            <div className="text-[11px] text-slate-500 hidden sm:flex sm:items-center sm:gap-2">
+              {ewbTab === "GENERATE" && (
+                <span className="inline-flex items-center gap-1">
+                  <Zap className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Rule 138: 1 day per 200 KM calculation</span>
+                </span>
+              )}
+              {ewbTab === "LINK" && (
+                <span className="inline-flex items-center gap-1">
+                  <Link2 className="w-3.5 h-3.5 text-blue-500" />
+                  <span>Official 12-digit portal number verification</span>
+                </span>
+              )}
             </div>
             <button
               type="button"
@@ -1807,9 +1841,10 @@ export default function InvoiceDetailPage() {
               <button
                 type="button"
                 onClick={() => setEwbError(null)}
-                className="text-rose-500 hover:text-rose-700 text-[13px] font-medium px-1.5 py-0.5"
+                className="text-rose-500 hover:text-rose-700 text-[13px] font-medium px-1.5 py-0.5 rounded transition-colors"
+                aria-label="Dismiss error"
               >
-                ✕
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           )}
@@ -1824,7 +1859,8 @@ export default function InvoiceDetailPage() {
 
               <div>
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wider mb-1">
-                  ✓ Statutory EWB Recorded
+                  <Check className="w-3 h-3 text-emerald-700" />
+                  <span>Statutory EWB Recorded</span>
                 </span>
                 <h3 className="text-[15px] sm:text-[15px] font-semibold text-slate-900">
                   {lang === "gu" ? "E-Way Bill સફળતાપૂર્વક જનરેટ / રેકોર્ડ થયેલ છે!" : "E-Way Bill Successfully Recorded!"}
@@ -1853,7 +1889,10 @@ export default function InvoiceDetailPage() {
                     className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
                   >
                     {copiedEwb ? (
-                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">✓ Copied</span>
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                        <Check className="w-2.5 h-2.5 text-emerald-600" />
+                        <span>Copied</span>
+                      </span>
                     ) : (
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -1974,7 +2013,8 @@ export default function InvoiceDetailPage() {
                         Rule 138 Statutory Calculation
                       </span>
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-900 border border-amber-200">
-                        ⚡ Validity: <strong>{Math.max(1, Math.ceil((ewbForm.distanceKm || 50) / 200))} Day(s)</strong>
+                        <Zap className="w-3 h-3 text-amber-600" />
+                        <span>Validity: <strong>{Math.max(1, Math.ceil((ewbForm.distanceKm || 50) / 200))} Day(s)</strong></span>
                       </span>
                     </div>
                     <p className="text-amber-800/90 text-[11.5px] leading-relaxed">
@@ -2134,8 +2174,15 @@ export default function InvoiceDetailPage() {
                       <label className="block text-[12px] font-medium text-slate-700">
                         12-Digit E-Way Bill Number <span className="text-rose-500">*</span>
                       </label>
-                      <span className={`text-[10px] tabular-nums font-semibold ${linkEwbNumber.length === 12 ? "text-emerald-600" : "text-slate-400"}`}>
-                        {linkEwbNumber.length === 12 ? "✓ 12/12 digits" : `${linkEwbNumber.length} / 12 digits`}
+                      <span className={`text-[10px] tabular-nums font-semibold inline-flex items-center gap-1 ${linkEwbNumber.length === 12 ? "text-emerald-600" : "text-slate-400"}`}>
+                        {linkEwbNumber.length === 12 ? (
+                          <>
+                            <Check className="w-2.5 h-2.5" />
+                            <span>12/12 digits</span>
+                          </>
+                        ) : (
+                          `${linkEwbNumber.length} / 12 digits`
+                        )}
                       </span>
                     </div>
                     <input

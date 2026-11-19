@@ -1,10 +1,15 @@
 "use client";
 
 import React, { useState, useMemo, useContext } from "react";
+import { X, FileText } from "lucide-react";
 import { ExportDropdown } from "./export-dropdown";
 import { ExportColumn, ExportFormat, ExportMetadata } from "../../lib/export/export-types";
 import { executeExport } from "../../lib/export/export-engine";
 import { AuthContext } from "../../context/auth-context";
+import { DataTablePagination } from "./data-table-pagination";
+
+export { DataTablePagination };
+export type { DataTablePaginationProps } from "./data-table-pagination";
 
 export interface ColumnDef<T> {
   id?: string;
@@ -526,10 +531,10 @@ export function DataTable<T>({
               {searchQuery && (
                 <button
                   onClick={() => handleSearchChange("")}
-                  className="absolute right-2.5 top-2.5 text-xs text-[#98A2B3] hover:text-[#182230]"
+                  className="absolute right-2.5 top-2.5 p-0.5 text-[#98A2B3] hover:text-[#182230] rounded-sm transition-colors"
                   title="Clear search"
                 >
-                  ✕
+                  <X className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
@@ -578,7 +583,7 @@ export function DataTable<T>({
               ) : (
                 <div className="py-12 text-center text-[#98A2B3] px-4">
                   <div className="flex flex-col items-center justify-center gap-2">
-                    <span className="text-3xl">📄</span>
+                    <FileText className="w-10 h-10 text-slate-300 stroke-[1.5]" />
                     <p className="text-xs font-bold text-[#667085]">
                       {lang === "gu" ? emptyMessageGujarati : emptyMessage}
                     </p>
@@ -658,7 +663,7 @@ export function DataTable<T>({
                       emptyState
                     ) : (
                       <div className="flex flex-col items-center justify-center gap-2">
-                        <span className="text-3xl">📄</span>
+                        <FileText className="w-10 h-10 text-slate-300 stroke-[1.5]" />
                         <p className="typo-empty-heading text-[#667085]">
                           {lang === "gu" ? emptyMessageGujarati : emptyMessage}
                         </p>
@@ -707,101 +712,20 @@ export function DataTable<T>({
         </div>
 
         {/* ================= PAGINATION FOOTER ================= */}
-        <div className="p-3.5 sm:p-4 bg-white border-t border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between gap-3 typo-card-desc text-[#64748B]">
-          {/* Entries summary */}
-          <div className="font-medium text-center sm:text-left">
-            {lang === "gu" ? (
-              <span>
-                કુલ <span className="font-semibold text-[#202124] tabular-nums">{totalEntries}</span> માંથી{" "}
-                <span className="font-semibold text-[#202124] tabular-nums">{startEntry}</span> થી{" "}
-                <span className="font-semibold text-[#202124] tabular-nums">{endEntry}</span> દર્શાવી રહ્યા છીએ
-                {filteredData.length !== data.length && (
-                  <span className="text-[#98A2B3] ml-1">
-                    (કુલ {data.length} માંથી ફિલ્ટર થયેલ)
-                  </span>
-                )}
-              </span>
-            ) : (
-              <span>
-                Showing <span className="font-semibold text-[#202124] tabular-nums">{startEntry}</span> to{" "}
-                <span className="font-semibold text-[#202124] tabular-nums">{endEntry}</span> of{" "}
-                <span className="font-semibold text-[#202124] tabular-nums">{totalEntries}</span> entries
-                {filteredData.length !== data.length && (
-                  <span className="text-[#98A2B3] ml-1">
-                    (filtered from {data.length} total entries)
-                  </span>
-                )}
-              </span>
-            )}
-          </div>
-
-          {/* Navigation Controls */}
-          {totalPages > 1 && (
-            <div className="flex items-center gap-1">
-              {/* First Page */}
-              <button
-                onClick={() => setCurrentPage(1)}
-                disabled={safePage === 1}
-                className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#182230] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F3F4F6] transition-all font-medium cursor-pointer"
-                title="First Page"
-              >
-                «
-              </button>
-
-              {/* Prev Page */}
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={safePage === 1}
-                className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#182230] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F3F4F6] transition-all font-medium cursor-pointer"
-                title="Previous Page"
-              >
-                {lang === "gu" ? "અગાઉનું" : "Previous"}
-              </button>
-
-              {/* Page Number Buttons */}
-              <div className="hidden md:flex items-center gap-1">
-                {getPageNumbers().map((pageNum, idx) =>
-                  pageNum === "ellipsis" ? (
-                    <span key={`ellipsis-${idx}`} className="px-2 text-[#98A2B3]">
-                      …
-                    </span>
-                  ) : (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={`min-w-[32px] h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                        safePage === pageNum
-                          ? activePageClass
-                          : "bg-white border border-[#E5E7EB] text-[#202124] hover:bg-[#F3F4F6]"
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  )
-                )}
-              </div>
-
-              {/* Next Page */}
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={safePage === totalPages}
-                className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#182230] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F3F4F6] transition-all font-medium cursor-pointer"
-                title="Next Page"
-              >
-                {lang === "gu" ? "આગળનું" : "Next"}
-              </button>
-
-              {/* Last Page */}
-              <button
-                onClick={() => setCurrentPage(totalPages)}
-                disabled={safePage === totalPages}
-                className="px-2.5 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-[#182230] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F3F4F6] transition-all font-medium cursor-pointer"
-                title="Last Page"
-              >
-                »
-              </button>
-            </div>
-          )}
+        <div className="bg-white border-t border-[#E2E8F0] px-3.5 sm:px-4 py-1">
+          <DataTablePagination
+            currentPage={safePage}
+            pageSize={pageSize}
+            totalRecords={totalEntries}
+            onPageChange={(p) => setCurrentPage(p)}
+            onPageSizeChange={(newSize) => {
+              setPageSize(newSize);
+              setCurrentPage(1);
+            }}
+            pageSizeOptions={pageSizeOptions}
+            lang={lang}
+            showPageSize={toolbarVariant === "clean"}
+          />
         </div>
       </div>
 

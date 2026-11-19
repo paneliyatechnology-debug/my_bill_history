@@ -5,6 +5,7 @@ import { HsnSelector } from "../../../../components/ui/hsn-selector";
 import { ItemBarcodeModal } from "./item-barcode-modal";
 import { apiClient, extractList } from "../../../../lib/api-client";
 import { PartyWisePriceRule, setItemPartyPrices } from "../../../../lib/party-item-pricing";
+import { AlertTriangle, X, Check, Info, RefreshCw, Globe, User } from "lucide-react";
 
 export type ItemTab = "basic" | "stock" | "pricing" | "party_pricing" | "custom";
 
@@ -449,14 +450,15 @@ export function ItemStepModal({
           {errorMsg && (
             <div className="px-6 py-2.5 bg-rose-50 border-b border-rose-200 text-xs text-rose-700 font-medium flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span>⚠️</span>
+                <AlertTriangle className="w-4 h-4 text-rose-600" />
                 <span>{errorMsg}</span>
               </div>
               <button
                 onClick={() => setErrorMsg(null)}
-                className="text-rose-500 hover:text-rose-700 font-bold cursor-pointer"
+                className="text-rose-500 hover:text-rose-700 p-0.5 rounded cursor-pointer"
+                aria-label="Dismiss error"
               >
-                ✕
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           )}
@@ -540,7 +542,7 @@ export function ItemStepModal({
                       onClick={() => setIsBarcodeModalOpen(true)}
                       className="mt-2 w-full text-[11px] font-semibold text-indigo-700 hover:text-indigo-900 underline block cursor-pointer"
                     >
-                      {lang === "gu" ? "સ્ટીકર પ્રીવ્યૂ" : "View Sticker 🔍"}
+                      {lang === "gu" ? "સ્ટીકર પ્રીવ્યૂ" : "View Sticker"}
                     </button>
                   </div>
                 </div>
@@ -627,9 +629,10 @@ export function ItemStepModal({
                             <button
                               type="button"
                               onClick={handleCreateNewCategory}
-                              className="px-2.5 py-2 bg-purple-600 text-white rounded-lg text-[13px] font-medium hover:bg-purple-700 cursor-pointer"
+                              className="px-2.5 py-2 bg-purple-600 text-white rounded-lg text-[13px] font-medium hover:bg-purple-700 cursor-pointer flex items-center justify-center"
+                              title="Save category"
                             >
-                              ✓
+                              <Check className="w-3.5 h-3.5" />
                             </button>
                             <button
                               type="button"
@@ -637,9 +640,10 @@ export function ItemStepModal({
                                 setIsCreatingCategory(false);
                                 setNewCatName("");
                               }}
-                              className="px-2 py-2 bg-slate-200 text-slate-600 rounded-lg text-[13px] hover:bg-slate-300 cursor-pointer"
+                              className="px-2 py-2 bg-slate-200 text-slate-600 rounded-lg text-[13px] hover:bg-slate-300 cursor-pointer flex items-center justify-center"
+                              title="Cancel"
                             >
-                              ✕
+                              <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         ) : (
@@ -816,7 +820,9 @@ export function ItemStepModal({
                           <div>
                             <span className="text-xs font-bold text-slate-800 flex items-center gap-1">
                               {lang === "gu" ? "બેચ ટ્રેકિંગ સક્રિય કરો" : "Enable Batching"}
-                              <span className="text-slate-400 font-normal text-[11px]" title="Track batch numbers and expiry dates">ℹ️</span>
+                              <span title="Track batch numbers and expiry dates">
+                                <Info className="w-3.5 h-3.5 text-slate-400" />
+                              </span>
                             </span>
                             <span className="text-[11px] text-slate-500 block">
                               {lang === "gu" ? "બેચ નંબર, ઉત્પાદન અને એક્સપાયરી તારીખ" : "Track Batch #, Mfg & Expiry dates"}
@@ -834,7 +840,9 @@ export function ItemStepModal({
                           <div>
                             <span className="text-xs font-bold text-slate-800 flex items-center gap-1">
                               {lang === "gu" ? "સીરીયલ નંબર ટ્રેકિંગ" : "Enable Serialisation"}
-                              <span className="text-slate-400 font-normal text-[11px]" title="Track individual serial numbers per unit">ℹ️</span>
+                              <span title="Track individual serial numbers per unit">
+                                <Info className="w-3.5 h-3.5 text-slate-400" />
+                              </span>
                             </span>
                             <span className="text-[11px] text-slate-500 block">
                               {lang === "gu" ? "ઇલેક્ટ્રોનિક્સ અને મશીનરી માટે" : "For electronics & unique IMEI / Serials"}
@@ -902,7 +910,7 @@ export function ItemStepModal({
                                   className="p-1 text-slate-400 hover:text-indigo-600 rounded cursor-pointer"
                                   title="Regenerate new barcode"
                                 >
-                                  🔄
+                                  <RefreshCw className="w-3.5 h-3.5" />
                                 </button>
                               </>
                             ) : (
@@ -1029,9 +1037,10 @@ export function ItemStepModal({
                                 setShowAlternativeUnit(false);
                                 setForm({ ...form, secondaryUomId: "", conversionFactor: 1 });
                               }}
-                              className="text-slate-400 hover:text-rose-500 text-xs p-1"
+                              className="text-slate-400 hover:text-rose-500 p-1 rounded transition-colors"
+                              aria-label="Remove alternative unit"
                             >
-                              ✕
+                              <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         )}
@@ -1150,7 +1159,7 @@ export function ItemStepModal({
                               {lang === "gu"
                                 ? "ઓછા સ્ટોક માટે ચેતવણી સક્રિય કરો"
                                 : "+ Enable Low stock quantity warning"}
-                              <span className="text-amber-500 font-normal text-[11px]">ℹ️</span>
+                              <Info className="w-3.5 h-3.5 text-amber-500" />
                             </span>
                             <span className="text-[11px] text-amber-700 block">
                               {lang === "gu"
@@ -1372,9 +1381,10 @@ export function ItemStepModal({
                                 setShowWholesaleRate(false);
                                 setForm({ ...form, wholesalePrice: "", minWholesaleQty: "" });
                               }}
-                              className="text-slate-400 hover:text-rose-500 text-xs p-1"
+                              className="text-slate-400 hover:text-rose-500 p-1 rounded transition-colors"
+                              aria-label="Remove wholesale rate"
                             >
-                              ✕
+                              <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         )}
@@ -1510,7 +1520,7 @@ export function ItemStepModal({
                           {/* Row 1: All Parties Price */}
                           <tr className="bg-slate-50/40">
                             <td className="py-3 px-4 font-semibold text-slate-800 flex items-center gap-2">
-                              <span>🌐</span>
+                              <Globe className="w-3.5 h-3.5 text-slate-500" />
                               <span>{lang === "gu" ? "બધી પાર્ટીઓ માટે ભાવ" : "All Parties Price"}</span>
                             </td>
                             <td className="py-3 px-4 tabular-nums font-medium text-slate-900">
@@ -1525,7 +1535,7 @@ export function ItemStepModal({
                           {(form.partyWisePrices || []).map((pp) => (
                             <tr key={pp.partyId} className="hover:bg-purple-50/30 transition-colors">
                               <td className="py-3 px-4 font-medium text-slate-800 flex items-center gap-2">
-                                <span className="text-purple-600">👤</span>
+                                <User className="w-3.5 h-3.5 text-purple-600" />
                                 <span>{pp.partyName}</span>
                               </td>
                               <td className="py-3 px-4 tabular-nums font-medium text-purple-900">

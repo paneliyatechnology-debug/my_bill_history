@@ -14,6 +14,7 @@ import {
 } from "../components/invoice-barcode-qr";
 import { useActiveInvoiceTheme } from "@/lib/use-active-invoice-theme";
 import { DynamicThemedInvoice } from "@/components/invoice/dynamic-themed-invoice";
+import { AlertTriangle, Check, X, Tag, MessageCircle, CreditCard } from "lucide-react";
 
 interface PurchaseInvoiceDetail {
   id: string;
@@ -244,8 +245,8 @@ function PurchaseInvoiceDetailContent() {
   if (error || !invoice) {
     return (
       <div className="max-w-3xl mx-auto p-6 bg-white rounded-2xl border border-rose-200 shadow-sm text-center space-y-4">
-        <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto text-xl">
-          ⚠️
+        <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
+          <AlertTriangle className="w-6 h-6" />
         </div>
         <h2 className="text-[15px] font-semibold text-[#182230]">
           {lang === "gu" ? "બિલ લોડ કરવામાં ભૂલ આવી" : "Failed to load purchase invoice"}
@@ -318,20 +319,18 @@ function PurchaseInvoiceDetailContent() {
       {showCreatedBanner && (
         <div className="p-3.5 bg-emerald-600 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-between shadow-md print:hidden animate-fadeIn">
           <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-            </svg>
+            <Check className="w-5 h-5 text-white stroke-[2.5]" />
             <span>
               {lang === "gu"
-                ? "✓ ખરીદી બિલ સફળતાપૂર્વક સાચવવામાં આવ્યું છે (Purchase Invoice created successfully)"
+                ? "ખરીદી બિલ સફળતાપૂર્વક સાચવવામાં આવ્યું છે (Purchase Invoice created successfully)"
                 : "Purchase Invoice created successfully"}
             </span>
           </div>
           <button
             onClick={() => setShowCreatedBanner(false)}
-            className="text-white hover:text-emerald-100 font-bold p-1"
+            className="text-white hover:text-emerald-100 p-1"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -341,8 +340,13 @@ function PurchaseInvoiceDetailContent() {
          ───────────────────────────────────────────────────────────── */}
       {paymentSuccess && (
         <div className="p-3.5 bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center justify-between shadow-md print:hidden">
-          <span>✓ {paymentSuccess}</span>
-          <button onClick={() => setPaymentSuccess(null)} className="text-white hover:text-emerald-100 p-1">✕</button>
+          <div className="flex items-center gap-2">
+            <Check className="w-4 h-4 text-white" />
+            <span>{paymentSuccess}</span>
+          </div>
+          <button onClick={() => setPaymentSuccess(null)} className="text-white hover:text-emerald-100 p-1">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -431,7 +435,7 @@ function PurchaseInvoiceDetailContent() {
               className="inline-flex items-center gap-1.5 h-9 px-3 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 rounded-xl text-[13px] font-medium shadow-2xs transition-colors cursor-pointer"
               title={lang === "gu" ? "બારકોડ અને QR સ્ટીકર પ્રિન્ટ કરો" : "Print Barcode & QR Sticker"}
             >
-              <span>🏷️</span>
+              <Tag className="w-4 h-4 text-slate-500" />
               <span>{lang === "gu" ? "બારકોડ સ્ટીકર" : "Barcode Sticker"}</span>
             </button>
 
@@ -449,7 +453,7 @@ function PurchaseInvoiceDetailContent() {
               className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-[#F8FAFC] hover:border-[#93C5FD] text-slate-700 hover:text-[#0F172A] border border-slate-200 rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
               title={lang === "gu" ? "વોટ્સએપ પર શેર કરો" : "Share via WhatsApp"}
             >
-              <span>💬</span>
+              <MessageCircle className="w-4 h-4 text-emerald-600" />
               <span>{lang === "gu" ? "શેર કરો" : "Share"}</span>
             </button>
 
@@ -474,7 +478,7 @@ function PurchaseInvoiceDetailContent() {
                 }}
                 className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
               >
-                <span>💳</span>
+                <CreditCard className="w-4 h-4 text-white" />
                 <span>{lang === "gu" ? "ચુકવણી નોંધો" : "Record Payment"}</span>
               </button>
             )}
@@ -502,7 +506,7 @@ function PurchaseInvoiceDetailContent() {
       <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs p-6 space-y-4 print:hidden">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-            <span>💳</span>
+            <CreditCard className="w-4 h-4 text-blue-600" />
             <span>Supplier Payments & Debit Notes</span>
           </h3>
           <div className="flex items-center gap-2">

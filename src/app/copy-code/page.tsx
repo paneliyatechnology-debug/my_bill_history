@@ -3,6 +3,7 @@
 import React, { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { Check, Copy } from "lucide-react";
 
 function CopyCodeContent() {
   const searchParams = useSearchParams();
@@ -59,9 +60,19 @@ function CopyCodeContent() {
             type="button"
             onClick={copy}
             disabled={code.length !== 6}
-            className="w-full py-2.5 rounded-lg text-sm font-semibold text-white bg-[#2563EB] hover:bg-[#1D4ED8] transition disabled:opacity-50 cursor-pointer"
+            className="w-full py-2.5 rounded-lg text-sm font-semibold text-white bg-[#2563EB] hover:bg-[#1D4ED8] transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5"
           >
-            {copied ? "✓ Copied to Clipboard" : "Copy Code"}
+            {copied ? (
+              <>
+                <Check className="w-4 h-4 stroke-[2.5]" />
+                <span>Copied to Clipboard</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-4 h-4" />
+                <span>Copy Code</span>
+              </>
+            )}
           </button>
           {error && <p className="text-xs font-semibold text-rose-600 text-center">{error}</p>}
           {copied && <p className="text-xs font-semibold text-emerald-600 text-center">Verification code copied successfully.</p>}

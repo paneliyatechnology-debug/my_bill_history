@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect } from "react";
+import { X, Search } from "lucide-react";
 
 export interface PartySelectorCompactProps {
   label?: string;
@@ -82,20 +83,18 @@ export function PartySelectorCompact({
           <button
             type="button"
             onClick={onClearParty}
-            className="w-5 h-5 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center text-[13px] shrink-0 cursor-pointer"
+            className="w-5 h-5 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center shrink-0 cursor-pointer transition-colors"
             title="Change party"
           >
-            ✕
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
       ) : (
         /* Search Box with Search Icon and Quick Add Button */
         <div className="flex items-center gap-1">
           <div className="relative flex-1 min-w-0">
-            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+              <Search className="w-3.5 h-3.5" />
             </span>
             <input
               type="text"

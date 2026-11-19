@@ -10,6 +10,7 @@ import {
   loadInvoiceCustomization,
   getActiveThemePreset,
 } from "@/lib/invoice-theme";
+import { Printer, X } from "lucide-react";
 
 export interface LiveInvoiceItem {
   name: string;
@@ -242,19 +243,18 @@ export function InvoiceLivePreviewModal({
             <button
               type="button"
               onClick={() => window.print()}
-              className="px-3.5 py-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors flex items-center gap-1.5"
+              className="px-3.5 py-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
             >
-              <span>🖨️</span>
+              <Printer className="w-3.5 h-3.5 text-slate-600" />
               <span>{lang === "gu" ? "પ્રિન્ટ" : "Print"}</span>
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+              className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+              title="Close"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>

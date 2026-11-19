@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../../../context/auth-context";
 import { apiClient, extractList } from "../../../../lib/api-client";
+import { X, Search } from "lucide-react";
 
 interface PartyOption {
   id: string;
@@ -725,7 +726,7 @@ function CreatePaymentInForm() {
       {error && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700 flex items-center justify-between">
           <span>{error}</span>
-          <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700">✕</button>
+          <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700"><X className="w-3.5 h-3.5" /></button>
         </div>
       )}
 
@@ -750,7 +751,7 @@ function CreatePaymentInForm() {
                   }}
                   className="text-slate-400 hover:text-slate-600 font-medium px-1"
                 >
-                  ✕
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             ) : partyId ? (
@@ -789,7 +790,7 @@ function CreatePaymentInForm() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="p-2 border-b border-slate-100 flex items-center gap-2">
-                  <span className="text-slate-400">🔍</span>
+                  <Search className="w-4 h-4 text-slate-400" />
                   <input
                     ref={partySearchInputRef}
                     type="text"
@@ -1044,7 +1045,7 @@ function CreatePaymentInForm() {
                     onClick={clearAllSelections}
                     className="ml-1 text-slate-400 hover:text-slate-600 font-bold"
                   >
-                    ✕
+                    <X className="w-3 h-3" />
                   </button>
                 </div>
               )}
@@ -1071,7 +1072,7 @@ function CreatePaymentInForm() {
                       }}
                       className="text-xs text-slate-400 hover:text-slate-600"
                     >
-                      ✕
+                      <X className="w-3 h-3" />
                     </button>
                   </div>
                 ) : (
@@ -1182,7 +1183,7 @@ function CreatePaymentInForm() {
                               onClick={() => toggleInvoiceDiscount(inv.id)}
                               className="text-[10px] text-slate-400 hover:text-slate-600"
                             >
-                              ✕
+                              <X className="w-3 h-3" />
                             </button>
                           </div>
                         ) : Number(inv.discount) > 0 ? (
@@ -1262,7 +1263,7 @@ function CreatePaymentInForm() {
                 onClick={() => setIsCreatePartyModalOpen(false)}
                 className="text-slate-400 hover:text-slate-600 text-sm"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

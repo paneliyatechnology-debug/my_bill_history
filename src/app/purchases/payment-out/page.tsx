@@ -7,6 +7,8 @@ import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/scorecard-ribbon";
 import { formatInr } from "@/components/design-system/tokens";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { Check, X, AlertTriangle } from "lucide-react";
 
 type DateRangePreset =
   | "ALL"
@@ -328,6 +330,20 @@ export default function PaymentOutPage() {
     );
   }, [rows, statusFilter, searchQuery]);
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, searchQuery, dateRangePreset]);
+
+  const totalRows = displayedRows.length;
+  const paginatedRows = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return displayedRows.slice(start, start + pageSize);
+  }, [displayedRows, currentPage, pageSize]);
+
   // Scorecard segments for ribbon
   const scorecardSegments: ScorecardSegment[] = [
     {
@@ -546,9 +562,9 @@ export default function PaymentOutPage() {
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-2.5 text-xs text-slate-400 hover:text-slate-700"
+                className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-700"
               >
-                ✕
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -594,7 +610,7 @@ export default function PaymentOutPage() {
                       }`}
                     >
                       <span>{label}</span>
-                      {dateRangePreset === key && <span className="text-[#1677E8] font-bold">✓</span>}
+                      {dateRangePreset === key && <Check className="w-3.5 h-3.5 text-[#1677E8]" />}
                     </button>
                   ))}
                 </div>
@@ -662,7 +678,7 @@ export default function PaymentOutPage() {
       {error && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700 flex items-center justify-between shadow-2xs">
           <span>{error}</span>
-          <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700">✕</button>
+          <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700"><X className="w-4 h-4" /></button>
         </div>
       )}
 
@@ -729,7 +745,7 @@ export default function PaymentOutPage() {
               )}
 
               {!isLoading &&
-                displayedRows.map((row) => (
+                paginatedRows.map((row) => (
                   <tr
                     key={row.id}
                     onClick={() => row?.id && router.push(`/purchases/payment-out/${row.id}`)}
@@ -870,6 +886,17 @@ export default function PaymentOutPage() {
             </tbody>
           </table>
         </div>
+        <DataTablePagination
+          currentPage={currentPage}
+          totalPages={Math.max(1, Math.ceil(totalRows / pageSize))}
+          totalItems={totalRows}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {/* REVERSE PAYMENT CONFIRMATION MODAL */}
@@ -892,8 +919,9 @@ export default function PaymentOutPage() {
               </div>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed bg-amber-50/70 p-3 rounded-xl border border-amber-200/60">
-              ⚠️ This will reverse the payment voucher and restore the outstanding balance of all settled purchase bills.
+            <p className="text-xs text-slate-600 leading-relaxed bg-amber-50/70 p-3 rounded-xl border border-amber-200/60 flex items-start gap-1.5">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <span>This will reverse the payment voucher and restore the outstanding balance of all settled purchase bills.</span>
             </p>
 
             <div>

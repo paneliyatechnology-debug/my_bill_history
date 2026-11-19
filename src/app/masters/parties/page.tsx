@@ -9,6 +9,22 @@ import { Badge, StatusBadge } from "../../../components/ui/badge";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
 import { ImportWizardModal } from "../../../components/imports/import-wizard-modal";
 import { ImportModuleType } from "@billing/shared-types";
+import {
+  X,
+  Phone,
+  Link as LinkIcon,
+  MessageSquare,
+  Pencil,
+  FileText,
+  Calendar,
+  Receipt,
+  Trash2,
+  Printer,
+  BarChart3,
+  Zap,
+  Check,
+  AlertTriangle,
+} from "lucide-react";
 
 export interface VerifiedGstinDetails {
   gstin: string;
@@ -997,9 +1013,9 @@ export default function PartiesPage() {
           <button
             type="button"
             onClick={() => setActionMessage(null)}
-            className="text-emerald-600 hover:text-emerald-800 font-bold ml-3 cursor-pointer"
+            className="text-emerald-600 hover:text-emerald-800 p-0.5 rounded ml-3 cursor-pointer"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -1200,7 +1216,10 @@ export default function PartiesPage() {
                         </Badge>
                       </div>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600 mt-1">
-                        <span className="tabular-nums">📞 {selectedParty.phone || "—"}</span>
+                        <span className="tabular-nums inline-flex items-center gap-1">
+                          <Phone className="w-3 h-3 text-slate-400" />
+                          <span>{selectedParty.phone || "—"}</span>
+                        </span>
                         {selectedParty.gstin && (
                           <span className="tabular-nums bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded border border-emerald-200 font-medium typo-invoice-no">
                             GST: {selectedParty.gstin}
@@ -1217,10 +1236,11 @@ export default function PartiesPage() {
                   <div className="flex items-center gap-2">
                     <Link
                       href="/app/home/shared-ledger"
-                      className="p-2 rounded-xl bg-[#EFF6FF] hover:bg-teal-100 text-[#1677E8] border border-teal-200 typo-btn-secondary transition-colors inline-flex items-center gap-1"
+                      className="p-2 rounded-xl bg-[#EFF6FF] hover:bg-teal-100 text-[#1677E8] border border-teal-200 typo-btn-secondary transition-colors inline-flex items-center gap-1.5"
                       title="Open Shared Ledger"
                     >
-                      🔗 Shared Ledger
+                      <LinkIcon className="w-3.5 h-3.5 text-[#1677E8]" />
+                      <span>Shared Ledger</span>
                     </Link>
                     {selectedParty.phone && (
                       <button
@@ -1235,18 +1255,20 @@ export default function PartiesPage() {
                             : `https://wa.me/?text=${encodeURIComponent(text)}`;
                           window.open(waUrl, "_blank");
                         }}
-                        className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 typo-btn-secondary transition-colors cursor-pointer"
+                        className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 typo-btn-secondary transition-colors cursor-pointer inline-flex items-center gap-1.5"
                         title="Send Statement via WhatsApp"
                       >
-                        💬 WhatsApp
+                        <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>WhatsApp</span>
                       </button>
                     )}
                     <button
                       type="button"
                       onClick={() => handleOpenEditModal(selectedParty)}
-                      className="h-9 px-3 typo-btn-secondary text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors cursor-pointer"
+                      className="h-9 px-3 typo-btn-secondary text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors cursor-pointer inline-flex items-center gap-1.5"
                     >
-                      ✏️ Edit
+                      <Pencil className="w-3.5 h-3.5 text-slate-600" />
+                      <span>Edit</span>
                     </button>
                   </div>
                 </div>
@@ -1335,7 +1357,8 @@ export default function PartiesPage() {
                       : "border-transparent text-slate-500 hover:text-slate-800"
                   }`}
                 >
-                  <span>📝 {lang === "gu" ? "નોંધ" : "Notes"}</span>
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>{lang === "gu" ? "નોંધ" : "Notes"}</span>
                   <span className="bg-slate-100 text-slate-600 typo-badge px-1.5 py-0.5 rounded-full">
                     {partyNotes.length}
                   </span>
@@ -1350,7 +1373,8 @@ export default function PartiesPage() {
                       : "border-transparent text-slate-500 hover:text-slate-800"
                   }`}
                 >
-                  <span>📅 {lang === "gu" ? "મુલાકાત" : "Appointments"}</span>
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>{lang === "gu" ? "મુલાકાત" : "Appointments"}</span>
                   <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded-full tabular-nums">
                     {partyAppointments.length}
                   </span>
@@ -1392,7 +1416,11 @@ export default function PartiesPage() {
                       </div>
                     ) : partyTransactions.length === 0 ? (
                       <div className="py-12 text-center bg-slate-50/60 rounded-xl border border-dashed border-slate-200">
-                        <div className="text-3xl mb-2">🧾</div>
+                        <div className="flex justify-center mb-2">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+                            <Receipt className="w-6 h-6 text-slate-400" />
+                          </div>
+                        </div>
                         <div className="font-bold text-sm text-slate-800">
                           {lang === "gu" ? "કોઈ વ્યવહાર મળ્યો નથી" : "No Transactions Recorded Yet"}
                         </div>
@@ -1553,7 +1581,8 @@ export default function PartiesPage() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-teal-50/60 p-4 rounded-xl border border-teal-100">
                       <div>
                         <div className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                          <span>📝 Notes & Remarks</span>
+                          <FileText className="w-4 h-4 text-teal-700" />
+                          <span>Notes & Remarks</span>
                           <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-teal-100 text-teal-700">
                             {partyNotes.length}
                           </span>
@@ -1575,7 +1604,11 @@ export default function PartiesPage() {
                       <div className="py-12 text-center text-xs text-slate-400">Loading notes...</div>
                     ) : partyNotes.length === 0 ? (
                       <div className="py-12 text-center bg-slate-50/60 rounded-xl border border-dashed border-slate-200 space-y-2">
-                        <div className="text-3xl">📝</div>
+                        <div className="flex justify-center">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                            <FileText className="w-6 h-6" />
+                          </div>
+                        </div>
                         <div className="font-bold text-sm text-slate-800">No Notes Added Yet</div>
                         <p className="text-xs text-slate-500 max-w-sm mx-auto">
                           Keep track of discussions, special terms, or reminders by adding a note.
@@ -1601,16 +1634,19 @@ export default function PartiesPage() {
                                 type="button"
                                 onClick={() => handleDeleteNote(n.id)}
                                 title="Delete Note"
-                                className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-600 text-xs transition-opacity p-1 cursor-pointer"
+                                className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-600 text-xs transition-opacity p-1.5 rounded hover:bg-rose-50 cursor-pointer"
                               >
-                                🗑️
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
                             <p className="text-xs text-slate-600 whitespace-pre-wrap leading-relaxed">
                               {n.description || n.descriptions || "No description provided."}
                             </p>
                             <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 tabular-nums">
-                              <span>📅 {new Date(n.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                              <span className="inline-flex items-center gap-1">
+                                <Calendar className="w-3 h-3 text-slate-400" />
+                                <span>{new Date(n.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                              </span>
                               <span>{new Date(n.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</span>
                             </div>
                           </div>
@@ -1626,7 +1662,8 @@ export default function PartiesPage() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-purple-50/60 p-4 rounded-xl border border-purple-100">
                       <div>
                         <div className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                          <span>📅 Scheduled Appointments & Follow-ups</span>
+                          <Calendar className="w-4 h-4 text-purple-700" />
+                          <span>Scheduled Appointments & Follow-ups</span>
                           <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
                             {partyAppointments.length}
                           </span>
@@ -1653,7 +1690,11 @@ export default function PartiesPage() {
                       <div className="py-12 text-center text-xs text-slate-400">Loading appointments...</div>
                     ) : partyAppointments.length === 0 ? (
                       <div className="py-12 text-center bg-slate-50/60 rounded-xl border border-dashed border-slate-200 space-y-2">
-                        <div className="text-3xl">📅</div>
+                        <div className="flex justify-center">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-50 text-purple-600">
+                            <Calendar className="w-6 h-6" />
+                          </div>
+                        </div>
                         <div className="font-bold text-sm text-slate-800">No Appointments Scheduled</div>
                         <p className="text-xs text-slate-500 max-w-sm mx-auto">
                           Plan site visits, client meetings, or order review discussions.
@@ -1683,10 +1724,11 @@ export default function PartiesPage() {
                                 <h4 className="font-bold text-sm text-slate-900">{a.title}</h4>
                                 <div className="flex items-center gap-2 mt-1">
                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                                    📅 {new Date(a.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                                    <Calendar className="w-3 h-3 text-purple-600" />
+                                    <span>{new Date(a.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
                                   </span>
                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-700">
-                                    ⏰ {a.time}
+                                    <span>{a.time}</span>
                                   </span>
                                 </div>
                               </div>
@@ -1694,9 +1736,9 @@ export default function PartiesPage() {
                                 type="button"
                                 onClick={() => handleDeleteAppointment(a.id)}
                                 title="Cancel Appointment"
-                                className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-600 text-xs transition-opacity p-1 cursor-pointer"
+                                className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-600 text-xs transition-opacity p-1.5 rounded hover:bg-rose-50 cursor-pointer"
                               >
-                                🗑️
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
 
@@ -1738,9 +1780,10 @@ export default function PartiesPage() {
                         <button
                           type="button"
                           onClick={() => window.print()}
-                          className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+                          className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1.5"
                         >
-                          🖨️ Print Statement
+                          <Printer className="w-3.5 h-3.5 text-slate-600" />
+                          <span>Print Statement</span>
                         </button>
                       </div>
                     </div>
@@ -1854,43 +1897,7 @@ export default function PartiesPage() {
       ) : (
         /* PARTIES DIRECTORY & REGISTER VIEW (Matching MyBillBook) */
         <div className="space-y-6">
-          {/* SharedLedger Announcement Banner */}
-          {/* {showSharedLedgerBanner && (
-            <div className="relative overflow-hidden bg-gradient-to-r from-teal-700 via-indigo-800 to-purple-800 text-white rounded-2xl p-4 sm:p-5 shadow-subtle">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-2xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center text-xl shrink-0">
-                    🔗
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm tracking-wide">SharedLedger™ by myownbillbook</span>
-                      <span className="text-[10px] uppercase font-bold bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full">New</span>
-                    </div>
-                    <p className="text-xs text-teal-100 mt-0.5">
-                      Invite your parties to SharedLedger and stay updated with live sync of bills & payments. Real-time balance reconciliation without follow-ups.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <Link
-                    href="/app/home/shared-ledger"
-                    className="h-9 px-3 bg-white text-indigo-900 hover:bg-[#EFF6FF] text-[13px] font-medium rounded-xl shadow-sm transition-all cursor-pointer inline-flex items-center gap-1.5"
-                  >
-                    Open Shared Ledger →
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => setShowSharedLedgerBanner(false)}
-                    className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-[13px] transition-colors cursor-pointer"
-                    title="Dismiss"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-            </div>
-          )} */}
+          {/* SharedLedger Announcement Banner (Disabled) */}
 
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-2xs">
@@ -2124,8 +2131,9 @@ export default function PartiesPage() {
                       {lang === "gu" && p.nameGujarati && (
                         <p className="text-xs text-slate-500">{p.nameGujarati}</p>
                       )}
-                      <span className="text-xs text-slate-500 tabular-nums">
-                        📞 {p.phone || "—"}
+                      <span className="text-xs text-slate-500 tabular-nums inline-flex items-center gap-1">
+                        <Phone className="w-3 h-3 text-slate-400" />
+                        <span>{p.phone || "—"}</span>
                       </span>
                     </div>
                     <div className="text-right">
@@ -2214,29 +2222,7 @@ export default function PartiesPage() {
             }}
           />
 
-          {/* Bottom Excel / Tally Migration Banner (Matching MyBillBook) */}
-          {/* <div className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl p-5 border border-slate-800 shadow-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-2xl shrink-0">
-                📊
-              </div>
-              <div>
-                <div className="text-sm font-bold text-white">
-                  Migrate your customer and supplier master from Excel or Tally
-                </div>
-                <div className="text-xs text-slate-300 mt-0.5">
-                  Import contacts, GST numbers, opening balances and credit terms in 1-click.
-                </div>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => alert("Upload party Excel sheet format (.xlsx or .csv) supported.")}
-              className="h-9 px-3 bg-[#1677E8] hover:bg-[#1677E8] text-white text-[13px] font-medium rounded-xl shadow-sm transition-all shrink-0 cursor-pointer"
-            >
-              Upload Excel Sheet ⤓
-            </button>
-          </div> */}
+          {/* Bottom Excel / Tally Migration Banner (Disabled) */}
         </div>
       )}
 
@@ -2332,7 +2318,7 @@ export default function PartiesPage() {
                     {isGstinFetching ? (
                       <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                     ) : (
-                      <span>⚡</span>
+                      <Zap className="w-3.5 h-3.5" />
                     )}
                     <span>
                       {isGstinFetching
@@ -2419,7 +2405,7 @@ export default function PartiesPage() {
               <div className="p-2.5 bg-emerald-50/70 border border-emerald-200 rounded text-xs text-slate-800 space-y-1.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-emerald-600 font-bold">✓</span>
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span className="font-bold text-slate-900">
                       {verifiedGstinData.tradeName || verifiedGstinData.legalName || "Verified Taxpayer"}
                     </span>
@@ -2439,17 +2425,23 @@ export default function PartiesPage() {
 
                 {/* Cancelled / Suspended Warning */}
                 {verifiedGstinData.registrationStatus === "CANCELLED" && (
-                  <div className="p-2 bg-rose-50 border border-rose-300 rounded text-rose-800 text-[11px]">
-                    ⚠️ {lang === "gu"
-                      ? "આ GSTIN રદ (Cancelled) થયેલ છે. આ પાર્ટી સાથેના બિલો પર ITC દાવો માન્ય રહેશે નહીં."
-                      : "Warning: This GSTIN is officially CANCELLED. ITC cannot be claimed on supplies from cancelled registrations."}
+                  <div className="p-2 bg-rose-50 border border-rose-300 rounded text-rose-800 text-[11px] flex items-start gap-1.5">
+                    <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    <span>
+                      {lang === "gu"
+                        ? "આ GSTIN રદ (Cancelled) થયેલ છે. આ પાર્ટી સાથેના બિલો પર ITC દાવો માન્ય રહેશે નહીં."
+                        : "Warning: This GSTIN is officially CANCELLED. ITC cannot be claimed on supplies from cancelled registrations."}
+                    </span>
                   </div>
                 )}
                 {verifiedGstinData.registrationStatus === "SUSPENDED" && (
-                  <div className="p-2 bg-amber-50 border border-amber-300 rounded text-amber-800 text-[11px]">
-                    ⚠️ {lang === "gu"
-                      ? "આ GSTIN હાલમાં સસ્પેન્ડ (Suspended) છે."
-                      : "Warning: This GSTIN is currently SUSPENDED by tax authorities."}
+                  <div className="p-2 bg-amber-50 border border-amber-300 rounded text-amber-800 text-[11px] flex items-start gap-1.5">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <span>
+                      {lang === "gu"
+                        ? "આ GSTIN હાલમાં સસ્પેન્ડ (Suspended) છે."
+                        : "Warning: This GSTIN is currently SUSPENDED by tax authorities."}
+                    </span>
                   </div>
                 )}
 
@@ -2511,7 +2503,7 @@ export default function PartiesPage() {
                   onClick={() => applySuggestedGstin(gstinCorrection.suggestedGstin, false)}
                   className="w-full mt-1 px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded text-[13px] flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer"
                 >
-                  <span>⚡</span>
+                  <Zap className="w-3.5 h-3.5" />
                   <span>{lang === "gu" ? `સુધારીને ${gstinCorrection.suggestedGstin} કરો અને ઓટોફિલ કરો` : `Fix to ${gstinCorrection.suggestedGstin} & Autofill`}</span>
                 </button>
               </div>
@@ -2717,7 +2709,7 @@ export default function PartiesPage() {
                     {isGstinFetching ? (
                       <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                     ) : (
-                      <span>⚡</span>
+                      <Zap className="w-3.5 h-3.5" />
                     )}
                     <span>
                       {isGstinFetching
@@ -2804,7 +2796,7 @@ export default function PartiesPage() {
               <div className="p-2.5 bg-emerald-50/70 border border-emerald-200 rounded text-xs text-slate-800 space-y-1.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-emerald-600 font-bold">✓</span>
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span className="font-bold text-slate-900">
                       {editVerifiedGstinData.tradeName || editVerifiedGstinData.legalName || "Verified Taxpayer"}
                     </span>
@@ -2824,17 +2816,23 @@ export default function PartiesPage() {
 
                 {/* Cancelled / Suspended Warning */}
                 {editVerifiedGstinData.registrationStatus === "CANCELLED" && (
-                  <div className="p-2 bg-rose-50 border border-rose-300 rounded text-rose-800 text-[11px]">
-                    ⚠️ {lang === "gu"
-                      ? "આ GSTIN રદ (Cancelled) થયેલ છે. આ પાર્ટી સાથેના બિલો પર ITC દાવો માન્ય રહેશે નહીં."
-                      : "Warning: This GSTIN is officially CANCELLED. ITC cannot be claimed on supplies from cancelled registrations."}
+                  <div className="p-2 bg-rose-50 border border-rose-300 rounded text-rose-800 text-[11px] flex items-start gap-1.5">
+                    <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    <span>
+                      {lang === "gu"
+                        ? "આ GSTIN રદ (Cancelled) થયેલ છે. આ પાર્ટી સાથેના બિલો પર ITC દાવો માન્ય રહેશે નહીં."
+                        : "Warning: This GSTIN is officially CANCELLED. ITC cannot be claimed on supplies from cancelled registrations."}
+                    </span>
                   </div>
                 )}
                 {editVerifiedGstinData.registrationStatus === "SUSPENDED" && (
-                  <div className="p-2 bg-amber-50 border border-amber-300 rounded text-amber-800 text-[11px]">
-                    ⚠️ {lang === "gu"
-                      ? "આ GSTIN હાલમાં સસ્પેન્ડ (Suspended) છે."
-                      : "Warning: This GSTIN is currently SUSPENDED by tax authorities."}
+                  <div className="p-2 bg-amber-50 border border-amber-300 rounded text-amber-800 text-[11px] flex items-start gap-1.5">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <span>
+                      {lang === "gu"
+                        ? "આ GSTIN હાલમાં સસ્પેન્ડ (Suspended) છે."
+                        : "Warning: This GSTIN is currently SUSPENDED by tax authorities."}
+                    </span>
                   </div>
                 )}
 
@@ -2896,7 +2894,7 @@ export default function PartiesPage() {
                   onClick={() => applySuggestedGstin(gstinCorrection.suggestedGstin, true)}
                   className="w-full mt-1 px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded text-[13px] flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer"
                 >
-                  <span>⚡</span>
+                  <Zap className="w-3.5 h-3.5" />
                   <span>{lang === "gu" ? `સુધારીને ${gstinCorrection.suggestedGstin} કરો અને ઓટોફિલ કરો` : `Fix to ${gstinCorrection.suggestedGstin} & Autofill`}</span>
                 </button>
               </div>

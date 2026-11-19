@@ -9,6 +9,8 @@ import { Modal } from "@/components/ui/modal";
 import { StatusBadge } from "@/components/ui/badge";
 import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/scorecard-ribbon";
 import { formatInr } from "@/components/design-system/tokens";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { Phone, AlertTriangle, X } from "lucide-react";
 
 interface QuotationItem {
   id: string;
@@ -164,6 +166,20 @@ export default function QuotationsPage() {
       return true;
     });
   }, [quotations, statusFilter, dateFilter, searchTerm]);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, dateFilter, searchTerm]);
+
+  const totalQuotations = filteredQuotations.length;
+  const paginatedQuotations = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredQuotations.slice(start, start + pageSize);
+  }, [filteredQuotations, currentPage, pageSize]);
 
   // Scorecard segments for ribbon
   const scorecardSegments: ScorecardSegment[] = [
@@ -414,9 +430,9 @@ export default function QuotationsPage() {
               <button
                 type="button"
                 onClick={() => setSearchTerm("")}
-                className="absolute right-2.5 top-2.5 text-xs text-slate-400 hover:text-slate-700"
+                className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-700"
               >
-                ✕
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -475,7 +491,7 @@ export default function QuotationsPage() {
       {error && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700 flex items-center justify-between shadow-2xs">
           <span>{error}</span>
-          <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700">✕</button>
+          <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700"><X className="w-4 h-4" /></button>
         </div>
       )}
 
@@ -534,7 +550,7 @@ export default function QuotationsPage() {
               )}
 
               {!isLoading &&
-                filteredQuotations.map((q) => {
+                paginatedQuotations.map((q) => {
                   const isConverted = q.status === "ISSUED" || q.status === "PAID" || q.category === "TAX_INVOICE";
                   return (
                     <tr
@@ -583,7 +599,7 @@ export default function QuotationsPage() {
                           {q.party?.name || "Cash Customer"}
                         </div>
                         <div className="flex items-center gap-2 typo-card-desc typo-tabular text-slate-400 mt-0.5">
-                          {q.party?.phone && <span>📞 {q.party.phone}</span>}
+                          {q.party?.phone && <span className="inline-flex items-center gap-1"><Phone className="w-3 h-3 text-slate-400" /> {q.party.phone}</span>}
                           {q.party?.gstin && <span>GST: {q.party.gstin}</span>}
                         </div>
                       </td>
@@ -663,6 +679,17 @@ export default function QuotationsPage() {
             </tbody>
           </table>
         </div>
+        <DataTablePagination
+          currentPage={currentPage}
+          totalPages={Math.max(1, Math.ceil(totalQuotations / pageSize))}
+          totalItems={totalQuotations}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {/* Convert to Tax Invoice Modal */}
@@ -689,7 +716,7 @@ export default function QuotationsPage() {
 
             {conversionError && (
               <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-semibold flex items-center gap-2">
-                <span>⚠️</span>
+                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
                 <span>{conversionError}</span>
               </div>
             )}
@@ -698,7 +725,7 @@ export default function QuotationsPage() {
             {stockConfirmPrompt && (
               <div className="p-4 bg-amber-50 border border-amber-300 rounded-2xl space-y-3">
                 <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
-                  <span className="text-base">⚠️</span>
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
                   <span>{lang === "gu" ? "સ્ટોક ચેતવણી (Low Stock Warning)" : "Insufficient Stock Alert"}</span>
                 </div>
                 <p className="text-xs text-amber-800 leading-relaxed">

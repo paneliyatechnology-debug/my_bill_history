@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/auth-context";
 import { apiClient, extractList } from "@/lib/api-client";
+import { AlertTriangle, Check, X, Info } from "lucide-react";
 
 interface AccountOption {
   id: string;
@@ -193,7 +194,7 @@ export default function FinanceNewVoucherPage() {
 
       {error && (
         <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-semibold flex items-center gap-2">
-          <span>⚠️</span>
+          <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
           <span>{error}</span>
         </div>
       )}
@@ -365,10 +366,10 @@ export default function FinanceNewVoucherPage() {
                         <button
                           type="button"
                           onClick={() => handleRemoveLine(idx)}
-                          className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors"
+                          className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer inline-flex items-center justify-center"
                           title="Remove row"
                         >
-                          ✕
+                          <X className="w-4 h-4" />
                         </button>
                       )}
                     </td>
@@ -403,7 +404,7 @@ export default function FinanceNewVoucherPage() {
               return (
                 <div className="px-5 py-3.5 border-t flex items-center justify-between text-xs font-semibold bg-emerald-50 text-emerald-800 border-emerald-200">
                   <div className="flex items-center gap-2">
-                    <span className="text-base">✓</span>
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>
                       {lang === "gu"
                         ? "વાઉચર સંતુલિત છે (કુલ ઉધાર == કુલ જમા)"
@@ -421,7 +422,7 @@ export default function FinanceNewVoucherPage() {
               return (
                 <div className="px-5 py-3.5 border-t flex items-center justify-between text-xs font-semibold bg-amber-50 text-amber-800 border-amber-200">
                   <div className="flex items-center gap-2">
-                    <span className="text-base">⚠️</span>
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
                     <span>
                       {lang === "gu"
                         ? `રૂ. ${difference.toFixed(2)} નો તફાવત છે. કૃપા કરીને ઉધાર અને જમા સરખા કરો.`
@@ -438,7 +439,7 @@ export default function FinanceNewVoucherPage() {
             return (
               <div className="px-5 py-3.5 border-t flex items-center justify-between text-xs font-medium bg-slate-50 text-slate-600 border-slate-200">
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-400">ℹ️</span>
+                  <Info className="w-4 h-4 text-slate-400 shrink-0" />
                   <span>
                     {lang === "gu"
                       ? "કૃપા કરીને દરેક લાઇન માટે ઉધાર અને જમા રકમ દાખલ કરો (કુલ ઉધાર અને જમા સરખા હોવા જોઈએ)."

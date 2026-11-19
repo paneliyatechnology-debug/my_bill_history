@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { apiClient } from "@/lib/api-client";
 import { Modal } from "@/components/ui/modal";
+import { FileText } from "lucide-react";
 
 interface JournalLine {
   id: string;
@@ -296,7 +297,7 @@ export default function ExpenseDetailsPage() {
             onClick={handleDownloadPDF}
             className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
           >
-            <span>📄</span>
+            <FileText className="w-3.5 h-3.5 text-slate-600" />
             <span>PDF</span>
           </button>
 

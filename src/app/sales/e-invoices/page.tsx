@@ -12,6 +12,8 @@ import {
   EInvoiceValidationResult,
 } from "@/lib/einvoice";
 import { formatInr } from "@/components/design-system/tokens";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { Check, X, AlertTriangle, AlertCircle } from "lucide-react";
 
 export default function EInvoicesListPage() {
   const router = useRouter();
@@ -25,7 +27,7 @@ export default function EInvoicesListPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<EInvoiceStatus>("ALL");
   const [page, setPage] = useState(1);
-  const limit = 15;
+  const [limit, setLimit] = useState(15);
 
   // Selected row for actions
   const [selectedInvoice, setSelectedInvoice] = useState<EInvoiceListItem | null>(null);
@@ -229,9 +231,9 @@ export default function EInvoicesListPage() {
           <span className="text-sm font-medium">{feedbackMessage.text}</span>
           <button
             onClick={() => setFeedbackMessage(null)}
-            className="text-xs font-bold text-slate-500 hover:text-slate-900"
+            className="text-slate-500 hover:text-slate-900"
           >
-            ✕
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
@@ -659,30 +661,17 @@ export default function EInvoicesListPage() {
         </div>
 
         {/* Pagination */}
-        {data && data.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3 text-xs text-slate-600">
-            <div>
-              Showing page <span className="font-bold">{data.page}</span> of{" "}
-              <span className="font-bold">{data.totalPages}</span> ({data.total} total records)
-            </div>
-            <div className="flex gap-1.5">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1}
-                className="rounded border border-slate-300 px-2.5 py-1 font-semibold disabled:opacity-40 hover:bg-slate-50 transition"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
-                disabled={page >= data.totalPages}
-                className="rounded border border-slate-300 px-2.5 py-1 font-medium disabled:opacity-40 hover:bg-slate-50 transition"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
+        <DataTablePagination
+          currentPage={page}
+          totalPages={data?.totalPages || 1}
+          totalItems={data?.total || 0}
+          pageSize={limit}
+          onPageChange={setPage}
+          onPageSizeChange={(newLimit) => {
+            setLimit(newLimit);
+            setPage(1);
+          }}
+        />
       </div>
 
       {/* Validation Checklist Drawer / Modal */}
@@ -702,7 +691,7 @@ export default function EInvoicesListPage() {
                 onClick={() => setValidationInvoice(null)}
                 className="rounded-lg p-1 text-slate-400 hover:text-slate-700"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -722,7 +711,11 @@ export default function EInvoicesListPage() {
                         : "bg-rose-50 border border-rose-200 text-rose-900"
                     }`}
                   >
-                    <span className="text-xl">{validationResult.valid ? "✓" : "⚠️"}</span>
+                    {validationResult.valid ? (
+                      <Check className="w-5 h-5 text-emerald-600 shrink-0" />
+                    ) : (
+                      <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
+                    )}
                     <div>
                       <div className="font-bold">
                         {validationResult.valid
@@ -831,7 +824,7 @@ export default function EInvoicesListPage() {
 
             <div className="p-5 text-xs text-slate-700 space-y-3">
               <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-900">
-                <p className="font-semibold">⚠️ Legal Document Notice:</p>
+                <p className="font-semibold flex items-center gap-1.5"><AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" /> Legal Document Notice:</p>
                 <p className="mt-1 text-[11px]">
                   Generating an E-Invoice registers this document with the Government Invoice Registration Portal (IRP). A 64-character hash (IRN) and signed digital QR code will be generated.
                 </p>
@@ -909,7 +902,7 @@ export default function EInvoicesListPage() {
 
             <div className="p-5 text-xs text-slate-700 space-y-3">
               <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-rose-900">
-                <p className="font-semibold">⚠️ 24-Hour Cancellation Window:</p>
+                <p className="font-semibold flex items-center gap-1.5"><AlertCircle className="w-4 h-4 text-rose-600 shrink-0" /> 24-Hour Cancellation Window:</p>
                 <p className="mt-1 text-[11px]">
                   An IRN can only be cancelled on the IRP within 24 hours of generation. Once cancelled, this invoice number cannot be reused for a new IRN under GST rules.
                 </p>

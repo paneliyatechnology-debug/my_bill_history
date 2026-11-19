@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../../../context/auth-context";
 import { apiClient, extractList } from "../../../../lib/api-client";
 import { DocumentHeaderCard, DocumentBottomBar } from "@/components/document-studio";
+import { X } from "lucide-react";
 
 interface Party {
   id: string;
@@ -488,7 +489,7 @@ function CreateSalesReturnForm() {
             onClick={() => setError(null)}
             className="text-rose-500 hover:text-rose-700 font-bold ml-2"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -520,7 +521,7 @@ function CreateSalesReturnForm() {
                     }}
                     className="text-slate-400 hover:text-slate-600 font-bold px-1.5 py-0.5 rounded"
                   >
-                    ✕
+                    <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ) : (
@@ -607,7 +608,7 @@ function CreateSalesReturnForm() {
                     }}
                     className="text-slate-400 hover:text-slate-600 font-bold px-1.5 py-0.5 rounded"
                   >
-                    ✕
+                    <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ) : (

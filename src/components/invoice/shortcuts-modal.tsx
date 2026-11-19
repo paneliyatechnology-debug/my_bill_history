@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Keyboard, X } from "lucide-react";
 
 interface ShortcutsModalProps {
   isOpen: boolean;
@@ -26,8 +27,8 @@ export function ShortcutsModal({ isOpen, onClose }: ShortcutsModalProps) {
       <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">⌨️</span>
+          <div className="flex items-center gap-2.5">
+            <Keyboard className="w-5 h-5 text-[#1677E8]" />
             <div>
               <h2 className="text-[15px] font-semibold text-[#182230]">
                 Keyboard Shortcuts
@@ -40,9 +41,10 @@ export function ShortcutsModal({ isOpen, onClose }: ShortcutsModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-700 font-bold text-lg p-1"
+            className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+            title="Close"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
 

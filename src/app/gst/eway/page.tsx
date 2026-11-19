@@ -5,6 +5,7 @@ import Link from "next/link";
 import { apiClient } from "../../../lib/api-client";
 import { useAuth } from "../../../context/auth-context";
 import { DataTable, GstFrame, Panel, useCanWriteGst, useGstPeriod } from "../../../components/gst/gst-kit";
+import { Truck, ArrowRight } from "lucide-react";
 
 export default function EwayPage() {
   return (
@@ -73,15 +74,19 @@ function Body() {
   return (
     <Panel loading={loading} error={error} onRetry={load} empty={!tenantContext.companyId ? "Sign in and select a company to see e-way documents." : rows.length === 0 ? "No documents in this period." : null}>
       <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded-xl flex items-center justify-between text-xs text-indigo-900">
-        <div>
-          <span className="font-bold block">🚛 Looking for Full E-Way Bill Lifecycle & Form GST EWB-01 Slips?</span>
-          <span>Access live register, KPIs, Part-B vehicle updates, cancellations, and official printable slips.</span>
+        <div className="flex items-start gap-2.5">
+          <Truck className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
+          <div>
+            <span className="font-bold block">Looking for Full E-Way Bill Lifecycle & Form GST EWB-01 Slips?</span>
+            <span>Access live register, KPIs, Part-B vehicle updates, cancellations, and official printable slips.</span>
+          </div>
         </div>
         <Link
           href="/sales/eway-bills"
-          className="h-9 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-sm whitespace-nowrap transition-colors"
+          className="h-9 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-sm whitespace-nowrap transition-colors inline-flex items-center gap-1.5"
         >
-          Open E-Way Bill Register →
+          <span>Open E-Way Bill Register</span>
+          <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
 

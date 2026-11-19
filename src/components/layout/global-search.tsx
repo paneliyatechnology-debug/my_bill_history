@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
+import { Phone, MapPin, User, Calendar, Building2, CreditCard, X } from "lucide-react";
 
 export interface GlobalSearchResultItem {
   id: string;
@@ -319,13 +320,7 @@ export function GlobalSearch({ isMobileDrawer, onCloseMobileDrawer }: GlobalSear
               className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
               title="Clear search"
             >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fillRule="evenodd"
-                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
+              <X className="w-3.5 h-3.5" />
             </button>
           ) : (
             <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10.5px] font-semibold text-slate-400 bg-white border border-slate-200/90 rounded-md shadow-2xs select-none">
@@ -525,8 +520,18 @@ export function GlobalSearch({ isMobileDrawer, onCloseMobileDrawer }: GlobalSear
                             )}
                           </div>
                           <div className="text-[11px] text-slate-500 flex items-center gap-2 truncate mt-0.5">
-                            {p.phone && <span>📞 {p.phone}</span>}
-                            {p.city && <span>📍 {p.city}</span>}
+                            {p.phone && (
+                              <span className="flex items-center gap-1">
+                                <Phone className="w-3 h-3 text-slate-400" />
+                                {p.phone}
+                              </span>
+                            )}
+                            {p.city && (
+                              <span className="flex items-center gap-1">
+                                <MapPin className="w-3 h-3 text-slate-400" />
+                                {p.city}
+                              </span>
+                            )}
                             {p.gstin && <span className="font-mono">GST: {p.gstin}</span>}
                           </div>
                         </div>
@@ -596,8 +601,18 @@ export function GlobalSearch({ isMobileDrawer, onCloseMobileDrawer }: GlobalSear
                             </span>
                           </div>
                           <div className="text-[11px] text-slate-500 flex items-center gap-2 truncate mt-0.5">
-                            {s.partyName && <span>👤 {s.partyName}</span>}
-                            {s.invoiceDate && <span>📅 {s.invoiceDate}</span>}
+                            {s.partyName && (
+                              <span className="flex items-center gap-1">
+                                <User className="w-3 h-3 text-slate-400" />
+                                {s.partyName}
+                              </span>
+                            )}
+                            {s.invoiceDate && (
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3 text-slate-400" />
+                                {s.invoiceDate}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -657,8 +672,18 @@ export function GlobalSearch({ isMobileDrawer, onCloseMobileDrawer }: GlobalSear
                             </span>
                           </div>
                           <div className="text-[11px] text-slate-500 flex items-center gap-2 truncate mt-0.5">
-                            {p.partyName && <span>🏢 {p.partyName}</span>}
-                            {p.invoiceDate && <span>📅 {p.invoiceDate}</span>}
+                            {p.partyName && (
+                              <span className="flex items-center gap-1">
+                                <Building2 className="w-3 h-3 text-slate-400" />
+                                {p.partyName}
+                              </span>
+                            )}
+                            {p.invoiceDate && (
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3 text-slate-400" />
+                                {p.invoiceDate}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -780,8 +805,18 @@ export function GlobalSearch({ isMobileDrawer, onCloseMobileDrawer }: GlobalSear
                             </span>
                           </div>
                           <div className="text-[11px] text-slate-500 flex items-center gap-2 truncate mt-0.5">
-                            {v.voucherDate && <span>📅 {v.voucherDate}</span>}
-                            {v.paymentMode && <span>💳 {v.paymentMode}</span>}
+                            {v.voucherDate && (
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3 text-slate-400" />
+                                {v.voucherDate}
+                              </span>
+                            )}
+                            {v.paymentMode && (
+                              <span className="flex items-center gap-1">
+                                <CreditCard className="w-3 h-3 text-slate-400" />
+                                {v.paymentMode}
+                              </span>
+                            )}
                             {v.referenceNo && <span>Ref: {v.referenceNo}</span>}
                           </div>
                         </div>

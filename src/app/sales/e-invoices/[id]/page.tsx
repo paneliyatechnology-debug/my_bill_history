@@ -10,6 +10,7 @@ import {
   EInvoiceDetailsResponse,
 } from "@/lib/einvoice";
 import { formatInr } from "@/components/design-system/tokens";
+import { X, AlertTriangle } from "lucide-react";
 
 function formatAddress(addr: any): string {
   if (!addr) return "";
@@ -154,7 +155,7 @@ export default function EInvoiceDetailsPage() {
         <div className="fixed bottom-5 right-5 z-50 flex items-center gap-3 rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-emerald-900 shadow-lg">
           <span className="text-sm font-medium">{toast.text}</span>
           <button onClick={() => setToast(null)} className="text-xs font-bold text-slate-400 hover:text-slate-800">
-            ✕
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
@@ -294,7 +295,8 @@ export default function EInvoiceDetailsPage() {
       {isCancelled && eInvoice && (
         <div className="mb-6 rounded-xl border-2 border-dashed border-rose-400 bg-rose-50 p-4 text-xs text-rose-950">
           <div className="font-bold text-rose-900 text-sm flex items-center gap-2">
-            <span>⚠️</span> THIS E-INVOICE HAS BEEN OFFICIALLY CANCELLED ON IRP
+            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+            <span>THIS E-INVOICE HAS BEEN OFFICIALLY CANCELLED ON IRP</span>
           </div>
           <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-2 text-rose-900">
             <div>
@@ -507,7 +509,7 @@ export default function EInvoiceDetailsPage() {
                 IRP Registration Raw Response
               </h3>
               <button onClick={() => setShowRawPayload(false)} className="text-slate-400 hover:text-slate-700">
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
             <div className="max-h-[60vh] overflow-y-auto p-5 tabular-nums text-[11px] bg-slate-900 text-emerald-400">
@@ -540,7 +542,10 @@ export default function EInvoiceDetailsPage() {
 
             <div className="p-5 text-xs text-slate-700 space-y-3">
               <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-rose-900">
-                <p className="font-semibold">⚠️ 24-Hour Cancellation Window:</p>
+                <p className="font-semibold flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4 text-rose-600" />
+                  <span>24-Hour Cancellation Window:</span>
+                </p>
                 <p className="mt-1 text-[11px]">
                   IRN cancellation is subject to the IRP&apos;s statutory 24-hour window. Once cancelled, this invoice number cannot be reused for a new IRN under GST rules.
                 </p>

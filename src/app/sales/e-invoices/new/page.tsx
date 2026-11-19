@@ -8,6 +8,7 @@ import { apiClient } from "@/lib/api-client";
 import { einvoiceApi, EInvoiceValidationError } from "@/lib/einvoice";
 import { INDIAN_STATES } from "@/shared-types";
 import { formatInr } from "@/components/design-system/tokens";
+import { X, Check } from "lucide-react";
 
 interface LineItem {
   id: string;
@@ -983,9 +984,9 @@ export default function CreateEInvoicePage() {
                           type="button"
                           onClick={() => handleRemoveItem(idx)}
                           disabled={items.length <= 1}
-                          className="text-slate-400 hover:text-rose-600 disabled:opacity-30"
+                          className="text-slate-400 hover:text-rose-600 disabled:opacity-30 inline-flex items-center justify-center"
                         >
-                          ✕
+                          <X className="w-3.5 h-3.5" />
                         </button>
                       </td>
                     </tr>
@@ -1232,13 +1233,13 @@ export default function CreateEInvoicePage() {
                 Pre-Validation Results
               </h3>
               <button onClick={() => setShowValidationModal(false)} className="text-slate-400 hover:text-slate-700">
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
             <div className="p-5 max-h-[60vh] overflow-y-auto space-y-3">
               {validationErrors.length === 0 ? (
                 <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-4 text-xs text-emerald-900 flex items-center gap-3">
-                  <span className="text-xl">✓</span>
+                  <Check className="w-5 h-5 text-emerald-600 shrink-0" />
                   <div>
                     <div className="font-bold">All mandatory validations passed!</div>
                     <div>Your invoice is ready to be registered on the Invoice Registration Portal.</div>

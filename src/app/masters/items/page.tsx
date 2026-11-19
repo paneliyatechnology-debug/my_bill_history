@@ -6,6 +6,24 @@ import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { Badge } from "../../../components/ui/badge";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
+import { StockQuantityDisplay } from "../../../components/inventory/stock-quantity-display";
+import {
+  Pencil,
+  SlidersHorizontal,
+  Tag,
+  Trash2,
+  AlertTriangle,
+  AlertCircle,
+  Sparkles,
+  BarChart2,
+  Gift,
+  X,
+  Check,
+  Package,
+  Library,
+  Layers,
+  ChevronDown,
+} from "lucide-react";
 import { ItemStepModal, ItemFormData, PartyOption } from "./components/item-step-modal";
 import { ItemBarcodeModal } from "./components/item-barcode-modal";
 import { AdjustStockModal } from "./components/adjust-stock-modal";
@@ -150,9 +168,9 @@ function ItemActionMenu({
                 onClose();
                 onEdit();
               }}
-              className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer font-medium transition-colors"
+              className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 flex items-center gap-2.5 cursor-pointer font-medium transition-colors"
             >
-              <span className="text-slate-500">✏️</span>
+              <Pencil className="w-4 h-4 text-slate-500 shrink-0" strokeWidth={1.75} />
               <span>{lang === "gu" ? "સુધારો (Edit)" : "Edit Item"}</span>
             </button>
             {item.type === "PRODUCT" && (
@@ -162,9 +180,9 @@ function ItemActionMenu({
                   onClose();
                   onAdjustStock();
                 }}
-                className="w-full text-left h-9 px-3 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 flex items-center gap-2 cursor-pointer font-medium transition-colors"
+                className="w-full text-left h-9 px-3 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 flex items-center gap-2.5 cursor-pointer font-medium transition-colors"
               >
-                <span className="text-indigo-600">📦</span>
+                <SlidersHorizontal className="w-4 h-4 text-indigo-600 shrink-0" strokeWidth={1.75} />
                 <span>{lang === "gu" ? "સ્ટોક એડજસ્ટ કરો" : "Adjust Stock"}</span>
               </button>
             )}
@@ -174,9 +192,9 @@ function ItemActionMenu({
                 onClose();
                 onBarcode();
               }}
-              className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer font-medium transition-colors"
+              className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 flex items-center gap-2.5 cursor-pointer font-medium transition-colors"
             >
-              <span className="text-slate-500">🏷️</span>
+              <Tag className="w-4 h-4 text-slate-500 shrink-0" strokeWidth={1.75} />
               <span>{lang === "gu" ? "બારકોડ સ્ટીકર" : "Barcode Sticker"}</span>
             </button>
           </div>
@@ -187,9 +205,9 @@ function ItemActionMenu({
                 onClose();
                 onDelete();
               }}
-              className="w-full text-left h-9 px-3 hover:bg-rose-50 text-rose-600 flex items-center gap-2 cursor-pointer font-medium transition-colors"
+              className="w-full text-left h-9 px-3 hover:bg-rose-50 text-rose-600 flex items-center gap-2.5 cursor-pointer font-medium transition-colors"
             >
-              <span>🗑️</span>
+              <Trash2 className="w-4 h-4 text-rose-500 shrink-0" strokeWidth={1.75} />
               <span>{lang === "gu" ? "કાઢી નાખો" : "Delete"}</span>
             </button>
           </div>
@@ -739,39 +757,15 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
         header: lang === "gu" ? "સ્ટોક જથ્થો" : "Stock QTY",
         sortable: true,
         accessorFn: (it) => (it.type === "PRODUCT" ? Number(it.currentStock || 0) : -1),
-        cell: (it) => {
-          if (it.type === "SERVICE") {
-            return <span className="text-slate-400 tabular-nums">-</span>;
-          }
-          const stock = Number(it.currentStock || 0);
-          const min = Number(it.minStockLevel || 0);
-          const uom = (
-            it.primaryUom?.code ||
-            it.primaryUom?.symbol ||
-            "PCS"
-          ).toUpperCase();
-          const isLow = min > 0 && stock <= min;
-
-          return (
-            <div className="inline-flex items-center gap-1.5 typo-table-td">
-              <span
-                className={`tabular-nums ${
-                  isLow ? "text-amber-600 font-semibold" : "text-slate-800 font-medium"
-                }`}
-              >
-                {stock} {uom}
-              </span>
-              {isLow && (
-                <span
-                  className="text-[10px] text-amber-500 font-semibold"
-                  title={`Low stock alert (Min: ${min} ${uom})`}
-                >
-                  ⚠️
-                </span>
-              )}
-            </div>
-          );
-        },
+        cell: (it) => (
+          <StockQuantityDisplay
+            quantity={it.currentStock}
+            uom={it.primaryUom?.code || it.primaryUom?.symbol || "PCS"}
+            minStockLevel={it.minStockLevel}
+            isService={it.type === "SERVICE"}
+            lang={lang}
+          />
+        ),
       },
       {
         id: "retailPrice",
@@ -887,7 +881,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
             onClick={() => setShowPromoBanner(!showPromoBanner)}
             className="h-9 px-3 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 typo-btn-secondary rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
           >
-            <span>🚫</span>
+            <Sparkles className="w-4 h-4 text-indigo-600 shrink-0" strokeWidth={1.75} />
             <span>{lang === "gu" ? "ઑફર્સ મેનેજ કરો" : "Manage Offer"}</span>
           </button>
           <button
@@ -895,9 +889,9 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
             onClick={() => alert("Items Reports: Stock Summary, Item Sales, Low Stock Report")}
             className="h-9 px-3 border border-slate-300 text-slate-700 hover:bg-slate-50 typo-btn-secondary rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
           >
-            <span>📊</span>
+            <BarChart2 className="w-4 h-4 text-slate-600 shrink-0" strokeWidth={1.75} />
             <span>{lang === "gu" ? "રિપોર્ટ્સ" : "Reports"}</span>
-            <span className="text-[10px]">▼</span>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" strokeWidth={2} />
           </button>
           <button
             type="button"
@@ -915,14 +909,14 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
       {successMessage && (
         <div className="flex items-center justify-between p-3.5 bg-emerald-50 border border-emerald-200 typo-card-desc text-emerald-800 font-medium rounded-xl shadow-xs">
           <div className="flex items-center gap-2">
-            <span className="text-emerald-600 font-semibold text-base">✓</span>
+            <Check className="w-4 h-4 text-emerald-600 shrink-0" strokeWidth={2} />
             <span>{successMessage}</span>
           </div>
           <button
             onClick={() => setSuccessMessage(null)}
-            className="text-emerald-600 hover:text-emerald-800 text-sm font-semibold ml-3 cursor-pointer"
+            className="text-emerald-600 hover:text-emerald-800 p-1 cursor-pointer"
           >
-            ×
+            <X className="w-4 h-4" strokeWidth={2} />
           </button>
         </div>
       )}
@@ -938,7 +932,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
       {showPromoBanner && (
         <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border border-orange-200 rounded-xl p-4 flex items-center justify-between gap-4 shadow-xs">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🎁</span>
+            <Gift className="w-6 h-6 text-amber-600 shrink-0" strokeWidth={1.75} />
             <div>
               <p className="typo-card-heading text-slate-900">
                 {lang === "gu" ? "તમારા માલ પર ઑફર્સ અને ડિસ્કાઉન્ટ સ્કીમ શરૂ કરો" : "Launch Offers on Your Items"}
@@ -957,9 +951,9 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
             </button>
             <button
               onClick={() => setShowPromoBanner(false)}
-              className="text-slate-400 hover:text-slate-600 p-1 text-[13px] rounded-lg cursor-pointer"
+              className="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer"
             >
-              ✕
+              <X className="w-4 h-4" strokeWidth={2} />
             </button>
           </div>
         </div>
@@ -997,7 +991,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
         >
           <div>
             <div className="flex items-center gap-1.5 typo-card-heading text-amber-700">
-              <span className="text-amber-500">📦</span>
+              <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" strokeWidth={1.75} />
               <span>{lang === "gu" ? "ઓછો સ્ટોક (Low Stock)" : "Low Stock"}</span>
             </div>
             <p className={`typo-kpi mt-2 ${lowStockCount > 0 ? "text-amber-600" : "text-slate-900"}`}>
@@ -1074,7 +1068,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
                   : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50"
               }`}
             >
-              <span>📦</span>
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" strokeWidth={1.75} />
               <span>Low Stock</span>
             </button>
           </div>
@@ -1088,9 +1082,9 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
                 onClick={() => setIsBulkMenuOpen(!isBulkMenuOpen)}
                 className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
               >
-                <span>🗂️</span>
+                <Layers className="w-4 h-4 text-slate-600 shrink-0" strokeWidth={1.75} />
                 <span>Bulk Actions</span>
-                <span className="text-[10px]">▼</span>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" strokeWidth={2} />
               </button>
               {isBulkMenuOpen && (
                 <div className="absolute right-0 mt-1 w-48 bg-white border border-slate-200 rounded-xl shadow-lg z-30 py-1 text-xs divide-y divide-slate-100">
@@ -1103,7 +1097,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
                       }}
                       className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer font-medium"
                     >
-                      <span>✓</span> Select All Items
+                      <Check className="w-3.5 h-3.5 text-slate-500 shrink-0" strokeWidth={2} /> Select All Items
                     </button>
                     <button
                       type="button"
@@ -1113,7 +1107,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
                       }}
                       className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer font-medium"
                     >
-                      <span>✕</span> Deselect All
+                      <X className="w-3.5 h-3.5 text-slate-500 shrink-0" strokeWidth={2} /> Deselect All
                     </button>
                   </div>
                   <div className="py-1">
@@ -1129,7 +1123,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
                       }}
                       className="w-full text-left h-9 px-3 hover:bg-rose-50 text-rose-600 flex items-center gap-2 cursor-pointer font-medium"
                     >
-                      <span>🗑️</span> Delete Selected ({selectedIds.size})
+                      <Trash2 className="w-3.5 h-3.5 text-rose-500 shrink-0" strokeWidth={1.75} /> Delete Selected ({selectedIds.size})
                     </button>
                   </div>
                 </div>
@@ -1201,19 +1195,14 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
                 <span className="text-[10px] text-slate-500 uppercase block">
                   {lang === "gu" ? "સ્ટોક" : "Stock"}
                 </span>
-                <span
-                  className={`tabular-nums font-bold text-xs ${
-                    it.type === "SERVICE"
-                      ? "text-slate-400"
-                      : Number(it.currentStock || 0) <= Number(it.minStockLevel || 0)
-                      ? "text-amber-600"
-                      : "text-emerald-700"
-                  }`}
-                >
-                  {it.type === "SERVICE"
-                    ? "—"
-                    : `${Number(it.currentStock || 0)} ${it.primaryUom?.code || it.primaryUom?.symbol || "PCS"}`}
-                </span>
+                <StockQuantityDisplay
+                  quantity={it.currentStock}
+                  uom={it.primaryUom?.code || it.primaryUom?.symbol || "PCS"}
+                  minStockLevel={it.minStockLevel}
+                  isService={it.type === "SERVICE"}
+                  layout="compact"
+                  lang={lang}
+                />
               </div>
             </div>
             <div className="flex items-center justify-end gap-2 pt-1">
@@ -1221,9 +1210,9 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
                 <button
                   type="button"
                   onClick={() => setAdjustStockItem(it)}
-                  className="px-2.5 py-1 text-[13px] font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg cursor-pointer flex items-center gap-1"
+                  className="px-2.5 py-1 text-[13px] font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg cursor-pointer flex items-center gap-1.5"
                 >
-                  <span>📦</span>
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-600 shrink-0" strokeWidth={1.75} />
                   <span>Adjust</span>
                 </button>
               )}
@@ -1251,8 +1240,8 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
       {/* ============================================================ */}
       <div className="bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-slate-50 border border-blue-200/80 rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xs">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-xl shrink-0 shadow-xs">
-            📦
+          <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 shadow-xs">
+            <Package className="w-6 h-6 text-blue-600" strokeWidth={1.75} />
           </div>
           <div>
             <h4 className="font-bold text-slate-900 text-sm">
@@ -1271,7 +1260,7 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
             onClick={() => alert("Product Library: 50,000+ FMCG, Grocery, Hardware & Pharmacy items ready to import!")}
             className="h-9 px-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-[13px] font-medium rounded-xl shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer"
           >
-            <span>📚</span>
+            <Library className="w-4 h-4 text-slate-600 shrink-0" strokeWidth={1.75} />
             <span>Product Library</span>
           </button>
           <button

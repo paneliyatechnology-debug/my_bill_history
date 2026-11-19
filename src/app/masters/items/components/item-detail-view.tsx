@@ -9,6 +9,8 @@ import {
   getItemPartyPrices,
   setItemPartyPrices,
 } from "../../../../lib/party-item-pricing";
+import { StockQuantityDisplay } from "../../../../components/inventory/stock-quantity-display";
+import { AlertCircle, Tag, Package, Pencil, Printer, X, Search, FileText, BarChart3, ClipboardList, CreditCard, Download } from "lucide-react";
 
 export interface ItemDetailData {
   id: string;
@@ -266,8 +268,10 @@ export function ItemDetailView({
     currentStockNum * (Number(item.purchaseRate) || Number(item.retailPrice) || 0);
 
   // Stock status badge
-  const isOutOfStock = currentStockNum <= 0;
+  const isNegativeStock = currentStockNum < 0;
+  const isOutOfStock = currentStockNum === 0;
   const isLowStock =
+    !isNegativeStock &&
     !isOutOfStock &&
     Boolean(item.minStockLevel && item.minStockLevel > 0 && currentStockNum <= item.minStockLevel);
 
@@ -347,9 +351,7 @@ export function ItemDetailView({
         {/* Search Input */}
         <div className="p-3 border-b border-slate-100">
           <div className="relative">
-            <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
-              🔍
-            </span>
+            <Search className="w-3.5 h-3.5 absolute inset-y-0 left-2.5 my-auto text-slate-400 pointer-events-none" />
             <input
               type="text"
               value={leftSearch}
@@ -398,10 +400,18 @@ export function ItemDetailView({
                   <span className="truncate pr-2">{it.name}</span>
                   <span
                     className={`shrink-0 font-medium ${
-                      itStock > 0 ? "text-slate-600" : "text-slate-400"
+                      itStock < 0
+                        ? "text-rose-600 font-semibold"
+                        : itStock > 0
+                        ? "text-slate-600"
+                        : "text-slate-400"
                     }`}
                   >
-                    {itStock > 0 ? `${itStock} ${itUom}` : "-"}
+                    {itStock < 0
+                      ? `0 ${itUom}`
+                      : itStock > 0
+                      ? `${itStock} ${itUom}`
+                      : "-"}
                   </span>
                 </div>
               );
@@ -433,15 +443,23 @@ export function ItemDetailView({
             </button>
             <h1 className="text-[22px] font-semibold text-[#182230]">{item.name}</h1>
             <span
-              className={`px-2 py-0.5 text-[11px] font-bold rounded-md uppercase tracking-wide border ${
-                isOutOfStock
-                  ? "bg-rose-50 text-rose-700 border-rose-200"
+              className={`px-2 py-0.5 text-[11px] font-semibold rounded-md uppercase tracking-wide border ${
+                isNegativeStock
+                  ? "bg-rose-50 text-rose-700 border-rose-300"
+                  : isOutOfStock
+                  ? "bg-slate-100 text-slate-700 border-slate-200"
                   : isLowStock
                   ? "bg-amber-50 text-amber-700 border-amber-200"
                   : "bg-emerald-50 text-emerald-700 border-emerald-200"
               }`}
             >
-              {isOutOfStock ? "Out of Stock" : isLowStock ? "Low Stock" : "In Stock"}
+              {isNegativeStock
+                ? "Stock Discrepancy"
+                : isOutOfStock
+                ? "Out of Stock"
+                : isLowStock
+                ? "Low Stock"
+                : "In Stock"}
             </span>
           </div>
 
@@ -452,7 +470,7 @@ export function ItemDetailView({
               onClick={() => onBarcode(item)}
               className="h-9 px-3 border border-slate-300 rounded-lg text-[13px] font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
             >
-              <span>🏷️</span>
+              <Tag className="w-3.5 h-3.5 text-slate-600" />
               <span>Print Barcode</span>
             </button>
 
@@ -462,7 +480,7 @@ export function ItemDetailView({
                 onClick={() => onAdjustStock(item)}
                 className="h-9 px-3 border border-slate-300 rounded-lg text-[13px] font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
               >
-                <span>📦</span>
+                <Package className="w-3.5 h-3.5 text-slate-600" />
                 <span>Adjust Stock</span>
               </button>
             )}
@@ -472,7 +490,7 @@ export function ItemDetailView({
               onClick={() => onEdit(item)}
               className="h-9 px-3 border border-slate-300 rounded-lg text-[13px] font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
             >
-              <span>✏️</span>
+              <Pencil className="w-3.5 h-3.5 text-slate-600" />
               <span>Edit</span>
             </button>
 
@@ -500,7 +518,7 @@ export function ItemDetailView({
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            <span>📄</span>
+            <FileText className="w-3.5 h-3.5" />
             <span>Item Details</span>
           </button>
 
@@ -513,7 +531,7 @@ export function ItemDetailView({
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            <span>📦</span>
+            <Package className="w-3.5 h-3.5" />
             <span>Stock Details</span>
           </button>
 
@@ -526,7 +544,7 @@ export function ItemDetailView({
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            <span>📊</span>
+            <BarChart3 className="w-3.5 h-3.5" />
             <span>Party Wise Report</span>
           </button>
 
@@ -539,7 +557,7 @@ export function ItemDetailView({
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            <span>🏷️</span>
+            <Tag className="w-3.5 h-3.5 text-indigo-600" />
             <span>Party Wise Prices</span>
           </button>
         </div>
@@ -553,7 +571,7 @@ export function ItemDetailView({
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-slate-400">📋</span>
+                    <ClipboardList className="w-4 h-4 text-slate-400" />
                     <h2 className="text-xs font-semibold uppercase tracking-wider text-[#182230]">
                       General Details
                     </h2>
@@ -584,10 +602,17 @@ export function ItemDetailView({
                   </div>
 
                   <div>
-                    <p className="text-slate-400 font-medium">Current Stock</p>
-                    <p className="mt-1 font-semibold text-slate-900">
-                      {currentStockNum} {uomLabel}
-                    </p>
+                    <p className="text-slate-400 font-medium">Available Stock</p>
+                    <div className="mt-1">
+                      <StockQuantityDisplay
+                        quantity={currentStockNum}
+                        uom={uomLabel}
+                        minStockLevel={item.minStockLevel}
+                        isService={item.type === "SERVICE"}
+                        layout="stacked"
+                        lang={lang}
+                      />
+                    </div>
                   </div>
 
                   <div>
@@ -632,7 +657,7 @@ export function ItemDetailView({
               {/* Card 2: Pricing Details */}
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
                 <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-                  <span className="text-slate-400">💳</span>
+                  <CreditCard className="w-4 h-4 text-slate-400" />
                   <h2 className="text-xs font-semibold uppercase tracking-wider text-[#182230]">
                     Pricing Details
                   </h2>
@@ -709,9 +734,8 @@ export function ItemDetailView({
                     onClick={handleExportStockCsv}
                     className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-slate-300 bg-white text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
                   >
-                    <span>📥</span>
+                    <Download className="w-3.5 h-3.5 text-slate-600" />
                     <span>Download</span>
-                    <span className="text-[10px]">▼</span>
                   </button>
 
                   <button
@@ -719,7 +743,7 @@ export function ItemDetailView({
                     onClick={() => window.print()}
                     className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-slate-300 bg-white text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
                   >
-                    <span>🖨️</span>
+                    <Printer className="w-3.5 h-3.5 text-slate-600" />
                     <span>Print PDF</span>
                   </button>
                 </div>
@@ -857,9 +881,8 @@ export function ItemDetailView({
                     onClick={handleExportPartyReportCsv}
                     className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-slate-300 bg-white text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
                   >
-                    <span>📥</span>
+                    <Download className="w-3.5 h-3.5 text-slate-600" />
                     <span>Download</span>
-                    <span className="text-[10px]">▼</span>
                   </button>
 
                   <button
@@ -867,7 +890,7 @@ export function ItemDetailView({
                     onClick={() => window.print()}
                     className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-slate-300 bg-white text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
                   >
-                    <span>🖨️</span>
+                    <Printer className="w-3.5 h-3.5 text-slate-600" />
                     <span>Print PDF</span>
                   </button>
                 </div>
@@ -933,9 +956,7 @@ export function ItemDetailView({
             <div className="space-y-4">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="relative w-64">
-                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
-                    🔍
-                  </span>
+                  <Search className="w-3.5 h-3.5 absolute inset-y-0 left-2.5 my-auto text-slate-400 pointer-events-none" />
                   <input
                     type="text"
                     value={partyPriceSearch}
@@ -950,7 +971,7 @@ export function ItemDetailView({
                   onClick={() => setIsEditPartyPricesModalOpen(true)}
                   className="h-9 px-3 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-[13px] font-medium text-slate-700 transition-colors shadow-2xs cursor-pointer flex items-center gap-1.5"
                 >
-                  <span>✏️</span>
+                  <Pencil className="w-3.5 h-3.5 text-slate-600" />
                   <span>Edit Party Wise Prices</span>
                 </button>
               </div>
@@ -1009,9 +1030,10 @@ export function ItemDetailView({
               <button
                 type="button"
                 onClick={() => setIsEditPartyPricesModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 p-1 rounded transition-colors"
+                aria-label="Close"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

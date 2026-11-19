@@ -9,6 +9,7 @@ import {
   AutomatedBillingSchedule,
   formatCurrency,
 } from "@/lib/automated-billing";
+import { X } from "lucide-react";
 
 interface FormLine {
   id: string;
@@ -388,9 +389,9 @@ export default function EditAutomatedBillingPage() {
                           <button
                             type="button"
                             onClick={() => handleRemoveLine(index)}
-                            className="text-gray-400 hover:text-rose-600"
+                            className="text-gray-400 hover:text-rose-600 inline-flex items-center justify-center"
                           >
-                            ✕
+                            <X className="w-3.5 h-3.5" />
                           </button>
                         )}
                       </td>

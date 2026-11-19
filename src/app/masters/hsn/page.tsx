@@ -9,6 +9,7 @@ import { Badge } from "../../../components/ui/badge";
 import { ExportDropdown } from "../../../components/ui/export-dropdown";
 import { ExportColumn, ExportFormat, ExportMetadata } from "../../../lib/export/export-types";
 import { executeExport } from "../../../lib/export/export-engine";
+import { DataTablePagination } from "../../../components/ui/data-table-pagination";
 
 interface HsnMasterItem {
   id: string;
@@ -915,60 +916,22 @@ export default function HsnMasterPage() {
           </table>
         </div>
 
-        {/* Pagination Controls */}
-        <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <div className="flex items-center gap-2">
-            <span>
-              {lang === "gu" ? "પ્રતિ પાનું દર્શાવો:" : "Rows per page:"}
-            </span>
-            <select
-              value={limit}
-              onChange={(e) => {
-                setLimit(Number(e.target.value));
-                setPage(1);
-              }}
-              className="px-2 py-1 bg-white border border-slate-300 rounded text-slate-700 font-medium text-[13px] font-normal h-10"
-            >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-            <span className="text-slate-400">|</span>
-            <span>
-              Showing{" "}
-              <strong className="text-slate-700">
-                {total === 0 ? 0 : (page - 1) * limit + 1}
-              </strong>{" "}
-              to{" "}
-              <strong className="text-slate-700">
-                {Math.min(page * limit, total)}
-              </strong>{" "}
-              of <strong className="text-slate-700">{total}</strong> codes
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              disabled={page <= 1 || isLoading}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="px-2.5 py-1.5 bg-white border border-slate-300 rounded font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              &larr; Prev
-            </button>
-            <span className="px-2 tabular-nums font-semibold text-slate-700">
-              {page} / {totalPages}
-            </span>
-            <button
-              type="button"
-              disabled={page >= totalPages || isLoading}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              className="px-2.5 py-1.5 bg-white border border-slate-300 rounded font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Next &rarr;
-            </button>
-          </div>
+        {/* STANDARDIZED GLOBAL PAGINATION COMPONENT */}
+        <div className="bg-white border-t border-slate-200 px-4 py-1">
+          <DataTablePagination
+            currentPage={page}
+            pageSize={limit}
+            totalRecords={total}
+            onPageChange={(p) => setPage(p)}
+            onPageSizeChange={(newSize) => {
+              setLimit(newSize);
+              setPage(1);
+            }}
+            pageSizeOptions={[10, 25, 50, 100]}
+            loading={isLoading}
+            lang={lang}
+            showFirstLast
+          />
         </div>
       </div>
 

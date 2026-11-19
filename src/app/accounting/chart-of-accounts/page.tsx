@@ -7,6 +7,7 @@ import { apiClient } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { Badge } from "../../../components/ui/badge";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
+import { Sparkles, Check } from "lucide-react";
 
 interface LedgerGroup {
   id: string;
@@ -184,7 +185,7 @@ export default function ChartOfAccountsPage() {
             {seeding ? (
               <span className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             ) : (
-              <span>🌱</span>
+              <Sparkles className="w-4 h-4 text-primary" />
             )}
             <span>
               {lang === "gu"
@@ -226,7 +227,7 @@ export default function ChartOfAccountsPage() {
 
       {seedSuccess && (
         <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-lg text-xs font-semibold text-emerald-800 flex items-center gap-2">
-          <span>✓</span>
+          <Check className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{seedSuccess}</span>
         </div>
       )}

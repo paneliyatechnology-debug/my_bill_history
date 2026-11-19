@@ -16,6 +16,7 @@ import {
   DEFAULT_PURCHASE_QUICK_SETTINGS,
 } from "@/components/invoice/quick-settings-modal";
 import { ShortcutsModal } from "@/components/invoice/shortcuts-modal";
+import { Check, Printer } from "lucide-react";
 import {
   DocumentHeaderCard,
   DocumentInfoStrip,
@@ -568,7 +569,7 @@ const [notes, setNotes] = useState("");
       {/* Toast Alert */}
       {toastMessage && (
         <div className="fixed top-5 right-5 z-50 rounded-xl bg-slate-900/90 text-white px-4 py-2.5 text-xs font-semibold shadow-xl backdrop-blur-sm animate-fade-in flex items-center gap-2">
-          <span>✓</span>
+          <Check className="w-4 h-4 text-emerald-400" />
           <span>{toastMessage}</span>
         </div>
       )}
@@ -900,7 +901,8 @@ const [notes, setNotes] = useState("");
                   onClick={() => window.print()}
                   className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
-                  <span>🖨️ {lang === "gu" ? "પ્રિન્ટ" : "Print PO"}</span>
+                  <Printer className="w-4 h-4" />
+                  <span>{lang === "gu" ? "પ્રિન્ટ" : "Print PO"}</span>
                 </button>
               </div>
             </div>

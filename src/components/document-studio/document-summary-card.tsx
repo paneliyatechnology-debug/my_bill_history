@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Check, AlertCircle } from "lucide-react";
 import { DocumentSummaryCardProps, DocumentPaymentCardProps } from "./types";
 
 export function DocumentSummaryCard({
@@ -167,10 +168,10 @@ export function DocumentPaymentCard({
               <button
                 type="button"
                 onClick={onPaidInFull}
-                className="h-9 px-2.5 sm:px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl typo-btn-secondary shrink-0 transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
+                className="h-9 px-2.5 sm:px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl typo-btn-secondary shrink-0 transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
               >
                 <span>Paid In Full</span>
-                <span className="text-emerald-300 font-semibold">✓</span>
+                <Check className="w-3.5 h-3.5 text-white stroke-[2.5]" />
               </button>
             )}
           </div>
@@ -208,7 +209,7 @@ export function DocumentPaymentCard({
                 : "bg-amber-50 border-amber-200 text-amber-800"
             }`}
           >
-            <span>{isFullyPaid ? "✓" : "!"}</span>
+            {isFullyPaid ? <Check className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
             <span>Balance Due: {formatCur(balanceDue)}</span>
           </div>
         </div>

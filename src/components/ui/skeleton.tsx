@@ -1,4 +1,5 @@
 import React from "react";
+import { Receipt } from "lucide-react";
 
 export function Skeleton({
   className = "",
@@ -114,8 +115,8 @@ export function InitialAppLoader({
       <div className="text-center space-y-4">
         {/* Brand Icon with Jade Pulse Ring */}
         <div className="relative inline-block">
-          <div className="w-16 h-16 rounded-2xl bg-[#EFF6FF] border border-[#93C5FD] flex items-center justify-center text-3xl shadow-blue-500/20">
-            <span className="select-none text-[#0F172A]">🧾</span>
+          <div className="w-16 h-16 rounded-2xl bg-[#EFF6FF] border border-[#93C5FD] flex items-center justify-center shadow-blue-500/20">
+            <Receipt className="w-8 h-8 text-[#1677E8]" />
           </div>
           <div className="absolute -inset-1 rounded-2xl border-2 border-[#1677E8] opacity-40 animate-ping pointer-events-none" />
         </div>

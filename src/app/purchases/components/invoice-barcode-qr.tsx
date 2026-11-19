@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import JsBarcode from "jsbarcode";
+import { Tag, X, Check, Copy, Printer } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────
 // Real Scannable Invoice QR Code Component
@@ -222,8 +223,8 @@ export function InvoiceBarcodeStickerModal({
         {/* Modal Header */}
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100 bg-slate-50/80">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-orange-100 text-[#0F172A] flex items-center justify-center text-lg font-bold shadow-xs">
-              🏷️
+            <div className="w-9 h-9 rounded-xl bg-orange-100 text-[#0F172A] flex items-center justify-center shadow-xs">
+              <Tag className="w-5 h-5 text-amber-700" />
             </div>
             <div>
               <h3 className="text-[15px] sm:text-[15px] font-semibold text-slate-900">
@@ -241,7 +242,7 @@ export function InvoiceBarcodeStickerModal({
             onClick={onClose}
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -367,9 +368,19 @@ export function InvoiceBarcodeStickerModal({
             </div>
             <button
               onClick={handleCopyLink}
-              className="shrink-0 h-9 px-3 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-medium text-[13px] rounded-lg transition-colors flex items-center gap-1 shadow-xs"
+              className="shrink-0 h-9 px-3 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-medium text-[13px] rounded-lg transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
             >
-              {copied ? "✓ Copied" : "Copy Link"}
+              {copied ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Copied</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Copy Link</span>
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -387,7 +398,7 @@ export function InvoiceBarcodeStickerModal({
             onClick={handlePrintSticker}
             className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-sm transition-all flex items-center gap-1.5 active:scale-95"
           >
-            <span>🖨️</span>
+            <Printer className="w-3.5 h-3.5" />
             <span>{lang === "gu" ? "સ્ટીકર પ્રિન્ટ કરો" : "Print Sticker"}</span>
           </button>
         </div>

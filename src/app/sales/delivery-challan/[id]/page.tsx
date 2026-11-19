@@ -12,6 +12,7 @@ import {
   DynamicCompanyData,
 } from "@/components/invoice/dynamic-themed-invoice";
 import { Modal } from "@/components/ui/modal";
+import { Palette } from "lucide-react";
 
 export default function DeliveryChallanViewPage() {
   const params = useParams();
@@ -519,7 +520,7 @@ export default function DeliveryChallanViewPage() {
             className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
             title="Invoice Theme Settings"
           >
-            <span>🎨</span>
+            <Palette className="w-3.5 h-3.5" />
             <span>Theme</span>
           </Link>
 

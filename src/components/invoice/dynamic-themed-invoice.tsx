@@ -10,6 +10,7 @@ import {
   resolvePreviewLayout,
 } from "@/components/invoice/invoice-live-preview";
 import { resolveThemeDefinition } from "@/lib/invoice-theme-keys";
+import { AlertTriangle } from "lucide-react";
 
 export interface DynamicInvoiceParty {
   id?: string;
@@ -383,7 +384,10 @@ export function DynamicThemedInvoice({
       if (isCnl) {
         return (
           <div className="mb-3 rounded border-2 border-dashed border-red-500 bg-red-50 p-2 text-xs text-red-800">
-            <div className="font-bold text-red-700 uppercase tracking-wide">⚠️ CANCELLED GST E-INVOICE</div>
+            <div className="font-bold text-red-700 uppercase tracking-wide flex items-center gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-red-600" />
+              <span>CANCELLED GST E-INVOICE</span>
+            </div>
             <div className="mt-0.5 font-mono text-[10px] break-all"><b>IRN:</b> {eInv.irn}</div>
             <div className="mt-0.5 text-[10px]"><b>Ack No:</b> {eInv.ackNo} &nbsp;|&nbsp; <b>Ack Date:</b> {new Date(eInv.ackDate).toLocaleString("en-IN")}</div>
             {eInv.cancelReason && <div className="mt-0.5 text-[10px]"><b>Reason:</b> {eInv.cancelReason}</div>}

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { PenTool, X, Sparkles, UploadCloud } from "lucide-react";
 
 interface SignatureModalProps {
   isOpen: boolean;
@@ -156,8 +157,8 @@ export function SignatureModal({
       <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">✍️</span>
+          <div className="flex items-center gap-2.5">
+            <PenTool className="w-5 h-5 text-[#1677E8]" />
             <div>
               <h2 className="text-[15px] font-semibold text-[#182230]">
                 Add Signature
@@ -170,9 +171,10 @@ export function SignatureModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-700 font-bold text-lg p-1"
+            className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+            title="Close"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -250,9 +252,10 @@ export function SignatureModal({
                   <button
                     type="button"
                     onClick={handleQuickSign}
-                    className="text-blue-600 hover:text-blue-700 font-bold hover:underline"
+                    className="text-blue-600 hover:text-blue-700 font-bold hover:underline inline-flex items-center gap-1 cursor-pointer"
                   >
-                    ✨ Use Sample Sign
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Use Sample Sign</span>
                   </button>
                 </div>
                 <span className="text-[11px] text-slate-400">
@@ -270,7 +273,7 @@ export function SignatureModal({
                 onChange={handleUploadImage}
                 className="absolute inset-0 opacity-0 cursor-pointer"
               />
-              <span className="text-3xl block mb-2">📁</span>
+              <UploadCloud className="w-8 h-8 text-slate-400 mx-auto mb-2" />
               <p className="text-xs font-bold text-slate-700">
                 Click to upload signature image
               </p>

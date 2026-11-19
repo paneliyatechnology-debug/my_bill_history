@@ -21,6 +21,7 @@ import {
   PartySelectorCompact,
 } from "@/components/document-studio";
 import { INDIAN_STATES } from "@/shared-types";
+import { AlertTriangle, X, Printer, Package, Coins, Landmark, Handshake } from "lucide-react";
 
 interface Party {
   id: string;
@@ -730,11 +731,11 @@ const [notes, setNotes] = useState("");
       {error && (
         <div className="bg-rose-50 border-b border-rose-200 px-6 py-2.5 text-xs text-rose-700 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span>⚠️</span>
+            <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
             <span className="font-medium">{error}</span>
           </div>
           <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700 font-bold">
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -781,7 +782,8 @@ const [notes, setNotes] = useState("");
                 onClick={() => window.print()}
                 className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
               >
-                <span>🖨️ {lang === "gu" ? "પ્રિન્ટ" : `Print ${isDebitNote ? "Debit Note" : "Credit Note"}`}</span>
+                <Printer className="w-4 h-4" />
+                <span>{lang === "gu" ? "પ્રિન્ટ" : `Print ${isDebitNote ? "Debit Note" : "Credit Note"}`}</span>
               </button>
             </div>
           </div>
@@ -884,7 +886,7 @@ const [notes, setNotes] = useState("");
                         : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
                     }`}
                   >
-                    <span>📦 Item-Based</span>
+                    <span className="inline-flex items-center justify-center gap-1.5"><Package className="w-3.5 h-3.5" /> Item-Based</span>
                     <span className="block text-[10px] font-normal text-slate-500 mt-0.5">Line-item returns & rates</span>
                   </button>
                   <button
@@ -896,7 +898,7 @@ const [notes, setNotes] = useState("");
                         : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
                     }`}
                   >
-                    <span>💰 Amount-Based</span>
+                    <span className="inline-flex items-center justify-center gap-1.5"><Coins className="w-3.5 h-3.5" /> Amount-Based</span>
                     <span className="block text-[10px] font-normal text-slate-500 mt-0.5">Flat discount / rebate</span>
                   </button>
                 </div>
@@ -916,7 +918,7 @@ const [notes, setNotes] = useState("");
                         : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
                     }`}
                   >
-                    <span>🏛️ GST Section 34 Note</span>
+                    <span className="inline-flex items-center justify-center gap-1.5"><Landmark className="w-3.5 h-3.5" /> GST Section 34 Note</span>
                     <span className="block text-[10px] font-normal text-slate-500 mt-0.5">Reverses output GST</span>
                   </button>
                   <button
@@ -928,7 +930,7 @@ const [notes, setNotes] = useState("");
                         : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
                     }`}
                   >
-                    <span>🤝 Commercial Note</span>
+                    <span className="inline-flex items-center justify-center gap-1.5"><Handshake className="w-3.5 h-3.5" /> Commercial Note</span>
                     <span className="block text-[10px] font-normal text-slate-500 mt-0.5">No tax reduction</span>
                   </button>
                 </div>
@@ -1155,7 +1157,7 @@ const [notes, setNotes] = useState("");
                       <tr>
                         <td colSpan={9} className="py-12 text-center text-slate-400">
                           <div className="max-w-xs mx-auto space-y-2">
-                            <span className="text-2xl">📦</span>
+                            <Package className="w-8 h-8 text-slate-300 mx-auto" />
                             <p className="font-bold text-slate-700">No return items added yet</p>
                             <p className="text-[11px] text-slate-400">Add an item or select an original invoice above</p>
                             <button
@@ -1366,7 +1368,7 @@ const [notes, setNotes] = useState("");
                 onClick={() => setIsCreatePartyModalOpen(false)}
                 className="text-slate-400 hover:text-slate-600 text-sm"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

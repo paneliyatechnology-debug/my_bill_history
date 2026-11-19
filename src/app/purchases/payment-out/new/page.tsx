@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../../../context/auth-context";
 import { apiClient, extractList } from "../../../../lib/api-client";
+import { Keyboard, Settings, X, FileText, Search, Calendar } from "lucide-react";
 
 interface PartyOption {
   id: string;
@@ -622,28 +623,29 @@ function CreatePaymentOutForm() {
             <button
               type="button"
               className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
+              title="Keyboard shortcuts"
             >
-              ⌨
+              <Keyboard className="w-4 h-4" />
             </button>
             <button
               type="button"
               onClick={() => setIsSettingsOpen(true)}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 cursor-pointer"
             >
-              <span>⚙</span>
+              <Settings className="w-3.5 h-3.5" />
               <span>Settings</span>
             </button>
             <button
               type="button"
               onClick={() => router.push("/purchases/payment-out")}
-              className="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+              className="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-lg bg-[#0F172A] px-5 py-1.5 text-[13px] font-medium text-white shadow-xs hover:bg-[#1268D3] transition-colors disabled:opacity-50"
+              className="rounded-lg bg-[#0F172A] px-5 py-1.5 text-[13px] font-medium text-white shadow-xs hover:bg-[#1268D3] transition-colors disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? "Saving..." : "Save"}
             </button>
@@ -653,7 +655,9 @@ function CreatePaymentOutForm() {
         {errorMessage && (
           <div className="mx-6 mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700 flex items-center justify-between">
             <span>{errorMessage}</span>
-            <button type="button" onClick={() => setErrorMessage(null)} className="text-rose-500 hover:text-rose-700">✕</button>
+            <button type="button" onClick={() => setErrorMessage(null)} className="text-rose-500 hover:text-rose-700 p-0.5">
+              <X className="w-3.5 h-3.5" />
+            </button>
           </div>
         )}
 
@@ -677,9 +681,10 @@ function CreatePaymentOutForm() {
                           setPartyId("");
                           setBills([]);
                         }}
-                        className="text-slate-400 hover:text-slate-600"
+                        className="text-slate-400 hover:text-slate-600 p-0.5"
+                        title="Clear party"
                       >
-                        ✕
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                     <div className="mt-1 text-[11px] text-slate-500">
@@ -848,8 +853,8 @@ function CreatePaymentOutForm() {
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-2xs space-y-4">
             {!partyId ? (
               <div className="py-12 text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600 mb-2">
-                  📄
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-[#1677E8] mb-2">
+                  <FileText className="w-6 h-6 stroke-[1.75]" />
                 </div>
                 <h3 className="text-[15px] font-semibold text-slate-800">No party selected!</h3>
                 <p className="text-xs text-slate-500 mt-0.5 mb-3">
@@ -863,7 +868,7 @@ function CreatePaymentOutForm() {
                     setIsPartyDropdownOpen(true);
                     setTimeout(() => partySearchInputRef.current?.focus(), 50);
                   }}
-                  className="rounded-lg bg-[#0F172A] px-4 py-1.5 text-[13px] font-medium text-white hover:bg-[#1268D3]"
+                  className="rounded-lg bg-[#0F172A] px-4 py-1.5 text-[13px] font-medium text-white hover:bg-[#1268D3] cursor-pointer"
                 >
                   Select Party
                 </button>
@@ -882,9 +887,10 @@ function CreatePaymentOutForm() {
                         <button
                           type="button"
                           onClick={toggleSelectAllBills}
-                          className="text-slate-400 hover:text-slate-600 text-xs"
+                          className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                          title="Clear selection"
                         >
-                          ✕
+                          <X className="w-3 h-3" />
                         </button>
                       </span>
                     )}
@@ -897,15 +903,15 @@ function CreatePaymentOutForm() {
                         placeholder="Search invoice..."
                         className="w-full rounded-lg border border-slate-200 bg-white py-1 pl-7 pr-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-10"
                       />
-                      <span className="absolute left-2.5 top-1.5 text-xs text-slate-400">🔍</span>
+                      <Search className="w-3.5 h-3.5 absolute left-2.5 top-3 text-slate-400 pointer-events-none" />
                     </div>
 
                     <button
                       type="button"
-                      className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
+                      className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1 text-[13px] font-medium text-slate-700 hover:bg-slate-50 cursor-pointer"
                     >
+                      <Calendar className="w-3.5 h-3.5 text-slate-500" />
                       <span>Select Date Range</span>
-                      <span className="text-xs">📅</span>
                     </button>
                   </div>
                 </div>
@@ -1030,9 +1036,10 @@ function CreatePaymentOutForm() {
               <button
                 type="button"
                 onClick={() => setIsSettingsOpen(false)}
-                className="text-slate-400 hover:text-slate-600 text-lg leading-none"
+                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                title="Close settings"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

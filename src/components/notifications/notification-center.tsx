@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
+import { Bell, Clock, FileText, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 
 export interface NotificationItem {
   id: string;
@@ -311,7 +312,7 @@ export function NotificationCenter() {
           {pushStatus === "prompt" && (
             <div className="px-4 py-2.5 bg-blue-50 border-b border-blue-100 flex items-center justify-between text-xs text-blue-900">
               <div className="flex items-center gap-2">
-                <span className="text-base">🔔</span>
+                <Bell className="w-4 h-4 text-blue-600" />
                 <span>Enable Web Push alerts</span>
               </div>
               <button
@@ -387,7 +388,7 @@ export function NotificationCenter() {
                   >
                     {/* Icon */}
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold ${
+                      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-xs font-medium ${
                         isPaymentReceived
                           ? "bg-emerald-100 text-emerald-700"
                           : isPaymentSent
@@ -397,7 +398,15 @@ export function NotificationCenter() {
                           : "bg-slate-100 text-slate-700"
                       }`}
                     >
-                      {isPaymentReceived ? "↓₹" : isPaymentSent ? "↑₹" : isReminder ? "⏰" : "📄"}
+                      {isPaymentReceived ? (
+                        <ArrowDownLeft className="w-4 h-4" />
+                      ) : isPaymentSent ? (
+                        <ArrowUpRight className="w-4 h-4" />
+                      ) : isReminder ? (
+                        <Clock className="w-4 h-4" />
+                      ) : (
+                        <FileText className="w-4 h-4" />
+                      )}
                     </div>
 
                     {/* Content */}

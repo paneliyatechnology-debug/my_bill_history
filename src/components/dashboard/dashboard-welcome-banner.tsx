@@ -15,6 +15,17 @@ export interface DashboardWelcomeBannerProps {
   lang?: "en" | "gu";
 }
 
+/** Compute days remaining in a FY string like "FY 2026-27" */
+function getDaysRemainingInFY(financialYear: string): number | null {
+  const match = financialYear.match(/(\d{4})-(\d{2})/);
+  if (!match) return null;
+  const startYear = parseInt(match[1], 10);
+  const fyEnd = new Date(`${startYear + 1}-03-31`);
+  const now = new Date();
+  const diff = Math.ceil((fyEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  return diff > 0 ? diff : 0;
+}
+
 export function DashboardWelcomeBanner({
   userName = "",
   financialYear = "",
@@ -37,6 +48,20 @@ export function DashboardWelcomeBanner({
 
   const displayName = userName ? userName.split(" ")[0] : "";
 
+  // Compute today's date and days remaining
+  const todayStr = useMemo(() => {
+    return new Date().toLocaleDateString("en-IN", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  }, []);
+
+  const daysRemaining = useMemo(() => {
+    return financialYear ? getDaysRemainingInFY(financialYear) : null;
+  }, [financialYear]);
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 pb-1">
       {/* Left: Heading & Subtitle */}
@@ -47,8 +72,8 @@ export function DashboardWelcomeBanner({
         </h1>
         <p className="typo-page-subtitle text-[#64748B] mt-0.5">
           {lang === "gu"
-            ? `${financialYear || "ચાલુ નાણાકીય વર્ષ"} માટે તમારા વેપારનો સારાંશ.`
-            : `Here's your business summary for ${financialYear || "the current financial year"}.`}
+            ? `${financialYear || "ચાલુ નાણાકીય વર્ષ"} — આ${todayStr ? ` ${todayStr}` : ""}ના તમારા વ્યવસાયમાં શું થઈ રહ્યું છે.`
+            : `${todayStr}${financialYear ? ` · ${financialYear}` : ""}${daysRemaining !== null ? ` · ${daysRemaining} days left` : ""}`}
         </p>
       </div>
 

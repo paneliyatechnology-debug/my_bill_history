@@ -11,6 +11,7 @@ import {
   DynamicInvoiceData,
   DynamicCompanyData,
 } from "@/components/invoice/dynamic-themed-invoice";
+import { Palette, X } from "lucide-react";
 
 export default function PurchaseReturnViewPage() {
   const params = useParams();
@@ -490,7 +491,7 @@ export default function PurchaseReturnViewPage() {
             className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
             title={lang === "gu" ? "થીમ સેટિંગ્સ બદલો" : "Invoice Theme Settings"}
           >
-            <span>🎨</span>
+            <Palette className="w-3.5 h-3.5 text-slate-500" />
             <span>{lang === "gu" ? "થીમ સેટિંગ્સ" : "Theme"}</span>
           </Link>
 
@@ -608,9 +609,10 @@ export default function PurchaseReturnViewPage() {
               <button
                 type="button"
                 onClick={() => setIsMarginModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                title="Close"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
             <p className="text-xs text-slate-500">

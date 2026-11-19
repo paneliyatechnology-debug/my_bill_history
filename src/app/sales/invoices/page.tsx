@@ -15,6 +15,8 @@ import { ImportWizardModal } from "../../../components/imports/import-wizard-mod
 import { ImportModuleType } from "@billing/shared-types";
 import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/scorecard-ribbon";
 import { formatInr } from "@/components/design-system/tokens";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { Phone, Check, X } from "lucide-react";
 
 interface SalesInvoice {
   id: string;
@@ -146,6 +148,10 @@ export default function SalesInvoicesDashboardPage() {
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Multi-Selection State
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -341,6 +347,18 @@ export default function SalesInvoicesDashboardPage() {
 
     return result;
   }, [invoices, statusFilter, dateRangePreset, customStartDate, customEndDate, searchQuery]);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, dateRangePreset, customStartDate, customEndDate, searchQuery]);
+
+  // Paginated Invoices
+  const totalInvoices = filteredInvoices.length;
+  const paginatedInvoices = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredInvoices.slice(start, start + pageSize);
+  }, [filteredInvoices, currentPage, pageSize]);
 
   // KPI Metrics Calculations
   const metrics = useMemo(() => {
@@ -773,7 +791,7 @@ export default function SalesInvoicesDashboardPage() {
             <svg className="w-3.5 h-3.5 text-[#93C5FD]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            <span>{lang === "gu" ? "+ નવું વેચાણ બિલ" : "+ New Sales Invoice"}</span>
+            <span>{lang === "gu" ? "+ નવું વેચાણ બિલ" : " New Sales Invoice"}</span>
           </Link>
         </div>
       </div>
@@ -804,9 +822,9 @@ export default function SalesInvoicesDashboardPage() {
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-2.5 top-2.5 text-xs text-slate-400 hover:text-slate-600"
+                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
                 >
-                  ✕
+                  <X className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
@@ -898,19 +916,19 @@ export default function SalesInvoicesDashboardPage() {
             {statusFilter !== "ALL" && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium text-[11px]">
                 Status: {statusFilter}
-                <button type="button" onClick={() => setStatusFilter("ALL")} className="text-slate-400 hover:text-slate-600">✕</button>
+                <button type="button" onClick={() => setStatusFilter("ALL")} className="text-slate-400 hover:text-slate-600"><X className="w-3 h-3" /></button>
               </span>
             )}
             {dateRangePreset !== "LAST_365_DAYS" && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium text-[11px]">
                 Range: {DATE_PRESET_LABELS[dateRangePreset][lang === "gu" ? "gu" : "en"]}
-                <button type="button" onClick={() => setDateRangePreset("LAST_365_DAYS")} className="text-slate-400 hover:text-slate-600">✕</button>
+                <button type="button" onClick={() => setDateRangePreset("LAST_365_DAYS")} className="text-slate-400 hover:text-slate-600"><X className="w-3 h-3" /></button>
               </span>
             )}
             {searchQuery && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium text-[11px]">
                 Query: &quot;{searchQuery}&quot;
-                <button type="button" onClick={() => setSearchQuery("")} className="text-slate-400 hover:text-slate-600">✕</button>
+                <button type="button" onClick={() => setSearchQuery("")} className="text-slate-400 hover:text-slate-600"><X className="w-3 h-3" /></button>
               </span>
             )}
             <button
@@ -1003,7 +1021,7 @@ export default function SalesInvoicesDashboardPage() {
                   </td>
                 </tr>
               ) : (
-                filteredInvoices.map((inv) => {
+                paginatedInvoices.map((inv) => {
                   const status = getInvoiceStatus(inv);
                   const isSelected = selectedIds.has(inv.id);
                   const dueInfo = calculateDueIn(inv.dueDate, status);
@@ -1082,7 +1100,7 @@ export default function SalesInvoicesDashboardPage() {
                                 </span>
                               )}
                               {inv.party?.phone && (
-                                <span>• 📞 {inv.party.phone}</span>
+                                <span className="inline-flex items-center gap-1">• <Phone className="w-3 h-3 text-slate-400" /> {inv.party.phone}</span>
                               )}
                             </div>
                           </div>
@@ -1311,6 +1329,17 @@ export default function SalesInvoicesDashboardPage() {
             </tbody>
           </table>
         </div>
+        <DataTablePagination
+          currentPage={currentPage}
+          totalPages={Math.max(1, Math.ceil(totalInvoices / pageSize))}
+          totalItems={totalInvoices}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {/* MODAL 1: BULK DOWNLOAD / CA BUNDLE */}
@@ -1327,9 +1356,9 @@ export default function SalesInvoicesDashboardPage() {
               <button
                 type="button"
                 onClick={() => setIsBulkDownloadOpen(false)}
-                className="text-slate-400 hover:text-slate-700 text-lg font-semibold p-1 cursor-pointer"
+                className="text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -1464,9 +1493,9 @@ export default function SalesInvoicesDashboardPage() {
               <button
                 type="button"
                 onClick={() => setIsPaymentModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 text-lg font-semibold p-1"
+                className="text-slate-400 hover:text-slate-700 p-1"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -1572,9 +1601,9 @@ export default function SalesInvoicesDashboardPage() {
               <button
                 type="button"
                 onClick={() => setIsHistoryModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 text-lg font-bold p-1"
+                className="text-slate-400 hover:text-slate-700 p-1"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -1638,9 +1667,9 @@ export default function SalesInvoicesDashboardPage() {
               <button
                 type="button"
                 onClick={() => setIsCancelModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 text-lg font-semibold p-1"
+                className="text-slate-400 hover:text-slate-700 p-1"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -1697,9 +1726,9 @@ export default function SalesInvoicesDashboardPage() {
               <button
                 type="button"
                 onClick={() => setIsBulkDeleteModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 text-lg font-semibold p-1"
+                className="text-slate-400 hover:text-slate-700 p-1"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -1736,7 +1765,7 @@ export default function SalesInvoicesDashboardPage() {
       {/* FLOATING SUCCESS TOAST NOTIFICATION */}
       {toastMessage && (
         <div className="fixed top-6 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold animate-in fade-in slide-in-from-top-2 border border-slate-800">
-          <span className="text-emerald-400 text-sm">✓</span>
+          <Check className="w-4 h-4 text-emerald-400" />
           <span>{toastMessage}</span>
         </div>
       )}

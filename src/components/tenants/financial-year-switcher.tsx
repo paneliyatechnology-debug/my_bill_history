@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { Lock } from "lucide-react";
 import { useAuth, FinancialYearInfo } from "../../context/auth-context";
 
 export function FinancialYearSwitcher() {
@@ -154,8 +155,8 @@ export function FinancialYearSwitcher() {
                           </span>
                         )}
                         {fy.isLocked && (
-                          <span className="text-[10px] bg-slate-100 text-slate-500 font-medium px-1.5 py-0.5 rounded">
-                            🔒
+                          <span className="text-[10px] bg-slate-100 text-slate-500 font-medium px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                            <Lock className="w-2.5 h-2.5" />
                           </span>
                         )}
                       </div>

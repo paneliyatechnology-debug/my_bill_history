@@ -6,6 +6,7 @@ import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
 import { FestiveThumb, InvoiceLivePreview, ThemeMiniCard } from "./invoice-live-preview";
 import { resolveThemeDefinition, registerDynamicThemes } from "@/lib/invoice-theme-keys";
+import { X } from "lucide-react";
 
 export interface CustomField {
   id: string;
@@ -1413,9 +1414,10 @@ export function InvoiceSettingsStudio() {
                             invoiceCustomFields: state.invoiceCustomFields.filter((f) => f.id !== cf.id),
                           })
                         }
-                        className="text-rose-500 hover:text-rose-700 text-xs font-bold"
+                        className="text-rose-500 hover:text-rose-700 p-0.5 cursor-pointer"
+                        title="Remove"
                       >
-                        ✕
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ))}
@@ -1469,9 +1471,10 @@ export function InvoiceSettingsStudio() {
                             partyCustomFields: state.partyCustomFields.filter((f) => f.id !== pf.id),
                           })
                         }
-                        className="text-rose-500 hover:text-rose-700 text-xs font-bold"
+                        className="text-rose-500 hover:text-rose-700 p-0.5 cursor-pointer"
+                        title="Remove"
                       >
-                        ✕
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ))}
@@ -1538,9 +1541,10 @@ export function InvoiceSettingsStudio() {
                             itemCustomColumns: state.itemCustomColumns.filter((c) => c.id !== col.id),
                           })
                         }
-                        className="text-rose-500 hover:text-rose-700 text-xs font-bold"
+                        className="text-rose-500 hover:text-rose-700 p-0.5 cursor-pointer"
+                        title="Remove"
                       >
-                        ✕
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ))}
@@ -1721,9 +1725,9 @@ export function InvoiceSettingsStudio() {
               <button
                 type="button"
                 onClick={() => setShowAllThemesModal(false)}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer text-lg font-bold"
+                className="text-slate-400 hover:text-slate-600 cursor-pointer"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -1805,9 +1809,9 @@ export function InvoiceSettingsStudio() {
               <button
                 type="button"
                 onClick={() => setShowCustomFieldModal(null)}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer font-bold"
+                className="text-slate-400 hover:text-slate-600 cursor-pointer"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

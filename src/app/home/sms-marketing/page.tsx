@@ -4,6 +4,22 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiClient, extractList } from "@/lib/api-client";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import {
+  X,
+  AlertTriangle,
+  Check,
+  Search,
+  Mail,
+  Tag,
+  Package,
+  Megaphone,
+  Rocket,
+  Sparkles,
+  Loader2,
+  Battery,
+  Tv,
+} from "lucide-react";
 import {
   smsMarketingApi,
   SmsCampaign,
@@ -69,8 +85,15 @@ export default function SmsMarketingPage() {
     additional_settings: [],
   });
 
-  // Sorting
+  // Sorting & Pagination
   const [campaignSortOrder, setCampaignSortOrder] = useState<"ASC" | "DESC">("DESC");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
+
+  const paginatedCampaigns = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return campaigns.slice(start, start + pageSize);
+  }, [campaigns, currentPage, pageSize]);
 
   // Modals & Drawers
   const [showTutorialModal, setShowTutorialModal] = useState<boolean>(false);
@@ -435,8 +458,8 @@ export default function SmsMarketingPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
           <span className="font-medium text-sm">{successToast}</span>
-          <button onClick={() => setSuccessToast(null)} className="ml-2 hover:opacity-80">
-            ✕
+          <button onClick={() => setSuccessToast(null)} className="ml-2 hover:opacity-80 p-0.5 rounded transition-opacity" aria-label="Close">
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -522,7 +545,7 @@ export default function SmsMarketingPage() {
       {quota.actual_quota_remaining <= 0 && (
         <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="text-xl">⚠️</span>
+            <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0" />
             <div>
               <h4 className="text-sm font-bold text-amber-900">
                 {lang === "gu" ? "SMS ક્વોટા લિમિટ પૂર્ણ થયેલ છે" : "SMS Quota Limit is Exceeded"}
@@ -620,7 +643,7 @@ export default function SmsMarketingPage() {
             <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-md transition-shadow">
               <div>
                 <div className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center text-sm font-bold mb-3 shadow-xs">
-                  🪔
+                  <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 <h3 className="font-semibold text-gray-900 text-[15px]">
                   {lang === "gu" ? "તહેવાર ઑફર્સ & શુભેચ્છાઓ" : "Festival Offers & Wishes"}
@@ -643,7 +666,7 @@ export default function SmsMarketingPage() {
             <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-md transition-shadow">
               <div>
                 <div className="w-8 h-8 rounded-lg bg-[#4c3cce] text-white flex items-center justify-center text-sm font-bold mb-3 shadow-xs">
-                  🏷️
+                  <Tag className="w-4 h-4 text-white" />
                 </div>
                 <h3 className="font-semibold text-gray-900 text-[15px]">
                   {lang === "gu" ? "સ્પેશિયલ ડિસ્કાઉન્ટ & સેલ" : "Discount & Clearance Sale"}
@@ -666,7 +689,7 @@ export default function SmsMarketingPage() {
             <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-md transition-shadow">
               <div>
                 <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-sm font-bold mb-3 shadow-xs">
-                  📦
+                  <Package className="w-4 h-4 text-white" />
                 </div>
                 <h3 className="font-semibold text-gray-900 text-[15px]">
                   {lang === "gu" ? "નવા માલસામાનનું આગમન" : "New Arrivals & Stock Update"}
@@ -689,7 +712,7 @@ export default function SmsMarketingPage() {
             <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-md transition-shadow">
               <div>
                 <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm font-bold mb-3 shadow-xs">
-                  📢
+                  <Megaphone className="w-4 h-4 text-white" />
                 </div>
                 <h3 className="font-semibold text-gray-900 text-[15px]">
                   {lang === "gu" ? "વ્યવસાય પ્રમોશન & જાહેરાત" : "Business Announcement"}
@@ -712,8 +735,8 @@ export default function SmsMarketingPage() {
           {/* Campaign Table or Empty Hero */}
           {campaigns.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-xl p-8 sm:p-12 text-center shadow-xs">
-              <div className="w-16 h-16 rounded-full bg-indigo-50 text-[#4c3cce] flex items-center justify-center mx-auto mb-4 text-2xl">
-                🚀
+              <div className="w-16 h-16 rounded-full bg-indigo-50 text-[#4c3cce] flex items-center justify-center mx-auto mb-4">
+                <Rocket className="w-7 h-7 text-[#4c3cce]" />
               </div>
               <h2 className="text-[15px] font-semibold text-[#182230]">
                 {lang === "gu"
@@ -765,13 +788,13 @@ export default function SmsMarketingPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {campaigns.map((c, idx) => (
+                    {paginatedCampaigns.map((c, idx) => (
                       <tr key={c.id} className="hover:bg-gray-50 transition-colors">
                         <td className="py-3.5 px-4 text-gray-600 whitespace-nowrap">
                           {c.created_at}
                         </td>
                         <td className="py-3.5 px-4 font-semibold text-gray-900">
-                          {c.name || `Campaign #${campaigns.length - idx}`}
+                          {c.name || `Campaign #${campaigns.length - ((currentPage - 1) * pageSize + idx)}`}
                         </td>
                         <td className="py-3.5 px-4 text-gray-600 capitalize">
                           {c.category?.replace("_", " ")}
@@ -806,6 +829,18 @@ export default function SmsMarketingPage() {
                   </tbody>
                 </table>
               </div>
+
+              <DataTablePagination
+                currentPage={currentPage}
+                totalPages={Math.max(1, Math.ceil(campaigns.length / pageSize))}
+                pageSize={pageSize}
+                totalItems={campaigns.length}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={(sz) => {
+                  setPageSize(sz);
+                  setCurrentPage(1);
+                }}
+              />
             </div>
           )}
         </div>
@@ -973,7 +1008,7 @@ export default function SmsMarketingPage() {
               disabled={actionLoading}
               className="px-6 py-2.5 bg-[#4c3cce] hover:bg-[#3d2eb3] text-white font-medium text-[13px] rounded-lg shadow-sm transition-all flex items-center gap-2"
             >
-              {actionLoading && <span className="animate-spin">⏳</span>}
+              {actionLoading && <Loader2 className="w-4 h-4 animate-spin" />}
               {lang === "gu" ? "સેટિંગ્સ સાચવો" : "Save Settings"}
             </button>
           </div>
@@ -1059,9 +1094,10 @@ export default function SmsMarketingPage() {
               </h3>
               <button
                 onClick={() => setShowTemplateModal(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 text-lg"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200"
+                aria-label="Close"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1165,9 +1201,10 @@ export default function SmsMarketingPage() {
               </div>
               <button
                 onClick={() => setShowCampaignWizard(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 text-lg"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200"
+                aria-label="Close"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1193,7 +1230,7 @@ export default function SmsMarketingPage() {
                         : "bg-gray-200 text-gray-600"
                     }`}
                   >
-                    {wizardStep > 1 ? "✓" : "1"}
+                    {wizardStep > 1 ? <Check className="w-3.5 h-3.5" /> : "1"}
                   </span>
                   <span>{lang === "gu" ? "વિગતો ભરો" : "Change Template Values"}</span>
                 </div>
@@ -1219,7 +1256,7 @@ export default function SmsMarketingPage() {
                         : "bg-gray-200 text-gray-600"
                     }`}
                   >
-                    {wizardStep > 2 ? "✓" : "2"}
+                    {wizardStep > 2 ? <Check className="w-3.5 h-3.5" /> : "2"}
                   </span>
                   <span>{lang === "gu" ? "પાર્ટીઓ પસંદ કરો" : "Select Parties"}</span>
                 </div>
@@ -1255,7 +1292,10 @@ export default function SmsMarketingPage() {
                   <div className="flex items-center justify-between text-[10px] text-gray-400 px-3 py-1">
                     <span>9:41 AM</span>
                     <div className="w-16 h-3 bg-gray-800 rounded-full mx-auto"></div>
-                    <span>5G 🔋</span>
+                    <span className="flex items-center gap-1">
+                      <span>5G</span>
+                      <Battery className="w-3 h-3" />
+                    </span>
                   </div>
 
                   {/* Chat Header */}
@@ -1447,7 +1487,7 @@ export default function SmsMarketingPage() {
                           onChange={(e) => setPartySearchQuery(e.target.value)}
                           className="w-full text-[13px] p-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 h-10"
                         />
-                        <span className="absolute left-2.5 top-2 text-gray-400">🔍</span>
+                        <Search className="w-4 h-4 absolute left-2.5 top-3 text-gray-400" />
                       </div>
 
                       {/* Type Filter */}
@@ -1548,7 +1588,10 @@ export default function SmsMarketingPage() {
                                   <p className="font-semibold text-gray-900">{party.name}</p>
                                   <p className="text-[11px] text-gray-500">
                                     {valid ? party.phone : (
-                                      <span className="text-amber-700 font-medium">⚠️ No 10-digit mobile number</span>
+                                      <span className="text-amber-700 font-medium inline-flex items-center gap-1">
+                                        <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                                        No 10-digit mobile number
+                                      </span>
                                     )}
                                   </p>
                                 </div>
@@ -1567,8 +1610,8 @@ export default function SmsMarketingPage() {
                 {/* STEP 3: CONFIRMATION */}
                 {wizardStep === 3 && (
                   <div className="space-y-4 text-center py-4">
-                    <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-2xl shadow-xs">
-                      ✉️
+                    <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-xs">
+                      <Mail className="w-8 h-8 text-emerald-600" />
                     </div>
                     <div>
                       <h4 className="text-xl font-bold text-gray-900">
@@ -1665,7 +1708,7 @@ export default function SmsMarketingPage() {
                       disabled={actionLoading || selectedCount === 0}
                       className="px-6 py-2.5 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] rounded-lg shadow-sm flex items-center gap-2"
                     >
-                      {actionLoading && <span className="animate-spin">⏳</span>}
+                      {actionLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                       {lang === "gu" ? "પાર્ટીઓને SMS મોકલો" : "Send SMS to parties"}
                     </button>
                   )}
@@ -1694,9 +1737,10 @@ export default function SmsMarketingPage() {
               </div>
               <button
                 onClick={() => setSelectedCampaignDetail(null)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 text-lg"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200"
+                aria-label="Close"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1749,8 +1793,8 @@ export default function SmsMarketingPage() {
       {showTutorialModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 text-center space-y-4 animate-scale-up">
-            <div className="w-12 h-12 rounded-full bg-indigo-100 text-[#4c3cce] flex items-center justify-center mx-auto text-xl">
-              📺
+            <div className="w-12 h-12 rounded-full bg-indigo-100 text-[#4c3cce] flex items-center justify-center mx-auto">
+              <Tv className="w-6 h-6" />
             </div>
             <h3 className="text-[15px] font-semibold text-gray-900">
               {lang === "gu" ? "ઝુંબેશ કેવી રીતે બનાવવી?" : "How to Create an SMS Campaign"}
@@ -1809,8 +1853,8 @@ export default function SmsMarketingPage() {
       {showLimitAlertModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center space-y-4 animate-scale-up">
-            <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-xl">
-              ⚠️
+            <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-6 h-6 text-amber-600" />
             </div>
             <h3 className="text-[15px] font-semibold text-gray-900">
               {lang === "gu" ? "SMS ક્વોટા મર્યાદા સમાપ્ત" : "SMS Limit Exceeded"}

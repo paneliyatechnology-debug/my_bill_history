@@ -7,6 +7,8 @@ import { apiClient } from "@/lib/api-client";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { X } from "lucide-react";
 
 interface TransactionItem {
   id: string;
@@ -547,81 +549,19 @@ export default function AllTransactionsPage() {
         {/* ========================================================================= */}
         {/* PAGINATION BAR: Exact & Clean with Rows Per Page & Page Navigation         */}
         {/* ========================================================================= */}
-        <div className="flex flex-col sm:flex-row items-center justify-between border-t border-slate-200 bg-slate-50/70 px-4 py-3 gap-3 text-xs text-slate-600">
-          {/* Record Count info */}
-          <div className="flex items-center gap-3">
-            <span>
-              Showing <strong className="text-slate-900">{startRecord}</strong> - <strong className="text-slate-900">{endRecord}</strong> of <strong className="text-slate-900">{total}</strong> transactions
-            </span>
-
-            {/* Rows Per Page Selector */}
-            <div className="flex items-center gap-1.5 ml-2 border-l border-slate-200 pl-3">
-              <span className="text-[11px] text-slate-500">Rows per page:</span>
-              <select
-                value={pageSize}
-                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[13px] font-normal text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer h-10"
-              >
-                {[10, 15, 25, 50, 100].map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Page Buttons */}
-          <div className="flex items-center gap-1.5">
-            {/* First Page */}
-            <button
-              type="button"
-              disabled={page <= 1 || isLoading}
-              onClick={() => setPage(1)}
-              className="h-8 px-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer text-xs font-bold"
-              title="First Page"
-            >
-              «
-            </button>
-
-            {/* Prev Page */}
-            <button
-              type="button"
-              disabled={page <= 1 || isLoading}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="h-8 px-2.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer text-xs font-semibold flex items-center gap-1"
-            >
-              <span>‹</span>
-              <span className="hidden sm:inline">Prev</span>
-            </button>
-
-            {/* Numbered Page Buttons */}
-            <div className="flex items-center gap-1">
-              {renderPaginationButtons()}
-            </div>
-
-            {/* Next Page */}
-            <button
-              type="button"
-              disabled={page >= totalPages || isLoading}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              className="h-8 px-2.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer text-[13px] font-medium flex items-center gap-1"
-            >
-              <span className="hidden sm:inline">Next</span>
-              <span>›</span>
-            </button>
-
-            {/* Last Page */}
-            <button
-              type="button"
-              disabled={page >= totalPages || isLoading}
-              onClick={() => setPage(totalPages)}
-              className="h-8 px-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer text-[13px] font-medium"
-              title="Last Page"
-            >
-              »
-            </button>
-          </div>
+        {/* STANDARDIZED GLOBAL PAGINATION COMPONENT                                  */}
+        {/* ========================================================================= */}
+        <div className="border-t border-slate-200 bg-white px-4 py-1">
+          <DataTablePagination
+            currentPage={page}
+            pageSize={pageSize}
+            totalRecords={total}
+            onPageChange={(p) => setPage(p)}
+            onPageSizeChange={(s) => handlePageSizeChange(s)}
+            pageSizeOptions={[10, 15, 25, 50, 100]}
+            loading={isLoading}
+            showFirstLast
+          />
         </div>
       </div>
 
@@ -634,9 +574,9 @@ export default function AllTransactionsPage() {
               <button
                 type="button"
                 onClick={() => setShowCustomModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm cursor-pointer"
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-md transition-colors cursor-pointer"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal } from "../../../components/ui/modal";
 import { mailResultMessage, sendAppEmail } from "../../../lib/send-app-email";
+import { X, Check } from "lucide-react";
 
 interface CaSharingModalProps {
   isOpen: boolean;
@@ -118,9 +119,10 @@ export function CaSharingModal({
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center text-[13px] font-medium transition-colors"
+          className="absolute right-4 top-4 z-10 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
+          title="Close"
         >
-          ✕
+          <X className="w-4 h-4" />
         </button>
 
         {/* Modal Header Illustration (Matching MyBillBook CA Sharing Modal) */}
@@ -202,8 +204,8 @@ export function CaSharingModal({
         <div className="p-6 space-y-4">
           {isSaved ? (
             <div className="py-6 text-center space-y-3">
-              <div className="w-12 h-12 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl font-bold">
-                ✓
+              <div className="w-12 h-12 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                <Check className="w-6 h-6 stroke-[2.5]" />
               </div>
               <h3 className="text-[15px] font-semibold text-slate-800">
                 CA Details Saved Successfully!

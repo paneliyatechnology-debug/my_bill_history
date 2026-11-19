@@ -19,6 +19,7 @@ import {
   loadInvoiceCustomization,
 } from "@/lib/invoice-theme";
 import { INDIAN_STATES } from "@billing/shared-types";
+import { AlertTriangle, X, Printer, Package, ArrowLeft } from "lucide-react";
 import {
   DocumentHeaderCard,
   DocumentInfoStrip,
@@ -482,11 +483,11 @@ return (
         {error && (
           <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs font-semibold text-rose-800 flex items-center justify-between shadow-xs">
             <div className="flex items-center gap-2">
-              <span className="text-base">⚠️</span>
+              <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
               <span>{error}</span>
             </div>
             <button onClick={() => setError(null)} className="text-rose-500 font-bold hover:underline">
-              ✕
+              <X className="w-4 h-4" />
             </button>
           </div>
         )}
@@ -502,7 +503,8 @@ return (
                   onClick={() => setViewMode("edit")}
                   className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[13px] font-medium transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
-                  <span>← {lang === "gu" ? "એડિટ મોડ પર પાછા જાઓ" : "Back to Edit Mode"}</span>
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>{lang === "gu" ? "એડિટ મોડ પર પાછા જાઓ" : "Back to Edit Mode"}</span>
                 </button>
                 <div>
                   <h2 className="text-sm font-semibold text-[#182230] flex items-center gap-2">
@@ -525,7 +527,8 @@ return (
                   onClick={() => window.print()}
                   className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-[13px] font-medium shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
-                  <span>🖨️ {lang === "gu" ? "પ્રિન્ટ" : "Print Document"}</span>
+                  <Printer className="w-4 h-4" />
+                  <span>{lang === "gu" ? "પ્રિન્ટ" : "Print Document"}</span>
                 </button>
               </div>
             </div>
@@ -740,7 +743,7 @@ return (
                         <tr>
                           <td colSpan={9} className="py-12 text-center text-slate-400">
                             <div className="max-w-xs mx-auto space-y-2">
-                              <span className="text-2xl">📦</span>
+                              <Package className="w-8 h-8 text-slate-300 mx-auto" />
                               <p className="font-bold text-slate-700">No items added yet</p>
                               <p className="text-[11px] text-slate-400">Add an item from catalog or enter details below</p>
                               <button

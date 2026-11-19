@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "../../context/auth-context";
+import { Calendar } from "lucide-react";
 
 const LINKS = [
   { href: "/gst", label: "GST Dashboard" },
@@ -133,7 +134,8 @@ export function GstFrame({
           />
         </label>
         <p className="text-xs text-muted flex items-center gap-1.5 pb-1">
-          <span>📅 Period:</span>
+          <Calendar className="w-3.5 h-3.5 text-slate-500" />
+          <span>Period:</span>
           <span className="tabular-nums font-bold text-slate-800">{period.fromDate}</span>
           <span>to</span>
           <span className="tabular-nums font-bold text-slate-800">{period.toDate}</span>

@@ -15,6 +15,30 @@ import { SettingsSidebar } from "../settings/settings-sidebar";
 import { WorkspaceErrorState } from "../ui/workspace-error-state";
 import { NotificationCenter } from "../notifications/notification-center";
 import { GlobalSearch } from "./global-search";
+import {
+  LayoutDashboard,
+  Users,
+  Package,
+  ShoppingCart,
+  ShoppingBag,
+  Receipt,
+  BarChart3,
+  FileText,
+  Landmark,
+  FileSpreadsheet,
+  Repeat,
+  Calculator,
+  Settings,
+  UploadCloud,
+  BellRing,
+  CalendarCheck,
+  UserCheck,
+  Globe,
+  ChevronDown,
+  ChevronRight,
+  ChevronLeft,
+  X,
+} from "lucide-react";
 const SIDEBAR_BG = "#FFFFFF";
 const ACTIVE_MENU_BG = "#1677E8";
 const TEXT_COLOR = "#FFFFFF";
@@ -374,7 +398,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
 
 
-  // Exact MyBillBook Hierarchical Menu Structure
+  // Exact MyBillBook Hierarchical Menu Structure with Standardized Lucide Icon System
   const navigationSections: NavSection[] = [
     // --- MAIN NAVIGATION ---
     {
@@ -383,42 +407,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       nameGujarati: "મુખ્ય ડેશબોર્ડ",
       group: "",
       href: "/",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.8}
-            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-          />
-        </svg>
-      ),
+      icon: <LayoutDashboard className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
     {
       id: "parties",
       name: "Parties",
       nameGujarati: "પાર્ટીઝ (ગ્રાહકો / વેપારીઓ)",
       group: "",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.8}
-            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-          />
-        </svg>
-      ),
+      icon: <Users className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
       items: [
         {
           name: "All Parties",
@@ -437,21 +433,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       name: "Items / Inventory",
       nameGujarati: "માલસામાન (Items)",
       group: "",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.8}
-            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-          />
-        </svg>
-      ),
+      icon: <Package className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
       items: [
         {
           name: "Inventory",
@@ -485,21 +467,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       name: "Sales",
       nameGujarati: "વેચાણ (Sales)",
       group: "",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.8}
-            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-          />
-        </svg>
-      ),
+      icon: <ShoppingCart className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
       items: [
         {
           name: "Sales Invoices",
@@ -553,21 +521,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       name: "Purchases",
       nameGujarati: "ખરીદી (Purchases)",
       group: "",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.8}
-            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-          />
-        </svg>
-      ),
+      icon: <ShoppingBag className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
       items: [
         {
           name: "Purchase Invoices",
@@ -602,21 +556,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       nameGujarati: "દૈનિક ખર્ચા (Expenses)",
       group: "",
       href: "/finance/expenses",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.8}
-            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-          />
-        </svg>
-      ),
+      icon: <Receipt className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
     {
       id: "reports",
@@ -624,21 +564,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       nameGujarati: "રિપોર્ટ્સ (Reports)",
       group: "",
       href: "/reports",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.8}
-            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-          />
-        </svg>
-      ),
+      icon: <BarChart3 className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
 
     // --- ACCOUNTING ---
@@ -647,21 +573,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       name: "Vouchers",
       nameGujarati: "વાઉચર્સ (Vouchers)",
       group: "ACCOUNTING",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.8}
-            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-          />
-        </svg>
-      ),
+      icon: <FileText className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
       items: [
         {
           name: "Voucher List",
@@ -696,21 +608,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       nameGujarati: "રોકડ અને બેંક",
       group: "ACCOUNTING",
       href: "/finance/cash-bank",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.8}
-            d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"
-          />
-        </svg>
-      ),
+      icon: <Landmark className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
     {
       id: "gst_returns",
@@ -718,21 +616,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       nameGujarati: "જીએસટી અને રિટર્ન (GST & Returns)",
       group: "ACCOUNTING",
       href: "/gst",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.8}
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-      ),
+      icon: <FileSpreadsheet className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
     {
       id: "automated_bills",
@@ -740,21 +624,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       nameGujarati: "ઓટોમેટેડ બિલ્સ",
       group: "ACCOUNTING",
       href: "/sales/automated-billing",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.8}
-            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-          />
-        </svg>
-      ),
+      icon: <Repeat className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
     {
       id: "pos",
@@ -762,21 +632,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       nameGujarati: "ઝડપી કાઉન્ટર POS",
       group: "ACCOUNTING",
       href: "/sales/pos",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.8}
-            d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-          />
-        </svg>
-      ),
+      icon: <Calculator className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
     {
       id: "settings",
@@ -784,26 +640,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       nameGujarati: "સેટિંગ્સ",
       group: "ACCOUNTING",
       href: "/settings",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.8}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-          />
-        </svg>
-      ),
+      icon: <Settings className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
 
     // --- GROUP 3: BUSINESS TOOLS ---
@@ -814,21 +651,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       group: "BUSINESS TOOLS",
       badge: "",
       href: "/app/data-import",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.8}
-            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-          />
-        </svg>
-      ),
+      icon: <UploadCloud className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
     {
       id: "ai_collections",
@@ -837,68 +660,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       group: "BUSINESS TOOLS",
       badge: "",
       href: "/finance/ai-collections",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.8}
-            d="M13 10V3L4 14h7v7l9-11h-7z"
-          />
-        </svg>
-      ),
+      icon: <BellRing className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
-    // Temporarily commented out as requested (keep for future use)
-    /*
-    {
-      id: "sms_marketing",
-      name: "SMS Marketing",
-      nameGujarati: "એસએમએસ માર્કેટિંગ",
-      group: "BUSINESS TOOLS",
-      href: "/home/sms-marketing",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.8}
-            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-          />
-        </svg>
-      ),
-    },
-    */
     {
       id: "payroll",
       name: "Staff Attendance & Payroll",
       nameGujarati: "સ્ટાફ હાજરી અને પગાર",
       group: "BUSINESS TOOLS",
       href: "/app/sam",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.8}
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-          />
-        </svg>
-      ),
+      icon: <CalendarCheck className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
     {
       id: "users",
@@ -906,21 +676,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       nameGujarati: "વપરાશકર્તા સંચાલન",
       group: "BUSINESS TOOLS",
       href: "/settings/user-management",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.8}
-            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-          />
-        </svg>
-      ),
+      icon: <UserCheck className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
     {
       id: "orders",
@@ -928,21 +684,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       nameGujarati: "ઓનલાઇન ઓર્ડર્સ",
       group: "BUSINESS TOOLS",
       href: "/sales/invoices",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.8}
-            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-          />
-        </svg>
-      ),
+      icon: <Globe className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
   ];
 
@@ -1448,7 +1190,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg text-[13px] transition-colors"
                     aria-label="Close settings drawer"
                   >
-                    ✕
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto">

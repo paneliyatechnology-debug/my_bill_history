@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "../../../../context/auth-context";
 import { apiClient } from "../../../../lib/api-client";
+import { X, Copy, MessageSquare, Info, ChevronDown } from "lucide-react";
 
 interface AllocationRow {
   id: string;
@@ -677,7 +678,7 @@ export default function PaymentInViewPage() {
       {error && (
         <div className="mx-6 mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700 flex items-center justify-between">
           <span>{error}</span>
-          <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700">✕</button>
+          <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700"><X className="w-3.5 h-3.5" /></button>
         </div>
       )}
 
@@ -717,7 +718,7 @@ export default function PaymentInViewPage() {
               onClick={() => setShowThermalModal(true)}
               className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
             >
-              <span className="text-xs font-bold">ⓘ</span>
+              <Info className="w-3.5 h-3.5" />
             </button>
             <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex w-64 rounded-md bg-slate-900 px-2.5 py-1.5 text-[11px] leading-tight text-white shadow-lg z-30">
               Customize the layout of your thermal print by clicking on thermal settings button.
@@ -735,7 +736,7 @@ export default function PaymentInViewPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
               </svg>
               <span>Share</span>
-              <span className="text-[10px] text-slate-400">▼</span>
+              <ChevronDown className="w-3 h-3 text-slate-400" />
             </button>
 
             {isShareOpen && (
@@ -748,7 +749,7 @@ export default function PaymentInViewPage() {
                   onClick={handleShareCopy}
                   className="flex w-full items-center gap-2 h-9 px-3 text-slate-700 hover:bg-slate-50 cursor-pointer"
                 >
-                  <span>📋</span>
+                  <Copy className="w-3.5 h-3.5" />
                   <span>Copy Link</span>
                 </button>
                 <button
@@ -758,7 +759,7 @@ export default function PaymentInViewPage() {
                   }}
                   className="flex w-full items-center gap-2 h-9 px-3 text-slate-700 hover:bg-slate-50 cursor-pointer"
                 >
-                  <span>💬</span>
+                  <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
                   <span>WhatsApp</span>
                 </button>
               </div>

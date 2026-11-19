@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { Check, X } from "lucide-react";
 
 type DateRangePreset =
   | "ALL"
@@ -271,6 +273,20 @@ export default function PurchaseReturnsPage() {
     return result;
   }, [rows, searchQuery, sortOrder]);
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, dateRangePreset, sortOrder]);
+
+  const totalRows = displayedRows.length;
+  const paginatedRows = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return displayedRows.slice(start, start + pageSize);
+  }, [displayedRows, currentPage, pageSize]);
+
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3500);
@@ -382,9 +398,9 @@ export default function PurchaseReturnsPage() {
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-2.5 text-xs text-slate-400 hover:text-slate-600"
+                className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
               >
-                ✕
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -433,7 +449,7 @@ export default function PurchaseReturnsPage() {
                       }`}
                     >
                       <span>{label}</span>
-                      {dateRangePreset === key && <span>✓</span>}
+                      {dateRangePreset === key && <Check className="w-3.5 h-3.5 text-[#4338CA]" />}
                     </button>
                   ))}
                 </div>
@@ -476,7 +492,7 @@ export default function PurchaseReturnsPage() {
       {error && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700 flex items-center justify-between">
           <span>{error}</span>
-          <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700">✕</button>
+          <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700"><X className="w-4 h-4" /></button>
         </div>
       )}
 
@@ -563,7 +579,7 @@ export default function PurchaseReturnsPage() {
                   </td>
                 </tr>
               ) : (
-                displayedRows.map((row) => {
+                paginatedRows.map((row) => {
                   const isMenuOpen = activeActionMenu?.id === row.id;
                   return (
                     <tr
@@ -739,6 +755,17 @@ export default function PurchaseReturnsPage() {
             </tbody>
           </table>
         </div>
+        <DataTablePagination
+          currentPage={currentPage}
+          totalPages={Math.max(1, Math.ceil(totalRows / pageSize))}
+          totalItems={totalRows}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {/* Keyboard Shortcuts Modal */}
@@ -752,7 +779,7 @@ export default function PurchaseReturnsPage() {
                 onClick={() => setShortcutsModalOpen(false)}
                 className="text-slate-400 hover:text-slate-600"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-2 text-xs">
@@ -791,7 +818,7 @@ export default function PurchaseReturnsPage() {
                 onClick={() => setSettingsModalOpen(false)}
                 className="text-slate-400 hover:text-slate-600"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-3 text-xs text-slate-600">

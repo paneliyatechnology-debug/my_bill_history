@@ -23,38 +23,30 @@ export interface DashboardTransactionsTableProps {
   lang?: "en" | "gu";
 }
 
-// Clean Type Label (No background or pill)
 function getTypeLabel(type: string, lang: "en" | "gu" = "en") {
   const norm = (type || "").toLowerCase();
 
   if (norm.includes("sales invoice") || (norm.includes("sales") && !norm.includes("return"))) {
     return lang === "gu" ? "વેચાણ બિલ" : "Sales Invoice";
   }
-
   if (norm.includes("payment in") || norm.includes("receipt")) {
     return lang === "gu" ? "પેમેન્ટ ઇન" : "Payment In";
   }
-
   if (norm.includes("sales return") || norm.includes("credit note")) {
     return lang === "gu" ? "વેચાણ પરત" : "Sales Return";
   }
-
   if (norm.includes("purchase return") || norm.includes("debit memo")) {
     return lang === "gu" ? "ખરીદી પરત" : "Purchase Return";
   }
-
   if (norm.includes("purchase invoice") || norm.includes("purchase")) {
     return lang === "gu" ? "ખરીદી બિલ" : "Purchase Invoice";
   }
-
   if (norm.includes("expense")) {
     return lang === "gu" ? "ખર્ચ" : "Expenses";
   }
-
   return type || (lang === "gu" ? "વ્યવહાર" : "Transaction");
 }
 
-// Clean status typography with zero background color
 function getStatusDisplay(status?: string, lang: "en" | "gu" = "en") {
   const norm = (status || "").trim().toLowerCase();
 
@@ -66,15 +58,15 @@ function getStatusDisplay(status?: string, lang: "en" | "gu" = "en") {
   ) {
     return {
       label: lang === "gu" ? "બાકી" : (status || "Unpaid"),
-      textColor: "text-rose-600",
+      pillClass: "bg-rose-50 text-rose-600 border border-rose-200",
       dotColor: "bg-rose-500",
     };
   }
 
   if (norm.includes("part")) {
     return {
-      label: lang === "gu" ? "અંશતઃ ચૂકવેલ" : "Partially Paid",
-      textColor: "text-amber-600",
+      label: lang === "gu" ? "અંશતઃ ચૂકવેલ" : "Partial",
+      pillClass: "bg-amber-50 text-amber-700 border border-amber-200",
       dotColor: "bg-amber-500",
     };
   }
@@ -82,18 +74,17 @@ function getStatusDisplay(status?: string, lang: "en" | "gu" = "en") {
   if (norm.includes("cancel")) {
     return {
       label: lang === "gu" ? "રદ કરેલ" : "Cancelled",
-      textColor: "text-slate-500",
+      pillClass: "bg-slate-100 text-slate-500 border border-slate-200",
       dotColor: "bg-slate-400",
     };
   }
 
-  // Completed / Paid / Default
   const isCompleted = norm.includes("complete");
   return {
     label: isCompleted
       ? (lang === "gu" ? "પૂર્ણ" : "Completed")
       : (lang === "gu" ? "ચૂકવેલ" : (status || "Paid")),
-    textColor: "text-emerald-600",
+    pillClass: "bg-emerald-50 text-emerald-700 border border-emerald-200",
     dotColor: "bg-emerald-500",
   };
 }
@@ -109,7 +100,7 @@ export function DashboardTransactionsTable({
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden flex flex-col justify-between h-full">
       <div>
-        {/* Table Header: Clock Icon, Title, and View All link */}
+        {/* Table Header */}
         <div className="px-4 sm:px-5 py-3.5 sm:py-4 border-b border-slate-100 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
             <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
@@ -117,21 +108,26 @@ export function DashboardTransactionsTable({
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h2 className="typo-section-heading text-[#182230] truncate">
-              {lang === "gu" ? "તાજેતરના વ્યવહારો" : "Recent Transactions"}
-            </h2>
+            <div>
+              <h2 className="typo-section-heading text-[#182230] leading-tight">
+                {lang === "gu" ? "તાજેતરના વ્યવહારો" : "Recent Transactions"}
+              </h2>
+              <p className="typo-card-desc text-[#64748B] leading-tight mt-0.5">
+                {lang === "gu" ? "તમારા તાજેતરના વ્યવહારો." : "Your latest business transactions."}
+              </p>
+            </div>
           </div>
 
           <Link
             href="/app/home/vouchers/all_transactions"
-            className="typo-btn-secondary text-[#1677E8] hover:text-[#125CC0] flex items-center gap-1 group transition-colors shrink-0"
+            className="typo-btn-secondary text-[#2563EB] hover:text-[#1D4ED8] flex items-center gap-1 group transition-colors shrink-0"
           >
-            <span>{lang === "gu" ? "બધા વ્યવહારો જુઓ" : "View All Transactions"}</span>
+            <span>{lang === "gu" ? "બધા જુઓ" : "View All"}</span>
             <span className="group-hover:translate-x-0.5 transition-transform">→</span>
           </Link>
         </div>
 
-        {/* Transactions Table: fully responsive with smooth horizontal scroll */}
+        {/* Table */}
         <div className="overflow-x-auto min-h-[260px] scrollbar-thin scrollbar-thumb-slate-200">
           <table className="w-full min-w-[580px] text-left border-collapse">
             <thead>
@@ -153,7 +149,7 @@ export function DashboardTransactionsTable({
                     <td className="px-3 sm:px-4 py-3.5"><div className="h-4 w-20 bg-slate-100 rounded" /></td>
                     <td className="px-4 sm:px-5 py-3.5"><div className="h-4 w-28 bg-slate-100 rounded" /></td>
                     <td className="px-4 sm:px-5 py-3.5 text-right"><div className="h-4 w-20 bg-slate-100 rounded ml-auto" /></td>
-                    <td className="px-4 sm:px-5 py-3.5 text-center"><div className="h-4 w-16 bg-slate-100 rounded mx-auto" /></td>
+                    <td className="px-4 sm:px-5 py-3.5 text-center"><div className="h-5 w-16 bg-slate-100 rounded-full mx-auto" /></td>
                   </tr>
                 ))
               ) : rows.length === 0 ? (
@@ -171,20 +167,20 @@ export function DashboardTransactionsTable({
                     <tr
                       key={row.id}
                       onClick={() => row.link && router.push(row.link)}
-                      className="hover:bg-slate-50/70 transition-colors cursor-pointer group"
+                      className="hover:bg-[#F8FBFF] transition-colors cursor-pointer group"
                     >
                       {/* Date */}
                       <td className="px-4 sm:px-5 py-3 sm:py-3.5 typo-table-td text-slate-600 whitespace-nowrap">
                         {row.date}
                       </td>
 
-                      {/* Type - Clean text without background */}
+                      {/* Type */}
                       <td className="px-3 sm:px-4 py-3 sm:py-3.5 whitespace-nowrap typo-table-td text-slate-700">
                         {typeLabel}
                       </td>
 
-                      {/* Voucher No. (IBM Plex Mono) */}
-                      <td className="px-3 sm:px-4 py-3 sm:py-3.5 typo-invoice-no text-slate-700 whitespace-nowrap group-hover:text-[#1677E8] transition-colors">
+                      {/* Voucher No. */}
+                      <td className="px-3 sm:px-4 py-3 sm:py-3.5 typo-invoice-no text-slate-700 whitespace-nowrap group-hover:text-[#2563EB] transition-colors">
                         {row.txnNo}
                       </td>
 
@@ -201,9 +197,9 @@ export function DashboardTransactionsTable({
                         {formatInr(row.amount)}
                       </td>
 
-                      {/* Status - Clean typography with subtle dot, NO background color */}
+                      {/* Status — pill badge */}
                       <td className="px-4 sm:px-5 py-3 sm:py-3.5 text-center whitespace-nowrap">
-                        <span className={`inline-flex items-center justify-center gap-1.5 typo-badge ${statusInfo.textColor}`}>
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full typo-badge ${statusInfo.pillClass}`}>
                           <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusInfo.dotColor}`} />
                           <span>{statusInfo.label}</span>
                         </span>

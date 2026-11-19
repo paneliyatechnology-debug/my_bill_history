@@ -13,6 +13,18 @@ import {
   ImportParseResult,
   ImportPreviewResult,
 } from "@billing/shared-types";
+import {
+  BarChart3,
+  X,
+  Check,
+  AlertTriangle,
+  FileSpreadsheet,
+  FileText,
+  Folder,
+  FolderOpen,
+  Loader2,
+  Download,
+} from "lucide-react";
 
 interface ImportWizardModalProps {
   isOpen: boolean;
@@ -252,7 +264,7 @@ export function ImportWizardModal({
         <div className="px-6 py-4 bg-white border-b border-slate-200 border-t-4 border-t-[#1677E8] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1677E8] border border-blue-200/80 flex items-center justify-center font-bold text-lg shadow-2xs">
-              📊
+              <BarChart3 className="w-5 h-5 text-[#1677E8]" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
@@ -298,7 +310,7 @@ export function ImportWizardModal({
             type="button"
             className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -329,7 +341,7 @@ export function ImportWizardModal({
                       : "bg-slate-200 text-slate-500"
                   }`}
                 >
-                  {isCompleted ? "✓" : idx + 1}
+                  {isCompleted ? <Check className="w-3 h-3" /> : idx + 1}
                 </span>
                 <span className={`font-medium ${isCurrent ? "text-[#1677E8] font-bold" : isCompleted ? "text-slate-800" : "text-slate-400"}`}>
                   {s.label}
@@ -344,11 +356,11 @@ export function ImportWizardModal({
         {errorMessage && (
           <div className="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs flex items-center justify-between animate-shake">
             <div className="flex items-center gap-2">
-              <span className="text-rose-600 font-bold text-sm">⚠️</span>
+              <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
               <span>{errorMessage}</span>
             </div>
-            <button onClick={() => setErrorMessage(null)} className="text-rose-500 hover:text-rose-800 font-bold">
-              ✕
+            <button onClick={() => setErrorMessage(null)} className="text-rose-500 hover:text-rose-800 font-bold p-1">
+              <X className="w-4 h-4" />
             </button>
           </div>
         )}
@@ -390,7 +402,7 @@ export function ImportWizardModal({
                         <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${getCategoryBadgeClass(m.category)}`}>
                           {m.category}
                         </span>
-                        {isSelected && <span className="text-[#1677E8] font-bold text-sm">✓</span>}
+                        {isSelected && <Check className="w-4 h-4 text-[#1677E8]" />}
                       </div>
                       <h4 className="text-sm font-bold text-slate-900 mb-1">
                         {lang === "gu" ? m.titleGujarati : m.title}
@@ -441,14 +453,16 @@ export function ImportWizardModal({
                     onClick={() => handleDownloadTemplate("xlsx")}
                     className="h-9 px-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 rounded-lg text-[13px] font-medium flex items-center gap-1.5 cursor-pointer transition-colors"
                   >
-                    <span>📗</span> .XLSX
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-700" />
+                    <span>.XLSX</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleDownloadTemplate("csv")}
                     className="h-9 px-3 bg-blue-50 hover:bg-blue-100 border border-blue-300 text-blue-800 rounded-lg text-[13px] font-medium flex items-center gap-1.5 cursor-pointer transition-colors"
                   >
-                    <span>📄</span> .CSV
+                    <FileText className="w-3.5 h-3.5 text-blue-700" />
+                    <span>.CSV</span>
                   </button>
                 </div>
               </div>
@@ -474,7 +488,7 @@ export function ImportWizardModal({
                 />
 
                 <div className="w-16 h-16 rounded-2xl bg-blue-100 text-[#1677E8] flex items-center justify-center mx-auto mb-4 text-2xl group-hover:scale-105 transition-transform shadow-2xs">
-                  📁
+                  <Folder className="w-8 h-8 text-[#1677E8]" />
                 </div>
 
                 <h4 className="text-base font-bold text-slate-800 mb-1">
@@ -487,13 +501,14 @@ export function ImportWizardModal({
                 </p>
 
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs group-hover:border-[#1677E8] group-hover:text-[#1677E8] transition-colors">
-                  <span>📂</span> {lang === "gu" ? "કોમ્પ્યુટરમાંથી ફાઇલ પસંદ કરો" : "Choose File from Computer"}
+                  <FolderOpen className="w-4 h-4 text-slate-600" />
+                  <span>{lang === "gu" ? "કોમ્પ્યુટરમાંથી ફાઇલ પસંદ કરો" : "Choose File from Computer"}</span>
                 </div>
               </div>
 
               {isParsing && (
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-center gap-3 text-blue-900 text-sm">
-                  <span className="animate-spin text-xl text-[#1677E8]">⏳</span>
+                  <Loader2 className="w-5 h-5 text-[#1677E8] animate-spin" />
                   <span className="font-semibold">
                     {lang === "gu" ? "સ્પ્રેડશીટ અને કોલમ્સ તપાસી રહ્યા છીએ..." : "Parsing spreadsheet and auto-detecting columns..."}
                   </span>
@@ -552,7 +567,7 @@ export function ImportWizardModal({
               {/* Missing required warning */}
               {unmappedRequiredFields.length > 0 && (
                 <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-amber-900 text-xs flex items-center gap-2">
-                  <span>⚠️</span>
+                  <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
                   <span>
                     {lang === "gu" ? "જરૂરી કોલમ બાકી છે: " : "Missing required mappings: "}
                     <strong>{unmappedRequiredFields.map((f) => f.label).join(", ")}</strong>
@@ -716,7 +731,7 @@ export function ImportWizardModal({
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
                           {opt.badge}
                         </span>
-                        {importMode === opt.mode && <span className="text-[#1677E8] font-bold">✓</span>}
+                        {importMode === opt.mode && <Check className="w-4 h-4 text-[#1677E8]" />}
                       </div>
                       <h4 className="text-sm font-bold text-slate-900 mb-1">{opt.title}</h4>
                       <p className="text-xs text-slate-500">{opt.desc}</p>
@@ -788,7 +803,7 @@ export function ImportWizardModal({
                 >
                   {isValidating ? (
                     <>
-                      <span className="animate-spin text-sm">⏳</span>
+                      <Loader2 className="w-4 h-4 text-white animate-spin" />
                       <span>{lang === "gu" ? "ચકાસી રહ્યા છીએ..." : "Validating Dataset..."}</span>
                     </>
                   ) : (
@@ -925,7 +940,10 @@ export function ImportWizardModal({
                                 ))}
                               </ul>
                             ) : (
-                              <span className="text-emerald-600 font-medium">✓ Ready to import</span>
+                              <span className="text-emerald-600 font-medium flex items-center gap-1">
+                                <Check className="w-3.5 h-3.5" />
+                                <span>Ready to import</span>
+                              </span>
                             )}
                           </td>
                         </tr>
@@ -976,7 +994,7 @@ export function ImportWizardModal({
                   disabled={previewResult.validRows === 0 && previewResult.summary.updateRecords === 0}
                   className="px-8 py-3 bg-[#1677E8] hover:bg-[#1268D3] disabled:opacity-50 text-white rounded-xl text-[13px] font-medium shadow-lg transition-colors cursor-pointer flex items-center gap-2"
                 >
-                  <span>✓</span>
+                  <Check className="w-4 h-4" />
                   <span>
                     {lang === "gu"
                       ? `${previewResult.summary.newRecords + previewResult.summary.updateRecords} રેકોર્ડ્સ આયાત કન્ફર્મ કરો`
@@ -1015,7 +1033,7 @@ export function ImportWizardModal({
           {step === "REPORT" && executionResult && (
             <div className="space-y-6 text-center py-4">
               <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-3xl font-bold">
-                ✓
+                <Check className="w-8 h-8 text-emerald-600" />
               </div>
 
               <div>
@@ -1060,9 +1078,10 @@ export function ImportWizardModal({
                   <button
                     type="button"
                     onClick={() => importApi.downloadErrorReport(executionResult.id, "xlsx")}
-                    className="h-9 px-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium text-[13px] cursor-pointer shadow"
+                    className="h-9 px-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium text-[13px] cursor-pointer shadow flex items-center gap-1.5"
                   >
-                    📥 {lang === "gu" ? "ભૂલ રિપોર્ટ" : "Error Report"}
+                    <Download className="w-4 h-4" />
+                    <span>{lang === "gu" ? "ભૂલ રિપોર્ટ" : "Error Report"}</span>
                   </button>
                 </div>
               )}

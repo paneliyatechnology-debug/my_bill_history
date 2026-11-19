@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { apiClient } from "../../lib/api-client";
 import { Modal } from "../ui/modal";
+import { AlertTriangle } from "lucide-react";
 import JsBarcode from "jsbarcode";
 import QRCode from "qrcode";
 
@@ -651,8 +652,11 @@ export function EwbSlipModal({
         }
       >
         <form id="ewb-cancel-form" onSubmit={handleCancelSubmit} className="space-y-3">
-          <div className="p-2.5 bg-amber-50 border border-amber-200 text-amber-900 rounded text-xs leading-relaxed">
-            ⚠️ <strong>Statutory 24-Hour Rule:</strong> Under Rule 138(9), an e-way bill can only be cancelled within 24 hours of generation provided goods are not in transit or verified in inspection.
+          <div className="p-2.5 bg-amber-50 border border-amber-200 text-amber-900 rounded text-xs leading-relaxed flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <strong>Statutory 24-Hour Rule:</strong> Under Rule 138(9), an e-way bill can only be cancelled within 24 hours of generation provided goods are not in transit or verified in inspection.
+            </div>
           </div>
 
           {cancelError && (

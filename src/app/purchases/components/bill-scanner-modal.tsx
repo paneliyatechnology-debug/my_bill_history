@@ -3,6 +3,19 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { apiClient } from "../../../lib/api-client";
 import { ExtractedBillData, ExtractedBillItem, PurchaseBillScanRecord } from "@billing/shared-types";
+import {
+  Zap,
+  Tag,
+  Package,
+  Sparkles,
+  Check,
+  AlertTriangle,
+  Camera,
+  Store,
+  Lock,
+  Wrench,
+  X,
+} from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────
 // Diagnostic Logger: Safe, non-PII runtime stage marker tracing
@@ -1596,15 +1609,15 @@ export function BillScannerModal({
               {/* Feature Points */}
               <div className="grid grid-cols-3 gap-2 text-center pt-1 text-[11px] text-slate-500">
                 <div className="p-2.5 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-200/60 font-medium transition-colors">
-                  <div className="text-base mb-0.5">⚡</div>
+                  <div className="flex justify-center mb-1"><Zap className="w-4 h-4 text-[#E65F12]" /></div>
                   <span className="font-semibold text-slate-700">Auto Items</span>
                 </div>
                 <div className="p-2.5 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-200/60 font-medium transition-colors">
-                  <div className="text-base mb-0.5">🏷️</div>
+                  <div className="flex justify-center mb-1"><Tag className="w-4 h-4 text-[#1677E8]" /></div>
                   <span className="font-semibold text-slate-700">GST & HSN</span>
                 </div>
                 <div className="p-2.5 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-200/60 font-medium transition-colors">
-                  <div className="text-base mb-0.5">📦</div>
+                  <div className="flex justify-center mb-1"><Package className="w-4 h-4 text-emerald-600" /></div>
                   <span className="font-semibold text-slate-700">Stock Sync</span>
                 </div>
               </div>
@@ -1873,7 +1886,7 @@ export function BillScannerModal({
                       >
                         {scanRecord?.extractedData?.supplier?.name && (
                           <option value="__NEW_SUPPLIER__" className="font-bold text-indigo-700 bg-indigo-50">
-                            ✨ {lang === "gu" ? "+ નવો સપ્લાયર આપમેળે બનાવો:" : "+ Auto-Create New Supplier:"} &quot;{scanRecord.extractedData.supplier.name}&quot;
+                            {lang === "gu" ? "+ નવો સપ્લાયર આપમેળે બનાવો:" : "+ Auto-Create New Supplier:"} &quot;{scanRecord.extractedData.supplier.name}&quot;
                           </option>
                         )}
                         <option value="">
@@ -1906,8 +1919,9 @@ export function BillScannerModal({
                               {lang === "gu" ? "ખાતું બનાવો" : "Save to Masters"}
                             </button>
                           ) : (
-                            <span className="text-[11px] text-emerald-700 font-semibold shrink-0">
-                              ✓ {lang === "gu" ? "પસંદ કરેલ" : "Linked"}
+                            <span className="text-[11px] text-emerald-700 font-semibold shrink-0 flex items-center gap-1">
+                              <Check className="w-3.5 h-3.5" />
+                              <span>{lang === "gu" ? "પસંદ કરેલ" : "Linked"}</span>
                             </span>
                           )}
                         </div>
@@ -1988,8 +2002,9 @@ export function BillScannerModal({
                           </span>
                         </div>
                         {isRcm && (
-                          <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
-                            ⚠️ Reverse Charge (RCM Sec 5(3)/5(4)) Applicable
+                          <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-purple-100 text-purple-800 border border-purple-200 flex items-center gap-1">
+                            <AlertTriangle className="w-3.5 h-3.5 text-purple-700" />
+                            <span>Reverse Charge (RCM Sec 5(3)/5(4)) Applicable</span>
                           </span>
                         )}
                       </div>
@@ -2074,10 +2089,11 @@ export function BillScannerModal({
                                           />
                                           {isLowConfidence && (
                                             <span
-                                              className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 shrink-0"
+                                              className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 shrink-0 flex items-center gap-1"
                                               title={`Confidence: ${item.confidence || 0}%. Please verify.`}
                                             >
-                                              ⚠️ {item.confidence || 0}%
+                                              <AlertTriangle className="w-3 h-3 text-amber-700" />
+                                              <span>{item.confidence || 0}%</span>
                                             </span>
                                           )}
                                         </div>
@@ -2096,7 +2112,7 @@ export function BillScannerModal({
                                         >
                                           {item.matchedItemId && (
                                             <option value={item.matchedItemId}>
-                                              ✓ Matched: {item.matchedItemName || "Existing Product"}
+                                              Matched: {item.matchedItemName || "Existing Product"}
                                             </option>
                                           )}
                                           <option value="CREATE_NEW">
@@ -2129,8 +2145,8 @@ export function BillScannerModal({
                                         className="w-full text-[11px] font-normal rounded border border-slate-200 p-1 bg-white h-10"
                                         title={currentType === "SERVICE" ? "Service: No stock inward" : "Product: Inwards into stock"}
                                       >
-                                        <option value="PRODUCT">📦 Goods</option>
-                                        <option value="SERVICE">🛠️ Service</option>
+                                        <option value="PRODUCT">Goods</option>
+                                        <option value="SERVICE">Service</option>
                                       </select>
                                     </td>
 
@@ -2236,8 +2252,8 @@ export function BillScannerModal({
                                               }
                                               className="border border-emerald-200 rounded px-1.5 py-0.5 text-[13px] bg-white font-normal h-10"
                                             >
-                                              <option value="PRODUCT">📦 Goods (Inventory)</option>
-                                              <option value="SERVICE">🛠️ Service (Expense)</option>
+                                              <option value="PRODUCT">Goods (Inventory)</option>
+                                              <option value="SERVICE">Service (Expense)</option>
                                             </select>
                                           </div>
                                           <div className="flex items-center gap-1">
@@ -2378,7 +2394,7 @@ export function BillScannerModal({
                     }}
                     className="flex-1 sm:flex-none h-9 px-3 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-[13px] font-medium rounded-lg transition-colors flex items-center justify-center gap-1.5 active:scale-95 shadow-xs"
                   >
-                    <span>📷</span>
+                    <Camera className="w-3.5 h-3.5 text-slate-600" />
                     <span>{lang === "gu" ? "બીજું બિલ સ્કેન કરો" : "Scan Another Bill"}</span>
                   </button>
                 </div>
@@ -2470,7 +2486,9 @@ export function BillScannerModal({
               <div className="relative z-10 bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-300 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]">
                 <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                   <div className="flex items-center gap-2">
-                    <span className="p-1.5 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-bold">🏪</span>
+                    <span className="p-1.5 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-bold flex items-center justify-center">
+                      <Store className="w-4 h-4 text-indigo-700" />
+                    </span>
                     <h3 className="font-semibold text-slate-900 text-[15px]">
                       {lang === "gu" ? "માસ્ટર્સમાં વેપારી ઉમેરો" : "Save Supplier to Masters"}
                     </h3>
@@ -2667,15 +2685,21 @@ export function BillScannerModal({
             {/* Bullet features */}
             <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 mb-6 text-left space-y-2 text-[11px] text-slate-600">
               <div className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">✓</span>
+                <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
+                  <Check className="w-3 h-3" />
+                </span>
                 <span>{lang === "gu" ? "સીધો જ લાઇવ ફોટો સ્કેન" : "Instant live bill capture"}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">🔒</span>
+                <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">
+                  <Lock className="w-3 h-3" />
+                </span>
                 <span>{lang === "gu" ? "100% સુરક્ષિત અને પ્રાઇવેટ એક્સેસ" : "100% secure in-browser session"}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-orange-100 text-[#0F172A] flex items-center justify-center font-bold text-[10px]">⚡</span>
+                <span className="w-5 h-5 rounded-full bg-orange-100 text-[#0F172A] flex items-center justify-center font-bold text-[10px]">
+                  <Zap className="w-3 h-3" />
+                </span>
                 <span>{lang === "gu" ? "લો-મેમરી ઓપ્ટિમાઇઝ્ડ (કોઈ હેંગ નહિ)" : "Low-memory optimized (smooth capture)"}</span>
               </div>
             </div>

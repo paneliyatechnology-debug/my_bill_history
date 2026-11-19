@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useAuth } from "../../context/auth-context";
 import { apiClient, extractList } from "../../lib/api-client";
+import { Calendar, History, X, AlertTriangle } from "lucide-react";
 
 // ============================================================================
 // Types
@@ -936,18 +937,20 @@ export default function StaffAttendancePayrollView() {
                         setSelectedDate(getTodayStr());
                         setShowDatePickerDropdown(false);
                       }}
-                      className="w-full text-left h-9 px-3 text-[13px] text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded font-medium"
+                      className="w-full text-left h-9 px-3 text-[13px] text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded font-medium flex items-center gap-2"
                     >
-                      📅 {lang === "gu" ? "આજનો દિવસ (Today)" : "Today"}
+                      <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                      <span>{lang === "gu" ? "આજનો દિવસ (Today)" : "Today"}</span>
                     </button>
                     <button
                       onClick={() => {
                         changeDateByDays(-1);
                         setShowDatePickerDropdown(false);
                       }}
-                      className="w-full text-left h-9 px-3 text-[13px] text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded font-medium"
+                      className="w-full text-left h-9 px-3 text-[13px] text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded font-medium flex items-center gap-2"
                     >
-                      ⏮ {lang === "gu" ? "ગઈકાલ (Yesterday)" : "Yesterday"}
+                      <History className="w-3.5 h-3.5 text-slate-500" />
+                      <span>{lang === "gu" ? "ગઈકાલ (Yesterday)" : "Yesterday"}</span>
                     </button>
                     <div className="pt-2 border-t border-slate-100">
                       <label className="block text-[11px] font-medium text-slate-500 mb-1 px-1">
@@ -1040,9 +1043,9 @@ export default function StaffAttendancePayrollView() {
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
               >
-                ✕
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -1260,9 +1263,10 @@ export default function StaffAttendancePayrollView() {
                                   <div className="border-t border-slate-100 my-1"></div>
                                   <button
                                     onClick={() => setAttendanceStatus(staff.id, "NONE")}
-                                    className="w-full h-9 px-3 text-[13px] text-left text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                                    className="w-full h-9 px-3 text-[13px] text-left text-slate-500 hover:bg-slate-50 hover:text-slate-700 flex items-center gap-1.5"
                                   >
-                                    ✕ Clear Attendance
+                                    <X className="w-3.5 h-3.5 text-slate-400" />
+                                    <span>Clear Attendance</span>
                                   </button>
                                 </div>
                               )}
@@ -1386,7 +1390,7 @@ export default function StaffAttendancePayrollView() {
                 onClick={() => setShowAddStaffModal(false)}
                 className="text-slate-400 hover:text-slate-600 rounded-lg p-1"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1573,7 +1577,7 @@ export default function StaffAttendancePayrollView() {
                 }}
                 className="text-slate-400 hover:text-slate-600 rounded-lg p-1"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1685,9 +1689,9 @@ export default function StaffAttendancePayrollView() {
               </h2>
               <button
                 onClick={() => setEditingTimeStaff(null)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 p-1"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1788,9 +1792,9 @@ export default function StaffAttendancePayrollView() {
                   setPaymentStaff(null);
                   setPaymentError(null);
                 }}
-                className="text-slate-400 hover:text-slate-600 transition-colors"
+                className="text-slate-400 hover:text-slate-600 transition-colors p-1"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1798,7 +1802,7 @@ export default function StaffAttendancePayrollView() {
               {/* Error banner */}
               {paymentError && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-start gap-2">
-                  <span className="font-bold text-red-500 mt-0.5">⚠</span>
+                  <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
                   <div className="flex-1">{paymentError}</div>
                 </div>
               )}
@@ -2005,7 +2009,7 @@ export default function StaffAttendancePayrollView() {
                 onClick={() => setDetailStaff(null)}
                 className="text-slate-400 hover:text-slate-600 p-1"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -2193,9 +2197,9 @@ export default function StaffAttendancePayrollView() {
               </h2>
               <button
                 onClick={() => setShowSettingsModal(false)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 p-1"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -2292,7 +2296,7 @@ export default function StaffAttendancePayrollView() {
             onClick={() => setPaymentSuccess(null)}
             className="ml-2 hover:opacity-80 p-0.5"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}

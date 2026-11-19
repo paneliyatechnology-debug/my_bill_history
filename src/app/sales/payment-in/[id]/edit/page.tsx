@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "../../../../../context/auth-context";
 import { apiClient, extractList } from "../../../../../lib/api-client";
+import { Settings, X, Search, Calendar } from "lucide-react";
 
 interface PartyOption {
   id: string;
@@ -442,7 +443,7 @@ export default function EditPaymentInPage() {
               type="button"
               className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white h-9 px-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
             >
-              <span>⚙</span>
+              <Settings className="w-3.5 h-3.5" />
               <span>Settings</span>
             </button>
             <button
@@ -470,7 +471,7 @@ export default function EditPaymentInPage() {
               onClick={() => setErrorMessage(null)}
               className="text-rose-500 hover:text-rose-700"
             >
-              ✕
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
@@ -601,7 +602,7 @@ export default function EditPaymentInPage() {
                       onClick={toggleSelectAllInvoices}
                       className="text-slate-400 hover:text-slate-600 text-xs"
                     >
-                      ✕
+                      <X className="w-3 h-3" />
                     </button>
                   </span>
                 )}
@@ -614,15 +615,15 @@ export default function EditPaymentInPage() {
                     placeholder="Search invoice..."
                     className="w-full rounded-lg border border-slate-200 bg-white py-1 pl-7 pr-2 text-[13px] text-slate-800 focus:border-[#1677E8] focus:outline-none h-10"
                   />
-                  <span className="absolute left-2.5 top-1.5 text-xs text-slate-400">🔍</span>
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-3 text-slate-400" />
                 </div>
 
                 <button
                   type="button"
-                  className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
+                  className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
                 >
                   <span>Select Date Range</span>
-                  <span className="text-xs">📅</span>
+                  <Calendar className="w-3.5 h-3.5 text-slate-500" />
                 </button>
               </div>
             </div>

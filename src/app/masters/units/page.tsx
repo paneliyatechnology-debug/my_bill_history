@@ -9,6 +9,20 @@ import { ImportWizardModal } from "../../../components/imports/import-wizard-mod
 import { ExportDropdown } from "../../../components/ui/export-dropdown";
 import { ExportColumn, ExportMetadata } from "../../../lib/export/export-types";
 import { ImportModuleType } from "@billing/shared-types";
+import { DataTablePagination } from "../../../components/ui/data-table-pagination";
+import {
+  Scale,
+  Droplets,
+  Ruler,
+  Package,
+  Tag,
+  Sparkles,
+  AlertTriangle,
+  X,
+  Check,
+  Info,
+  AlertCircle,
+} from "lucide-react";
 
 export interface Unit {
   id: string;
@@ -60,7 +74,7 @@ function getCategoryInfo(code: string) {
     return {
       label: "Weight & Mass",
       labelGu: "વજન (Weight)",
-      icon: "⚖️",
+      icon: <Scale className="w-4 h-4 text-[#1677E8]" />,
       badgeClass: "bg-blue-50 text-[#1677E8] border-[#BFDBFE]",
     };
   }
@@ -68,7 +82,7 @@ function getCategoryInfo(code: string) {
     return {
       label: "Volume & Liquid",
       labelGu: "પ્રવાહી (Volume)",
-      icon: "💧",
+      icon: <Droplets className="w-4 h-4 text-cyan-700" />,
       badgeClass: "bg-cyan-50 text-cyan-700 border-cyan-200",
     };
   }
@@ -76,7 +90,7 @@ function getCategoryInfo(code: string) {
     return {
       label: "Length & Area",
       labelGu: "લંબાઈ / વિસ્તાર (Length)",
-      icon: "📐",
+      icon: <Ruler className="w-4 h-4 text-emerald-700" />,
       badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
     };
   }
@@ -84,14 +98,14 @@ function getCategoryInfo(code: string) {
     return {
       label: "Packaging",
       labelGu: "પેકેજિંગ (Packaging)",
-      icon: "📦",
+      icon: <Package className="w-4 h-4 text-amber-700" />,
       badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
     };
   }
   return {
     label: "Count & Unit",
     labelGu: "સંખ્યા (Count)",
-    icon: "🏷️",
+    icon: <Tag className="w-4 h-4 text-purple-700" />,
     badgeClass: "bg-purple-50 text-purple-700 border-purple-200",
   };
 }
@@ -429,7 +443,7 @@ export default function UnitsPage() {
             onClick={() => setIsPresetsModalOpen(true)}
             className="inline-flex items-center gap-1.5 h-9 px-3.5 bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#1677E8] border border-[#BFDBFE] text-[13px] font-semibold rounded-xl shadow-2xs transition-all cursor-pointer"
           >
-            <span>✨</span>
+            <Sparkles className="w-3.5 h-3.5 text-[#1677E8]" />
             <span>{lang === "gu" ? "જીએસટી પ્રીસેટ્સ" : "GST Presets"}</span>
           </button>
 
@@ -467,10 +481,12 @@ export default function UnitsPage() {
       {error && (
         <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span>⚠️</span>
+            <AlertTriangle className="w-4 h-4 text-rose-600" />
             <span>{error}</span>
           </div>
-          <button onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700 font-bold">✕</button>
+          <button onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700 p-0.5 rounded cursor-pointer" aria-label="Dismiss error">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -481,7 +497,7 @@ export default function UnitsPage() {
         {/* Total Units */}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs flex items-center gap-3.5">
           <div className="w-12 h-12 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] text-[#1677E8] flex items-center justify-center text-xl shrink-0 font-bold">
-            📏
+            <Ruler className="w-5 h-5 text-[#1677E8]" />
           </div>
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -495,7 +511,7 @@ export default function UnitsPage() {
         {/* Fractional / Decimal Units */}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs flex items-center gap-3.5">
           <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-200 text-[#1677E8] flex items-center justify-center text-xl shrink-0 font-bold">
-            ⚖️
+            <Scale className="w-5 h-5 text-[#1677E8]" />
           </div>
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -509,7 +525,7 @@ export default function UnitsPage() {
         {/* Discrete / Whole Units */}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs flex items-center gap-3.5">
           <div className="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center text-xl shrink-0 font-bold">
-            📦
+            <Package className="w-5 h-5 text-amber-700" />
           </div>
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -523,7 +539,7 @@ export default function UnitsPage() {
         {/* Linked Products */}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs flex items-center gap-3.5">
           <div className="w-12 h-12 rounded-xl bg-purple-50 border border-purple-200 text-purple-700 flex items-center justify-center text-xl shrink-0 font-bold">
-            🏷️
+            <Tag className="w-5 h-5 text-purple-700" />
           </div>
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -602,9 +618,10 @@ export default function UnitsPage() {
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded transition-colors"
+                  aria-label="Clear search"
                 >
-                  ✕
+                  <X className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
@@ -755,8 +772,8 @@ export default function UnitsPage() {
                 <tr>
                   <td colSpan={6} className="py-16 text-center">
                     <div className="flex flex-col items-center justify-center gap-3 max-w-sm mx-auto">
-                      <div className="w-14 h-14 rounded-2xl bg-[#EFF6FF] text-[#1677E8] flex items-center justify-center text-2xl font-bold">
-                        📏
+                      <div className="w-14 h-14 rounded-2xl bg-[#EFF6FF] text-[#1677E8] flex items-center justify-center">
+                        <Ruler className="w-7 h-7" />
                       </div>
                       <p className="text-sm font-bold text-slate-900">
                         {searchQuery
@@ -839,8 +856,9 @@ export default function UnitsPage() {
                           <span className="px-2.5 py-1 bg-slate-100 text-slate-800 font-mono font-bold text-xs rounded-lg border border-slate-200 tabular-nums shadow-2xs">
                             {u.code}
                           </span>
-                          <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded">
-                            ✓ GST Approved
+                          <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded inline-flex items-center gap-1">
+                            <Check className="w-2.5 h-2.5" />
+                            <span>GST Approved</span>
                           </span>
                         </div>
                       </td>
@@ -867,8 +885,8 @@ export default function UnitsPage() {
                       {/* Linked Products */}
                       <td className="py-3.5 px-4 tabular-nums">
                         {u.itemCount && u.itemCount > 0 ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                            <span>📦</span>
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                            <Package className="w-3.5 h-3.5 text-emerald-700" />
                             <span>{u.itemCount} {u.itemCount === 1 ? "Item" : "Items"}</span>
                           </span>
                         ) : (
@@ -919,91 +937,21 @@ export default function UnitsPage() {
           </table>
         </div>
 
-        {/* ================= PAGINATION FOOTER ================= */}
-        <div className="p-4 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <div className="font-medium text-center sm:text-left">
-            {lang === "gu" ? (
-              <span>
-                કુલ <span className="font-bold text-slate-900">{totalEntries}</span> માંથી{" "}
-                <span className="font-bold text-slate-900">{totalEntries === 0 ? 0 : startIndex + 1}</span> થી{" "}
-                <span className="font-bold text-slate-900">{Math.min(startIndex + pageSize, totalEntries)}</span> દર્શાવી રહ્યા છીએ
-              </span>
-            ) : (
-              <span>
-                Showing <span className="font-bold text-slate-900">{totalEntries === 0 ? 0 : startIndex + 1}</span> to{" "}
-                <span className="font-bold text-slate-900">{Math.min(startIndex + pageSize, totalEntries)}</span> of{" "}
-                <span className="font-bold text-slate-900">{totalEntries}</span> entries
-                {filteredUnits.length !== units.length && (
-                  <span className="text-slate-400 ml-1">
-                    (filtered from {units.length} total units)
-                  </span>
-                )}
-              </span>
-            )}
-          </div>
-
-          {totalPages > 1 && (
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => setCurrentPage(1)}
-                disabled={safePage === 1}
-                className="h-8 px-2.5 rounded-lg border border-slate-200 bg-white text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors font-medium cursor-pointer"
-                title="First Page"
-              >
-                «
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={safePage === 1}
-                className="h-8 px-3 rounded-lg border border-slate-200 bg-white text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors font-medium cursor-pointer"
-              >
-                {lang === "gu" ? "અગાઉનું" : "Previous"}
-              </button>
-
-              <div className="flex items-center gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 1)
-                  .map((p, idx, arr) => (
-                    <React.Fragment key={p}>
-                      {idx > 0 && p - arr[idx - 1] > 1 && (
-                        <span className="px-1 text-slate-400">...</span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setCurrentPage(p)}
-                        className={`h-8 w-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                          safePage === p
-                            ? "bg-[#1677E8] text-white shadow-2xs"
-                            : "bg-white text-slate-700 hover:bg-slate-50 border border-slate-200"
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    </React.Fragment>
-                  ))}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={safePage === totalPages}
-                className="h-8 px-3 rounded-lg border border-slate-200 bg-white text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors font-medium cursor-pointer"
-              >
-                {lang === "gu" ? "આગળનું" : "Next"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentPage(totalPages)}
-                disabled={safePage === totalPages}
-                className="h-8 px-2.5 rounded-lg border border-slate-200 bg-white text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors font-medium cursor-pointer"
-                title="Last Page"
-              >
-                »
-              </button>
-            </div>
-          )}
+        {/* STANDARDIZED GLOBAL PAGINATION COMPONENT */}
+        <div className="bg-white border-t border-slate-200 px-4 py-1">
+          <DataTablePagination
+            currentPage={safePage}
+            pageSize={pageSize}
+            totalRecords={totalEntries}
+            onPageChange={(p) => setCurrentPage(p)}
+            onPageSizeChange={(newSize) => {
+              setPageSize(newSize);
+              setCurrentPage(1);
+            }}
+            pageSizeOptions={[10, 25, 50, 100]}
+            lang={lang}
+            showFirstLast
+          />
         </div>
       </div>
 
@@ -1056,8 +1004,9 @@ export default function UnitsPage() {
                   </div>
 
                   {alreadyExists ? (
-                    <span className="shrink-0 px-2 py-1 text-[11px] font-bold text-emerald-700 bg-white border border-emerald-200 rounded-lg shadow-2xs">
-                      Added ✓
+                    <span className="shrink-0 px-2 py-1 text-[11px] font-bold text-emerald-700 bg-white border border-emerald-200 rounded-lg shadow-2xs inline-flex items-center gap-1">
+                      <Check className="w-3 h-3 text-emerald-600" />
+                      <span>Added</span>
                     </span>
                   ) : (
                     <button
@@ -1287,8 +1236,9 @@ export default function UnitsPage() {
 
           {/* Usage Alert if used by items */}
           {editingUnit && editingUnit.itemCount && editingUnit.itemCount > 0 ? (
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
-              ℹ️ This unit is currently used by <strong>{editingUnit.itemCount} items</strong> in inventory. Changes will automatically reflect in those item records.
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2">
+              <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <span>This unit is currently used by <strong>{editingUnit.itemCount} items</strong> in inventory. Changes will automatically reflect in those item records.</span>
             </div>
           ) : null}
 
@@ -1329,7 +1279,8 @@ export default function UnitsPage() {
             <div className="space-y-3">
               <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 space-y-1">
                 <p className="font-bold text-sm flex items-center gap-1.5 text-rose-900">
-                  <span>⛔</span> Cannot Delete Unit
+                  <AlertCircle className="w-4 h-4 text-rose-600" />
+                  <span>Cannot Delete Unit</span>
                 </p>
                 <p>
                   Unit <strong>{unitToDelete.name} ({unitToDelete.code})</strong> is currently assigned to <strong>{unitToDelete.itemCount} item(s)</strong> in your inventory.

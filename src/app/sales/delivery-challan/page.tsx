@@ -13,6 +13,8 @@ import { QuickSettingsModal, DEFAULT_QUICK_SETTINGS, QuickSettingsConfig } from 
 import { ShortcutsModal } from "@/components/invoice/shortcuts-modal";
 import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/scorecard-ribbon";
 import { formatInr } from "@/components/design-system/tokens";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { Phone, Truck, Ban, X } from "lucide-react";
 
 interface DeliveryChallanItem {
   id: string;
@@ -210,6 +212,20 @@ export default function DeliveryChallanListingPage() {
       return true;
     });
   }, [challans, statusFilter, dateRangePreset, searchQuery]);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, dateRangePreset, searchQuery]);
+
+  const totalChallans = filteredChallans.length;
+  const paginatedChallans = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredChallans.slice(start, start + pageSize);
+  }, [filteredChallans, currentPage, pageSize]);
 
   // Scorecard segments for ribbon
   const scorecardSegments: ScorecardSegment[] = [
@@ -446,9 +462,9 @@ export default function DeliveryChallanListingPage() {
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-2.5 text-xs text-slate-400 hover:text-slate-700"
+                className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-700"
               >
-                ✕
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -496,7 +512,7 @@ export default function DeliveryChallanListingPage() {
       {error && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700 flex items-center justify-between shadow-2xs">
           <span>{error}</span>
-          <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700">✕</button>
+          <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700"><X className="w-4 h-4" /></button>
         </div>
       )}
 
@@ -556,7 +572,7 @@ export default function DeliveryChallanListingPage() {
               )}
 
               {!isLoading &&
-                filteredChallans.map((ch) => {
+                paginatedChallans.map((ch) => {
                   const isClosed = ch.status === "CLOSED";
                   const amt = ch.totalAmount || 0;
                   return (
@@ -601,7 +617,7 @@ export default function DeliveryChallanListingPage() {
                           {ch.party?.name || ch.warehouse?.name || "Direct / Self"}
                         </div>
                         <div className="flex items-center gap-2 typo-card-desc typo-tabular text-slate-400 mt-0.5">
-                          {ch.party?.phone && <span>📞 {ch.party.phone}</span>}
+                          {ch.party?.phone && <span className="inline-flex items-center gap-1"><Phone className="w-3 h-3 text-slate-400" /> {ch.party.phone}</span>}
                           {ch.party?.gstin && <span>GST: {ch.party.gstin}</span>}
                         </div>
                       </td>
@@ -622,7 +638,8 @@ export default function DeliveryChallanListingPage() {
                             }}
                             className="inline-flex items-center gap-1 typo-invoice-no text-[#0F172A] hover:text-[#1677E8] hover:underline cursor-pointer"
                           >
-                            <span>🚚 {ch.eWayBillNumber}</span>
+                            <Truck className="w-3.5 h-3.5 text-slate-500" />
+                            <span>{ch.eWayBillNumber}</span>
                           </button>
                         ) : (
                           <span className="text-slate-300 text-xs">—</span>
@@ -685,7 +702,7 @@ export default function DeliveryChallanListingPage() {
                               className="p-1.5 text-[13px] text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
                               title="Cancel Challan"
                             >
-                              ✕
+                              <Ban className="w-3.5 h-3.5" />
                             </button>
                           )}
 
@@ -707,6 +724,17 @@ export default function DeliveryChallanListingPage() {
             </tbody>
           </table>
         </div>
+        <DataTablePagination
+          currentPage={currentPage}
+          totalPages={Math.max(1, Math.ceil(totalChallans / pageSize))}
+          totalItems={totalChallans}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
       </div>
 
       {/* MODALS */}

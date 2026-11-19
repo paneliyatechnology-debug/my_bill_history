@@ -12,6 +12,20 @@ import {
   printViaBluetoothPos,
   ThermalReceiptData,
 } from "../../../lib/thermal-printer";
+import { StockQuantityDisplay } from "@/components/inventory/stock-quantity-display";
+import {
+  X,
+  Search,
+  ScanBarcode,
+  Keyboard,
+  ClipboardList,
+  Package,
+  Tag,
+  Users,
+  SlidersHorizontal,
+  Trash2,
+  ChevronDown,
+} from "lucide-react";
 
 // Interfaces
 interface CatalogItem {
@@ -1338,10 +1352,11 @@ export default function PosTerminalPage() {
               <button
                 type="button"
                 onClick={(e) => handleCloseScreen(screen.id, e)}
-                className="text-slate-400 hover:text-slate-700 text-xs ml-1 p-0.5"
+                className="text-slate-400 hover:text-slate-700 ml-1 p-0.5 rounded transition-colors"
                 title="Close billing screen"
+                aria-label="Close billing screen"
               >
-                ✕
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           );
@@ -1431,7 +1446,7 @@ export default function PosTerminalPage() {
                     ? "Category"
                     : categories.find((c) => c.id === selectedCategory)?.name || "Category"}
                 </span>
-                <span className="text-[10px] text-slate-500">⌄</span>
+                <ChevronDown className="w-3 h-3 text-slate-500" />
               </button>
 
               {isCategoryDropdownOpen && (
@@ -1509,9 +1524,10 @@ export default function PosTerminalPage() {
                       <button
                         type="button"
                         onClick={() => setIsSearchDropdownOpen(false)}
-                        className="text-slate-400 hover:text-slate-700 text-xs font-bold"
+                        className="text-slate-400 hover:text-slate-700 p-0.5 rounded transition-colors"
+                        aria-label="Close search dropdown"
                       >
-                        ✕
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
@@ -1539,8 +1555,13 @@ export default function PosTerminalPage() {
                                 {item.name}
                               </p>
                               <div className="flex items-center gap-2 text-[10.5px] text-[#6B7280] mt-0.5">
-                                <span>
-                                  STOCK : {item.currentStock ?? 0} {item.unit || "PCS"}
+                                <span className="inline-flex items-center gap-1">
+                                  <span>STOCK :</span>
+                                  <StockQuantityDisplay
+                                    quantity={item.currentStock ?? 0}
+                                    unit={item.unit || "PCS"}
+                                    size="sm"
+                                  />
                                 </span>
                                 <span>•</span>
                                 <span>
@@ -1617,12 +1638,12 @@ export default function PosTerminalPage() {
                   </svg>
                 </div>
                 <div className="flex items-center gap-1.5 text-[13px] text-[#4B5563] font-medium">
-                  <span className="text-sm">🔍</span>
+                  <Search className="w-4 h-4 text-[#4B5563]" />
                   <span>Add items by searching item name or item code</span>
                 </div>
                 <p className="text-xs text-[#9CA3AF] my-1 font-medium">Or</p>
                 <div className="flex items-center gap-1.5 text-[13px] text-[#4B5563] font-medium">
-                  <span className="text-sm">⛶</span>
+                  <ScanBarcode className="w-4 h-4 text-[#4B5563]" />
                   <span>Simply scan barcode to add items</span>
                 </div>
               </div>
@@ -1749,10 +1770,10 @@ export default function PosTerminalPage() {
                                 prev.selectedRowIndex === idx ? null : prev.selectedRowIndex,
                             }));
                           }}
-                          className="text-slate-300 hover:text-rose-600 p-0.5"
+                          className="text-slate-300 hover:text-rose-600 p-0.5 cursor-pointer"
                           title="Remove item"
                         >
-                          🗑
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
@@ -1863,10 +1884,11 @@ export default function PosTerminalPage() {
                           discountAmount: 0,
                         }))
                       }
-                      className="text-slate-400 hover:text-rose-600 font-bold px-0.5 cursor-pointer"
+                      className="text-slate-400 hover:text-rose-600 p-0.5 cursor-pointer rounded transition-colors"
                       title="Clear Discount"
+                      aria-label="Clear Discount"
                     >
-                      ✕
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
                   <span
@@ -1898,10 +1920,11 @@ export default function PosTerminalPage() {
                           additionalCharges: [],
                         }))
                       }
-                      className="text-slate-400 hover:text-rose-600 font-bold px-0.5 cursor-pointer"
+                      className="text-slate-400 hover:text-rose-600 p-0.5 cursor-pointer rounded transition-colors"
                       title="Clear Charges"
+                      aria-label="Clear Charges"
                     >
-                      ✕
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
                   <span
@@ -1989,9 +2012,7 @@ export default function PosTerminalPage() {
                     <option value="CARD">Card</option>
                     <option value="SPLIT">Split</option>
                   </select>
-                  <span className="absolute right-3 top-2.5 text-[10px] text-slate-400 pointer-events-none">
-                    ⌄
-                  </span>
+                  <ChevronDown className="w-3.5 h-3.5 absolute right-3 top-3 text-slate-400 pointer-events-none" />
                 </div>
               </div>
 
@@ -2097,9 +2118,10 @@ export default function PosTerminalPage() {
               <button
                 type="button"
                 onClick={() => setIsSettingsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 text-base font-bold"
+                className="text-slate-400 hover:text-slate-700 p-1 rounded transition-colors"
+                aria-label="Close settings modal"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -2242,9 +2264,10 @@ export default function PosTerminalPage() {
               <button
                 type="button"
                 onClick={() => setIsDiscountModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 text-base font-bold"
+                className="text-slate-400 hover:text-slate-700 p-1 rounded transition-colors"
+                aria-label="Close discount modal"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -2358,9 +2381,10 @@ export default function PosTerminalPage() {
               <button
                 type="button"
                 onClick={() => setIsChargesModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 text-base font-bold"
+                className="text-slate-400 hover:text-slate-700 p-1 rounded transition-colors"
+                aria-label="Close charges modal"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -2399,9 +2423,10 @@ export default function PosTerminalPage() {
                       onClick={() =>
                         setTempCharges(tempCharges.filter((_, i) => i !== idx))
                       }
-                      className="text-slate-400 hover:text-rose-600 p-1"
+                      className="text-slate-400 hover:text-rose-600 p-1 rounded transition-colors"
+                      aria-label="Remove charge"
                     >
-                      ✕
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
@@ -2456,9 +2481,10 @@ export default function PosTerminalPage() {
               <button
                 type="button"
                 onClick={() => setIsCustomerModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 text-base font-bold"
+                className="text-slate-400 hover:text-slate-700 p-1 rounded transition-colors"
+                aria-label="Close customer modal"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -2486,9 +2512,10 @@ export default function PosTerminalPage() {
                     <button
                       type="button"
                       onClick={() => setTempCustomer({ ...tempCustomer, mobile: "" })}
-                      className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-700 text-xs font-bold"
+                      className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-700 p-0.5 rounded transition-colors"
+                      aria-label="Clear mobile"
                     >
-                      ✕
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
@@ -2549,9 +2576,10 @@ export default function PosTerminalPage() {
               <button
                 type="button"
                 onClick={() => setIsNewItemModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 text-base font-bold"
+                className="text-slate-400 hover:text-slate-700 p-1 rounded transition-colors"
+                aria-label="Close create item modal"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -2561,7 +2589,7 @@ export default function PosTerminalPage() {
                   type="button"
                   className="w-full text-left h-9 px-3 rounded-md font-medium text-[#5C56DF] bg-purple-50 border border-purple-200 flex items-center gap-2"
                 >
-                  <span>📋</span>
+                  <ClipboardList className="w-3.5 h-3.5" />
                   <span>Basic Details *</span>
                 </button>
                 <div className="pt-2 px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -2571,28 +2599,28 @@ export default function PosTerminalPage() {
                   type="button"
                   className="w-full text-left h-9 px-3 rounded-md text-slate-600 hover:bg-slate-100 flex items-center gap-2"
                 >
-                  <span>📦</span>
+                  <Package className="w-3.5 h-3.5" />
                   <span>Stock Details</span>
                 </button>
                 <button
                   type="button"
                   className="w-full text-left h-9 px-3 rounded-md text-slate-600 hover:bg-slate-100 flex items-center gap-2"
                 >
-                  <span>🏷️</span>
+                  <Tag className="w-3.5 h-3.5" />
                   <span>Pricing Details</span>
                 </button>
                 <button
                   type="button"
                   className="w-full text-left h-9 px-3 rounded-md text-slate-600 hover:bg-slate-100 flex items-center gap-2"
                 >
-                  <span>👥</span>
+                  <Users className="w-3.5 h-3.5" />
                   <span>Party Wise Prices</span>
                 </button>
                 <button
                   type="button"
                   className="w-full text-left h-9 px-3 rounded-md text-slate-600 hover:bg-slate-100 flex items-center gap-2"
                 >
-                  <span>📑</span>
+                  <SlidersHorizontal className="w-3.5 h-3.5" />
                   <span>Custom Fields</span>
                 </button>
               </div>
@@ -2807,9 +2835,10 @@ export default function PosTerminalPage() {
               <button
                 type="button"
                 onClick={() => setQuickEditModal((prev) => ({ ...prev, isOpen: false }))}
-                className="text-slate-400 hover:text-slate-700 font-bold"
+                className="text-slate-400 hover:text-slate-700 p-1 rounded transition-colors"
+                aria-label="Close edit modal"
               >
-                ✕
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
@@ -2852,7 +2881,7 @@ export default function PosTerminalPage() {
           <div className="w-full max-w-xl bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200">
             <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-lg">⌨️</span>
+                <Keyboard className="w-5 h-5 text-indigo-600" />
                 <h2 className="text-sm font-semibold text-[#182230]">
                   POS Billing Keyboard Shortcuts & Quick Guide
                 </h2>
@@ -2860,9 +2889,10 @@ export default function PosTerminalPage() {
               <button
                 type="button"
                 onClick={() => setIsHelpModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 text-base font-bold"
+                className="text-slate-400 hover:text-slate-700 p-1 rounded transition-colors"
+                aria-label="Close help modal"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

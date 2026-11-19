@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { apiClient } from "../../../../lib/api-client";
+import { AlertCircle, X, Calculator } from "lucide-react";
 
 interface WarehouseOption {
   id: string;
@@ -120,9 +121,10 @@ export function AdjustStockModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer text-lg"
+            className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
+            aria-label="Close"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -130,7 +132,7 @@ export function AdjustStockModal({
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-5">
           {errorMsg && (
             <div className="p-3 bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium rounded-xl flex items-center gap-2">
-              <span className="font-bold text-rose-600">✕</span>
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
@@ -247,7 +249,7 @@ export function AdjustStockModal({
                 {/* Stock Calculation Preview */}
                 <div>
                   <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 mb-2">
-                    <span>🧮</span>
+                    <Calculator className="w-4 h-4 text-slate-500" />
                     <span>{lang === "gu" ? "સ્ટોક ગણતરી (Stock Calculation)" : "Stock Calculation"}</span>
                   </div>
 
@@ -259,10 +261,33 @@ export function AdjustStockModal({
                     <div className="p-3 bg-white border border-slate-200 rounded-lg space-y-2 text-xs">
                       <div className="flex items-center justify-between text-slate-600">
                         <span>Current Stock:</span>
-                        <span className="tabular-nums font-semibold">
-                          {currentStock} {uom}
-                        </span>
+                        <div className="tabular-nums font-semibold flex items-center gap-1.5">
+                          {currentStock < 0 ? (
+                            <>
+                              <span className="text-slate-900">0 {uom}</span>
+                              <span
+                                className="text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded text-[11px] font-medium flex items-center gap-1"
+                                title={`Ledger book stock: ${currentStock} ${uom}. Stock adjustment required.`}
+                              >
+                                <AlertCircle className="w-3 h-3 text-rose-600" />
+                                Discrepancy ({currentStock})
+                              </span>
+                            </>
+                          ) : (
+                            <span>
+                              {currentStock} {uom}
+                            </span>
+                          )}
+                        </div>
                       </div>
+                      {currentStock < 0 && (
+                        <div className="p-2 bg-amber-50 border border-amber-200/80 rounded text-[11px] text-amber-800 flex items-start gap-1.5">
+                          <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                          <span>
+                            Book stock has a negative balance of {currentStock} {uom}. Adjustment will reconcile available inventory.
+                          </span>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between font-semibold">
                         <span>Adjustment:</span>
                         <span

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { X, FileText, User, ListChecks } from "lucide-react";
 
 export interface CustomField {
   id: string;
@@ -230,10 +231,10 @@ export function QuickSettingsModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-700 font-bold text-lg p-1 transition-colors cursor-pointer"
+            className="text-slate-400 hover:text-slate-700 p-1 transition-colors cursor-pointer"
             aria-label="Close"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -250,7 +251,7 @@ export function QuickSettingsModal({
                   : "text-slate-600 hover:bg-slate-100"
               }`}
             >
-              <span className="text-sm">📄</span>
+              <FileText className="w-4 h-4 shrink-0" />
               <span className="truncate">{docDetailsLabel}</span>
             </button>
 
@@ -263,7 +264,7 @@ export function QuickSettingsModal({
                   : "text-slate-600 hover:bg-slate-100"
               }`}
             >
-              <span className="text-sm">👤</span>
+              <User className="w-4 h-4 shrink-0" />
               <span>Party Details</span>
             </button>
 
@@ -276,7 +277,7 @@ export function QuickSettingsModal({
                   : "text-slate-600 hover:bg-slate-100"
               }`}
             >
-              <span className="text-sm">📋</span>
+              <ListChecks className="w-4 h-4 shrink-0" />
               <span>Item Table Details</span>
             </button>
           </div>
@@ -439,10 +440,10 @@ export function QuickSettingsModal({
                           <button
                             type="button"
                             onClick={() => handleRemoveCustomField("invoice", field.id)}
-                            className="text-slate-400 hover:text-rose-600 text-xs p-1"
+                            className="text-slate-400 hover:text-rose-600 p-0.5"
                             title="Remove field"
                           >
-                            ✕
+                            <X className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       ))}
@@ -593,10 +594,10 @@ export function QuickSettingsModal({
                         <button
                           type="button"
                           onClick={() => handleRemoveCustomField("party", field.id)}
-                          className="text-slate-400 hover:text-rose-600 text-xs p-1"
+                          className="text-slate-400 hover:text-rose-600 p-0.5"
                           title="Remove field"
                         >
-                          ✕
+                          <X className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     ))}
@@ -882,10 +883,10 @@ export function QuickSettingsModal({
                         <button
                           type="button"
                           onClick={() => handleRemoveCustomField("items", field.id)}
-                          className="text-slate-400 hover:text-rose-600 text-xs p-1"
+                          className="text-slate-400 hover:text-rose-600 p-0.5"
                           title="Remove field"
                         >
-                          ✕
+                          <X className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     ))}

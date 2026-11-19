@@ -7,6 +7,7 @@ import { apiClient, extractList } from "@/lib/api-client";
 import { Modal } from "@/components/ui/modal";
 import { Badge, StatusBadge } from "@/components/ui/badge";
 import { DataTable, ColumnDef } from "@/components/ui/data-table";
+import { Check, X, Wallet, ArrowUpRight, ArrowLeftRight, FileText, Banknote, Landmark, ArrowDownLeft } from "lucide-react";
 
 interface JournalLine {
   id: string;
@@ -497,10 +498,12 @@ export default function FinanceVouchersPage() {
       {toastMessage && (
         <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs font-semibold text-emerald-800 flex items-center justify-between shadow-sm animate-fadeIn">
           <div className="flex items-center gap-2">
-            <span>✓</span>
+            <Check className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{toastMessage}</span>
           </div>
-          <button onClick={() => setToastMessage(null)} className="text-emerald-600 font-bold">✕</button>
+          <button onClick={() => setToastMessage(null)} className="text-emerald-600 hover:text-emerald-800 p-0.5 rounded cursor-pointer">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -508,7 +511,9 @@ export default function FinanceVouchersPage() {
       <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-2 bg-amber-50 text-amber-700 rounded-xl text-lg">💰</span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
+              <Wallet className="w-5 h-5 text-amber-600" />
+            </div>
             <h1 className="text-[22px] font-semibold text-[#182230] tracking-tight">
               {lang === "gu" ? "રોજમેળ & આવક-જાવક વાઉચર" : "Cash Book & Receipts Register"}
             </h1>
@@ -526,7 +531,7 @@ export default function FinanceVouchersPage() {
             onClick={() => setIsExpenseModalOpen(true)}
             className="h-9 px-3 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[13px] font-medium rounded-xl transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
           >
-            <span>💸</span>
+            <ArrowUpRight className="w-3.5 h-3.5 text-rose-600" />
             <span>{lang === "gu" ? "+ ખર્ચ / ચુકવણી" : "+ Record Payment"}</span>
           </button>
 
@@ -534,7 +539,7 @@ export default function FinanceVouchersPage() {
             onClick={() => setIsContraModalOpen(true)}
             className="h-9 px-3 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-[13px] font-medium rounded-xl transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
           >
-            <span>🔄</span>
+            <ArrowLeftRight className="w-3.5 h-3.5 text-blue-600" />
             <span>{lang === "gu" ? "+ બેંક/રોકડ ફેરબદલ" : "+ Contra Transfer"}</span>
           </button>
 
@@ -542,7 +547,7 @@ export default function FinanceVouchersPage() {
             href="/finance/vouchers/new"
             className="h-9 px-3 bg-slate-900 hover:bg-slate-800 text-white text-[13px] font-medium rounded-xl shadow-xs transition-all flex items-center gap-1.5"
           >
-            <span>📝</span>
+            <FileText className="w-3.5 h-3.5 text-white" />
             <span>{lang === "gu" ? "+ નવું જર્નલ વાઉચર" : "+ New Journal"}</span>
           </Link>
         </div>
@@ -563,8 +568,8 @@ export default function FinanceVouchersPage() {
               {cashAccounts.length} {lang === "gu" ? "રોકડ ખાતા" : "Cash accounts"}
             </p>
           </div>
-          <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-xl text-emerald-600">
-            💵
+          <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+            <Banknote className="w-6 h-6 text-emerald-600" />
           </div>
         </div>
 
@@ -581,8 +586,8 @@ export default function FinanceVouchersPage() {
               {bankAccounts.length} {lang === "gu" ? "બેંક ખાતા" : "Bank accounts"}
             </p>
           </div>
-          <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-xl text-blue-600">
-            🏦
+          <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+            <Landmark className="w-6 h-6 text-blue-600" />
           </div>
         </div>
 
@@ -599,8 +604,8 @@ export default function FinanceVouchersPage() {
               ↓ {lang === "gu" ? "જમા આવક પહોંચો" : "Inflow receipts"}
             </p>
           </div>
-          <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-xl text-emerald-600">
-            📥
+          <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+            <ArrowDownLeft className="w-6 h-6 text-emerald-600" />
           </div>
         </div>
 
@@ -617,8 +622,8 @@ export default function FinanceVouchersPage() {
               ↑ {lang === "gu" ? "ઉધાર ખર્ચ/ચુકવણી" : "Outflow payments"}
             </p>
           </div>
-          <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-xl text-rose-600">
-            📤
+          <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600">
+            <ArrowUpRight className="w-6 h-6 text-rose-600" />
           </div>
         </div>
       </div>

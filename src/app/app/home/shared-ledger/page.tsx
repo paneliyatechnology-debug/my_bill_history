@@ -6,6 +6,7 @@ import { apiClient } from "@/lib/api-client";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { Sparkles, X, Zap, Clock, BookOpen, Lock, Check, FileText, BarChart3 } from "lucide-react";
 
 interface SharedLedgerParty {
   id: string;
@@ -481,7 +482,7 @@ export default function SharedLedgerPage() {
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-xs font-semibold text-white shadow-2xl transition-all">
-          <span>✨</span>
+          <Sparkles className="w-4 h-4 text-amber-400" />
           <span>{toastMessage}</span>
         </div>
       )}
@@ -956,9 +957,10 @@ export default function SharedLedgerPage() {
               <button
                 type="button"
                 onClick={() => setShowSettingsModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                title="Close"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1085,9 +1087,10 @@ export default function SharedLedgerPage() {
               <button
                 type="button"
                 onClick={() => setShowHowItWorksModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                title="Close"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1194,7 +1197,10 @@ export default function SharedLedgerPage() {
                     Turn your supplier's sales invoice into a purchase — instantly
                   </h3>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[11px] font-semibold text-amber-600">✨ Powered by  AI</span>
+                    <span className="text-[11px] font-semibold text-amber-600 flex items-center gap-1">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Powered by AI</span>
+                    </span>
                     <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
                       ● Live on Android
                     </span>
@@ -1208,9 +1214,10 @@ export default function SharedLedgerPage() {
               <button
                 type="button"
                 onClick={() => setShowConvertToPurchaseModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                title="Close"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1260,15 +1267,24 @@ export default function SharedLedgerPage() {
                 {/* 3 Metric cards */}
                 <div className="grid grid-cols-3 gap-2">
                   <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-center">
-                    <div className="text-indigo-600 font-semibold text-sm">⚡ 3x Faster</div>
+                    <div className="text-indigo-600 font-semibold text-sm flex items-center justify-center gap-1">
+                      <Zap className="w-3.5 h-3.5" />
+                      <span>3x Faster</span>
+                    </div>
                     <div className="mt-1 text-[10px] text-slate-500">than Manual entry</div>
                   </div>
                   <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-center">
-                    <div className="text-indigo-600 font-semibold text-sm">⏱ ~30 mins</div>
+                    <div className="text-indigo-600 font-semibold text-sm flex items-center justify-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>~30 mins</span>
+                    </div>
                     <div className="mt-1 text-[10px] text-slate-500">Saved Per Invoice</div>
                   </div>
                   <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-center">
-                    <div className="text-indigo-600 font-semibold text-sm">📖 1 Ledger</div>
+                    <div className="text-indigo-600 font-semibold text-sm flex items-center justify-center gap-1">
+                      <BookOpen className="w-3.5 h-3.5" />
+                      <span>1 Ledger</span>
+                    </div>
                     <div className="mt-1 text-[10px] text-slate-500">2 Books in Sync</div>
                   </div>
                 </div>
@@ -1294,7 +1310,8 @@ export default function SharedLedgerPage() {
                     disabled={isConverting}
                     className="w-full flex items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 text-[13px] font-medium text-white hover:bg-indigo-700 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
                   >
-                    <span>⚡ Convert on Web Now</span>
+                    <Zap className="w-4 h-4" />
+                    <span>Convert on Web Now</span>
                     {isConverting && (
                       <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
                     )}
@@ -1317,15 +1334,16 @@ export default function SharedLedgerPage() {
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <span className="text-lg">🔒</span>
+                <Lock className="w-5 h-5 text-indigo-600" />
                 <h3 className="text-[15px] font-semibold text-slate-900">View Only Mode</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowViewOnlyModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                title="Close"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1335,15 +1353,15 @@ export default function SharedLedgerPage() {
 
             <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-slate-600 space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="text-emerald-600">✓</span>
+                <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 <span>Both parties always see identical balances</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-emerald-600">✓</span>
+                <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 <span>Zero unilateral invoice tampering</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-emerald-600">✓</span>
+                <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 <span>Direct 1-click conversion to purchase bills</span>
               </div>
             </div>
@@ -1370,9 +1388,10 @@ export default function SharedLedgerPage() {
               <button
                 type="button"
                 onClick={() => setShowDownloadModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                title="Close"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1386,7 +1405,7 @@ export default function SharedLedgerPage() {
                 onClick={handleDownloadPDF}
                 className="flex flex-col items-center justify-center rounded-xl border border-rose-200 bg-rose-50/50 p-4 hover:bg-rose-100/70 transition-colors cursor-pointer"
               >
-                <span className="text-2xl mb-1">📄</span>
+                <FileText className="w-8 h-8 text-rose-600 mb-1" />
                 <span className="text-xs font-bold text-rose-700">PDF Statement</span>
                 <span className="text-[10px] text-slate-500">Official statement</span>
               </button>
@@ -1396,7 +1415,7 @@ export default function SharedLedgerPage() {
                 onClick={handleDownloadExcel}
                 className="flex flex-col items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50/50 p-4 hover:bg-emerald-100/70 transition-colors cursor-pointer"
               >
-                <span className="text-2xl mb-1">📊</span>
+                <BarChart3 className="w-8 h-8 text-emerald-600 mb-1" />
                 <span className="text-xs font-bold text-emerald-700">Excel (.xlsx)</span>
                 <span className="text-[10px] text-slate-500">Spreadsheet file</span>
               </button>
@@ -1416,9 +1435,10 @@ export default function SharedLedgerPage() {
               <button
                 type="button"
                 onClick={() => setShowCustomDateModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                title="Close"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

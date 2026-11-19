@@ -3,6 +3,19 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  Settings,
+  Printer,
+  Briefcase,
+  FileText,
+  User,
+  Table,
+  MessageSquare,
+  Check,
+  ArrowLeft,
+  Type,
+  Wand2,
+} from "lucide-react";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
 
@@ -238,15 +251,16 @@ export function CustomThemeStudio() {
             href="/app/settings/invoice"
             className="flex items-center gap-1.5 text-sm font-bold text-slate-700 hover:text-slate-900 transition-colors"
           >
-            <span className="text-lg">←</span>
+            <ArrowLeft className="w-4 h-4" />
             <span>Custom Theme Settings</span>
           </Link>
         </div>
 
         <div className="flex items-center gap-3">
           {toastBanner && (
-            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200 animate-fadeIn">
-              ✓ {toastBanner}
+            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200 animate-fadeIn flex items-center gap-1">
+              <Check className="w-3.5 h-3.5" />
+              <span>{toastBanner}</span>
             </span>
           )}
           <button
@@ -267,14 +281,15 @@ export function CustomThemeStudio() {
            ========================================================================= */}
         <aside className="w-56 shrink-0 border-r border-slate-200 bg-white p-3 space-y-1">
           {[
-            { id: "style", label: "Style Settings", icon: "⚙️" },
-            { id: "print", label: "Print Settings", icon: "🖨️" },
-            { id: "business", label: "Business Details", icon: "👜" },
-            { id: "invoice", label: "Invoice Details", icon: "📄" },
-            { id: "party", label: "Party Details", icon: "👤" },
-            { id: "itemTable", label: "Item Table", icon: "🪟" },
-            { id: "misc", label: "Miscellaneous", icon: "💬" },
+            { id: "style", label: "Style Settings", icon: Settings },
+            { id: "print", label: "Print Settings", icon: Printer },
+            { id: "business", label: "Business Details", icon: Briefcase },
+            { id: "invoice", label: "Invoice Details", icon: FileText },
+            { id: "party", label: "Party Details", icon: User },
+            { id: "itemTable", label: "Item Table", icon: Table },
+            { id: "misc", label: "Miscellaneous", icon: MessageSquare },
           ].map((tab) => {
+            const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
               <button
@@ -287,7 +302,7 @@ export function CustomThemeStudio() {
                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 }`}
               >
-                <span className="text-sm">{tab.icon}</span>
+                <Icon className="w-4 h-4 shrink-0" />
                 <span>{tab.label}</span>
               </button>
             );
@@ -716,7 +731,7 @@ export function CustomThemeStudio() {
                       style={{ backgroundColor: c.id }}
                       title={c.name}
                     >
-                      {themeColor === c.id && <span className="text-white text-xs font-semibold">✓</span>}
+                      {themeColor === c.id && <Check className="w-3.5 h-3.5 text-white stroke-[2.5]" />}
                     </button>
                   ))}
                 </div>
@@ -898,20 +913,22 @@ export function CustomThemeStudio() {
                 <button
                   type="button"
                   onClick={() => setSubTabMode("text")}
-                  className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                     subTabMode === "text" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500"
                   }`}
                 >
-                  [T] Text
+                  <Type className="w-3.5 h-3.5" />
+                  <span>Text</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSubTabMode("styling")}
-                  className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                     subTabMode === "styling" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500"
                   }`}
                 >
-                  [🪄] Styling
+                  <Wand2 className="w-3.5 h-3.5" />
+                  <span>Styling</span>
                 </button>
               </div>
 
@@ -1040,20 +1057,22 @@ export function CustomThemeStudio() {
                 <button
                   type="button"
                   onClick={() => setSubTabMode("text")}
-                  className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                     subTabMode === "text" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500"
                   }`}
                 >
-                  [T] Text
+                  <Type className="w-3.5 h-3.5" />
+                  <span>Text</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSubTabMode("styling")}
-                  className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                     subTabMode === "styling" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500"
                   }`}
                 >
-                  [🪄] Styling
+                  <Wand2 className="w-3.5 h-3.5" />
+                  <span>Styling</span>
                 </button>
               </div>
 
@@ -1133,20 +1152,22 @@ export function CustomThemeStudio() {
                 <button
                   type="button"
                   onClick={() => setSubTabMode("text")}
-                  className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                     subTabMode === "text" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500"
                   }`}
                 >
-                  [T] Text
+                  <Type className="w-3.5 h-3.5" />
+                  <span>Text</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSubTabMode("styling")}
-                  className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                     subTabMode === "styling" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500"
                   }`}
                 >
-                  [🪄] Styling
+                  <Wand2 className="w-3.5 h-3.5" />
+                  <span>Styling</span>
                 </button>
               </div>
 
@@ -1319,20 +1340,22 @@ export function CustomThemeStudio() {
                 <button
                   type="button"
                   onClick={() => setSubTabMode("text")}
-                  className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                     subTabMode === "text" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500"
                   }`}
                 >
-                  [T] Text
+                  <Type className="w-3.5 h-3.5" />
+                  <span>Text</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSubTabMode("styling")}
-                  className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                     subTabMode === "styling" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500"
                   }`}
                 >
-                  [🪄] Styling
+                  <Wand2 className="w-3.5 h-3.5" />
+                  <span>Styling</span>
                 </button>
               </div>
 

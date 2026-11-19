@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { apiClient } from "@/lib/api-client";
+import { ArrowDownLeft, ArrowUpRight, Clock } from "lucide-react";
 
 export interface ActivityItem {
   id: string;
@@ -106,7 +107,7 @@ export function RecentActivityFeed() {
               className="p-3.5 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/20 transition-all flex items-start gap-3 bg-slate-50/50"
             >
               <div
-                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-sm font-bold shadow-xs ${
+                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-sm font-medium shadow-xs ${
                   isReceived
                     ? "bg-emerald-100 text-emerald-700"
                     : isSent
@@ -114,7 +115,13 @@ export function RecentActivityFeed() {
                     : "bg-amber-100 text-amber-700"
                 }`}
               >
-                {isReceived ? "↓₹" : isSent ? "↑₹" : "⏰"}
+                {isReceived ? (
+                  <ArrowDownLeft className="w-4 h-4" />
+                ) : isSent ? (
+                  <ArrowUpRight className="w-4 h-4" />
+                ) : (
+                  <Clock className="w-4 h-4" />
+                )}
               </div>
 
               <div className="flex-1 min-w-0">

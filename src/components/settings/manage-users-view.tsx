@@ -3,6 +3,19 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
+import {
+  ShieldCheck,
+  ArrowRight,
+  Users,
+  Briefcase,
+  Package,
+  Truck,
+  FileSpreadsheet,
+  Crown,
+  Lock,
+  Zap,
+  X,
+} from "lucide-react";
 
 // ============================================================================
 // Types
@@ -434,7 +447,7 @@ export default function ManageUsersView() {
             <div className="md:col-span-4 flex flex-col items-center">
               <div className="relative p-1 rounded-2xl border-2 border-emerald-500/80 bg-emerald-50/40 shadow-xs">
                 <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center text-3xl shadow-2xs">
-                  👨‍💼
+                  <ShieldCheck className="w-8 h-8 text-emerald-600" />
                 </div>
                 <div className="absolute -bottom-2 -right-2 bg-emerald-600 text-white p-1 rounded-full shadow-xs" title="Full Vision">
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -450,8 +463,8 @@ export default function ManageUsersView() {
             </div>
 
             {/* Connecting lines indicator */}
-            <div className="hidden md:flex md:col-span-1 justify-center text-slate-300 text-xl font-light">
-              ➔
+            <div className="hidden md:flex md:col-span-1 justify-center text-slate-300">
+              <ArrowRight className="w-5 h-5 text-slate-300" />
             </div>
 
             {/* Target Role Cards Grid */}
@@ -460,7 +473,7 @@ export default function ManageUsersView() {
               {/* Partner */}
               <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/70 flex items-center gap-3 shadow-2xs">
                 <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-xl shadow-2xs border border-slate-100 shrink-0">
-                  🤝
+                  <Users className="w-5 h-5 text-slate-600" />
                 </div>
                 <div>
                   <div className="font-bold text-xs text-slate-800">Partner</div>
@@ -471,7 +484,7 @@ export default function ManageUsersView() {
               {/* Salesman */}
               <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/70 flex items-center gap-3 shadow-2xs relative">
                 <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-xl shadow-2xs border border-slate-100 shrink-0">
-                  💼
+                  <Briefcase className="w-5 h-5 text-amber-600" />
                 </div>
                 <div>
                   <div className="font-bold text-xs text-slate-800">Salesman</div>
@@ -482,7 +495,7 @@ export default function ManageUsersView() {
               {/* Stock Manager */}
               <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/70 flex items-center gap-3 shadow-2xs">
                 <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-xl shadow-2xs border border-slate-100 shrink-0">
-                  📦
+                  <Package className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
                   <div className="font-bold text-xs text-slate-800">Stock Manager</div>
@@ -493,7 +506,7 @@ export default function ManageUsersView() {
               {/* Delivery Boy */}
               <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/70 flex items-center gap-3 shadow-2xs">
                 <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-xl shadow-2xs border border-slate-100 shrink-0">
-                  🛵
+                  <Truck className="w-5 h-5 text-slate-600" />
                 </div>
                 <div>
                   <div className="font-bold text-xs text-slate-800">Delivery Boy</div>
@@ -504,7 +517,7 @@ export default function ManageUsersView() {
               {/* CA */}
               <div className="p-3 rounded-xl border border-[#BFDBFE] bg-[#EFF6FF]/60 flex items-center gap-3 shadow-2xs col-span-2">
                 <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-xl shadow-2xs border border-[#BFDBFE] shrink-0">
-                  💻
+                  <FileSpreadsheet className="w-5 h-5 text-[#1677E8]" />
                 </div>
                 <div className="flex-1 flex items-center justify-between">
                   <div>
@@ -666,8 +679,9 @@ export default function ManageUsersView() {
                     {/* Role */}
                     <td className="py-3.5 px-4">
                       {u.role === "Admin" ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                          👑 Owner (Admin)
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                          <Crown className="w-3.5 h-3.5 text-amber-600" />
+                          <span>Owner (Admin)</span>
                         </span>
                       ) : (
                         <select
@@ -744,9 +758,9 @@ export default function ManageUsersView() {
               </h2>
               <button
                 onClick={() => setShowAddUserModal(false)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 p-1"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -884,8 +898,8 @@ export default function ManageUsersView() {
               <h2 className="text-[15px] font-semibold text-[#182230]">
                 {lang === "gu" ? "તમારા CA ને ઇન્વાઇટ કરો" : "Invite Your Chartered Accountant (CA)"}
               </h2>
-              <button onClick={() => setShowAddCaModal(false)} className="text-slate-400 hover:text-slate-600">
-                ✕
+              <button onClick={() => setShowAddCaModal(false)} className="text-slate-400 hover:text-slate-600 p-1">
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -937,8 +951,9 @@ export default function ManageUsersView() {
                 />
               </div>
 
-              <div className="p-3 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] text-xs text-slate-800">
-                🔒 Your CA gets secure <strong>Read-Only Access</strong> to GSTR-1, GSTR-3B, Balance Sheet, and Ledgers without access to create or delete bills.
+              <div className="p-3 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] text-xs text-slate-800 flex items-start gap-2">
+                <Lock className="w-4 h-4 text-[#1677E8] shrink-0 mt-0.5" />
+                <span>Your CA gets secure <strong>Read-Only Access</strong> to GSTR-1, GSTR-3B, Balance Sheet, and Ledgers without access to create or delete bills.</span>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
@@ -970,15 +985,15 @@ export default function ManageUsersView() {
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white z-10">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#1677E8] flex items-center justify-center font-bold">
-                  ⚡
+                  <Zap className="w-4 h-4 text-[#1677E8]" />
                 </div>
                 <div>
                   <h2 className="text-[15px] font-semibold text-[#182230]">Activity Tracker</h2>
                   <p className="text-xs text-slate-500">Audit logs of team operations</p>
                 </div>
               </div>
-              <button onClick={() => setShowActivitiesModal(false)} className="text-slate-400 hover:text-slate-600">
-                ✕
+              <button onClick={() => setShowActivitiesModal(false)} className="text-slate-400 hover:text-slate-600 p-1">
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1021,25 +1036,30 @@ export default function ManageUsersView() {
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
               <h2 className="text-[15px] font-semibold text-[#182230]">Role & Access Guide</h2>
-              <button onClick={() => setShowHelpModal(false)} className="text-slate-400 hover:text-slate-600">
-                ✕
+              <button onClick={() => setShowHelpModal(false)} className="text-slate-400 hover:text-slate-600 p-1">
+                <X className="w-4 h-4" />
               </button>
             </div>
             <div className="p-6 space-y-3 text-xs">
-              <div className="p-3 rounded-xl border border-slate-200 bg-slate-50">
-                <strong>👑 Admin / Partner:</strong> Full access to all billing, purchases, settings, user permissions, and financial profit calculations.
+              <div className="p-3 rounded-xl border border-slate-200 bg-slate-50 flex items-start gap-2">
+                <Crown className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                <span><strong>Admin / Partner:</strong> Full access to all billing, purchases, settings, user permissions, and financial profit calculations.</span>
               </div>
-              <div className="p-3 rounded-xl border border-slate-200 bg-slate-50">
-                <strong>💼 Salesman:</strong> Can issue sales invoices, delivery challans, and quotations. Purchase rate and net profit are completely hidden.
+              <div className="p-3 rounded-xl border border-slate-200 bg-slate-50 flex items-start gap-2">
+                <Briefcase className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <span><strong>Salesman:</strong> Can issue sales invoices, delivery challans, and quotations. Purchase rate and net profit are completely hidden.</span>
               </div>
-              <div className="p-3 rounded-xl border border-slate-200 bg-slate-50">
-                <strong>📦 Stock Manager:</strong> Can manage godowns, inventory adjustments, batch numbers, and purchase inward bills.
+              <div className="p-3 rounded-xl border border-slate-200 bg-slate-50 flex items-start gap-2">
+                <Package className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                <span><strong>Stock Manager:</strong> Can manage godowns, inventory adjustments, batch numbers, and purchase inward bills.</span>
               </div>
-              <div className="p-3 rounded-xl border border-slate-200 bg-slate-50">
-                <strong>🛵 Delivery Boy:</strong> Can view assigned delivery orders, verify customer deliveries, and collect cash/UPI receipts.
+              <div className="p-3 rounded-xl border border-slate-200 bg-slate-50 flex items-start gap-2">
+                <Truck className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" />
+                <span><strong>Delivery Boy:</strong> Can view assigned delivery orders, verify customer deliveries, and collect cash/UPI receipts.</span>
               </div>
-              <div className="p-3 rounded-xl border border-slate-200 bg-slate-50">
-                <strong>💻 Chartered Accountant (CA):</strong> Dedicated read-only access to audit registers, GSTR reports, balance sheet, and daybook.
+              <div className="p-3 rounded-xl border border-slate-200 bg-slate-50 flex items-start gap-2">
+                <FileSpreadsheet className="w-4 h-4 text-[#1677E8] shrink-0 mt-0.5" />
+                <span><strong>Chartered Accountant (CA):</strong> Dedicated read-only access to audit registers, GSTR reports, balance sheet, and daybook.</span>
               </div>
             </div>
             <div className="px-6 py-3 border-t border-slate-100 text-right">

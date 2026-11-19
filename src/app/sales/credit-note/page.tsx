@@ -7,6 +7,8 @@ import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/scorecard-ribbon";
 import { formatInr } from "@/components/design-system/tokens";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { X } from "lucide-react";
 
 type DateRangePreset =
   | "ALL"
@@ -268,6 +270,13 @@ function CreditNoteListPage() {
     [metrics, lang],
   );
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, categoryFilter, searchQuery, dateRangePreset, customStartDate, customEndDate]);
+
   const displayedRows = useMemo(() => {
     return rows.filter((r) => {
       if (statusFilter === "OPEN" && (r.status === "CLOSED" || r.status === "CANCELLED")) return false;
@@ -276,6 +285,11 @@ function CreditNoteListPage() {
       return true;
     });
   }, [rows, statusFilter]);
+
+  const paginatedRows = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return displayedRows.slice(start, start + pageSize);
+  }, [displayedRows, currentPage, pageSize]);
 
   return (
     <div className="space-y-4 max-w-7xl mx-auto min-w-0 pb-16 font-sans">
@@ -415,7 +429,9 @@ function CreditNoteListPage() {
       {error && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700 flex items-center justify-between shadow-2xs">
           <span>{error}</span>
-          <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700 font-bold">✕</button>
+          <button type="button" onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700 p-0.5 rounded cursor-pointer">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -476,7 +492,7 @@ function CreditNoteListPage() {
               )}
 
               {!isLoading &&
-                displayedRows.map((row) => {
+                paginatedRows.map((row) => {
                   const tax = Number(row.cgstAmount || 0) + Number(row.sgstAmount || 0) + Number(row.igstAmount || 0);
                   const isCommercial = row.gstCategory === "COMMERCIAL";
                   const isSettled = row.status === "CLOSED" || row.status === "REFUNDED" || row.status === "PAID";
@@ -588,6 +604,19 @@ function CreditNoteListPage() {
                 })}
             </tbody>
           </table>
+        </div>
+        <div className="bg-white border-t border-[#E2E8E5] px-3.5 sm:px-4 py-1 rounded-b-2xl">
+          <DataTablePagination
+            currentPage={currentPage}
+            pageSize={pageSize}
+            totalRecords={displayedRows.length}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(newSize) => {
+              setPageSize(newSize);
+              setCurrentPage(1);
+            }}
+            lang={lang}
+          />
         </div>
       </div>
     </div>

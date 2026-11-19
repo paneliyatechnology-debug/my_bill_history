@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Check, Clock } from "lucide-react";
 import { formatInr } from "./tokens";
 
 export interface DocumentPaymentCardProps {
@@ -111,14 +112,12 @@ export function DocumentPaymentCard({
         <span className="text-xs font-bold flex items-center gap-1.5">
           {isSettled ? (
             <>
-              <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-              </svg>
+              <Check className="w-4 h-4 text-emerald-600 stroke-[2.5]" />
               <span>{lang === "gu" ? "સંપૂર્ણ ચૂકતે થયેલ" : "Fully Settled"}</span>
             </>
           ) : (
             <>
-              <span className="text-amber-600">⏳</span>
+              <Clock className="w-4 h-4 text-amber-600" />
               <span>{lang === "gu" ? "બાકી રકમ" : "Balance Due"}</span>
             </>
           )}

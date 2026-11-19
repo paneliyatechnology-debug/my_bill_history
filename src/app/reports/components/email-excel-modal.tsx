@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Modal } from "../../../components/ui/modal";
+import { Check, BarChart3, Mail } from "lucide-react";
 
 interface EmailExcelModalProps {
   isOpen: boolean;
@@ -60,8 +61,8 @@ export function EmailExcelModal({
     >
       {isSuccess ? (
         <div className="py-8 text-center space-y-3">
-          <div className="w-12 h-12 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl">
-            ✓
+          <div className="w-12 h-12 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+            <Check className="w-6 h-6 stroke-[2.5]" />
           </div>
           <h3 className="text-[15px] font-semibold text-slate-800">
             {lang === "gu" ? "રિપોર્ટ સફળતાપૂર્વક મોકલાયો!" : "Report Sent Successfully!"}
@@ -73,7 +74,7 @@ export function EmailExcelModal({
       ) : (
         <form onSubmit={handleSend} className="space-y-4">
           <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-xl flex items-center gap-2.5 text-xs text-blue-800">
-            <span className="text-base">📊</span>
+            <BarChart3 className="w-4 h-4 text-blue-600 shrink-0" />
             <div>
               <p className="font-semibold text-blue-900">{reportName}</p>
               <p className="text-[11px] text-blue-700">
@@ -137,7 +138,7 @@ export function EmailExcelModal({
                 </>
               ) : (
                 <>
-                  <span>✉</span>
+                  <Mail className="w-3.5 h-3.5" />
                   <span>Send Email</span>
                 </>
               )}

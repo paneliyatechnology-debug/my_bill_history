@@ -6,6 +6,7 @@ import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { Badge, StatusBadge } from "../../../components/ui/badge";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
+import { X } from "lucide-react";
 
 interface TransferItem {
   id: string;
@@ -750,9 +751,10 @@ export default function StockTransfersPage() {
                       <button
                         type="button"
                         onClick={() => handleRemoveItem(idx)}
-                        className="text-slate-400 hover:text-rose-600"
+                        className="text-slate-400 hover:text-rose-600 p-1 cursor-pointer"
+                        title="Remove item"
                       >
-                        ✕
+                        <X className="w-4 h-4 inline" />
                       </button>
                     )}
                   </div>

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient } from "../../../lib/api-client";
+import { X, Phone, Handshake, UserCheck, Zap, CheckCircle2, AlertTriangle, AlertCircle, Check, Square, Play } from "lucide-react";
 
 // ============================================================================
 // Types
@@ -707,7 +708,9 @@ export default function AICollectionsPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span>{errorMessage}</span>
-          <button onClick={() => setErrorMessage(null)} className="ml-2 text-white/80 hover:text-white">✕</button>
+          <button onClick={() => setErrorMessage(null)} className="ml-2 text-white/80 hover:text-white p-0.5 rounded cursor-pointer">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
       {successMessage && (
@@ -716,7 +719,9 @@ export default function AICollectionsPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
           <span>{successMessage}</span>
-          <button onClick={() => setSuccessMessage(null)} className="ml-2 text-white/80 hover:text-white">✕</button>
+          <button onClick={() => setSuccessMessage(null)} className="ml-2 text-white/80 hover:text-white p-0.5 rounded cursor-pointer">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -834,7 +839,7 @@ export default function AICollectionsPage() {
                     Scheduled In Queue
                   </span>
                   <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-                    📞
+                    <Phone className="w-4 h-4 text-blue-600" />
                   </div>
                 </div>
                 <div className="mt-2 text-2xl font-bold text-slate-900">
@@ -851,7 +856,7 @@ export default function AICollectionsPage() {
                     Promises Received
                   </span>
                   <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                    🤝
+                    <Handshake className="w-4 h-4 text-emerald-600" />
                   </div>
                 </div>
                 <div className="mt-2 text-2xl font-bold text-slate-900">
@@ -868,7 +873,7 @@ export default function AICollectionsPage() {
                     Needs Human Attention
                   </span>
                   <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-                    👤
+                    <UserCheck className="w-4 h-4 text-amber-600" />
                   </div>
                 </div>
                 <div className="mt-2 text-2xl font-bold text-slate-900">
@@ -1035,7 +1040,7 @@ export default function AICollectionsPage() {
               <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center animate-pulse">
-                    ⚡
+                    <Zap className="w-4 h-4 text-white" />
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-indigo-900 uppercase tracking-wider">
@@ -1400,7 +1405,17 @@ export default function AICollectionsPage() {
                                     : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
                                 }`}
                               >
-                                <span>{playingAudioUrl === call.recordingUrl ? "⏹ Stop" : "▶ Play"}</span>
+                                {playingAudioUrl === call.recordingUrl ? (
+                                  <>
+                                    <Square className="w-2.5 h-2.5 fill-current" />
+                                    <span>Stop</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Play className="w-2.5 h-2.5 fill-current" />
+                                    <span>Play</span>
+                                  </>
+                                )}
                               </button>
                             ) : (
                               <span className="text-slate-400">N/A</span>
@@ -1576,8 +1591,12 @@ export default function AICollectionsPage() {
                   }`}
                 >
                   <div className="flex items-start gap-2.5">
-                    <span className="text-base flex-shrink-0">
-                      {testConnectionResult.success ? "✅" : "⚠️"}
+                    <span className="flex-shrink-0 pt-0.5">
+                      {testConnectionResult.success ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      ) : (
+                        <AlertTriangle className="w-4 h-4 text-rose-600" />
+                      )}
                     </span>
                     <div className="flex-1">
                       <p className="font-semibold text-xs leading-snug">
@@ -1611,7 +1630,7 @@ export default function AICollectionsPage() {
 
                   {testConnectionResult.trialRestrictions && (
                     <div className="p-2.5 bg-amber-50 rounded-lg border border-amber-200 text-amber-900 text-[11px] flex items-start gap-2">
-                      <span className="flex-shrink-0">⚠️</span>
+                      <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="font-semibold">Twilio Trial Account Detected</p>
                         <p className="text-slate-600">
@@ -1633,10 +1652,11 @@ export default function AICollectionsPage() {
                               setTestCallPhone(phone);
                               showToast(`Selected ${phone} for test call.`);
                             }}
-                            className="px-2 py-0.5 bg-white border border-emerald-300 rounded font-mono text-[11px] text-emerald-900 hover:bg-emerald-100 transition-colors"
+                            className="inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-emerald-300 rounded font-mono text-[11px] text-emerald-900 hover:bg-emerald-100 transition-colors cursor-pointer"
                             title="Click to use for test call"
                           >
-                            📞 {phone}
+                            <Phone className="w-3 h-3 text-emerald-700" />
+                            <span>{phone}</span>
                           </button>
                         ))}
                       </div>
@@ -1834,7 +1854,7 @@ export default function AICollectionsPage() {
                     </>
                   ) : (
                     <>
-                      <span>📞</span>
+                      <Phone className="w-3.5 h-3.5" />
                       <span>Initiate Real Test Call</span>
                     </>
                   )}
@@ -1851,7 +1871,11 @@ export default function AICollectionsPage() {
                 >
                   <div className="flex items-center justify-between">
                     <p className="font-bold flex items-center gap-2">
-                      <span>{testCallResult.success ? "🎉" : "❌"}</span>
+                      {testCallResult.success ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-rose-600" />
+                      )}
                       <span>{testCallResult.message}</span>
                     </p>
                     {testCallResult.callId && (
@@ -2059,7 +2083,9 @@ export default function AICollectionsPage() {
               <h3 className="text-base font-bold text-slate-900">
                 Confirm Calling Campaign
               </h3>
-              <button onClick={() => setIsBulkModalOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+              <button onClick={() => setIsBulkModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-md cursor-pointer">
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
             <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-lg text-xs text-indigo-900">
@@ -2137,9 +2163,9 @@ export default function AICollectionsPage() {
               </div>
               <button
                 onClick={closeCallDetails}
-                className="w-8 h-8 rounded-lg hover:bg-slate-200 flex items-center justify-center text-slate-600"
+                className="w-8 h-8 rounded-lg hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors cursor-pointer"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -2190,9 +2216,19 @@ export default function AICollectionsPage() {
                         <button
                           type="button"
                           onClick={() => togglePlayAudio(callDrawerData.metadata.recordingUrl!)}
-                          className="px-2 py-1 text-xs font-medium text-white bg-[#5C56DF] hover:bg-indigo-700 rounded shadow-xs"
+                          className="px-2.5 py-1 text-xs font-medium text-white bg-[#5C56DF] hover:bg-indigo-700 rounded shadow-xs inline-flex items-center gap-1.5"
                         >
-                          {playingAudioUrl === callDrawerData.metadata.recordingUrl ? "⏹ Stop Recording" : "▶ Play Recording"}
+                          {playingAudioUrl === callDrawerData.metadata.recordingUrl ? (
+                            <>
+                              <Square className="w-3 h-3 fill-current" />
+                              <span>Stop Recording</span>
+                            </>
+                          ) : (
+                            <>
+                              <Play className="w-3 h-3 fill-current" />
+                              <span>Play Recording</span>
+                            </>
+                          )}
                         </button>
                       )}
                     </div>

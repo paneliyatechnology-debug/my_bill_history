@@ -6,6 +6,30 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { apiClient, extractList } from "@/lib/api-client";
 import { Modal } from "@/components/ui/modal";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import {
+  Check,
+  X,
+  Download,
+  FileSpreadsheet,
+  Calendar,
+  PieChart,
+  BarChart2,
+  Pencil,
+  Trash2,
+  FileText,
+  Search,
+  ChevronDown,
+  ArrowUpDown,
+  Banknote,
+  CreditCard,
+  Plus,
+  Settings,
+  MoreVertical,
+  SlidersHorizontal,
+  Tag,
+  ArrowDownLeft,
+} from "lucide-react";
 
 const DEFAULT_EXPENSE_CATEGORIES = [
   "Bank Fee and Charges",
@@ -200,37 +224,82 @@ export default function ExpensesPage() {
   }, [expenseAccounts, customCategories]);
 
   // Helper to extract voucher details
-  const getVoucherDetails = (v: Voucher) => {
-    const lines = v.journalEntries || v.lines || [];
-    const expenseLine = lines.find((l) => Number(l.debitAmount) > 0);
-    const paymentLine = lines.find((l) => Number(l.creditAmount) > 0);
+  const getVoucherDetails = useCallback(
+    (v: Voucher) => {
+      const lines = v.journalEntries || v.lines || [];
+      const debitLine = lines.find((l) => Number(l.debitAmount) > 0);
+      const creditLine = lines.find((l) => Number(l.creditAmount) > 0);
 
-    // Extract party name from narration or reference
-    let partyName = "-";
-    if (v.narration && v.narration.includes("Party:")) {
-      const match = v.narration.match(/Party:\s*([^;|,\n]+)/);
-      if (match) partyName = match[1].trim();
-    }
+      const debitAccount = debitLine?.account;
+      const creditAccount = creditLine?.account;
 
-    let categoryName = expenseLine?.account?.name || "General Expense";
-    if (v.narration) {
-      // Check if narration starts with a category name
-      for (const cat of allCategories) {
-        if (v.narration.includes(cat)) {
-          categoryName = cat;
-          break;
+      // Extract Payment Mode (e.g. Cash, HDFC Bank)
+      const paymentMode = creditAccount?.name || "Cash";
+
+      // 1. Extract Party Name
+      let partyName = "-";
+      if (v.narration && v.narration.includes("Party:")) {
+        const match = v.narration.match(/Party:\s*([^;|,\n]+)/);
+        if (match) partyName = match[1].trim();
+      }
+
+      // Distinguish between expense ledger and party ledger
+      const isExpenseLedger = Boolean(
+        debitAccount &&
+          (debitAccount.group?.nature === "EXPENSE" ||
+            expenseAccounts.some((e) => e.id === debitAccount.id) ||
+            debitAccount.name.toLowerCase().includes("expense") ||
+            debitAccount.name.toLowerCase().includes("charge") ||
+            debitAccount.name.toLowerCase().includes("salary") ||
+            debitAccount.name.toLowerCase().includes("rent") ||
+            debitAccount.name.toLowerCase().includes("tea") ||
+            debitAccount.name.toLowerCase().includes("advertising"))
+      );
+
+      // Check if debit account is a Party (Vendor / Creditor / Debtor or non-expense)
+      const isPartyAccount = Boolean(
+        debitAccount &&
+          (!isExpenseLedger ||
+            debitAccount.group?.nature === "LIABILITY" ||
+            debitAccount.group?.name?.toLowerCase().includes("creditor") ||
+            debitAccount.group?.name?.toLowerCase().includes("debtor") ||
+            parties.some((p) => p.name.toLowerCase() === debitAccount.name.toLowerCase()))
+      );
+
+      if (partyName === "-" && isPartyAccount && debitAccount?.name) {
+        partyName = debitAccount.name;
+      }
+
+      // 2. Extract Category Name
+      let categoryName = "General Expense";
+      if (v.narration) {
+        for (const cat of allCategories) {
+          if (v.narration.toLowerCase().includes(cat.toLowerCase())) {
+            categoryName = cat;
+            break;
+          }
         }
       }
-    }
 
-    return {
-      expenseAccount: expenseLine?.account,
-      paymentAccount: paymentLine?.account,
-      partyName,
-      categoryName,
-      amount: expenseLine ? Number(expenseLine.debitAmount) : v.totalAmount,
-    };
-  };
+      if (categoryName === "General Expense") {
+        if (!isPartyAccount && debitAccount?.name) {
+          categoryName = debitAccount.name;
+        } else if (isPartyAccount) {
+          categoryName = "Vendor Payment";
+        }
+      }
+
+      return {
+        expenseAccount: debitAccount,
+        paymentAccount: creditAccount,
+        partyName,
+        categoryName,
+        paymentMode,
+        amount: debitLine ? Number(debitLine.debitAmount) : v.totalAmount,
+      };
+    },
+    [allCategories, parties, expenseAccounts]
+  );
 
   // Filter & sort vouchers
   const filteredVouchers = useMemo(() => {
@@ -316,6 +385,53 @@ export default function ExpensesPage() {
         }
       });
   }, [vouchers, searchTerm, categoryFilter, dateRangeFilter, sortField, sortAsc, allCategories]);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [categoryFilter, dateRangeFilter, searchTerm]);
+
+  const totalVouchers = filteredVouchers.length;
+  const paginatedVouchers = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredVouchers.slice(start, start + pageSize);
+  }, [filteredVouchers, currentPage, pageSize]);
+
+  // Summary Metrics for KPI cards
+  const expenseMetrics = useMemo(() => {
+    let total = 0;
+    let activeCount = 0;
+    const categoryTotals: Record<string, number> = {};
+
+    filteredVouchers.forEach((v) => {
+      const d = getVoucherDetails(v);
+      const amt = Number(d.amount) || 0;
+      total += amt;
+      if (!v.isCancelled) activeCount++;
+      const cat = d.categoryName || "Other";
+      categoryTotals[cat] = (categoryTotals[cat] || 0) + amt;
+    });
+
+    let topCatName = "-";
+    let topCatAmt = 0;
+    Object.entries(categoryTotals).forEach(([cat, amt]) => {
+      if (amt > topCatAmt) {
+        topCatAmt = amt;
+        topCatName = cat;
+      }
+    });
+
+    return {
+      totalAmount: total,
+      totalCount: filteredVouchers.length,
+      activeCount,
+      topCategory: topCatName,
+      topCategoryAmount: topCatAmt,
+    };
+  }, [filteredVouchers, getVoucherDetails]);
 
   // Export CSV / Excel compatible with BOM
   const handleExportCSV = () => {
@@ -620,15 +736,31 @@ export default function ExpensesPage() {
       {/* Toast */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 animate-fade-in text-xs font-semibold">
-          <span>✓</span>
+          <Check className="w-4 h-4 text-white" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Top Header matching MyBillBook screenshot */}
+      {/* Top Header Command Strip */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
         <div>
-          <h1 className="typo-page-title text-[#182230]">Expenses</h1>
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#2563EB]">
+              {lang === "gu" ? "નાણાકીય ખર્ચ" : "FINANCE & EXPENSES"}
+            </span>
+            <span className="text-slate-300">•</span>
+            <span className="text-xs text-[#64748B]">
+              {totalVouchers} {lang === "gu" ? "નોંધો" : "Records"}
+            </span>
+          </div>
+          <h1 className="typo-page-title text-[#1E293B]">
+            {lang === "gu" ? "ખર્ચાઓ (Expenses)" : "Expenses"}
+          </h1>
+          <p className="typo-page-subtitle text-[#64748B] mt-0.5">
+            {lang === "gu"
+              ? "તમામ ઓપરેશનલ ખર્ચા, વેન્ડર પેમેન્ટ અને કેટેગરી અનુસાર વિગતો જુઓ."
+              : "Track operational expenses, vendor payments, and category-wise spending."}
+          </p>
         </div>
 
         {/* Top Right Action Buttons */}
@@ -637,118 +769,157 @@ export default function ExpensesPage() {
           <div className="relative" ref={reportsMenuRef}>
             <button
               onClick={() => setIsReportsMenuOpen(!isReportsMenuOpen)}
-              className="h-9 px-3 bg-white hover:bg-slate-50 text-[#1677E8] font-medium text-[13px] rounded-lg border border-teal-200 shadow-sm flex items-center gap-1.5 transition-all"
+              className="h-9 px-3.5 bg-white hover:bg-slate-50 text-[#1E293B] font-medium text-[13px] rounded-xl border border-[#E2E8F0] shadow-2xs flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <svg className="w-4 h-4 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span>Reports</span>
-              <svg className="w-3.5 h-3.5 text-indigo-400 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              <FileText className="w-4 h-4 text-[#2563EB]" />
+              <span>{lang === "gu" ? "રિપોર્ટ્સ" : "Reports"}</span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-0.5" />
             </button>
 
             {isReportsMenuOpen && (
-              <div className="absolute right-0 mt-1.5 w-56 bg-white border border-slate-200 rounded-xl shadow-lg z-30 py-1.5 text-xs animate-in fade-in duration-150">
+              <div className="absolute right-0 mt-1.5 w-56 bg-white border border-[#E2E8F0] rounded-xl shadow-lg z-30 py-1.5 text-xs animate-in fade-in duration-150">
                 <button
                   onClick={handleExportCSV}
-                  className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 font-medium flex items-center gap-2"
+                  className="w-full text-left h-9 px-3 hover:bg-slate-50 text-[#1E293B] font-medium flex items-center gap-2 cursor-pointer"
                 >
-                  <span>📥</span>
+                  <Download className="w-4 h-4 text-slate-500" />
                   <span>Export to Excel / CSV</span>
                 </button>
                 <button
                   onClick={handleExportPDF}
-                  className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 font-medium flex items-center gap-2"
+                  className="w-full text-left h-9 px-3 hover:bg-slate-50 text-[#1E293B] font-medium flex items-center gap-2 cursor-pointer"
                 >
-                  <span>📑</span>
+                  <FileSpreadsheet className="w-4 h-4 text-slate-500" />
                   <span>Download PDF Statement</span>
                 </button>
                 <Link
                   href="/reports/day-book"
-                  className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 font-medium flex items-center gap-2 block"
+                  className="w-full text-left h-9 px-3 hover:bg-slate-50 text-[#1E293B] font-medium flex items-center gap-2 block"
                 >
-                  <span>📅</span>
+                  <Calendar className="w-4 h-4 text-slate-500" />
                   <span>Day Book Report</span>
                 </Link>
                 <Link
                   href="/reports/expense-category"
-                  className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 font-medium flex items-center gap-2 block"
+                  className="w-full text-left h-9 px-3 hover:bg-slate-50 text-[#1E293B] font-medium flex items-center gap-2 block"
                 >
-                  <span>💸</span>
+                  <PieChart className="w-4 h-4 text-slate-500" />
                   <span>Expense Category Report</span>
                 </Link>
                 <Link
                   href="/reports/general-ledger"
-                  className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 font-medium flex items-center gap-2 block"
+                  className="w-full text-left h-9 px-3 hover:bg-slate-50 text-[#1E293B] font-medium flex items-center gap-2 block"
                 >
-                  <span>📊</span>
+                  <BarChart2 className="w-4 h-4 text-slate-500" />
                   <span>General Ledger Report</span>
                 </Link>
               </div>
             )}
           </div>
 
-          {/* Settings / Manage Category Button */}
+          {/* Manage Categories Button */}
           <button
             onClick={() => {
               setCategoryModalMode("list");
               setIsManageCategoryModalOpen(true);
             }}
-            title="Add/Manage Expense Categories"
-            className="p-2 bg-white hover:bg-slate-50 text-slate-600 rounded-lg border border-slate-200 shadow-sm transition-all"
+            title="Manage Expense Categories"
+            className="h-9 px-3 bg-white hover:bg-slate-50 text-[#1E293B] rounded-xl border border-[#E2E8F0] shadow-2xs transition-colors flex items-center gap-1.5 text-[13px] font-medium cursor-pointer"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-              />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </button>
-
-          {/* Shortcuts icon */}
-          <button
-            title="Keyboard Shortcuts"
-            className="p-2 bg-white hover:bg-slate-50 text-slate-400 hover:text-slate-600 rounded-lg border border-slate-200 shadow-sm transition-all hidden sm:block"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-            </svg>
+            <Tag className="w-4 h-4 text-slate-500" />
+            <span className="hidden sm:inline">{lang === "gu" ? "કેટેગરી" : "Categories"}</span>
           </button>
 
           {/* Primary Create Expense Button */}
           <Link
             href="/finance/expenses/create"
-            className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] text-white font-medium text-[13px] rounded-lg shadow-md transition-all flex items-center gap-1.5"
+            className="h-9 px-4 bg-[#2563EB] hover:bg-[#1D4ED8] active:bg-[#1E40AF] text-white font-medium text-[13px] rounded-xl shadow-sm transition-colors flex items-center gap-1.5 cursor-pointer"
           >
-            <span>Create Expense</span>
+            <Plus className="w-4 h-4" />
+            <span>{lang === "gu" ? "+ નવો ખર્ચ" : "Create Expense"}</span>
           </Link>
         </div>
       </div>
 
-      {/* Filter Bar exactly like MyBillBook */}
-      <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+      {/* 3 Metric Summary Scorecards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Total Expenses */}
+        <div className="bg-white p-4 rounded-2xl border border-[#E2E8F0] shadow-2xs flex items-center justify-between">
+          <div>
+            <span className="text-xs font-medium text-[#64748B] block">
+              {lang === "gu" ? "કુલ ખર્ચ રકમ" : "Total Expenses"}
+            </span>
+            <div className="typo-kpi text-[#1E293B] tabular-nums mt-0.5">
+              ₹ {expenseMetrics.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+            </div>
+            <span className="text-[11px] text-[#64748B] mt-0.5 block">
+              {expenseMetrics.activeCount} {lang === "gu" ? "સક્રિય વ્યવહારો" : "Active Transactions"}
+            </span>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE]/60 flex items-center justify-center shrink-0">
+            <Banknote className="w-5 h-5 text-[#2563EB]" />
+          </div>
+        </div>
+
+        {/* Total Transactions */}
+        <div className="bg-white p-4 rounded-2xl border border-[#E2E8F0] shadow-2xs flex items-center justify-between">
+          <div>
+            <span className="text-xs font-medium text-[#64748B] block">
+              {lang === "gu" ? "કુલ વ્યવહારો" : "Total Transactions"}
+            </span>
+            <div className="typo-kpi text-[#1E293B] tabular-nums mt-0.5">
+              {expenseMetrics.totalCount}
+            </div>
+            <span className="text-[11px] text-[#64748B] mt-0.5 block">
+              {lang === "gu" ? "ચૂકવણી વાઉચરો" : "Payment Vouchers"}
+            </span>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center shrink-0">
+            <FileText className="w-5 h-5 text-[#64748B]" />
+          </div>
+        </div>
+
+        {/* Top Expense Category */}
+        <div className="bg-white p-4 rounded-2xl border border-[#E2E8F0] shadow-2xs flex items-center justify-between">
+          <div className="min-w-0 pr-2">
+            <span className="text-xs font-medium text-[#64748B] block">
+              {lang === "gu" ? "મુખ્ય કેટેગરી" : "Top Category"}
+            </span>
+            <div className="text-base font-semibold text-[#1E293B] truncate mt-0.5" title={expenseMetrics.topCategory}>
+              {expenseMetrics.topCategory}
+            </div>
+            <span className="text-[11px] text-[#64748B] mt-0.5 block tabular-nums">
+              ₹ {expenseMetrics.topCategoryAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })} {lang === "gu" ? "ખર્ચ" : "spent"}
+            </span>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE]/60 flex items-center justify-center shrink-0">
+            <Tag className="w-5 h-5 text-[#2563EB]" />
+          </div>
+        </div>
+      </div>
+
+      {/* Filter Bar */}
+      <div className="bg-white p-3 rounded-2xl border border-[#E2E8F0] shadow-2xs flex flex-col md:flex-row items-center justify-between gap-3">
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto flex-1">
           {/* Search Input */}
-          <div className="relative w-full sm:w-64">
-            <svg
-              className="w-4 h-4 absolute left-3.5 top-3 text-slate-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+          <div className="relative w-full sm:w-72">
+            <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#94A3B8]" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by Party or Expense No..."
-              className="w-full pl-10 pr-4 py-2 text-[13px] bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-teal-100 focus:border-[#1677E8] outline-none transition-all h-10"
+              placeholder={lang === "gu" ? "પાર્ટી, વાઉચર #, કેટેગરી શોધો..." : "Search party, voucher #, category..."}
+              className="w-full pl-9 pr-8 py-2 text-[13px] bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl focus:bg-white focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] outline-none transition-all h-10 placeholder:text-[#94A3B8]"
             />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm("")}
+                className="absolute right-2.5 top-3 text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
           {/* Date Filter */}
@@ -756,7 +927,7 @@ export default function ExpensesPage() {
             <select
               value={dateRangeFilter}
               onChange={(e: any) => setDateRangeFilter(e.target.value)}
-              className="w-full sm:w-auto text-[13px] py-2 pl-8 pr-8 bg-white border border-slate-200 rounded-lg font-normal text-slate-700 outline-none hover:border-slate-300 focus:ring-2 focus:ring-teal-100 cursor-pointer appearance-none h-10"
+              className="w-full sm:w-auto text-[13px] py-2 pl-9 pr-8 bg-white border border-[#E2E8F0] rounded-xl font-normal text-[#1E293B] outline-none hover:border-slate-300 focus:ring-2 focus:ring-[#2563EB]/20 cursor-pointer appearance-none h-10"
             >
               <option value="LAST_365">Last 365 Days</option>
               <option value="TODAY">Today</option>
@@ -767,12 +938,8 @@ export default function ExpensesPage() {
               <option value="THIS_YEAR">This Year</option>
               <option value="ALL">All Time</option>
             </select>
-            <span className="absolute left-2.5 top-2.5 pointer-events-none text-slate-400 text-xs">
-              📅
-            </span>
-            <span className="absolute right-2.5 top-2.5 pointer-events-none text-slate-400 text-xs">
-              📅
-            </span>
+            <Calendar className="w-4 h-4 absolute left-3 top-3 pointer-events-none text-[#94A3B8]" />
+            <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-3.5 pointer-events-none text-[#94A3B8]" />
           </div>
 
           {/* Category Dropdown */}
@@ -780,93 +947,72 @@ export default function ExpensesPage() {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full sm:w-auto text-[13px] py-2 px-3 pr-8 bg-white border border-slate-200 rounded-lg font-normal text-slate-700 outline-none hover:border-slate-300 focus:ring-2 focus:ring-teal-100 cursor-pointer appearance-none h-10"
+              className="w-full sm:w-auto text-[13px] py-2 pl-3 pr-8 bg-white border border-[#E2E8F0] rounded-xl font-normal text-[#1E293B] outline-none hover:border-slate-300 focus:ring-2 focus:ring-[#2563EB]/20 cursor-pointer appearance-none h-10"
             >
-              <option value="ALL">All Expenses Categories</option>
+              <option value="ALL">All Expense Categories</option>
               {allCategories.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat}
                 </option>
               ))}
             </select>
-            <span className="absolute right-2.5 top-2.5 pointer-events-none text-slate-400 text-[10px]">
-              ▼
-            </span>
+            <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-3.5 pointer-events-none text-[#94A3B8]" />
           </div>
         </div>
 
-        {/* Right side Create Expense button on filter bar */}
-        {/* <div className="w-full md:w-auto hidden sm:block">
-          <Link
-            href="/finance/expenses/create"
-            className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white font-medium text-[13px] rounded-lg shadow-sm transition-all flex items-center justify-center gap-1.5"
+        {/* Clear Filters Button if any active */}
+        {(searchTerm || categoryFilter !== "ALL" || dateRangeFilter !== "LAST_365") && (
+          <button
+            onClick={() => {
+              setSearchTerm("");
+              setCategoryFilter("ALL");
+              setDateRangeFilter("LAST_365");
+            }}
+            className="text-xs font-medium text-[#2563EB] hover:text-[#1D4ED8] flex items-center gap-1 cursor-pointer"
           >
-            Create Expense
-          </Link>
-        </div> */}
+            <X className="w-3.5 h-3.5" />
+            <span>Reset Filters</span>
+          </button>
+        )}
       </div>
 
       {/* Main Table / Empty State Card */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden min-h-[460px] flex flex-col justify-between">
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-2xs overflow-hidden flex flex-col">
         {isLoading ? (
           <div className="py-24 text-center">
-            <div className="inline-block animate-spin w-8 h-8 border-3 border-teal-600 border-t-transparent rounded-full mb-3"></div>
-            <p className="text-xs font-semibold text-slate-500">Loading expenses...</p>
+            <div className="inline-block animate-spin w-8 h-8 border-3 border-[#2563EB] border-t-transparent rounded-full mb-3"></div>
+            <p className="text-xs font-semibold text-[#64748B]">Loading expenses...</p>
           </div>
         ) : error ? (
           <div className="p-8 text-center text-rose-600 text-xs font-semibold">
             {error}
           </div>
         ) : filteredVouchers.length === 0 ? (
-          /* Exact Empty State matching MyBillBook screenshot */
           <div className="flex-1 flex flex-col items-center justify-center py-20 px-4 text-center">
-            {/* SVG Illustration matching MyBillBook */}
-            <div className="w-20 h-24 mb-4 relative flex items-center justify-center">
-              <svg
-                className="w-16 h-20 text-slate-300"
-                fill="none"
-                viewBox="0 0 64 80"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M12 4h40a4 4 0 014 4v64l-8-4-8 4-8-4-8 4-8-4-8 4V8a4 4 0 014-4z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M20 18h24M20 28h16"
-                />
-              </svg>
-              {/* Rupee & cross overlay */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center pt-2">
-                <span className="text-xl font-bold text-slate-400">₹</span>
-              </div>
-              <div className="absolute top-2 right-2 text-slate-400 font-bold text-sm">✕</div>
+            <div className="w-16 h-16 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center mb-3">
+              <Banknote className="w-8 h-8 text-[#94A3B8]" />
             </div>
-
-            <p className="typo-empty-heading text-slate-500 mb-4">
-              No Transactions Matching the current filter
+            <h3 className="typo-empty-heading text-[#1E293B] mb-1">
+              No Transactions Matching the Current Filter
+            </h3>
+            <p className="typo-empty-desc text-[#64748B] mb-4">
+              Try adjusting your search query, date range, or category filter.
             </p>
-
             <Link
               href="/finance/expenses/create"
-              className="h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white typo-btn-primary rounded-lg shadow-sm transition-all"
+              className="h-9 px-4 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-medium rounded-xl shadow-2xs transition-colors flex items-center gap-1.5"
             >
-              + Create Expense
+              <Plus className="w-4 h-4" />
+              <span>Create Expense</span>
             </Link>
           </div>
         ) : (
-          /* Table View for Desktop & Responsive Cards for Mobile */
-          <div className="w-full">
+          <>
             {/* Desktop Table View */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-[#EDF2F7] text-slate-600 typo-table-th uppercase tracking-wider border-b border-slate-200">
+                  <tr className="bg-[#FAFBFD] text-[#64748B] typo-table-th uppercase tracking-wider border-b border-[#E2E8F0]">
                     <th
                       onClick={() => {
                         if (sortField === "date") setSortAsc(!sortAsc);
@@ -875,16 +1021,17 @@ export default function ExpensesPage() {
                           setSortAsc(false);
                         }
                       }}
-                      className="py-3 px-4 cursor-pointer hover:text-teal-600 select-none w-36"
+                      className="py-3 px-4 cursor-pointer hover:text-[#2563EB] select-none w-36 transition-colors"
                     >
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
                         <span>Date</span>
-                        <span className="text-slate-400 text-xs">⇅</span>
+                        <ArrowUpDown className="w-3.5 h-3.5 text-[#94A3B8]" />
                       </div>
                     </th>
-                    <th className="py-3 px-4 min-w-[140px]">Expense Number</th>
-                    <th className="py-3 px-4 min-w-[160px]">Party Name</th>
-                    <th className="py-3 px-4 min-w-[160px]">Category</th>
+                    <th className="py-3 px-4 min-w-[140px]">Expense #</th>
+                    <th className="py-3 px-4 min-w-[160px]">Party / Vendor</th>
+                    <th className="py-3 px-4 min-w-[170px]">Category</th>
+                    <th className="py-3 px-4 min-w-[130px]">Payment Mode</th>
                     <th
                       onClick={() => {
                         if (sortField === "amount") setSortAsc(!sortAsc);
@@ -893,30 +1040,30 @@ export default function ExpensesPage() {
                           setSortAsc(false);
                         }
                       }}
-                      className="py-3 px-4 text-right cursor-pointer hover:text-teal-600 select-none w-36"
+                      className="py-3 px-4 text-right cursor-pointer hover:text-[#2563EB] select-none w-36 transition-colors"
                     >
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center justify-end gap-1.5">
                         <span>Amount</span>
-                        <span className="text-slate-400 text-xs">⇅</span>
+                        <ArrowUpDown className="w-3.5 h-3.5 text-[#94A3B8]" />
                       </div>
                     </th>
                     <th className="py-3 px-4 text-center w-14"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredVouchers.map((v) => {
+                <tbody className="divide-y divide-[#E2E8F0]">
+                  {paginatedVouchers.map((v) => {
                     const details = getVoucherDetails(v);
                     return (
                       <tr
                         key={v.id}
                         onClick={() => router.push(`/finance/expenses/${v.id}`)}
-                        className={`hover:bg-slate-50/90 transition-colors cursor-pointer select-none ${
-                          v.isCancelled ? "opacity-60 bg-slate-50/40" : ""
+                        className={`hover:bg-[#F8FBFF] transition-colors cursor-pointer select-none group ${
+                          v.isCancelled ? "opacity-60 bg-slate-50/50" : ""
                         }`}
                         title="Click to view expense details"
                       >
                         {/* Date */}
-                        <td className="py-3.5 px-4 tabular-nums text-slate-700">
+                        <td className="py-3 px-4 tabular-nums text-[#1E293B] text-[13px]">
                           {v.voucherDate
                             ? new Date(v.voucherDate).toLocaleDateString("en-IN", {
                                 day: "2-digit",
@@ -927,77 +1074,90 @@ export default function ExpensesPage() {
                         </td>
 
                         {/* Expense Number */}
-                        <td className="py-3.5 px-4 tabular-nums font-medium text-slate-900">
-                          {v.voucherNumber}
+                        <td className="py-3 px-4">
+                          <span className="font-mono text-xs font-semibold text-[#1E293B] group-hover:text-[#2563EB] transition-colors">
+                            {v.voucherNumber}
+                          </span>
                           {v.referenceNo && (
-                            <span className="block text-[10px] font-normal text-slate-400">
+                            <span className="block text-[11px] font-normal text-[#64748B]">
                               Ref: {v.referenceNo}
                             </span>
                           )}
                         </td>
 
-                        {/* Party Name */}
-                        <td className="py-3.5 px-4 text-slate-700 font-medium">
-                          {details.partyName}
+                        {/* Party / Vendor */}
+                        <td className="py-3 px-4">
+                          {details.partyName !== "-" ? (
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full bg-[#EFF6FF] text-[#2563EB] font-semibold text-[11px] flex items-center justify-center shrink-0">
+                                {details.partyName.charAt(0).toUpperCase()}
+                              </div>
+                              <span className="font-medium text-[#1E293B] text-[13px]">
+                                {details.partyName}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 text-xs">-</span>
+                          )}
                         </td>
 
                         {/* Category */}
-                        <td className="py-3.5 px-4">
-                          <span className="font-semibold text-slate-900">{details.categoryName}</span>
+                        <td className="py-3 px-4">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-[#F1F5F9] text-[#334155] border border-slate-200">
+                            {details.categoryName}
+                          </span>
                           {lang === "gu" && details.expenseAccount?.nameGujarati && (
-                            <span className="text-[10px] text-slate-400 block">
+                            <span className="text-[10px] text-[#94A3B8] block mt-0.5">
                               {details.expenseAccount.nameGujarati}
                             </span>
                           )}
                         </td>
 
+                        {/* Payment Mode */}
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-1.5 text-xs text-[#64748B]">
+                            {details.paymentMode.toLowerCase().includes("cash") ? (
+                              <Banknote className="w-3.5 h-3.5 text-emerald-600" />
+                            ) : (
+                              <CreditCard className="w-3.5 h-3.5 text-blue-600" />
+                            )}
+                            <span className="font-medium text-[#1E293B]">{details.paymentMode}</span>
+                          </div>
+                        </td>
+
                         {/* Amount */}
-                        <td className="py-3.5 px-4 text-right tabular-nums font-medium text-slate-900 text-[13px]">
+                        <td className="py-3 px-4 text-right tabular-nums font-semibold text-[#1E293B] text-[13px]">
                           ₹{" "}
                           {Number(details.amount).toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                           })}
                         </td>
 
-                        {/* Actions (3 Dots Menu matching MyBillBook) */}
-                        <td className="py-3.5 px-4 text-center relative action-menu-container">
+                        {/* Actions */}
+                        <td className="py-3 px-4 text-center relative action-menu-container">
                           <div className="relative inline-block text-left">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setActionMenuVoucherId(actionMenuVoucherId === v.id ? null : v.id);
                               }}
-                              className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                              className="p-1.5 text-[#94A3B8] hover:text-[#1E293B] hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                               title="More options"
                             >
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                                />
-                              </svg>
+                              <MoreVertical className="w-4 h-4" />
                             </button>
 
                             {actionMenuVoucherId === v.id && (
-                              <div className="absolute right-0 mt-1 w-32 bg-white border border-slate-200 rounded-xl shadow-xl z-30 py-1 text-xs animate-in fade-in duration-100">
+                              <div className="absolute right-0 mt-1 w-36 bg-white border border-[#E2E8F0] rounded-xl shadow-xl z-30 py-1 text-xs animate-in fade-in duration-100">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setActionMenuVoucherId(null);
                                     router.push(`/finance/expenses/create?id=${v.id}`);
                                   }}
-                                  className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 font-medium flex items-center gap-2 cursor-pointer"
+                                  className="w-full text-left h-8 px-3 hover:bg-slate-50 text-[#1E293B] font-medium flex items-center gap-2 cursor-pointer"
                                 >
-                                  <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                                    />
-                                  </svg>
+                                  <Pencil className="w-3.5 h-3.5 text-slate-500" />
                                   <span>Edit</span>
                                 </button>
                                 {!v.isCancelled && (
@@ -1009,16 +1169,9 @@ export default function ExpensesPage() {
                                       setReversalError(null);
                                       setActionMenuVoucherId(null);
                                     }}
-                                    className="w-full text-left h-9 px-3 hover:bg-rose-50 text-rose-600 font-medium flex items-center gap-2 cursor-pointer"
+                                    className="w-full text-left h-8 px-3 hover:bg-rose-50 text-rose-600 font-medium flex items-center gap-2 cursor-pointer"
                                   >
-                                    <svg className="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                      />
-                                    </svg>
+                                    <Trash2 className="w-3.5 h-3.5 text-rose-500" />
                                     <span>Delete</span>
                                   </button>
                                 )}
@@ -1034,8 +1187,8 @@ export default function ExpensesPage() {
             </div>
 
             {/* Mobile Cards View */}
-            <div className="block md:hidden divide-y divide-slate-100">
-              {filteredVouchers.map((v) => {
+            <div className="block md:hidden divide-y divide-[#E2E8F0]">
+              {paginatedVouchers.map((v) => {
                 const details = getVoucherDetails(v);
                 return (
                   <div
@@ -1046,10 +1199,10 @@ export default function ExpensesPage() {
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="tabular-nums font-bold text-slate-900 text-xs">
+                      <span className="font-mono text-xs font-semibold text-[#1E293B]">
                         {v.voucherNumber}
                       </span>
-                      <span className="tabular-nums text-[11px] text-slate-500">
+                      <span className="tabular-nums text-xs text-[#64748B]">
                         {v.voucherDate
                           ? new Date(v.voucherDate).toLocaleDateString("en-IN", {
                               day: "2-digit",
@@ -1062,16 +1215,16 @@ export default function ExpensesPage() {
 
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="text-xs font-semibold text-slate-800 block">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#F1F5F9] text-[#334155]">
                           {details.categoryName}
                         </span>
                         {details.partyName !== "-" && (
-                          <span className="text-[11px] text-slate-500 block">
-                            Party: {details.partyName}
+                          <span className="text-xs text-[#64748B] block mt-1">
+                            Party: <span className="font-medium text-[#1E293B]">{details.partyName}</span>
                           </span>
                         )}
                       </div>
-                      <span className="text-sm tabular-nums font-bold text-slate-900">
+                      <span className="text-sm tabular-nums font-semibold text-[#1E293B]">
                         ₹{" "}
                         {Number(details.amount).toLocaleString("en-IN", {
                           minimumFractionDigits: 2,
@@ -1079,37 +1232,55 @@ export default function ExpensesPage() {
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/finance/expenses/create?id=${v.id}`);
-                        }}
-                        className="px-3 py-1 text-[11px] font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-1 cursor-pointer"
-                      >
-                        <span>✏️</span>
-                        <span>Edit</span>
-                      </button>
-                      {!v.isCancelled && (
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs text-[#64748B]">
+                      <span>Mode: <span className="font-medium text-[#1E293B]">{details.paymentMode}</span></span>
+                      <div className="flex items-center gap-2">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            setReversalTarget(v);
-                            setReversalReason("Deleted by user");
-                            setReversalError(null);
+                            router.push(`/finance/expenses/create?id=${v.id}`);
                           }}
-                          className="px-3 py-1 text-[11px] font-medium text-rose-600 bg-rose-50 border border-rose-100 rounded-lg hover:bg-rose-100 flex items-center gap-1 cursor-pointer"
+                          className="px-2.5 py-1 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-1 cursor-pointer"
                         >
-                          <span>🗑️</span>
-                          <span>Delete</span>
+                          <Pencil className="w-3.5 h-3.5 text-slate-500" />
+                          <span>Edit</span>
                         </button>
-                      )}
+                        {!v.isCancelled && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setReversalTarget(v);
+                              setReversalReason("Deleted by user");
+                              setReversalError(null);
+                            }}
+                            className="px-2.5 py-1 text-xs font-medium text-rose-600 bg-rose-50 border border-rose-100 rounded-lg hover:bg-rose-100 flex items-center gap-1 cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                            <span>Delete</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
               })}
             </div>
-          </div>
+
+            {/* Docked Standard Pagination Container */}
+            <div className="border-t border-[#E2E8F0] bg-white px-4 py-2">
+              <DataTablePagination
+                currentPage={currentPage}
+                totalPages={Math.max(1, Math.ceil(totalVouchers / pageSize))}
+                totalRecords={totalVouchers}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={(newSize) => {
+                  setPageSize(newSize);
+                  setCurrentPage(1);
+                }}
+              />
+            </div>
+          </>
         )}
       </div>
 
@@ -1153,9 +1324,9 @@ export default function ExpensesPage() {
                   setIsManageCategoryModalOpen(false);
                   setCategoryModalMode("list");
                 }}
-                className="text-slate-400 hover:text-slate-700 p-2 rounded-lg hover:bg-slate-100 text-[13px] font-medium transition-colors cursor-pointer"
+                className="text-slate-400 hover:text-slate-700 p-2 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -1360,7 +1531,7 @@ export default function ExpensesPage() {
                     onClick={() => handleDownloadVoucherReceipt(selectedVoucher)}
                     className="h-9 px-3 bg-[#EFF6FF] text-[#1677E8] hover:bg-teal-100 font-medium rounded-lg transition-colors flex items-center gap-1.5"
                   >
-                    <span>📄</span>
+                    <FileText className="w-3.5 h-3.5 text-[#1677E8]" />
                     <span>Download PDF Receipt</span>
                   </button>
                   <button

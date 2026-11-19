@@ -24,6 +24,7 @@ import { DashboardBusinessSnapshot } from "@/components/dashboard/dashboard-busi
 import { RecentActivityFeed } from "@/components/dashboard/recent-activity-feed";
 import { UpcomingDuesAlertCard } from "@/components/dashboard/upcoming-dues-alert-card";
 import { aggregateItemSalesByCategory, periodToRange } from "@/lib/sales-by-category";
+import { X, Gift } from "lucide-react";
 
 function DashboardContent() {
   const router = useRouter();
@@ -497,9 +498,10 @@ function DashboardContent() {
               </h3>
               <button
                 onClick={() => setActiveModal(null)}
-                className="p-1 text-slate-400 hover:text-slate-700 rounded-md cursor-pointer"
+                className="p-1 text-slate-400 hover:text-slate-700 rounded-md cursor-pointer transition-colors"
+                aria-label="Close"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
             <p className="typo-modal-desc text-slate-600 leading-relaxed">
@@ -535,9 +537,10 @@ function DashboardContent() {
               </h3>
               <button
                 onClick={() => setActiveModal(null)}
-                className="p-1 text-slate-400 hover:text-slate-700 rounded-md cursor-pointer"
+                className="p-1 text-slate-400 hover:text-slate-700 rounded-md cursor-pointer transition-colors"
+                aria-label="Close"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
             <div className="space-y-3 typo-modal-desc text-slate-600">
@@ -570,8 +573,8 @@ function DashboardContent() {
       {activeModal === "gift" && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-2xs p-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-center space-y-4">
-            <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-2xl">
-              🎁
+            <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto">
+              <Gift className="w-6 h-6 text-amber-600" />
             </div>
             <h3 className="typo-modal-title text-slate-900">
               Refer & Earn ₹500
@@ -603,9 +606,10 @@ function DashboardContent() {
               </h3>
               <button
                 onClick={() => setActiveModal(null)}
-                className="p-1 text-slate-400 hover:text-slate-700 rounded-md cursor-pointer"
+                className="p-1 text-slate-400 hover:text-slate-700 rounded-md cursor-pointer transition-colors"
+                aria-label="Close"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
             <p className="typo-modal-desc text-slate-600">
@@ -660,9 +664,10 @@ function DashboardContent() {
               </h3>
               <button
                 onClick={() => setActiveModal(null)}
-                className="p-1 text-slate-400 hover:text-slate-700 rounded-md cursor-pointer"
+                className="p-1 text-slate-400 hover:text-slate-700 rounded-md cursor-pointer transition-colors"
+                aria-label="Close"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
             <p className="typo-modal-desc text-slate-600">
