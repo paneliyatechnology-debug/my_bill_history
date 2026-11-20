@@ -2,6 +2,7 @@
 
 import React from "react";
 import { X } from "lucide-react";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 
 export interface FilterToolbarProps {
   searchQuery: string;
@@ -73,33 +74,37 @@ export function FilterToolbar({
 
         {/* Date Preset Dropdown */}
         {onDatePresetChange && (
-          <select
-            value={datePreset}
-            onChange={(e) => onDatePresetChange(e.target.value)}
-            className="h-10 bg-white border border-[#E2E8F0] text-[13px] font-normal rounded-[10px] px-3 text-[#182230] focus:outline-none focus:border-[#1677E8] transition-colors cursor-pointer"
-          >
-            {datePresetOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {lang === "gu" && opt.labelGujarati ? opt.labelGujarati : opt.label}
-              </option>
-            ))}
-          </select>
+          <div className="w-[160px]">
+            <CustomSelect
+              size="sm"
+              value={datePreset}
+              onChange={(val: any) => onDatePresetChange(val)}
+              options={datePresetOptions.map((opt) => ({
+                value: opt.value,
+                label: lang === "gu" && opt.labelGujarati ? opt.labelGujarati : opt.label,
+              }))}
+              triggerClassName="rounded-[10px] border-[#E2E8F0] bg-white text-[#182230]"
+            />
+          </div>
         )}
 
         {/* Status Dropdown */}
         {onStatusFilterChange && statusOptions && (
-          <select
-            value={statusFilter}
-            onChange={(e) => onStatusFilterChange(e.target.value)}
-            className="h-10 bg-white border border-[#E2E8F0] text-[13px] font-normal rounded-[10px] px-3 text-[#182230] focus:outline-none focus:border-[#1677E8] transition-colors cursor-pointer"
-          >
-            <option value="ALL">{lang === "gu" ? "બધા સ્ટેટસ (All Status)" : "All Status"}</option>
-            {statusOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {lang === "gu" && opt.labelGujarati ? opt.labelGujarati : opt.label}
-              </option>
-            ))}
-          </select>
+          <div className="w-[160px]">
+            <CustomSelect
+              size="sm"
+              value={statusFilter}
+              onChange={(val: any) => onStatusFilterChange(val)}
+              options={[
+                { value: "ALL", label: lang === "gu" ? "બધા સ્ટેટસ (All Status)" : "All Status" },
+                ...statusOptions.map((opt) => ({
+                  value: opt.value,
+                  label: lang === "gu" && opt.labelGujarati ? opt.labelGujarati : opt.label,
+                })),
+              ]}
+              triggerClassName="rounded-[10px] border-[#E2E8F0] bg-white text-[#182230]"
+            />
+          </div>
         )}
 
         {extraFilters}

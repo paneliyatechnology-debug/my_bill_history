@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../../context/auth-context";
@@ -18,6 +19,7 @@ import {
   HelpCircle,
   LogOut,
   ChevronLeft,
+  Clock,
 } from "lucide-react";
 
 export interface SettingsSidebarProps {
@@ -28,7 +30,7 @@ export interface SettingsSidebarProps {
 export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { currentCompany, user, lang, logout } = useAuth();
+  const { currentCompany, user, lang, logout, hasPermission } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const displayName =
@@ -55,6 +57,8 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
     if (rawTab === "e-invoice" || rawTab === "einvoice" || rawTab === "e-invoices") return "e-invoice";
     if (rawTab === "thermal-print" || rawTab === "print-settings") return "thermal-print";
     if (rawTab === "user-management" || rawTab === "manage-users") return "user-management";
+    if (rawTab === "roles" || rawTab === "role-and-permissions" || rawTab === "roles-and-permissions") return "roles";
+    if (rawTab === "activity-logs" || rawTab === "activities" || rawTab === "audit-logs") return "activity-logs";
     if (rawTab === "reminders") return "reminders";
     if (rawTab === "ca-reports-sharing" || rawTab === "ca-sharing") return "ca-reports-sharing";
     if (rawTab === "pricing" || rawTab === "pricing-settings") return "pricing";
@@ -109,6 +113,20 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
       icon: <Users className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
     {
+      id: "roles",
+      href: "/settings/roles",
+      label: "Role & Permissions",
+      labelGujarati: "રોલ અને પરવાનગીઓ",
+      icon: <ShieldCheck className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+    },
+    {
+      id: "activity-logs",
+      href: "/settings/activity-logs",
+      label: "Activity Logs",
+      labelGujarati: "પ્રવૃત્તિ લૉગ્સ",
+      icon: <Clock className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+    },
+    {
       id: "reminders",
       href: "/settings/reminders",
       label: "Reminders",
@@ -144,6 +162,13 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
       icon: <HelpCircle className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
     },
   ];
+
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.id === "company") return hasPermission("settings", "edit_company");
+    if (item.id === "user-management") return hasPermission("settings", "edit_users");
+    if (item.id === "help-support") return true;
+    return hasPermission("settings", "view");
+  });
 
   return (
     <>
@@ -182,7 +207,7 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
 
           {/* Navigation Items List */}
           <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5">
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const isActive = currentTab === item.id;
 
               return (
@@ -260,7 +285,14 @@ export function SettingsSidebar({ activeTab, onCloseMobile }: SettingsSidebarPro
               ISO Certified
             </span>
           </div> */}
-          <div className="flex items-center gap-1 text-[11px] font-bold text-slate-700 mt-1">
+          <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700 mt-1">
+            <Image
+              src="/logo-icon.png"
+              alt="MyOwnBillBook"
+              width={16}
+              height={16}
+              className="object-contain shrink-0"
+            />
             <span className="text-[#0F172A]">MyOwn</span>
             <span className="text-[#1677E8]">BillBook</span>
             <span className="text-[9px] text-[#8E9F9A] font-normal">by Paneliya Technology</span>

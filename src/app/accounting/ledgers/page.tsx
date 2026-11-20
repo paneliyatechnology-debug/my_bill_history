@@ -7,6 +7,7 @@ import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { StatusBadge } from "../../../components/ui/badge";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
+import { CustomSelect, CustomCombobox } from "../../../components/ui/dropdown-system";
 
 interface LedgerAccount {
   id: string;
@@ -273,19 +274,17 @@ export default function LedgersPage() {
         themeColor="saffron"
         toolbarChildren={
           groups.length > 0 ? (
-            <div className="flex items-center gap-2">
-              <select
+            <div className="flex items-center gap-2 min-w-[200px]">
+              <CustomSelect
+                size="md"
                 value={groupFilter}
-                onChange={(e) => setGroupFilter(e.target.value)}
-                className="text-[13px] bg-[#F8FAFC] border border-[#E5E7EB] text-[#182230] rounded-xl px-3 py-2 font-normal focus:outline-none focus:ring-2 focus:ring-[#0F172A]/20 focus:border-[#0F172A] transition-all cursor-pointer h-10"
-              >
-                <option value="ALL">{lang === "gu" ? "તમામ જૂથ (All Groups)" : "All Ledger Groups"}</option>
-                {groups.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    {g.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(val: any) => setGroupFilter(val)}
+                options={[
+                  { value: "ALL", label: lang === "gu" ? "તમામ જૂથ (All Groups)" : "All Ledger Groups" },
+                  ...groups.map((g) => ({ value: g.id, label: g.name })),
+                ]}
+                triggerClassName="rounded-xl h-10 border-[#E5E7EB] bg-[#F8FAFC]"
+              />
             </div>
           ) : undefined
         }
@@ -380,19 +379,16 @@ export default function LedgersPage() {
             <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               Parent Ledger Group *
             </label>
-            <select
+            <CustomCombobox
               value={formData.groupId}
-              onChange={(e) =>
-                setFormData({ ...formData, groupId: e.target.value })
+              onChange={(val: any) =>
+                setFormData({ ...formData, groupId: val })
               }
-              className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white h-10"
-            >
-              {groups.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name}
-                </option>
-              ))}
-            </select>
+              options={groups.map((g) => ({ value: g.id, label: g.name }))}
+              placeholder="Select Parent Group..."
+              searchPlaceholder="Search ledger group..."
+              triggerClassName="rounded-lg h-10 border-slate-300 bg-slate-50"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -417,19 +413,20 @@ export default function LedgersPage() {
               <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 Balance Type
               </label>
-              <select
+              <CustomSelect
                 value={formData.openingBalanceType}
-                onChange={(e: any) =>
+                onChange={(val: any) =>
                   setFormData({
                     ...formData,
-                    openingBalanceType: e.target.value,
+                    openingBalanceType: val,
                   })
                 }
-                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded h-10"
-              >
-                <option value="DEBIT">{lang === "gu" ? "ઉધાર (Dr - Debit)" : "Debit (Dr)"}</option>
-                <option value="CREDIT">{lang === "gu" ? "જમા (Cr - Credit)" : "Credit (Cr)"}</option>
-              </select>
+                options={[
+                  { value: "DEBIT", label: lang === "gu" ? "ઉધાર (Dr - Debit)" : "Debit (Dr)" },
+                  { value: "CREDIT", label: lang === "gu" ? "જમા (Cr - Credit)" : "Credit (Cr)" },
+                ]}
+                triggerClassName="rounded-lg h-10 border-slate-300 bg-slate-50"
+              />
             </div>
           </div>
 

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { DocumentInfoStripProps } from "./types";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 
 export function DocumentInfoStrip({ fields }: DocumentInfoStripProps) {
   return (
@@ -16,25 +17,17 @@ export function DocumentInfoStrip({ fields }: DocumentInfoStripProps) {
             {field.customRender ? (
               field.customRender
             ) : field.type === "select" ? (
-              <div className="relative">
-                <select
-                  value={field.value ?? ""}
-                  onChange={(e) => field.onChange?.(e.target.value)}
-                  className="w-full py-1 px-2 typo-input bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs appearance-none pr-6 cursor-pointer h-8.5 truncate"
-                >
-                  {field.placeholder && <option value="">{field.placeholder}</option>}
-                  {field.options?.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
+              <CustomSelect
+                size="sm"
+                value={field.value ?? ""}
+                onChange={(val: any) => field.onChange?.(val)}
+                placeholder={field.placeholder}
+                options={field.options?.map((opt) => ({
+                  value: opt.value,
+                  label: opt.label,
+                })) || []}
+                triggerClassName="rounded-xl border-slate-200 bg-white"
+              />
             ) : field.type === "date" ? (
               <div className="relative">
                 <input

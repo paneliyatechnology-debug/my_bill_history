@@ -15,6 +15,7 @@ import {
 import { useActiveInvoiceTheme } from "@/lib/use-active-invoice-theme";
 import { DynamicThemedInvoice } from "@/components/invoice/dynamic-themed-invoice";
 import { AlertTriangle, Check, X, Tag, MessageCircle, CreditCard } from "lucide-react";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 
 interface PurchaseInvoiceDetail {
   id: string;
@@ -590,31 +591,35 @@ function PurchaseInvoiceDetailContent() {
 
               <div>
                 <label className="block font-medium text-slate-700 mb-1">Payment Mode *</label>
-                <select
+                <CustomSelect
                   value={payMode}
-                  onChange={(e) => setPaymentMode(e.target.value)}
-                  className="w-full p-2 border border-slate-300 rounded-xl font-normal text-[13px] font-normal h-10"
-                >
-                  <option value="CASH">Cash</option>
-                  <option value="BANK_TRANSFER">Bank Transfer</option>
-                  <option value="UPI_QR">UPI / QR</option>
-                  <option value="CHEQUE">Cheque</option>
-                </select>
+                  onChange={(val: any) => setPaymentMode(val)}
+                  options={[
+                    { value: "CASH", label: "Cash" },
+                    { value: "BANK_TRANSFER", label: "Bank Transfer" },
+                    { value: "UPI_QR", label: "UPI / QR" },
+                    { value: "CHEQUE", label: "Cheque" },
+                  ]}
+                  triggerClassName="rounded-xl border-slate-300"
+                />
               </div>
             </div>
 
             <div>
               <label className="block font-medium text-slate-700 mb-1">Paid From Account</label>
-              <select
+              <CustomCombobox
                 value={payAccountId}
-                onChange={(e) => setPayAccountId(e.target.value)}
-                className="w-full p-2 border border-slate-300 rounded-xl text-[13px] font-normal h-10"
-              >
-                <option value="">Default Cash Account</option>
-                {payAccounts.map((acc) => (
-                  <option key={acc.id} value={acc.id}>{acc.name}</option>
-                ))}
-              </select>
+                onChange={(val: any) => setPayAccountId(val)}
+                placeholder="Default Cash Account"
+                options={[
+                  { value: "", label: "Default Cash Account" },
+                  ...payAccounts.map((acc) => ({
+                    value: acc.id,
+                    label: acc.name,
+                  })),
+                ]}
+                triggerClassName="rounded-xl border-slate-300"
+              />
             </div>
 
             <div>

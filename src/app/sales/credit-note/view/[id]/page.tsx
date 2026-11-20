@@ -13,6 +13,7 @@ import {
   DynamicCompanyData,
 } from "@/components/invoice/dynamic-themed-invoice";
 import { Palette, Zap, Link2, Mail, X } from "lucide-react";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 
 // Helper: Indian Rupee Formatter
 function formatInr(val: number | string | undefined): string {
@@ -523,17 +524,21 @@ export default function CreditNoteViewPage() {
         {/* Right: Actions */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Paper Size Selector */}
-          <select
-            value={selectedPaperSize}
-            onChange={(e) => setSelectedPaperSize(e.target.value as any)}
-            className="px-2.5 py-1.5 text-[13px] font-normal text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer h-10"
-          >
-            <option value="A4">A4 (Standard)</option>
-            <option value="A5">A5 (Half Page)</option>
-            <option value="THERMAL_80">Thermal (80mm)</option>
-            <option value="US_LETTER">Letter</option>
-            <option value="LEGAL">Legal</option>
-          </select>
+          <div className="w-[140px]">
+            <CustomSelect
+              size="sm"
+              value={selectedPaperSize}
+              onChange={(val: any) => setSelectedPaperSize(val as any)}
+              options={[
+                { value: "A4", label: "A4 (Standard)" },
+                { value: "A5", label: "A5 (Half Page)" },
+                { value: "THERMAL_80", label: "Thermal (80mm)" },
+                { value: "US_LETTER", label: "Letter" },
+                { value: "LEGAL", label: "Legal" },
+              ]}
+              triggerClassName="rounded-md border-slate-300 bg-white"
+            />
+          </div>
 
           {/* Theme Settings Button */}
           <Link

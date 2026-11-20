@@ -3,34 +3,51 @@
 import React from "react";
 import Link from "next/link";
 import { FilePlus, ShoppingCart, CreditCard, FileText } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
 
 export interface DashboardQuickActionsProps {
   lang?: "en" | "gu";
 }
 
 export function DashboardQuickActions({ lang = "en" }: DashboardQuickActionsProps) {
-  const actions = [
+  const { hasPermission } = useAuth();
+
+  const allActions = [
     {
       href: "/sales/invoices/new",
       icon: <FilePlus className="w-4 h-4" />,
       label: lang === "gu" ? "નવું ઇનવોઇસ" : "Create Invoice",
+      module: "sales_invoices",
+      action: "create",
     },
     {
       href: "/purchases/new",
       icon: <ShoppingCart className="w-4 h-4" />,
       label: lang === "gu" ? "ખરીદી બિલ" : "Create Purchase",
+      module: "purchases",
+      action: "create",
     },
     {
       href: "/sales/payment-in/new",
       icon: <CreditCard className="w-4 h-4" />,
       label: lang === "gu" ? "પેમેન્ટ ઇન" : "Payment In",
+      module: "sales_invoices",
+      action: "create",
     },
     {
       href: "/sales/quotations/new",
       icon: <FileText className="w-4 h-4" />,
       label: lang === "gu" ? "કોટેશન" : "Quotation",
+      module: "quotations",
+      action: "create",
     },
   ];
+
+  const actions = allActions.filter((a) => hasPermission(a.module, a.action));
+
+  if (actions.length === 0) {
+    return null;
+  }
 
   return (
     <div className="bg-white rounded-xl border border-[#E2E8F0] p-5 shadow-2xs flex flex-col justify-between h-full">

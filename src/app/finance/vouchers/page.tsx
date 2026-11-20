@@ -7,6 +7,7 @@ import { apiClient, extractList } from "@/lib/api-client";
 import { Modal } from "@/components/ui/modal";
 import { Badge, StatusBadge } from "@/components/ui/badge";
 import { DataTable, ColumnDef } from "@/components/ui/data-table";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 import { Check, X, Wallet, ArrowUpRight, ArrowLeftRight, FileText, Banknote, Landmark, ArrowDownLeft } from "lucide-react";
 
 interface JournalLine {
@@ -682,15 +683,19 @@ export default function FinanceVouchersPage() {
             </div>
 
             {/* Date Range Filter */}
-            <select
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="text-[13px] bg-white border border-slate-200 text-slate-700 rounded-xl px-3 py-2 font-normal focus:outline-none cursor-pointer h-10"
-            >
-              <option value="ALL">{lang === "gu" ? "સમગ્ર સમયગાળો" : "All Dates"}</option>
-              <option value="TODAY">{lang === "gu" ? "આજનો દિવસ (Today)" : "Today"}</option>
-              <option value="THIS_MONTH">{lang === "gu" ? "ચાલુ મહિનો (This Month)" : "This Month"}</option>
-            </select>
+            <div className="min-w-[160px]">
+              <CustomSelect
+                size="md"
+                value={dateFilter}
+                onChange={(val: any) => setDateFilter(val)}
+                options={[
+                  { value: "ALL", label: lang === "gu" ? "સમગ્ર સમયગાળો" : "All Dates" },
+                  { value: "TODAY", label: lang === "gu" ? "આજનો દિવસ (Today)" : "Today" },
+                  { value: "THIS_MONTH", label: lang === "gu" ? "ચાલુ મહિનો (This Month)" : "This Month" },
+                ]}
+                triggerClassName="rounded-xl h-10 border-slate-200"
+              />
+            </div>
           </div>
         }
       />
@@ -804,37 +809,39 @@ export default function FinanceVouchersPage() {
               <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "ખર્ચ ખાતું (Expense Head) *" : "Expense Account *"}
               </label>
-              <select
+              <CustomCombobox
                 required
                 value={expenseForm.expenseAccountId}
-                onChange={(e) => setExpenseForm({ ...expenseForm, expenseAccountId: e.target.value })}
-                className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-normal h-10"
-              >
-                <option value="">-- {lang === "gu" ? "ખર્ચ ખાતું પસંદ કરો" : "Select Expense Account"} --</option>
-                {expenseAccounts.map((acc) => (
-                  <option key={acc.id} value={acc.id}>
-                    {acc.name} {acc.code ? `(${acc.code})` : ""}
-                  </option>
-                ))}
-              </select>
+                onChange={(val: any) => setExpenseForm({ ...expenseForm, expenseAccountId: val })}
+                options={expenseAccounts.map((acc) => ({
+                  value: acc.id,
+                  label: acc.name,
+                  code: acc.code,
+                }))}
+                placeholder={lang === "gu" ? "-- ખર્ચ ખાતું પસંદ કરો --" : "-- Select Expense Account --"}
+                searchPlaceholder="Search expense account..."
+                triggerClassName="rounded-xl h-10 border-slate-200 bg-slate-50"
+              />
             </div>
 
             <div>
               <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "ચુકવણી ખાતું (Cash / Bank) *" : "Paid From Account *"}
               </label>
-              <select
+              <CustomCombobox
                 value={expenseForm.paidFromAccountId}
-                onChange={(e) => setExpenseForm({ ...expenseForm, paidFromAccountId: e.target.value })}
-                className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-normal h-10"
-              >
-                <option value="">{lang === "gu" ? "રોકડ ખાતું (Cash Account) - ડિફોલ્ટ" : "Cash Account (Default)"}</option>
-                {[...cashAccounts, ...bankAccounts].map((acc) => (
-                  <option key={acc.id} value={acc.id}>
-                    {acc.name} (Bal: ₹{Number(acc.currentBalance || 0).toFixed(2)})
-                  </option>
-                ))}
-              </select>
+                onChange={(val: any) => setExpenseForm({ ...expenseForm, paidFromAccountId: val })}
+                options={[
+                  { value: "", label: lang === "gu" ? "રોકડ ખાતું (Cash Account) - ડિફોલ્ટ" : "Cash Account (Default)" },
+                  ...[...cashAccounts, ...bankAccounts].map((acc) => ({
+                    value: acc.id,
+                    label: `${acc.name} (Bal: ₹${Number(acc.currentBalance || 0).toFixed(2)})`,
+                  })),
+                ]}
+                placeholder={lang === "gu" ? "રોકડ ખાતું (Cash Account) - ડિફોલ્ટ" : "Cash Account (Default)"}
+                searchPlaceholder="Search account..."
+                triggerClassName="rounded-xl h-10 border-slate-200 bg-slate-50"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -921,38 +928,36 @@ export default function FinanceVouchersPage() {
               <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "આ ખાતામાંથી ઉપાડ્યા (From Account) *" : "From Account (Withdrawal) *"}
               </label>
-              <select
+              <CustomCombobox
                 required
                 value={contraForm.fromAccountId}
-                onChange={(e) => setContraForm({ ...contraForm, fromAccountId: e.target.value })}
-                className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-normal h-10"
-              >
-                <option value="">-- {lang === "gu" ? "ખાતું પસંદ કરો" : "Select Source Account"} --</option>
-                {[...cashAccounts, ...bankAccounts].map((acc) => (
-                  <option key={acc.id} value={acc.id}>
-                    {acc.name} (Bal: ₹{Number(acc.currentBalance || 0).toFixed(2)})
-                  </option>
-                ))}
-              </select>
+                onChange={(val: any) => setContraForm({ ...contraForm, fromAccountId: val })}
+                options={[...cashAccounts, ...bankAccounts].map((acc) => ({
+                  value: acc.id,
+                  label: `${acc.name} (Bal: ₹${Number(acc.currentBalance || 0).toFixed(2)})`,
+                }))}
+                placeholder={lang === "gu" ? "-- ખાતું પસંદ કરો --" : "-- Select Source Account --"}
+                searchPlaceholder="Search source account..."
+                triggerClassName="rounded-xl h-10 border-slate-200 bg-slate-50"
+              />
             </div>
 
             <div>
               <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "આ ખાતામાં જમા કર્યા (To Account) *" : "To Account (Deposit) *"}
               </label>
-              <select
+              <CustomCombobox
                 required
                 value={contraForm.toAccountId}
-                onChange={(e) => setContraForm({ ...contraForm, toAccountId: e.target.value })}
-                className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-normal h-10"
-              >
-                <option value="">-- {lang === "gu" ? "ખાતું પસંદ કરો" : "Select Destination Account"} --</option>
-                {[...cashAccounts, ...bankAccounts].map((acc) => (
-                  <option key={acc.id} value={acc.id}>
-                    {acc.name} (Bal: ₹{Number(acc.currentBalance || 0).toFixed(2)})
-                  </option>
-                ))}
-              </select>
+                onChange={(val: any) => setContraForm({ ...contraForm, toAccountId: val })}
+                options={[...cashAccounts, ...bankAccounts].map((acc) => ({
+                  value: acc.id,
+                  label: `${acc.name} (Bal: ₹${Number(acc.currentBalance || 0).toFixed(2)})`,
+                }))}
+                placeholder={lang === "gu" ? "-- ખાતું પસંદ કરો --" : "-- Select Destination Account --"}
+                searchPlaceholder="Search destination account..."
+                triggerClassName="rounded-xl h-10 border-slate-200 bg-slate-50"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-3">

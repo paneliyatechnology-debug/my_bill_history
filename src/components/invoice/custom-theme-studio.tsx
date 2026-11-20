@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 
 type TabId =
   | "style"
@@ -686,33 +687,37 @@ export function CustomThemeStudio() {
                     <label className="block text-[11px] font-semibold text-slate-600 mb-1">
                       Font Style
                     </label>
-                    <select
+                    <CustomSelect
                       value={fontStyle}
-                      onChange={(e) => setFontStyle(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white focus:border-[#5346F5] focus:outline-none"
-                    >
-                      <option value="Source Sans Pro">Source Sans Pro</option>
-                      <option value="Inter">Inter (Clean Modern)</option>
-                      <option value="Roboto">Roboto</option>
-                      <option value="Arial">Arial</option>
-                      <option value="Times New Roman">Times New Roman (Serif)</option>
-                    </select>
+                      onChange={(val) => setFontStyle(val)}
+                      options={[
+                        { value: "Source Sans Pro", label: "Source Sans Pro" },
+                        { value: "Inter", label: "Inter (Clean Modern)" },
+                        { value: "Roboto", label: "Roboto" },
+                        { value: "Arial", label: "Arial" },
+                        { value: "Times New Roman", label: "Times New Roman (Serif)" },
+                      ]}
+                      size="sm"
+                      className="w-full"
+                    />
                   </div>
 
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-600 mb-1">
                       Invoice Text Size
                     </label>
-                    <select
+                    <CustomSelect
                       value={fontSize}
-                      onChange={(e) => setFontSize(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white focus:border-[#5346F5] focus:outline-none"
-                    >
-                      <option value="Small (S)">Small (S)</option>
-                      <option value="Medium (M)">Medium (M)</option>
-                      <option value="Large (L)">Large (L)</option>
-                      <option value="Extra Large (XL)">Extra Large (XL)</option>
-                    </select>
+                      onChange={(val) => setFontSize(val)}
+                      options={[
+                        { value: "Small (S)", label: "Small (S)" },
+                        { value: "Medium (M)", label: "Medium (M)" },
+                        { value: "Large (L)", label: "Large (L)" },
+                        { value: "Extra Large (XL)", label: "Extra Large (XL)" },
+                      ]}
+                      size="sm"
+                      className="w-full"
+                    />
                   </div>
                 </div>
               </div>
@@ -770,15 +775,17 @@ export function CustomThemeStudio() {
                 <label className="block text-[11px] font-semibold text-slate-600 mb-1">
                   Spacing ⓘ
                 </label>
-                <select
+                <CustomSelect
                   value={spacing}
-                  onChange={(e) => setSpacing(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white focus:border-[#5346F5] focus:outline-none"
-                >
-                  <option value="Small (S)">Small (S)</option>
-                  <option value="Medium (M)">Medium (M)</option>
-                  <option value="Large (L)">Large (L)</option>
-                </select>
+                  onChange={(val) => setSpacing(val)}
+                  options={[
+                    { value: "Small (S)", label: "Small (S)" },
+                    { value: "Medium (M)", label: "Medium (M)" },
+                    { value: "Large (L)", label: "Large (L)" },
+                  ]}
+                  size="sm"
+                  className="w-full"
+                />
               </div>
 
               <div>
@@ -1078,15 +1085,17 @@ export function CustomThemeStudio() {
 
               <div>
                 <label className="block text-[11px] font-semibold text-slate-600 mb-1">Font Size</label>
-                <select
+                <CustomSelect
                   value={invoiceFontSize}
-                  onChange={(e) => setInvoiceFontSize(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white"
-                >
-                  <option value="14px">14px</option>
-                  <option value="16px">16px</option>
-                  <option value="18px">18px</option>
-                </select>
+                  onChange={(val) => setInvoiceFontSize(val)}
+                  options={[
+                    { value: "14px", label: "14px" },
+                    { value: "16px", label: "16px" },
+                    { value: "18px", label: "18px" },
+                  ]}
+                  size="sm"
+                  className="w-full"
+                />
               </div>
 
               <div className="space-y-3 pt-2">
@@ -1173,15 +1182,17 @@ export function CustomThemeStudio() {
 
               <div>
                 <label className="block text-[11px] font-semibold text-slate-600 mb-1">Font Size</label>
-                <select
+                <CustomSelect
                   value={partyFontSize}
-                  onChange={(e) => setPartyFontSize(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white"
-                >
-                  <option value="11px">11px</option>
-                  <option value="12px">12px</option>
-                  <option value="13px">13px</option>
-                </select>
+                  onChange={(val) => setPartyFontSize(val)}
+                  options={[
+                    { value: "11px", label: "11px" },
+                    { value: "12px", label: "12px" },
+                    { value: "13px", label: "13px" },
+                  ]}
+                  size="sm"
+                  className="w-full"
+                />
               </div>
 
               <div className="space-y-3 pt-2">
@@ -1260,15 +1271,17 @@ export function CustomThemeStudio() {
                 <label className="block text-[11px] font-semibold text-slate-600 mb-1">
                   Summarise total quantity
                 </label>
-                <select
+                <CustomSelect
                   value={totalQtySummary}
-                  onChange={(e) => setTotalQtySummary(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white"
-                >
-                  <option value="For Same Units">For Same Units</option>
-                  <option value="For All Units">For All Units</option>
-                  <option value="Don't Summarise">Don't Summarise</option>
-                </select>
+                  onChange={(val) => setTotalQtySummary(val)}
+                  options={[
+                    { value: "For Same Units", label: "For Same Units" },
+                    { value: "For All Units", label: "For All Units" },
+                    { value: "Don't Summarise", label: "Don't Summarise" },
+                  ]}
+                  size="sm"
+                  className="w-full"
+                />
               </div>
 
               <div className="pt-3 border-t border-slate-100">
@@ -1447,13 +1460,15 @@ export function CustomThemeStudio() {
                   <span>Bank Account</span>
                 </label>
                 {showBankAccount && (
-                  <select
-                    value={selectedBankAccount}
-                    onChange={(e) => setSelectedBankAccount(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white"
-                  >
-                    <option value="primary">Primary Company Bank Account</option>
-                  </select>
+                  <CustomSelect
+                    value={selectedBankAccount || "primary"}
+                    onChange={(val) => setSelectedBankAccount(val)}
+                    options={[
+                      { value: "primary", label: "Primary Company Bank Account" },
+                    ]}
+                    size="sm"
+                    className="w-full"
+                  />
                 )}
               </div>
 
@@ -1468,13 +1483,15 @@ export function CustomThemeStudio() {
                   <span>Payment QR</span>
                 </label>
                 {showPaymentQr && (
-                  <select
-                    value={selectedPaymentQr}
-                    onChange={(e) => setSelectedPaymentQr(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white"
-                  >
-                    <option value="primary_upi">Primary UPI Dynamic QR Code</option>
-                  </select>
+                  <CustomSelect
+                    value={selectedPaymentQr || "primary_upi"}
+                    onChange={(val) => setSelectedPaymentQr(val)}
+                    options={[
+                      { value: "primary_upi", label: "Primary UPI Dynamic QR Code" },
+                    ]}
+                    size="sm"
+                    className="w-full"
+                  />
                 )}
               </div>
 
@@ -1490,14 +1507,16 @@ export function CustomThemeStudio() {
                 </label>
                 {showSignature && (
                   <div className="space-y-2">
-                    <select
+                    <CustomSelect
                       value={signatureType}
-                      onChange={(e) => setSignatureType(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white"
-                    >
-                      <option value="Upload from Desktop">Upload from Desktop</option>
-                      <option value="Saved Digital Signature">Saved Digital Signature</option>
-                    </select>
+                      onChange={(val) => setSignatureType(val)}
+                      options={[
+                        { value: "Upload from Desktop", label: "Upload from Desktop" },
+                        { value: "Saved Digital Signature", label: "Saved Digital Signature" },
+                      ]}
+                      size="sm"
+                      className="w-full"
+                    />
 
                     <button
                       type="button"

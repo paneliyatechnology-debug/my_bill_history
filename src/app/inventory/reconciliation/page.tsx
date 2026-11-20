@@ -7,6 +7,7 @@ import { apiClient, extractList } from "../../../lib/api-client";
 import { Badge, StatusBadge } from "../../../components/ui/badge";
 import { StatCard } from "../../../components/ui/stat-card";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 
 interface StockGlRecon {
   companyId: string;
@@ -246,18 +247,19 @@ export default function InventoryReconciliationPage() {
                 <label className="block text-[11px] font-medium text-slate-500 mb-0.5">
                   {lang === "gu" ? "ગોડાઉન ફિલ્ટર" : "Warehouse Scope"}
                 </label>
-                <select
+                <CustomSelect
                   value={warehouseId}
-                  onChange={(e) => setWarehouseId(e.target.value)}
-                  className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] h-10"
-                >
-                  <option value="">{lang === "gu" ? "તમામ ગોડાઉન (All Warehouses)" : "All Warehouses"}</option>
-                  {warehouses.map((w) => (
-                    <option key={w.id} value={w.id}>
-                      {w.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setWarehouseId(val)}
+                  options={[
+                    { value: "", label: lang === "gu" ? "તમામ ગોડાઉન (All Warehouses)" : "All Warehouses" },
+                    ...warehouses.map((w) => ({
+                      value: w.id,
+                      label: w.name,
+                    })),
+                  ]}
+                  size="sm"
+                  className="w-56"
+                />
               </div>
             </div>
 

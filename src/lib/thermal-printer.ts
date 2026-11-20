@@ -689,6 +689,129 @@ export async function executeThermalPrint(
 }
 
 /**
+ * Builds standard ESC/POS binary command stream for direct hardware thermal printers
+ * (Used by WebUSB, WebSerial and Web Bluetooth for TVS, Epson, Everycom, Rongta, Xprinter, etc.)
+ */
+export function buildEscPosPayload(
+  data: ThermalReceiptData,
+  settings: ThermalPrintSettings,
+): Uint8Array {
+  const encoder = new TextEncoder();
+  const escInit = [0x1b, 0x40]; // Initialize
+  const escCenter = [0x1b, 0x61, 0x01]; // Center align
+  const escLeft = [0x1b, 0x61, 0x00]; // Left align
+  const escBoldOn = [0x1b, 0x45, 0x01]; // Bold on
+  const escBoldOff = [0x1b, 0x45, 0x00]; // Bold off
+  const escDoubleHeight = [0x1b, 0x21, 0x10]; // Double height
+  const escNormalText = [0x1b, 0x21, 0x00]; // Normal font
+  const escFeedCut = [0x1d, 0x56, 0x41, 0x03]; // Feed 3 lines & cut
+  const escDrawerKick = [0x1b, 0x70, 0x00, 0x19, 0xfa]; // Pulse cash drawer
+
+  const is2Inch = settings.paperSize === "2inch";
+  const colWidth = is2Inch ? 32 : 48;
+  const lineChar = "-".repeat(colWidth);
+  const dblLine = "=".repeat(colWidth);
+
+  const padRow = (left: string, right: string) => {
+    const spaceNeeded = colWidth - (left.length + right.length);
+    return spaceNeeded > 0
+      ? left + " ".repeat(spaceNeeded) + right
+      : `${left} ${right}`.substring(0, colWidth);
+  };
+
+  const buffer: number[] = [];
+  const append = (bytes: number[] | Uint8Array) => {
+    for (let i = 0; i < bytes.length; i++) {
+      buffer.push(bytes[i]);
+    }
+  };
+  const appendText = (text: string) => {
+    const encoded = encoder.encode(text);
+    for (let i = 0; i < encoded.length; i++) {
+      buffer.push(encoded[i]);
+    }
+  };
+
+  // 1. Kick cash drawer if enabled
+  if (settings.openCashDrawer) {
+    append(escDrawerKick);
+  }
+
+  // 2. Initialize
+  append(escInit);
+  append(escCenter);
+
+  // 3. Header
+  append(escDoubleHeight);
+  append(escBoldOn);
+  appendText(`${data.companyName || "STORE"}\n`);
+  append(escNormalText);
+  append(escBoldOff);
+
+  if (data.companyAddress) appendText(`${data.companyAddress}\n`);
+  if (data.companyPhone) appendText(`Phone: ${data.companyPhone}\n`);
+  if (settings.showGstin && data.companyGstin) appendText(`GSTIN: ${data.companyGstin}\n`);
+
+  append(escLeft);
+  appendText(`${dblLine}\n`);
+  append(escCenter);
+  append(escBoldOn);
+  appendText(`TAX INVOICE / CASH BILL\n`);
+  append(escBoldOff);
+  append(escLeft);
+  appendText(`${lineChar}\n`);
+
+  appendText(`Bill No: ${data.invoiceNumber || "-"}  Date: ${data.invoiceDate || ""}\n`);
+  if (settings.showTime && data.invoiceTime) appendText(`Time: ${data.invoiceTime}\n`);
+  if (data.customerName && data.customerName !== "Cash Sale") {
+    appendText(`Customer: ${data.customerName}\n`);
+  }
+  if (data.customerPhone) {
+    appendText(`Phone: ${data.customerPhone}\n`);
+  }
+  appendText(`${lineChar}\n`);
+  appendText(padRow("Item", "Amt") + "\n");
+  appendText(`${lineChar}\n`);
+
+  // Item lines
+  data.items.forEach((it) => {
+    const left = `${it.name.substring(0, is2Inch ? 18 : 30)} x${it.quantity}`;
+    const right = `Rs.${Number(it.amount).toFixed(2)}`;
+    appendText(padRow(left, right) + "\n");
+  });
+
+  appendText(`${lineChar}\n`);
+  append(escBoldOn);
+  appendText(padRow("TOTAL AMOUNT:", `Rs.${Number(data.grandTotal).toFixed(2)}`) + "\n");
+  append(escBoldOff);
+  appendText(`${dblLine}\n`);
+
+  if (data.youSaved && Number(data.youSaved) > 0) {
+    appendText(padRow("YOU SAVED:", `Rs.${Number(data.youSaved).toFixed(2)}`) + "\n");
+  }
+
+  appendText(`Payment Mode: ${data.paymentMode || "Cash"}\n`);
+
+  if (data.receivedAmount && Number(data.receivedAmount) > 0) {
+    appendText(padRow("Received:", `Rs.${Number(data.receivedAmount).toFixed(2)}`) + "\n");
+  }
+  if (data.changeDue && Number(data.changeDue) > 0) {
+    appendText(padRow("Change Due:", `Rs.${Number(data.changeDue).toFixed(2)}`) + "\n");
+  }
+
+  append(escCenter);
+  appendText(`\n${settings.customFooter || "Thank you for your business! Visit again."}\n`);
+  appendText("\n\n");
+
+  // 4. Auto paper cutting
+  if (settings.autoCut) {
+    append(escFeedCut);
+  }
+
+  return new Uint8Array(buffer);
+}
+
+/**
  * Direct Web Bluetooth ESC/POS raw printing for mobile phones & Android POS machines
  */
 export async function printViaBluetoothPos(
@@ -706,7 +829,7 @@ export async function printViaBluetoothPos(
       isSecureContextError: isHttpOnIp,
       error: isHttpOnIp
         ? "Chrome requires HTTPS or chrome://flags to use Web Bluetooth over IP address."
-        : "Web Bluetooth is not supported on this browser. Using standard print dialog instead.",
+        : "Web Bluetooth is only for mobile/tablet portable printers. For Desktop PC / Malls, use Direct USB or Standard Thermal Print.",
     };
   }
 
@@ -775,87 +898,134 @@ export async function printViaBluetoothPos(
       throw new Error("Could not find writable printer characteristic.");
     }
 
-    // Build ESC/POS command stream
-    const encoder = new TextEncoder();
-    const escInit = new Uint8Array([0x1b, 0x40]); // Initialize
-    const escCenter = new Uint8Array([0x1b, 0x61, 0x01]); // Center
-    const escLeft = new Uint8Array([0x1b, 0x61, 0x00]); // Left
-    const escBoldOn = new Uint8Array([0x1b, 0x45, 0x01]); // Bold on
-    const escBoldOff = new Uint8Array([0x1b, 0x45, 0x00]); // Bold off
-    const escFeedCut = new Uint8Array([0x1d, 0x56, 0x41, 0x03]); // Feed 3 lines & cut
-    const escDrawerKick = new Uint8Array([0x1b, 0x70, 0x00, 0x19, 0xfa]); // Pulse drawer
-
-    const is2Inch = settings.paperSize === "2inch";
-    const colWidth = is2Inch ? 32 : 48;
-    const lineChar = "-".repeat(colWidth);
-    const dblLine = "=".repeat(colWidth);
-
-    const padRow = (left: string, right: string) => {
-      const spaceNeeded = colWidth - (left.length + right.length);
-      return spaceNeeded > 0
-        ? left + " ".repeat(spaceNeeded) + right
-        : `${left} ${right}`.substring(0, colWidth);
-    };
-
-    let textPayload = `\n${data.companyName || "STORE"}\n`;
-    if (data.companyAddress) textPayload += `${data.companyAddress}\n`;
-    if (data.companyPhone) textPayload += `Phone: ${data.companyPhone}\n`;
-    if (settings.showGstin && data.companyGstin)
-      textPayload += `GSTIN: ${data.companyGstin}\n`;
-    textPayload += `${dblLine}\nTAX INVOICE / CASH BILL\n${lineChar}\n`;
-    textPayload += `Bill No: ${data.invoiceNumber || "-"}  Date: ${
-      data.invoiceDate || ""
-    }\n`;
-    if (settings.showTime && data.invoiceTime)
-      textPayload += `Time: ${data.invoiceTime}\n`;
-    if (data.customerName && data.customerName !== "Cash Sale") {
-      textPayload += `Customer: ${data.customerName}\n`;
-    }
-    textPayload += `${lineChar}\n`;
-    textPayload += padRow("Item", "Amt") + "\n";
-    textPayload += `${lineChar}\n`;
-
-    data.items.forEach((it) => {
-      const left = `${it.name.substring(0, is2Inch ? 18 : 30)} x${it.quantity}`;
-      const right = `Rs.${Number(it.amount).toFixed(2)}`;
-      textPayload += padRow(left, right) + "\n";
-    });
-
-    textPayload += `${lineChar}\n`;
-    textPayload +=
-      padRow("TOTAL AMOUNT:", `Rs.${Number(data.grandTotal).toFixed(2)}`) +
-      "\n";
-    textPayload += `${dblLine}\n`;
-    textPayload += `${
-      settings.customFooter || "Thank you for your business!"
-    }\n\n\n\n`;
+    const payload = buildEscPosPayload(data, settings);
 
     // Send chunks to avoid MTU packet drop
-    const sendBuffer = async (bytes: Uint8Array) => {
-      const CHUNK_SIZE = 64;
-      for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
-        const slice = bytes.slice(i, i + CHUNK_SIZE);
-        if (writeChar.writeValueWithoutResponse) {
-          await writeChar.writeValueWithoutResponse(slice);
-        } else {
-          await writeChar.writeValue(slice);
-        }
-        await new Promise((r) => setTimeout(r, 20));
+    const CHUNK_SIZE = 64;
+    for (let i = 0; i < payload.length; i += CHUNK_SIZE) {
+      const slice = payload.slice(i, i + CHUNK_SIZE);
+      if (writeChar.writeValueWithoutResponse) {
+        await writeChar.writeValueWithoutResponse(slice);
+      } else {
+        await writeChar.writeValue(slice);
       }
-    };
-
-    if (settings.openCashDrawer) {
-      await sendBuffer(escDrawerKick);
-    }
-    await sendBuffer(escInit);
-    await sendBuffer(escCenter);
-    await sendBuffer(encoder.encode(textPayload));
-    if (settings.autoCut) {
-      await sendBuffer(escFeedCut);
+      await new Promise((r) => setTimeout(r, 20));
     }
 
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err?.message || "Bluetooth print failed." };
+  }
+}
+
+/**
+ * Direct WebUSB ESC/POS raw printing for USB thermal printers (DMart / JioMart Supermarket Style)
+ * Communicates directly with TVS, Epson, Posiflex, Rongta, Everycom over USB cable with auto-cut
+ */
+export async function printViaWebUsb(
+  data: ThermalReceiptData,
+  settings: ThermalPrintSettings,
+): Promise<{ success: boolean; error?: string; deviceName?: string }> {
+  if (typeof navigator === "undefined" || !("usb" in navigator)) {
+    return {
+      success: false,
+      error: "WebUSB is not supported in this browser. Please use Chrome or Edge for direct USB printing.",
+    };
+  }
+
+  try {
+    let device: any;
+    try {
+      // Look for USB printer class (class 7)
+      device = await (navigator as any).usb.requestDevice({
+        filters: [{ classCode: 7 }],
+      });
+    } catch {
+      // Prompt user to select any connected USB printer
+      device = await (navigator as any).usb.requestDevice({
+        filters: [],
+      });
+    }
+
+    if (!device) {
+      throw new Error("No USB printer selected.");
+    }
+
+    await device.open();
+    if (device.configuration === null) {
+      await device.selectConfiguration(1);
+    }
+
+    let interfaceNumber = 0;
+    let endpointNumber = 1;
+
+    for (const iface of device.configuration?.interfaces || []) {
+      for (const alt of iface.alternates || []) {
+        const outEndpoint = alt.endpoints?.find(
+          (ep: any) => ep.direction === "out" && ep.type === "bulk",
+        );
+        if (outEndpoint) {
+          interfaceNumber = iface.interfaceNumber;
+          endpointNumber = outEndpoint.endpointNumber;
+          break;
+        }
+      }
+    }
+
+    await device.claimInterface(interfaceNumber);
+    const payload = buildEscPosPayload(data, settings);
+    await device.transferOut(endpointNumber, payload);
+
+    try {
+      await device.releaseInterface(interfaceNumber);
+      await device.close();
+    } catch {}
+
+    return {
+      success: true,
+      deviceName: device.productName || "USB Thermal Printer",
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err?.message || "Failed to print to USB thermal printer.",
+    };
+  }
+}
+
+/**
+ * Direct WebSerial ESC/POS printing for Virtual COM Port / Serial thermal receipt printers
+ */
+export async function printViaWebSerial(
+  data: ThermalReceiptData,
+  settings: ThermalPrintSettings,
+  baudRate: number = 9600,
+): Promise<{ success: boolean; error?: string }> {
+  if (typeof navigator === "undefined" || !("serial" in navigator)) {
+    return {
+      success: false,
+      error: "WebSerial is not supported in this browser. Please use Chrome or Edge for COM port printing.",
+    };
+  }
+
+  try {
+    const port = await (navigator as any).serial.requestPort();
+    if (!port) {
+      throw new Error("No COM/Serial port selected.");
+    }
+
+    await port.open({ baudRate });
+    const payload = buildEscPosPayload(data, settings);
+    const writer = port.writable.getWriter();
+    await writer.write(payload);
+    writer.releaseLock();
+    await port.close();
+
+    return { success: true };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err?.message || "Failed to print via Serial/COM port.",
+    };
   }
 }

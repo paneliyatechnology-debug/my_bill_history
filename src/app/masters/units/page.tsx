@@ -10,6 +10,7 @@ import { ExportDropdown } from "../../../components/ui/export-dropdown";
 import { ExportColumn, ExportMetadata } from "../../../lib/export/export-types";
 import { ImportModuleType } from "@billing/shared-types";
 import { DataTablePagination } from "../../../components/ui/data-table-pagination";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 import {
   Scale,
   Droplets,
@@ -629,19 +630,23 @@ export default function UnitsPage() {
             {/* Page Size Selector */}
             <div className="flex items-center gap-1.5 shrink-0 text-xs text-slate-500">
               <span className="hidden sm:inline">Show</span>
-              <select
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                className="h-10 px-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#1677E8] cursor-pointer"
-              >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
+              <div className="w-20">
+                <CustomSelect
+                  size="sm"
+                  value={String(pageSize)}
+                  onChange={(val: any) => {
+                    setPageSize(Number(val));
+                    setCurrentPage(1);
+                  }}
+                  options={[
+                    { value: "10", label: "10" },
+                    { value: "25", label: "25" },
+                    { value: "50", label: "50" },
+                    { value: "100", label: "100" },
+                  ]}
+                  triggerClassName="rounded-xl border-slate-200 bg-slate-50 text-xs font-semibold text-slate-800"
+                />
+              </div>
             </div>
           </div>
 

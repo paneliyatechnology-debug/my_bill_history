@@ -214,6 +214,11 @@ export function resolveActiveNavigation(rawPath: string): {
   ) {
     activeSectionId = "gst_returns";
   } else if (
+    isPathPrefixMatch(path, "/sales/pos/orders") ||
+    isPathPrefixMatch(path, "/pos/orders")
+  ) {
+    activeSectionId = "pos_orders";
+  } else if (
     path === "/sales/pos" ||
     path === "/pos"
   ) {
@@ -237,25 +242,63 @@ export function resolveActiveNavigation(rawPath: string): {
   ) {
     activeSectionId = "payroll";
   } else if (
+    path === "/settings/roles" ||
+    path === "/settings/role-and-permissions" ||
+    path === "/settings/roles-and-permissions" ||
+    isPathPrefixMatch(path, "/settings/roles")
+  ) {
+    activeSectionId = "settings";
+    activeSubItemHref = "/settings/roles";
+  } else if (
+    path === "/settings/activity-logs" ||
+    path === "/settings/activities" ||
+    path === "/settings/audit-logs" ||
+    isPathPrefixMatch(path, "/app/settings/activity-logs") ||
+    isPathPrefixMatch(path, "/settings/activity-logs")
+  ) {
+    activeSectionId = "settings";
+    activeSubItemHref = "/settings/activity-logs";
+  } else if (
     path === "/settings/user-management" ||
-    isPathPrefixMatch(path, "/app/settings/user-management")
+    isPathPrefixMatch(path, "/app/settings/user-management") ||
+    isPathPrefixMatch(path, "/settings/user-management")
   ) {
-    activeSectionId = "users";
+    activeSectionId = "settings";
+    activeSubItemHref = "/settings/user-management";
   } else if (
-    isPathPrefixMatch(path, "/home/sms-marketing") ||
-    isPathPrefixMatch(path, "/sms-marketing")
+    path === "/settings/company" ||
+    path === "/settings/manage-business" ||
+    isPathPrefixMatch(path, "/settings/company")
   ) {
-    activeSectionId = "sms_marketing";
+    activeSectionId = "settings";
+    activeSubItemHref = "/settings/company";
   } else if (
-    isPathPrefixMatch(path, "/marketing")
+    path === "/settings/invoice" ||
+    path === "/settings/invoice-settings" ||
+    isPathPrefixMatch(path, "/settings/invoice")
   ) {
-    activeSectionId = "marketing";
+    activeSectionId = "settings";
+    activeSubItemHref = "/settings/invoice";
+  } else if (
+    path === "/settings/e-invoice" ||
+    path === "/settings/einvoice" ||
+    isPathPrefixMatch(path, "/settings/e-invoice")
+  ) {
+    activeSectionId = "settings";
+    activeSubItemHref = "/settings/e-invoice";
+  } else if (
+    path === "/settings/account" ||
+    isPathPrefixMatch(path, "/settings/account")
+  ) {
+    activeSectionId = "settings";
+    activeSubItemHref = "/settings/account";
   } else if (
     isPathPrefixMatch(path, "/settings") ||
     isPathPrefixMatch(path, "/pricing-settings") ||
     isPathPrefixMatch(path, "/app/settings")
   ) {
     activeSectionId = "settings";
+    activeSubItemHref = "/settings/roles";
   } else if (
     isPathPrefixMatch(path, "/accounting/vouchers/new") ||
     isPathPrefixMatch(path, "/finance/vouchers/new")

@@ -8,6 +8,7 @@ import { Modal } from "../../../components/ui/modal";
 import { Badge } from "../../../components/ui/badge";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
 import { EwbSlipModal } from "../../../components/gst/ewb-slip-modal";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 
 interface EWayBillListItem {
   id: string;
@@ -807,25 +808,23 @@ export default function EWayBillsPage() {
             <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Select {linkDocType === "INVOICE" ? "Sales Invoice" : "Delivery Challan"} <span className="text-rose-500">*</span>
             </label>
-            <select
-              required
+            <CustomCombobox
               value={selectedDocId}
-              onChange={(e) => setSelectedDocId(e.target.value)}
-              className="w-full px-2.5 py-2 border border-slate-300 rounded-lg text-[13px] focus:ring-1 focus:ring-orange-500 h-10"
-            >
-              <option value="">-- Choose document --</option>
-              {linkDocType === "INVOICE"
-                ? availableInvoices.map((inv) => (
-                    <option key={inv.id} value={inv.id}>
-                      {inv.invoiceNumber} - {inv.party?.name || "Direct"} (₹{Number(inv.grandTotal).toLocaleString("en-IN")})
-                    </option>
-                  ))
-                : availableChallans.map((chl) => (
-                    <option key={chl.id} value={chl.id}>
-                      {chl.challanNumber} - {chl.party?.name || "Direct"} (₹{Number(chl.totalAmount).toLocaleString("en-IN")})
-                    </option>
-                  ))}
-            </select>
+              onChange={(val: any) => setSelectedDocId(val)}
+              options={
+                linkDocType === "INVOICE"
+                  ? availableInvoices.map((inv) => ({
+                      value: inv.id,
+                      label: `${inv.invoiceNumber} - ${inv.party?.name || "Direct"} (₹${Number(inv.grandTotal).toLocaleString("en-IN")})`,
+                    }))
+                  : availableChallans.map((chl) => ({
+                      value: chl.id,
+                      label: `${chl.challanNumber} - ${chl.party?.name || "Direct"} (₹${Number(chl.totalAmount).toLocaleString("en-IN")})`,
+                    }))
+              }
+              placeholder="-- Choose document --"
+              triggerClassName="rounded-lg border-slate-300"
+            />
           </div>
 
           {/* E-Way Bill Number */}
@@ -949,15 +948,16 @@ export default function EWayBillsPage() {
             <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Reason Code
             </label>
-            <select
+            <CustomSelect
               value={quickVehicleReason}
-              onChange={(e) => setQuickVehicleReason(e.target.value)}
-              className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-[13px] h-10"
-            >
-              <option value="1">1 - Breakdown</option>
-              <option value="2">2 - Transshipment</option>
-              <option value="3">3 - Others</option>
-            </select>
+              onChange={(val: any) => setQuickVehicleReason(val)}
+              options={[
+                { value: "1", label: "1 - Breakdown" },
+                { value: "2", label: "2 - Transshipment" },
+                { value: "3", label: "3 - Others" },
+              ]}
+              triggerClassName="rounded border-slate-300"
+            />
           </div>
         </form>
       </Modal>
@@ -996,16 +996,17 @@ export default function EWayBillsPage() {
             <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Cancellation Reason
             </label>
-            <select
+            <CustomSelect
               value={quickCancelReasonCode}
-              onChange={(e) => setQuickCancelReasonCode(e.target.value)}
-              className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-[13px] h-10"
-            >
-              <option value="1">1 - Duplicate E-Way Bill</option>
-              <option value="2">2 - Order Cancelled</option>
-              <option value="3">3 - Data Entry Error</option>
-              <option value="4">4 - Others</option>
-            </select>
+              onChange={(val: any) => setQuickCancelReasonCode(val)}
+              options={[
+                { value: "1", label: "1 - Duplicate E-Way Bill" },
+                { value: "2", label: "2 - Order Cancelled" },
+                { value: "3", label: "3 - Data Entry Error" },
+                { value: "4", label: "4 - Others" },
+              ]}
+              triggerClassName="rounded border-slate-300"
+            />
           </div>
           <div>
             <label className="block text-[12px] font-medium text-slate-700 mb-1">

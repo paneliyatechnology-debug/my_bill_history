@@ -3,6 +3,7 @@
 import React from "react";
 import { Check, AlertCircle } from "lucide-react";
 import { DocumentSummaryCardProps, DocumentPaymentCardProps } from "./types";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 
 export function DocumentSummaryCard({
   title = "Document Summary",
@@ -180,24 +181,19 @@ export function DocumentPaymentCard({
         {/* Payment Mode Selector */}
         <div className="space-y-1.5">
           <label className="typo-label text-slate-700 block">Payment Mode</label>
-          <div className="relative">
-            <select
-              value={paymentMode}
-              onChange={(e) => onPaymentModeChange(e.target.value)}
-              className="w-full py-1.5 px-2.5 bg-white border border-slate-200 rounded-xl typo-input text-slate-800 focus:outline-none focus:border-[#1677E8] shadow-2xs appearance-none pr-7 cursor-pointer h-9"
-            >
-              <option value="Cash">Cash</option>
-              <option value="UPI">UPI</option>
-              <option value="Bank Transfer">Bank Transfer / NEFT</option>
-              <option value="Cheque">Cheque</option>
-              <option value="Credit">Credit / Due</option>
-            </select>
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-          </div>
+          <CustomSelect
+            size="sm"
+            value={paymentMode}
+            onChange={(val: any) => onPaymentModeChange(val)}
+            options={[
+              { value: "Cash", label: "Cash" },
+              { value: "UPI", label: "UPI" },
+              { value: "Bank Transfer", label: "Bank Transfer / NEFT" },
+              { value: "Cheque", label: "Cheque" },
+              { value: "Credit", label: "Credit / Due" },
+            ]}
+            triggerClassName="rounded-xl border-slate-200 bg-white"
+          />
         </div>
 
         {/* Balance Due Pill matching Reference Image */}

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../../../context/auth-context";
 import { apiClient, extractList } from "../../../../lib/api-client";
 import { X, Search } from "lucide-react";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 
 interface PartyOption {
   id: string;
@@ -906,17 +907,15 @@ function CreatePaymentInForm() {
               <label className="block text-[12px] font-medium text-slate-600 mb-1">
                 Payment Mode
               </label>
-              <select
+              <CustomSelect
                 value={paymentMode}
-                onChange={(e) => setPaymentMode(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-medium text-slate-900 focus:border-[#1677E8] focus:outline-none transition-colors h-10"
-              >
-                {PAYMENT_MODES.map((mode) => (
-                  <option key={mode.value} value={mode.value}>
-                    {mode.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(val: any) => setPaymentMode(val)}
+                options={PAYMENT_MODES.map((mode) => ({
+                  value: mode.value,
+                  label: mode.label,
+                }))}
+                triggerClassName="rounded-lg border-slate-200 bg-white font-medium text-slate-900"
+              />
             </div>
 
             <div>

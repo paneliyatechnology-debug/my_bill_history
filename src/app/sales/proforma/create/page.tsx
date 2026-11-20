@@ -20,6 +20,7 @@ import {
 } from "@/lib/invoice-theme";
 import { INDIAN_STATES } from "@billing/shared-types";
 import { AlertTriangle, X, Printer, Package, ArrowLeft } from "lucide-react";
+import { CustomCombobox } from "@/components/ui/dropdown-system";
 import {
   DocumentHeaderCard,
   DocumentInfoStrip,
@@ -775,17 +776,18 @@ return (
                               <td className="py-3 px-3">
                                 <div className="space-y-1">
                                   <div className="flex items-center gap-2">
-                                    <select
+                                    <CustomCombobox
+                                      size="sm"
                                       value={row.itemId}
-                                      onChange={(e) => handleUpdateRow(row.id, "itemId", e.target.value)}
-                                      className="w-full text-[13px] py-1.5 px-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#1677E8] rounded-xl font-normal text-slate-800 h-10"
-                                    >
-                                      {items.map((it) => (
-                                        <option key={it.id} value={it.id}>
-                                          {it.name} (Stock: {it.stockQuantity ?? 0})
-                                        </option>
-                                      ))}
-                                    </select>
+                                      onChange={(val: any) => handleUpdateRow(row.id, "itemId", val)}
+                                      options={items.map((it) => ({
+                                        value: it.id,
+                                        label: it.name,
+                                        sublabel: `Stock: ${it.stockQuantity ?? 0}`,
+                                      }))}
+                                      placeholder="Select Item..."
+                                      triggerClassName="rounded-xl border-slate-200 bg-slate-50/80 hover:bg-white"
+                                    />
                                   </div>
                                 </div>
                               </td>

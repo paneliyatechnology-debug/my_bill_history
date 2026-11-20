@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { X, CheckCircle2, MessageSquare, Phone, User, Building2, ArrowRight } from "lucide-react";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 
 export interface BookDemoModalProps {
   isOpen: boolean;
@@ -157,17 +158,18 @@ export function BookDemoModal({ isOpen, onClose, lang = "en" }: BookDemoModalPro
                 <label className="block text-xs font-medium text-[#172033] mb-1">
                   {gu ? "વેપારનો પ્રકાર" : "Business Type"}
                 </label>
-                <select
+                <CustomSelect
                   value={formData.businessType}
-                  onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
-                  className="w-full px-3 py-2 text-xs text-[#172033] bg-white border border-[#E5EAF1] rounded-xl focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                >
-                  <option value="retailer">{gu ? "રિટેલર / દુકાનદાર (Retailer)" : "Retailer / Shop Counter"}</option>
-                  <option value="wholesaler">{gu ? "હોલસેલર / વેપારી (Wholesaler)" : "Wholesaler / Trader"}</option>
-                  <option value="distributor">{gu ? "ડિસ્ટ્રિબ્યુટર (Distributor)" : "Distributor / C&F Agent"}</option>
-                  <option value="manufacturer">{gu ? "મેન્યુફેક્ચરર (Manufacturer)" : "Manufacturer / Workshop"}</option>
-                  <option value="services">{gu ? "સર્વિસ પ્રોવાઇડર (Services)" : "Service Provider / Consultant"}</option>
-                </select>
+                  onChange={(val: any) => setFormData({ ...formData, businessType: val })}
+                  options={[
+                    { value: "retailer", label: gu ? "રિટેલર / દુકાનદાર (Retailer)" : "Retailer / Shop Counter" },
+                    { value: "wholesaler", label: gu ? "હોલસેલર / વેપારી (Wholesaler)" : "Wholesaler / Trader" },
+                    { value: "distributor", label: gu ? "ડિસ્ટ્રિબ્યુટર (Distributor)" : "Distributor / C&F Agent" },
+                    { value: "manufacturer", label: gu ? "મેન્યુફેક્ચરર (Manufacturer)" : "Manufacturer / Workshop" },
+                    { value: "services", label: gu ? "સર્વિસ પ્રોવાઇડર (Services)" : "Service Provider / Consultant" },
+                  ]}
+                  triggerClassName="rounded-xl border-[#E5EAF1] bg-white"
+                />
               </div>
 
               {/* Submit Buttons */}

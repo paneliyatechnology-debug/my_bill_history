@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useContext } from "react";
 import { X, FileText } from "lucide-react";
 import { ExportDropdown } from "./export-dropdown";
+import { CustomSelect } from "./custom-select";
 import { ExportColumn, ExportFormat, ExportMetadata } from "../../lib/export/export-types";
 import { executeExport } from "../../lib/export/export-engine";
 import { AuthContext } from "../../context/auth-context";
@@ -491,20 +492,21 @@ export function DataTable<T>({
           {/* Page size dropdown */}
           <div className="flex items-center gap-1.5 text-xs text-[#64748B]">
             <span>{lang === "gu" ? "દર્શાવો" : "Show"}</span>
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className={`bg-white border border-[#E2E8F0] text-xs font-semibold rounded-xl px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-1 ${focusRingClass} transition-all cursor-pointer shadow-2xs`}
-            >
-              {pageSizeOptions.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
+            <div className="w-[74px]">
+              <CustomSelect
+                size="sm"
+                value={pageSize}
+                onChange={(newSize: any) => {
+                  setPageSize(Number(newSize));
+                  setCurrentPage(1);
+                }}
+                options={pageSizeOptions.map((opt) => ({
+                  value: opt,
+                  label: String(opt),
+                }))}
+                triggerClassName="h-[34px] text-xs font-semibold rounded-xl"
+              />
+            </div>
             <span className="hidden sm:inline">{lang === "gu" ? "એન્ટ્રીઝ" : "entries"}</span>
           </div>
 

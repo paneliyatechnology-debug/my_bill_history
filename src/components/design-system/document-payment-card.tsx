@@ -3,6 +3,7 @@
 import React from "react";
 import { Check, Clock } from "lucide-react";
 import { formatInr } from "./tokens";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 
 export interface DocumentPaymentCardProps {
   amountReceived: number;
@@ -60,17 +61,18 @@ export function DocumentPaymentCard({
         </div>
 
         <div className="sm:col-span-5">
-          <select
+          <CustomSelect
             value={paymentMode}
-            onChange={(e) => onPaymentModeChange(e.target.value)}
-            className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-normal text-slate-800 focus:outline-none focus:border-[#1677E8] h-10"
-          >
-            <option value="CASH">{lang === "gu" ? "રોકડ (Cash)" : "Cash"}</option>
-            <option value="BANK_TRANSFER">{lang === "gu" ? "બેંક ટ્રાન્સફર (Bank)" : "Bank Transfer"}</option>
-            <option value="UPI_QR">{lang === "gu" ? "યુપીઆઈ (UPI)" : "UPI"}</option>
-            <option value="CHEQUE">{lang === "gu" ? "ચેક (Cheque)" : "Cheque"}</option>
-            <option value="UNPAID_CREDIT">{lang === "gu" ? "શાખ (Credit / Unpaid)" : "Credit (Unpaid)"}</option>
-          </select>
+            onChange={(val: any) => onPaymentModeChange(val)}
+            options={[
+              { value: "CASH", label: lang === "gu" ? "રોકડ (Cash)" : "Cash" },
+              { value: "BANK_TRANSFER", label: lang === "gu" ? "બેંક ટ્રાન્સફર (Bank)" : "Bank Transfer" },
+              { value: "UPI_QR", label: lang === "gu" ? "યુપીઆઈ (UPI)" : "UPI" },
+              { value: "CHEQUE", label: lang === "gu" ? "ચેક (Cheque)" : "Cheque" },
+              { value: "UNPAID_CREDIT", label: lang === "gu" ? "શાખ (Credit / Unpaid)" : "Credit (Unpaid)" },
+            ]}
+            triggerClassName="rounded-xl border-slate-200 bg-slate-50"
+          />
         </div>
       </div>
 

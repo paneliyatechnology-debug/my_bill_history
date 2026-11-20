@@ -22,6 +22,7 @@ import {
 } from "@/components/document-studio";
 import { INDIAN_STATES } from "@/shared-types";
 import { AlertTriangle, X, Printer, Package, Coins, Landmark, Handshake } from "lucide-react";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 
 interface Party {
   id: string;
@@ -1069,17 +1070,15 @@ const [notes, setNotes] = useState("");
                           0% (Commercial Credit Note - No GST Reversal)
                         </div>
                       ) : (
-                        <select
-                          value={amountBasedTaxRate}
-                          onChange={(e) => setAmountBasedTaxRate(Number(e.target.value) || 0)}
-                          className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:border-purple-600 h-11"
-                        >
-                          {GST_RATES.map((r) => (
-                            <option key={r.label} value={r.value}>
-                              {r.label}
-                            </option>
-                          ))}
-                        </select>
+                        <CustomSelect
+                          value={String(amountBasedTaxRate)}
+                          onChange={(val: any) => setAmountBasedTaxRate(Number(val) || 0)}
+                          options={GST_RATES.map((r) => ({
+                            value: String(r.value),
+                            label: r.label,
+                          }))}
+                          triggerClassName="rounded-xl border-slate-200 bg-white font-bold text-slate-800"
+                        />
                       )}
                     </div>
                   </div>
@@ -1101,16 +1100,17 @@ const [notes, setNotes] = useState("");
                     <label className="block text-xs font-bold text-slate-700 mb-1">
                       Settlement Mode
                     </label>
-                    <select
+                    <CustomSelect
                       value={settlementMode}
-                      onChange={(e) => setSettlementMode(e.target.value as any)}
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900 focus:border-purple-600 h-11"
-                    >
-                      <option value="CUSTOMER_CREDIT">Customer Credit Balance (Hold on Account)</option>
-                      <option value="ADJUST_OUTSTANDING">Adjust Against Invoice Outstanding</option>
-                      <option value="REFUND_CASH">Immediate Cash Refund</option>
-                      <option value="REFUND_BANK">Immediate Bank Refund</option>
-                    </select>
+                      onChange={(val: any) => setSettlementMode(val as any)}
+                      options={[
+                        { value: "CUSTOMER_CREDIT", label: "Customer Credit Balance (Hold on Account)" },
+                        { value: "ADJUST_OUTSTANDING", label: "Adjust Against Invoice Outstanding" },
+                        { value: "REFUND_CASH", label: "Immediate Cash Refund" },
+                        { value: "REFUND_BANK", label: "Immediate Bank Refund" },
+                      ]}
+                      triggerClassName="rounded-xl border-slate-200 bg-white font-medium text-slate-900"
+                    />
                   </div>
                 </div>
               ) : (
@@ -1236,17 +1236,16 @@ const [notes, setNotes] = useState("");
                           </td>
 
                           <td className="py-3 px-3">
-                            <select
-                              value={item.taxRate}
-                              onChange={(e) => updateLineItem(item.id, { taxRate: Number(e.target.value) || 0 })}
-                              className="w-full text-[13px] py-1.5 px-2 text-right tabular-nums font-normal bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white h-10"
-                            >
-                              {GST_RATES.map((r) => (
-                                <option key={r.label} value={r.value}>
-                                  {r.label}
-                                </option>
-                              ))}
-                            </select>
+                            <CustomSelect
+                              size="sm"
+                              value={String(item.taxRate)}
+                              onChange={(val: any) => updateLineItem(item.id, { taxRate: Number(val) || 0 })}
+                              options={GST_RATES.map((r) => ({
+                                value: String(r.value),
+                                label: r.label,
+                              }))}
+                              triggerClassName="rounded-xl border-slate-200 bg-slate-50 text-slate-800 tabular-nums"
+                            />
                           </td>
 
                           <td className="py-3 px-3 text-right tabular-nums font-semibold text-slate-900 text-[13px]">

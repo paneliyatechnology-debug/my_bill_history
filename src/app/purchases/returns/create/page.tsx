@@ -20,6 +20,7 @@ import {
 import { apiClient, extractList } from "../../../../lib/api-client";
 import { SignatureModal } from "../../../../components/invoice/signature-modal";
 import { Modal } from "../../../../components/ui/modal";
+import { CustomCombobox, CustomSelect } from "@/components/ui/dropdown-system";
 import { InvoiceQrCode } from "../../components/invoice-barcode-qr";
 import {
   QuickSettingsModal,
@@ -1336,19 +1337,20 @@ const [notes, setNotes] = useState<string>("");
                                 className="w-full text-[13px] py-1.5 px-2.5 font-normal text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-[#1677E8] h-10"
                               />
                               {inventoryItems.length > 0 && !row.name && (
-                                <select
-                                  onChange={(e) => {
-                                    const itm = inventoryItems.find((it) => it.id === e.target.value);
+                                <CustomCombobox
+                                  size="sm"
+                                  placeholder="Choose from Catalog..."
+                                  value=""
+                                  onChange={(val: any) => {
+                                    const itm = inventoryItems.find((it) => it.id === val);
                                     if (itm) handlePickInventoryItem(idx, itm);
                                   }}
-                                  defaultValue=""
-                                  className="w-full text-[11px] py-1 px-2 text-slate-500 bg-white border border-dashed border-slate-200 rounded-lg h-10"
-                                >
-                                  <option value="" disabled>Choose from Catalog...</option>
-                                  {inventoryItems.map((it) => (
-                                    <option key={it.id} value={it.id}>{it.name} (₹{it.purchaseRate || it.purchasePrice || 0})</option>
-                                  ))}
-                                </select>
+                                  options={inventoryItems.map((it) => ({
+                                    value: it.id,
+                                    label: `${it.name} (₹${it.purchaseRate || it.purchasePrice || 0})`,
+                                  }))}
+                                  triggerClassName="rounded-lg border-dashed border-slate-200 text-slate-500"
+                                />
                               )}
                             </div>
                           </td>
@@ -1727,17 +1729,16 @@ const [notes, setNotes] = useState<string>("");
         <div className="space-y-3.5 text-xs">
           <div>
             <label className="block font-medium text-slate-700 mb-1">Select Bank</label>
-            <select
+            <CustomCombobox
               value={bankForm.bankName}
-              onChange={(e) => setBankForm({ ...bankForm, bankName: e.target.value })}
-              className="w-full p-2 border border-slate-300 rounded-lg font-normal text-slate-800 focus:outline-none focus:border-[#2563EB] text-[13px] font-normal h-10"
-            >
-              {COMMON_BANKS.map((b) => (
-                <option key={b} value={b}>
-                  {b}
-                </option>
-              ))}
-            </select>
+              onChange={(val: any) => setBankForm({ ...bankForm, bankName: val })}
+              options={COMMON_BANKS.map((b) => ({
+                value: b,
+                label: b,
+              }))}
+              placeholder="Select Bank..."
+              triggerClassName="rounded-lg border-slate-300 bg-white text-slate-800"
+            />
           </div>
 
           {bankForm.bankName === "Other Bank" && (

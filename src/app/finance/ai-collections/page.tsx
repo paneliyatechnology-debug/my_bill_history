@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useAuth } from "../../../context/auth-context";
 import { apiClient } from "../../../lib/api-client";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 import { X, Phone, Handshake, UserCheck, Zap, CheckCircle2, AlertTriangle, AlertCircle, Check, Square, Play } from "lucide-react";
 
 // ============================================================================
@@ -1284,34 +1285,38 @@ export default function AICollectionsPage() {
                   </svg>
                 </div>
 
-                <select
+                <CustomSelect
                   value={historyStatusFilter}
-                  onChange={(e) => setHistoryStatusFilter(e.target.value)}
-                  className="h-9 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#5C56DF]"
-                >
-                  <option value="">All Call Statuses</option>
-                  <option value="COMPLETED">Completed</option>
-                  <option value="IN_PROGRESS">In Progress</option>
-                  <option value="FAILED">Failed</option>
-                  <option value="NO_ANSWER">No Answer</option>
-                  <option value="BUSY">Busy</option>
-                </select>
+                  onChange={(val) => setHistoryStatusFilter(val)}
+                  options={[
+                    { value: "", label: "All Call Statuses" },
+                    { value: "COMPLETED", label: "Completed" },
+                    { value: "IN_PROGRESS", label: "In Progress" },
+                    { value: "FAILED", label: "Failed" },
+                    { value: "NO_ANSWER", label: "No Answer" },
+                    { value: "BUSY", label: "Busy" },
+                  ]}
+                  size="sm"
+                  className="w-40"
+                />
 
-                <select
+                <CustomSelect
                   value={historyIntentFilter}
-                  onChange={(e) => setHistoryIntentFilter(e.target.value)}
-                  className="h-9 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#5C56DF]"
-                >
-                  <option value="">All AI Outcomes</option>
-                  <option value="PROMISE_TO_PAY">Promise to Pay</option>
-                  <option value="ALREADY_PAID">Already Paid</option>
-                  <option value="REQUEST_MORE_TIME">Needs More Time</option>
-                  <option value="REQUEST_BANK_DETAILS">Bank Details Requested</option>
-                  <option value="REQUEST_UPI">UPI Requested</option>
-                  <option value="DISPUTED">Disputed Invoice</option>
-                  <option value="HUMAN_ASSISTANCE">Human Assistance</option>
-                  <option value="OPT_OUT">Opted Out</option>
-                </select>
+                  onChange={(val) => setHistoryIntentFilter(val)}
+                  options={[
+                    { value: "", label: "All AI Outcomes" },
+                    { value: "PROMISE_TO_PAY", label: "Promise to Pay" },
+                    { value: "ALREADY_PAID", label: "Already Paid" },
+                    { value: "REQUEST_MORE_TIME", label: "Needs More Time" },
+                    { value: "REQUEST_BANK_DETAILS", label: "Bank Details Requested" },
+                    { value: "REQUEST_UPI", label: "UPI Requested" },
+                    { value: "DISPUTED", label: "Disputed Invoice" },
+                    { value: "HUMAN_ASSISTANCE", label: "Human Assistance" },
+                    { value: "OPT_OUT", label: "Opted Out" },
+                  ]}
+                  size="sm"
+                  className="w-48"
+                />
 
                 <button
                   type="button"
@@ -1493,15 +1498,17 @@ export default function AICollectionsPage() {
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Default Spoken Language
                   </label>
-                  <select
+                  <CustomSelect
                     value={settings.defaultLanguage}
-                    onChange={(e) => setSettings({ ...settings, defaultLanguage: e.target.value })}
-                    className="w-full h-9 px-3 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#5C56DF]"
-                  >
-                    <option value="gujarati">Gujarati (ગુજરાતી)</option>
-                    <option value="hindi">Hindi (हिन्दी)</option>
-                    <option value="english">English (Indian Accent)</option>
-                  </select>
+                    onChange={(val) => setSettings({ ...settings, defaultLanguage: val })}
+                    options={[
+                      { value: "gujarati", label: "Gujarati (ગુજરાતી)" },
+                      { value: "hindi", label: "Hindi (हिन्दी)" },
+                      { value: "english", label: "English (Indian Accent)" },
+                    ]}
+                    size="sm"
+                    className="w-full"
+                  />
                 </div>
 
                 <div>
@@ -1683,16 +1690,18 @@ export default function AICollectionsPage() {
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Select Telephony Provider
                   </label>
-                  <select
+                  <CustomSelect
                     value={settings.voiceProvider}
-                    onChange={(e) => setSettings({ ...settings, voiceProvider: e.target.value })}
-                    className="w-full h-9 px-3 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#5C56DF]"
-                  >
-                    <option value="twilio">Twilio Voice (Indian Trunk / +91)</option>
-                    <option value="exotel">Exotel Cloud Telephony (India)</option>
-                    <option value="knowlarity">Knowlarity Super Receptionist</option>
-                    <option value="simulator">Sandbox / Telephony Bridge (Test Mode)</option>
-                  </select>
+                    onChange={(val) => setSettings({ ...settings, voiceProvider: val })}
+                    options={[
+                      { value: "twilio", label: "Twilio Voice (Indian Trunk / +91)" },
+                      { value: "exotel", label: "Exotel Cloud Telephony (India)" },
+                      { value: "knowlarity", label: "Knowlarity Super Receptionist" },
+                      { value: "simulator", label: "Sandbox / Telephony Bridge (Test Mode)" },
+                    ]}
+                    size="sm"
+                    className="w-full"
+                  />
                 </div>
 
                 <div>
@@ -1805,15 +1814,17 @@ export default function AICollectionsPage() {
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     AI Spoken Language
                   </label>
-                  <select
+                  <CustomSelect
                     value={testCallLanguage}
-                    onChange={(e) => setTestCallLanguage(e.target.value)}
-                    className="w-full h-9 px-3 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#5C56DF]"
-                  >
-                    <option value="gujarati">Gujarati (ગુજરાતી)</option>
-                    <option value="hindi">Hindi (हिन्दी)</option>
-                    <option value="english">English (Indian Accent)</option>
-                  </select>
+                    onChange={(val) => setTestCallLanguage(val)}
+                    options={[
+                      { value: "gujarati", label: "Gujarati (ગુજરાતી)" },
+                      { value: "hindi", label: "Hindi (हिन्दी)" },
+                      { value: "english", label: "English (Indian Accent)" },
+                    ]}
+                    size="sm"
+                    className="w-full"
+                  />
                   <span className="text-[10px] text-slate-400 mt-0.5 block">
                     AI will converse naturally in this language.
                   </span>
@@ -1823,17 +1834,19 @@ export default function AICollectionsPage() {
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Test Scenario
                   </label>
-                  <select
+                  <CustomSelect
                     value={testCallScenario}
-                    onChange={(e) => setTestCallScenario(e.target.value)}
-                    className="w-full h-9 px-3 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#5C56DF]"
-                  >
-                    <option value="scenario_a_promise">Scenario A: Payment Promise (Extract Date & Amount)</option>
-                    <option value="scenario_b_paid">Scenario B: Already Paid (Verification & Reference)</option>
-                    <option value="scenario_c_delay">Scenario C: Request More Time (Reschedule Follow-up)</option>
-                    <option value="scenario_d_bank">Scenario D: Request Bank Details (Safe Verification)</option>
-                    <option value="scenario_e_dispute">Scenario E: Invoice Dispute (Staff Task Creation)</option>
-                  </select>
+                    onChange={(val) => setTestCallScenario(val)}
+                    options={[
+                      { value: "scenario_a_promise", label: "Scenario A: Payment Promise (Extract Date & Amount)" },
+                      { value: "scenario_b_paid", label: "Scenario B: Already Paid (Verification & Reference)" },
+                      { value: "scenario_c_delay", label: "Scenario C: Request More Time (Reschedule Follow-up)" },
+                      { value: "scenario_d_bank", label: "Scenario D: Request Bank Details (Safe Verification)" },
+                      { value: "scenario_e_dispute", label: "Scenario E: Invoice Dispute (Staff Task Creation)" },
+                    ]}
+                    size="sm"
+                    className="w-full"
+                  />
                   <span className="text-[10px] text-slate-400 mt-0.5 block">
                     Simulate customer dialogue behavior.
                   </span>

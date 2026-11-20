@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { apiClient } from "../../../lib/api-client";
 import { ExtractedBillData, ExtractedBillItem, PurchaseBillScanRecord } from "@billing/shared-types";
+import { CustomCombobox, CustomSelect } from "@/components/ui/dropdown-system";
 import {
   Zap,
   Tag,
@@ -1875,29 +1876,24 @@ export function BillScannerModal({
                           </span>
                         )}
                       </div>
-                      <select
+                      <CustomCombobox
                         value={selectedPartyId}
-                        onChange={(e) => setSelectedPartyId(e.target.value)}
-                        className={`w-full text-xs rounded-lg border bg-white p-2.5 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 ${
-                          selectedPartyId === "__NEW_SUPPLIER__"
-                            ? "border-indigo-400 bg-indigo-50/40 text-indigo-900 font-semibold"
-                            : "border-slate-300"
-                        }`}
-                      >
-                        {scanRecord?.extractedData?.supplier?.name && (
-                          <option value="__NEW_SUPPLIER__" className="font-bold text-indigo-700 bg-indigo-50">
-                            {lang === "gu" ? "+ નવો સપ્લાયર આપમેળે બનાવો:" : "+ Auto-Create New Supplier:"} &quot;{scanRecord.extractedData.supplier.name}&quot;
-                          </option>
-                        )}
-                        <option value="">
-                          {lang === "gu" ? "-- વેપારી પસંદ કરો --" : "-- Select Existing Supplier --"}
-                        </option>
-                        {localParties.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name} {p.gstin ? `(${p.gstin})` : ""}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val) => setSelectedPartyId(val)}
+                        options={[
+                          ...(scanRecord?.extractedData?.supplier?.name ? [{
+                            value: "__NEW_SUPPLIER__",
+                            label: `${lang === "gu" ? "+ નવો સપ્લાયર આપમેળે બનાવો:" : "+ Auto-Create New Supplier:"} "${scanRecord.extractedData.supplier.name}"`,
+                          }] : []),
+                          ...localParties.map((p) => ({
+                            value: p.id,
+                            label: p.name,
+                            sublabel: p.gstin || undefined,
+                          })),
+                        ]}
+                        placeholder={lang === "gu" ? "-- વેપારી પસંદ કરો --" : "-- Select Existing Supplier --"}
+                        searchPlaceholder="Search supplier..."
+                        className="w-full"
+                      />
 
                       {scanRecord?.extractedData?.supplier?.name && (
                         <div className="mt-2 flex items-center justify-between p-2 bg-indigo-50 border border-indigo-200 rounded-lg text-xs">
@@ -1957,35 +1953,34 @@ export function BillScannerModal({
                       <label className="text-[12px] font-medium text-slate-700 block mb-1">
                         {lang === "gu" ? "માલ મળવાની જગ્યા (Place of Supply)" : "Place of Supply"}
                       </label>
-                      <select
+                      <CustomSelect
                         value={placeOfSupply}
-                        onChange={(e) => setPlaceOfSupply(e.target.value)}
-                        className="w-full text-[13px] rounded-lg border border-slate-300 bg-white p-2.5 h-10"
-                      >
-                        <option value="24">24 - Gujarat (Intra-state: CGST + SGST)</option>
-                        <option value="27">27 - Maharashtra (Inter-state: IGST)</option>
-                        <option value="08">08 - Rajasthan (Inter-state: IGST)</option>
-                        <option value="23">23 - Madhya Pradesh (Inter-state: IGST)</option>
-                        <option value="29">29 - Karnataka (Inter-state: IGST)</option>
-                        <option value="07">07 - Delhi (Inter-state: IGST)</option>
-                      </select>
+                        onChange={(val) => setPlaceOfSupply(val)}
+                        options={[
+                          { value: "24", label: "24 - Gujarat (Intra-state: CGST + SGST)" },
+                          { value: "27", label: "27 - Maharashtra (Inter-state: IGST)" },
+                          { value: "08", label: "08 - Rajasthan (Inter-state: IGST)" },
+                          { value: "23", label: "23 - Madhya Pradesh (Inter-state: IGST)" },
+                          { value: "29", label: "29 - Karnataka (Inter-state: IGST)" },
+                          { value: "07", label: "07 - Delhi (Inter-state: IGST)" },
+                        ]}
+                        className="w-full"
+                      />
                     </div>
 
                     <div>
                       <label className="text-[12px] font-medium text-slate-700 block mb-1">
                         {lang === "gu" ? "ગોડાઉન / વેરહાઉસ (Inward Warehouse)" : "Inward Warehouse"}
                       </label>
-                      <select
+                      <CustomSelect
                         value={selectedWarehouseId}
-                        onChange={(e) => setSelectedWarehouseId(e.target.value)}
-                        className="w-full text-[13px] rounded-lg border border-slate-300 bg-white p-2.5 h-10"
-                      >
-                        {warehouses.map((w) => (
-                          <option key={w.id} value={w.id}>
-                            {w.name} {w.isDefault ? "(Default)" : ""}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val) => setSelectedWarehouseId(val)}
+                        options={warehouses.map((w) => ({
+                          value: w.id,
+                          label: `${w.name} ${w.isDefault ? "(Default)" : ""}`,
+                        }))}
+                        className="w-full"
+                      />
                     </div>
                   </div>
 
@@ -2099,55 +2094,52 @@ export function BillScannerModal({
                                         </div>
 
                                         {/* Product Mapper Dropdown */}
-                                        <select
+                                        <CustomCombobox
                                           value={isNew ? "CREATE_NEW" : item.matchedItemId || ""}
-                                          onChange={(e) => handleProductSelect(idx, e.target.value)}
-                                          className={`w-full text-[11px] rounded border py-1 px-2 ${
-                                            isNew
-                                              ? "border-emerald-300 bg-emerald-50/50 text-emerald-900 font-semibold"
-                                              : item.matchedItemId
-                                                ? "border-indigo-300 bg-indigo-50/40 text-indigo-900 font-semibold"
-                                                : "border-amber-300 bg-amber-50/50 text-amber-900"
-                                          }`}
-                                        >
-                                          {item.matchedItemId && (
-                                            <option value={item.matchedItemId}>
-                                              Matched: {item.matchedItemName || "Existing Product"}
-                                            </option>
-                                          )}
-                                          <option value="CREATE_NEW">
-                                            + {lang === "gu" ? "નવું ઉત્પાદન બનાવો (Create New Product)" : "Create New Product"}
-                                          </option>
-                                          <optgroup label="Existing Products in Catalog">
-                                            {itemsList.map((catItem) => (
-                                              <option key={catItem.id} value={catItem.id}>
-                                                {catItem.name} {catItem.sku ? `[${catItem.sku}]` : ""}
-                                              </option>
-                                            ))}
-                                          </optgroup>
-                                        </select>
+                                          onChange={(val) => handleProductSelect(idx, val)}
+                                          options={[
+                                            ...(item.matchedItemId ? [{
+                                              value: item.matchedItemId,
+                                              label: `Matched: ${item.matchedItemName || "Existing Product"}`,
+                                            }] : []),
+                                            {
+                                              value: "CREATE_NEW",
+                                              label: `+ ${lang === "gu" ? "નવું ઉત્પાદન બનાવો (Create New Product)" : "Create New Product"}`,
+                                            },
+                                            ...itemsList.map((catItem) => ({
+                                              value: catItem.id,
+                                              label: catItem.name,
+                                              sublabel: catItem.sku ? `[${catItem.sku}]` : undefined,
+                                              group: "Existing Products in Catalog",
+                                            })),
+                                          ]}
+                                          searchPlaceholder="Search catalog items..."
+                                          size="sm"
+                                          className="w-full"
+                                        />
                                       </div>
                                     </td>
 
-                                    <td className="p-2">
-                                      <select
+                                    <td className="p-2 min-w-[90px]">
+                                      <CustomSelect
                                         value={currentType}
-                                        onChange={(e) => {
-                                          const val = e.target.value as "PRODUCT" | "SERVICE";
-                                          handleLineChange(idx, "itemType", val);
+                                        onChange={(val) => {
+                                          const itemVal = val as "PRODUCT" | "SERVICE";
+                                          handleLineChange(idx, "itemType", itemVal);
                                           if (isNew) {
                                             setNewProductDetails({
                                               ...newProductDetails,
-                                              [idx]: { ...newProductDetails[idx], itemType: val },
+                                              [idx]: { ...newProductDetails[idx], itemType: itemVal },
                                             });
                                           }
                                         }}
-                                        className="w-full text-[11px] font-normal rounded border border-slate-200 p-1 bg-white h-10"
-                                        title={currentType === "SERVICE" ? "Service: No stock inward" : "Product: Inwards into stock"}
-                                      >
-                                        <option value="PRODUCT">Goods</option>
-                                        <option value="SERVICE">Service</option>
-                                      </select>
+                                        options={[
+                                          { value: "PRODUCT", label: "Goods" },
+                                          { value: "SERVICE", label: "Service" },
+                                        ]}
+                                        size="sm"
+                                        className="w-full"
+                                      />
                                     </td>
 
                                     <td className="p-2">
@@ -2239,22 +2231,24 @@ export function BillScannerModal({
                                           </span>
                                           <div className="flex items-center gap-1">
                                             <label className="text-slate-600">Type:</label>
-                                            <select
+                                            <CustomSelect
                                               value={newProductDetails[idx]?.itemType || "PRODUCT"}
-                                              onChange={(e) =>
+                                              onChange={(val) =>
                                                 setNewProductDetails({
                                                   ...newProductDetails,
                                                   [idx]: {
                                                     ...newProductDetails[idx],
-                                                    itemType: e.target.value,
+                                                    itemType: val,
                                                   },
                                                 })
                                               }
-                                              className="border border-emerald-200 rounded px-1.5 py-0.5 text-[13px] bg-white font-normal h-10"
-                                            >
-                                              <option value="PRODUCT">Goods (Inventory)</option>
-                                              <option value="SERVICE">Service (Expense)</option>
-                                            </select>
+                                              options={[
+                                                { value: "PRODUCT", label: "Goods (Inventory)" },
+                                                { value: "SERVICE", label: "Service (Expense)" },
+                                              ]}
+                                              size="sm"
+                                              className="w-36"
+                                            />
                                           </div>
                                           <div className="flex items-center gap-1">
                                             <label className="text-slate-600">Name:</label>
@@ -2275,27 +2269,29 @@ export function BillScannerModal({
                                           </div>
                                           <div className="flex items-center gap-1">
                                             <label className="text-slate-600">Unit:</label>
-                                            <select
+                                            <CustomSelect
                                               value={newProductDetails[idx]?.unitSymbol || item.unit || "PCS"}
-                                              onChange={(e) =>
+                                              onChange={(val) =>
                                                 setNewProductDetails({
                                                   ...newProductDetails,
                                                   [idx]: {
                                                     ...newProductDetails[idx],
-                                                    unitSymbol: e.target.value,
+                                                    unitSymbol: val,
                                                   },
                                                 })
                                               }
-                                              className="border border-emerald-200 rounded px-1.5 py-0.5 text-[13px] bg-white h-10"
-                                            >
-                                              <option value="PCS">PCS</option>
-                                              <option value="BAG">BAG</option>
-                                              <option value="KG">KG</option>
-                                              <option value="BOX">BOX</option>
-                                              <option value="MTR">MTR</option>
-                                              <option value="TIN">TIN</option>
-                                              <option value="NOS">NOS</option>
-                                            </select>
+                                              options={[
+                                                { value: "PCS", label: "PCS" },
+                                                { value: "BAG", label: "BAG" },
+                                                { value: "KG", label: "KG" },
+                                                { value: "BOX", label: "BOX" },
+                                                { value: "MTR", label: "MTR" },
+                                                { value: "TIN", label: "TIN" },
+                                                { value: "NOS", label: "NOS" },
+                                              ]}
+                                              size="sm"
+                                              className="w-24"
+                                            />
                                           </div>
                                           <div className="flex items-center gap-1">
                                             <label className="text-slate-600">Retail ₹:</label>
@@ -2592,26 +2588,28 @@ export function BillScannerModal({
                       <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                         {lang === "gu" ? "રાજ્ય કોડ *" : "State Code *"}
                       </label>
-                      <select
+                      <CustomCombobox
                         value={supplierFormData.stateCode}
-                        onChange={(e) => setSupplierFormData({ ...supplierFormData, stateCode: e.target.value })}
-                        className="w-full text-[13px] p-2.5 rounded-lg border border-slate-300 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-indigo-500 font-medium h-10"
-                      >
-                        <option value="24">24 - Gujarat</option>
-                        <option value="27">27 - Maharashtra</option>
-                        <option value="07">07 - Delhi</option>
-                        <option value="08">08 - Rajasthan</option>
-                        <option value="09">09 - Uttar Pradesh</option>
-                        <option value="29">29 - Karnataka</option>
-                        <option value="33">33 - Tamil Nadu</option>
-                        <option value="36">36 - Telangana</option>
-                        <option value="19">19 - West Bengal</option>
-                        <option value="23">23 - Madhya Pradesh</option>
-                        <option value="06">06 - Haryana</option>
-                        <option value="03">03 - Punjab</option>
-                        <option value="96">96 - Other Countries / Overseas</option>
-                        <option value="97">97 - Other Territory</option>
-                      </select>
+                        onChange={(val) => setSupplierFormData({ ...supplierFormData, stateCode: val })}
+                        options={[
+                          { value: "24", label: "24 - Gujarat" },
+                          { value: "27", label: "27 - Maharashtra" },
+                          { value: "07", label: "07 - Delhi" },
+                          { value: "08", label: "08 - Rajasthan" },
+                          { value: "09", label: "09 - Uttar Pradesh" },
+                          { value: "29", label: "29 - Karnataka" },
+                          { value: "33", label: "33 - Tamil Nadu" },
+                          { value: "36", label: "36 - Telangana" },
+                          { value: "19", label: "19 - West Bengal" },
+                          { value: "23", label: "23 - Madhya Pradesh" },
+                          { value: "06", label: "06 - Haryana" },
+                          { value: "03", label: "03 - Punjab" },
+                          { value: "96", label: "96 - Other Countries / Overseas" },
+                          { value: "97", label: "97 - Other Territory" },
+                        ]}
+                        searchPlaceholder="Search state..."
+                        className="w-full"
+                      />
                     </div>
                   </div>
 

@@ -100,35 +100,22 @@ export function Navbar({ lang = "en", onToggleLang, onOpenDemo }: NavbarProps) {
       <header
         className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-200 ${
           isScrolled
-            ? "bg-white/95 backdrop-blur-md shadow-xs border-b border-[#E5EAF1]"
-            : "bg-[#F7F9FC] border-b border-[#E5EAF1]/70"
+            ? "bg-white/95 backdrop-blur-md shadow-xs border-b border-slate-200"
+            : "bg-[#F8FAFC] border-b border-slate-200/70"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
             {/* Left: Brand Logo & Tagline */}
-            <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white border border-[#E5EAF1] shadow-2xs flex items-center justify-center p-1.5 transition-transform group-hover:scale-105 shrink-0">
-                <Image
-                  src="/logo-icon.png"
-                  alt="MyOwnBillBook Logo"
-                  width={30}
-                  height={30}
-                  className="object-contain"
-                  priority
-                />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <span
-                  className="text-base sm:text-xl font-semibold tracking-tight text-[#172033] leading-none truncate"
-                  style={{ fontFamily: "var(--font-manrope)" }}
-                >
-                  MyOwn<span className="text-[#2563EB]">BillBook</span>
-                </span>
-                <span className="text-[10px] sm:text-[11px] font-medium text-[#667085] tracking-wide mt-1 truncate">
-                  {gu ? "સ્માર્ટ બિલિંગ અને એકાઉન્ટિંગ" : "Smart Billing & Accounting"}
-                </span>
-              </div>
+            <Link href="/" className="flex items-center group py-1">
+              <Image
+                src="/logo-full.png"
+                alt="MyOwnBillBook"
+                width={180}
+                height={42}
+                className="h-9 sm:h-10 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+                priority
+              />
             </Link>
 
             {/* Center Navigation Links (Desktop) */}
@@ -148,7 +135,8 @@ export function Navbar({ lang = "en", onToggleLang, onOpenDemo }: NavbarProps) {
 
             {/* Right Action CTAs */}
             <div className="hidden lg:flex items-center gap-2.5 xl:gap-3">
-              {onToggleLang && (
+              {/* Language Switcher - Temporarily commented per user request */}
+              {/* {onToggleLang && (
                 <button
                   type="button"
                   onClick={onToggleLang}
@@ -158,7 +146,7 @@ export function Navbar({ lang = "en", onToggleLang, onOpenDemo }: NavbarProps) {
                   <Globe className="w-3.5 h-3.5 text-[#2563EB]" strokeWidth={1.75} />
                   <span>{gu ? "English" : "ગુજરાતી"}</span>
                 </button>
-              )}
+              )} */}
 
               {/* Sign In */}
               <Link
@@ -173,7 +161,7 @@ export function Navbar({ lang = "en", onToggleLang, onOpenDemo }: NavbarProps) {
               <a
                 href="#pricing"
                 onClick={(e) => handleNavClick(e, "#pricing")}
-                className="h-10 sm:h-11 px-4 xl:px-5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-sm font-semibold flex items-center gap-2 transition-all shadow-xs active:scale-98 cursor-pointer"
+                className="h-10 sm:h-11 px-4 xl:px-5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold flex items-center gap-2 transition-all shadow-xs active:scale-98 cursor-pointer"
                 style={{ fontFamily: "var(--font-inter)" }}
               >
                 <span>{gu ? "મફત શરૂ કરો" : "Start Free"}</span>
@@ -183,7 +171,8 @@ export function Navbar({ lang = "en", onToggleLang, onOpenDemo }: NavbarProps) {
 
             {/* Mobile Hamburger & Controls */}
             <div className="flex items-center gap-2 lg:hidden">
-              {onToggleLang && (
+              {/* Mobile Language Switcher - Temporarily commented per user request */}
+              {/* {onToggleLang && (
                 <button
                   type="button"
                   onClick={onToggleLang}
@@ -191,7 +180,7 @@ export function Navbar({ lang = "en", onToggleLang, onOpenDemo }: NavbarProps) {
                 >
                   {gu ? "EN" : "ગુજ"}
                 </button>
-              )}
+              )} */}
 
               <button
                 type="button"
@@ -237,7 +226,7 @@ export function Navbar({ lang = "en", onToggleLang, onOpenDemo }: NavbarProps) {
               <a
                 href="#pricing"
                 onClick={(e) => handleNavClick(e, "#pricing")}
-                className="w-full h-11 rounded-xl bg-[#2563EB] text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-xs"
+                className="w-full h-11 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-xs transition-colors"
               >
                 <span>{gu ? "મફત શરૂ કરો (Start Free)" : "Start Free"}</span>
                 <ArrowRight className="w-4 h-4" strokeWidth={1.75} />

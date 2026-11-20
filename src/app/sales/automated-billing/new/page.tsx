@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
 import { automatedBillingApi, formatCurrency } from "@/lib/automated-billing";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 import { X } from "lucide-react";
 
 interface MasterParty {
@@ -338,16 +339,17 @@ export default function CreateAutomatedBillingPage() {
               <label className="block text-[12px] font-medium text-gray-700 mb-1">
                 Repeat Frequency <span className="text-rose-500">*</span>
               </label>
-              <select
+              <CustomSelect
                 value={frequency}
-                onChange={(e) => setFrequency(e.target.value as any)}
-                className="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1677E8] focus:bg-white font-normal h-10"
-              >
-                <option value="DAILY">Daily (દરરોજ)</option>
-                <option value="WEEKLY">Weekly (દર અઠવાડિયે)</option>
-                <option value="MONTHLY">Monthly (દર મહિને)</option>
-                <option value="YEARLY">Yearly (દર વર્ષે)</option>
-              </select>
+                onChange={(val) => setFrequency(val as any)}
+                options={[
+                  { value: "DAILY", label: "Daily (દરરોજ)" },
+                  { value: "WEEKLY", label: "Weekly (દર અઠવાડિયે)" },
+                  { value: "MONTHLY", label: "Monthly (દર મહિને)" },
+                  { value: "YEARLY", label: "Yearly (દર વર્ષે)" },
+                ]}
+                className="w-full"
+              />
             </div>
 
             <div>
@@ -380,19 +382,20 @@ export default function CreateAutomatedBillingPage() {
             {frequency === "WEEKLY" && (
               <div>
                 <label className="block text-[12px] font-medium text-gray-700 mb-1">Run on Weekday</label>
-                <select
-                  value={dayOfWeek}
-                  onChange={(e) => setDayOfWeek(Number(e.target.value))}
-                  className="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1677E8] focus:bg-white h-10"
-                >
-                  <option value={1}>Monday</option>
-                  <option value={2}>Tuesday</option>
-                  <option value={3}>Wednesday</option>
-                  <option value={4}>Thursday</option>
-                  <option value={5}>Friday</option>
-                  <option value={6}>Saturday</option>
-                  <option value={0}>Sunday</option>
-                </select>
+                <CustomSelect
+                  value={String(dayOfWeek)}
+                  onChange={(val) => setDayOfWeek(Number(val))}
+                  options={[
+                    { value: "1", label: "Monday" },
+                    { value: "2", label: "Tuesday" },
+                    { value: "3", label: "Wednesday" },
+                    { value: "4", label: "Thursday" },
+                    { value: "5", label: "Friday" },
+                    { value: "6", label: "Saturday" },
+                    { value: "0", label: "Sunday" },
+                  ]}
+                  className="w-full"
+                />
               </div>
             )}
 
@@ -413,22 +416,23 @@ export default function CreateAutomatedBillingPage() {
 
             <div>
               <label className="block text-[12px] font-medium text-gray-700 mb-1">Payment Terms</label>
-              <select
+              <CustomSelect
                 value={paymentTerms}
-                onChange={(e) => {
-                  setPaymentTerms(e.target.value);
-                  if (e.target.value === "Due on Receipt") setDueDays(0);
-                  if (e.target.value === "Net 15") setDueDays(15);
-                  if (e.target.value === "Net 30") setDueDays(30);
-                  if (e.target.value === "Net 45") setDueDays(45);
+                onChange={(val) => {
+                  setPaymentTerms(val);
+                  if (val === "Due on Receipt") setDueDays(0);
+                  if (val === "Net 15") setDueDays(15);
+                  if (val === "Net 30") setDueDays(30);
+                  if (val === "Net 45") setDueDays(45);
                 }}
-                className="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1677E8] focus:bg-white h-10"
-              >
-                <option value="Due on Receipt">Due on Receipt (Immediate)</option>
-                <option value="Net 15">Net 15 Days</option>
-                <option value="Net 30">Net 30 Days</option>
-                <option value="Net 45">Net 45 Days</option>
-              </select>
+                options={[
+                  { value: "Due on Receipt", label: "Due on Receipt (Immediate)" },
+                  { value: "Net 15", label: "Net 15 Days" },
+                  { value: "Net 30", label: "Net 30 Days" },
+                  { value: "Net 45", label: "Net 45 Days" },
+                ]}
+                className="w-full"
+              />
             </div>
           </div>
 
@@ -456,19 +460,18 @@ export default function CreateAutomatedBillingPage() {
             <label className="block text-[12px] font-medium text-gray-700 mb-1">
               Select Customer / Party <span className="text-rose-500">*</span>
             </label>
-            <select
+            <CustomCombobox
               value={partyId}
-              onChange={(e) => setPartyId(e.target.value)}
-              className="w-full px-3 py-2 text-[13px] bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1677E8] focus:bg-white h-10"
-              required
-            >
-              <option value="">-- Choose from Master Parties --</option>
-              {parties.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} {p.phone ? `(${p.phone})` : ""} {p.gstin ? `[GSTIN: ${p.gstin}]` : ""}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setPartyId(val)}
+              options={parties.map((p) => ({
+                value: p.id,
+                label: p.name,
+                sublabel: `${p.phone ? p.phone : ""}${p.gstin ? ` · GSTIN: ${p.gstin}` : ""}`,
+              }))}
+              placeholder="-- Choose from Master Parties --"
+              searchPlaceholder="Search customer..."
+              className="w-full"
+            />
           </div>
 
           {selectedParty && (
@@ -535,19 +538,19 @@ export default function CreateAutomatedBillingPage() {
                   return (
                     <tr key={line.id} className="hover:bg-gray-50/50">
                       {/* Item selector & Description */}
-                      <td className="py-2.5 px-3 space-y-1">
-                        <select
+                      <td className="py-2.5 px-3 space-y-1 min-w-[200px]">
+                        <CustomCombobox
                           value={line.itemId}
-                          onChange={(e) => handleLineChange(index, "itemId", e.target.value)}
-                          className="w-full px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-[13px] h-10"
-                        >
-                          <option value="">-- Choose Item from Catalog --</option>
-                          {items.map((it) => (
-                            <option key={it.id} value={it.id}>
-                              {it.name} ({it.sku || "No SKU"})
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(val) => handleLineChange(index, "itemId", val)}
+                          options={items.map((it) => ({
+                            value: it.id,
+                            label: it.name,
+                            sublabel: it.sku || "No SKU",
+                          }))}
+                          placeholder="-- Choose Item from Catalog --"
+                          searchPlaceholder="Search items..."
+                          className="w-full"
+                        />
                         <input
                           type="text"
                           placeholder="Item Description"
@@ -618,18 +621,20 @@ export default function CreateAutomatedBillingPage() {
                       </td>
 
                       {/* Tax Rate % */}
-                      <td className="py-2.5 px-2">
-                        <select
-                          value={line.taxRate}
-                          onChange={(e) => handleLineChange(index, "taxRate", Number(e.target.value))}
-                          className="w-full px-2 py-1 bg-white border border-gray-200 rounded-lg text-[13px] tabular-nums h-10"
-                        >
-                          <option value={0}>0%</option>
-                          <option value={5}>5%</option>
-                          <option value={12}>12%</option>
-                          <option value={18}>18%</option>
-                          <option value={28}>28%</option>
-                        </select>
+                      <td className="py-2.5 px-2 min-w-[90px]">
+                        <CustomSelect
+                          value={String(line.taxRate)}
+                          onChange={(val) => handleLineChange(index, "taxRate", Number(val))}
+                          options={[
+                            { value: "0", label: "0%" },
+                            { value: "5", label: "5%" },
+                            { value: "12", label: "12%" },
+                            { value: "18", label: "18%" },
+                            { value: "28", label: "28%" },
+                          ]}
+                          size="sm"
+                          className="w-full"
+                        />
                       </td>
 
                       {/* Line Total */}

@@ -25,6 +25,7 @@ import {
 } from "@/lib/invoice-theme";
 import { getPartyItemPrice } from "../../../../lib/party-item-pricing";
 import { INDIAN_STATES } from "@/shared-types";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 import {
   DocumentHeaderCard,
   DocumentInfoStrip,
@@ -1978,17 +1979,18 @@ const [notes, setNotes] = useState("");
                               <td className="py-3 px-3">
                                 <div className="space-y-1">
                                   <div className="flex items-center gap-2">
-                                    <select
+                                    <CustomCombobox
+                                      size="sm"
                                       value={row.itemId}
-                                      onChange={(e) => handleItemSelect(idx, e.target.value)}
-                                      className="w-full typo-input py-1.5 px-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#1677E8] rounded-xl text-slate-800 h-10"
-                                    >
-                                      {items.map((it) => (
-                                        <option key={it.id} value={it.id}>
-                                          {it.name} (Stock: {it.stockQuantity ?? 0})
-                                        </option>
-                                      ))}
-                                    </select>
+                                      onChange={(val: any) => handleItemSelect(idx, val)}
+                                      options={items.map((it) => ({
+                                        value: it.id,
+                                        label: it.name,
+                                        sublabel: `Stock: ${it.stockQuantity ?? 0}`,
+                                      }))}
+                                      placeholder="Select Item..."
+                                      triggerClassName="rounded-xl border-slate-200 bg-slate-50/80 hover:bg-white"
+                                    />
                                   </div>
                                 </div>
                               </td>
@@ -2315,18 +2317,19 @@ const [notes, setNotes] = useState("");
                         <label className="block text-[11px] font-medium text-slate-600 mb-1">
                           Party Category
                         </label>
-                        <select
+                        <CustomSelect
                           value={partyFormData.category}
-                          onChange={(e) =>
-                            setPartyFormData({ ...partyFormData, category: e.target.value })
+                          onChange={(val: any) =>
+                            setPartyFormData({ ...partyFormData, category: val })
                           }
-                          className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:outline-none text-[13px] font-normal h-10"
-                        >
-                          <option value="">Search Categories</option>
-                          <option value="Retail">Retail</option>
-                          <option value="Wholesale">Wholesale</option>
-                          <option value="Distributor">Distributor</option>
-                        </select>
+                          options={[
+                            { value: "", label: "Search Categories" },
+                            { value: "Retail", label: "Retail" },
+                            { value: "Wholesale", label: "Wholesale" },
+                            { value: "Distributor", label: "Distributor" },
+                          ]}
+                          triggerClassName="rounded-xl border-slate-200 bg-slate-50"
+                        />
                       </div>
                     </div>
 
@@ -2433,19 +2436,20 @@ const [notes, setNotes] = useState("");
                               className="w-full text-[13px] bg-transparent tabular-nums font-normal focus:outline-none h-10"
                             />
                           </div>
-                          <select
+                          <CustomSelect
                             value={partyFormData.balanceType}
-                            onChange={(e) =>
+                            onChange={(val: any) =>
                               setPartyFormData({
                                 ...partyFormData,
-                                balanceType: e.target.value as "TO_COLLECT" | "TO_PAY",
+                                balanceType: val as "TO_COLLECT" | "TO_PAY",
                               })
                             }
-                            className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-normal focus:outline-none text-[13px] font-normal h-10"
-                          >
-                            <option value="TO_COLLECT">To Collect</option>
-                            <option value="TO_PAY">To Pay</option>
-                          </select>
+                            options={[
+                              { value: "TO_COLLECT", label: "To Collect" },
+                              { value: "TO_PAY", label: "To Pay" },
+                            ]}
+                            triggerClassName="rounded-xl border-slate-200 bg-slate-50 w-[140px]"
+                          />
                         </div>
                       </div>
                     </div>

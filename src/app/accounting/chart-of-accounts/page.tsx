@@ -7,6 +7,7 @@ import { apiClient } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { Badge } from "../../../components/ui/badge";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
+import { CustomSelect } from "../../../components/ui/custom-select";
 import { Sparkles, Check } from "lucide-react";
 
 interface LedgerGroup {
@@ -350,19 +351,20 @@ export default function ChartOfAccountsPage() {
             <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               Accounting Classification *
             </label>
-            <select
+            <CustomSelect
               value={formData.classification}
-              onChange={(e: any) =>
-                setFormData({ ...formData, classification: e.target.value })
+              onChange={(val: any) =>
+                setFormData({ ...formData, classification: val })
               }
-              className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white h-10"
-            >
-              <option value="ASSET">{lang === "gu" ? "ASSET (મિલકત)" : "ASSET"}</option>
-              <option value="LIABILITY">{lang === "gu" ? "LIABILITY (દેવું)" : "LIABILITY"}</option>
-              <option value="EQUITY">{lang === "gu" ? "EQUITY (મૂડી)" : "EQUITY"}</option>
-              <option value="REVENUE">{lang === "gu" ? "REVENUE (આવક)" : "REVENUE"}</option>
-              <option value="EXPENSE">{lang === "gu" ? "EXPENSE (ખર્ચ)" : "EXPENSE"}</option>
-            </select>
+              options={[
+                { value: "ASSET", label: lang === "gu" ? "ASSET (મિલકત)" : "ASSET" },
+                { value: "LIABILITY", label: lang === "gu" ? "LIABILITY (દેવું)" : "LIABILITY" },
+                { value: "EQUITY", label: lang === "gu" ? "EQUITY (મૂડી)" : "EQUITY" },
+                { value: "REVENUE", label: lang === "gu" ? "REVENUE (આવક)" : "REVENUE" },
+                { value: "EXPENSE", label: lang === "gu" ? "EXPENSE (ખર્ચ)" : "EXPENSE" },
+              ]}
+              triggerClassName="rounded-lg h-10 border-slate-300 bg-slate-50"
+            />
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">

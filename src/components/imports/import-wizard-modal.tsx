@@ -25,6 +25,7 @@ import {
   Loader2,
   Download,
 } from "lucide-react";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 
 interface ImportWizardModalProps {
   isOpen: boolean;
@@ -272,30 +273,31 @@ export function ImportWizardModal({
                   {lang === "gu" ? "એક્સેલ / CSV ડેટા આયાત સેન્ટર" : "Excel / CSV Data Import Center"}
                 </h2>
                 {modules.length > 0 && (
-                  <select
-                    value={selectedModule}
-                    onChange={(e) => {
-                      const newMod = e.target.value;
-                      setSelectedModule(newMod);
-                      const found = modules.find((m) => m.module === newMod);
-                      if (found) {
-                        setCurrentSchema(found);
-                        if (parseResult) {
-                          // Re-run mapping against new module
-                          importApi.parseFile(file!, newMod, selectedSheet).then((res) => {
-                            setColumnMapping(res.detectedMapping || {});
-                          }).catch(() => {});
+                  <div className="w-56">
+                    <CustomSelect
+                      size="sm"
+                      value={selectedModule}
+                      onChange={(val: any) => {
+                        const newMod = val;
+                        setSelectedModule(newMod);
+                        const found = modules.find((m) => m.module === newMod);
+                        if (found) {
+                          setCurrentSchema(found);
+                          if (parseResult) {
+                            // Re-run mapping against new module
+                            importApi.parseFile(file!, newMod, selectedSheet).then((res) => {
+                              setColumnMapping(res.detectedMapping || {});
+                            }).catch(() => {});
+                          }
                         }
-                      }
-                    }}
-                    className="text-[12px] bg-slate-50 text-slate-700 hover:bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] cursor-pointer h-8 transition-colors"
-                  >
-                    {modules.map((m) => (
-                      <option key={m.module} value={m.module}>
-                        {lang === "gu" ? m.titleGujarati : m.title}
-                      </option>
-                    ))}
-                  </select>
+                      }}
+                      options={modules.map((m) => ({
+                        value: m.module,
+                        label: lang === "gu" ? m.titleGujarati : m.title,
+                      }))}
+                      triggerClassName="rounded-lg border-slate-200 bg-slate-50 text-slate-700 font-medium"
+                    />
+                  </div>
                 )}
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -496,8 +498,8 @@ export function ImportWizardModal({
                 </h4>
                 <p className="text-xs text-slate-500 max-w-md mx-auto mb-4">
                   {lang === "gu"
-                    ? "ગુજરાતી અને અંગ્રેજી હેડરવાળી કોઈપણ એકાઉન્ટિંગ સ્પ્રેડશીટ આપોઆપ ઓળખાઈ જશે."
-                    : "Intelligent auto-detection matches both English and Gujarati accounting terminology."}
+                    ? "ગુજરાતી અને અંગ્રેજી હેડરવાળી એક્સેલ (.xlsx) અને .csv ફાઇલો સપોર્ટેડ છે."
+                    : "Supports standard Excel (.xlsx) and CSV spreadsheets with English and Gujarati headers."}
                 </p>
 
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs group-hover:border-[#1677E8] group-hover:text-[#1677E8] transition-colors">
@@ -549,17 +551,18 @@ export function ImportWizardModal({
                     <span className="text-xs text-slate-600 font-semibold">
                       {lang === "gu" ? "વર્કશીટ:" : "Sheet:"}
                     </span>
-                    <select
-                      value={selectedSheet}
-                      onChange={(e) => handleSheetChange(e.target.value)}
-                      className="px-3 py-1.5 border border-slate-300 rounded-lg text-[13px] bg-white text-slate-800 font-medium h-10"
-                    >
-                      {parseResult.worksheets.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="w-40">
+                      <CustomSelect
+                        size="sm"
+                        value={selectedSheet}
+                        onChange={(val: any) => handleSheetChange(val)}
+                        options={parseResult.worksheets.map((s) => ({
+                          value: s,
+                          label: s,
+                        }))}
+                        triggerClassName="rounded-lg border-slate-300 bg-white font-medium text-slate-800"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -610,30 +613,24 @@ export function ImportWizardModal({
                           <td className="p-3 text-center text-slate-400 font-medium">→</td>
                           <td className="p-3">
                             <div className="flex items-center gap-2">
-                              <select
+                              <CustomSelect
                                 value={currentMappedKey}
-                                onChange={(e) => {
-                                  const newKey = e.target.value;
+                                onChange={(val) => {
                                   setColumnMapping((prev) => ({
                                     ...prev,
-                                    [header]: newKey,
+                                    [header]: val,
                                   }));
                                 }}
-                                className={`w-full max-w-sm px-3 py-1.5 border rounded-lg text-xs bg-white text-slate-800 ${
-                                  mappedField?.required
-                                    ? "border-emerald-500 font-semibold ring-1 ring-emerald-500/20"
-                                    : currentMappedKey
-                                    ? "border-slate-300"
-                                    : "border-slate-200 text-slate-400"
-                                }`}
-                              >
-                                <option value="">-- {lang === "gu" ? "આ કોલમ અવગણો (Ignore)" : "Ignore this column"} --</option>
-                                {currentSchema.fields.map((f) => (
-                                  <option key={f.key} value={f.key}>
-                                    {f.label} {f.required ? "*(Required)" : ""}
-                                  </option>
-                                ))}
-                              </select>
+                                options={[
+                                  { value: "", label: `-- ${lang === "gu" ? "આ કોલમ અવગણો (Ignore)" : "Ignore this column"} --` },
+                                  ...currentSchema.fields.map((f) => ({
+                                    value: f.key,
+                                    label: `${f.label} ${f.required ? "*(Required)" : ""}`,
+                                  })),
+                                ]}
+                                size="sm"
+                                className="w-full max-w-sm"
+                              />
 
                               {mappedField?.required && (
                                 <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold uppercase">

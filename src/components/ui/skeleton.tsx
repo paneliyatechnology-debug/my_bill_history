@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import { Receipt } from "lucide-react";
 
 export function Skeleton({
@@ -113,10 +114,16 @@ export function InitialAppLoader({
   return (
     <div className="min-h-screen bg-[#F6F7F1] flex flex-col items-center justify-center p-4">
       <div className="text-center space-y-4">
-        {/* Brand Icon with Jade Pulse Ring */}
+        {/* Brand Icon with Pulse Ring */}
         <div className="relative inline-block">
-          <div className="w-16 h-16 rounded-2xl bg-[#EFF6FF] border border-[#93C5FD] flex items-center justify-center shadow-blue-500/20">
-            <Receipt className="w-8 h-8 text-[#1677E8]" />
+          <div className="w-16 h-16 rounded-2xl bg-white border border-[#E2E8F0] flex items-center justify-center shadow-xs p-2">
+            <Image
+              src="/logo-icon.png"
+              alt="MyOwnBillBook"
+              width={40}
+              height={40}
+              className="object-contain"
+            />
           </div>
           <div className="absolute -inset-1 rounded-2xl border-2 border-[#1677E8] opacity-40 animate-ping pointer-events-none" />
         </div>

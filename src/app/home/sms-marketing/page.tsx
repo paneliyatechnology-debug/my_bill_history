@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiClient, extractList } from "@/lib/api-client";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 import {
   X,
   AlertTriangle,
@@ -900,29 +901,27 @@ export default function SmsMarketingPage() {
                 <label className="text-[12px] font-medium text-gray-700">
                   {lang === "gu" ? "ટેમ્પલેટ પસંદ કરો:" : "Select Milestone Template:"}
                 </label>
-                <select
+                <CustomSelect
                   value={greetingSettings.invoice_milestone.template_id}
-                  onChange={(e) => {
-                    const sel = REMINDER_TEMPLATES_DATA.find((t) => t.id === e.target.value);
+                  onChange={(val) => {
+                    const sel = REMINDER_TEMPLATES_DATA.find((t) => t.id === val);
                     setGreetingSettings((prev) => ({
                       ...prev,
                       invoice_milestone: {
                         ...prev.invoice_milestone,
-                        template_id: e.target.value,
+                        template_id: val,
                         example: sel?.example || prev.invoice_milestone.example,
                       },
                     }));
                   }}
-                  className="w-full text-[13px] sm:text-[13px] p-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 h-10"
-                >
-                  {REMINDER_TEMPLATES_DATA.filter(
+                  options={REMINDER_TEMPLATES_DATA.filter(
                     (t) => t.category === "invoice_milestone_reminders",
-                  ).map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.template}
-                    </option>
-                  ))}
-                </select>
+                  ).map((t) => ({
+                    value: t.id,
+                    label: t.template,
+                  }))}
+                  className="w-full"
+                />
 
                 <div className="p-3 bg-white border border-gray-200 rounded-lg text-xs text-gray-600">
                   <span className="font-semibold text-gray-800">{lang === "gu" ? "મેસેજ ઉદાહરણ: " : "Message Preview: "}</span>
@@ -970,29 +969,27 @@ export default function SmsMarketingPage() {
                 <label className="text-[12px] font-medium text-gray-700">
                   {lang === "gu" ? "જન્મદિવસ ટેમ્પલેટ પસંદ કરો:" : "Select Birthday Template:"}
                 </label>
-                <select
+                <CustomSelect
                   value={greetingSettings.birthday_reminder.template_id}
-                  onChange={(e) => {
-                    const sel = REMINDER_TEMPLATES_DATA.find((t) => t.id === e.target.value);
+                  onChange={(val) => {
+                    const sel = REMINDER_TEMPLATES_DATA.find((t) => t.id === val);
                     setGreetingSettings((prev) => ({
                       ...prev,
                       birthday_reminder: {
                         ...prev.birthday_reminder,
-                        template_id: e.target.value,
+                        template_id: val,
                         example: sel?.example || prev.birthday_reminder.example,
                       },
                     }));
                   }}
-                  className="w-full text-[13px] sm:text-[13px] p-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 h-10"
-                >
-                  {REMINDER_TEMPLATES_DATA.filter(
+                  options={REMINDER_TEMPLATES_DATA.filter(
                     (t) => t.category === "birthday_reminders",
-                  ).map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.template}
-                    </option>
-                  ))}
-                </select>
+                  ).map((t) => ({
+                    value: t.id,
+                    label: t.template,
+                  }))}
+                  className="w-full"
+                />
 
                 <div className="p-3 bg-white border border-gray-200 rounded-lg text-xs text-gray-600">
                   <span className="font-semibold text-gray-800">{lang === "gu" ? "મેસેજ ઉદાહરણ: " : "Message Preview: "}</span>
@@ -1106,20 +1103,22 @@ export default function SmsMarketingPage() {
               <span className="text-xs font-semibold text-gray-700">
                 {lang === "gu" ? "શ્રેણી પસંદ કરો:" : "Select SMS Category:"}
               </span>
-              <select
+              <CustomSelect
                 value={templateCategory}
-                onChange={(e) => {
-                  setTemplateCategory(e.target.value);
-                  const match = PRE_APPROVED_TEMPLATES.find((t) => t.category === e.target.value);
+                onChange={(val) => {
+                  setTemplateCategory(val);
+                  const match = PRE_APPROVED_TEMPLATES.find((t) => t.category === val);
                   if (match) setSelectedTemplateForEdit(match);
                 }}
-                className="text-[13px] p-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 font-medium h-10"
-              >
-                <option value="festival">{lang === "gu" ? "તહેવાર (Festival)" : "Festival"}</option>
-                <option value="discount">{lang === "gu" ? "ડિસ્કાઉન્ટ (Discount)" : "Discount"}</option>
-                <option value="stock_update">{lang === "gu" ? "સ્ટોક અપડેટ" : "Stock Update"}</option>
-                <option value="business_promotion">{lang === "gu" ? "પ્રમોશન" : "Business Promotion"}</option>
-              </select>
+                options={[
+                  { value: "festival", label: lang === "gu" ? "તહેવાર (Festival)" : "Festival" },
+                  { value: "discount", label: lang === "gu" ? "ડિસ્કાઉન્ટ (Discount)" : "Discount" },
+                  { value: "stock_update", label: lang === "gu" ? "સ્ટોક અપડેટ" : "Stock Update" },
+                  { value: "business_promotion", label: lang === "gu" ? "પ્રમોશન" : "Business Promotion" },
+                ]}
+                size="sm"
+                className="w-56"
+              />
             </div>
 
             {/* Note Banner */}

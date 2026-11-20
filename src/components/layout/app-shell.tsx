@@ -15,6 +15,7 @@ import { SettingsSidebar } from "../settings/settings-sidebar";
 import { WorkspaceErrorState } from "../ui/workspace-error-state";
 import { NotificationCenter } from "../notifications/notification-center";
 import { GlobalSearch } from "./global-search";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 import {
   LayoutDashboard,
   Users,
@@ -38,6 +39,7 @@ import {
   ChevronRight,
   ChevronLeft,
   X,
+  ShieldAlert,
 } from "lucide-react";
 const SIDEBAR_BG = "#FFFFFF";
 const ACTIVE_MENU_BG = "#1677E8";
@@ -49,6 +51,8 @@ interface SubNavItem {
   name: string;
   nameGujarati: string;
   href: string;
+  module?: string;
+  action?: string;
 }
 
 interface NavSection {
@@ -61,7 +65,445 @@ interface NavSection {
   items?: SubNavItem[];
   badge?: string;
   roles?: string[];
+  module?: string;
+  action?: string;
 }
+
+// Exact MyBillBook Hierarchical Menu Structure with Standardized Lucide Icon System
+const navigationSections: NavSection[] = [
+  // --- MAIN NAVIGATION ---
+  {
+    id: "dashboard",
+    name: "Dashboard",
+    nameGujarati: "મુખ્ય ડેશબોર્ડ",
+    group: "",
+    href: "/",
+    module: "dashboard",
+    action: "view",
+    icon: <LayoutDashboard className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+  },
+  {
+    id: "parties",
+    name: "Parties",
+    nameGujarati: "પાર્ટીઝ (ગ્રાહકો / વેપારીઓ)",
+    group: "",
+    module: "parties",
+    action: "view",
+    icon: <Users className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+    items: [
+      {
+        name: "All Parties",
+        nameGujarati: "બધી પાર્ટીઓ (ખાતાવહી)",
+        href: "/masters/parties",
+        module: "parties",
+        action: "view",
+      },
+      {
+        name: "Shared Ledger",
+        nameGujarati: "શેર્ડ લેજર (Live Sync)",
+        href: "/app/home/shared-ledger",
+        module: "parties",
+        action: "view_ledger",
+      },
+    ],
+  },
+  {
+    id: "items",
+    name: "Items / Inventory",
+    nameGujarati: "માલસામાન (Items)",
+    group: "",
+    module: "items",
+    action: "view",
+    icon: <Package className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+    items: [
+      {
+        name: "Inventory",
+        nameGujarati: "સ્ટોક / વસ્તુઓની યાદી",
+        href: "/masters/items",
+        module: "items",
+        action: "view",
+      },
+      {
+        name: "Godown (Warehouse)",
+        nameGujarati: "ગોડાઉન / વેરહાઉસ",
+        href: "/masters/warehouses",
+        module: "items",
+        action: "stock_transfer",
+      },
+      {
+        name: "Categories",
+        nameGujarati: "કેટેગરીઝ",
+        href: "/masters/categories",
+        module: "items",
+        action: "view",
+      },
+      {
+        name: "Units (UOM)",
+        nameGujarati: "એકમો (UOM)",
+        href: "/masters/units",
+        module: "items",
+        action: "view",
+      },
+      {
+        name: "HSN / SAC Codes",
+        nameGujarati: "HSN કોડ્સ",
+        href: "/masters/hsn",
+        module: "items",
+        action: "view",
+      },
+    ],
+  },
+  {
+    id: "sales",
+    name: "Sales",
+    nameGujarati: "વેચાણ (Sales)",
+    group: "",
+    module: "sales_invoices",
+    action: "view",
+    icon: <ShoppingCart className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+    items: [
+      {
+        name: "Sales Invoices",
+        nameGujarati: "વેચાણ બિલ (Invoices)",
+        href: "/sales/invoices",
+        module: "sales_invoices",
+        action: "view",
+      },
+      {
+        name: "E-Invoices",
+        nameGujarati: "ઈ-ઇનવોઇસ (E-Invoices)",
+        href: "/sales/e-invoices",
+        module: "sales_invoices",
+        action: "view",
+      },
+      {
+        name: "Quotation / Estimate",
+        nameGujarati: "કાચું બિલ / એસ્ટીમેટ",
+        href: "/sales/quotations",
+        module: "quotations",
+        action: "view",
+      },
+      {
+        name: "Payment In",
+        nameGujarati: "આવક ચૂકવણી (Payment In)",
+        href: "/sales/payment-in",
+        module: "sales_invoices",
+        action: "view",
+      },
+      {
+        name: "Sales Return",
+        nameGujarati: "વેચાણ પરત (Sales Return)",
+        href: "/sales/returns",
+        module: "sales_returns",
+        action: "view",
+      },
+      {
+        name: "Credit Note",
+        nameGujarati: "ક્રેડિટ નોટ",
+        href: "/sales/credit-note",
+        module: "sales_returns",
+        action: "view",
+      },
+      {
+        name: "Debit Note",
+        nameGujarati: "ડેબિટ નોટ",
+        href: "/sales/debit-note",
+        module: "sales_returns",
+        action: "view",
+      },
+      {
+        name: "Delivery Challan",
+        nameGujarati: "ડિલિવરી ચલણ",
+        href: "/sales/delivery-challan",
+        module: "delivery_challans",
+        action: "view",
+      },
+      {
+        name: "Proforma Invoice",
+        nameGujarati: "પ્રોફોર્મા ઇન્વોઇસ",
+        href: "/sales/proforma",
+        module: "proforma_invoices",
+        action: "view",
+      },
+    ],
+  },
+  {
+    id: "purchases",
+    name: "Purchases",
+    nameGujarati: "ખરીદી (Purchases)",
+    group: "",
+    module: "purchases",
+    action: "view",
+    icon: <ShoppingBag className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+    items: [
+      {
+        name: "Purchase Invoices",
+        nameGujarati: "ખરીદી બિલ & સ્કેનર",
+        href: "/purchases",
+        module: "purchases",
+        action: "view",
+      },
+      {
+        name: "Payment Out",
+        nameGujarati: "જાવક ચૂકવણી (Payment Out)",
+        href: "/purchases/payment-out",
+        module: "purchases",
+        action: "view",
+      },
+      {
+        name: "Purchase Return",
+        nameGujarati: "ખરીદી પરત",
+        href: "/purchases/returns",
+        module: "purchases",
+        action: "view",
+      },
+      {
+        name: "Debit Memo",
+        nameGujarati: "ડેબિટ મેમો",
+        href: "/purchases/debit-memo",
+        module: "purchases",
+        action: "view",
+      },
+      {
+        name: "Purchase Orders",
+        nameGujarati: "ખરીદી ઓર્ડર",
+        href: "/purchases/orders",
+        module: "purchases",
+        action: "view",
+      },
+    ],
+  },
+  {
+    id: "expenses",
+    name: "Expenses",
+    nameGujarati: "દૈનિક ખર્ચા (Expenses)",
+    group: "",
+    href: "/finance/expenses",
+    module: "expenses",
+    action: "view",
+    icon: <Receipt className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+  },
+  {
+    id: "reports",
+    name: "Reports",
+    nameGujarati: "રિપોર્ટ્સ (Reports)",
+    group: "",
+    href: "/reports",
+    module: "reports",
+    action: "view",
+    icon: <BarChart3 className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+  },
+
+  // --- ACCOUNTING ---
+  {
+    id: "vouchers",
+    name: "Vouchers",
+    nameGujarati: "વાઉચર્સ (Vouchers)",
+    group: "ACCOUNTING",
+    module: "accounting",
+    action: "view",
+    icon: <FileText className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+    items: [
+      {
+        name: "Voucher List",
+        nameGujarati: "વાઉચર લિસ્ટ (All Vouchers)",
+        href: "/accounting/vouchers",
+        module: "accounting",
+        action: "view",
+      },
+      {
+        name: "Create Voucher",
+        nameGujarati: "નવું વાઉચર (Create Voucher)",
+        href: "/accounting/vouchers/new",
+        module: "accounting",
+        action: "create",
+      },
+      {
+        name: "All Transactions",
+        nameGujarati: "બધા વ્યવહારો (All Transactions)",
+        href: "/vouchers/all_transactions",
+        module: "accounting",
+        action: "view",
+      },
+      {
+        name: "Account Ledgers",
+        nameGujarati: "ખાતાવહી (Ledgers)",
+        href: "/accounting/ledgers",
+        module: "accounting",
+        action: "view_ledger",
+      },
+      {
+        name: "Chart of Accounts",
+        nameGujarati: "ખાતાની યાદી (Chart of Accounts)",
+        href: "/accounting/chart-of-accounts",
+        module: "accounting",
+        action: "view",
+      },
+    ],
+  },
+  {
+    id: "cash_bank",
+    name: "Cash & Bank",
+    nameGujarati: "રોકડ અને બેંક",
+    group: "ACCOUNTING",
+    href: "/finance/cash-bank",
+    module: "cash_bank",
+    action: "view",
+    icon: <Landmark className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+  },
+  {
+    id: "gst_returns",
+    name: "GST & Tax Filing",
+    nameGujarati: "જીએસટી અને રિટર્ન (GST & Returns)",
+    group: "ACCOUNTING",
+    href: "/gst",
+    module: "gst_tax",
+    action: "view",
+    icon: <FileSpreadsheet className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+  },
+  {
+    id: "automated_bills",
+    name: "Automated Bills",
+    nameGujarati: "ઓટોમેટેડ બિલ્સ",
+    group: "ACCOUNTING",
+    href: "/sales/automated-billing",
+    module: "sales_invoices",
+    action: "view",
+    icon: <Repeat className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+  },
+  {
+    id: "pos",
+    name: "POS Billing",
+    nameGujarati: "ઝડપી કાઉન્ટર POS",
+    group: "ACCOUNTING",
+    href: "/sales/pos",
+    module: "sales_invoices",
+    action: "view",
+    icon: <Calculator className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+  },
+  {
+    id: "pos_orders",
+    name: "POS Orders",
+    nameGujarati: "પીઓએસ ઓર્ડર્સ",
+    group: "ACCOUNTING",
+    href: "/sales/pos/orders",
+    module: "sales_invoices",
+    action: "view",
+    icon: <Receipt className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+  },
+  {
+    id: "settings",
+    name: "Settings",
+    nameGujarati: "સેટિંગ્સ",
+    group: "ACCOUNTING",
+    href: "/settings",
+    module: "settings",
+    action: "view",
+    icon: <Settings className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+    items: [
+      {
+        name: "Company Settings",
+        nameGujarati: "કંપની સેટિંગ્સ",
+        href: "/settings/company",
+        module: "settings",
+        action: "view",
+      },
+      {
+        name: "Invoice Settings",
+        nameGujarati: "ઇન્વોઇસ સેટિંગ્સ",
+        href: "/settings/invoice",
+        module: "settings",
+        action: "view",
+      },
+      {
+        name: "E-Invoice Settings",
+        nameGujarati: "ઈ-ઇનવોઇસ સેટિંગ્સ",
+        href: "/settings/e-invoice",
+        module: "settings",
+        action: "view",
+      },
+      {
+        name: "User Management",
+        nameGujarati: "કર્મચારી વ્યવસ્થાપન",
+        href: "/settings/user-management",
+        module: "settings",
+        action: "view",
+      },
+      {
+        name: "Role & Permissions",
+        nameGujarati: "રોલ અને પરવાનગીઓ",
+        href: "/settings/roles",
+        module: "settings",
+        action: "view",
+      },
+      {
+        name: "Activity Logs",
+        nameGujarati: "પ્રવૃત્તિ લૉગ્સ",
+        href: "/settings/activity-logs",
+        module: "settings",
+        action: "view",
+      },
+      {
+        name: "Branch Management",
+        nameGujarati: "બ્રાન્ચ મેનેજમેન્ટ",
+        href: "/settings/company",
+        module: "settings",
+        action: "view",
+      },
+      {
+        name: "Financial Year",
+        nameGujarati: "નાણાકીય વર્ષ",
+        href: "/settings/account",
+        module: "settings",
+        action: "view",
+      },
+    ],
+  },
+
+  // --- GROUP 3: BUSINESS TOOLS ---
+  {
+    id: "data_import",
+    name: "Data Import (Excel / CSV)",
+    nameGujarati: "ડેટા આયાત (Excel / CSV)",
+    group: "BUSINESS TOOLS",
+    badge: "",
+    href: "/app/data-import",
+    module: "settings",
+    action: "view",
+    icon: <UploadCloud className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+  },
+  {
+    id: "ai_collections",
+    name: "Payment Reminders",
+    nameGujarati: "ઓટો ઉઘરાણી (Follow-ups)",
+    group: "BUSINESS TOOLS",
+    badge: "",
+    href: "/finance/ai-collections",
+    module: "parties",
+    action: "view",
+    icon: <BellRing className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+  },
+  {
+    id: "payroll",
+    name: "Staff Attendance & Payroll",
+    nameGujarati: "સ્ટાફ હાજરી અને પગાર",
+    group: "BUSINESS TOOLS",
+    href: "/app/sam",
+    module: "settings",
+    action: "view",
+    icon: <CalendarCheck className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+  },
+  {
+    id: "users",
+    name: "Manage Users",
+    nameGujarati: "વપરાશકર્તા સંચાલન",
+    group: "BUSINESS TOOLS",
+    href: "/settings/user-management",
+    module: "settings",
+    action: "edit_users",
+    icon: <UserCheck className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
+  },
+];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -85,6 +527,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     switchBranch,
     switchFinancialYear,
     logout,
+    canAccessModule,
+    hasPermission,
   } = useAuth();
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -267,6 +711,87 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   }, [isLoading, isAuthenticated, pathname, router]);
 
+  const visibleNavigationSections = useMemo(() => {
+    return navigationSections
+      .map((section) => {
+        // If this section has sub-menus (Sales, Purchases, Accounting, Items, Parties)
+        if (section.items && section.items.length > 0) {
+          const allowedItems = section.items.filter((item) => {
+            const itemMod = item.module || section.module || section.id;
+            const itemAct = item.action || "view";
+            return hasPermission(itemMod, itemAct);
+          });
+
+          // If no sub-items are allowed for this user, hide the entire section!
+          if (allowedItems.length === 0) {
+            return null;
+          }
+
+          return {
+            ...section,
+            items: allowedItems,
+          };
+        }
+
+        // Direct top-level navigation item
+        const secMod = section.module || section.id;
+        const secAct = section.action || "view";
+        if (hasPermission(secMod, secAct)) {
+          return section;
+        }
+
+        return null;
+      })
+      .filter(Boolean) as NavSection[];
+  }, [hasPermission, canAccessModule, user]);
+
+  // Route permission protection for authenticated staff
+  const routePermissionDenied = useMemo(() => {
+    if (!isAuthenticated || !user) return false;
+    const r = (user.role || "").toUpperCase();
+    if (
+      r === "SUPER_ADMIN" ||
+      r === "ORG_ADMIN" ||
+      r === "COMPANY_ADMIN" ||
+      r === "PARTNER" ||
+      r === "ADMIN"
+    ) {
+      return false;
+    }
+
+    const ROUTE_RULES: Array<{ prefix: string; module: string; action?: string }> = [
+      { prefix: "/sales/quotations", module: "quotations", action: "view" },
+      { prefix: "/sales/proforma", module: "proforma_invoices", action: "view" },
+      { prefix: "/sales/delivery-challan", module: "delivery_challans", action: "view" },
+      { prefix: "/sales/returns", module: "sales_returns", action: "view" },
+      { prefix: "/sales/credit-note", module: "sales_returns", action: "view" },
+      { prefix: "/sales/debit-note", module: "sales_returns", action: "view" },
+      { prefix: "/sales/invoices", module: "sales_invoices", action: "view" },
+      { prefix: "/sales/e-invoices", module: "sales_invoices", action: "view" },
+      { prefix: "/sales/payment-in", module: "sales_invoices", action: "view" },
+      { prefix: "/purchases", module: "purchases", action: "view" },
+      { prefix: "/finance/expenses", module: "expenses", action: "view" },
+      { prefix: "/accounting/vouchers/new", module: "accounting", action: "create" },
+      { prefix: "/accounting/vouchers", module: "accounting", action: "view" },
+      { prefix: "/accounting/ledgers", module: "accounting", action: "view_ledger" },
+      { prefix: "/accounting/chart-of-accounts", module: "accounting", action: "view" },
+      { prefix: "/finance/cash-bank", module: "cash_bank", action: "view" },
+      { prefix: "/gst", module: "gst_tax", action: "view" },
+      { prefix: "/reports", module: "reports", action: "view" },
+      { prefix: "/settings/user-management", module: "settings", action: "edit_users" },
+      { prefix: "/settings", module: "settings", action: "view" },
+      { prefix: "/masters/items", module: "items", action: "view" },
+      { prefix: "/masters/parties", module: "parties", action: "view" },
+    ];
+
+    for (const rule of ROUTE_RULES) {
+      if (pathname === rule.prefix || pathname.startsWith(rule.prefix + "/")) {
+        return !hasPermission(rule.module, rule.action || "view");
+      }
+    }
+    return false;
+  }, [pathname, isAuthenticated, user, hasPermission]);
+
   // If on public pages (login, intro, features, Myownbillbook, unauthenticated home), dedicated superadmin portal, or dedicated fullscreen POS counter, render children cleanly without standard business shell
   if (
     pathname === "/login" ||
@@ -312,26 +837,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           fontFamily: "var(--font-inter), sans-serif",
         }}
       >
-        <div
-          className="w-16 h-16 flex items-center justify-center mb-3 animate-pulse relative"
-          style={{
-            width: "4rem",
-            height: "4rem",
-          }}
-        >
+        {/* Brand Logo in Loading Screen */}
+        <div className="flex justify-center mb-4">
           <Image
-            src="/logo-icon.png"
+            src="/logo-full.png"
             alt="myownbillbook"
-            width={64}
-            height={64}
-            className="object-contain"
+            width={200}
+            height={46}
+            className="h-10 w-auto object-contain animate-pulse"
             priority
           />
         </div>
-        <p className="text-lg font-semibold tracking-tight">
-          <span className="text-[#0F172A]">MyOwn</span>
-          <span className="text-[#1677E8]">BillBook</span>
-        </p>
         <p
           className="text-xs text-[#98A2B3] mt-1 tabular-nums"
           style={{ color: "#98A2B3" }}
@@ -396,298 +912,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return null;
   }
 
-
-
-  // Exact MyBillBook Hierarchical Menu Structure with Standardized Lucide Icon System
-  const navigationSections: NavSection[] = [
-    // --- MAIN NAVIGATION ---
-    {
-      id: "dashboard",
-      name: "Dashboard",
-      nameGujarati: "મુખ્ય ડેશબોર્ડ",
-      group: "",
-      href: "/",
-      icon: <LayoutDashboard className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
-    },
-    {
-      id: "parties",
-      name: "Parties",
-      nameGujarati: "પાર્ટીઝ (ગ્રાહકો / વેપારીઓ)",
-      group: "",
-      icon: <Users className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
-      items: [
-        {
-          name: "All Parties",
-          nameGujarati: "બધી પાર્ટીઓ (ખાતાવહી)",
-          href: "/masters/parties",
-        },
-        {
-          name: "Shared Ledger",
-          nameGujarati: "શેર્ડ લેજર (Live Sync)",
-          href: "/app/home/shared-ledger",
-        },
-      ],
-    },
-    {
-      id: "items",
-      name: "Items / Inventory",
-      nameGujarati: "માલસામાન (Items)",
-      group: "",
-      icon: <Package className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
-      items: [
-        {
-          name: "Inventory",
-          nameGujarati: "સ્ટોક / વસ્તુઓની યાદી",
-          href: "/masters/items",
-        },
-        {
-          name: "Godown (Warehouse)",
-          nameGujarati: "ગોડાઉન / વેરહાઉસ",
-          href: "/masters/warehouses",
-        },
-        {
-          name: "Categories",
-          nameGujarati: "કેટેગરીઝ",
-          href: "/masters/categories",
-        },
-        {
-          name: "Units (UOM)",
-          nameGujarati: "એકમો (UOM)",
-          href: "/masters/units",
-        },
-        {
-          name: "HSN / SAC Codes",
-          nameGujarati: "HSN કોડ્સ",
-          href: "/masters/hsn",
-        },
-      ],
-    },
-    {
-      id: "sales",
-      name: "Sales",
-      nameGujarati: "વેચાણ (Sales)",
-      group: "",
-      icon: <ShoppingCart className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
-      items: [
-        {
-          name: "Sales Invoices",
-          nameGujarati: "વેચાણ બિલ (Invoices)",
-          href: "/sales/invoices",
-        },
-        {
-          name: "E-Invoices",
-          nameGujarati: "ઈ-ઇનવોઇસ (E-Invoices)",
-          href: "/sales/e-invoices",
-        },
-        {
-          name: "Quotation / Estimate",
-          nameGujarati: "કાચું બિલ / એસ્ટીમેટ",
-          href: "/sales/quotations",
-        },
-        {
-          name: "Payment In",
-          nameGujarati: "આવક ચૂકવણી (Payment In)",
-          href: "/sales/payment-in",
-        },
-        {
-          name: "Sales Return",
-          nameGujarati: "વેચાણ પરત (Sales Return)",
-          href: "/sales/returns",
-        },
-        {
-          name: "Credit Note",
-          nameGujarati: "ક્રેડિટ નોટ",
-          href: "/sales/credit-note",
-        },
-        {
-          name: "Debit Note",
-          nameGujarati: "ડેબિટ નોટ",
-          href: "/sales/debit-note",
-        },
-        {
-          name: "Delivery Challan",
-          nameGujarati: "ડિલિવરી ચલણ",
-          href: "/sales/delivery-challan",
-        },
-        {
-          name: "Proforma Invoice",
-          nameGujarati: "પ્રોફોર્મા ઇન્વોઇસ",
-          href: "/sales/proforma",
-        },
-      ],
-    },
-    {
-      id: "purchases",
-      name: "Purchases",
-      nameGujarati: "ખરીદી (Purchases)",
-      group: "",
-      icon: <ShoppingBag className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
-      items: [
-        {
-          name: "Purchase Invoices",
-          nameGujarati: "ખરીદી બિલ & સ્કેનર",
-          href: "/purchases",
-        },
-        {
-          name: "Payment Out",
-          nameGujarati: "જાવક ચૂકવણી (Payment Out)",
-          href: "/purchases/payment-out",
-        },
-        {
-          name: "Purchase Return",
-          nameGujarati: "ખરીદી પરત",
-          href: "/purchases/returns",
-        },
-        {
-          name: "Debit Memo",
-          nameGujarati: "ડેબિટ મેમો",
-          href: "/purchases/debit-memo",
-        },
-        {
-          name: "Purchase Orders",
-          nameGujarati: "ખરીદી ઓર્ડર",
-          href: "/purchases/orders",
-        },
-      ],
-    },
-    {
-      id: "expenses",
-      name: "Expenses",
-      nameGujarati: "દૈનિક ખર્ચા (Expenses)",
-      group: "",
-      href: "/finance/expenses",
-      icon: <Receipt className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
-    },
-    {
-      id: "reports",
-      name: "Reports",
-      nameGujarati: "રિપોર્ટ્સ (Reports)",
-      group: "",
-      href: "/reports",
-      icon: <BarChart3 className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
-    },
-
-    // --- ACCOUNTING ---
-    {
-      id: "vouchers",
-      name: "Vouchers",
-      nameGujarati: "વાઉચર્સ (Vouchers)",
-      group: "ACCOUNTING",
-      icon: <FileText className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
-      items: [
-        {
-          name: "Voucher List",
-          nameGujarati: "વાઉચર લિસ્ટ (All Vouchers)",
-          href: "/accounting/vouchers",
-        },
-        {
-          name: "Create Voucher",
-          nameGujarati: "નવું વાઉચર (Create Voucher)",
-          href: "/accounting/vouchers/new",
-        },
-        {
-          name: "All Transactions",
-          nameGujarati: "બધા વ્યવહારો (All Transactions)",
-          href: "/vouchers/all_transactions",
-        },
-        {
-          name: "Account Ledgers",
-          nameGujarati: "ખાતાવહી (Ledgers)",
-          href: "/accounting/ledgers",
-        },
-        {
-          name: "Chart of Accounts",
-          nameGujarati: "ખાતાની યાદી (Chart of Accounts)",
-          href: "/accounting/chart-of-accounts",
-        },
-      ],
-    },
-    {
-      id: "cash_bank",
-      name: "Cash & Bank",
-      nameGujarati: "રોકડ અને બેંક",
-      group: "ACCOUNTING",
-      href: "/finance/cash-bank",
-      icon: <Landmark className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
-    },
-    {
-      id: "gst_returns",
-      name: "GST & Tax Filing",
-      nameGujarati: "જીએસટી અને રિટર્ન (GST & Returns)",
-      group: "ACCOUNTING",
-      href: "/gst",
-      icon: <FileSpreadsheet className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
-    },
-    {
-      id: "automated_bills",
-      name: "Automated Bills",
-      nameGujarati: "ઓટોમેટેડ બિલ્સ",
-      group: "ACCOUNTING",
-      href: "/sales/automated-billing",
-      icon: <Repeat className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
-    },
-    {
-      id: "pos",
-      name: "POS Billing",
-      nameGujarati: "ઝડપી કાઉન્ટર POS",
-      group: "ACCOUNTING",
-      href: "/sales/pos",
-      icon: <Calculator className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
-    },
-    {
-      id: "settings",
-      name: "Settings",
-      nameGujarati: "સેટિંગ્સ",
-      group: "ACCOUNTING",
-      href: "/settings",
-      icon: <Settings className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
-    },
-
-    // --- GROUP 3: BUSINESS TOOLS ---
-    {
-      id: "data_import",
-      name: "Data Import (Excel / CSV)",
-      nameGujarati: "ડેટા આયાત (Excel / CSV)",
-      group: "BUSINESS TOOLS",
-      badge: "",
-      href: "/app/data-import",
-      icon: <UploadCloud className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
-    },
-    {
-      id: "ai_collections",
-      name: "Payment Reminders",
-      nameGujarati: "ઓટો ઉઘરાણી (Follow-ups)",
-      group: "BUSINESS TOOLS",
-      badge: "",
-      href: "/finance/ai-collections",
-      icon: <BellRing className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
-    },
-    {
-      id: "payroll",
-      name: "Staff Attendance & Payroll",
-      nameGujarati: "સ્ટાફ હાજરી અને પગાર",
-      group: "BUSINESS TOOLS",
-      href: "/app/sam",
-      icon: <CalendarCheck className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
-    },
-    {
-      id: "users",
-      name: "Manage Users",
-      nameGujarati: "વપરાશકર્તા સંચાલન",
-      group: "BUSINESS TOOLS",
-      href: "/settings/user-management",
-      icon: <UserCheck className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
-    },
-    {
-      id: "orders",
-      name: "Online Orders",
-      nameGujarati: "ઓનલાઇન ઓર્ડર્સ",
-      group: "BUSINESS TOOLS",
-      href: "/sales/invoices",
-      icon: <Globe className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />,
-    },
-  ];
-
   const isSettingsPage =
     pathname.startsWith("/settings") ||
     pathname.startsWith("/app/settings") ||
@@ -703,37 +927,44 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="h-[100dvh] h-screen w-full flex overflow-hidden bg-[#F5F8FC] print:h-auto print:min-h-0 print:overflow-visible print:bg-white print:block">
-      {/* 1. DEDICATED MYBILLBOOK SETTINGS SIDEBAR (When in Settings mode) */}
-      {isSettingsPage && (
+      {/* 1. DEDICATED MYBILLBOOK SETTINGS SIDEBAR (When in Settings mode and permission granted) */}
+      {isSettingsPage && !routePermissionDenied && (
         <div className="hidden lg:flex shrink-0 h-full print:hidden">
           <SettingsSidebar />
         </div>
       )}
 
-      {/* 2. REGULAR DESKTOP MYBILLBOOK SIDEBAR (When in dashboard mode and not in full-screen purchase bill mode) */}
-      {!isSettingsPage && !isPurchaseBillPage && (
+      {/* 2. REGULAR DESKTOP MYBILLBOOK SIDEBAR (When in dashboard mode and not in full-screen purchase bill mode, or when settings permission denied) */}
+      {(!isSettingsPage || routePermissionDenied) && !isPurchaseBillPage && (
         <aside
           className={`hidden lg:flex flex-col shrink-0 h-full border-r border-slate-200/90 bg-white text-slate-800 transition-all duration-300 z-30 select-none print:hidden ${
             isSidebarCollapsed ? "w-[72px]" : "w-[240px]"
           }`}
         >
           {/* Top Brand Logo matching Reference Image */}
-          <div className="shrink-0 h-[60px] flex items-center justify-between px-4 border-b border-slate-200/80 bg-white">
-            <Link href="/" className="flex items-center gap-2.5 overflow-hidden group">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
-                <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none">
-                  {/* Back document */}
-                  <rect x="7" y="3" width="16" height="20" rx="3" fill="#38BDF8" />
-                  <path d="M11 8h8M11 12h5" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
-                  {/* Front document */}
-                  <rect x="3" y="9" width="16" height="20" rx="3" fill="#1677E8" />
-                  <path d="M7 14h8M7 18h6M7 22h4" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-              </div>
-              {!isSidebarCollapsed && (
-                <div className="flex flex-col leading-tight">
-                  <span className="text-[14px] font-semibold tracking-tight text-slate-900">MyOwn</span>
-                  <span className="text-xs font-bold text-slate-900 -mt-0.5">BillBook</span>
+          <div className="shrink-0 h-[60px] flex items-center justify-between px-3.5 border-b border-slate-200/80 bg-white">
+            <Link href="/" className="flex items-center gap-2 overflow-hidden group">
+              {isSidebarCollapsed ? (
+                <div className="w-8 h-8 flex items-center justify-center shrink-0">
+                  <Image
+                    src="/logo-icon.png"
+                    alt="myownbillbook"
+                    width={32}
+                    height={32}
+                    className="object-contain"
+                    priority
+                  />
+                </div>
+              ) : (
+                <div className="h-8 flex items-center">
+                  <Image
+                    src="/logo-full.png"
+                    alt="myownbillbook"
+                    width={160}
+                    height={36}
+                    className="h-7.5 w-auto object-contain"
+                    priority
+                  />
                 </div>
               )}
             </Link>
@@ -757,7 +988,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             {(() => {
               let lastGroup = "";
-              return navigationSections.map((section) => {
+              return visibleNavigationSections.map((section) => {
                 const showGroupHeader =
                   !isSidebarCollapsed &&
                   section.group &&
@@ -1003,8 +1234,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        {/* TOPBAR HEADER: In Settings mode, show mobile header with Back to Dashboard; in regular mode, show regular topbar */}
-        {isSettingsPage ? (
+        {/* TOPBAR HEADER: In Settings mode (if permitted), show mobile header with Back to Dashboard; in regular mode, show regular topbar */}
+        {isSettingsPage && !routePermissionDenied ? (
           <header className="lg:hidden shrink-0 h-[60px] bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-3 flex items-center justify-between z-20 shadow-[0_1px_3px_0_rgba(15,23,42,0.03)] print:hidden">
             <Link
               href="/"
@@ -1038,22 +1269,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {/* Brand Logo in header when sidebar is hidden on Purchase Bill page */}
               {isPurchaseBillPage && (
                 <Link href="/" className="hidden sm:flex items-center gap-2.5 shrink-0 mr-1 sm:mr-3 group">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
-                    <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none">
-                      <rect width="32" height="32" rx="8" fill="#1677E8" />
-                      <path d="M7 10h12a3 3 0 013 3v0a3 3 0 01-3 3H7v-6z" fill="white" />
-                      <path d="M7 16h14a3 3 0 013 3v0a3 3 0 01-3 3H7v-6z" fill="white" fillOpacity="0.85" />
-                      <path d="M11 7v18" stroke="#1677E8" strokeWidth="2.5" strokeLinecap="round" />
-                    </svg>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-[15px] leading-tight tracking-tight text-slate-900 group-hover:text-[#1677E8] transition-colors">
-                      MyOwn
-                    </span>
-                    <span className="font-semibold text-[13px] leading-tight tracking-tight text-[#1677E8]">
-                      BillBook
-                    </span>
-                  </div>
+                  <Image
+                    src="/logo-full.png"
+                    alt="myownbillbook"
+                    width={160}
+                    height={36}
+                    className="h-8 w-auto object-contain"
+                    priority
+                  />
                 </Link>
               )}
 
@@ -1160,7 +1383,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div
             className="w-full min-w-0 max-w-none print:max-w-none print:w-full print:p-0 print:m-0"
           >
-            {children}
+            {routePermissionDenied ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[50vh]">
+                <div className="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 mb-4 shadow-xs">
+                  <ShieldAlert className="w-8 h-8" />
+                </div>
+                <h2 className="text-xl font-bold text-slate-900 mb-1">
+                  {lang === "gu" ? "પ્રવેશ પ્રતિબંધિત છે" : "Access Restricted"}
+                </h2>
+                <p className="text-sm text-slate-500 max-w-md mb-6">
+                  {lang === "gu"
+                    ? "તમારી પાસે આ મોડ્યુલ ઍક્સેસ કરવાની પરવાનગી નથી. કૃપા કરીને તમારા વ્યવસાય એડમિનિસ્ટ્રેટરનો સંપર્ક કરો."
+                    : "You do not have permission to access this module. Please contact your organization administrator."}
+                </p>
+                <Link
+                  href="/"
+                  className="px-5 py-2.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
+                >
+                  {lang === "gu" ? "ડેશબોર્ડ પર પાછા જાઓ" : "Return to Dashboard"}
+                </Link>
+              </div>
+            ) : (
+              children
+            )}
           </div>
         </main>
       </div>
@@ -1179,7 +1424,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             aria-hidden="true"
           />
           <div className="relative w-72 max-w-[85vw] bg-white text-slate-800 h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-left duration-200">
-            {isSettingsPage ? (
+            {isSettingsPage && !routePermissionDenied ? (
               <div className="h-full flex flex-col bg-white text-slate-800">
                 <div className="h-14 shrink-0 flex items-center justify-between px-4 border-b border-slate-100 bg-slate-50">
                   <span className="text-xs font-bold text-slate-800">
@@ -1202,18 +1447,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {/* Mobile Header with visible close button */}
                 <div className="h-16 shrink-0 flex items-center justify-between px-4 border-b border-slate-100 bg-white">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
-                      <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none">
-                        <rect x="7" y="3" width="16" height="20" rx="3" fill="#38BDF8" />
-                        <path d="M11 8h8M11 12h5" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
-                        <rect x="3" y="9" width="16" height="20" rx="3" fill="#1677E8" />
-                        <path d="M7 14h8M7 18h6M7 22h4" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
-                      </svg>
-                    </div>
-                    <div className="flex flex-col leading-tight">
-                      <span className="text-sm font-semibold tracking-tight text-slate-900">MyOwn</span>
-                      <span className="text-xs font-bold text-slate-900 -mt-0.5">BillBook</span>
-                    </div>
+                    <Image
+                      src="/logo-full.png"
+                      alt="myownbillbook"
+                      width={150}
+                      height={34}
+                      className="h-8 w-auto object-contain"
+                      priority
+                    />
                   </div>
                   <button
                     onClick={() => setIsMobileMenuOpen(false)}
@@ -1241,7 +1482,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   aria-label="Mobile Navigation"
                   className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain p-3 space-y-1"
                 >
-                  {navigationSections.map((sec) => (
+                  {visibleNavigationSections.map((sec) => (
                     <div key={sec.id} className="space-y-0.5">
                       {sec.href ? (
                         <Link
@@ -1302,18 +1543,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       <label className="block text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">
                         {lang === "gu" ? "શાખા" : "Current Branch"}
                       </label>
-                      <select
+                      <CustomSelect
+                        size="sm"
                         value={currentBranch?.id || ""}
-                        onChange={(e) => switchBranch(e.target.value)}
-                        className="w-full text-[13px] font-medium bg-white text-slate-800 border border-slate-200 rounded-md px-2 py-1.5 focus:outline-none h-10"
-                        aria-label="Select branch"
-                      >
-                        {branches.map((b) => (
-                          <option key={b.id} value={b.id}>
-                            {b.name}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val: any) => switchBranch(val)}
+                        options={branches.map((b) => ({
+                          value: b.id,
+                          label: b.name,
+                        }))}
+                        triggerClassName="rounded-md border-slate-200 bg-white font-medium text-slate-800"
+                      />
                     </div>
                   )}
 
@@ -1361,7 +1600,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       {/* 5. MOBILE BOTTOM NAVIGATION BAR (Hidden in Settings mode & Purchase Bill mode) */}
-      {!isSettingsPage && !isPurchaseBillPage && (
+      {(!isSettingsPage || routePermissionDenied) && !isPurchaseBillPage && (
         <nav
           aria-label="Mobile Navigation Bar"
           className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-40 px-2 py-1.5 flex items-center justify-around shadow-lg no-print print:hidden print-hide"

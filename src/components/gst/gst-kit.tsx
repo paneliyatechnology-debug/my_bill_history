@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "../../context/auth-context";
 import { Calendar } from "lucide-react";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 
 const LINKS = [
   { href: "/gst", label: "GST Dashboard" },
@@ -110,20 +111,21 @@ export function GstFrame({
         })}
       </div>
       <div className="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-subtle flex flex-wrap gap-4 items-end">
-        <label className="typo-label text-[#667085]">
-          {lang === "gu" ? "મહિનો (Month)" : "Month"}
-          <select
-            className="mt-1 block border border-[#E5E7EB] rounded-xl px-3 py-1.5 typo-input text-[#182230] bg-[#F8FAFC] focus:bg-white focus:ring-2 focus:ring-[#F47721]/20 focus:border-[#F47721] transition-all cursor-pointer h-10"
-            value={period.month}
-            onChange={(event) => period.setMonth(Number(event.target.value))}
-          >
-            {Array.from({ length: 12 }, (_, index) => (
-              <option key={index + 1} value={index + 1}>
-                Month {index + 1} ({new Date(2026, index, 1).toLocaleString('en', { month: 'short' })})
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="w-48">
+          <label className="typo-label text-[#667085] block mb-1">
+            {lang === "gu" ? "મહિનો (Month)" : "Month"}
+          </label>
+          <CustomSelect
+            size="sm"
+            value={String(period.month)}
+            onChange={(val: any) => period.setMonth(Number(val))}
+            options={Array.from({ length: 12 }, (_, index) => ({
+              value: String(index + 1),
+              label: `Month ${index + 1} (${new Date(2026, index, 1).toLocaleString('en', { month: 'short' })})`,
+            }))}
+            triggerClassName="rounded-xl border-[#E5E7EB] bg-[#F8FAFC] text-[#182230]"
+          />
+        </div>
         <label className="text-[12px] font-medium text-[#667085]">
           {lang === "gu" ? "વર્ષ (Year)" : "Year"}
           <input

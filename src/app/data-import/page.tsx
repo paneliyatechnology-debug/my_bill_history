@@ -6,7 +6,6 @@ import { importApi } from "../../lib/import-api";
 import { ImportWizardModal } from "../../components/imports/import-wizard-modal";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import {
-  Zap,
   Search,
   Loader2,
   FileSpreadsheet,
@@ -73,17 +72,17 @@ export default function DataImportCenterPage() {
   const getCategoryBadgeClass = (category: string) => {
     switch (category) {
       case "MASTERS":
-        return "bg-blue-50 text-blue-700 border border-blue-200/60";
+        return "bg-blue-50/80 text-blue-700 border border-blue-100";
       case "INVENTORY":
-        return "bg-indigo-50 text-indigo-700 border border-indigo-200/60";
+        return "bg-teal-50/80 text-teal-700 border border-teal-100";
       case "SALES":
-        return "bg-emerald-50 text-emerald-700 border border-emerald-200/60";
+        return "bg-emerald-50/80 text-emerald-700 border border-emerald-100";
       case "PURCHASES":
-        return "bg-amber-50 text-amber-700 border border-amber-200/60";
+        return "bg-amber-50/80 text-amber-700 border border-amber-100";
       case "ACCOUNTING":
-        return "bg-purple-50 text-purple-700 border border-purple-200/60";
+        return "bg-purple-50/80 text-purple-700 border border-purple-100";
       case "MANUFACTURING":
-        return "bg-teal-50 text-teal-700 border border-teal-200/60";
+        return "bg-slate-100 text-slate-700 border border-slate-200";
       default:
         return "bg-slate-100 text-slate-600 border border-slate-200";
     }
@@ -100,39 +99,37 @@ export default function DataImportCenterPage() {
   });
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl mx-auto animate-fadeIn">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-7xl mx-auto animate-fadeIn">
         
-        {/* HERO BANNER - Consistent with MyOwnBillBook brand theme */}
-        <div className="bg-gradient-to-r from-[#1677E8] via-[#1268D3] to-[#0D57B8] rounded-2xl p-6 sm:p-8 text-white shadow-md relative overflow-hidden">
-          <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-white/10 blur-3xl pointer-events-none" />
-          <div className="absolute left-1/3 -bottom-8 w-60 h-60 bg-blue-300/20 rounded-full blur-2xl pointer-events-none" />
-
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-2.5 max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs border border-white/20 text-white text-xs font-semibold tracking-wide">
-                <Zap className="w-3.5 h-3.5" /> {lang === "gu" ? "સંપૂર્ણ એકાઉન્ટિંગ ડેટા માઈગ્રેશન" : "Production Data Import Center"}
+        {/* HEADER BANNER - Theme-based light surface (No AI badges or harsh colors) */}
+        <div className="bg-white rounded-2xl p-5 sm:p-7 border border-slate-200/90 shadow-2xs relative">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 sm:gap-6">
+            <div className="space-y-2 max-w-2xl">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-medium">
+                <FileSpreadsheet className="w-3.5 h-3.5 text-slate-500" />
+                <span>{lang === "gu" ? "ડેટા આયાત કેન્દ્ર" : "Data Import Center"}</span>
               </div>
 
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                 {lang === "gu"
                   ? "એક્સેલ અને CSV માંથી ડેટા આયાત કરો"
-                  : "Import Excel / CSV Data into MyOwnBill History"}
+                  : "Import Excel / CSV Data into MyOwnBillBook"}
               </h1>
 
-              <p className="text-xs sm:text-sm text-blue-50/90 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                 {lang === "gu"
-                  ? "ટેલી (Tally), માર્ગ (Marg), બીઝી (Busy) અથવા કોઈપણ બિલિંગ સોફ્ટવેરમાંથી પાર્ટીઓ, વસ્તુઓ, સ્ટોક અને બિલો કોઈ મેન્યુઅલ એન્ટ્રી વગર સીધા લાવો."
-                  : "Switch from Tally, Marg, Busy, Vyapar, or legacy spreadsheets seamlessly. Upload your existing files and let our intelligent column-mapping engine do the rest."}
+                  ? "ટેલી (Tally), માર્ગ (Marg), બીઝી (Busy) અથવા સ્પ્રેડશીટમાંથી એક્સેલ/CSV ફાઇલો અપલોડ કરીને તમારા ખાતાઓ, સ્ટોક અને વાઉચર્સ સરળતાથી ઇમ્પોર્ટ કરો."
+                  : "Upload existing Excel or CSV spreadsheets from Tally, Marg, Busy, Vyapar, or templates to import master records, inventory, and transactions."}
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
               <button
                 type="button"
                 onClick={() => openImportForModule(undefined)}
-                className="inline-flex items-center justify-center gap-2 h-10 px-4 whitespace-nowrap bg-white text-[#1677E8] hover:bg-blue-50 rounded-xl text-[13px] font-semibold transition-all shadow-sm cursor-pointer active:scale-95"
+                className="inline-flex items-center justify-center gap-2 h-10 px-5 whitespace-nowrap bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[13px] font-semibold transition-all shadow-xs cursor-pointer active:scale-95"
               >
-                <Upload className="w-4 h-4" />
+                <Upload className="w-4 h-4 text-white" />
                 <span>{lang === "gu" ? "નવી આયાત શરૂ કરો" : "Start New Data Import"}</span>
               </button>
             </div>
@@ -140,28 +137,31 @@ export default function DataImportCenterPage() {
         </div>
 
         {/* SEARCH & CATEGORY FILTER */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                  selectedCategory === cat
-                    ? "bg-[#1677E8] text-white shadow-xs"
-                    : "bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-slate-200"
-                }`}
-              >
-                {cat === "ALL" && (lang === "gu" ? "બધા મોડ્યુલ્સ" : "All Modules")}
-                {cat === "MASTERS" && (lang === "gu" ? "માસ્ટર્સ" : "Masters")}
-                {cat === "INVENTORY" && (lang === "gu" ? "ઇન્વેન્ટરી" : "Inventory")}
-                {cat === "SALES" && (lang === "gu" ? "વેચાણ" : "Sales")}
-                {cat === "PURCHASES" && (lang === "gu" ? "ખરીદી" : "Purchases")}
-                {cat === "ACCOUNTING" && (lang === "gu" ? "એકાઉન્ટિંગ" : "Accounting")}
-                {cat === "MANUFACTURING" && (lang === "gu" ? "ઉત્પાદન (BOM)" : "Manufacturing")}
-              </button>
-            ))}
+            {categories.map((cat) => {
+              const isActive = selectedCategory === cat;
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    isActive
+                      ? "bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs"
+                      : "bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-slate-200/80 shadow-2xs"
+                  }`}
+                >
+                  {cat === "ALL" && (lang === "gu" ? "બધા મોડ્યુલ્સ" : "All Modules")}
+                  {cat === "MASTERS" && (lang === "gu" ? "માસ્ટર્સ" : "Masters")}
+                  {cat === "INVENTORY" && (lang === "gu" ? "ઇન્વેન્ટરી" : "Inventory")}
+                  {cat === "SALES" && (lang === "gu" ? "વેચાણ" : "Sales")}
+                  {cat === "PURCHASES" && (lang === "gu" ? "ખરીદી" : "Purchases")}
+                  {cat === "ACCOUNTING" && (lang === "gu" ? "એકાઉન્ટિંગ" : "Accounting")}
+                  {cat === "MANUFACTURING" && (lang === "gu" ? "ઉત્પાદન (BOM)" : "Manufacturing")}
+                </button>
+              );
+            })}
           </div>
 
           <div className="relative w-full sm:w-72">
@@ -170,7 +170,7 @@ export default function DataImportCenterPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={lang === "gu" ? "મોડ્યુલ શોધો..." : "Search modules..."}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] shadow-2xs h-10 transition-all"
+              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-2xs h-10 transition-all"
             />
             <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
           </div>
@@ -179,7 +179,7 @@ export default function DataImportCenterPage() {
         {/* MODULE CARDS GRID */}
         {isLoading ? (
           <div className="py-16 text-center text-slate-400">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#1677E8] mb-2" />
+            <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600 mb-2" />
             <div>Loading import modules...</div>
           </div>
         ) : (
@@ -187,11 +187,11 @@ export default function DataImportCenterPage() {
             {filteredModules.map((m) => (
               <div
                 key={m.module}
-                className="bg-white rounded-2xl border border-slate-200 hover:border-blue-300 p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between group"
+                className="bg-white rounded-2xl border border-slate-200/90 hover:border-slate-300 p-5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between group"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${getCategoryBadgeClass(m.category)}`}>
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${getCategoryBadgeClass(m.category)}`}>
                       {m.category}
                     </span>
                     <span className="text-xs text-slate-400 font-medium">
@@ -199,7 +199,7 @@ export default function DataImportCenterPage() {
                     </span>
                   </div>
 
-                  <h3 className="text-[15px] font-semibold text-slate-900 group-hover:text-[#1677E8] transition-colors mb-1">
+                  <h3 className="text-[15px] font-semibold text-slate-900 group-hover:text-blue-600 transition-colors mb-1">
                     {lang === "gu" ? m.titleGujarati : m.title}
                   </h3>
 
@@ -208,12 +208,12 @@ export default function DataImportCenterPage() {
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
+                <div className="pt-3.5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
                       onClick={() => importApi.downloadTemplate(m.module, "xlsx")}
-                      className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-[12px] font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+                      className="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                       title="Download sample Excel template"
                     >
                       <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" /> .XLSX
@@ -221,19 +221,19 @@ export default function DataImportCenterPage() {
                     <button
                       type="button"
                       onClick={() => importApi.downloadTemplate(m.module, "csv")}
-                      className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded-lg text-[12px] font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+                      className="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                       title="Download sample CSV template"
                     >
-                      <FileText className="w-3.5 h-3.5 text-blue-600" /> .CSV
+                      <FileText className="w-3.5 h-3.5 text-slate-500" /> .CSV
                     </button>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => openImportForModule(m.module)}
-                    className="px-4 py-1.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-lg text-[13px] font-medium shadow-2xs transition-colors cursor-pointer flex items-center gap-1.5 active:scale-95"
+                    className="px-3.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/90 rounded-lg text-xs font-semibold shadow-2xs transition-colors cursor-pointer flex items-center gap-1.5 active:scale-95"
                   >
-                    <Upload className="w-3.5 h-3.5" />
+                    <Upload className="w-3.5 h-3.5 text-blue-600" />
                     <span>{lang === "gu" ? "આયાત કરો" : "Import"}</span>
                   </button>
                 </div>
@@ -243,10 +243,10 @@ export default function DataImportCenterPage() {
         )}
 
         {/* RECENT IMPORT JOBS AUDIT HISTORY */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 sm:p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-[15px] font-semibold text-[#182230]">
+              <h2 className="text-[15px] font-semibold text-slate-900">
                 {lang === "gu" ? "તાજેતરનો આયાત ઇતિહાસ" : "Recent Import History & Logs"}
               </h2>
               <p className="text-xs text-slate-500">

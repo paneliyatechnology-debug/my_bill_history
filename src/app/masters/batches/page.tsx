@@ -5,6 +5,7 @@ import { useAuth } from "../../../context/auth-context";
 import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
+import { CustomCombobox } from "@/components/ui/dropdown-system";
 
 interface Batch {
   id: string;
@@ -454,17 +455,16 @@ export default function BatchesPage() {
             <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               {lang === "gu" ? "વસ્તુ પસંદ કરો *" : "Select Item *"}
             </label>
-            <select
+            <CustomCombobox
               value={formData.itemId}
-              onChange={(e) => handleItemSelect(e.target.value)}
-              className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
-            >
-              {items.map((it) => (
-                <option key={it.id} value={it.id}>
-                  {it.name}
-                </option>
-              ))}
-            </select>
+              onChange={(val: any) => handleItemSelect(val)}
+              options={items.map((it) => ({
+                value: it.id,
+                label: it.name,
+              }))}
+              placeholder="Select Item..."
+              triggerClassName="rounded border-slate-300 bg-slate-50"
+            />
           </div>
 
           <div>

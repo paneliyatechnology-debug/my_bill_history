@@ -8,7 +8,8 @@ import { apiClient, extractList } from "@/lib/api-client";
 import { Modal } from "@/components/ui/modal";
 import { ExportDropdown } from "@/components/ui/export-dropdown";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
-import { Banknote, Check } from "lucide-react";
+import { Banknote, Check, ShieldAlert } from "lucide-react";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 
 interface LedgerGroup {
   id: string;
@@ -268,7 +269,7 @@ function clearStoredBankMeta(companyId: string | undefined, accountId: string) {
 
 export default function CashAndBankPage() {
   const router = useRouter();
-  const { lang, tenantContext, currentFY } = useAuth();
+  const { lang, tenantContext, currentFY, hasPermission } = useAuth();
 
   const [ledgers, setLedgers] = useState<LedgerAccount[]>([]);
   const [groups, setGroups] = useState<LedgerGroup[]>([]);
@@ -1304,6 +1305,30 @@ export default function CashAndBankPage() {
     }
   };
 
+  if (!hasPermission("cash_bank", "view")) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center min-h-[50vh] bg-white rounded-2xl border border-slate-200 shadow-xs">
+        <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 flex items-center justify-center mb-4 shadow-xs">
+          <ShieldAlert className="w-7 h-7" strokeWidth={1.8} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800 mb-1">
+          {lang === "gu" ? "પ્રવેશ પ્રતિબંધિત છે" : "Access Restricted"}
+        </h2>
+        <p className="text-sm text-slate-500 max-w-md mb-6">
+          {lang === "gu"
+            ? "તમારી પાસે આ મોડ્યુલ ઍક્સેસ કરવાની પરવાનગી નથી. કૃપા કરીને તમારા વ્યવસાય એડમિનિસ્ટ્રેટરનો સંપર્ક કરો."
+            : "You do not have permission to access this module. Please contact your organization administrator."}
+        </p>
+        <Link
+          href="/"
+          className="px-5 py-2.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
+        >
+          {lang === "gu" ? "ડેશબોર્ડ પર પાછા જાઓ" : "Return to Dashboard"}
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 max-w-full">
       {/* Toast Alert */}
@@ -1807,41 +1832,39 @@ export default function CashAndBankPage() {
           <div className="p-2.5 sm:p-3 border-b border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
               {/* Date Filter Dropdown */}
-              <div className="relative col-span-1 sm:col-span-auto">
-                <select
+              <div className="col-span-1 sm:col-span-auto min-w-[150px]">
+                <CustomSelect
+                  size="md"
                   value={dateFilter}
-                  onChange={(e) => setDateFilter(e.target.value as any)}
-                  className="w-full appearance-none pl-7 sm:pl-8 pr-6 sm:pr-7 py-1.5 bg-white border border-[#CBD5E1] rounded-md text-[11px] sm:text-[13px] font-medium text-slate-700 hover:border-slate-400 focus:outline-none focus:ring-1 focus:ring-[#0F172A] cursor-pointer h-10"
-                >
-                  <option value="LAST_30_DAYS">{lang === "gu" ? "છેલ્લા ૩૦ દિવસ" : "Last 30 Days"}</option>
-                  <option value="TODAY">{lang === "gu" ? "આજે" : "Today"}</option>
-                  <option value="THIS_WEEK">{lang === "gu" ? "આ અઠવાડિયે" : "This Week"}</option>
-                  <option value="THIS_MONTH">{lang === "gu" ? "આ મહિનો" : "This Month"}</option>
-                  <option value="THIS_YEAR">{lang === "gu" ? "આ નાણાકીય વર્ષ" : "This Financial Year"}</option>
-                  <option value="ALL">{lang === "gu" ? "તમામ તારીખો" : "All Time"}</option>
-                </select>
-                <svg className="w-3.5 h-3.5 text-slate-500 absolute left-2 sm:left-2.5 top-2 sm:top-2.5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <svg className="w-3 h-3 text-slate-400 absolute right-2 sm:right-2.5 top-2.5 sm:top-3 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+                  onChange={(val: any) => setDateFilter(val)}
+                  options={[
+                    { value: "LAST_30_DAYS", label: lang === "gu" ? "છેલ્લા ૩૦ દિવસ" : "Last 30 Days" },
+                    { value: "TODAY", label: lang === "gu" ? "આજે" : "Today" },
+                    { value: "THIS_WEEK", label: lang === "gu" ? "આ અઠવાડિયે" : "This Week" },
+                    { value: "THIS_MONTH", label: lang === "gu" ? "આ મહિનો" : "This Month" },
+                    { value: "THIS_YEAR", label: lang === "gu" ? "આ નાણાકીય વર્ષ" : "This Financial Year" },
+                    { value: "ALL", label: lang === "gu" ? "તમામ તારીખો" : "All Time" },
+                  ]}
+                  triggerClassName="rounded-md h-10 border-[#CBD5E1]"
+                />
               </div>
 
               {/* Type Filter */}
-              <div className="col-span-1 sm:col-span-auto">
-                <select
+              <div className="col-span-1 sm:col-span-auto min-w-[160px]">
+                <CustomSelect
+                  size="md"
                   value={txnTypeFilter}
-                  onChange={(e) => setTxnTypeFilter(e.target.value)}
-                  className="w-full py-1.5 px-2.5 sm:px-3 text-[11px] sm:text-[13px] bg-white border border-[#CBD5E1] rounded-md font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#0F172A] cursor-pointer h-10"
-                >
-                  <option value="ALL">All Types</option>
-                  <option value="Payment In">Payment In (Receipt)</option>
-                  <option value="Payment Out">Payment Out</option>
-                  <option value="Sales Invoice">Sales Invoices</option>
-                  <option value="Purchase Invoice">Purchase Invoices</option>
-                  <option value="Transfer">Transfers (Contra)</option>
-                </select>
+                  onChange={(val: any) => setTxnTypeFilter(val)}
+                  options={[
+                    { value: "ALL", label: "All Types" },
+                    { value: "Payment In", label: "Payment In (Receipt)" },
+                    { value: "Payment Out", label: "Payment Out" },
+                    { value: "Sales Invoice", label: "Sales Invoices" },
+                    { value: "Purchase Invoice", label: "Purchase Invoices" },
+                    { value: "Transfer", label: "Transfers (Contra)" },
+                  ]}
+                  triggerClassName="rounded-md h-10 border-[#CBD5E1]"
+                />
               </div>
 
               {/* Search Filter Input (Full width on mobile) */}
@@ -2341,18 +2364,17 @@ export default function CashAndBankPage() {
 
           <div>
             <label className="block text-[12px] font-medium text-slate-700 mb-1">Adjust money in</label>
-            <select
+            <CustomCombobox
               value={addReduceForm.accountId}
-              onChange={(e) => setAddReduceForm({ ...addReduceForm, accountId: e.target.value })}
-              className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 h-10"
-            >
-              <option value="cash_in_hand">Cash</option>
-              {bankAccounts.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
+              onChange={(val: any) => setAddReduceForm({ ...addReduceForm, accountId: val })}
+              options={[
+                { value: "cash_in_hand", label: "Cash" },
+                ...bankAccounts.map((b) => ({ value: b.id, label: b.name })),
+              ]}
+              placeholder="Select account"
+              searchPlaceholder="Search bank or cash..."
+              triggerClassName="rounded-md h-10 border-slate-300"
+            />
           </div>
 
           <div>
@@ -2486,35 +2508,32 @@ export default function CashAndBankPage() {
 
           <div>
             <label className="block text-[12px] font-medium text-slate-700 mb-1">Transfer money from</label>
-            <select
+            <CustomCombobox
               value={transferForm.fromAccountId}
-              onChange={(e) => setTransferForm({ ...transferForm, fromAccountId: e.target.value })}
-              className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 h-10"
-            >
-              <option value="cash_in_hand">Cash</option>
-              {bankAccounts.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
+              onChange={(val: any) => setTransferForm({ ...transferForm, fromAccountId: val })}
+              options={[
+                { value: "cash_in_hand", label: "Cash" },
+                ...bankAccounts.map((b) => ({ value: b.id, label: b.name })),
+              ]}
+              placeholder="Select source account"
+              searchPlaceholder="Search bank or cash..."
+              triggerClassName="rounded-md h-10 border-slate-300"
+            />
           </div>
 
           <div>
             <label className="block text-[12px] font-medium text-slate-700 mb-1">Transfer money to</label>
-            <select
+            <CustomCombobox
               value={transferForm.toAccountId}
-              onChange={(e) => setTransferForm({ ...transferForm, toAccountId: e.target.value })}
-              className="w-full px-3 py-2 text-[13px] border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5850EC] bg-white text-slate-900 h-10"
-            >
-              <option value="">Select account</option>
-              <option value="cash_in_hand">Cash</option>
-              {bankAccounts.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
+              onChange={(val: any) => setTransferForm({ ...transferForm, toAccountId: val })}
+              options={[
+                { value: "cash_in_hand", label: "Cash" },
+                ...bankAccounts.map((b) => ({ value: b.id, label: b.name })),
+              ]}
+              placeholder="Select destination account"
+              searchPlaceholder="Search bank or cash..."
+              triggerClassName="rounded-md h-10 border-slate-300"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3 items-center pt-1">

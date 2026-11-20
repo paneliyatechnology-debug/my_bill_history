@@ -6,6 +6,7 @@ import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { Badge, StatusBadge } from "../../../components/ui/badge";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
+import { CustomCombobox, CustomSelect } from "@/components/ui/dropdown-system";
 
 interface ProductionBatch {
   id: string;
@@ -632,19 +633,18 @@ export default function ProductionOrdersPage() {
             <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "BOM રેસિપી પસંદ કરો *" : "Select BOM Formula *"}
             </label>
-            <select
+            <CustomCombobox
               value={createForm.bomId}
-              onChange={(e) => setCreateForm({ ...createForm, bomId: e.target.value })}
-              required
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
-            >
-              <option value="">{lang === "gu" ? "-- BOM પસંદ કરો --" : "-- Select BOM --"}</option>
-              {boms.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.bomName} ({b.finishedItem?.name || "Item"})
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setCreateForm({ ...createForm, bomId: val })}
+              options={boms.map((b) => ({
+                value: b.id,
+                label: b.bomName,
+                sublabel: b.finishedItem?.name || "Item",
+              }))}
+              placeholder={lang === "gu" ? "-- BOM પસંદ કરો --" : "-- Select BOM --"}
+              searchPlaceholder="Search BOM..."
+              className="w-full"
+            />
           </div>
 
           <div>
@@ -738,18 +738,15 @@ export default function ProductionOrdersPage() {
             <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "કાચા માલનું ગોડાઉન (Source Warehouse) *" : "Source Warehouse for Raw Materials *"}
             </label>
-            <select
+            <CustomSelect
               value={startForm.sourceWarehouseId}
-              onChange={(e) => setStartForm({ sourceWarehouseId: e.target.value })}
-              required
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
-            >
-              {warehouses.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {w.name} {w.isDefault ? "(Default)" : ""}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setStartForm({ sourceWarehouseId: val })}
+              options={warehouses.map((w) => ({
+                value: w.id,
+                label: `${w.name} ${w.isDefault ? "(Default)" : ""}`,
+              }))}
+              className="w-full"
+            />
           </div>
         </form>
       </Modal>
@@ -799,18 +796,15 @@ export default function ProductionOrdersPage() {
               <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "તૈયાર માલનું ગોડાઉન (Destination) *" : "Target Warehouse for Finished Goods *"}
               </label>
-              <select
+              <CustomSelect
                 value={completeForm.targetWarehouseId}
-                onChange={(e) => setCompleteForm({ ...completeForm, targetWarehouseId: e.target.value })}
-                required
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
-              >
-                {warehouses.map((w) => (
-                  <option key={w.id} value={w.id}>
-                    {w.name} {w.isDefault ? "(Default)" : ""}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setCompleteForm({ ...completeForm, targetWarehouseId: val })}
+                options={warehouses.map((w) => ({
+                  value: w.id,
+                  label: `${w.name} ${w.isDefault ? "(Default)" : ""}`,
+                }))}
+                className="w-full"
+              />
             </div>
 
             <div>

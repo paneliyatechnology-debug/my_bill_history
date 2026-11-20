@@ -7,6 +7,7 @@ import { useAuth } from "@/context/auth-context";
 import { apiClient, extractList } from "@/lib/api-client";
 import { Modal } from "@/components/ui/modal";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   Check,
   X,
@@ -29,6 +30,7 @@ import {
   SlidersHorizontal,
   Tag,
   ArrowDownLeft,
+  ShieldAlert,
 } from "lucide-react";
 
 const DEFAULT_EXPENSE_CATEGORIES = [
@@ -102,7 +104,7 @@ interface Party {
 
 export default function ExpensesPage() {
   const router = useRouter();
-  const { lang, tenantContext, currentCompany } = useAuth();
+  const { lang, tenantContext, currentCompany, hasPermission } = useAuth();
 
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [ledgers, setLedgers] = useState<LedgerAccount[]>([]);
@@ -731,6 +733,30 @@ export default function ExpensesPage() {
     }
   };
 
+  if (!hasPermission("expenses", "view")) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center min-h-[50vh] bg-white rounded-2xl border border-slate-200 shadow-xs">
+        <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 flex items-center justify-center mb-4 shadow-xs">
+          <ShieldAlert className="w-7 h-7" strokeWidth={1.8} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800 mb-1">
+          {lang === "gu" ? "પ્રવેશ પ્રતિબંધિત છે" : "Access Restricted"}
+        </h2>
+        <p className="text-sm text-slate-500 max-w-md mb-6">
+          {lang === "gu"
+            ? "તમારી પાસે આ મોડ્યુલ ઍક્સેસ કરવાની પરવાનગી નથી. કૃપા કરીને તમારા વ્યવસાય એડમિનિસ્ટ્રેટરનો સંપર્ક કરો."
+            : "You do not have permission to access this module. Please contact your organization administrator."}
+        </p>
+        <Link
+          href="/"
+          className="px-5 py-2.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
+        >
+          {lang === "gu" ? "ડેશબોર્ડ પર પાછા જાઓ" : "Return to Dashboard"}
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 pb-12 font-sans">
       {/* Toast */}
@@ -831,13 +857,15 @@ export default function ExpensesPage() {
           </button>
 
           {/* Primary Create Expense Button */}
-          <Link
-            href="/finance/expenses/create"
-            className="h-9 px-4 bg-[#2563EB] hover:bg-[#1D4ED8] active:bg-[#1E40AF] text-white font-medium text-[13px] rounded-xl shadow-sm transition-colors flex items-center gap-1.5 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>{lang === "gu" ? "+ નવો ખર્ચ" : "Create Expense"}</span>
-          </Link>
+          {hasPermission("expenses", "create") && (
+            <Link
+              href="/finance/expenses/create"
+              className="h-9 px-4 bg-[#2563EB] hover:bg-[#1D4ED8] active:bg-[#1E40AF] text-white font-medium text-[13px] rounded-xl shadow-sm transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>{lang === "gu" ? "+ નવો ખર્ચ" : "Create Expense"}</span>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -923,40 +951,37 @@ export default function ExpensesPage() {
           </div>
 
           {/* Date Filter */}
-          <div className="relative w-full sm:w-auto">
-            <select
+          <div className="w-full sm:w-[170px]">
+            <CustomSelect
+              size="md"
               value={dateRangeFilter}
-              onChange={(e: any) => setDateRangeFilter(e.target.value)}
-              className="w-full sm:w-auto text-[13px] py-2 pl-9 pr-8 bg-white border border-[#E2E8F0] rounded-xl font-normal text-[#1E293B] outline-none hover:border-slate-300 focus:ring-2 focus:ring-[#2563EB]/20 cursor-pointer appearance-none h-10"
-            >
-              <option value="LAST_365">Last 365 Days</option>
-              <option value="TODAY">Today</option>
-              <option value="YESTERDAY">Yesterday</option>
-              <option value="THIS_WEEK">This Week</option>
-              <option value="THIS_MONTH">This Month</option>
-              <option value="THIS_QUARTER">This Quarter</option>
-              <option value="THIS_YEAR">This Year</option>
-              <option value="ALL">All Time</option>
-            </select>
-            <Calendar className="w-4 h-4 absolute left-3 top-3 pointer-events-none text-[#94A3B8]" />
-            <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-3.5 pointer-events-none text-[#94A3B8]" />
+              onChange={(val: any) => setDateRangeFilter(val)}
+              options={[
+                { value: "LAST_365", label: "Last 365 Days", icon: <Calendar className="w-3.5 h-3.5 text-slate-400" /> },
+                { value: "TODAY", label: "Today", icon: <Calendar className="w-3.5 h-3.5 text-slate-400" /> },
+                { value: "YESTERDAY", label: "Yesterday", icon: <Calendar className="w-3.5 h-3.5 text-slate-400" /> },
+                { value: "THIS_WEEK", label: "This Week", icon: <Calendar className="w-3.5 h-3.5 text-slate-400" /> },
+                { value: "THIS_MONTH", label: "This Month", icon: <Calendar className="w-3.5 h-3.5 text-slate-400" /> },
+                { value: "THIS_QUARTER", label: "This Quarter", icon: <Calendar className="w-3.5 h-3.5 text-slate-400" /> },
+                { value: "THIS_YEAR", label: "This Year", icon: <Calendar className="w-3.5 h-3.5 text-slate-400" /> },
+                { value: "ALL", label: "All Time", icon: <Calendar className="w-3.5 h-3.5 text-slate-400" /> },
+              ]}
+              triggerClassName="rounded-xl h-10 border-[#E2E8F0]"
+            />
           </div>
 
           {/* Category Dropdown */}
-          <div className="relative w-full sm:w-auto">
-            <select
+          <div className="w-full sm:w-[200px]">
+            <CustomSelect
+              size="md"
               value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full sm:w-auto text-[13px] py-2 pl-3 pr-8 bg-white border border-[#E2E8F0] rounded-xl font-normal text-[#1E293B] outline-none hover:border-slate-300 focus:ring-2 focus:ring-[#2563EB]/20 cursor-pointer appearance-none h-10"
-            >
-              <option value="ALL">All Expense Categories</option>
-              {allCategories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-3.5 pointer-events-none text-[#94A3B8]" />
+              onChange={(val: any) => setCategoryFilter(val)}
+              options={[
+                { value: "ALL", label: "All Expense Categories" },
+                ...allCategories.map((cat) => ({ value: cat, label: cat })),
+              ]}
+              triggerClassName="rounded-xl h-10 border-[#E2E8F0]"
+            />
           </div>
         </div>
 
@@ -998,13 +1023,15 @@ export default function ExpensesPage() {
             <p className="typo-empty-desc text-[#64748B] mb-4">
               Try adjusting your search query, date range, or category filter.
             </p>
-            <Link
-              href="/finance/expenses/create"
-              className="h-9 px-4 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-medium rounded-xl shadow-2xs transition-colors flex items-center gap-1.5"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Create Expense</span>
-            </Link>
+            {hasPermission("expenses", "create") && (
+              <Link
+                href="/finance/expenses/create"
+                className="h-9 px-4 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-medium rounded-xl shadow-2xs transition-colors flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Create Expense</span>
+              </Link>
+            )}
           </div>
         ) : (
           <>

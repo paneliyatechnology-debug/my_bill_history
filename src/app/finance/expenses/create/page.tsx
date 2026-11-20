@@ -6,6 +6,7 @@ import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { apiClient, extractList } from "@/lib/api-client";
 import { AlertTriangle, X, Phone, Check, Calendar, Trash2 } from "lucide-react";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 
 // Standard categories matching MyBillBook
 const DEFAULT_EXPENSE_CATEGORIES = [
@@ -1051,17 +1052,18 @@ function CreateExpenseForm() {
                 <label className="block text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1">
                   Payment Mode
                 </label>
-                <select
+                <CustomSelect
                   value={paymentMode}
-                  onChange={(e) => setPaymentMode(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-[13px] font-normal text-slate-800 outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-teal-100 cursor-pointer h-10"
-                >
-                  <option value="Cash">Cash</option>
-                  <option value="Bank Transfer">Bank Transfer</option>
-                  <option value="UPI">UPI</option>
-                  <option value="Cheque">Cheque</option>
-                  <option value="Credit">Credit (Unpaid)</option>
-                </select>
+                  onChange={(val: any) => setPaymentMode(val)}
+                  options={[
+                    { value: "Cash", label: "Cash" },
+                    { value: "Bank Transfer", label: "Bank Transfer" },
+                    { value: "UPI", label: "UPI" },
+                    { value: "Cheque", label: "Cheque" },
+                    { value: "Credit", label: "Credit (Unpaid)" },
+                  ]}
+                  triggerClassName="rounded-lg h-10 border-slate-200"
+                />
               </div>
 
               {/* Paid From Account (Cash / Bank account) */}
@@ -1069,31 +1071,22 @@ function CreateExpenseForm() {
                 <label className="block text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1">
                   Paid From Account
                 </label>
-                <select
+                <CustomCombobox
                   value={paidFromAccountId}
-                  onChange={(e) => setPaidFromAccountId(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-[13px] font-normal text-slate-800 outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-teal-100 cursor-pointer h-10"
-                >
-                  {paymentMode === "Cash" ? (
-                    cashAccounts.length > 0 ? (
-                      cashAccounts.map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.name}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="">General Cash Account</option>
-                    )
-                  ) : bankAccounts.length > 0 ? (
-                    bankAccounts.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.name}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="">Primary Bank Account</option>
-                  )}
-                </select>
+                  onChange={(val: any) => setPaidFromAccountId(val)}
+                  options={
+                    paymentMode === "Cash"
+                      ? cashAccounts.length > 0
+                        ? cashAccounts.map((a) => ({ value: a.id, label: a.name }))
+                        : [{ value: "", label: "General Cash Account" }]
+                      : bankAccounts.length > 0
+                      ? bankAccounts.map((a) => ({ value: a.id, label: a.name }))
+                      : [{ value: "", label: "Primary Bank Account" }]
+                  }
+                  placeholder={paymentMode === "Cash" ? "Select Cash Account" : "Select Bank Account"}
+                  searchPlaceholder="Search account..."
+                  triggerClassName="rounded-lg h-10 border-slate-200"
+                />
               </div>
             </div>
 
@@ -1240,20 +1233,22 @@ function CreateExpenseForm() {
                     {expenseWithGst && (
                       <td className="py-2 px-3">
                         <div className="space-y-1">
-                          <select
+                          <CustomSelect
+                            size="sm"
                             value={item.taxRate}
-                            onChange={(e) =>
-                              handleUpdateItem(item.id, { taxRate: parseFloat(e.target.value) || 0 })
+                            onChange={(val: any) =>
+                              handleUpdateItem(item.id, { taxRate: parseFloat(val) || 0 })
                             }
-                            className="w-full px-2 py-1 bg-slate-50/60 border border-slate-200 rounded-md text-[11px] font-normal text-slate-800 outline-none h-10"
-                          >
-                            <option value={0}>0%</option>
-                            <option value={5}>5%</option>
-                            <option value={6}>6%</option>
-                            <option value={12}>12%</option>
-                            <option value={18}>18%</option>
-                            <option value={28}>28%</option>
-                          </select>
+                            options={[
+                              { value: 0, label: "0%" },
+                              { value: 5, label: "5%" },
+                              { value: 6, label: "6%" },
+                              { value: 12, label: "12%" },
+                              { value: 18, label: "18%" },
+                              { value: 28, label: "28%" },
+                            ]}
+                            triggerClassName="rounded-md h-9 text-xs"
+                          />
                           <div className="flex items-center justify-between text-[10px]">
                             <span className="text-slate-500 tabular-nums">
                               (₹ {item.taxAmount.toFixed(2)})

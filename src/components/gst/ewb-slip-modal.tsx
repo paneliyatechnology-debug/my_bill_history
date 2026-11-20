@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { apiClient } from "../../lib/api-client";
 import { Modal } from "../ui/modal";
 import { AlertTriangle } from "lucide-react";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 import JsBarcode from "jsbarcode";
 import QRCode from "qrcode";
 
@@ -597,16 +598,17 @@ export function EwbSlipModal({
             <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Reason for Vehicle Change
             </label>
-            <select
+            <CustomSelect
               value={vehicleReasonCode}
-              onChange={(e) => setVehicleReasonCode(e.target.value)}
-              className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-[13px] focus:ring-1 focus:ring-indigo-500 h-10"
-            >
-              <option value="1">1 - Due to vehicle breakdown</option>
-              <option value="2">2 - Due to transshipment</option>
-              <option value="3">3 - Others</option>
-              <option value="4">4 - First time vehicle update</option>
-            </select>
+              onChange={(val: any) => setVehicleReasonCode(val)}
+              options={[
+                { value: "1", label: "1 - Due to vehicle breakdown" },
+                { value: "2", label: "2 - Due to transshipment" },
+                { value: "3", label: "3 - Others" },
+                { value: "4", label: "4 - First time vehicle update" },
+              ]}
+              triggerClassName="rounded border-slate-300"
+            />
           </div>
 
           <div>
@@ -669,16 +671,17 @@ export function EwbSlipModal({
             <label className="block text-[12px] font-medium text-slate-700 mb-1">
               Cancellation Reason Code
             </label>
-            <select
+            <CustomSelect
               value={cancelReasonCode}
-              onChange={(e) => setCancelReasonCode(e.target.value)}
-              className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-[13px] focus:ring-1 focus:ring-rose-500 h-10"
-            >
-              <option value="1">1 - Duplicate E-Way Bill</option>
-              <option value="2">2 - Order Cancelled by Buyer/Seller</option>
-              <option value="3">3 - Data Entry Error</option>
-              <option value="4">4 - Others</option>
-            </select>
+              onChange={(val: any) => setCancelReasonCode(val)}
+              options={[
+                { value: "1", label: "1 - Duplicate E-Way Bill" },
+                { value: "2", label: "2 - Order Cancelled by Buyer/Seller" },
+                { value: "3", label: "3 - Data Entry Error" },
+                { value: "4", label: "4 - Others" },
+              ]}
+              triggerClassName="rounded border-slate-300"
+            />
           </div>
 
           <div>

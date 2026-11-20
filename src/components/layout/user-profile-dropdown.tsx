@@ -6,7 +6,7 @@ import { useAuth } from "../../context/auth-context";
 
 export function UserProfileDropdown() {
   const router = useRouter();
-  const { user, currentCompany, entitlements, lang, logout } = useAuth();
+  const { user, currentCompany, entitlements, lang, logout, hasPermission } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -122,104 +122,116 @@ export function UserProfileDropdown() {
             </div>
           </div>
 
-          {/* Navigation Links */}
-          <div className="py-1.5 px-1 space-y-0.5 text-xs font-medium text-slate-700">
-            {/* 1. Account & Profile */}
-            <button
-              type="button"
-              onClick={() => navigateTo("/settings/account")}
-              className="w-full px-3 py-2 rounded-xl text-left flex items-center gap-2.5 hover:bg-slate-50 hover:text-[#1677E8] transition-colors cursor-pointer"
-            >
-              <div className="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <div className="font-semibold text-slate-800">
-                  {lang === "gu" ? "મારું એકાઉન્ટ અને પ્રોફાઇલ" : "My Profile & Account"}
-                </div>
-                <div className="text-[11px] text-slate-400">
-                  {lang === "gu" ? "પ્રોફાઇલ વિગતો, પાસવર્ડ અને સેટિંગ્સ" : "Profile details, credentials & security"}
-                </div>
-              </div>
-              <svg className="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+          {/* Navigation Links - Filtered Strictly by Settings Permissions */}
+          {(hasPermission("settings", "view") ||
+            hasPermission("settings", "edit_company") ||
+            hasPermission("settings", "edit_users")) && (
+            <div className="py-1.5 px-1 space-y-0.5 text-xs font-medium text-slate-700">
+              {/* 1. Account & Profile */}
+              {hasPermission("settings", "view") && (
+                <button
+                  type="button"
+                  onClick={() => navigateTo("/settings/account")}
+                  className="w-full px-3 py-2 rounded-xl text-left flex items-center gap-2.5 hover:bg-slate-50 hover:text-[#1677E8] transition-colors cursor-pointer"
+                >
+                  <div className="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-slate-800">
+                      {lang === "gu" ? "મારું એકાઉન્ટ અને પ્રોફાઇલ" : "My Profile & Account"}
+                    </div>
+                    <div className="text-[11px] text-slate-400">
+                      {lang === "gu" ? "પ્રોફાઇલ વિગતો, પાસવર્ડ અને સેટિંગ્સ" : "Profile details, credentials & security"}
+                    </div>
+                  </div>
+                  <svg className="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              )}
 
-            {/* 2. Company / Business Settings */}
-            <button
-              type="button"
-              onClick={() => navigateTo("/settings/company")}
-              className="w-full px-3 py-2 rounded-xl text-left flex items-center gap-2.5 hover:bg-slate-50 hover:text-[#1677E8] transition-colors cursor-pointer"
-            >
-              <div className="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <div className="font-semibold text-slate-800">
-                  {lang === "gu" ? "પેઢીની સેટિંગ્સ" : "Company & Business"}
-                </div>
-                <div className="text-[11px] text-slate-400">
-                  {lang === "gu" ? "GSTIN, સરનામું અને બેંક વિગતો" : "GSTIN, addresses & bank accounts"}
-                </div>
-              </div>
-              <svg className="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+              {/* 2. Company / Business Settings */}
+              {hasPermission("settings", "edit_company") && (
+                <button
+                  type="button"
+                  onClick={() => navigateTo("/settings/company")}
+                  className="w-full px-3 py-2 rounded-xl text-left flex items-center gap-2.5 hover:bg-slate-50 hover:text-[#1677E8] transition-colors cursor-pointer"
+                >
+                  <div className="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-slate-800">
+                      {lang === "gu" ? "પેઢીની સેટિંગ્સ" : "Company & Business"}
+                    </div>
+                    <div className="text-[11px] text-slate-400">
+                      {lang === "gu" ? "GSTIN, સરનામું અને બેંક વિગતો" : "GSTIN, addresses & bank accounts"}
+                    </div>
+                  </div>
+                  <svg className="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              )}
 
-            {/* 3. Manage Users */}
-            <button
-              type="button"
-              onClick={() => navigateTo("/settings/user-management")}
-              className="w-full px-3 py-2 rounded-xl text-left flex items-center gap-2.5 hover:bg-slate-50 hover:text-[#1677E8] transition-colors cursor-pointer"
-            >
-              <div className="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <div className="font-semibold text-slate-800">
-                  {lang === "gu" ? "વપરાશકર્તા સંચાલન" : "Manage Staff & Users"}
-                </div>
-                <div className="text-[11px] text-slate-400">
-                  {lang === "gu" ? "સ્ટાફ અને રોલ પરવાનગીઓ" : "Staff access and role permissions"}
-                </div>
-              </div>
-              <svg className="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+              {/* 3. Manage Users */}
+              {hasPermission("settings", "edit_users") && (
+                <button
+                  type="button"
+                  onClick={() => navigateTo("/settings/user-management")}
+                  className="w-full px-3 py-2 rounded-xl text-left flex items-center gap-2.5 hover:bg-slate-50 hover:text-[#1677E8] transition-colors cursor-pointer"
+                >
+                  <div className="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-slate-800">
+                      {lang === "gu" ? "વપરાશકર્તા સંચાલન" : "Manage Staff & Users"}
+                    </div>
+                    <div className="text-[11px] text-slate-400">
+                      {lang === "gu" ? "સ્ટાફ અને રોલ પરવાનગીઓ" : "Staff access and role permissions"}
+                    </div>
+                  </div>
+                  <svg className="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              )}
 
-            {/* 4. Plans & Pricing */}
-            <button
-              type="button"
-              onClick={() => navigateTo("/settings/pricing")}
-              className="w-full px-3 py-2 rounded-xl text-left flex items-center gap-2.5 hover:bg-slate-50 hover:text-[#1677E8] transition-colors cursor-pointer"
-            >
-              <div className="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <div className="font-semibold text-slate-800">
-                  {lang === "gu" ? "પ્લાન અને સબ્સ્ક્રિપ્શન" : "Plans & Subscription"}
-                </div>
-                <div className="text-[11px] text-slate-400">
-                  {lang === "gu" ? "અપગ્રેડ, પ્લાન અને બિલિંગ વિગતો" : "Upgrade tier & manage subscription"}
-                </div>
-              </div>
-              <svg className="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
+              {/* 4. Plans & Pricing */}
+              {hasPermission("settings", "view") && (
+                <button
+                  type="button"
+                  onClick={() => navigateTo("/settings/pricing")}
+                  className="w-full px-3 py-2 rounded-xl text-left flex items-center gap-2.5 hover:bg-slate-50 hover:text-[#1677E8] transition-colors cursor-pointer"
+                >
+                  <div className="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-slate-800">
+                      {lang === "gu" ? "પ્લાન અને સબ્સ્ક્રિપ્શન" : "Plans & Subscription"}
+                    </div>
+                    <div className="text-[11px] text-slate-400">
+                      {lang === "gu" ? "અપગ્રેડ, પ્લાન અને બિલિંગ વિગતો" : "Upgrade tier & manage subscription"}
+                    </div>
+                  </div>
+                  <svg className="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Divider */}
           <div className="my-1 border-t border-slate-100" />

@@ -6,6 +6,7 @@ import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
 import { WaveBackground } from "../../components/ui/wave-background";
 import Image from "next/image";
+import Link from "next/link";
 import { Lock, Ban, Check, AlertTriangle, Smartphone, CreditCard, ShieldCheck, Zap, ArrowRight, Loader2 } from "lucide-react";
 import { openRazorpayCheckout } from "../../lib/razorpay";
 
@@ -483,20 +484,16 @@ function LoginContent() {
       <div className={`w-full ${mode === "signup" ? "max-w-xl" : "max-w-md"} bg-white rounded-2xl shadow-xl border border-[#E5EAF1] p-6 sm:p-8 space-y-5 relative z-10 border-t-4 border-t-[#2563EB] my-8 transition-all`}>
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="w-16 h-16 relative mx-auto flex items-center justify-center">
+          <Link href="/" className="inline-block transition-transform hover:scale-[1.02]">
             <Image
-              src="/logo-icon.png"
+              src="/logo-full.png"
               alt="myownbillbook"
-              width={64}
-              height={64}
-              className="object-contain"
+              width={240}
+              height={56}
+              className="h-12 sm:h-14 w-auto mx-auto object-contain"
               priority
             />
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-            <span className="text-[#172033]">MyOwn</span>
-            <span className="text-[#2563EB]">BillBook</span>
-          </h1>
+          </Link>
           <p className="text-xs text-[#667085] font-medium max-w-xs mx-auto">
             {lang === "gu"
               ? "ભારતીય જીએસટી વેપાર અને દેશી નામા પ્લેટફોર્મ"

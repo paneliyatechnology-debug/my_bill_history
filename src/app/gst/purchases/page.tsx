@@ -5,6 +5,7 @@ import Link from "next/link";
 import { apiClient } from "../../../lib/api-client";
 import { useAuth } from "../../../context/auth-context";
 import { DataTable, GstFrame, Panel, useGstPeriod } from "../../../components/gst/gst-kit";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 
 export default function PurchaseRegisterPage() {
   return (
@@ -57,21 +58,37 @@ function Body() {
   });
   return (
     <Panel loading={loading} error={error} onRetry={load} empty={!tenantContext.companyId ? "Sign in and select a company to see the purchase register." : items.length === 0 ? "No posted purchase bills or returns in this period." : null}>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 items-center">
         <input className="border rounded px-2 py-1 text-[13px] h-10" placeholder="Supplier or GSTIN" value={supplier} onChange={(event) => setSupplier(event.target.value)} />
-        <select className="border rounded px-2 py-1 text-[13px] h-10" value={kind} onChange={(event) => setKind(event.target.value)}>
-          <option value="">All documents</option>
-          <option value="PURCHASE_INVOICE">Bills</option>
-          <option value="PURCHASE_RETURN">Returns</option>
-        </select>
-        <select className="border rounded px-2 py-1 text-[13px] h-10" value={itc} onChange={(event) => setItc(event.target.value)}>
-          <option value="">All ITC labels</option>
-          <option>INPUT</option>
-          <option>INELIGIBLE</option>
-          <option>BLOCKED</option>
-          <option>RCM</option>
-          <option>REVERSAL</option>
-        </select>
+        <div className="w-40">
+          <CustomSelect
+            size="sm"
+            value={kind}
+            onChange={(val: any) => setKind(val)}
+            options={[
+              { value: "", label: "All documents" },
+              { value: "PURCHASE_INVOICE", label: "Bills" },
+              { value: "PURCHASE_RETURN", label: "Returns" },
+            ]}
+            triggerClassName="rounded border-slate-300"
+          />
+        </div>
+        <div className="w-40">
+          <CustomSelect
+            size="sm"
+            value={itc}
+            onChange={(val: any) => setItc(val)}
+            options={[
+              { value: "", label: "All ITC labels" },
+              { value: "INPUT", label: "INPUT" },
+              { value: "INELIGIBLE", label: "INELIGIBLE" },
+              { value: "BLOCKED", label: "BLOCKED" },
+              { value: "RCM", label: "RCM" },
+              { value: "REVERSAL", label: "REVERSAL" },
+            ]}
+            triggerClassName="rounded border-slate-300"
+          />
+        </div>
       </div>
       <p className="text-sm text-slate-600">
         Taxable {data?.totals?.totalTaxable} · CGST {data?.totals?.totalCgst} · SGST {data?.totals?.totalSgst} · UTGST {data?.totals?.totalUtgst} · IGST {data?.totals?.totalIgst}

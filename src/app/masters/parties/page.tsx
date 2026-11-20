@@ -24,7 +24,9 @@ import {
   Zap,
   Check,
   AlertTriangle,
+  ShieldAlert,
 } from "lucide-react";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 
 export interface VerifiedGstinDetails {
   gstin: string;
@@ -91,7 +93,7 @@ interface Party {
 }
 
 export default function PartiesPage() {
-  const { lang, tenantContext, currentCompany } = useAuth();
+  const { lang, tenantContext, currentCompany, hasPermission } = useAuth();
   const [parties, setParties] = useState<Party[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -999,6 +1001,30 @@ export default function PartiesPage() {
     [lang, currentCompany]
   );
 
+  if (!hasPermission("parties", "view")) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center min-h-[50vh] bg-white rounded-2xl border border-slate-200 shadow-xs">
+        <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 flex items-center justify-center mb-4 shadow-xs">
+          <ShieldAlert className="w-7 h-7" strokeWidth={1.8} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800 mb-1">
+          {lang === "gu" ? "પ્રવેશ પ્રતિબંધિત છે" : "Access Restricted"}
+        </h2>
+        <p className="text-sm text-slate-500 max-w-md mb-6">
+          {lang === "gu"
+            ? "તમારી પાસે વેપારી ખાતાઓ (Parties) જોવાની પરવાનગી નથી. કૃપા કરીને તમારા વ્યવસાય એડમિનિસ્ટ્રેટરનો સંપર્ક કરો."
+            : "You do not have permission to view Parties. Please contact your organization administrator."}
+        </p>
+        <Link
+          href="/"
+          className="px-5 py-2.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
+        >
+          {lang === "gu" ? "ડેશબોર્ડ પર પાછા જાઓ" : "Return to Dashboard"}
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {error && (
@@ -1262,14 +1288,16 @@ export default function PartiesPage() {
                         <span>WhatsApp</span>
                       </button>
                     )}
-                    <button
-                      type="button"
-                      onClick={() => handleOpenEditModal(selectedParty)}
-                      className="h-9 px-3 typo-btn-secondary text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors cursor-pointer inline-flex items-center gap-1.5"
-                    >
-                      <Pencil className="w-3.5 h-3.5 text-slate-600" />
-                      <span>Edit</span>
-                    </button>
+                    {hasPermission("parties", "edit") && (
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEditModal(selectedParty)}
+                        className="h-9 px-3 typo-btn-secondary text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                      >
+                        <Pencil className="w-3.5 h-3.5 text-slate-600" />
+                        <span>Edit</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -1563,15 +1591,17 @@ export default function PartiesPage() {
                       </div>
                     </div>
 
-                    <div className="pt-2 flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEditModal(selectedParty)}
-                        className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-sm transition-all cursor-pointer"
-                      >
-                        Edit Party Profile
-                      </button>
-                    </div>
+                    {hasPermission("parties", "edit") && (
+                      <div className="pt-2 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditModal(selectedParty)}
+                          className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-sm transition-all cursor-pointer"
+                        >
+                          Edit Party Profile
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1912,27 +1942,29 @@ export default function PartiesPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-              <button
-                type="button"
-                onClick={() => setIsImportModalOpen(true)}
-                className="inline-flex items-center justify-center gap-2 h-10 px-4 bg-white hover:bg-emerald-50/50 text-[#166534] border border-[#86EFAC] typo-btn-secondary rounded-xl shadow-2xs transition-all w-full sm:w-auto shrink-0 cursor-pointer"
-                title="Import Parties from Excel or CSV"
-              >
-                <svg className="w-4 h-4 text-[#15803D]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-                <span>{lang === "gu" ? "એક્સેલ / CSV ઈમ્પોર્ટ" : "Import Excel / CSV"}</span>
-              </button>
+            {hasPermission("parties", "create") && (
+              <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setIsImportModalOpen(true)}
+                  className="inline-flex items-center justify-center gap-2 h-10 px-4 bg-white hover:bg-emerald-50/50 text-[#166534] border border-[#86EFAC] typo-btn-secondary rounded-xl shadow-2xs transition-all w-full sm:w-auto shrink-0 cursor-pointer"
+                  title="Import Parties from Excel or CSV"
+                >
+                  <svg className="w-4 h-4 text-[#15803D]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  <span>{lang === "gu" ? "એક્સેલ / CSV ઈમ્પોર્ટ" : "Import Excel / CSV"}</span>
+                </button>
 
-              <button
-                onClick={handleOpenCreateModal}
-                className="inline-flex items-center justify-center gap-1.5 h-10 px-4 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] text-white typo-btn-primary rounded-xl shadow-xs transition-all w-full sm:w-auto shrink-0 cursor-pointer"
-              >
-                <span className="text-base font-semibold leading-none">+</span>
-                <span>{lang === "gu" ? "નવો વેપારી ઉમેરો" : "Add New Party"}</span>
-              </button>
-            </div>
+                <button
+                  onClick={handleOpenCreateModal}
+                  className="inline-flex items-center justify-center gap-1.5 h-10 px-4 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] text-white typo-btn-primary rounded-xl shadow-xs transition-all w-full sm:w-auto shrink-0 cursor-pointer"
+                >
+                  <span className="text-base font-semibold leading-none">+</span>
+                  <span>{lang === "gu" ? "નવો વેપારી ઉમેરો" : "Add New Party"}</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* 4 Summary KPI Cards (Exact Matching Target Design) */}
@@ -2051,26 +2083,30 @@ export default function PartiesPage() {
 
           {/* Parties DataTable */}
           <DataTable<Party>
-            selectable
+            selectable={hasPermission("parties", "delete")}
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
             toolbarVariant="clean"
-            renderBulkActions={(ids) => (
-              <button
-                type="button"
-                onClick={() => setIsBulkDeleteModalOpen(true)}
-                className="inline-flex items-center gap-1.5 h-10 px-3.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-[13px] font-medium rounded-xl shadow-sm transition-all cursor-pointer"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                <span>
-                  {lang === "gu"
-                    ? `પસંદ કરેલ કાઢી નાખો (${ids.size})`
-                    : `Delete Selected (${ids.size})`}
-                </span>
-              </button>
-            )}
+            renderBulkActions={
+              hasPermission("parties", "delete")
+                ? (ids) => (
+                    <button
+                      type="button"
+                      onClick={() => setIsBulkDeleteModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 h-10 px-3.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-[13px] font-medium rounded-xl shadow-sm transition-all cursor-pointer"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      <span>
+                        {lang === "gu"
+                          ? `પસંદ કરેલ કાઢી નાખો (${ids.size})`
+                          : `Delete Selected (${ids.size})`}
+                      </span>
+                    </button>
+                  )
+                : undefined
+            }
             data={displayParties}
             columns={partyColumns}
             keyExtractor={(p) => p.id}
@@ -2093,28 +2129,22 @@ export default function PartiesPage() {
             lang={lang}
             onRowClick={(p) => setSelectedParty(p)}
             themeColor="saffron"
-            exportable
+            exportable={hasPermission("parties", "export")}
             exportFileName="parties_master"
             filtersSlot={
-              <div className="flex items-center gap-2">
-                <select
+              <div className="flex items-center gap-2 w-48">
+                <CustomSelect
+                  size="sm"
                   value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value)}
-                  className="h-10 text-[13px] bg-white border border-[#E2E8F0] text-[#182230] rounded-xl px-3.5 py-1.5 font-normal focus:outline-none focus:border-[#1677E8] cursor-pointer shadow-2xs"
-                >
-                  <option value="ALL">
-                    {lang === "gu" ? "તમામ પ્રકાર (All Types)" : "All Types"}
-                  </option>
-                  <option value="CUSTOMER">
-                    {lang === "gu" ? "ગ્રાહક (Customers)" : "Customers"}
-                  </option>
-                  <option value="SUPPLIER">
-                    {lang === "gu" ? "સપ્લાયર (Suppliers)" : "Suppliers"}
-                  </option>
-                  <option value="BOTH">
-                    {lang === "gu" ? "બંને (Both)" : "Both"}
-                  </option>
-                </select>
+                  onChange={(val: any) => setTypeFilter(val)}
+                  options={[
+                    { value: "ALL", label: lang === "gu" ? "તમામ પ્રકાર (All Types)" : "All Types" },
+                    { value: "CUSTOMER", label: lang === "gu" ? "ગ્રાહક (Customers)" : "Customers" },
+                    { value: "SUPPLIER", label: lang === "gu" ? "સપ્લાયર (Suppliers)" : "Suppliers" },
+                    { value: "BOTH", label: lang === "gu" ? "બંને (Both)" : "Both" },
+                  ]}
+                  triggerClassName="rounded-xl border-[#E2E8F0] bg-white text-[#182230]"
+                />
               </div>
             }
             mobileCardRender={(p) => {
@@ -2202,20 +2232,24 @@ export default function PartiesPage() {
                       <span>Details</span>
                       <span>→</span>
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => handleOpenEditModal(p)}
-                      className="px-2.5 py-1 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg cursor-pointer"
-                    >
-                      {lang === "gu" ? "સુધારો" : "Edit"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPartyToDelete(p)}
-                      className="px-2.5 py-1 text-xs font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg cursor-pointer"
-                    >
-                      {lang === "gu" ? "કાઢી નાખો" : "Delete"}
-                    </button>
+                    {hasPermission("parties", "edit") && (
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEditModal(p)}
+                        className="px-2.5 py-1 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg cursor-pointer"
+                      >
+                        {lang === "gu" ? "સુધારો" : "Edit"}
+                      </button>
+                    )}
+                    {hasPermission("parties", "delete") && (
+                      <button
+                        type="button"
+                        onClick={() => setPartyToDelete(p)}
+                        className="px-2.5 py-1 text-xs font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg cursor-pointer"
+                      >
+                        {lang === "gu" ? "કાઢી નાખો" : "Delete"}
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -2246,17 +2280,18 @@ export default function PartiesPage() {
               <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 {lang === "gu" ? "ખાતાનો પ્રકાર *" : "Party Type *"}
               </label>
-              <select
+              <CustomSelect
                 value={formData.type}
-                onChange={(e: any) =>
-                  setFormData({ ...formData, type: e.target.value })
+                onChange={(val: any) =>
+                  setFormData({ ...formData, type: val })
                 }
-                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
-              >
-                <option value="CUSTOMER">{lang === "gu" ? "ગ્રાહક (Customer)" : "Customer"}</option>
-                <option value="SUPPLIER">{lang === "gu" ? "વેપારી / સપ્લાયર (Supplier)" : "Supplier"}</option>
-                <option value="BOTH">{lang === "gu" ? "ગ્રાહક અને સપ્લાયર (Both)" : "Both (Customer & Supplier)"}</option>
-              </select>
+                options={[
+                  { value: "CUSTOMER", label: lang === "gu" ? "ગ્રાહક (Customer)" : "Customer" },
+                  { value: "SUPPLIER", label: lang === "gu" ? "વેપારી / સપ્લાયર (Supplier)" : "Supplier" },
+                  { value: "BOTH", label: lang === "gu" ? "ગ્રાહક અને સપ્લાયર (Both)" : "Both (Customer & Supplier)" },
+                ]}
+                triggerClassName="rounded border-slate-300 bg-slate-50"
+              />
             </div>
 
             <div>
@@ -2636,18 +2671,19 @@ export default function PartiesPage() {
               <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
                 {lang === "gu" ? "ખાતાનો પ્રકાર *" : "Party Type *"}
               </label>
-              <select
+              <CustomSelect
                 value={editFormData.type}
-                onChange={(e: any) =>
-                  setEditFormData({ ...editFormData, type: e.target.value })
+                onChange={(val: any) =>
+                  setEditFormData({ ...editFormData, type: val })
                 }
-                className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:ring-1 focus:ring-[#1677E8] h-10"
-              >
-                <option value="CUSTOMER">{lang === "gu" ? "ગ્રાહક (Customer)" : "Customer"}</option>
-                <option value="SUPPLIER">{lang === "gu" ? "વેપારી / સપ્લાયર (Supplier)" : "Supplier"}</option>
-                <option value="BOTH">{lang === "gu" ? "ગ્રાહક અને સપ્લાયર (Both)" : "Both (Customer & Supplier)"}</option>
-                <option value="BROKER">{lang === "gu" ? "દલાલ / બ્રોકર (Broker)" : "Broker"}</option>
-              </select>
+                options={[
+                  { value: "CUSTOMER", label: lang === "gu" ? "ગ્રાહક (Customer)" : "Customer" },
+                  { value: "SUPPLIER", label: lang === "gu" ? "વેપારી / સપ્લાયર (Supplier)" : "Supplier" },
+                  { value: "BOTH", label: lang === "gu" ? "ગ્રાહક અને સપ્લાયર (Both)" : "Both (Customer & Supplier)" },
+                  { value: "BROKER", label: lang === "gu" ? "દલાલ / બ્રોકર (Broker)" : "Broker" },
+                ]}
+                triggerClassName="rounded border-slate-300 bg-slate-50"
+              />
             </div>
 
             <div>

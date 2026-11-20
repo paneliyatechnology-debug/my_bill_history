@@ -8,6 +8,7 @@ import { apiClient } from "@/lib/api-client";
 import { einvoiceApi, EInvoiceValidationError } from "@/lib/einvoice";
 import { INDIAN_STATES } from "@/shared-types";
 import { formatInr } from "@/components/design-system/tokens";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 import { X, Check } from "lucide-react";
 
 interface LineItem {
@@ -499,15 +500,16 @@ export default function CreateEInvoicePage() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
                 <label className="block text-[12px] font-medium text-slate-700 mb-1">Document Type *</label>
-                <select
+                <CustomSelect
                   value={documentType}
-                  onChange={(e) => setDocumentType(e.target.value as any)}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] focus:border-[#1677E8] focus:outline-none h-10"
-                >
-                  <option value="TAX_INVOICE">Tax Invoice (INV)</option>
-                  <option value="CREDIT_NOTE">Credit Note (CRN)</option>
-                  <option value="DEBIT_NOTE">Debit Note (DBN)</option>
-                </select>
+                  onChange={(val) => setDocumentType(val as any)}
+                  options={[
+                    { value: "TAX_INVOICE", label: "Tax Invoice (INV)" },
+                    { value: "CREDIT_NOTE", label: "Credit Note (CRN)" },
+                    { value: "DEBIT_NOTE", label: "Debit Note (DBN)" },
+                  ]}
+                  className="w-full"
+                />
               </div>
 
               <div>
@@ -532,35 +534,37 @@ export default function CreateEInvoicePage() {
 
               <div>
                 <label className="block text-[12px] font-medium text-slate-700 mb-1">Supply Category *</label>
-                <select
+                <CustomSelect
                   value={supplyCategory}
-                  onChange={(e) => {
-                    setSupplyCategory(e.target.value);
-                    if (e.target.value.startsWith("EXP") || e.target.value.startsWith("SEZ")) {
+                  onChange={(val) => {
+                    setSupplyCategory(val);
+                    if (val.startsWith("EXP") || val.startsWith("SEZ")) {
                       setShowExport(true);
                     }
                   }}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] focus:border-[#1677E8] focus:outline-none h-10"
-                >
-                  <option value="B2B">B2B - Regular Business to Business</option>
-                  <option value="SEZWP">SEZWP - SEZ with Tax Payment</option>
-                  <option value="SEZWOP">SEZWOP - SEZ without Tax Payment</option>
-                  <option value="EXPWP">EXPWP - Export with Tax Payment</option>
-                  <option value="EXPWOP">EXPWOP - Export without Tax Payment</option>
-                  <option value="DEXP">DEXP - Deemed Export</option>
-                </select>
+                  options={[
+                    { value: "B2B", label: "B2B - Regular Business to Business" },
+                    { value: "SEZWP", label: "SEZWP - SEZ with Tax Payment" },
+                    { value: "SEZWOP", label: "SEZWOP - SEZ without Tax Payment" },
+                    { value: "EXPWP", label: "EXPWP - Export with Tax Payment" },
+                    { value: "EXPWOP", label: "EXPWOP - Export without Tax Payment" },
+                    { value: "DEXP", label: "DEXP - Deemed Export" },
+                  ]}
+                  className="w-full"
+                />
               </div>
 
               <div>
                 <label className="block text-[12px] font-medium text-slate-700 mb-1">Reverse Charge (RCM)</label>
-                <select
+                <CustomSelect
                   value={isReverseCharge ? "Y" : "N"}
-                  onChange={(e) => setIsReverseCharge(e.target.value === "Y")}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] focus:border-[#1677E8] focus:outline-none h-10"
-                >
-                  <option value="N">No (Normal Tax)</option>
-                  <option value="Y">Yes (Reverse Charge)</option>
-                </select>
+                  onChange={(val) => setIsReverseCharge(val === "Y")}
+                  options={[
+                    { value: "N", label: "No (Normal Tax)" },
+                    { value: "Y", label: "Yes (Reverse Charge)" },
+                  ]}
+                  className="w-full"
+                />
               </div>
 
               {documentType !== "TAX_INVOICE" && (
@@ -588,18 +592,19 @@ export default function CreateEInvoicePage() {
             {/* Buyer Master Selector */}
             <div className="mb-4">
               <label className="block text-[12px] font-medium text-slate-700 mb-1">Select Saved Customer / Party</label>
-              <select
+              <CustomCombobox
                 value={selectedPartyId}
-                onChange={(e) => handleSelectParty(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 p-2 text-[13px] focus:border-[#1677E8] focus:outline-none bg-slate-50/50 h-10"
-              >
-                <option value="">-- Choose from Master or Enter Details Manually --</option>
-                {parties.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} {p.gstin ? `(${p.gstin})` : "(Unregistered)"}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => handleSelectParty(val)}
+                options={parties.map((p) => ({
+                  value: p.id,
+                  label: p.name,
+                  sublabel: p.gstin ? p.gstin : "Unregistered",
+                }))}
+                placeholder="-- Choose from Master or Enter Details Manually --"
+                searchPlaceholder="Search customer by name or GSTIN..."
+                clearable
+                className="w-full"
+              />
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -656,20 +661,19 @@ export default function CreateEInvoicePage() {
 
               <div>
                 <label className="block text-[12px] font-medium text-slate-700 mb-1">State & State Code *</label>
-                <select
+                <CustomCombobox
                   value={buyerStateCode}
-                  onChange={(e) => {
-                    setBuyerStateCode(e.target.value);
-                    setPlaceOfSupply(e.target.value);
+                  onChange={(val) => {
+                    setBuyerStateCode(val);
+                    setPlaceOfSupply(val);
                   }}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] focus:border-[#1677E8] focus:outline-none h-10"
-                >
-                  {Object.entries(INDIAN_STATES).map(([code, st]) => (
-                    <option key={code} value={code}>
-                      {code} - {st.name}
-                    </option>
-                  ))}
-                </select>
+                  options={Object.entries(INDIAN_STATES).map(([code, st]) => ({
+                    value: code,
+                    label: `${code} - ${st.name}`,
+                  }))}
+                  searchPlaceholder="Search state..."
+                  className="w-full"
+                />
               </div>
 
               <div>
@@ -685,17 +689,16 @@ export default function CreateEInvoicePage() {
 
               <div>
                 <label className="block text-[12px] font-medium text-slate-700 mb-1">Place of Supply (POS) *</label>
-                <select
+                <CustomCombobox
                   value={placeOfSupply}
-                  onChange={(e) => setPlaceOfSupply(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] font-normal focus:border-[#1677E8] focus:outline-none bg-emerald-50/40 h-10"
-                >
-                  {Object.entries(INDIAN_STATES).map(([code, st]) => (
-                    <option key={code} value={code}>
-                      {code} - {st.name} {code === companyState ? "(Intra-state)" : "(Inter-state)"}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setPlaceOfSupply(val)}
+                  options={Object.entries(INDIAN_STATES).map(([code, st]) => ({
+                    value: code,
+                    label: `${code} - ${st.name} ${code === companyState ? "(Intra-state)" : "(Inter-state)"}`,
+                  }))}
+                  searchPlaceholder="Search place of supply..."
+                  className="w-full"
+                />
               </div>
             </div>
 
@@ -912,18 +915,17 @@ export default function CreateEInvoicePage() {
                       </td>
 
                       {/* Unit */}
-                      <td className="py-2 px-2">
-                        <select
+                      <td className="py-2 px-2 min-w-[100px]">
+                        <CustomSelect
                           value={row.unit}
-                          onChange={(e) => handleItemChange(idx, "unit", e.target.value)}
-                          className="w-full rounded border border-slate-300 p-1 text-[13px] tabular-nums h-10"
-                        >
-                          {NIC_UNITS.map((u) => (
-                            <option key={u.code} value={u.code}>
-                              {u.code}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(val) => handleItemChange(idx, "unit", val)}
+                          options={NIC_UNITS.map((u) => ({
+                            value: u.code,
+                            label: u.code,
+                          }))}
+                          size="sm"
+                          className="w-full"
+                        />
                       </td>
 
                       {/* Rate */}
@@ -956,21 +958,23 @@ export default function CreateEInvoicePage() {
                       </td>
 
                       {/* GST Rate */}
-                      <td className="py-2 px-2">
-                        <select
-                          value={row.taxRate}
-                          onChange={(e) => handleItemChange(idx, "taxRate", Number(e.target.value))}
-                          className="w-full rounded border border-slate-300 p-1 text-[13px] tabular-nums h-10"
-                        >
-                          <option value="0">0%</option>
-                          <option value="0.1">0.1%</option>
-                          <option value="0.25">0.25%</option>
-                          <option value="3">3%</option>
-                          <option value="5">5%</option>
-                          <option value="12">12%</option>
-                          <option value="18">18%</option>
-                          <option value="28">28%</option>
-                        </select>
+                      <td className="py-2 px-2 min-w-[100px]">
+                        <CustomSelect
+                          value={String(row.taxRate)}
+                          onChange={(val) => handleItemChange(idx, "taxRate", Number(val))}
+                          options={[
+                            { value: "0", label: "0%" },
+                            { value: "0.1", label: "0.1%" },
+                            { value: "0.25", label: "0.25%" },
+                            { value: "3", label: "3%" },
+                            { value: "5", label: "5%" },
+                            { value: "12", label: "12%" },
+                            { value: "18", label: "18%" },
+                            { value: "28", label: "28%" },
+                          ]}
+                          size="sm"
+                          className="w-full"
+                        />
                       </td>
 
                       {/* Total */}
@@ -1077,14 +1081,15 @@ export default function CreateEInvoicePage() {
                 </div>
                 <div>
                   <label className="block text-[11px] font-medium text-slate-600 mb-0.5">Vehicle Type</label>
-                  <select
+                  <CustomSelect
                     value={vehicleType}
-                    onChange={(e) => setVehicleType(e.target.value as any)}
-                    className="w-full rounded border border-slate-300 p-1.5 text-[13px] font-normal h-10"
-                  >
-                    <option value="R">Regular (Normal)</option>
-                    <option value="O">Over Dimensional Cargo (ODC)</option>
-                  </select>
+                    onChange={(val) => setVehicleType(val as any)}
+                    options={[
+                      { value: "R", label: "Regular (Normal)" },
+                      { value: "O", label: "Over Dimensional Cargo (ODC)" },
+                    ]}
+                    className="w-full"
+                  />
                 </div>
               </div>
             )}

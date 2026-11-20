@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { useAuth } from "../../context/auth-context";
 import { apiClient, extractList } from "../../lib/api-client";
 import { Calendar, History, X, AlertTriangle } from "lucide-react";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 
 // ============================================================================
 // Types
@@ -1445,16 +1446,17 @@ export default function StaffAttendancePayrollView() {
                   <label className="block text-[12px] font-medium text-slate-700 mb-1.5">
                     {lang === "gu" ? "પગાર ચૂકવણીનો પ્રકાર *" : "Salary Payout Type *"}
                   </label>
-                  <select
+                  <CustomSelect
                     value={formData.salaryPayoutType}
-                    onChange={(e) => setFormData({ ...formData, salaryPayoutType: e.target.value as PayoutType })}
-                    className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4c3cce]/20 focus:border-[#4c3cce] bg-white h-10"
-                  >
-                    <option value="Monthly">{lang === "gu" ? "માસિક (Monthly)" : "Monthly"}</option>
-                    <option value="Daily">{lang === "gu" ? "દૈનિક (Daily)" : "Daily"}</option>
-                    <option value="Weekly">{lang === "gu" ? "સાપ્તાહિક (Weekly)" : "Weekly"}</option>
-                    <option value="Per Hour">{lang === "gu" ? "કલાક દીઠ (Per Hour)" : "Per Hour"}</option>
-                  </select>
+                    onChange={(val: any) => setFormData({ ...formData, salaryPayoutType: val as PayoutType })}
+                    options={[
+                      { value: "Monthly", label: lang === "gu" ? "માસિક (Monthly)" : "Monthly" },
+                      { value: "Daily", label: lang === "gu" ? "દૈનિક (Daily)" : "Daily" },
+                      { value: "Weekly", label: lang === "gu" ? "સાપ્તાહિક (Weekly)" : "Weekly" },
+                      { value: "Per Hour", label: lang === "gu" ? "કલાક દીઠ (Per Hour)" : "Per Hour" },
+                    ]}
+                    triggerClassName="rounded-lg border-slate-300 bg-white"
+                  />
                 </div>
 
                 {/* 4. Salary * */}
@@ -1484,19 +1486,20 @@ export default function StaffAttendancePayrollView() {
                   <label className="block text-[12px] font-medium text-slate-700 mb-1.5">
                     {lang === "gu" ? "પગાર સાયકલ" : "Salary Cycle"}
                   </label>
-                  <select
+                  <CustomSelect
                     value={formData.salaryCycle}
-                    onChange={(e) => setFormData({ ...formData, salaryCycle: e.target.value })}
-                    className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4c3cce]/20 focus:border-[#4c3cce] bg-white h-10"
-                  >
-                    <option value="Date 1 of every month">Date 1 of every month</option>
-                    <option value="Date 5 of every month">Date 5 of every month</option>
-                    <option value="Date 7 of every month">Date 7 of every month</option>
-                    <option value="Date 10 of every month">Date 10 of every month</option>
-                    <option value="Date 15 of every month">Date 15 of every month</option>
-                    <option value="Date 25 of every month">Date 25 of every month</option>
-                    <option value="Last day of every month">Last day of every month</option>
-                  </select>
+                    onChange={(val: any) => setFormData({ ...formData, salaryCycle: val })}
+                    options={[
+                      { value: "Date 1 of every month", label: "Date 1 of every month" },
+                      { value: "Date 5 of every month", label: "Date 5 of every month" },
+                      { value: "Date 7 of every month", label: "Date 7 of every month" },
+                      { value: "Date 10 of every month", label: "Date 10 of every month" },
+                      { value: "Date 15 of every month", label: "Date 15 of every month" },
+                      { value: "Date 25 of every month", label: "Date 25 of every month" },
+                      { value: "Last day of every month", label: "Last day of every month" },
+                    ]}
+                    triggerClassName="rounded-lg border-slate-300 bg-white"
+                  />
                 </div>
 
                 {/* 6. Outstanding/Opening Balance ⓘ */}
@@ -1525,14 +1528,18 @@ export default function StaffAttendancePayrollView() {
                       onChange={(e) => setFormData({ ...formData, openingBalance: e.target.value })}
                       className="w-full text-[13px] sm:text-[13px] px-2.5 py-2 focus:outline-none tabular-nums h-10"
                     />
-                    <select
-                      value={formData.balanceType}
-                      onChange={(e) => setFormData({ ...formData, balanceType: e.target.value as BalanceType })}
-                      className="bg-slate-50 border-l border-slate-300 text-[13px] px-2.5 py-2 text-slate-700 focus:outline-none h-10"
-                    >
-                      <option value="TO_PAY">{lang === "gu" ? "ચૂકવવાના (To Pay)" : "To Pay"}</option>
-                      <option value="TO_RECEIVE">{lang === "gu" ? "લેવાના (To Receive)" : "To Receive"}</option>
-                    </select>
+                    <div className="w-36">
+                      <CustomSelect
+                        size="sm"
+                        value={formData.balanceType}
+                        onChange={(val: any) => setFormData({ ...formData, balanceType: val as BalanceType })}
+                        options={[
+                          { value: "TO_PAY", label: lang === "gu" ? "ચૂકવવાના (To Pay)" : "To Pay" },
+                          { value: "TO_RECEIVE", label: lang === "gu" ? "લેવાના (To Receive)" : "To Receive" },
+                        ]}
+                        triggerClassName="rounded-none border-0 border-l border-slate-300 bg-slate-50 text-[13px]"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -1607,16 +1614,17 @@ export default function StaffAttendancePayrollView() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[12px] font-medium text-slate-700 mb-1">Salary Payout Type</label>
-                  <select
+                  <CustomSelect
                     value={editingStaff.salaryPayoutType}
-                    onChange={(e) => setEditingStaff({ ...editingStaff, salaryPayoutType: e.target.value as PayoutType })}
-                    className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none bg-white h-10"
-                  >
-                    <option value="Monthly">Monthly</option>
-                    <option value="Daily">Daily</option>
-                    <option value="Weekly">Weekly</option>
-                    <option value="Per Hour">Per Hour</option>
-                  </select>
+                    onChange={(val: any) => setEditingStaff({ ...editingStaff, salaryPayoutType: val as PayoutType })}
+                    options={[
+                      { value: "Monthly", label: "Monthly" },
+                      { value: "Daily", label: "Daily" },
+                      { value: "Weekly", label: "Weekly" },
+                      { value: "Per Hour", label: "Per Hour" },
+                    ]}
+                    triggerClassName="rounded-lg border-slate-300 bg-white"
+                  />
                 </div>
                 <div>
                   <label className="block text-[12px] font-medium text-slate-700 mb-1">Salary Amount (₹)</label>
@@ -1643,14 +1651,15 @@ export default function StaffAttendancePayrollView() {
                 </div>
                 <div>
                   <label className="block text-[12px] font-medium text-slate-700 mb-1">Balance Direction</label>
-                  <select
+                  <CustomSelect
                     value={editingStaff.balanceType}
-                    onChange={(e) => setEditingStaff({ ...editingStaff, balanceType: e.target.value as BalanceType })}
-                    className="w-full text-[13px] sm:text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none bg-white h-10"
-                  >
-                    <option value="TO_PAY">To Pay (Payable)</option>
-                    <option value="TO_RECEIVE">To Receive (Advance)</option>
-                  </select>
+                    onChange={(val: any) => setEditingStaff({ ...editingStaff, balanceType: val as BalanceType })}
+                    options={[
+                      { value: "TO_PAY", label: "To Pay (Payable)" },
+                      { value: "TO_RECEIVE", label: "To Receive (Advance)" },
+                    ]}
+                    triggerClassName="rounded-lg border-slate-300 bg-white"
+                  />
                 </div>
               </div>
 
@@ -1869,10 +1878,10 @@ export default function StaffAttendancePayrollView() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[12px] font-medium text-slate-700 mb-1">Payment Mode</label>
-                  <select
+                  <CustomSelect
                     value={paymentMode}
-                    onChange={(e) => {
-                      const mode = e.target.value as any;
+                    onChange={(val: any) => {
+                      const mode = val as any;
                       setPaymentMode(mode);
                       if (mode === "CASH") {
                         setSelectedAccountId(cashAccounts[0]?.id || "");
@@ -1880,13 +1889,14 @@ export default function StaffAttendancePayrollView() {
                         setSelectedAccountId(bankAccounts[0]?.id || "");
                       }
                     }}
-                    className="w-full text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none bg-white h-10"
-                  >
-                    <option value="CASH">Cash</option>
-                    <option value="BANK_TRANSFER">Bank Transfer / NEFT</option>
-                    <option value="UPI">UPI / GPay / PhonePe</option>
-                    <option value="CHEQUE">Cheque</option>
-                  </select>
+                    options={[
+                      { value: "CASH", label: "Cash" },
+                      { value: "BANK_TRANSFER", label: "Bank Transfer / NEFT" },
+                      { value: "UPI", label: "UPI / GPay / PhonePe" },
+                      { value: "CHEQUE", label: "Cheque" },
+                    ]}
+                    triggerClassName="rounded-lg border-slate-300 bg-white"
+                  />
                 </div>
                 <div>
                   <label className="block text-[12px] font-medium text-slate-700 mb-1">Payment Date</label>
@@ -1918,21 +1928,20 @@ export default function StaffAttendancePayrollView() {
                       </span>
                     )}
                   </div>
-                  <select
-                    required
+                  <CustomCombobox
                     value={selectedAccountId}
-                    onChange={(e) => setSelectedAccountId(e.target.value)}
-                    className="w-full text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none bg-white h-10"
-                  >
-                    <option value="">
-                      {paymentMode === "CASH" ? "-- Select Cash Account --" : "-- Select Bank Account --"}
-                    </option>
-                    {(paymentMode === "CASH" ? cashAccounts : bankAccounts).map((acc) => (
-                      <option key={acc.id} value={acc.id}>
-                        {acc.name} {acc.bankAccountNo ? `(${acc.bankAccountNo})` : ""} — ₹{formatInr(acc.currentBalance ?? 0)}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val: any) => setSelectedAccountId(val)}
+                    placeholder={paymentMode === "CASH" ? "-- Select Cash Account --" : "-- Select Bank Account --"}
+                    options={[
+                      { value: "", label: paymentMode === "CASH" ? "-- Select Cash Account --" : "-- Select Bank Account --" },
+                      ...(paymentMode === "CASH" ? cashAccounts : bankAccounts).map((acc) => ({
+                        value: acc.id,
+                        label: `${acc.name} ${acc.bankAccountNo ? `(${acc.bankAccountNo})` : ""}`.trim(),
+                        sublabel: `₹${formatInr(acc.currentBalance ?? 0)}`,
+                      })),
+                    ]}
+                    triggerClassName="rounded-lg border-slate-300 bg-white"
+                  />
                   {paymentMode !== "CASH" && bankAccounts.length === 0 && (
                     <p className="text-[11px] text-amber-600 mt-1">
                       No active bank accounts found. Please configure a bank account in Cash & Bank.
@@ -2233,31 +2242,33 @@ export default function StaffAttendancePayrollView() {
                 <label className="block text-[12px] font-medium text-slate-700 mb-1">
                   Salary Calculation Basis
                 </label>
-                <select
+                <CustomSelect
                   value={settings.salaryCalculationBasis}
-                  onChange={(e) => setSettings({ ...settings, salaryCalculationBasis: e.target.value as any })}
-                  className="w-full text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none bg-white h-10"
-                >
-                  <option value="CALENDAR_DAYS">Actual Calendar Days (e.g. 30/31 days)</option>
-                  <option value="TWENTY_SIX_DAYS">26 Working Days (excluding Sundays)</option>
-                  <option value="THIRTY_DAYS">Fixed 30 Days basis</option>
-                </select>
+                  onChange={(val: any) => setSettings({ ...settings, salaryCalculationBasis: val as any })}
+                  options={[
+                    { value: "CALENDAR_DAYS", label: "Actual Calendar Days (e.g. 30/31 days)" },
+                    { value: "TWENTY_SIX_DAYS", label: "26 Working Days (excluding Sundays)" },
+                    { value: "THIRTY_DAYS", label: "Fixed 30 Days basis" },
+                  ]}
+                  triggerClassName="rounded-lg border-slate-300 bg-white"
+                />
               </div>
 
               <div>
                 <label className="block text-[12px] font-medium text-slate-700 mb-1">
                   Weekly Off Day
                 </label>
-                <select
-                  value={settings.weeklyOffDay}
-                  onChange={(e) => setSettings({ ...settings, weeklyOffDay: parseInt(e.target.value, 10) })}
-                  className="w-full text-[13px] px-3 py-2 border border-slate-300 rounded-lg focus:outline-none bg-white h-10"
-                >
-                  <option value={0}>Sunday (રવિવાર)</option>
-                  <option value={1}>Monday (સોમવાર)</option>
-                  <option value={5}>Friday (શુક્રવાર)</option>
-                  <option value={6}>Saturday (શનિવાર)</option>
-                </select>
+                <CustomSelect
+                  value={String(settings.weeklyOffDay)}
+                  onChange={(val: any) => setSettings({ ...settings, weeklyOffDay: parseInt(val, 10) })}
+                  options={[
+                    { value: "0", label: "Sunday (રવિવાર)" },
+                    { value: "1", label: "Monday (સોમવાર)" },
+                    { value: "5", label: "Friday (શુક્રવાર)" },
+                    { value: "6", label: "Saturday (શનિવાર)" },
+                  ]}
+                  triggerClassName="rounded-lg border-slate-300 bg-white"
+                />
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">

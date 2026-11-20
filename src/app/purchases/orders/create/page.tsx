@@ -17,6 +17,7 @@ import {
 } from "@/components/invoice/quick-settings-modal";
 import { ShortcutsModal } from "@/components/invoice/shortcuts-modal";
 import { Check, Printer } from "lucide-react";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 import {
   DocumentHeaderCard,
   DocumentInfoStrip,
@@ -716,19 +717,20 @@ const [notes, setNotes] = useState("");
                                 className="w-full text-[13px] py-1.5 px-2.5 font-normal text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-[#1677E8] h-10"
                               />
                               {inventoryItems.length > 0 && !row.name && (
-                                <select
-                                  onChange={(e) => {
-                                    const itm = inventoryItems.find((it) => it.id === e.target.value);
+                                <CustomCombobox
+                                  size="sm"
+                                  placeholder="Choose from Catalog..."
+                                  value=""
+                                  onChange={(val: any) => {
+                                    const itm = inventoryItems.find((it) => it.id === val);
                                     if (itm) handlePickInventoryItem(idx, itm);
                                   }}
-                                  defaultValue=""
-                                  className="w-full text-[11px] py-1 px-2 text-slate-500 bg-white border border-dashed border-slate-200 rounded-lg h-10"
-                                >
-                                  <option value="" disabled>Choose from Catalog...</option>
-                                  {inventoryItems.map((it) => (
-                                    <option key={it.id} value={it.id}>{it.name} (₹{it.purchaseRate || it.purchasePrice || 0})</option>
-                                  ))}
-                                </select>
+                                  options={inventoryItems.map((it) => ({
+                                    value: it.id,
+                                    label: `${it.name} (₹${it.purchaseRate || it.purchasePrice || 0})`,
+                                  }))}
+                                  triggerClassName="rounded-lg border-dashed border-slate-200 text-slate-500"
+                                />
                               )}
                             </div>
                           </td>
@@ -1092,17 +1094,15 @@ const [notes, setNotes] = useState("");
               </div>
               <div>
                 <label className="block font-medium text-slate-600 mb-1">Unit</label>
-                <select
+                <CustomSelect
                   value={createItemForm.unit}
-                  onChange={(e) => setCreateItemForm((prev) => ({ ...prev, unit: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] bg-white h-10"
-                >
-                  {COMMON_UNITS.map((u) => (
-                    <option key={u} value={u}>
-                      {u}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val: any) => setCreateItemForm((prev) => ({ ...prev, unit: val }))}
+                  options={COMMON_UNITS.map((u) => ({
+                    value: u,
+                    label: u,
+                  }))}
+                  triggerClassName="rounded-lg border-slate-300"
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">

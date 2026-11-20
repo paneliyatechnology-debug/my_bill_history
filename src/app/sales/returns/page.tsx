@@ -8,7 +8,7 @@ import { apiClient, extractList } from "../../../lib/api-client";
 import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/scorecard-ribbon";
 import { formatInr } from "@/components/design-system/tokens";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
-import { Phone, Check, X, Zap } from "lucide-react";
+import { Phone, Check, X, Zap, ShieldAlert } from "lucide-react";
 
 type DateRangePreset =
   | "ALL"
@@ -183,7 +183,7 @@ export default function SalesReturnsPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { lang, tenantContext } = useAuth();
+  const { lang, tenantContext, hasPermission } = useAuth();
 
   const isCreditNote = pathname?.includes("credit-note");
   const isDebitNote = pathname?.includes("debit-note");
@@ -443,6 +443,30 @@ export default function SalesReturnsPage() {
     setToast("Exported to CSV successfully!");
   };
 
+  if (!hasPermission("sales_returns", "view")) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center min-h-[50vh] bg-white rounded-2xl border border-slate-200 shadow-xs">
+        <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 flex items-center justify-center mb-4 shadow-xs">
+          <ShieldAlert className="w-7 h-7" strokeWidth={1.8} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800 mb-1">
+          {lang === "gu" ? "પ્રવેશ પ્રતિબંધિત છે" : "Access Restricted"}
+        </h2>
+        <p className="text-sm text-slate-500 max-w-md mb-6">
+          {lang === "gu"
+            ? "તમારી પાસે આ મોડ્યુલ ઍક્સેસ કરવાની પરવાનગી નથી. કૃપા કરીને તમારા વ્યવસાય એડમિનિસ્ટ્રેટરનો સંપર્ક કરો."
+            : "You do not have permission to access this module. Please contact your organization administrator."}
+        </p>
+        <Link
+          href="/"
+          className="px-5 py-2.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
+        >
+          {lang === "gu" ? "ડેશબોર્ડ પર પાછા જાઓ" : "Return to Dashboard"}
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 max-w-7xl mx-auto min-w-0 pb-16 font-sans">
       {/* 1. TOP UNIFIED COMMAND STRIP */}
@@ -521,15 +545,17 @@ export default function SalesReturnsPage() {
             <span>Print</span>
           </button>
 
-          <Link
-            href={isDebitNote ? "/sales/debit-note/create" : isCreditNote ? "/sales/credit-note/create" : "/sales/returns/new"}
-            className="inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white typo-btn-primary shadow-md shadow-[#0F172A]/20 hover:shadow-lg hover:shadow-[#0F172A]/30 transition-all cursor-pointer"
-          >
-            <svg className="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>{isDebitNote ? (lang === "gu" ? "+ નવી ડેબિટ નોટ" : "+ Create Debit Note") : isCreditNote ? (lang === "gu" ? "+ નવી ક્રેડિટ નોટ" : "+ Create Credit Note") : (lang === "gu" ? "+ નવું વેચાણ પરત" : "+ Create Sales Return")}</span>
-          </Link>
+          {hasPermission("sales_returns", "create") && (
+            <Link
+              href={isDebitNote ? "/sales/debit-note/create" : isCreditNote ? "/sales/credit-note/create" : "/sales/returns/new"}
+              className="inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white typo-btn-primary shadow-md shadow-[#0F172A]/20 hover:shadow-lg hover:shadow-[#0F172A]/30 transition-all cursor-pointer"
+            >
+              <svg className="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>{isDebitNote ? (lang === "gu" ? "+ નવી ડેબિટ નોટ" : "Create Debit Note") : isCreditNote ? (lang === "gu" ? "+ નવી ક્રેડિટ નોટ" : " Create Credit Note") : (lang === "gu" ? "+ નવું વેચાણ પરત" : " Create Sales Return")}</span>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -723,12 +749,7 @@ export default function SalesReturnsPage() {
                           ? "No transactions match your current search filters."
                           : "Issue credit notes for sales returns, rate differences, or invoice adjustments."}
                       </p>
-                      <Link
-                        href={isCreditNote ? "/sales/credit-note/create" : "/sales/returns/new"}
-                        className="mt-4 rounded-xl bg-[#0F172A] h-9 px-3 typo-btn-primary text-white shadow-blue-500/20 hover:bg-[#1268D3] transition-colors"
-                      >
-                        {isCreditNote ? "+ Create Credit Note" : "+ Create Sales Return"}
-                      </Link>
+                  
                     </div>
                   </td>
                 </tr>

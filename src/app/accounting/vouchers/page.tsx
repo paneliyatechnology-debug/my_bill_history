@@ -7,6 +7,8 @@ import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { Badge, StatusBadge } from "../../../components/ui/badge";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
+import { CustomSelect } from "../../../components/ui/custom-select";
+import { ShieldAlert } from "lucide-react";
 
 interface JournalLine {
   id: string;
@@ -34,7 +36,7 @@ interface Voucher {
 }
 
 export default function VouchersPage() {
-  const { lang, tenantContext } = useAuth();
+  const { lang, tenantContext, hasPermission } = useAuth();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -206,6 +208,30 @@ export default function VouchersPage() {
     },
   ];
 
+  if (!hasPermission("accounting", "view")) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center min-h-[50vh] bg-white rounded-2xl border border-slate-200 shadow-xs">
+        <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 flex items-center justify-center mb-4 shadow-xs">
+          <ShieldAlert className="w-7 h-7" strokeWidth={1.8} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800 mb-1">
+          {lang === "gu" ? "પ્રવેશ પ્રતિબંધિત છે" : "Access Restricted"}
+        </h2>
+        <p className="text-sm text-slate-500 max-w-md mb-6">
+          {lang === "gu"
+            ? "તમારી પાસે આ મોડ્યુલ ઍક્સેસ કરવાની પરવાનગી નથી. કૃપા કરીને તમારા વ્યવસાય એડમિનિસ્ટ્રેટરનો સંપર્ક કરો."
+            : "You do not have permission to access this module. Please contact your organization administrator."}
+        </p>
+        <Link
+          href="/"
+          className="px-5 py-2.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
+        >
+          {lang === "gu" ? "ડેશબોર્ડ પર પાછા જાઓ" : "Return to Dashboard"}
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -225,25 +251,27 @@ export default function VouchersPage() {
           </p>
         </div>
 
-        <Link
-          href="/accounting/vouchers/new"
-          className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] text-white typo-btn-primary rounded-xl shadow-xs transition-all w-full sm:w-auto shrink-0"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        {hasPermission("accounting", "create") && (
+          <Link
+            href="/accounting/vouchers/new"
+            className="inline-flex items-center justify-center gap-2 h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] text-white typo-btn-primary rounded-xl shadow-xs transition-all w-full sm:w-auto shrink-0"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2.5}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          <span>{lang === "gu" ? "નવું વાઉચર લખો" : "Record New Voucher"}</span>
-        </Link>
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2.5}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            <span>{lang === "gu" ? "નવું વાઉચર લખો" : "Record New Voucher"}</span>
+          </Link>
+        )}
       </div>
 
       {error && (
@@ -274,19 +302,21 @@ export default function VouchersPage() {
         exportFilename="vouchers_daybook"
         themeColor="saffron"
         toolbarChildren={
-          <div className="flex items-center gap-2">
-            <select
+          <div className="flex items-center gap-2 min-w-[200px]">
+            <CustomSelect
+              size="md"
               value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="text-[13px] bg-[#F8FAFC] border border-[#E5E7EB] text-[#182230] rounded-xl px-3 py-2 font-normal focus:outline-none focus:ring-2 focus:ring-[#0F172A]/20 focus:border-[#0F172A] transition-all cursor-pointer h-10"
-            >
-              <option value="ALL">{lang === "gu" ? "તમામ વાઉચર (All Types)" : "All Voucher Types"}</option>
-              <option value="JOURNAL">{lang === "gu" ? "જર્નલ (JOURNAL)" : "JOURNAL"}</option>
-              <option value="RECEIPT">{lang === "gu" ? "આવક પહોંચ (RECEIPT)" : "RECEIPT"}</option>
-              <option value="PAYMENT">{lang === "gu" ? "ચૂકવણી વાઉચર (PAYMENT)" : "PAYMENT"}</option>
-              <option value="CONTRA">{lang === "gu" ? "બેંક-રોકડ ફેરબદલ (CONTRA)" : "CONTRA"}</option>
-              <option value="SALES">{lang === "gu" ? "વેચાણ નોંધ (SALES)" : "SALES"}</option>
-            </select>
+              onChange={(val: any) => setTypeFilter(val)}
+              options={[
+                { value: "ALL", label: lang === "gu" ? "તમામ વાઉચર (All Types)" : "All Voucher Types" },
+                { value: "JOURNAL", label: lang === "gu" ? "જર્નલ (JOURNAL)" : "JOURNAL" },
+                { value: "RECEIPT", label: lang === "gu" ? "આવક પહોંચ (RECEIPT)" : "RECEIPT" },
+                { value: "PAYMENT", label: lang === "gu" ? "ચૂકવણી વાઉચર (PAYMENT)" : "PAYMENT" },
+                { value: "CONTRA", label: lang === "gu" ? "બેંક-રોકડ ફેરબદલ (CONTRA)" : "CONTRA" },
+                { value: "SALES", label: lang === "gu" ? "વેચાણ નોંધ (SALES)" : "SALES" },
+              ]}
+              triggerClassName="rounded-xl h-10 border-[#E5E7EB] bg-[#F8FAFC]"
+            />
           </div>
         }
         mobileCardRender={(v) => (
@@ -404,14 +434,14 @@ export default function VouchersPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {selectedVoucher.lines?.map((line, idx) => (
+                  {(selectedVoucher.lines || (selectedVoucher as any).journalEntries || []).map((line: any, idx: number) => (
                     <tr key={idx} className="hover:bg-slate-50">
                       <td className="py-2.5 px-3 font-medium text-slate-800">
                         {line.account?.name || "Account"} (
                         {line.account?.code || "—"})
                       </td>
                       <td className="py-2.5 px-3 text-slate-500">
-                        {line.narration || "—"}
+                        {line.lineNarration || line.narration || "—"}
                       </td>
                       <td className="py-2.5 px-3 text-right tabular-nums font-semibold text-slate-900">
                         {Number(line.debitAmount) > 0

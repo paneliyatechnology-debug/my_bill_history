@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/auth-context";
 import { INDIAN_STATES } from "@billing/shared-types";
+import { CustomCombobox } from "@/components/ui/dropdown-system";
 
 interface CreateCompanyModalProps {
   isOpen: boolean;
@@ -264,18 +265,17 @@ export function CreateCompanyModal({
               <label className="block text-[12px] font-medium text-[#374151] mb-1">
                 {lang === "gu" ? "રાજ્ય (GST State)" : "GST State"} <span className="text-red-500">*</span>
               </label>
-              <select
+              <CustomCombobox
                 value={stateCode}
-                onChange={(e) => setStateCode(e.target.value)}
+                onChange={(val: any) => setStateCode(val)}
                 disabled={isSubmitting || !canAdd}
-                className="w-full px-3 py-2 text-[13px] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F172A]/30 focus:border-[#0F172A] bg-white disabled:bg-gray-50 h-10"
-              >
-                {Object.entries(INDIAN_STATES).map(([code, s]) => (
-                  <option key={code} value={code}>
-                    {code} - {lang === "gu" ? `${s.nameGujarati} (${s.name})` : s.name}
-                  </option>
-                ))}
-              </select>
+                options={Object.entries(INDIAN_STATES).map(([code, s]) => ({
+                  value: code,
+                  label: `${code} - ${lang === "gu" ? `${s.nameGujarati} (${s.name})` : s.name}`,
+                }))}
+                placeholder="Select State..."
+                triggerClassName="rounded-lg border-[#D1D5DB] bg-white"
+              />
             </div>
 
             {/* City */}

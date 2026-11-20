@@ -6,6 +6,7 @@ import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { Badge, StatusBadge } from "../../../components/ui/badge";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
+import { CustomCombobox, CustomSelect } from "@/components/ui/dropdown-system";
 import { X } from "lucide-react";
 
 interface TransferItem {
@@ -670,35 +671,29 @@ export default function StockTransfersPage() {
               <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "મોકલનાર ગોડાઉન (From) *" : "From Warehouse *"}
               </label>
-              <select
+              <CustomSelect
                 value={createForm.fromWarehouseId}
-                onChange={(e) => setCreateForm({ ...createForm, fromWarehouseId: e.target.value })}
-                required
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] h-10"
-              >
-                {warehouses.map((w) => (
-                  <option key={w.id} value={w.id}>
-                    {w.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setCreateForm({ ...createForm, fromWarehouseId: val })}
+                options={warehouses.map((w) => ({
+                  value: w.id,
+                  label: w.name,
+                }))}
+                className="w-full"
+              />
             </div>
             <div>
               <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "મેળવનાર ગોડાઉન (To) *" : "To Warehouse *"}
               </label>
-              <select
+              <CustomSelect
                 value={createForm.toWarehouseId}
-                onChange={(e) => setCreateForm({ ...createForm, toWarehouseId: e.target.value })}
-                required
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] h-10"
-              >
-                {warehouses.map((w) => (
-                  <option key={w.id} value={w.id}>
-                    {w.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setCreateForm({ ...createForm, toWarehouseId: val })}
+                options={warehouses.map((w) => ({
+                  value: w.id,
+                  label: w.name,
+                }))}
+                className="w-full"
+              />
             </div>
           </div>
 
@@ -721,18 +716,18 @@ export default function StockTransfersPage() {
               {createForm.items.map((it, idx) => (
                 <div key={idx} className="grid grid-cols-12 gap-2 items-center">
                   <div className="col-span-8">
-                    <select
+                    <CustomCombobox
                       value={it.itemId}
-                      onChange={(e) => handleItemChange(idx, "itemId", e.target.value)}
-                      required
-                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] h-10"
-                    >
-                      {items.map((opt) => (
-                        <option key={opt.id} value={opt.id}>
-                          {opt.name} {opt.sku ? `(${opt.sku})` : ""}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) => handleItemChange(idx, "itemId", val)}
+                      options={items.map((opt) => ({
+                        value: opt.id,
+                        label: opt.name,
+                        sublabel: opt.sku || undefined,
+                      }))}
+                      placeholder="Select Item..."
+                      searchPlaceholder="Search items..."
+                      className="w-full"
+                    />
                   </div>
                   <div className="col-span-3">
                     <input

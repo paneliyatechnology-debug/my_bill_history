@@ -28,7 +28,7 @@ import { X, Gift } from "lucide-react";
 
 function DashboardContent() {
   const router = useRouter();
-  const { lang, tenantContext, user, currentCompany, currentFY } = useAuth();
+  const { lang, tenantContext, user, currentCompany, currentFY, hasPermission } = useAuth();
 
   // Metrics State
   const [toCollect, setToCollect] = useState<number>(0);
@@ -373,49 +373,57 @@ function DashboardContent() {
       {/* 2. 4 FINANCIAL KPI CARDS IN ONE MODULAR HORIZONTAL ROW */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: To Collect (Receivables) */}
-        <DashboardKpiCard
-          id="collect"
-          variant="receivable"
-          title="To Collect (Receivables)"
-          titleGujarati="ઉઘરાણી (લેવાના બાકી)"
-          amount={toCollect}
-          lang={lang}
-          onClick={() => router.push("/masters/parties?filter=receivable")}
-        />
+        {hasPermission("dashboard", "view_financial") && (
+          <DashboardKpiCard
+            id="collect"
+            variant="receivable"
+            title="To Collect (Receivables)"
+            titleGujarati="ઉઘરાણી (લેવાના બાકી)"
+            amount={toCollect}
+            lang={lang}
+            onClick={() => router.push("/masters/parties?filter=receivable")}
+          />
+        )}
 
         {/* Card 2: To Pay (Payables) */}
-        <DashboardKpiCard
-          id="pay"
-          variant="payable"
-          title="To Pay (Payables)"
-          titleGujarati="ચૂકવવાના બાકી (દેવાના)"
-          amount={toPay}
-          lang={lang}
-          onClick={() => router.push("/masters/parties?filter=payable")}
-        />
+        {hasPermission("dashboard", "view_financial") && (
+          <DashboardKpiCard
+            id="pay"
+            variant="payable"
+            title="To Pay (Payables)"
+            titleGujarati="ચૂકવવાના બાકી (દેવાના)"
+            amount={toPay}
+            lang={lang}
+            onClick={() => router.push("/masters/parties?filter=payable")}
+          />
+        )}
 
         {/* Card 3: Cash & Bank Balance */}
-        <DashboardKpiCard
-          id="cash-bank"
-          variant="cash-bank"
-          title="Cash & Bank Balance"
-          titleGujarati="રોકડ અને બેંક સિલક"
-          amount={cashBankBalance}
-          lang={lang}
-          onClick={() => router.push("/finance/cash-bank")}
-        />
+        {hasPermission("dashboard", "view_cash_bank") && (
+          <DashboardKpiCard
+            id="cash-bank"
+            variant="cash-bank"
+            title="Cash & Bank Balance"
+            titleGujarati="રોકડ અને બેંક સિલક"
+            amount={cashBankBalance}
+            lang={lang}
+            onClick={() => router.push("/finance/cash-bank")}
+          />
+        )}
 
         {/* Card 4: Sales (Last 7 Days) */}
-        <DashboardKpiCard
-          id="sales-7d"
-          variant="sales"
-          title="Sales (Last 7 Days)"
-          titleGujarati="વેચાણ (છેલ્લા 7 દિવસ)"
-          amount={sevenDaysSales}
-          sparkline={chartDays.map((point) => point.sales)}
-          lang={lang}
-          onClick={() => router.push("/sales/invoices")}
-        />
+        {hasPermission("dashboard", "view_financial") && (
+          <DashboardKpiCard
+            id="sales-7d"
+            variant="sales"
+            title="Sales (Last 7 Days)"
+            titleGujarati="વેચાણ (છેલ્લા 7 દિવસ)"
+            amount={sevenDaysSales}
+            sparkline={chartDays.map((point) => point.sales)}
+            lang={lang}
+            onClick={() => router.push("/sales/invoices")}
+          />
+        )}
       </div>
 
       {/* 3. UPCOMING DUES - IMPORTANT SECTION */}

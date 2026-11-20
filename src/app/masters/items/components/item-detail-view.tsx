@@ -11,6 +11,7 @@ import {
 } from "../../../../lib/party-item-pricing";
 import { StockQuantityDisplay } from "../../../../components/inventory/stock-quantity-display";
 import { AlertCircle, Tag, Package, Pencil, Printer, X, Search, FileText, BarChart3, ClipboardList, CreditCard, Download } from "lucide-react";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 
 export interface ItemDetailData {
   id: string;
@@ -711,21 +712,20 @@ export function ItemDetailView({
             <div className="space-y-4">
               {/* Filter Toolbar: Date Range, Download, Print */}
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="relative">
-                  <select
+                <div className="w-36">
+                  <CustomSelect
+                    size="sm"
                     value={dateRangeKey}
-                    onChange={(e) => setDateRangeKey(e.target.value)}
-                    className="text-[13px] bg-white border border-slate-300 text-slate-700 rounded-lg px-3 py-1.5 font-medium focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer shadow-2xs pr-7 appearance-none h-10"
-                  >
-                    <option value="today">Today</option>
-                    <option value="last-7-days">Last 7 Days</option>
-                    <option value="last-30-days">Last 30 Days</option>
-                    <option value="last-365-days">Last 365 Days</option>
-                    <option value="all-time">All Time</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none text-slate-400 text-[10px]">
-                    ▼
-                  </div>
+                    onChange={(val: any) => setDateRangeKey(val)}
+                    options={[
+                      { value: "today", label: "Today" },
+                      { value: "last-7-days", label: "Last 7 Days" },
+                      { value: "last-30-days", label: "Last 30 Days" },
+                      { value: "last-365-days", label: "Last 365 Days" },
+                      { value: "all-time", label: "All Time" },
+                    ]}
+                    triggerClassName="rounded-lg border-slate-300 bg-white font-medium text-slate-700"
+                  />
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -858,21 +858,20 @@ export function ItemDetailView({
             <div className="space-y-4">
               {/* Filter Toolbar: Date Range, Download, Print */}
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="relative">
-                  <select
+                <div className="w-36">
+                  <CustomSelect
+                    size="sm"
                     value={dateRangeKey}
-                    onChange={(e) => setDateRangeKey(e.target.value)}
-                    className="text-[13px] bg-white border border-slate-300 text-slate-700 rounded-lg px-3 py-1.5 font-medium focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer shadow-2xs pr-7 appearance-none h-10"
-                  >
-                    <option value="today">Today</option>
-                    <option value="last-7-days">Last 7 Days</option>
-                    <option value="last-30-days">Last 30 Days</option>
-                    <option value="last-365-days">Last 365 Days</option>
-                    <option value="all-time">All Time</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none text-slate-400 text-[10px]">
-                    ▼
-                  </div>
+                    onChange={(val: any) => setDateRangeKey(val)}
+                    options={[
+                      { value: "today", label: "Today" },
+                      { value: "last-7-days", label: "Last 7 Days" },
+                      { value: "last-30-days", label: "Last 30 Days" },
+                      { value: "last-365-days", label: "Last 365 Days" },
+                      { value: "all-time", label: "All Time" },
+                    ]}
+                    triggerClassName="rounded-lg border-slate-300 bg-white font-medium text-slate-700"
+                  />
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -1040,22 +1039,23 @@ export function ItemDetailView({
             <div className="space-y-3">
               <div>
                 <label className="block text-[12px] font-medium text-slate-500 mb-1">Select Party</label>
-                <select
+                <CustomCombobox
                   value={editingPartyPriceId}
-                  onChange={(e) => {
-                    setEditingPartyPriceId(e.target.value);
-                    const existingRule = partyPrices.find((r) => r.partyId === e.target.value);
+                  onChange={(val: any) => {
+                    setEditingPartyPriceId(val);
+                    const existingRule = partyPrices.find((r) => r.partyId === val);
                     setNewPartyPriceVal(existingRule ? String(existingRule.price) : "");
                   }}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-[13px] text-slate-800 focus:outline-none focus:border-indigo-500 h-10"
-                >
-                  <option value="">-- Choose Party --</option>
-                  {parties.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: "", label: "-- Choose Party --" },
+                    ...parties.map((p) => ({
+                      value: p.id,
+                      label: p.name,
+                    })),
+                  ]}
+                  placeholder="-- Choose Party --"
+                  triggerClassName="rounded-lg border-slate-300"
+                />
               </div>
 
               <div>

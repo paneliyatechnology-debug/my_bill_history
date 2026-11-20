@@ -10,6 +10,7 @@ import { ExportDropdown } from "../../../components/ui/export-dropdown";
 import { ExportColumn, ExportFormat, ExportMetadata } from "../../../lib/export/export-types";
 import { executeExport } from "../../../lib/export/export-engine";
 import { DataTablePagination } from "../../../components/ui/data-table-pagination";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 
 interface HsnMasterItem {
   id: string;
@@ -595,20 +596,22 @@ export default function HsnMasterPage() {
           </div>
 
           {/* Status Filter */}
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value as any);
-              setPage(1);
-            }}
-            className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-[13px] text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
-          >
-            <option value="ALL">{lang === "gu" ? "બધા સ્ટેટસ" : "All Status"}</option>
-            <option value="ACTIVE">{lang === "gu" ? "માત્ર એક્ટિવ" : "Active Only"}</option>
-            <option value="INACTIVE">
-              {lang === "gu" ? "માત્ર ઇન-એક્ટિવ" : "Inactive Only"}
-            </option>
-          </select>
+          <div className="w-36">
+            <CustomSelect
+              size="sm"
+              value={statusFilter}
+              onChange={(val: any) => {
+                setStatusFilter(val as any);
+                setPage(1);
+              }}
+              options={[
+                { value: "ALL", label: lang === "gu" ? "બધા સ્ટેટસ" : "All Status" },
+                { value: "ACTIVE", label: lang === "gu" ? "માત્ર એક્ટિવ" : "Active Only" },
+                { value: "INACTIVE", label: lang === "gu" ? "માત્ર ઇન-એક્ટિવ" : "Inactive Only" },
+              ]}
+              triggerClassName="rounded-lg border-slate-200 bg-white text-slate-700 font-medium"
+            />
+          </div>
         </div>
       </div>
 
@@ -956,16 +959,17 @@ export default function HsnMasterPage() {
               <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 Classification Type <span className="text-rose-500">*</span>
               </label>
-              <select
+              <CustomSelect
                 value={formData.type}
-                onChange={(e) =>
-                  setFormData({ ...formData, type: e.target.value as any })
+                onChange={(val: any) =>
+                  setFormData({ ...formData, type: val as any })
                 }
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
-              >
-                <option value="HSN">{lang === "gu" ? "માલસામાન (Goods - HSN)" : "Goods (HSN)"}</option>
-                <option value="SAC">{lang === "gu" ? "સેવાઓ (Services - SAC)" : "Services (SAC)"}</option>
-              </select>
+                options={[
+                  { value: "HSN", label: lang === "gu" ? "માલસામાન (Goods - HSN)" : "Goods (HSN)" },
+                  { value: "SAC", label: lang === "gu" ? "સેવાઓ (Services - SAC)" : "Services (SAC)" },
+                ]}
+                triggerClassName="rounded-lg border-slate-300 bg-white"
+              />
             </div>
 
             {/* Code */}
@@ -1031,19 +1035,17 @@ export default function HsnMasterPage() {
               <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 Applicable GST Rate <span className="text-rose-500">*</span>
               </label>
-              <select
-                value={formData.gstRate}
-                onChange={(e) =>
-                  setFormData({ ...formData, gstRate: Number(e.target.value) })
+              <CustomSelect
+                value={String(formData.gstRate)}
+                onChange={(val: any) =>
+                  setFormData({ ...formData, gstRate: Number(val) })
                 }
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] bg-white text-slate-900 tabular-nums font-normal focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
-              >
-                {STATUTORY_GST_RATES.map((r) => (
-                  <option key={r} value={r}>
-                    {r}% Standard GST Slab
-                  </option>
-                ))}
-              </select>
+                options={STATUTORY_GST_RATES.map((r) => ({
+                  value: String(r),
+                  label: `${r}% Standard GST Slab`,
+                }))}
+                triggerClassName="rounded-lg border-slate-300 bg-white tabular-nums font-normal"
+              />
             </div>
 
             {/* Cess Rate */}
@@ -1184,22 +1186,20 @@ export default function HsnMasterPage() {
               <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 GST Rate (%) <span className="text-rose-500">*</span>
               </label>
-              <select
-                value={editFormData.gstRate}
-                onChange={(e) =>
+              <CustomSelect
+                value={String(editFormData.gstRate)}
+                onChange={(val: any) =>
                   setEditFormData({
                     ...editFormData,
-                    gstRate: Number(e.target.value),
+                    gstRate: Number(val),
                   })
                 }
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] bg-white text-slate-900 tabular-nums font-normal focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 h-10"
-              >
-                {STATUTORY_GST_RATES.map((r) => (
-                  <option key={r} value={r}>
-                    {r}% Standard GST Slab
-                  </option>
-                ))}
-              </select>
+                options={STATUTORY_GST_RATES.map((r) => ({
+                  value: String(r),
+                  label: `${r}% Standard GST Slab`,
+                }))}
+                triggerClassName="rounded-lg border-slate-300 bg-white tabular-nums font-normal"
+              />
             </div>
 
             {/* Cess Rate */}

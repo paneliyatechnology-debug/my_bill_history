@@ -10,7 +10,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/scorecard-ribbon";
 import { formatInr } from "@/components/design-system/tokens";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
-import { Phone, AlertTriangle, X } from "lucide-react";
+import { Phone, AlertTriangle, X, ShieldAlert } from "lucide-react";
 
 interface QuotationItem {
   id: string;
@@ -33,7 +33,7 @@ interface Quotation {
   invoiceNumber: string;
   invoiceDate: string;
   dueDate?: string;
-  status: "DRAFT" | "ISSUED" | "PAID" | "PARTIALLY_PAID" | "CANCELLED";
+  status: "DRAFT" | "ISSUED" | "PAID" | "PARTIALLY_PAID" | "CANCELLED" | "CONVERTED";
   category: "PROFORMA_INVOICE" | "TAX_INVOICE";
   party?: {
     id: string;
@@ -48,11 +48,18 @@ interface Quotation {
   notes?: string;
   termsAndConditions?: string;
   items?: QuotationItem[];
+  convertedInvoiceId?: string;
+  convertedInvoice?: {
+    id: string;
+    invoiceNumber: string;
+    status: string;
+    grandTotal?: number;
+  };
 }
 
 export default function QuotationsPage() {
   const router = useRouter();
-  const { lang, tenantContext } = useAuth();
+  const { lang, tenantContext, hasPermission } = useAuth();
 
   const [quotations, setQuotations] = useState<Quotation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -111,13 +118,19 @@ export default function QuotationsPage() {
       const amt = Number(q.grandTotal || 0);
       totalEstimatedValue += amt;
 
-      const isConverted = q.status === "ISSUED" || q.status === "PAID" || q.category === "TAX_INVOICE";
+      const isConverted =
+        q.status === "CONVERTED" ||
+        !!q.convertedInvoiceId ||
+        !!q.convertedInvoice ||
+        q.status === "ISSUED" ||
+        q.status === "PAID" ||
+        q.category === "TAX_INVOICE";
       if (q.status === "CANCELLED") {
         cancelledCount += 1;
       } else if (isConverted) {
         convertedCount += 1;
         convertedValue += amt;
-      } else if (q.status === "DRAFT") {
+      } else if (q.status === "DRAFT" || !isConverted) {
         openCount += 1;
         openValue += amt;
       }
@@ -137,7 +150,13 @@ export default function QuotationsPage() {
   // Filtered List
   const filteredQuotations = useMemo(() => {
     return quotations.filter((q) => {
-      const isConverted = q.status === "ISSUED" || q.status === "PAID" || q.category === "TAX_INVOICE";
+      const isConverted =
+        q.status === "CONVERTED" ||
+        !!q.convertedInvoiceId ||
+        !!q.convertedInvoice ||
+        q.status === "ISSUED" ||
+        q.status === "PAID" ||
+        q.category === "TAX_INVOICE";
 
       // Status filter
       if (statusFilter === "DRAFT" && (isConverted || q.status === "CANCELLED")) return false;
@@ -234,7 +253,7 @@ export default function QuotationsPage() {
   ];
 
   // Convert to Tax Invoice handler
-  const handleConvertQuotation = async (forceNegativeStock = false) => {
+  const handleConvertQuotation = async (forceNegativeStock = false, asDraft = true) => {
     if (!convertingTarget) return;
 
     setIsConverting(true);
@@ -242,21 +261,24 @@ export default function QuotationsPage() {
 
     try {
       const res: any = await apiClient.post(
-        `/invoices/sales/${convertingTarget.id}/issue`,
-        { allowNegativeStock: forceNegativeStock },
+        `/sales/invoices/${convertingTarget.id}/convert-to-invoice`,
+        { allowNegativeStock: forceNegativeStock, asDraft },
         undefined,
-        `issue_qtn_${Date.now()}`,
+        `convert_qtn_${Date.now()}`,
       );
 
       setConvertingTarget(null);
       setStockConfirmPrompt(null);
       setToastMessage(
         lang === "gu"
-          ? `કવોટેશન ${convertingTarget.invoiceNumber} સફળતાપૂર્વક પાકા ટેક્સ ઇનવોઇસ ${res?.invoiceNumber || ""} માં બદલાઈ ગયું છે!`
-          : `Quotation ${convertingTarget.invoiceNumber} successfully converted to Tax Invoice ${res?.invoiceNumber || ""}!`,
+          ? `કવોટેશન ${convertingTarget.invoiceNumber} સફળતાપૂર્વક ${res?.status === "DRAFT" ? "કાચા ટેક્સ ઇનવોઇસ (Draft)" : "પાકા ટેક્સ ઇનવોઇસ"} ${res?.invoiceNumber || ""} માં બદલાઈ ગયું છે!`
+          : `Quotation ${convertingTarget.invoiceNumber} successfully converted to ${res?.status === "DRAFT" ? "Draft Tax Invoice" : "Tax Invoice"} ${res?.invoiceNumber || ""}!`,
       );
       setTimeout(() => setToastMessage(null), 5000);
       await fetchQuotations();
+      if (res?.id) {
+        router.push(`/sales/invoices/${res.id}`);
+      }
     } catch (err: any) {
       const msg = err.message || "";
       if (
@@ -324,6 +346,30 @@ export default function QuotationsPage() {
     setToastMessage("Quotations exported to CSV successfully!");
     setTimeout(() => setToastMessage(null), 3000);
   };
+
+  if (!hasPermission("quotations", "view")) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center min-h-[50vh] bg-white rounded-2xl border border-slate-200 shadow-xs max-w-7xl mx-auto">
+        <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 flex items-center justify-center mb-4 shadow-xs">
+          <ShieldAlert className="w-7 h-7" strokeWidth={1.8} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800 mb-1">
+          {lang === "gu" ? "પ્રવેશ પ્રતિબંધિત છે" : "Access Restricted"}
+        </h2>
+        <p className="text-sm text-slate-500 max-w-md mb-6">
+          {lang === "gu"
+            ? "તમારી પાસે કવોટેશન / એસ્ટીમેટ જોવાની પરવાનગી નથી. કૃપા કરીને તમારા વ્યવસાય એડમિનિસ્ટ્રેટરનો સંપર્ક કરો."
+            : "You do not have permission to view Quotations / Estimates. Please contact your organization administrator."}
+        </p>
+        <Link
+          href="/"
+          className="px-5 py-2.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
+        >
+          {lang === "gu" ? "ડેશબોર્ડ પર પાછા જાઓ" : "Return to Dashboard"}
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 max-w-7xl mx-auto min-w-0 pb-16 font-sans">
@@ -393,15 +439,17 @@ export default function QuotationsPage() {
             <span>Print</span>
           </button>
 
-          <Link
-            href="/sales/quotations/new"
-            className="inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white typo-btn-primary shadow-md shadow-[#0F172A]/20 hover:shadow-lg hover:shadow-[#0F172A]/30 transition-all cursor-pointer"
-          >
-            <svg className="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>{lang === "gu" ? "+ નવું કવોટેશન" : "+ Create Quotation"}</span>
-          </Link>
+          {hasPermission("quotations", "create") && (
+            <Link
+              href="/sales/quotations/new"
+              className="inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white typo-btn-primary shadow-md shadow-[#0F172A]/20 hover:shadow-lg hover:shadow-[#0F172A]/30 transition-all cursor-pointer"
+            >
+              <svg className="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>{lang === "gu" ? "+ નવું કવોટેશન" : "Create Quotation"}</span>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -538,12 +586,7 @@ export default function QuotationsPage() {
                           ? "No quotations match your current search filters."
                           : "Create professional sales quotations and convert them to GST Tax Invoices in 1-click."}
                       </p>
-                      <Link
-                        href="/sales/quotations/new"
-                        className="mt-4 rounded-xl bg-[#0F172A] h-9 px-3 typo-btn-primary text-white shadow-blue-500/20 hover:bg-[#1268D3] transition-colors"
-                      >
-                        {lang === "gu" ? "+ નવું કવોટેશન" : "+ Create Quotation"}
-                      </Link>
+                    
                     </div>
                   </td>
                 </tr>
@@ -551,7 +594,13 @@ export default function QuotationsPage() {
 
               {!isLoading &&
                 paginatedQuotations.map((q) => {
-                  const isConverted = q.status === "ISSUED" || q.status === "PAID" || q.category === "TAX_INVOICE";
+                  const isConverted =
+                    q.status === "CONVERTED" ||
+                    !!q.convertedInvoiceId ||
+                    !!q.convertedInvoice ||
+                    q.status === "ISSUED" ||
+                    q.status === "PAID" ||
+                    q.category === "TAX_INVOICE";
                   return (
                     <tr
                       key={q.id}
@@ -573,6 +622,21 @@ export default function QuotationsPage() {
                             Estimate
                           </span>
                         </div>
+                        {isConverted && (q.convertedInvoice?.invoiceNumber || q.convertedInvoiceId) && (
+                          <div className="mt-1 flex items-center gap-1 text-[11px] text-emerald-700">
+                            <span className="text-slate-400">Inv:</span>
+                            <Link
+                              href={`/sales/invoices/${q.convertedInvoice?.id || q.convertedInvoiceId}`}
+                              className="font-semibold text-emerald-700 hover:text-emerald-900 hover:underline inline-flex items-center gap-0.5"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <span>#{q.convertedInvoice?.invoiceNumber || "Tax Invoice"}</span>
+                              <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </Link>
+                          </div>
+                        )}
                       </td>
 
                       {/* Date & Validity */}
@@ -649,6 +713,19 @@ export default function QuotationsPage() {
                               </svg>
                               <span>Convert</span>
                             </button>
+                          )}
+
+                          {isConverted && (q.convertedInvoice?.id || q.convertedInvoiceId) && (
+                            <Link
+                              href={`/sales/invoices/${q.convertedInvoice?.id || q.convertedInvoiceId}`}
+                              className="px-2.5 py-1 text-[12px] font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-emerald-200 transition-colors flex items-center gap-1 cursor-pointer"
+                              title="View linked Tax Invoice"
+                            >
+                              <svg className="w-3 h-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              <span>View Invoice</span>
+                            </Link>
                           )}
 
                           <Link
@@ -750,7 +827,7 @@ export default function QuotationsPage() {
             )}
 
             {!stockConfirmPrompt && (
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 flex-wrap">
                 <button
                   type="button"
                   onClick={() => setConvertingTarget(null)}
@@ -760,14 +837,24 @@ export default function QuotationsPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleConvertQuotation(false)}
+                  onClick={() => handleConvertQuotation(false, false)}
                   disabled={isConverting}
-                  className="px-6 py-2.5 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] rounded-xl shadow-card transition-all flex items-center gap-2 cursor-pointer"
+                  className="h-9 px-3 text-[13px] font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+                  title="Directly issue and post without reviewing draft"
+                >
+                  <span>{lang === "gu" ? "સીધું પાકું બિલ બનાવો" : "Issue Immediately"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleConvertQuotation(false, true)}
+                  disabled={isConverting}
+                  className="px-5 py-2 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] rounded-xl shadow-card transition-all flex items-center gap-2 cursor-pointer"
+                  title="Convert to draft invoice to review before final issue"
                 >
                   {isConverting && (
                     <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   )}
-                  <span>{lang === "gu" ? "કન્વર્ટ કરો (Confirm Convert)" : "Convert to Tax Invoice"}</span>
+                  <span>{lang === "gu" ? "કાચું બિલ બનાવો (Convert as Draft)" : "Convert as Draft"}</span>
                 </button>
               </div>
             )}

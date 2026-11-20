@@ -20,56 +20,45 @@ export function BrandLogo({
   href = "/",
   className = "",
   showSubtitle = false,
-  subtitle = "Paneliya Technology",
+  subtitle = "Accounting & Invoicing Software",
   onDark = false,
 }: BrandLogoProps) {
   const sizeMap = {
-    sm: { icon: 24, text: "text-base", sub: "text-[8px]", height: 24 },
-    md: { icon: 32, text: "text-lg", sub: "text-[9px]", height: 32 },
-    lg: { icon: 40, text: "text-xl", sub: "text-[10px]", height: 40 },
-    xl: { icon: 48, text: "text-2xl", sub: "text-xs", height: 48 },
+    sm: { icon: 26, fullH: 26, fullW: 110, text: "text-base", sub: "text-[8px]" },
+    md: { icon: 34, fullH: 34, fullW: 148, text: "text-lg", sub: "text-[9px]" },
+    lg: { icon: 42, fullH: 42, fullW: 184, text: "text-xl", sub: "text-[10px]" },
+    xl: { icon: 50, fullH: 50, fullW: 220, text: "text-2xl", sub: "text-xs" },
   };
 
   const currentSize = sizeMap[size];
 
-  const content = (
-    <div className={`flex items-center gap-2.5 select-none group ${className}`}>
-      {/* Logo Icon with Jade Teal Leaf styling */}
-      <div
-        className="relative shrink-0 flex items-center justify-center rounded-xl transition-transform group-hover:scale-105"
-        style={{ width: currentSize.icon, height: currentSize.icon }}
-      >
+  const content = variant === "icon" ? (
+    <div
+      className={`relative shrink-0 flex items-center justify-center transition-transform group-hover:scale-105 ${className}`}
+      style={{ width: currentSize.icon, height: currentSize.icon }}
+    >
+      <Image
+        src="/logo-icon.png"
+        alt="myownbillbook"
+        width={currentSize.icon}
+        height={currentSize.icon}
+        className="object-contain"
+        priority
+      />
+    </div>
+  ) : (
+    <div className={`flex items-center gap-2 select-none group ${className}`}>
+      <div className="relative shrink-0 flex items-center transition-transform group-hover:scale-105">
         <Image
-          src="/logo-icon.png"
+          src="/logo-full.png"
           alt="myownbillbook"
-          width={currentSize.icon}
-          height={currentSize.icon}
-          className="object-contain drop-shadow-xs"
+          width={currentSize.fullW}
+          height={currentSize.fullH}
+          style={{ height: `${currentSize.fullH}px`, width: "auto" }}
+          className="object-contain"
           priority
         />
       </div>
-
-      {/* Brand Text */}
-      {variant !== "icon" && (
-        <div className="flex flex-col justify-center min-w-0">
-          <span
-            className={`font-semibold tracking-tight leading-none whitespace-nowrap ${currentSize.text}`}
-            style={{ fontFamily: "var(--font-manrope)" }}
-          >
-            <span className={onDark ? "text-white" : "text-[#172033]"}>MyOwn</span>
-            <span className={onDark ? "text-blue-400" : "text-[#2563EB]"}>BillBook</span>
-          </span>
-          {showSubtitle && (
-            <span
-              className={`tracking-wider uppercase font-medium mt-0.5 truncate ${
-                onDark ? "text-slate-400" : "text-[#667085]"
-              } ${currentSize.sub}`}
-            >
-              {subtitle}
-            </span>
-          )}
-        </div>
-      )}
     </div>
   );
 

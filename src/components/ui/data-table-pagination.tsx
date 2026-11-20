@@ -2,6 +2,7 @@
 
 import React from "react";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { CustomSelect } from "./custom-select";
 
 export interface DataTablePaginationProps {
   currentPage: number;
@@ -106,33 +107,22 @@ export function DataTablePagination({
             <span className="hidden sm:inline">
               {lang === "gu" ? "પ્રતિ પૃષ્ઠ:" : "Rows per page:"}
             </span>
-            <div className="relative">
-              <select
-                aria-label={lang === "gu" ? "પ્રતિ પૃષ્ઠ પંક્તિઓ" : "Rows per page"}
+            <div className="w-[74px]">
+              <CustomSelect
+                size="sm"
+                ariaLabel={lang === "gu" ? "પ્રતિ પૃષ્ઠ પંક્તિઓ" : "Rows per page"}
                 value={pageSize}
-                onChange={(e) => {
-                  const newSize = Number(e.target.value);
-                  onPageSizeChange(newSize);
+                onChange={(newSize: any) => {
+                  onPageSizeChange(Number(newSize));
                   onPageChange(1);
                 }}
                 disabled={loading}
-                className="h-[36px] bg-white border border-[#E2E8F0] hover:border-slate-300 text-slate-700 text-xs font-medium rounded-lg px-2.5 pr-7 focus:outline-none focus:ring-1 focus:ring-[#2563EB] focus:border-[#2563EB] transition-colors cursor-pointer disabled:opacity-50 appearance-none shadow-2xs"
-              >
-                {pageSizeOptions.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
-                <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
+                options={pageSizeOptions.map((opt) => ({
+                  value: opt,
+                  label: String(opt),
+                }))}
+                triggerClassName="h-[34px] text-xs font-medium rounded-lg"
+              />
             </div>
           </div>
         )}

@@ -23,7 +23,10 @@ import {
   Library,
   Layers,
   ChevronDown,
+  ShieldAlert,
 } from "lucide-react";
+import Link from "next/link";
+import { CustomCombobox } from "@/components/ui/dropdown-system";
 import { ItemStepModal, ItemFormData, PartyOption } from "./components/item-step-modal";
 import { ItemBarcodeModal } from "./components/item-barcode-modal";
 import { AdjustStockModal } from "./components/adjust-stock-modal";
@@ -99,6 +102,9 @@ function ItemActionMenu({
   onAdjustStock,
   onBarcode,
   onDelete,
+  canEdit = true,
+  canAdjustStock = true,
+  canDelete = true,
 }: {
   item: Item;
   isOpen: boolean;
@@ -110,6 +116,9 @@ function ItemActionMenu({
   onAdjustStock: () => void;
   onBarcode: () => void;
   onDelete: () => void;
+  canEdit?: boolean;
+  canAdjustStock?: boolean;
+  canDelete?: boolean;
 }) {
   const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
@@ -162,18 +171,20 @@ function ItemActionMenu({
           onClick={(e) => e.stopPropagation()}
         >
           <div className="py-1">
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onEdit();
-              }}
-              className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 flex items-center gap-2.5 cursor-pointer font-medium transition-colors"
-            >
-              <Pencil className="w-4 h-4 text-slate-500 shrink-0" strokeWidth={1.75} />
-              <span>{lang === "gu" ? "સુધારો (Edit)" : "Edit Item"}</span>
-            </button>
-            {item.type === "PRODUCT" && (
+            {canEdit && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onEdit();
+                }}
+                className="w-full text-left h-9 px-3 hover:bg-slate-50 text-slate-700 flex items-center gap-2.5 cursor-pointer font-medium transition-colors"
+              >
+                <Pencil className="w-4 h-4 text-slate-500 shrink-0" strokeWidth={1.75} />
+                <span>{lang === "gu" ? "સુધારો (Edit)" : "Edit Item"}</span>
+              </button>
+            )}
+            {canAdjustStock && item.type === "PRODUCT" && (
               <button
                 type="button"
                 onClick={() => {
@@ -198,19 +209,21 @@ function ItemActionMenu({
               <span>{lang === "gu" ? "બારકોડ સ્ટીકર" : "Barcode Sticker"}</span>
             </button>
           </div>
-          <div className="py-1">
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onDelete();
-              }}
-              className="w-full text-left h-9 px-3 hover:bg-rose-50 text-rose-600 flex items-center gap-2.5 cursor-pointer font-medium transition-colors"
-            >
-              <Trash2 className="w-4 h-4 text-rose-500 shrink-0" strokeWidth={1.75} />
-              <span>{lang === "gu" ? "કાઢી નાખો" : "Delete"}</span>
-            </button>
-          </div>
+          {canDelete && (
+            <div className="py-1">
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onDelete();
+                }}
+                className="w-full text-left h-9 px-3 hover:bg-rose-50 text-rose-600 flex items-center gap-2.5 cursor-pointer font-medium transition-colors"
+              >
+                <Trash2 className="w-4 h-4 text-rose-500 shrink-0" strokeWidth={1.75} />
+                <span>{lang === "gu" ? "કાઢી નાખો" : "Delete"}</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -219,7 +232,7 @@ function ItemActionMenu({
 
 
 export default function ItemsPage({ initialItemId }: { initialItemId?: string } = {}) {
-  const { lang, tenantContext, currentCompany } = useAuth();
+  const { lang, tenantContext, currentCompany, hasPermission } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(initialItemId || null);
   const [directItem, setDirectItem] = useState<Item | null>(null);
@@ -341,7 +354,13 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
 
       setItems(extractList(itemsRes));
       if (shouldLoadCatalog) {
-        setUnits(extractList(unitsRes));
+        setUnits(
+          extractList(unitsRes).map((u: any) => ({
+            ...u,
+            code: u.symbol || u.code || u.uqcCode || "",
+            symbol: u.symbol || u.code || u.uqcCode || "",
+          }))
+        );
         setCategories(extractList(catsRes));
         setWarehouses(extractList(whRes));
         setParties(extractList(partiesRes));
@@ -820,6 +839,9 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
               onAdjustStock={() => setAdjustStockItem(it)}
               onBarcode={() => setBarcodeModalItem(it)}
               onDelete={() => setItemToDelete(it)}
+              canEdit={hasPermission("items", "edit")}
+              canAdjustStock={hasPermission("items", "adjust_stock")}
+              canDelete={hasPermission("items", "delete")}
             />
           );
         },
@@ -833,6 +855,30 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
       activeActionMenu,
     ]
   );
+
+  if (!hasPermission("items", "view")) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center min-h-[50vh] bg-white rounded-2xl border border-slate-200 shadow-xs">
+        <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 flex items-center justify-center mb-4 shadow-xs">
+          <ShieldAlert className="w-7 h-7" strokeWidth={1.8} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800 mb-1">
+          {lang === "gu" ? "પ્રવેશ પ્રતિબંધિત છે" : "Access Restricted"}
+        </h2>
+        <p className="text-sm text-slate-500 max-w-md mb-6">
+          {lang === "gu"
+            ? "તમારી પાસે માલસામાન (Items / Inventory) જોવાની પરવાનગી નથી. કૃપા કરીને તમારા વ્યવસાય એડમિનિસ્ટ્રેટરનો સંપર્ક કરો."
+            : "You do not have permission to view Items & Inventory. Please contact your organization administrator."}
+        </p>
+        <Link
+          href="/"
+          className="px-5 py-2.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
+        >
+          {lang === "gu" ? "ડેશબોર્ડ પર પાછા જાઓ" : "Return to Dashboard"}
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -1040,22 +1086,21 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
         filtersSlot={
           <div className="flex items-center gap-2 flex-wrap">
             {/* Category Dropdown */}
-            <div className="relative">
-              <select
+            <div className="w-52">
+              <CustomCombobox
+                size="sm"
                 value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="text-[13px] bg-white border border-slate-300 text-slate-700 rounded-lg px-3 py-1.5 font-medium focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer appearance-none pr-6 shadow-2xs h-10"
-              >
-                <option value="ALL">Search Categories</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none text-slate-400 text-[10px]">
-                ▼
-              </div>
+                onChange={(val: any) => setCategoryFilter(val)}
+                options={[
+                  { value: "ALL", label: "Search Categories" },
+                  ...categories.map((c) => ({
+                    value: c.id,
+                    label: c.name,
+                  })),
+                ]}
+                placeholder="Search Categories"
+                triggerClassName="rounded-lg border-slate-300 bg-white text-slate-700 font-medium"
+              />
             </div>
 
             {/* Low Stock Toggle Pill */}
@@ -1111,44 +1156,50 @@ export default function ItemsPage({ initialItemId }: { initialItemId?: string } 
                     </button>
                   </div>
                   <div className="py-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsBulkMenuOpen(false);
-                        if (selectedIds.size === 0) {
-                          alert(lang === "gu" ? "કૃપા કરીને પહેલાં વસ્તુઓ પસંદ કરો" : "Please select items first");
-                          return;
-                        }
-                        setIsBulkDeleteModalOpen(true);
-                      }}
-                      className="w-full text-left h-9 px-3 hover:bg-rose-50 text-rose-600 flex items-center gap-2 cursor-pointer font-medium"
-                    >
-                      <Trash2 className="w-3.5 h-3.5 text-rose-500 shrink-0" strokeWidth={1.75} /> Delete Selected ({selectedIds.size})
-                    </button>
+                    {hasPermission("items", "delete") && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsBulkMenuOpen(false);
+                          if (selectedIds.size === 0) {
+                            alert(lang === "gu" ? "કૃપા કરીને પહેલાં વસ્તુઓ પસંદ કરો" : "Please select items first");
+                            return;
+                          }
+                          setIsBulkDeleteModalOpen(true);
+                        }}
+                        className="w-full text-left h-9 px-3 hover:bg-rose-50 text-rose-600 flex items-center gap-2 cursor-pointer font-medium"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-rose-500 shrink-0" strokeWidth={1.75} /> Delete Selected ({selectedIds.size})
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
             </div>
 
             {/* Import Excel Button */}
-            <button
-              type="button"
-              onClick={() => setIsImportModalOpen(true)}
-              className="h-9 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-[13px] font-medium rounded-lg shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer"
-            >
-              <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
-              <span>{lang === "gu" ? "એક્સેલ ઈમ્પોર્ટ" : "Import Excel"}</span>
-            </button>
+            {hasPermission("items", "create") && (
+              <button
+                type="button"
+                onClick={() => setIsImportModalOpen(true)}
+                className="h-9 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-[13px] font-medium rounded-lg shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                <span>{lang === "gu" ? "એક્સેલ ઈમ્પોર્ટ" : "Import Excel"}</span>
+              </button>
+            )}
 
             {/* Create Item Button */}
-            <button
-              onClick={handleOpenCreateModal}
-              className="px-4 py-1.5 bg-[#5c56df] hover:bg-[#4d47d4] text-white text-[13px] font-medium rounded-lg shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
-            >
-              <span>Create Item</span>
-            </button>
+            {hasPermission("items", "create") && (
+              <button
+                onClick={handleOpenCreateModal}
+                className="px-4 py-1.5 bg-[#5c56df] hover:bg-[#4d47d4] text-white text-[13px] font-medium rounded-lg shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                <span>Create Item</span>
+              </button>
+            )}
           </div>
         }
         mobileCardRender={(it) => (

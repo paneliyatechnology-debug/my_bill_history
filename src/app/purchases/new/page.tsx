@@ -19,6 +19,7 @@ import { AddItemsModal, CatalogItem } from "@/components/invoice/add-items-modal
 import { useActiveInvoiceTheme } from "@/lib/use-active-invoice-theme";
 import { DynamicThemedInvoice } from "@/components/invoice/dynamic-themed-invoice";
 import { INDIAN_STATES } from "@billing/shared-types";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 import {
   Sparkles,
   Search,
@@ -2573,31 +2574,19 @@ const [notes, setNotes] = useState("");
                         Place of Supply
                       </label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                        </span>
-                        <select
+                        <CustomCombobox
                           value={placeOfSupply}
-                          onChange={(e) => {
-                            setPlaceOfSupply(e.target.value);
+                          onChange={(val: any) => {
+                            setPlaceOfSupply(val);
                             setIsDirty(true);
                           }}
-                          className="w-full h-10 pl-9 pr-8 text-xs font-medium bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs appearance-none cursor-pointer"
-                        >
-                          {Object.entries(INDIAN_STATES).map(([code, st]) => (
-                            <option key={code} value={code}>
-                              {st.name} ({code})
-                            </option>
-                          ))}
-                        </select>
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </span>
+                          options={Object.entries(INDIAN_STATES).map(([code, st]) => ({
+                            value: code,
+                            label: `${st.name} (${code})`,
+                          }))}
+                          placeholder="Select State..."
+                          triggerClassName="rounded-xl border-slate-200"
+                        />
                       </div>
                     </div>
                   </div>
@@ -2752,25 +2741,21 @@ const [notes, setNotes] = useState("");
                             {/* Item / Description */}
                             <td className="py-2 px-3 min-w-[180px]">
                               <div className="space-y-1">
-                                <div className="relative">
-                                  <select
-                                    value={row.itemId}
-                                    onChange={(e) => handleItemSelect(idx, e.target.value)}
-                                    className="w-full text-xs h-9 pl-3 pr-8 bg-white hover:bg-slate-50/80 focus:bg-white border border-slate-200 focus:border-[#1677E8] rounded-xl font-medium text-slate-800 shadow-2xs appearance-none cursor-pointer truncate"
-                                  >
-                                    <option value="">{row.itemName || "Select item..."}</option>
-                                    {items.map((it) => (
-                                      <option key={it.id} value={it.id}>
-                                        {it.name}
-                                      </option>
-                                    ))}
-                                  </select>
-                                  <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                  </div>
-                                </div>
+                                <CustomCombobox
+                                  value={row.itemId}
+                                  onChange={(val: any) => handleItemSelect(idx, val)}
+                                  options={[
+                                    ...(row.itemName && !items.some(i => i.id === row.itemId) ? [{ value: row.itemId || "", label: row.itemName }] : []),
+                                    ...items.map((it) => ({
+                                      value: it.id,
+                                      label: it.name,
+                                      sublabel: (it as any).itemCode ? `Code: ${(it as any).itemCode}` : undefined,
+                                    })),
+                                  ]}
+                                  placeholder="Select item..."
+                                  size="sm"
+                                  triggerClassName="rounded-xl border-slate-200"
+                                />
                                 {row.itemId === "" && row.itemName && (
                                   <input
                                     type="text"
@@ -2835,25 +2820,20 @@ const [notes, setNotes] = useState("");
                             </td>
 
                             {/* Tax (%) */}
-                            <td className="py-2 px-2 w-20">
-                              <div className="relative flex items-center">
-                                <select
-                                  value={row.taxRate}
-                                  onChange={(e) => handleRowChange(idx, "taxRate", Number(e.target.value) || 0)}
-                                  className="w-full text-xs h-9 pl-2 pr-6 text-center tabular-nums font-medium bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none shadow-2xs appearance-none cursor-pointer"
-                                >
-                                  <option value={0}>0 %</option>
-                                  <option value={5}>5 %</option>
-                                  <option value={12}>12 %</option>
-                                  <option value={18}>18 %</option>
-                                  <option value={28}>28 %</option>
-                                </select>
-                                <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                  </svg>
-                                </div>
-                              </div>
+                            <td className="py-2 px-2 w-24">
+                              <CustomSelect
+                                size="sm"
+                                value={String(row.taxRate)}
+                                onChange={(val: any) => handleRowChange(idx, "taxRate", Number(val) || 0)}
+                                options={[
+                                  { value: "0", label: "0%" },
+                                  { value: "5", label: "5%" },
+                                  { value: "12", label: "12%" },
+                                  { value: "18", label: "18%" },
+                                  { value: "28", label: "28%" },
+                                ]}
+                                triggerClassName="rounded-xl border-slate-200 text-center font-medium"
+                              />
                             </td>
 
                             {/* Amount (₹) */}
@@ -3002,16 +2982,18 @@ const [notes, setNotes] = useState("");
                       <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
                         Transport Mode
                       </label>
-                      <select
+                      <CustomSelect
+                        size="sm"
                         value={transportMode}
-                        onChange={(e) => setTransportMode(e.target.value)}
-                        className="w-full h-9 px-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:border-[#1677E8] focus:outline-none"
-                      >
-                        <option value="Road">Road</option>
-                        <option value="Rail">Rail</option>
-                        <option value="Air">Air</option>
-                        <option value="Ship">Ship</option>
-                      </select>
+                        onChange={(val: any) => setTransportMode(val)}
+                        options={[
+                          { value: "Road", label: "Road" },
+                          { value: "Rail", label: "Rail" },
+                          { value: "Air", label: "Air" },
+                          { value: "Ship", label: "Ship" },
+                        ]}
+                        triggerClassName="rounded-xl border-slate-200"
+                      />
                     </div>
                     <div>
                       <label className="text-[11px] font-semibold text-slate-600 mb-1 block">
@@ -3228,23 +3210,17 @@ const [notes, setNotes] = useState("");
                   <label className="text-xs font-semibold text-slate-700 mb-1.5 block">
                     Payment Mode
                   </label>
-                  <div className="relative">
-                    <select
-                      value={paymentMode}
-                      onChange={(e) => setPaymentMode(e.target.value)}
-                      className="w-full h-10 px-3 pr-8 text-xs font-medium bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#1677E8] focus:ring-2 focus:ring-[#1677E8]/10 shadow-2xs appearance-none cursor-pointer"
-                    >
-                      <option value="CASH">Cash</option>
-                      <option value="BANK_TRANSFER">Bank Transfer</option>
-                      <option value="CHEQUE">Cheque</option>
-                      <option value="UPI">UPI</option>
-                    </select>
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </span>
-                  </div>
+                  <CustomSelect
+                    value={paymentMode}
+                    onChange={(val: any) => setPaymentMode(val)}
+                    options={[
+                      { value: "CASH", label: "Cash" },
+                      { value: "BANK_TRANSFER", label: "Bank Transfer" },
+                      { value: "CHEQUE", label: "Cheque" },
+                      { value: "UPI", label: "UPI" },
+                    ]}
+                    triggerClassName="rounded-xl border-slate-200"
+                  />
                 </div>
 
                 <div className="py-2.5 px-3 rounded-xl bg-blue-50/70 border border-blue-200/80 text-[#1677E8] flex items-center justify-center gap-1.5 text-xs font-bold shadow-2xs">
@@ -3395,15 +3371,16 @@ const [notes, setNotes] = useState("");
             </div>
             <div>
               <label className="block font-medium text-slate-700 mb-1">State *</label>
-              <select
+              <CustomCombobox
                 value={newSupplierStateCode}
-                onChange={(e) => setNewSupplierStateCode(e.target.value)}
-                className="w-full p-2 border border-slate-300 rounded-lg text-[13px] font-normal h-10"
-              >
-                {Object.entries(INDIAN_STATES).map(([code, obj]) => (
-                  <option key={code} value={code}>{code} - {obj.name}</option>
-                ))}
-              </select>
+                onChange={(val: any) => setNewSupplierStateCode(val)}
+                options={Object.entries(INDIAN_STATES).map(([code, obj]) => ({
+                  value: code,
+                  label: `${code} - ${obj.name}`,
+                }))}
+                placeholder="Select state..."
+                triggerClassName="rounded-lg border-slate-300"
+              />
             </div>
             <div>
               <label className="block font-medium text-slate-700 mb-1">Billing Address</label>

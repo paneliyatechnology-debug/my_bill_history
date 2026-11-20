@@ -6,14 +6,16 @@ import { ItemBarcodeModal } from "./item-barcode-modal";
 import { apiClient, extractList } from "../../../../lib/api-client";
 import { PartyWisePriceRule, setItemPartyPrices } from "../../../../lib/party-item-pricing";
 import { AlertTriangle, X, Check, Info, RefreshCw, Globe, User } from "lucide-react";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 
 export type ItemTab = "basic" | "stock" | "pricing" | "party_pricing" | "custom";
 
 export interface UnitOption {
   id: string;
   name: string;
-  code: string;
+  code?: string;
   symbol?: string;
+  uqcCode?: string;
 }
 
 export interface CategoryOption {
@@ -276,6 +278,13 @@ export function ItemStepModal({
     }
   }, [isOpen, initialData, defaultUom, defaultCat, defaultWh, todayFormatted]);
 
+  // Auto-fill primary unit if not yet set when units catalog is ready
+  useEffect(() => {
+    if (!form.primaryUomId && units.length > 0) {
+      setForm((prev) => ({ ...prev, primaryUomId: units[0].id }));
+    }
+  }, [units, form.primaryUomId]);
+
   if (!isOpen) return null;
 
   // Generate unique 11-digit Barcode
@@ -339,8 +348,66 @@ export function ItemStepModal({
     mrpDiscountText = `${disc.toFixed(1)}%`;
   }
 
+  const STANDARD_UOM_SYMBOLS: Record<string, string> = {
+    boxes: "BOX",
+    box: "BOX",
+    kilograms: "KGS",
+    kilogram: "KGS",
+    kg: "KGS",
+    kgs: "KGS",
+    meters: "MTR",
+    meter: "MTR",
+    mtr: "MTR",
+    numbers: "NOS",
+    number: "NOS",
+    nos: "NOS",
+    pieces: "PCS",
+    piece: "PCS",
+    pcs: "PCS",
+    quintal: "QTL",
+    qtl: "QTL",
+    litres: "LTR",
+    litre: "LTR",
+    ltr: "LTR",
+    packs: "PAC",
+    pack: "PAC",
+    bags: "BAG",
+    bag: "BAG",
+    rolls: "ROL",
+    roll: "ROL",
+    pairs: "PRS",
+    pair: "PRS",
+    tons: "TON",
+    ton: "TON",
+  };
+
+  const getUnitOptionLabel = (u: UnitOption) => {
+    const normName = (u.name || "").toLowerCase().trim();
+    const rawCode = u.code || u.symbol || u.uqcCode || STANDARD_UOM_SYMBOLS[normName] || "";
+    const cleanCode =
+      rawCode &&
+      rawCode !== "undefined" &&
+      rawCode !== "null" &&
+      String(rawCode).toLowerCase() !== "undefined"
+        ? String(rawCode).trim().toUpperCase()
+        : STANDARD_UOM_SYMBOLS[normName] || "";
+    return cleanCode ? `${u.name} (${cleanCode})` : u.name;
+  };
+
   const selectedPrimaryUom = units.find((u) => u.id === form.primaryUomId);
-  const uomCode = selectedPrimaryUom?.code || selectedPrimaryUom?.name || "PCS";
+  const uomCode =
+    (selectedPrimaryUom?.code && selectedPrimaryUom.code !== "undefined"
+      ? selectedPrimaryUom.code
+      : null) ||
+    (selectedPrimaryUom?.symbol && selectedPrimaryUom.symbol !== "undefined"
+      ? selectedPrimaryUom.symbol
+      : null) ||
+    (selectedPrimaryUom?.uqcCode && selectedPrimaryUom.uqcCode !== "undefined"
+      ? selectedPrimaryUom.uqcCode
+      : null) ||
+    STANDARD_UOM_SYMBOLS[(selectedPrimaryUom?.name || "").toLowerCase().trim()] ||
+    selectedPrimaryUom?.name ||
+    "PCS";
 
   // Tab definitions
   const tabs: { id: ItemTab; label: string; labelGu: string; icon: React.ReactNode; isRequired?: boolean }[] = [
@@ -647,18 +714,19 @@ export function ItemStepModal({
                             </button>
                           </div>
                         ) : (
-                          <select
+                          <CustomCombobox
                             value={form.categoryId}
-                            onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
-                            className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-medium text-slate-800 h-10"
-                          >
-                            <option value="">{lang === "gu" ? "-- કેટેગરી પસંદ કરો --" : "Search Categories..."}</option>
-                            {categories.map((c) => (
-                              <option key={c.id} value={c.id}>
-                                {c.name}
-                              </option>
-                            ))}
-                          </select>
+                            onChange={(val: any) => setForm({ ...form, categoryId: val })}
+                            options={[
+                              { value: "", label: lang === "gu" ? "-- કેટેગરી પસંદ કરો --" : "Search Categories..." },
+                              ...categories.map((c) => ({
+                                value: c.id,
+                                label: c.name,
+                              })),
+                            ]}
+                            placeholder={lang === "gu" ? "-- કેટેગરી પસંદ કરો --" : "Search Categories..."}
+                            triggerClassName="rounded-xl border-slate-300 bg-slate-50 font-medium text-slate-800"
+                          />
                         )}
                       </div>
                     </div>
@@ -670,6 +738,7 @@ export function ItemStepModal({
                           <label className="block text-[12px] font-medium text-slate-700 uppercase tracking-wide">
                             {lang === "gu" ? "વસ્તુનું નામ (અંગ્રેજી) *" : "Item Name *"}
                           </label>
+                          {/* Hidden for now as requested:
                           <label className="flex items-center gap-2 cursor-pointer text-[12px] text-slate-600">
                             <input
                               type="checkbox"
@@ -681,6 +750,7 @@ export function ItemStepModal({
                               {lang === "gu" ? "ઓનલાઇન સ્ટોરમાં બતાવો" : "Show Item in Online Store"}
                             </span>
                           </label>
+                          */}
                         </div>
                         <input
                           type="text"
@@ -727,16 +797,20 @@ export function ItemStepModal({
                             placeholder="ex: 1500"
                             className="flex-1 text-[13px] p-2 bg-transparent focus:outline-none font-normal text-slate-900 h-10"
                           />
-                          <select
-                            value={form.isTaxInclusive ? "WITH" : "WITHOUT"}
-                            onChange={(e) =>
-                              setForm({ ...form, isTaxInclusive: e.target.value === "WITH" })
-                            }
-                            className="text-[11px] font-normal text-slate-700 bg-slate-100 border-l border-slate-300 px-2.5 py-1 focus:outline-none cursor-pointer h-10"
-                          >
-                            <option value="WITH">{lang === "gu" ? "કર સહિત (With Tax)" : "With Tax"}</option>
-                            <option value="WITHOUT">{lang === "gu" ? "કર વગર (Without Tax)" : "Without Tax"}</option>
-                          </select>
+                          <div className="w-32">
+                            <CustomSelect
+                              size="sm"
+                              value={form.isTaxInclusive ? "WITH" : "WITHOUT"}
+                              onChange={(val: any) =>
+                                setForm({ ...form, isTaxInclusive: val === "WITH" })
+                              }
+                              options={[
+                                { value: "WITH", label: lang === "gu" ? "કર સહિત (With Tax)" : "With Tax" },
+                                { value: "WITHOUT", label: lang === "gu" ? "કર વગર (Without Tax)" : "Without Tax" },
+                              ]}
+                              triggerClassName="rounded-none border-0 border-l border-slate-300 bg-slate-100 text-[11px]"
+                            />
+                          </div>
                         </div>
                       </div>
 
@@ -778,17 +852,16 @@ export function ItemStepModal({
                         <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
                           {lang === "gu" ? "માપન એકમ (Unit) *" : "Measuring Unit *"}
                         </label>
-                        <select
+                        <CustomCombobox
                           value={form.primaryUomId}
-                          onChange={(e) => setForm({ ...form, primaryUomId: e.target.value })}
-                          className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-normal text-slate-800 h-10"
-                        >
-                          {units.map((u) => (
-                            <option key={u.id} value={u.id}>
-                              {u.name} ({u.code})
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(val: any) => setForm({ ...form, primaryUomId: val })}
+                          options={units.map((u) => ({
+                            value: u.id,
+                            label: getUnitOptionLabel(u),
+                          }))}
+                          placeholder="Select Unit..."
+                          triggerClassName="rounded-xl border-slate-300 bg-slate-50 font-normal text-slate-800"
+                        />
                       </div>
 
                       {form.type === "PRODUCT" && (
@@ -982,17 +1055,16 @@ export function ItemStepModal({
                         <label className="block text-[12px] font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
                           {lang === "gu" ? "પ્રાથમિક માપન એકમ *" : "Measuring Unit *"}
                         </label>
-                        <select
+                        <CustomCombobox
                           value={form.primaryUomId}
-                          onChange={(e) => setForm({ ...form, primaryUomId: e.target.value })}
-                          className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-500 font-normal text-slate-800 h-10"
-                        >
-                          {units.map((u) => (
-                            <option key={u.id} value={u.id}>
-                              {u.name} ({u.code})
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(val: any) => setForm({ ...form, primaryUomId: val })}
+                          options={units.map((u) => ({
+                            value: u.id,
+                            label: getUnitOptionLabel(u),
+                          }))}
+                          placeholder="Select Unit..."
+                          triggerClassName="rounded-xl border-slate-300 bg-slate-50 font-normal text-slate-800"
+                        />
                       </div>
 
                       <div className="flex flex-col justify-end">
@@ -1007,20 +1079,23 @@ export function ItemStepModal({
                           </button>
                         ) : (
                           <div className="flex items-center gap-2">
-                            <select
-                              value={form.secondaryUomId}
-                              onChange={(e) => setForm({ ...form, secondaryUomId: e.target.value })}
-                              className="text-[13px] p-2 bg-slate-50 border border-slate-300 rounded-lg flex-1 h-10"
-                            >
-                              <option value="">-- {lang === "gu" ? "ગૌણ એકમ" : "Select Secondary Unit"} --</option>
-                              {units
-                                .filter((u) => u.id !== form.primaryUomId)
-                                .map((u) => (
-                                  <option key={u.id} value={u.id}>
-                                    {u.name} ({u.code})
-                                  </option>
-                                ))}
-                            </select>
+                            <div className="flex-1">
+                              <CustomCombobox
+                                value={form.secondaryUomId}
+                                onChange={(val: any) => setForm({ ...form, secondaryUomId: val })}
+                                options={[
+                                  { value: "", label: `-- ${lang === "gu" ? "ગૌણ એકમ" : "Select Secondary Unit"} --` },
+                                  ...units
+                                    .filter((u) => u.id !== form.primaryUomId)
+                                    .map((u) => ({
+                                      value: u.id,
+                                      label: getUnitOptionLabel(u),
+                                    })),
+                                ]}
+                                placeholder={`-- ${lang === "gu" ? "ગૌણ એકમ" : "Select Secondary Unit"} --`}
+                                triggerClassName="rounded-lg border-slate-300 bg-slate-50 text-[13px]"
+                              />
+                            </div>
                             <input
                               type="number"
                               placeholder="Conversion e.g. 10"
@@ -1055,17 +1130,16 @@ export function ItemStepModal({
                             <label className="block text-[11px] font-medium text-slate-600 mb-1 uppercase">
                               {lang === "gu" ? "ગોડાઉન / વેરહાઉસ" : "Godowns"}
                             </label>
-                            <select
+                            <CustomCombobox
                               value={form.warehouseId}
-                              onChange={(e) => setForm({ ...form, warehouseId: e.target.value })}
-                              className="w-full text-[13px] p-2.5 bg-white border border-slate-300 rounded-lg font-medium text-slate-800 h-10"
-                            >
-                              {warehouses.map((w) => (
-                                <option key={w.id} value={w.id}>
-                                  {w.name} {w.isDefault ? "(Default)" : ""}
-                                </option>
-                              ))}
-                            </select>
+                              onChange={(val: any) => setForm({ ...form, warehouseId: val })}
+                              options={warehouses.map((w) => ({
+                                value: w.id,
+                                label: `${w.name} ${w.isDefault ? "(Default)" : ""}`.trim(),
+                              }))}
+                              placeholder="Select Godown..."
+                              triggerClassName="rounded-lg border-slate-300 bg-white font-medium text-slate-800"
+                            />
                           </div>
 
                           <div>
@@ -1212,16 +1286,20 @@ export function ItemStepModal({
                             placeholder="ex: 1500"
                             className="flex-1 text-[13px] p-2 bg-transparent focus:outline-none font-normal text-slate-900 h-10"
                           />
-                          <select
-                            value={form.isTaxInclusive ? "WITH" : "WITHOUT"}
-                            onChange={(e) =>
-                              setForm({ ...form, isTaxInclusive: e.target.value === "WITH" })
-                            }
-                            className="text-[11px] font-normal text-slate-700 bg-slate-100 border-l border-slate-300 px-2 py-1 focus:outline-none cursor-pointer h-10"
-                          >
-                            <option value="WITHOUT">{lang === "gu" ? "Without Tax" : "Without Tax"}</option>
-                            <option value="WITH">{lang === "gu" ? "With Tax" : "With Tax"}</option>
-                          </select>
+                          <div className="w-32">
+                            <CustomSelect
+                              size="sm"
+                              value={form.isTaxInclusive ? "WITH" : "WITHOUT"}
+                              onChange={(val: any) =>
+                                setForm({ ...form, isTaxInclusive: val === "WITH" })
+                              }
+                              options={[
+                                { value: "WITHOUT", label: lang === "gu" ? "Without Tax" : "Without Tax" },
+                                { value: "WITH", label: lang === "gu" ? "With Tax" : "With Tax" },
+                              ]}
+                              triggerClassName="rounded-none border-0 border-l border-slate-300 bg-slate-100 text-[11px]"
+                            />
+                          </div>
                         </div>
                       </div>
 
@@ -1242,19 +1320,23 @@ export function ItemStepModal({
                             placeholder="ex: 1200"
                             className="flex-1 text-[13px] p-2 bg-transparent focus:outline-none font-normal text-slate-900 h-10"
                           />
-                          <select
-                            value={form.isPurchaseTaxInclusive ? "WITH" : "WITHOUT"}
-                            onChange={(e) =>
-                              setForm({
-                                ...form,
-                                isPurchaseTaxInclusive: e.target.value === "WITH",
-                              })
-                            }
-                            className="text-[11px] font-normal text-slate-700 bg-slate-100 border-l border-slate-300 px-2 py-1 focus:outline-none cursor-pointer h-10"
-                          >
-                            <option value="WITHOUT">{lang === "gu" ? "Without Tax" : "Without Tax"}</option>
-                            <option value="WITH">{lang === "gu" ? "With Tax" : "With Tax"}</option>
-                          </select>
+                          <div className="w-32">
+                            <CustomSelect
+                              size="sm"
+                              value={form.isPurchaseTaxInclusive ? "WITH" : "WITHOUT"}
+                              onChange={(val: any) =>
+                                setForm({
+                                  ...form,
+                                  isPurchaseTaxInclusive: val === "WITH",
+                                })
+                              }
+                              options={[
+                                { value: "WITHOUT", label: lang === "gu" ? "Without Tax" : "Without Tax" },
+                                { value: "WITH", label: lang === "gu" ? "With Tax" : "With Tax" },
+                              ]}
+                              triggerClassName="rounded-none border-0 border-l border-slate-300 bg-slate-100 text-[11px]"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1409,23 +1491,24 @@ export function ItemStepModal({
                         <label className="block text-[12px] font-medium text-slate-600 mb-1.5">
                           {lang === "gu" ? "પાર્ટી પસંદ કરો" : "Select Party"}
                         </label>
-                        <select
+                        <CustomCombobox
                           value={selectedPartyId}
-                          onChange={(e) => {
-                            setSelectedPartyId(e.target.value);
+                          onChange={(val: any) => {
+                            setSelectedPartyId(val);
                             if (!partyPriceInput && form.retailPrice) {
                               setPartyPriceInput(String(form.retailPrice));
                             }
                           }}
-                          className="w-full text-[13px] p-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500 font-medium text-slate-700 cursor-pointer shadow-2xs h-10"
-                        >
-                          <option value="">{lang === "gu" ? "પાર્ટી શોધો..." : "Search Party"}</option>
-                          {partiesList.map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.name} {p.phone ? `(${p.phone})` : ""}
-                            </option>
-                          ))}
-                        </select>
+                          options={[
+                            { value: "", label: lang === "gu" ? "પાર્ટી શોધો..." : "Search Party" },
+                            ...partiesList.map((p) => ({
+                              value: p.id,
+                              label: `${p.name} ${p.phone ? `(${p.phone})` : ""}`.trim(),
+                            })),
+                          ]}
+                          placeholder={lang === "gu" ? "પાર્ટી શોધો..." : "Search Party"}
+                          triggerClassName="rounded-lg border-slate-300 bg-white font-medium text-slate-700"
+                        />
                       </div>
 
                       {/* Sales Price with With Tax Toggle */}

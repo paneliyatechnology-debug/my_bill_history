@@ -13,7 +13,8 @@ import { ShortcutsModal } from "@/components/invoice/shortcuts-modal";
 import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/scorecard-ribbon";
 import { formatInr } from "@/components/design-system/tokens";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
-import { Phone, X, Ban } from "lucide-react";
+import { CustomSelect } from "@/components/ui/dropdown-system";
+import { Phone, X, Ban, ShieldAlert } from "lucide-react";
 
 interface ProformaInvoiceItem {
   id: string;
@@ -68,7 +69,7 @@ const DATE_PRESET_LABELS: Record<DateRangePreset, string> = {
 
 export default function ProformaInvoiceListingPage() {
   const router = useRouter();
-  const { lang, tenantContext, currentCompany } = useAuth();
+  const { lang, tenantContext, currentCompany, hasPermission } = useAuth();
 
   const [invoices, setInvoices] = useState<ProformaInvoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -345,6 +346,30 @@ export default function ProformaInvoiceListingPage() {
     }));
   }, [filteredInvoices]);
 
+  if (!hasPermission("proforma_invoices", "view")) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center min-h-[50vh] bg-white rounded-2xl border border-slate-200 shadow-xs">
+        <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 flex items-center justify-center mb-4 shadow-xs">
+          <ShieldAlert className="w-7 h-7" strokeWidth={1.8} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800 mb-1">
+          {lang === "gu" ? "પ્રવેશ પ્રતિબંધિત છે" : "Access Restricted"}
+        </h2>
+        <p className="text-sm text-slate-500 max-w-md mb-6">
+          {lang === "gu"
+            ? "તમારી પાસે આ મોડ્યુલ ઍક્સેસ કરવાની પરવાનગી નથી. કૃપા કરીને તમારા વ્યવસાય એડમિનિસ્ટ્રેટરનો સંપર્ક કરો."
+            : "You do not have permission to access this module. Please contact your organization administrator."}
+        </p>
+        <Link
+          href="/"
+          className="px-5 py-2.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
+        >
+          {lang === "gu" ? "ડેશબોર્ડ પર પાછા જાઓ" : "Return to Dashboard"}
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 max-w-7xl mx-auto min-w-0 pb-16 font-sans">
       {/* Toast Notification */}
@@ -415,15 +440,17 @@ export default function ProformaInvoiceListingPage() {
             <span>Print</span>
           </button>
 
-          <Link
-            href="/sales/proforma/create"
-            className="inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white typo-btn-primary shadow-md shadow-[#0F172A]/20 hover:shadow-lg hover:shadow-[#0F172A]/30 transition-all cursor-pointer"
-          >
-            <svg className="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>{lang === "gu" ? "+ નવું પ્રોફોર્મા બિલ" : "+ Create Proforma"}</span>
-          </Link>
+          {hasPermission("proforma_invoices", "create") && (
+            <Link
+              href="/sales/proforma/create"
+              className="inline-flex items-center gap-2 h-9 px-3 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white typo-btn-primary shadow-md shadow-[#0F172A]/20 hover:shadow-lg hover:shadow-[#0F172A]/30 transition-all cursor-pointer"
+            >
+              <svg className="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>{lang === "gu" ? " નવું પ્રોફોર્મા બિલ" : " Create Proforma"}</span>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -460,17 +487,15 @@ export default function ProformaInvoiceListingPage() {
           </div>
 
           {/* Date Range Selector */}
-          <select
+          <CustomSelect
             value={dateRangePreset}
-            onChange={(e) => setDateRangePreset(e.target.value as DateRangePreset)}
-            className="pl-3 pr-8 py-2 border border-[#E2E8F0] rounded-xl text-[13px] font-medium text-[#182230] bg-white focus:outline-none focus:border-[#1677E8] cursor-pointer h-10"
-          >
-            {Object.entries(DATE_PRESET_LABELS).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => setDateRangePreset(val as DateRangePreset)}
+            options={Object.entries(DATE_PRESET_LABELS).map(([key, label]) => ({
+              value: key,
+              label,
+            }))}
+            className="w-48"
+          />
         </div>
 
         {/* Status segment pills switcher */}
@@ -549,12 +574,7 @@ export default function ProformaInvoiceListingPage() {
                           ? "No transactions match your current search filters."
                           : "Create proforma invoices for customers and convert them to GST Tax Invoices in 1-click."}
                       </p>
-                      <Link
-                        href="/sales/proforma/create"
-                        className="mt-4 rounded-xl bg-[#0F172A] h-9 px-3 typo-btn-primary text-white shadow-blue-500/20 hover:bg-[#1268D3] transition-colors"
-                      >
-                        {lang === "gu" ? "+ નવું પ્રોફોર્મા બિલ" : "+ Create Proforma"}
-                      </Link>
+            
                     </div>
                   </td>
                 </tr>

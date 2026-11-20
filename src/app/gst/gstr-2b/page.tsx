@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { apiClient } from "../../../lib/api-client";
 import { useAuth } from "../../../context/auth-context";
 import { DataTable, GstFrame, Panel, useCanWriteGst, useGstPeriod } from "../../../components/gst/gst-kit";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 
 const STATUSES = ["", "MATCHED", "PARTIAL_MATCH", "MISSING_IN_BOOKS", "MISSING_IN_GSTR2B", "DUPLICATE", "MISMATCH"];
 
@@ -143,11 +144,19 @@ function Body() {
           <p>{(selected.explanation?.rules || []).join(" ")}</p>
           {canWrite ? (
             <div className="space-y-2">
-              <select className="border rounded px-2 py-1 text-[13px] font-normal h-10" value={decision} onChange={(event) => setDecision(event.target.value)}>
-                <option>ACCEPTED</option>
-                <option>REJECTED</option>
-                <option>DEFERRED</option>
-              </select>
+              <div className="w-44">
+                <CustomSelect
+                  size="sm"
+                  value={decision}
+                  onChange={(val: any) => setDecision(val)}
+                  options={[
+                    { value: "ACCEPTED", label: "ACCEPTED" },
+                    { value: "REJECTED", label: "REJECTED" },
+                    { value: "DEFERRED", label: "DEFERRED" },
+                  ]}
+                  triggerClassName="rounded border-slate-300"
+                />
+              </div>
               <textarea className="w-full border rounded p-2 text-[13px] font-normal" placeholder="Reason, at least 10 characters" value={reason} onChange={(event) => setReason(event.target.value)} />
               <button type="button" className="h-9 px-3 rounded bg-slate-900 text-white" onClick={review}>
                 Save review

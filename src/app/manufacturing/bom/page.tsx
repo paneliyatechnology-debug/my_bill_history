@@ -6,6 +6,7 @@ import { apiClient, extractList } from "../../../lib/api-client";
 import { Modal } from "../../../components/ui/modal";
 import { Badge, StatusBadge } from "../../../components/ui/badge";
 import { DataTable, ColumnDef } from "../../../components/ui/data-table";
+import { CustomCombobox } from "@/components/ui/dropdown-system";
 
 interface BomItem {
   id?: string;
@@ -565,19 +566,18 @@ export default function BomPage() {
               <label className="block text-[12px] font-medium text-slate-700 mb-1">
                 {lang === "gu" ? "તૈયાર માલ (Finished Item) *" : "Finished Item *"}
               </label>
-              <select
+              <CustomCombobox
                 value={formData.finishedItemId}
-                onChange={(e) => setFormData({ ...formData, finishedItemId: e.target.value })}
-                required
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-indigo-500 h-10"
-              >
-                <option value="">{lang === "gu" ? "-- પસંદ કરો --" : "-- Select Finished Item --"}</option>
-                {items.map((it) => (
-                  <option key={it.id} value={it.id}>
-                    {it.name} {it.sku ? `(${it.sku})` : ""}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setFormData({ ...formData, finishedItemId: val })}
+                options={items.map((it) => ({
+                  value: it.id,
+                  label: it.name,
+                  sublabel: it.sku || undefined,
+                }))}
+                placeholder={lang === "gu" ? "-- પસંદ કરો --" : "-- Select Finished Item --"}
+                searchPlaceholder="Search finished item..."
+                className="w-full"
+              />
             </div>
 
             <div>
@@ -662,18 +662,18 @@ export default function BomPage() {
                     <label className="block text-[11px] font-medium text-slate-500 mb-0.5">
                       {lang === "gu" ? "કાચો માલ" : "Raw Component"}
                     </label>
-                    <select
+                    <CustomCombobox
                       value={it.rawItemId}
-                      onChange={(e) => handleItemChange(idx, "rawItemId", e.target.value)}
-                      required
-                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] h-10"
-                    >
-                      {items.map((opt) => (
-                        <option key={opt.id} value={opt.id}>
-                          {opt.name} {opt.sku ? `(${opt.sku})` : ""}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) => handleItemChange(idx, "rawItemId", val)}
+                      options={items.map((opt) => ({
+                        value: opt.id,
+                        label: opt.name,
+                        sublabel: opt.sku || undefined,
+                      }))}
+                      placeholder="Select component..."
+                      searchPlaceholder="Search raw items..."
+                      className="w-full"
+                    />
                   </div>
 
                   <div className="col-span-5 sm:col-span-3">
@@ -857,18 +857,18 @@ export default function BomPage() {
                     <label className="block text-[11px] font-medium text-slate-500 mb-0.5">
                       {lang === "gu" ? "કાચો માલ" : "Raw Component"}
                     </label>
-                    <select
+                    <CustomCombobox
                       value={it.rawItemId}
-                      onChange={(e) => handleItemChange(idx, "rawItemId", e.target.value)}
-                      required
-                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] h-10"
-                    >
-                      {items.map((opt) => (
-                        <option key={opt.id} value={opt.id}>
-                          {opt.name} {opt.sku ? `(${opt.sku})` : ""}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) => handleItemChange(idx, "rawItemId", val)}
+                      options={items.map((opt) => ({
+                        value: opt.id,
+                        label: opt.name,
+                        sublabel: opt.sku || undefined,
+                      }))}
+                      placeholder="Select component..."
+                      searchPlaceholder="Search raw items..."
+                      className="w-full"
+                    />
                   </div>
 
                   <div className="col-span-5 sm:col-span-3">

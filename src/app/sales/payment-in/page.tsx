@@ -523,7 +523,7 @@ export default function PaymentInPage() {
             <svg className="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            <span>{lang === "gu" ? "+ નવી આવક ચૂકવણી" : "+ Record Payment In"}</span>
+            <span>{lang === "gu" ? "+ નવી આવક ચૂકવણી" : "Record Payment In"}</span>
           </Link>
         </div>
       </div>
@@ -728,7 +728,7 @@ export default function PaymentInPage() {
                         href="/sales/payment-in/new"
                         className="mt-4 rounded-xl bg-[#0F172A] h-9 px-3 typo-btn-primary text-white shadow-blue-500/20 hover:bg-[#1268D3] transition-colors"
                       >
-                        {lang === "gu" ? "+ નવી આવક ચૂકવણી" : "+ Record Payment In"}
+                        {lang === "gu" ? "+ નવી આવક ચૂકવણી" : "Record Payment In"}
                       </Link>
                     </div>
                   </td>

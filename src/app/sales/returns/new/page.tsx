@@ -7,6 +7,7 @@ import { useAuth } from "../../../../context/auth-context";
 import { apiClient, extractList } from "../../../../lib/api-client";
 import { DocumentHeaderCard, DocumentBottomBar } from "@/components/document-studio";
 import { X } from "lucide-react";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 
 interface Party {
   id: string;
@@ -678,34 +679,30 @@ function CreateSalesReturnForm() {
               <label className="block text-[12px] font-semibold text-slate-700 mb-1">
                 Warehouse / Godown (ગોડાઉન) <span className="text-rose-500">*</span>
               </label>
-              <select
+              <CustomCombobox
                 value={selectedWarehouseId}
-                onChange={(e) => setSelectedWarehouseId(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 focus:border-blue-500 focus:outline-none h-10"
-              >
-                {warehouses.map((wh) => (
-                  <option key={wh.id} value={wh.id}>
-                    {wh.name} {wh.isDefault ? "(Default)" : ""}
-                  </option>
-                ))}
-              </select>
+                onChange={(val: any) => setSelectedWarehouseId(val)}
+                options={warehouses.map((wh) => ({
+                  value: wh.id,
+                  label: `${wh.name} ${wh.isDefault ? "(Default)" : ""}`.trim(),
+                }))}
+                triggerClassName="rounded-xl border-slate-200 bg-white"
+              />
             </div>
 
             <div>
               <label className="block text-[12px] font-semibold text-slate-700 mb-1">
                 Return Reason (પરત આવવાનું કારણ)
               </label>
-              <select
+              <CustomSelect
                 value={returnReason}
-                onChange={(e) => setReturnReason(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 focus:border-blue-500 focus:outline-none h-10"
-              >
-                {RETURN_REASONS.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
-              </select>
+                onChange={(val: any) => setReturnReason(val)}
+                options={RETURN_REASONS.map((r) => ({
+                  value: r,
+                  label: r,
+                }))}
+                triggerClassName="rounded-xl border-slate-200 bg-white"
+              />
             </div>
           </div>
         </div>
@@ -740,16 +737,17 @@ function CreateSalesReturnForm() {
             <label className="block text-[12px] font-semibold text-slate-700 mb-1">
               Settlement Mode
             </label>
-            <select
+            <CustomSelect
               value={settlementMode}
-              onChange={(e) => setSettlementMode(e.target.value as any)}
-              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus:border-blue-500 focus:outline-none h-10"
-            >
-              <option value="CUSTOMER_CREDIT">Customer Credit Balance (Hold on Account)</option>
-              <option value="ADJUST_OUTSTANDING">Adjust Against Invoice Outstanding</option>
-              <option value="REFUND_CASH">Immediate Cash Refund</option>
-              <option value="REFUND_BANK">Immediate Bank Refund</option>
-            </select>
+              onChange={(val: any) => setSettlementMode(val as any)}
+              options={[
+                { value: "CUSTOMER_CREDIT", label: "Customer Credit Balance (Hold on Account)" },
+                { value: "ADJUST_OUTSTANDING", label: "Adjust Against Invoice Outstanding" },
+                { value: "REFUND_CASH", label: "Immediate Cash Refund" },
+                { value: "REFUND_BANK", label: "Immediate Bank Refund" },
+              ]}
+              triggerClassName="rounded-xl border-slate-200 bg-white"
+            />
           </div>
         </div>
       </div>
@@ -847,22 +845,18 @@ function CreateSalesReturnForm() {
                         />
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <select
+                        <CustomSelect
+                          size="sm"
                           value={line.disposition}
                           disabled={line.returnQty <= 0}
-                          onChange={(e) => handleDispositionChange(idx, e.target.value as any)}
-                          className={`rounded-lg border px-2 py-1.5 text-[11px] font-bold focus:outline-none ${
-                            line.disposition === "SELLABLE"
-                              ? "bg-emerald-50 text-emerald-800 border-emerald-300"
-                              : line.disposition === "DAMAGED"
-                              ? "bg-amber-50 text-amber-800 border-amber-300"
-                              : "bg-rose-50 text-rose-800 border-rose-300"
-                          } disabled:opacity-40`}
-                        >
-                          <option value="SELLABLE">Sellable (Restock)</option>
-                          <option value="DAMAGED">Damaged (No Restock)</option>
-                          <option value="SCRAPPED">Scrapped (Write-off)</option>
-                        </select>
+                          onChange={(val: any) => handleDispositionChange(idx, val as any)}
+                          options={[
+                            { value: "SELLABLE", label: "Sellable (Restock)" },
+                            { value: "DAMAGED", label: "Damaged (No Restock)" },
+                            { value: "SCRAPPED", label: "Scrapped (Write-off)" },
+                          ]}
+                          triggerClassName="rounded-lg text-[11px] font-bold"
+                        />
                       </td>
                       <td className="px-4 py-3 text-right font-medium text-slate-800 tabular-nums">
                         ₹{line.unitPrice.toLocaleString("en-IN", { minimumFractionDigits: 2 })}

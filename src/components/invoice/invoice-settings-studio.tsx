@@ -6,6 +6,7 @@ import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
 import { FestiveThumb, InvoiceLivePreview, ThemeMiniCard } from "./invoice-live-preview";
 import { resolveThemeDefinition, registerDynamicThemes } from "@/lib/invoice-theme-keys";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 import { X } from "lucide-react";
 
 export interface CustomField {
@@ -479,6 +480,22 @@ export function InvoiceSettingsStudio() {
           const merged: InvoiceStudioState = {
             ...DEFAULT_STATE,
             ...parsed,
+            selectedBankAccount:
+              typeof parsed.selectedBankAccount === "string" && parsed.selectedBankAccount
+                ? parsed.selectedBankAccount
+                : DEFAULT_STATE.selectedBankAccount,
+            selectedPaymentQr:
+              typeof parsed.selectedPaymentQr === "string" && parsed.selectedPaymentQr
+                ? parsed.selectedPaymentQr
+                : DEFAULT_STATE.selectedPaymentQr,
+            termsDocType:
+              typeof parsed.termsDocType === "string" && parsed.termsDocType
+                ? parsed.termsDocType
+                : DEFAULT_STATE.termsDocType,
+            signatureType:
+              typeof parsed.signatureType === "string" && parsed.signatureType
+                ? parsed.signatureType
+                : DEFAULT_STATE.signatureType,
             themeId: def.isFestive ? "festival" : def.uniqueKey,
             festiveTheme: def.isFestive ? def.baseTheme : null,
             festiveVariant: def.variant,
@@ -1367,20 +1384,22 @@ export function InvoiceSettingsStudio() {
 
               <div>
                 <label className="block text-[11px] font-semibold text-slate-700 mb-1">Industry Type</label>
-                <select
+                <CustomSelect
                   value={state.industryType}
-                  onChange={(e) => updateState({ industryType: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-800 focus:border-[#2563EB] focus:outline-none"
-                >
-                  <option value="General Trade">General Trade</option>
-                  <option value="Retail Store">Retail Store &amp; Supermarket</option>
-                  <option value="Wholesale">Wholesale &amp; Distribution</option>
-                  <option value="Pharmacy">Pharmacy &amp; Healthcare</option>
-                  <option value="Manufacturing">Manufacturing &amp; Processing</option>
-                  <option value="Textiles">Textiles &amp; Apparel</option>
-                  <option value="Electronics">Electronics &amp; Hardware</option>
-                  <option value="Services">Services &amp; IT Consulting</option>
-                </select>
+                  onChange={(val) => updateState({ industryType: val })}
+                  options={[
+                    { value: "General Trade", label: "General Trade" },
+                    { value: "Retail Store", label: "Retail Store & Supermarket" },
+                    { value: "Wholesale", label: "Wholesale & Distribution" },
+                    { value: "Pharmacy", label: "Pharmacy & Healthcare" },
+                    { value: "Manufacturing", label: "Manufacturing & Processing" },
+                    { value: "Textiles", label: "Textiles & Apparel" },
+                    { value: "Electronics", label: "Electronics & Hardware" },
+                    { value: "Services", label: "Services & IT Consulting" },
+                  ]}
+                  size="sm"
+                  className="w-full"
+                />
               </div>
 
               <div className="space-y-1 pt-1.5 border-t border-slate-100">
@@ -1586,18 +1605,21 @@ export function InvoiceSettingsStudio() {
                     Edit Bank &rarr;
                   </Link>
                 </div>
-                <select
-                  value={state.selectedBankAccount}
-                  onChange={(e) => updateState({ selectedBankAccount: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-800 focus:border-[#2563EB] focus:outline-none"
-                >
-                  <option value="primary">
-                    {currentCompany?.bankName
-                      ? `${currentCompany.bankName} (${currentCompany.bankAccountNo ? `A/C: ${currentCompany.bankAccountNo}` : "Configured"})`
-                      : "Company Bank Account (Primary)"}
-                  </option>
-                  <option value="none">Don&apos;t print bank details</option>
-                </select>
+                <CustomSelect
+                  value={state.selectedBankAccount || "primary"}
+                  onChange={(val) => updateState({ selectedBankAccount: val })}
+                  options={[
+                    {
+                      value: "primary",
+                      label: currentCompany?.bankName
+                        ? `${currentCompany.bankName} (${currentCompany.bankAccountNo ? `A/C: ${currentCompany.bankAccountNo}` : "Configured"})`
+                        : "Company Bank Account (Primary)",
+                    },
+                    { value: "none", label: "Don't print bank details" },
+                  ]}
+                  size="sm"
+                  className="w-full"
+                />
                 <p className="text-[10px] text-slate-500 mt-1 truncate">
                   {currentCompany?.bankAccountNo
                     ? `A/C: ${currentCompany.bankAccountNo} • IFSC: ${currentCompany.bankIfsc || "-"}`
@@ -1615,18 +1637,21 @@ export function InvoiceSettingsStudio() {
                     Edit UPI &rarr;
                   </Link>
                 </div>
-                <select
-                  value={state.selectedPaymentQr}
-                  onChange={(e) => updateState({ selectedPaymentQr: e.target.value })}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-800 focus:border-[#2563EB] focus:outline-none"
-                >
-                  <option value="primary_upi">
-                    {currentCompany?.upiVpa
-                      ? `Dynamic UPI QR (${currentCompany.upiVpa})`
-                      : "Dynamic UPI QR (Scan to Pay)"}
-                  </option>
-                  <option value="none">Don&apos;t print Payment QR</option>
-                </select>
+                <CustomSelect
+                  value={state.selectedPaymentQr || "primary_upi"}
+                  onChange={(val) => updateState({ selectedPaymentQr: val })}
+                  options={[
+                    {
+                      value: "primary_upi",
+                      label: currentCompany?.upiVpa
+                        ? `Dynamic UPI QR (${currentCompany.upiVpa})`
+                        : "Dynamic UPI QR (Scan to Pay)",
+                    },
+                    { value: "none", label: "Don't print Payment QR" },
+                  ]}
+                  size="sm"
+                  className="w-full"
+                />
                 <p className="text-[10px] text-slate-500 mt-1 truncate">
                   {currentCompany?.upiVpa
                     ? `UPI ID: ${currentCompany.upiVpa}`
@@ -1636,15 +1661,17 @@ export function InvoiceSettingsStudio() {
 
               <div>
                 <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Terms and Conditions</label>
-                <select
-                  value={state.termsDocType}
-                  onChange={(e) => updateState({ termsDocType: e.target.value as any })}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-800 focus:border-[#2563EB] focus:outline-none mb-1.5"
-                >
-                  <option value="sales">Sales Invoices</option>
-                  <option value="quotation">Quotations / Estimates</option>
-                  <option value="challan">Delivery Challans</option>
-                </select>
+                <CustomSelect
+                  value={state.termsDocType || "sales"}
+                  onChange={(val) => updateState({ termsDocType: val as any })}
+                  options={[
+                    { value: "sales", label: "Sales Invoices" },
+                    { value: "quotation", label: "Quotations / Estimates" },
+                    { value: "challan", label: "Delivery Challans" },
+                  ]}
+                  size="sm"
+                  className="w-full mb-1.5"
+                />
 
                 <textarea
                   rows={3}
@@ -1664,15 +1691,17 @@ export function InvoiceSettingsStudio() {
 
               <div>
                 <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Authorized Signature</label>
-                <select
-                  value={state.signatureType}
-                  onChange={(e) => updateState({ signatureType: e.target.value as any })}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-800 focus:border-[#2563EB] focus:outline-none mb-1.5"
-                >
-                  <option value="desktop">Upload from Desktop</option>
-                  <option value="saved">Use Saved Signature</option>
-                  <option value="none">None</option>
-                </select>
+                <CustomSelect
+                  value={state.signatureType || "desktop"}
+                  onChange={(val) => updateState({ signatureType: val as any })}
+                  options={[
+                    { value: "desktop", label: "Upload from Desktop" },
+                    { value: "saved", label: "Use Saved Signature" },
+                    { value: "none", label: "None" },
+                  ]}
+                  size="sm"
+                  className="w-full mb-1.5"
+                />
 
                 {state.signatureType === "desktop" && (
                   <div className="space-y-1.5">

@@ -12,6 +12,7 @@ import {
   printViaBluetoothPos,
   ThermalReceiptData,
 } from "../../../lib/thermal-printer";
+import { PosReceiptPreviewModal } from "../../../components/pos/pos-receipt-preview-modal";
 import { StockQuantityDisplay } from "@/components/inventory/stock-quantity-display";
 import {
   X,
@@ -26,6 +27,7 @@ import {
   Trash2,
   ChevronDown,
 } from "lucide-react";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 
 // Interfaces
 interface CatalogItem {
@@ -113,7 +115,7 @@ const DEFAULT_SETTINGS: PosSettings = {
 
 export default function PosTerminalPage() {
   const router = useRouter();
-  const { tenantContext, currentCompany, user } = useAuth();
+  const { tenantContext, currentCompany, user, lang } = useAuth();
 
   // Settings State
   const [settings, setSettings] = useState<PosSettings>(DEFAULT_SETTINGS);
@@ -222,6 +224,9 @@ export default function PosTerminalPage() {
 
   // Receipt & Print
   const [lastReceipt, setLastReceipt] = useState<any | null>(null);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+  const [activeThermalReceipt, setActiveThermalReceipt] = useState<ThermalReceiptData | null>(null);
+  const [autoPrintReceipt, setAutoPrintReceipt] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [upiQrDataUrl, setUpiQrDataUrl] = useState<string>("");
 
@@ -906,31 +911,148 @@ export default function PosTerminalPage() {
     }
 
     if (isSuccess) {
-      const receiptData = {
+      const thermalSettings = getCachedThermalSettings();
+      if (settings.printerType === "58mm") {
+        thermalSettings.paperSize = "2inch";
+      } else if (settings.printerType === "80mm") {
+        thermalSettings.paperSize = "3inch";
+      }
+
+      const displayName =
+        currentCompany?.tradeName || currentCompany?.legalName || "NV ENTERPRISE";
+      const displayAddress = [
+        (currentCompany as any)?.addressLine1 || (currentCompany as any)?.address,
+        (currentCompany as any)?.city,
+        (currentCompany as any)?.state,
+        (currentCompany as any)?.pincode,
+      ]
+        .filter(Boolean)
+        .join(", ");
+      const displayPhone = (currentCompany as any)?.phone || user?.phone || "";
+      const displayGstin = currentCompany?.gstin || "";
+      const displayUpi =
+        (currentCompany as any)?.upiVpa ||
+        (currentCompany as any)?.upiId ||
+        (displayPhone ? `${displayPhone}@okaxis` : "");
+
+      const thermalData: ThermalReceiptData = {
+        companyName: displayName,
+        companyAddress: displayAddress,
+        companyPhone: displayPhone,
+        companyGstin: displayGstin,
+        companyLogoUrl:
+          (currentCompany as any)?.logoUrl || thermalSettings.logoUrl || null,
+        upiId: displayUpi,
+
         invoiceNumber: generatedInvoiceNumber,
-        grandTotal,
-        subTotal,
-        taxTotal,
-        totalDiscount,
-        totalCharges,
-        roundOff,
-        paymentMode: currentScreen.paymentMode,
+        invoiceDate: new Date().toLocaleDateString("en-IN"),
+        invoiceTime: new Date().toLocaleTimeString("en-IN", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        cashierName: user?.fullName || "Cashier",
+
+        customerName: effectiveCustomerName,
+        customerPhone: effectiveCustomerPhone || "",
+        customerAddress: "",
+        customerGstin: "",
+
+        items: currentScreen.items.map((c: any) => ({
+          name: c.item?.name || "Item",
+          description: c.item?.description || "",
+          hsn: c.item?.hsnCode || "",
+          quantity: String(c.quantity),
+          unit:
+            typeof c.item?.unit === "string"
+              ? c.item.unit
+              : c.item?.unit?.symbol || "Pcs",
+          rate: Number(c.unitPrice) || 0,
+          discount: Number(c.discountPercent) || 0,
+          taxPercent: Number(c.taxRate || c.item?.taxRate) || 0,
+          amount: (Number(c.unitPrice) || 0) * (Number(c.quantity) || 1),
+        })),
+
+        subTotal: Number(subTotal) || 0,
+        taxableAmount: (Number(subTotal) || 0) - (Number(totalDiscount) || 0),
+        taxTotal: Number(taxTotal) || 0,
+        discountTotal: Number(totalDiscount) || 0,
+        chargesTotal: Number(totalCharges) || 0,
+        roundOff: Number(roundOff) || 0,
+        grandTotal: Number(grandTotal) || 0,
+        paymentMode: currentScreen.paymentMode || "CASH",
         receivedAmount:
           typeof currentScreen.receivedAmount === "number"
             ? currentScreen.receivedAmount
             : grandTotal,
         changeDue:
-          typeof currentScreen.receivedAmount === "number" && currentScreen.receivedAmount > grandTotal
+          typeof currentScreen.receivedAmount === "number" &&
+          currentScreen.receivedAmount > grandTotal
             ? currentScreen.receivedAmount - grandTotal
             : 0,
-        items: [...currentScreen.items],
-        customerName: effectiveCustomerName,
-        customerPhone: effectiveCustomerPhone,
-        date: new Date().toLocaleString("en-IN"),
-        notes: currentScreen.notes,
+        balanceAmount: Math.max(
+          0,
+          grandTotal -
+            (typeof currentScreen.receivedAmount === "number"
+              ? currentScreen.receivedAmount
+              : grandTotal)
+        ),
+        youSaved: Number(totalDiscount) || 0,
+        notes: currentScreen.notes || "",
+        terms:
+          thermalSettings.customFooter ||
+          "Thank you for your business! Please visit again.",
       };
 
-      setLastReceipt(receiptData);
+      setLastReceipt(thermalData);
+      setActiveThermalReceipt(thermalData);
+      setAutoPrintReceipt(andPrint);
+      setIsReceiptModalOpen(true);
+
+      try {
+        const histKey = `mybill_pos_order_history_${tenantContext.companyId || "default"}`;
+        const existing = JSON.parse(localStorage.getItem(histKey) || "[]");
+        const fullPosOrder = {
+          id: generatedInvoiceNumber || `pos_${Date.now()}`,
+          invoiceNumber: generatedInvoiceNumber,
+          grandTotal,
+          subTotal,
+          taxTotal,
+          totalDiscount,
+          totalCharges,
+          roundOff,
+          paymentMode: currentScreen.paymentMode,
+          tenderedSplit:
+            currentScreen.paymentMode === "SPLIT"
+              ? {
+                  cash: Number(currentScreen.splitCash) || 0,
+                  upiQr: Number(currentScreen.splitOnline) || 0,
+                }
+              : undefined,
+          receivedAmount:
+            typeof currentScreen.receivedAmount === "number"
+              ? currentScreen.receivedAmount
+              : grandTotal,
+          customerName: effectiveCustomerName,
+          customerPhone: effectiveCustomerPhone,
+          items: currentScreen.items.map((it) => ({
+            itemId: it.item.id,
+            name: it.item.name,
+            quantity: it.quantity,
+            unitPrice: it.unitPrice,
+            taxRate: it.taxRate,
+            discountPercent: it.discountPercent,
+            total:
+              it.quantity *
+              it.unitPrice *
+              (1 - (it.discountPercent || 0) / 100),
+          })),
+          createdAt: new Date().toISOString(),
+          status: "PAID",
+        };
+        localStorage.setItem(histKey, JSON.stringify([fullPosOrder, ...existing.slice(0, 99)]));
+      } catch (histErr) {
+        console.warn("Could not save to local POS order history:", histErr);
+      }
 
       if (screens.length > 1) {
         handleCloseScreen(currentScreen.id);
@@ -948,12 +1070,6 @@ export default function PosTerminalPage() {
           receivedAmount: "",
           notes: "",
         }));
-      }
-
-      if (andPrint) {
-        setTimeout(() => {
-          handlePrintReceipt(receiptData);
-        }, 150);
       }
 
       fetchData();
@@ -1995,24 +2111,25 @@ export default function PosTerminalPage() {
                   />
                 </div>
 
-                <div className="relative w-32">
-                  <select
+                <div className="w-36">
+                  <CustomSelect
+                    size="sm"
                     value={currentScreen.paymentMode}
-                    onChange={(e) =>
+                    onChange={(val: any) =>
                       updateCurrentScreen((prev) => ({
                         ...prev,
-                        paymentMode: e.target.value as any,
+                        paymentMode: val as any,
                       }))
                     }
-                    className="w-full px-3 py-2 text-[13px] font-medium text-[#374151] bg-white border border-[#E5E7EB] rounded-md outline-none cursor-pointer appearance-none h-10"
-                  >
-                    <option value="CASH">Cash</option>
-                    <option value="UPI">Online / UPI</option>
-                    <option value="CHEQUE">Cheque</option>
-                    <option value="CARD">Card</option>
-                    <option value="SPLIT">Split</option>
-                  </select>
-                  <ChevronDown className="w-3.5 h-3.5 absolute right-3 top-3 text-slate-400 pointer-events-none" />
+                    options={[
+                      { value: "CASH", label: "Cash" },
+                      { value: "UPI", label: "Online / UPI" },
+                      { value: "CHEQUE", label: "Cheque" },
+                      { value: "CARD", label: "Card" },
+                      { value: "SPLIT", label: "Split" },
+                    ]}
+                    triggerClassName="rounded-md border-[#E5E7EB] bg-white font-medium text-[#374151]"
+                  />
                 </div>
               </div>
 
@@ -2218,20 +2335,21 @@ export default function PosTerminalPage() {
 
               <div className="pt-3">
                 <label className="font-medium text-slate-800 block mb-1">Printer Type</label>
-                <select
+                <CustomSelect
                   value={tempSettings.printerType}
-                  onChange={(e) =>
+                  onChange={(val: any) =>
                     setTempSettings({
                       ...tempSettings,
-                      printerType: e.target.value as any,
+                      printerType: val as any,
                     })
                   }
-                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-md text-[13px] outline-none cursor-pointer h-10"
-                >
-                  <option value="A4">A4 Printer</option>
-                  <option value="80mm">Thermal 3-inch (80mm)</option>
-                  <option value="58mm">Thermal 2-inch (58mm)</option>
-                </select>
+                  options={[
+                    { value: "A4", label: "A4 Printer" },
+                    { value: "80mm", label: "Thermal 3-inch (80mm)" },
+                    { value: "58mm", label: "Thermal 2-inch (58mm)" },
+                  ]}
+                  triggerClassName="rounded-md border-slate-300 bg-slate-50"
+                />
               </div>
             </div>
 
@@ -2657,18 +2775,19 @@ export default function PosTerminalPage() {
 
                   <div>
                     <label className="block text-slate-600 font-medium mb-1">Category</label>
-                    <select
+                    <CustomCombobox
                       value={newItemForm.categoryId}
-                      onChange={(e) => setNewItemForm({ ...newItemForm, categoryId: e.target.value })}
-                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-md text-[13px] outline-none h-10"
-                    >
-                      <option value="">Search Categories</option>
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val: any) => setNewItemForm({ ...newItemForm, categoryId: val })}
+                      placeholder="Search Categories"
+                      options={[
+                        { value: "", label: "Search Categories" },
+                        ...categories.map((c) => ({
+                          value: c.id,
+                          label: c.name,
+                        })),
+                      ]}
+                      triggerClassName="rounded-md border-slate-300 bg-slate-50"
+                    />
                   </div>
                 </div>
 
@@ -2686,6 +2805,7 @@ export default function PosTerminalPage() {
                     />
                   </div>
 
+                  {/* Hidden for now as requested:
                   <div className="pt-5 flex items-center justify-between">
                     <span className="text-[11px] font-medium text-slate-600">
                       Show Item in Online Store
@@ -2699,6 +2819,7 @@ export default function PosTerminalPage() {
                       className="w-4 h-4 accent-[#5C56DF] rounded cursor-pointer"
                     />
                   </div>
+                  */}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -2719,19 +2840,23 @@ export default function PosTerminalPage() {
                           required
                         />
                       </div>
-                      <select
-                        value={newItemForm.taxInclusive ? "WITH_TAX" : "WITHOUT_TAX"}
-                        onChange={(e) =>
-                          setNewItemForm({
-                            ...newItemForm,
-                            taxInclusive: e.target.value === "WITH_TAX",
-                          })
-                        }
-                        className="p-2 bg-slate-50 border border-slate-300 rounded-md text-[11px] outline-none h-10"
-                      >
-                        <option value="WITH_TAX">With Tax</option>
-                        <option value="WITHOUT_TAX">Without Tax</option>
-                      </select>
+                      <div className="w-32">
+                        <CustomSelect
+                          size="sm"
+                          value={newItemForm.taxInclusive ? "WITH_TAX" : "WITHOUT_TAX"}
+                          onChange={(val: any) =>
+                            setNewItemForm({
+                              ...newItemForm,
+                              taxInclusive: val === "WITH_TAX",
+                            })
+                          }
+                          options={[
+                            { value: "WITH_TAX", label: "With Tax" },
+                            { value: "WITHOUT_TAX", label: "Without Tax" },
+                          ]}
+                          triggerClassName="rounded-md border-slate-300 bg-slate-50 text-[11px]"
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -2767,18 +2892,19 @@ export default function PosTerminalPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-slate-600 font-medium mb-1">Measuring Unit</label>
-                    <select
+                    <CustomSelect
                       value={newItemForm.unit}
-                      onChange={(e) => setNewItemForm({ ...newItemForm, unit: e.target.value })}
-                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-md text-[13px] outline-none h-10"
-                    >
-                      <option value="PCS">Pieces(PCS)</option>
-                      <option value="BOX">BOX</option>
-                      <option value="KG">Kilogram(KG)</option>
-                      <option value="LTR">Litre(LTR)</option>
-                      <option value="MTR">Meter(MTR)</option>
-                      <option value="PACKET">Packet(PKT)</option>
-                    </select>
+                      onChange={(val: any) => setNewItemForm({ ...newItemForm, unit: val })}
+                      options={[
+                        { value: "PCS", label: "Pieces(PCS)" },
+                        { value: "BOX", label: "BOX" },
+                        { value: "KG", label: "Kilogram(KG)" },
+                        { value: "LTR", label: "Litre(LTR)" },
+                        { value: "MTR", label: "Meter(MTR)" },
+                        { value: "PACKET", label: "Packet(PKT)" },
+                      ]}
+                      triggerClassName="rounded-md border-slate-300 bg-slate-50"
+                    />
                   </div>
 
                   <div>
@@ -2985,6 +3111,21 @@ export default function PosTerminalPage() {
           </div>
         </div>
       )}
+
+      {/* MODAL 7: Thermal Receipt Live Preview & Print Modal */}
+      <PosReceiptPreviewModal
+        isOpen={isReceiptModalOpen}
+        onClose={() => {
+          setIsReceiptModalOpen(false);
+          setActiveThermalReceipt(null);
+          setTimeout(() => {
+            searchInputRef.current?.focus();
+          }, 150);
+        }}
+        receiptData={activeThermalReceipt}
+        autoPrint={autoPrintReceipt}
+        lang={lang}
+      />
     </div>
   );
 }

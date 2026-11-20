@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { apiClient } from "../../../../lib/api-client";
 import { AlertCircle, X, Calculator } from "lucide-react";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 
 interface WarehouseOption {
   id: string;
@@ -160,20 +161,19 @@ export function AdjustStockModal({
                 <label className="block text-[12px] font-medium text-slate-700 mb-1.5">
                   {lang === "gu" ? "ગોડાઉન (Godown) *" : "Godown *"}
                 </label>
-                <select
+                <CustomCombobox
                   value={warehouseId}
-                  onChange={(e) => setWarehouseId(e.target.value)}
-                  className="w-full text-[13px] py-2 px-3 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 font-medium cursor-pointer h-10"
-                >
-                  {warehouses.map((w) => (
-                    <option key={w.id} value={w.id}>
-                      {w.name} {w.isDefault ? "(Default)" : ""}
-                    </option>
-                  ))}
-                  {warehouses.length === 0 && (
-                    <option value="">Main Warehouse (Default)</option>
-                  )}
-                </select>
+                  onChange={(val: any) => setWarehouseId(val)}
+                  options={
+                    warehouses.length > 0
+                      ? warehouses.map((w) => ({
+                          value: w.id,
+                          label: `${w.name} ${w.isDefault ? "(Default)" : ""}`.trim(),
+                        }))
+                      : [{ value: "", label: "Main Warehouse (Default)" }]
+                  }
+                  triggerClassName="rounded-lg border-slate-300 bg-white"
+                />
               </div>
 
               {/* Add or Reduce Stock & Quantity Row */}
@@ -182,14 +182,15 @@ export function AdjustStockModal({
                   <label className="block text-[12px] font-medium text-slate-700 mb-1.5">
                     {lang === "gu" ? "સ્ટોક ઉમેરો કે ઘટાડો" : "Add or Reduce Stock"}
                   </label>
-                  <select
+                  <CustomSelect
                     value={adjustType}
-                    onChange={(e) => setAdjustType(e.target.value as "ADD" | "REDUCE")}
-                    className="w-full text-[13px] py-2 px-3 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 font-medium cursor-pointer h-10"
-                  >
-                    <option value="ADD">Add (+)</option>
-                    <option value="REDUCE">Reduce (-)</option>
-                  </select>
+                    onChange={(val: any) => setAdjustType(val as "ADD" | "REDUCE")}
+                    options={[
+                      { value: "ADD", label: "Add (+)" },
+                      { value: "REDUCE", label: "Reduce (-)" },
+                    ]}
+                    triggerClassName="rounded-lg border-slate-300 bg-white font-medium"
+                  />
                 </div>
 
                 <div>

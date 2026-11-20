@@ -8,7 +8,7 @@ import { apiClient, extractList } from "../../../lib/api-client";
 import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/scorecard-ribbon";
 import { formatInr } from "@/components/design-system/tokens";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
-import { X } from "lucide-react";
+import { X, ShieldAlert } from "lucide-react";
 
 type DateRangePreset =
   | "ALL"
@@ -146,7 +146,7 @@ function rangeForPreset(
 function CreditNoteListPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { lang, tenantContext } = useAuth();
+  const { lang, tenantContext, hasPermission } = useAuth();
 
   const [rows, setRows] = useState<CreditNoteRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -291,6 +291,30 @@ function CreditNoteListPage() {
     return displayedRows.slice(start, start + pageSize);
   }, [displayedRows, currentPage, pageSize]);
 
+  if (!hasPermission("sales_returns", "view")) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center min-h-[50vh] bg-white rounded-2xl border border-slate-200 shadow-xs">
+        <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 flex items-center justify-center mb-4 shadow-xs">
+          <ShieldAlert className="w-7 h-7" strokeWidth={1.8} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800 mb-1">
+          {lang === "gu" ? "પ્રવેશ પ્રતિબંધિત છે" : "Access Restricted"}
+        </h2>
+        <p className="text-sm text-slate-500 max-w-md mb-6">
+          {lang === "gu"
+            ? "તમારી પાસે આ મોડ્યુલ ઍક્સેસ કરવાની પરવાનગી નથી. કૃપા કરીને તમારા વ્યવસાય એડમિનિસ્ટ્રેટરનો સંપર્ક કરો."
+            : "You do not have permission to access this module. Please contact your organization administrator."}
+        </p>
+        <Link
+          href="/"
+          className="px-5 py-2.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
+        >
+          {lang === "gu" ? "ડેશબોર્ડ પર પાછા જાઓ" : "Return to Dashboard"}
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 max-w-7xl mx-auto min-w-0 pb-16 font-sans">
       {/* 1. TOP HEADER BAR */}
@@ -335,15 +359,17 @@ function CreditNoteListPage() {
             <span>Print</span>
           </button>
 
-          <Link
-            href="/sales/credit-note/create"
-            className="inline-flex items-center gap-2 h-9 px-3.5 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white typo-btn-primary shadow-md shadow-[#0F172A]/20 transition-all cursor-pointer"
-          >
-            <svg className="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>{lang === "gu" ? "+ નવી ક્રેડિટ નોટ" : "+ Create Credit Note"}</span>
-          </Link>
+          {hasPermission("sales_returns", "create") && (
+            <Link
+              href="/sales/credit-note/create"
+              className="inline-flex items-center gap-2 h-9 px-3.5 rounded-xl bg-[#1677E8] hover:bg-[#1268D3] text-white typo-btn-primary shadow-md shadow-[#0F172A]/20 transition-all cursor-pointer"
+            >
+              <svg className="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>{lang === "gu" ? "+ નવી ક્રેડિટ નોટ" : " Create Credit Note"}</span>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -480,12 +506,7 @@ function CreditNoteListPage() {
                       <p className="typo-empty-desc text-slate-500 mt-1">
                         Issue financial adjustments, Section 34 tax credits, or post-sale rebates.
                       </p>
-                      <Link
-                        href="/sales/credit-note/create"
-                        className="mt-4 rounded-xl bg-[#1677E8] h-9 px-3.5 typo-btn-primary text-white shadow-xs hover:bg-[#1268D3] transition-colors"
-                      >
-                        + Create Credit Note
-                      </Link>
+                   
                     </div>
                   </td>
                 </tr>

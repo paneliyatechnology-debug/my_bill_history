@@ -7,6 +7,7 @@ import { apiClient, extractList } from "@/lib/api-client";
 import { Modal } from "@/components/ui/modal";
 import { StatusBadge } from "@/components/ui/badge";
 import { DataTable, ColumnDef } from "@/components/ui/data-table";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 import { Check, Zap, AlertCircle, Banknote, Landmark, FileText, FolderTree, Receipt, TrendingUp, Users, Search } from "lucide-react";
 
 interface LedgerAccount {
@@ -598,18 +599,18 @@ export default function FinanceLedgersPage() {
             />
           </div>
 
-          <select
-            value={groupFilter}
-            onChange={(e) => setGroupFilter(e.target.value)}
-            className="text-[13px] py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl font-normal text-slate-700 outline-none focus:bg-white focus:border-primary h-10"
-          >
-            <option value="ALL">{lang === "gu" ? "બધા જૂથ (All Groups)" : "All Groups"}</option>
-            {groups.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.name}
-              </option>
-            ))}
-          </select>
+          <div className="w-full sm:w-[200px]">
+            <CustomSelect
+              size="md"
+              value={groupFilter}
+              onChange={(val: any) => setGroupFilter(val)}
+              options={[
+                { value: "ALL", label: lang === "gu" ? "બધા જૂથ (All Groups)" : "All Groups" },
+                ...groups.map((g) => ({ value: g.id, label: g.name })),
+              ]}
+              triggerClassName="rounded-xl h-10 border-slate-200 bg-slate-50"
+            />
+          </div>
         </div>
       </div>
 
@@ -664,18 +665,19 @@ export default function FinanceLedgersPage() {
               <label className="block text-[12px] font-medium text-slate-700 uppercase tracking-wider mb-1.5">
                 {lang === "gu" ? "લેજર જૂથ (Group) *" : "Ledger Group *"}
               </label>
-              <select
+              <CustomCombobox
                 required
                 value={formData.groupId}
-                onChange={(e) => setFormData({ ...formData, groupId: e.target.value })}
-                className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-normal text-slate-900 focus:bg-white focus:border-primary outline-none h-10"
-              >
-                {groups.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    {g.name} ({g.nature || "ASSET"})
-                  </option>
-                ))}
-              </select>
+                onChange={(val: any) => setFormData({ ...formData, groupId: val })}
+                options={groups.map((g) => ({
+                  value: g.id,
+                  label: `${g.name} (${g.nature || "ASSET"})`,
+                  group: g.nature || "General",
+                }))}
+                placeholder="Select ledger group..."
+                searchPlaceholder="Search group..."
+                triggerClassName="rounded-xl h-10 border-slate-300 bg-slate-50"
+              />
             </div>
           </div>
 
@@ -727,14 +729,15 @@ export default function FinanceLedgersPage() {
               <label className="block text-[12px] font-medium text-slate-700 uppercase tracking-wider mb-1.5">
                 {lang === "gu" ? "સિલક પ્રકાર" : "Balance Type"}
               </label>
-              <select
+              <CustomSelect
                 value={formData.openingBalanceType}
-                onChange={(e: any) => setFormData({ ...formData, openingBalanceType: e.target.value })}
-                className="w-full text-[13px] p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-normal text-slate-900 focus:bg-white focus:border-primary outline-none h-10"
-              >
-                <option value="DEBIT">{lang === "gu" ? "ઉધાર (Dr - મિલકત/બેંક/ખર્ચ)" : "DEBIT (Dr - Asset/Bank/Expense)"}</option>
-                <option value="CREDIT">{lang === "gu" ? "જમા (Cr - દેવું/આવક)" : "CREDIT (Cr - Liability/Income)"}</option>
-              </select>
+                onChange={(val: any) => setFormData({ ...formData, openingBalanceType: val })}
+                options={[
+                  { value: "DEBIT", label: lang === "gu" ? "ઉધાર (Dr - મિલકત/બેંક/ખર્ચ)" : "DEBIT (Dr - Asset/Bank/Expense)" },
+                  { value: "CREDIT", label: lang === "gu" ? "જમા (Cr - દેવું/આવક)" : "CREDIT (Cr - Liability/Income)" },
+                ]}
+                triggerClassName="rounded-xl h-10 border-slate-300 bg-slate-50"
+              />
             </div>
           </div>
 

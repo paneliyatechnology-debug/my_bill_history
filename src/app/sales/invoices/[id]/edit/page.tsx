@@ -7,6 +7,7 @@ import { useAuth } from "../../../../../context/auth-context";
 import { apiClient, extractList } from "../../../../../lib/api-client";
 import { getPartyItemPrice } from "../../../../../lib/party-item-pricing";
 import { Pencil, Save, AlertTriangle, Check, X } from "lucide-react";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 
 interface PartyOption {
   id: string;
@@ -396,34 +397,33 @@ export default function EditInvoicePage() {
             <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "ગ્રાહક (Customer / Party) *" : "Customer / Party *"}
             </label>
-            <select
+            <CustomCombobox
               value={partyId}
-              onChange={(e) => handlePartyChange(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none h-10"
-            >
-              <option value="">{lang === "gu" ? "-- ગ્રાહક પસંદ કરો --" : "-- Select Customer --"}</option>
-              {parties.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} {p.gstin ? `(${p.gstin})` : ""}
-                </option>
-              ))}
-            </select>
+              onChange={(val: any) => handlePartyChange(val)}
+              options={parties.map((p) => ({
+                value: p.id,
+                label: `${p.name} ${p.gstin ? `(${p.gstin})` : ""}`,
+              }))}
+              placeholder={lang === "gu" ? "-- ગ્રાહક પસંદ કરો --" : "-- Select Customer --"}
+              triggerClassName="rounded-lg border-slate-300"
+            />
           </div>
 
           <div>
             <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "બિલ પ્રકાર (Document Category)" : "Document Category"}
             </label>
-            <select
+            <CustomSelect
               value={category}
-              onChange={(e) => setCategory(e.target.value as any)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none h-10"
-            >
-              <option value="TAX_INVOICE">Tax Invoice</option>
-              <option value="BILL_OF_SUPPLY">Bill of Supply</option>
-              <option value="PROFORMA_INVOICE">Proforma Invoice</option>
-              <option value="DELIVERY_CHALLAN">Delivery Challan</option>
-            </select>
+              onChange={(val: any) => setCategory(val as any)}
+              options={[
+                { value: "TAX_INVOICE", label: "Tax Invoice" },
+                { value: "BILL_OF_SUPPLY", label: "Bill of Supply" },
+                { value: "PROFORMA_INVOICE", label: "Proforma Invoice" },
+                { value: "DELIVERY_CHALLAN", label: "Delivery Challan" },
+              ]}
+              triggerClassName="rounded-lg border-slate-300"
+            />
           </div>
 
           <div>
@@ -454,17 +454,18 @@ export default function EditInvoicePage() {
             <label className="block text-[12px] font-medium text-slate-700 mb-1">
               {lang === "gu" ? "ચુકવણી મોડ (Payment Mode)" : "Payment Mode"}
             </label>
-            <select
+            <CustomSelect
               value={paymentMode}
-              onChange={(e) => setPaymentMode(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-[13px] font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none h-10"
-            >
-              <option value="UNPAID_CREDIT">{lang === "gu" ? "Unpaid / Credit (બાકી)" : "Unpaid / Credit"}</option>
-              <option value="CASH">{lang === "gu" ? "Cash (રોકડ)" : "Cash"}</option>
-              <option value="BANK_TRANSFER">Bank Transfer / NEFT</option>
-              <option value="UPI">UPI Payment</option>
-              <option value="CHEQUE">Cheque</option>
-            </select>
+              onChange={(val: any) => setPaymentMode(val)}
+              options={[
+                { value: "UNPAID_CREDIT", label: lang === "gu" ? "Unpaid / Credit (બાકી)" : "Unpaid / Credit" },
+                { value: "CASH", label: lang === "gu" ? "Cash (રોકડ)" : "Cash" },
+                { value: "BANK_TRANSFER", label: "Bank Transfer / NEFT" },
+                { value: "UPI", label: "UPI Payment" },
+                { value: "CHEQUE", label: "Cheque" },
+              ]}
+              triggerClassName="rounded-lg border-slate-300"
+            />
           </div>
         </div>
 
@@ -565,18 +566,17 @@ export default function EditInvoicePage() {
                   <tr key={idx} className="hover:bg-slate-50/60 transition-colors">
                     <td className="py-2 px-3 text-slate-400 tabular-nums">{idx + 1}</td>
                     <td className="py-2 px-3">
-                      <select
+                      <CustomCombobox
+                        size="sm"
                         value={row.itemId}
-                        onChange={(e) => handleItemSelect(idx, e.target.value)}
-                        className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-[13px] font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none h-10"
-                      >
-                        <option value="">-- Select Item --</option>
-                        {items.map((it) => (
-                          <option key={it.id} value={it.id}>
-                            {it.name} (₹{it.retailPrice})
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val: any) => handleItemSelect(idx, val)}
+                        options={items.map((it) => ({
+                          value: it.id,
+                          label: `${it.name} (₹${it.retailPrice})`,
+                        }))}
+                        placeholder="-- Select Item --"
+                        triggerClassName="rounded-lg border-slate-300"
+                      />
                     </td>
                     <td className="py-2 px-3">
                       <input

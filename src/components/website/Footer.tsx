@@ -301,13 +301,11 @@ export function Footer({ lang = "en", onToggleLang }: FooterProps) {
           </div>
         </div>
 
-        {/* Bottom Bar: Copyright, Language Switcher, India reassurance */}
-        <div className="pt-8 border-t border-[#E5EAF1] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#667085]">
-          <div>
+        {/* Bottom Bar: Copyright (Centered) */}
+        <div className="pt-8 border-t border-[#E5EAF1] flex flex-col items-center justify-center text-center gap-4 text-xs text-[#667085]">
+          <p>
             © {currentYear} MyOwnBillBook by Paneliya Technology. All rights reserved.
-          </div>
-
-          
+          </p>
         </div>
       </div>
     </footer>

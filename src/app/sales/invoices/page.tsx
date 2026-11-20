@@ -16,7 +16,8 @@ import { ImportModuleType } from "@billing/shared-types";
 import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/scorecard-ribbon";
 import { formatInr } from "@/components/design-system/tokens";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
-import { Phone, Check, X } from "lucide-react";
+import { Phone, Check, X, ShieldAlert } from "lucide-react";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 
 interface SalesInvoice {
   id: string;
@@ -135,7 +136,7 @@ function getInvoiceStatus(inv: any): "PAID" | "PARTIALLY_PAID" | "UNPAID" | "CAN
 
 export default function SalesInvoicesDashboardPage() {
   const router = useRouter();
-  const { lang, user, tenantContext } = useAuth();
+  const { lang, user, tenantContext, hasPermission } = useAuth();
 
   const [invoices, setInvoices] = useState<SalesInvoice[]>([]);
   const [parties, setParties] = useState<PartyOption[]>([]);
@@ -610,6 +611,30 @@ export default function SalesInvoicesDashboardPage() {
     },
   ];
 
+  if (!hasPermission("sales_invoices", "view")) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center min-h-[50vh] bg-white rounded-2xl border border-slate-200 shadow-xs max-w-7xl mx-auto">
+        <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 flex items-center justify-center mb-4 shadow-xs">
+          <ShieldAlert className="w-7 h-7" strokeWidth={1.8} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800 mb-1">
+          {lang === "gu" ? "પ્રવેશ પ્રતિબંધિત છે" : "Access Restricted"}
+        </h2>
+        <p className="text-sm text-slate-500 max-w-md mb-6">
+          {lang === "gu"
+            ? "તમારી પાસે વેચાણ બિલ (Sales Invoices) જોવાની પરવાનગી નથી. કૃપા કરીને તમારા વ્યવસાય એડમિનિસ્ટ્રેટરનો સંપર્ક કરો."
+            : "You do not have permission to view Sales Invoices. Please contact your organization administrator."}
+        </p>
+        <Link
+          href="/"
+          className="px-5 py-2.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
+        >
+          {lang === "gu" ? "ડેશબોર્ડ પર પાછા જાઓ" : "Return to Dashboard"}
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 max-w-7xl mx-auto min-w-0 pb-16 font-sans">
       {/* 1. TOP UNIFIED COMMAND STRIP */}
@@ -784,15 +809,17 @@ export default function SalesInvoicesDashboardPage() {
           </button>
 
           {/* Primary CTA: Create Sales Invoice */}
-          <Link
-            href="/sales/invoices/new"
-            className="inline-flex items-center gap-1.5 h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-[10px] transition-colors cursor-pointer"
-          >
-            <svg className="w-3.5 h-3.5 text-[#93C5FD]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>{lang === "gu" ? "+ નવું વેચાણ બિલ" : " New Sales Invoice"}</span>
-          </Link>
+          {hasPermission("sales_invoices", "create") && (
+            <Link
+              href="/sales/invoices/new"
+              className="inline-flex items-center gap-1.5 h-9 px-3.5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-[10px] transition-colors cursor-pointer"
+            >
+              <svg className="w-3.5 h-3.5 text-[#93C5FD]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>{lang === "gu" ? "+ નવું વેચાણ બિલ" : " New Sales Invoice"}</span>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -830,17 +857,18 @@ export default function SalesInvoicesDashboardPage() {
             </div>
 
             {/* Date Range Dropdown */}
-            <select
-              value={dateRangePreset}
-              onChange={(e) => setDateRangePreset(e.target.value as DateRangePreset)}
-              className="px-3 py-2 bg-[#F8FAFC] border border-[#E2E8E5] text-xs font-semibold rounded-xl text-slate-800 focus:bg-white focus:outline-none focus:border-[#1677E8] cursor-pointer"
-            >
-              {Object.entries(DATE_PRESET_LABELS).map(([key, labelObj]) => (
-                <option key={key} value={key}>
-                  {lang === "gu" ? labelObj.gu : labelObj.en}
-                </option>
-              ))}
-            </select>
+            <div className="min-w-[150px]">
+              <CustomSelect
+                size="md"
+                value={dateRangePreset}
+                onChange={(val: any) => setDateRangePreset(val as DateRangePreset)}
+                options={Object.entries(DATE_PRESET_LABELS).map(([key, labelObj]) => ({
+                  value: key,
+                  label: lang === "gu" ? labelObj.gu : labelObj.en,
+                }))}
+                triggerClassName="rounded-xl h-10 border-[#E2E8E5] bg-[#F8FAFC] font-semibold text-xs text-slate-800"
+              />
+            </div>
 
             {/* Status Quick Filter Buttons */}
             <div className="hidden lg:flex items-center gap-1 bg-[#F8FAFC] p-1 border border-[#E2E8E5] rounded-xl">
@@ -1010,12 +1038,7 @@ export default function SalesInvoicesDashboardPage() {
                         >
                           {lang === "gu" ? "ફિલ્ટર્સ સાફ કરો" : "Reset Filters"}
                         </button>
-                        <Link
-                          href="/sales/invoices/new"
-                          className="px-4 py-1.5 bg-[#0F172A] hover:bg-[#123B35] text-white rounded-xl typo-btn-primary shadow-xs transition-colors cursor-pointer"
-                        >
-                          {lang === "gu" ? "+ નવું બિલ" : "+ Create Invoice"}
-                        </Link>
+                       
                       </div>
                     </div>
                   </td>
@@ -1066,7 +1089,7 @@ export default function SalesInvoicesDashboardPage() {
                         </div>
                       </td>
 
-                      {/* Invoice Number */}
+                      {/* Invoice Number & Source Reference */}
                       <td className="py-3 px-3 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           <Link
@@ -1081,6 +1104,23 @@ export default function SalesInvoicesDashboardPage() {
                             </span>
                           )}
                         </div>
+                        {((inv as any).quotationNumber ||
+                          (inv as any).sourceQuotation?.invoiceNumber) && (
+                          <div className="mt-0.5">
+                            <Link
+                              href={`/sales/invoices/${(inv as any).quotationId || (inv as any).sourceQuotation?.id}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded px-1.5 py-0.2 transition-colors"
+                              title="Converted from Quotation / Estimate"
+                            >
+                              <span className="text-[10px] text-blue-500">Quote:</span>
+                              <span className="font-semibold">
+                                #{(inv as any).quotationNumber ||
+                                  (inv as any).sourceQuotation?.invoiceNumber}
+                              </span>
+                            </Link>
+                          </div>
+                        )}
                       </td>
 
                       {/* Party Name with avatar chip */}
@@ -1243,7 +1283,7 @@ export default function SalesInvoicesDashboardPage() {
                             onClick={(e) => e.stopPropagation()}
                           >
                             {/* 1. Edit */}
-                            {inv.status !== "CANCELLED" && (
+                            {inv.status !== "CANCELLED" && hasPermission("sales_invoices", "edit") && (
                               <Link
                                 href={`/sales/invoices/${inv.id}/edit`}
                                 className="flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors"
@@ -1272,19 +1312,21 @@ export default function SalesInvoicesDashboardPage() {
                             </button>
 
                             {/* 3. Duplicate */}
-                            <button
-                              type="button"
-                              onClick={() => handleDuplicateInvoice(inv)}
-                              className="w-full text-left flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors cursor-pointer"
-                            >
-                              <svg className="w-3.5 h-3.5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                              </svg>
-                              <span>{lang === "gu" ? "નકલ બનાવો (Duplicate)" : "Duplicate"}</span>
-                            </button>
+                            {hasPermission("sales_invoices", "create") && (
+                              <button
+                                type="button"
+                                onClick={() => handleDuplicateInvoice(inv)}
+                                className="w-full text-left flex items-center gap-2 px-3 py-2 text-[#1A2E2B] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors cursor-pointer"
+                              >
+                                <svg className="w-3.5 h-3.5 text-[#1677E8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                                <span>{lang === "gu" ? "નકલ બનાવો (Duplicate)" : "Duplicate"}</span>
+                              </button>
+                            )}
 
                             {/* 4. Record Payment */}
-                            {unpaid > 0.01 && inv.status !== "CANCELLED" && (
+                            {unpaid > 0.01 && inv.status !== "CANCELLED" && hasPermission("sales_invoices", "create") && (
                               <button
                                 type="button"
                                 onClick={() => {
@@ -1303,7 +1345,7 @@ export default function SalesInvoicesDashboardPage() {
                             )}
 
                             {/* 5. Cancel Invoice */}
-                            {inv.status !== "CANCELLED" && (
+                            {inv.status !== "CANCELLED" && hasPermission("sales_invoices", "cancel") && (
                               <button
                                 type="button"
                                 onClick={() => {
@@ -1368,35 +1410,32 @@ export default function SalesInvoicesDashboardPage() {
                   <label className="block typo-label text-slate-600 uppercase mb-1">
                     {lang === "gu" ? "તારીખ રેન્જ" : "Date Range"}
                   </label>
-                  <select
+                  <CustomSelect
                     value={bulkDownloadDateRange}
-                    onChange={(e) => setBulkDownloadDateRange(e.target.value as DateRangePreset)}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 typo-input focus:bg-white focus:outline-none"
-                  >
-                    {Object.entries(DATE_PRESET_LABELS).map(([k, labelObj]) => (
-                      <option key={k} value={k}>
-                        {lang === "gu" ? labelObj.gu : labelObj.en}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val: any) => setBulkDownloadDateRange(val as DateRangePreset)}
+                    options={Object.entries(DATE_PRESET_LABELS).map(([k, labelObj]) => ({
+                      value: k,
+                      label: lang === "gu" ? labelObj.gu : labelObj.en,
+                    }))}
+                    triggerClassName="rounded-xl h-10 border-slate-200 bg-slate-50"
+                  />
                 </div>
 
                 <div>
                   <label className="block typo-label text-slate-600 uppercase mb-1">
                     {lang === "gu" ? "પાર્ટી (વૈકલ્પિક)" : "Select Party (Optional)"}
                   </label>
-                  <select
+                  <CustomCombobox
                     value={bulkDownloadPartyId}
-                    onChange={(e) => setBulkDownloadPartyId(e.target.value)}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 typo-input focus:bg-white focus:outline-none"
-                  >
-                    <option value="">{lang === "gu" ? "બધી પાર્ટીઓ" : "All Parties"}</option>
-                    {parties.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val: any) => setBulkDownloadPartyId(val)}
+                    options={[
+                      { value: "", label: lang === "gu" ? "બધી પાર્ટીઓ" : "All Parties" },
+                      ...parties.map((p) => ({ value: p.id, label: p.name })),
+                    ]}
+                    placeholder={lang === "gu" ? "બધી પાર્ટીઓ" : "All Parties"}
+                    searchPlaceholder="Search party..."
+                    triggerClassName="rounded-xl h-10 border-slate-200 bg-slate-50"
+                  />
                 </div>
               </div>
 
@@ -1528,16 +1567,17 @@ export default function SalesInvoicesDashboardPage() {
                   <label className="block typo-label text-slate-600 uppercase mb-1">
                     {lang === "gu" ? "ચૂકવણી પદ્ધતિ" : "Payment Mode"}
                   </label>
-                  <select
+                  <CustomSelect
                     value={paymentMode}
-                    onChange={(e) => setPaymentMode(e.target.value)}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 typo-input focus:bg-white focus:outline-none"
-                  >
-                    <option value="CASH">Cash</option>
-                    <option value="BANK_TRANSFER">Bank Transfer / NEFT</option>
-                    <option value="UPI_QR">UPI / QR</option>
-                    <option value="CHEQUE">Cheque</option>
-                  </select>
+                    onChange={(val: any) => setPaymentMode(val)}
+                    options={[
+                      { value: "CASH", label: "Cash" },
+                      { value: "BANK_TRANSFER", label: "Bank Transfer / NEFT" },
+                      { value: "UPI_QR", label: "UPI / QR" },
+                      { value: "CHEQUE", label: "Cheque" },
+                    ]}
+                    triggerClassName="rounded-xl h-10 border-slate-200 bg-slate-50"
+                  />
                 </div>
                 <div>
                   <label className="block typo-label text-slate-600 uppercase mb-1">

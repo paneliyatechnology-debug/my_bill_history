@@ -13,6 +13,7 @@ import {
 } from "@/lib/einvoice";
 import { formatInr } from "@/components/design-system/tokens";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 import { Check, X, AlertTriangle, AlertCircle } from "lucide-react";
 
 export default function EInvoicesListPage() {
@@ -293,7 +294,7 @@ export default function EInvoicesListPage() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
             </svg>
-            {lang === "gu" ? "+ નવું ઈ-ઇનવોઇસ" : "+ Create E-Invoice"}
+            {lang === "gu" ? "+ નવું ઈ-ઇનવોઇસ" : "Create E-Invoice"}
           </Link>
         </div>
       </div>
@@ -912,16 +913,17 @@ export default function EInvoicesListPage() {
                 <label className="block font-medium text-slate-800 mb-1">
                   Cancellation Reason Code *
                 </label>
-                <select
+                <CustomSelect
                   value={cancelReasonCode}
-                  onChange={(e) => setCancelReasonCode(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-[13px] focus:border-rose-500 focus:outline-none h-10"
-                >
-                  <option value="1">1 - Duplicate Invoice</option>
-                  <option value="2">2 - Data Entry Mistake</option>
-                  <option value="3">3 - Order Cancelled</option>
-                  <option value="4">4 - Others</option>
-                </select>
+                  onChange={(val) => setCancelReasonCode(val)}
+                  options={[
+                    { value: "1", label: "1 - Duplicate Invoice" },
+                    { value: "2", label: "2 - Data Entry Mistake" },
+                    { value: "3", label: "3 - Order Cancelled" },
+                    { value: "4", label: "4 - Others" },
+                  ]}
+                  className="w-full"
+                />
               </div>
 
               <div>

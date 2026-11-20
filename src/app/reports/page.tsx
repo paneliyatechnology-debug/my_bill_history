@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/auth-context";
 import { apiClient } from "../../lib/api-client";
@@ -13,6 +14,7 @@ import { ExportDropdown } from "../../components/ui/export-dropdown";
 import { ExportFormat } from "../../lib/export/export-types";
 import { exportReportData } from "./lib/report-export-adapter";
 import { DataTablePagination } from "../../components/ui/data-table-pagination";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 import {
   Star,
   Search,
@@ -32,6 +34,7 @@ import {
   Clock,
   TrendingUp,
   Info,
+  ShieldAlert,
 } from "lucide-react";
 
 type ReportTab =
@@ -124,7 +127,7 @@ export default function ReportsPage({
   initialTab?: ReportTab;
 } = {}) {
   const router = useRouter();
-  const { lang, tenantContext, currentFY, currentCompany } = useAuth();
+  const { lang, tenantContext, currentFY, currentCompany, hasPermission } = useAuth();
   const [viewMode, setViewMode] = useState<"dashboard" | "report">(
     initialTab ? "report" : defaultDashboard ? "dashboard" : "dashboard"
   );
@@ -638,6 +641,30 @@ export default function ReportsPage({
 
   const currentTabMeta = tabs.find((t) => t.id === activeTab) || tabs[0];
 
+  if (!hasPermission("reports", "view")) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center min-h-[50vh] bg-white rounded-2xl border border-slate-200 shadow-xs">
+        <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 flex items-center justify-center mb-4 shadow-xs">
+          <ShieldAlert className="w-7 h-7" strokeWidth={1.8} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800 mb-1">
+          {lang === "gu" ? "પ્રવેશ પ્રતિબંધિત છે" : "Access Restricted"}
+        </h2>
+        <p className="text-sm text-slate-500 max-w-md mb-6">
+          {lang === "gu"
+            ? "તમારી પાસે આ મોડ્યુલ ઍક્સેસ કરવાની પરવાનગી નથી. કૃપા કરીને તમારા વ્યવસાય એડમિનિસ્ટ્રેટરનો સંપર્ક કરો."
+            : "You do not have permission to access this module. Please contact your organization administrator."}
+        </p>
+        <Link
+          href="/"
+          className="px-5 py-2.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
+        >
+          {lang === "gu" ? "ડેશબોર્ડ પર પાછા જાઓ" : "Return to Dashboard"}
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 w-full min-w-0 max-w-full pb-16">
       {viewMode === "dashboard" ? (
@@ -775,22 +802,26 @@ export default function ReportsPage({
             <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto flex-1 min-w-0">
               {/* Date Preset Selector */}
               <div className="flex items-center gap-1.5">
-                <select
-                  value={selectedDatePreset}
-                  onChange={(e) => handleSelectDatePreset(e.target.value)}
-                  className="px-3.5 py-1.5 text-[13px] bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:bg-white focus:outline-none cursor-pointer shadow-2xs hover:bg-[#F8FAFC] h-10"
-                >
-                  <option value="Today">Today</option>
-                  <option value="Yesterday">Yesterday</option>
-                  <option value="This Week">This Week</option>
-                  <option value="This Month">This Month</option>
-                  <option value="Last Month">Last Month</option>
-                  <option value="Last 30 Days">Last 30 Days</option>
-                  <option value="This Quarter">This Quarter</option>
-                  <option value="This FY">This FY</option>
-                  <option value="Last FY">Last FY</option>
-                  <option value="Custom">Custom Range</option>
-                </select>
+                <div className="w-[140px]">
+                  <CustomSelect
+                    size="sm"
+                    value={selectedDatePreset}
+                    onChange={(val: any) => handleSelectDatePreset(val)}
+                    options={[
+                      { value: "Today", label: "Today" },
+                      { value: "Yesterday", label: "Yesterday" },
+                      { value: "This Week", label: "This Week" },
+                      { value: "This Month", label: "This Month" },
+                      { value: "Last Month", label: "Last Month" },
+                      { value: "Last 30 Days", label: "Last 30 Days" },
+                      { value: "This Quarter", label: "This Quarter" },
+                      { value: "This FY", label: "This FY" },
+                      { value: "Last FY", label: "Last FY" },
+                      { value: "Custom", label: "Custom Range" },
+                    ]}
+                    triggerClassName="rounded-md border-[#CBD5E1] bg-white text-slate-700 font-medium"
+                  />
+                </div>
 
                 {selectedDatePreset === "Custom" && (
                   <div className="flex items-center gap-1">
@@ -842,29 +873,37 @@ export default function ReportsPage({
 
               {/* Contextual filter: Staff Filter */}
               {activeTab === "sales-summary" && (
-                <select
-                  value={filterStaff}
-                  onChange={(e) => setFilterStaff(e.target.value)}
-                  className="px-3 py-1.5 text-[13px] bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:outline-none cursor-pointer h-10"
-                >
-                  <option value="ALL">All Staff</option>
-                  <option value="Admin">Admin</option>
-                  <option value="Accountant">Accountant</option>
-                  <option value="Sales Rep">Sales Rep</option>
-                </select>
+                <div className="w-[130px]">
+                  <CustomSelect
+                    size="sm"
+                    value={filterStaff}
+                    onChange={(val: any) => setFilterStaff(val)}
+                    options={[
+                      { value: "ALL", label: "All Staff" },
+                      { value: "Admin", label: "Admin" },
+                      { value: "Accountant", label: "Accountant" },
+                      { value: "Sales Rep", label: "Sales Rep" },
+                    ]}
+                    triggerClassName="rounded-md border-[#CBD5E1] bg-white text-slate-700 font-medium"
+                  />
+                </div>
               )}
 
               {/* Contextual filter: Invoice Type */}
               {(activeTab === "sales-summary" || activeTab === "sales-register") && (
-                <select
-                  value={filterInvoiceType}
-                  onChange={(e) => setFilterInvoiceType(e.target.value)}
-                  className="px-3 py-1.5 text-[13px] bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:outline-none cursor-pointer h-10"
-                >
-                  <option value="ALL">Invoice Type: All</option>
-                  <option value="credit">Credit</option>
-                  <option value="cash">Cash</option>
-                </select>
+                <div className="w-[150px]">
+                  <CustomSelect
+                    size="sm"
+                    value={filterInvoiceType}
+                    onChange={(val: any) => setFilterInvoiceType(val)}
+                    options={[
+                      { value: "ALL", label: "Invoice Type: All" },
+                      { value: "credit", label: "Credit" },
+                      { value: "cash", label: "Cash" },
+                    ]}
+                    triggerClassName="rounded-md border-[#CBD5E1] bg-white text-slate-700 font-medium"
+                  />
+                </div>
               )}
 
               {/* Contextual filter: Invoice Status */}
@@ -873,65 +912,81 @@ export default function ReportsPage({
                 activeTab === "purchase-register" ||
                 activeTab === "purchase-summary" ||
                 activeTab === "quotations") && (
-                <select
-                  value={filterInvoiceStatus}
-                  onChange={(e) => setFilterInvoiceStatus(e.target.value)}
-                  className="px-3 py-1.5 text-[13px] bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:outline-none cursor-pointer h-10"
-                >
-                  <option value="ALL">Status: All</option>
-                  <option value="Paid">{activeTab === "quotations" ? "Accepted" : "Paid"}</option>
-                  <option value="Unpaid">{activeTab === "quotations" ? "Pending / Open" : "Unpaid"}</option>
-                  {activeTab !== "quotations" && <option value="Partially Paid">Partially Paid</option>}
-                </select>
+                <div className="w-[140px]">
+                  <CustomSelect
+                    size="sm"
+                    value={filterInvoiceStatus}
+                    onChange={(val: any) => setFilterInvoiceStatus(val)}
+                    options={[
+                      { value: "ALL", label: "Status: All" },
+                      { value: "Paid", label: activeTab === "quotations" ? "Accepted" : "Paid" },
+                      { value: "Unpaid", label: activeTab === "quotations" ? "Pending / Open" : "Unpaid" },
+                      ...(activeTab !== "quotations" ? [{ value: "Partially Paid", label: "Partially Paid" }] : []),
+                    ]}
+                    triggerClassName="rounded-md border-[#CBD5E1] bg-white text-slate-700 font-medium"
+                  />
+                </div>
               )}
 
               {/* Contextual filter: Daybook Transaction Type */}
               {activeTab === "daybook" && (
-                <select
-                  value={filterTransactionType}
-                  onChange={(e) => setFilterTransactionType(e.target.value)}
-                  className="px-3 py-1.5 text-[13px] bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:outline-none cursor-pointer h-10"
-                >
-                  <option value="ALL">All Transactions</option>
-                  <option value="Sales Invoices">Sales Invoices</option>
-                  <option value="Purchase Invoices">Purchase Invoices</option>
-                  <option value="Payment In">Payment In</option>
-                  <option value="Payment Out">Payment Out</option>
-                  <option value="Quotation / Estimate">Quotation / Estimate</option>
-                  <option value="Sales Return">Sales Return</option>
-                  <option value="Purchase Return">Purchase Return</option>
-                  <option value="Purchase Orders">Purchase Orders</option>
-                  <option value="Add Money">Add Money</option>
-                </select>
+                <div className="w-[180px]">
+                  <CustomSelect
+                    size="sm"
+                    value={filterTransactionType}
+                    onChange={(val: any) => setFilterTransactionType(val)}
+                    options={[
+                      { value: "ALL", label: "All Transactions" },
+                      { value: "Sales Invoices", label: "Sales Invoices" },
+                      { value: "Purchase Invoices", label: "Purchase Invoices" },
+                      { value: "Payment In", label: "Payment In" },
+                      { value: "Payment Out", label: "Payment Out" },
+                      { value: "Quotation / Estimate", label: "Quotation / Estimate" },
+                      { value: "Sales Return", label: "Sales Return" },
+                      { value: "Purchase Return", label: "Purchase Return" },
+                      { value: "Purchase Orders", label: "Purchase Orders" },
+                      { value: "Add Money", label: "Add Money" },
+                    ]}
+                    triggerClassName="rounded-md border-[#CBD5E1] bg-white text-slate-700 font-medium"
+                  />
+                </div>
               )}
 
               {/* Contextual filter: Party Selector for party-ledger */}
               {activeTab === "party-ledger" && (
-                <select
-                  value={selectedPartyId}
-                  onChange={(e) => setSelectedPartyId(e.target.value)}
-                  className="px-3 py-1.5 text-[13px] bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:outline-none cursor-pointer min-w-[200px] h-10"
-                >
-                  <option value="">Select party by name...</option>
-                  {partiesList.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {lang === "gu" && p.nameGujarati ? p.nameGujarati : p.name} ({p.type})
-                    </option>
-                  ))}
-                </select>
+                <div className="w-[220px]">
+                  <CustomCombobox
+                    size="sm"
+                    value={selectedPartyId}
+                    onChange={(val: any) => setSelectedPartyId(val)}
+                    options={[
+                      { value: "", label: "Select party by name..." },
+                      ...partiesList.map((p) => ({
+                        value: p.id,
+                        label: `${lang === "gu" && p.nameGujarati ? p.nameGujarati : p.name} (${p.type})`,
+                      })),
+                    ]}
+                    placeholder="Select party by name..."
+                    triggerClassName="rounded-md border-[#CBD5E1] bg-white text-slate-700 font-medium"
+                  />
+                </div>
               )}
 
               {/* Contextual filter: Party Type for outstanding balances */}
               {activeTab === "outstanding" && (
-                <select
-                  value={outstandingPartyFilter}
-                  onChange={(e) => setOutstandingPartyFilter(e.target.value)}
-                  className="px-3 py-1.5 text-[13px] bg-white border border-[#CBD5E1] rounded-md text-slate-700 font-medium focus:outline-none cursor-pointer h-10"
-                >
-                  <option value="ALL">All (Debtors & Creditors)</option>
-                  <option value="CUSTOMER">Customers Only (Debtors)</option>
-                  <option value="SUPPLIER">Suppliers Only (Creditors)</option>
-                </select>
+                <div className="w-[200px]">
+                  <CustomSelect
+                    size="sm"
+                    value={outstandingPartyFilter}
+                    onChange={(val: any) => setOutstandingPartyFilter(val)}
+                    options={[
+                      { value: "ALL", label: "All (Debtors & Creditors)" },
+                      { value: "CUSTOMER", label: "Customers Only (Debtors)" },
+                      { value: "SUPPLIER", label: "Suppliers Only (Creditors)" },
+                    ]}
+                    triggerClassName="rounded-md border-[#CBD5E1] bg-white text-slate-700 font-medium"
+                  />
+                </div>
               )}
             </div>
 

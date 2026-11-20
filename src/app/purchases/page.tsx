@@ -19,7 +19,8 @@ import { ImportModuleType } from "@billing/shared-types";
 import { ScorecardRibbon, ScorecardSegment } from "@/components/design-system/scorecard-ribbon";
 import { formatInr } from "@/components/design-system/tokens";
 import { DataTablePagination } from "@/components/ui/data-table-pagination";
-import { Check, X, Camera, Phone } from "lucide-react";
+import { Check, X, Camera, Phone, ShieldAlert } from "lucide-react";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 
 interface PurchaseInvoice {
   id: string;
@@ -148,7 +149,7 @@ function getPurchaseStatus(inv: PurchaseInvoice): "PAID" | "UNPAID" | "PARTIAL" 
 
 export default function PurchasesPage() {
   const router = useRouter();
-  const { lang, tenantContext, user, currentCompany } = useAuth();
+  const { lang, tenantContext, user, currentCompany, hasPermission } = useAuth();
   const canPay = ["SUPER_ADMIN", "ORG_ADMIN", "COMPANY_ADMIN", "ACCOUNTANT", "BRANCH_MANAGER"].includes(user?.role || "");
 
   const [invoices, setInvoices] = useState<PurchaseInvoice[]>([]);
@@ -586,6 +587,30 @@ export default function PurchasesPage() {
     },
   ];
 
+  if (!hasPermission("purchases", "view")) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center min-h-[50vh] bg-white rounded-2xl border border-slate-200 shadow-xs max-w-7xl mx-auto">
+        <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 flex items-center justify-center mb-4 shadow-xs">
+          <ShieldAlert className="w-7 h-7" strokeWidth={1.8} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800 mb-1">
+          {lang === "gu" ? "પ્રવેશ પ્રતિબંધિત છે" : "Access Restricted"}
+        </h2>
+        <p className="text-sm text-slate-500 max-w-md mb-6">
+          {lang === "gu"
+            ? "તમારી પાસે ખરીદી બિલ (Purchases) જોવાની પરવાનગી નથી. કૃપા કરીને તમારા વ્યવસાય એડમિનિસ્ટ્રેટરનો સંપર્ક કરો."
+            : "You do not have permission to view Purchases. Please contact your organization administrator."}
+        </p>
+        <Link
+          href="/"
+          className="px-5 py-2.5 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
+        >
+          {lang === "gu" ? "ડેશબોર્ડ પર પાછા જાઓ" : "Return to Dashboard"}
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 max-w-7xl mx-auto min-w-0 pb-16 font-sans">
       {/* 1. TOP UNIFIED COMMAND STRIP */}
@@ -619,44 +644,7 @@ export default function PurchasesPage() {
         </div>
 
         {/* Center: Segmented View Switcher */}
-        <div className="inline-flex items-center bg-[#F8FAFC] p-1 rounded-xl border border-[#BFDBFE] self-start sm:self-center">
-          <button
-            type="button"
-            onClick={() => setActiveTab("ALL")}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === "ALL"
-                ? "bg-white text-[#0F172A] shadow-xs border border-[#93C5FD]/50 font-bold"
-                : "text-[#5A6B66] hover:text-[#0F172A]"
-            }`}
-          >
-            <svg className="w-3.5 h-3.5 text-[#1677E8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="16" y1="13" x2="8" y2="13" />
-              <line x1="16" y1="17" x2="8" y2="17" />
-            </svg>
-            <span>{lang === "gu" ? "બધા બિલ" : "All Bills"}</span>
-          </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab("INCOMPLETE_SCANS")}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === "INCOMPLETE_SCANS"
-                ? "bg-white text-amber-800 shadow-xs border border-amber-300 font-bold"
-                : "text-[#5A6B66] hover:text-[#0F172A]"
-            }`}
-          >
-            <svg className="w-3.5 h-3.5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M4 7V4h3" />
-              <path d="M20 7V4h-3" />
-              <path d="M4 17v3h3" />
-              <path d="M20 17v3h-3" />
-              <line x1="4" y1="12" x2="20" y2="12" />
-            </svg>
-            <span>{lang === "gu" ? "અધૂરા સ્કેન (AI)" : "Incomplete Scans"}</span>
-          </button>
-        </div>
 
         {/* Right: Quick Action Suite */}
         <div className="flex items-center gap-2 flex-wrap shrink-0">
@@ -783,7 +771,7 @@ export default function PurchasesPage() {
             <svg className="w-3.5 h-3.5 text-[#93C5FD]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            <span>{lang === "gu" ? "+ નવું ખરીદી બિલ" : "+ New Purchase Bill"}</span>
+            <span>{lang === "gu" ? "નવું ખરીદી બિલ" : "New Purchase Bill"}</span>
           </Link>
         </div>
       </div>
@@ -845,17 +833,18 @@ export default function PurchasesPage() {
                 </div>
 
                 {/* Date Range Dropdown */}
-                <select
-                  value={dateRangePreset}
-                  onChange={(e) => setDateRangePreset(e.target.value as DateRangePreset)}
-                  className="px-3 py-2 bg-[#F8FAFC] border border-[#E2E8E5] text-xs font-semibold rounded-xl text-slate-800 focus:bg-white focus:outline-none focus:border-[#1677E8] cursor-pointer"
-                >
-                  {Object.entries(DATE_PRESET_LABELS).map(([key, labelObj]) => (
-                    <option key={key} value={key}>
-                      {lang === "gu" ? labelObj.gu : labelObj.en}
-                    </option>
-                  ))}
-                </select>
+                <div className="w-[170px]">
+                  <CustomSelect
+                    size="sm"
+                    value={dateRangePreset}
+                    onChange={(val: any) => setDateRangePreset(val as DateRangePreset)}
+                    options={Object.entries(DATE_PRESET_LABELS).map(([key, labelObj]) => ({
+                      value: key,
+                      label: lang === "gu" ? labelObj.gu : labelObj.en,
+                    }))}
+                    triggerClassName="rounded-xl border-[#E2E8E5] bg-[#F8FAFC] font-semibold text-xs"
+                  />
+                </div>
 
                 {/* Status Quick Filter Buttons */}
                 <div className="hidden lg:flex items-center gap-1 bg-[#F8FAFC] p-1 border border-[#E2E8E5] rounded-xl">
@@ -864,11 +853,10 @@ export default function PurchasesPage() {
                       key={st}
                       type="button"
                       onClick={() => setStatusFilter(st)}
-                      className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                        statusFilter === st
+                      className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${statusFilter === st
                           ? "bg-white text-[#0F172A] shadow-xs border border-[#93C5FD]"
                           : "text-slate-600 hover:text-slate-900"
-                      }`}
+                        }`}
                     >
                       {st === "ALL" && (lang === "gu" ? "બધા" : "All Bills")}
                       {st === "PAID" && (lang === "gu" ? "ચૂકવાયેલ" : "Paid")}
@@ -1055,13 +1043,12 @@ export default function PurchasesPage() {
                           {/* Due In */}
                           <td className="py-3 px-4 whitespace-nowrap">
                             <span
-                              className={`typo-badge px-2 py-0.5 rounded-full ${
-                                dueInfo.isOverdue
+                              className={`typo-badge px-2 py-0.5 rounded-full ${dueInfo.isOverdue
                                   ? "bg-rose-50 text-rose-700 border border-rose-200"
                                   : dueInfo.isDueToday
-                                  ? "bg-amber-50 text-amber-700 border border-amber-200"
-                                  : "text-slate-600 bg-slate-100"
-                              }`}
+                                    ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                    : "text-slate-600 bg-slate-100"
+                                }`}
                             >
                               {dueInfo.text}
                             </span>
@@ -1158,11 +1145,10 @@ export default function PurchasesPage() {
 
                             {activeActionMenuId === inv.id && (
                               <div
-                                className={`absolute right-4 ${
-                                  actionMenuOpenUp
+                                className={`absolute right-4 ${actionMenuOpenUp
                                     ? "bottom-8 origin-bottom-right"
                                     : "top-10 origin-top-right"
-                                } z-50 w-48 bg-white border border-[#E2E8E5] rounded-xl shadow-xl py-1 text-xs text-left animate-in fade-in zoom-in-95 duration-100`}
+                                  } z-50 w-48 bg-white border border-[#E2E8E5] rounded-xl shadow-xl py-1 text-xs text-left animate-in fade-in zoom-in-95 duration-100`}
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <Link
@@ -1410,35 +1396,41 @@ export default function PurchasesPage() {
                 />
               </label>
 
-              <label className="text-slate-600 font-semibold">
-                Payment Mode
-                <select
-                  className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm focus:ring-2 focus:ring-[#1677E8] focus:outline-none"
+              <div>
+                <label className="text-slate-600 font-semibold text-xs mb-1 block">
+                  Payment Mode
+                </label>
+                <CustomSelect
                   value={payMode}
-                  onChange={(e) => setPayMode(e.target.value)}
-                >
-                  <option value="CASH">Cash</option>
-                  <option value="BANK_TRANSFER">Bank Transfer / NEFT</option>
-                  <option value="UPI_QR">UPI / QR</option>
-                  <option value="CHEQUE">Cheque</option>
-                </select>
-              </label>
+                  onChange={(val: any) => setPayMode(val)}
+                  options={[
+                    { value: "CASH", label: "Cash" },
+                    { value: "BANK_TRANSFER", label: "Bank Transfer / NEFT" },
+                    { value: "UPI_QR", label: "UPI / QR" },
+                    { value: "CHEQUE", label: "Cheque" },
+                  ]}
+                  triggerClassName="rounded-xl border-slate-300"
+                />
+              </div>
 
-              <label className="text-slate-600 font-semibold">
-                Paid From Account
-                <select
-                  className="mt-1 w-full border border-slate-300 rounded-xl px-2.5 py-2 text-sm focus:ring-2 focus:ring-[#1677E8] focus:outline-none"
+              <div>
+                <label className="text-slate-600 font-semibold text-xs mb-1 block">
+                  Paid From Account
+                </label>
+                <CustomCombobox
                   value={payAccountId}
-                  onChange={(e) => setPayAccountId(e.target.value)}
-                >
-                  <option value="">Default Cash Account</option>
-                  {payAccounts.map((account) => (
-                    <option key={account.id} value={account.id}>
-                      {account.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  onChange={(val: any) => setPayAccountId(val)}
+                  placeholder="Default Cash Account"
+                  options={[
+                    { value: "", label: "Default Cash Account" },
+                    ...payAccounts.map((account) => ({
+                      value: account.id,
+                      label: account.name,
+                    })),
+                  ]}
+                  triggerClassName="rounded-xl border-slate-300"
+                />
+              </div>
             </div>
 
             <label className="block text-xs text-slate-600 font-semibold">

@@ -28,41 +28,33 @@ export function HeroSection({ lang = "en", onOpenDemo }: HeroSectionProps) {
   ];
 
   return (
-    <section className="relative overflow-hidden bg-[#F7F9FC] pt-10 pb-16 sm:pt-14 sm:pb-24 border-b border-[#E5EAF1]">
+    <section className="relative overflow-hidden bg-[#F8FAFC] pt-10 pb-16 sm:pt-14 sm:pb-24 border-b border-slate-200/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
           {/* Left Column: Value Proposition & CTAs */}
           <div className="lg:col-span-6 space-y-6 text-left">
-            {/* Authentic Trust Badge (Clean & Non-AI) */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-[#E5EAF1] shadow-2xs">
-              <span className="text-xs font-medium text-[#172033]">
+            {/* Authentic Trust Badge (Zero Emoji, Zero Blink, Clean & Professional) */}
+            <div className="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 border border-slate-200/80 shadow-2xs">
+              <span className="text-xs font-medium text-slate-700">
                 {gu
-                  ? "🇮🇳 ભારતીય રિટેલર્સ, હોલસેલર્સ અને ડિસ્ટ્રિબ્યુટર્સ માટે ખાસ"
-                  : "🇮🇳 Designed for Indian Retailers, Wholesalers & Distributors"}
+                  ? "ભારતીય રિટેલર્સ, હોલસેલર્સ અને ડિસ્ટ્રિબ્યુટર્સ માટે ખાસ"
+                  : "Designed for Indian Retailers, Wholesalers & Distributors"}
               </span>
             </div>
 
-            {/* Main Heading */}
+            {/* Main Heading (Solid, Executive, Restful on the Eyes) */}
             <h1
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-[48px] font-bold text-[#172033] tracking-tight leading-[1.16]"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-[46px] font-bold text-slate-900 tracking-tight leading-[1.18]"
               style={{ fontFamily: "var(--font-manrope)" }}
             >
-              {gu ? (
-                <>
-                  સરળ GST બિલિંગ, ગોડાઉન સ્ટોક અને{" "}
-                  <span className="text-[#2563EB]">સંપૂર્ણ એકાઉન્ટિંગ સોફ્ટવેર</span>
-                </>
-              ) : (
-                <>
-                  Complete GST Billing, Inventory &{" "}
-                  <span className="text-[#2563EB]">Accounting Software</span>
-                </>
-              )}
+              {gu
+                ? "સરળ GST બિલિંગ, ગોડાઉન સ્ટોક અને સંપૂર્ણ એકાઉન્ટિંગ સોફ્ટવેર"
+                : "Complete GST Billing, Inventory & Accounting Software"}
             </h1>
 
             {/* Subtitle Description */}
             <p
-              className="text-base sm:text-lg text-[#475467] leading-relaxed max-w-xl font-normal"
+              className="text-base sm:text-[17px] text-slate-600 leading-relaxed max-w-xl font-normal"
               style={{ fontFamily: "var(--font-inter)" }}
             >
               {gu
@@ -70,47 +62,47 @@ export function HeroSection({ lang = "en", onOpenDemo }: HeroSectionProps) {
                 : "Generate statutory GST tax invoices in seconds, manage multi-godown inventory, track customer udhari ledgers, and share instant bills on WhatsApp. Built for fast counter billing and error-free books."}
             </p>
 
-            {/* 4 Supporting Feature Checkpoints */}
+            {/* 4 Supporting Feature Checkpoints (Neutral Slate Icons) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               {benefits.map((b, i) => (
-                <div key={i} className="flex items-center gap-2.5">
-                  <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
-                    <Check className="w-3 h-3 text-emerald-600" strokeWidth={2.5} />
+                <div key={i} className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
+                    <Check className="w-2.5 h-2.5 text-slate-700" strokeWidth={2.5} />
                   </div>
-                  <span className="text-xs sm:text-[13px] font-semibold text-[#172033]">
+                  <span className="text-xs sm:text-[13px] font-medium text-slate-600">
                     {b}
                   </span>
                 </div>
               ))}
             </div>
 
-            {/* Action CTAs */}
+            {/* Action CTAs (Executive Dark Slate, No Eye Glare) */}
             <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
               <a
                 href="#pricing"
-                className="h-12 px-7 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-xs transition-all active:scale-98 cursor-pointer"
+                className="h-11 sm:h-12 px-7 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium flex items-center justify-center gap-2 shadow-xs transition-all active:scale-98 cursor-pointer"
                 style={{ fontFamily: "var(--font-inter)" }}
               >
                 <span>{gu ? "૩૦ દિવસ મફત ટ્રાયલ શરૂ કરો" : "Start 30-Day Free Trial"}</span>
-                <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
+                <ArrowRight className="w-4 h-4" strokeWidth={2} />
               </a>
 
               {onOpenDemo && (
                 <button
                   type="button"
                   onClick={onOpenDemo}
-                  className="h-12 px-6 rounded-xl border border-[#D0D5DD] bg-white hover:bg-[#F9FAFB] text-[#172033] text-sm font-semibold flex items-center justify-center gap-2 transition-colors shadow-2xs cursor-pointer"
+                  className="h-11 sm:h-12 px-6 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 text-sm font-medium flex items-center justify-center gap-2 transition-colors shadow-2xs cursor-pointer"
                   style={{ fontFamily: "var(--font-inter)" }}
                 >
-                  <Calendar className="w-4 h-4 text-[#2563EB]" strokeWidth={2} />
+                  <Calendar className="w-4 h-4 text-slate-500" strokeWidth={1.75} />
                   <span>{gu ? "લાઇવ ડેમો બુક કરો" : "Schedule Live Demo"}</span>
                 </button>
               )}
             </div>
 
             {/* Reassurance text */}
-            <div className="flex items-center gap-2 text-xs text-[#667085] pt-1">
-              <Check className="w-4 h-4 text-emerald-600 shrink-0" strokeWidth={2.5} />
+            <div className="flex items-center gap-2 text-xs text-slate-500 pt-1">
+              <ShieldCheck className="w-4 h-4 text-slate-400 shrink-0" strokeWidth={1.75} />
               <span>
                 {gu
                   ? "કોઈ ક્રેડિટ કાર્ડ જરૂરી નથી · માત્ર ૨ મિનિટમાં સેટઅપ · ૧૦૦% સુરક્ષિત ક્લાઉડ"

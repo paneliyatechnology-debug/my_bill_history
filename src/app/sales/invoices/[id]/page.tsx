@@ -20,6 +20,7 @@ import {
 import { useActiveInvoiceTheme } from "@/lib/use-active-invoice-theme";
 import { DynamicThemedInvoice } from "@/components/invoice/dynamic-themed-invoice";
 import { ALL_THEME_KEYS, resolveThemeDefinition } from "@/lib/invoice-theme-keys";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 import JsBarcode from "jsbarcode";
 import QRCode from "qrcode";
 import { EwbSlipModal } from "../../../../components/gst/ewb-slip-modal";
@@ -57,7 +58,7 @@ interface InvoiceDetail {
   category?: string;
   invoiceNumber: string;
   invoiceDate: string;
-  status: "DRAFT" | "ISSUED" | "PAID" | "PARTIALLY_PAID" | "CANCELLED";
+  status: "DRAFT" | "ISSUED" | "PAID" | "PARTIALLY_PAID" | "CANCELLED" | "CONVERTED";
   paymentMode: string;
   placeOfSupply: string;
   isB2B: boolean;
@@ -71,6 +72,23 @@ interface InvoiceDetail {
   balanceAmount?: number;
   outstandingBalance?: number;
   notes?: string;
+  convertedInvoiceId?: string;
+  convertedInvoice?: {
+    id: string;
+    invoiceNumber: string;
+    invoiceDate?: string;
+    grandTotal?: number;
+    status?: string;
+  };
+  quotationId?: string;
+  quotationNumber?: string;
+  sourceQuotation?: {
+    id: string;
+    invoiceNumber: string;
+    invoiceDate?: string;
+    grandTotal?: number;
+    status?: string;
+  };
   party?: {
     id: string;
     name: string;
@@ -227,6 +245,7 @@ export default function InvoiceDetailPage() {
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
 
+  const [isIssueConfirmOpen, setIsIssueConfirmOpen] = useState(false);
   const [isIssuing, setIsIssuing] = useState(false);
   const [stockConfirmPrompt, setStockConfirmPrompt] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -646,29 +665,35 @@ export default function InvoiceDetailPage() {
                 {/* Status Badge */}
                 <span
                   className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase ${
-                    invoice.status === "PAID"
+                    invoice.status === "CONVERTED" || (invoice.category === "PROFORMA_INVOICE" && (invoice.convertedInvoice || invoice.convertedInvoiceId))
                       ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                      : invoice.status === "PARTIALLY_PAID"
-                        ? "bg-amber-50 text-amber-800 border border-amber-200"
-                        : invoice.status === "DRAFT"
-                          ? "bg-slate-100 text-slate-700 border border-slate-200"
-                          : invoice.status === "CANCELLED"
-                            ? "bg-rose-50 text-rose-700 line-through border border-rose-200"
-                            : "bg-rose-50 text-rose-800 border border-rose-200"
+                      : invoice.status === "PAID"
+                        ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                        : invoice.status === "PARTIALLY_PAID"
+                          ? "bg-amber-50 text-amber-800 border border-amber-200"
+                          : invoice.status === "DRAFT"
+                            ? "bg-slate-100 text-slate-700 border border-slate-200"
+                            : invoice.status === "CANCELLED"
+                              ? "bg-rose-50 text-rose-700 line-through border border-rose-200"
+                              : "bg-rose-50 text-rose-800 border border-rose-200"
                   }`}
                 >
                   <span className={`w-1.5 h-1.5 rounded-full ${
-                    invoice.status === "PAID" ? "bg-emerald-500" : invoice.status === "PARTIALLY_PAID" ? "bg-amber-500" : invoice.status === "DRAFT" ? "bg-slate-400" : "bg-rose-500"
+                    invoice.status === "CONVERTED" || (invoice.category === "PROFORMA_INVOICE" && (invoice.convertedInvoice || invoice.convertedInvoiceId))
+                      ? "bg-emerald-500"
+                      : invoice.status === "PAID" ? "bg-emerald-500" : invoice.status === "PARTIALLY_PAID" ? "bg-amber-500" : invoice.status === "DRAFT" ? "bg-slate-400" : "bg-rose-500"
                   }`} />
-                  {invoice.status === "PARTIALLY_PAID"
-                    ? (lang === "gu" ? "અંશતઃ ચૂકવેલ" : "Partially Paid")
-                    : invoice.status === "PAID"
-                      ? (lang === "gu" ? "સંપૂર્ણ ચૂકવેલ" : "Paid")
-                      : invoice.status === "DRAFT"
-                        ? (lang === "gu" ? "કાચું બિલ" : "Draft")
-                        : invoice.status === "CANCELLED"
-                          ? (lang === "gu" ? "રદ કરેલ" : "Cancelled")
-                          : (lang === "gu" ? "બાકી" : "Unpaid")}
+                  {invoice.status === "CONVERTED" || (invoice.category === "PROFORMA_INVOICE" && (invoice.convertedInvoice || invoice.convertedInvoiceId))
+                    ? (lang === "gu" ? "પાકા બિલમાં રૂપાંતરિત" : "Converted")
+                    : invoice.status === "PARTIALLY_PAID"
+                      ? (lang === "gu" ? "અંશતઃ ચૂકવેલ" : "Partially Paid")
+                      : invoice.status === "PAID"
+                        ? (lang === "gu" ? "સંપૂર્ણ ચૂકવેલ" : "Paid")
+                        : invoice.status === "DRAFT"
+                          ? (lang === "gu" ? "કાચું બિલ" : "Draft")
+                          : invoice.status === "CANCELLED"
+                            ? (lang === "gu" ? "રદ કરેલ" : "Cancelled")
+                            : (lang === "gu" ? "બાકી" : "Unpaid")}
                 </span>
               </div>
             </div>
@@ -741,51 +766,46 @@ export default function InvoiceDetailPage() {
                     <label className="block text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1">
                       {lang === "gu" ? "ઇન્વોઇસ થીમ" : "Invoice Theme"}
                     </label>
-                    <select
+                    <CustomSelect
+                      size="sm"
                       value={
                         resolveThemeDefinition(
                           invoiceThemeState.uniqueThemeKey || invoiceThemeState.festiveTheme || invoiceThemeState.themeId,
                           invoiceThemeState.festiveVariant
                         ).uniqueKey
                       }
-                      onChange={(e) => {
-                        updateThemeFast(e.target.value);
+                      onChange={(val: any) => {
+                        updateThemeFast(val);
                       }}
-                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg font-normal text-slate-800 text-[13px] focus:outline-none focus:border-[#1677E8] cursor-pointer h-10"
-                    >
-                      <optgroup label={lang === "gu" ? "તહેવાર થીમ્સ (Festive Themes)" : "Festive Themes"}>
-                        {ALL_THEME_KEYS.filter((t) => t.isFestive).map((t) => (
-                          <option key={t.uniqueKey} value={t.uniqueKey}>
-                            {lang === "gu" ? t.displayNameGu : t.displayName}
-                          </option>
-                        ))}
-                      </optgroup>
-                      <optgroup label={lang === "gu" ? "સ્ટાન્ડર્ડ થીમ્સ (Standard)" : "Standard Themes"}>
-                        {ALL_THEME_KEYS.filter((t) => !t.isFestive).map((t) => (
-                          <option key={t.uniqueKey} value={t.uniqueKey}>
-                            {lang === "gu" ? t.displayNameGu : t.displayName}
-                          </option>
-                        ))}
-                      </optgroup>
-                    </select>
+                      options={ALL_THEME_KEYS.map((t) => ({
+                        value: t.uniqueKey,
+                        label: `${t.isFestive ? "🎉 " : ""}${lang === "gu" ? t.displayNameGu : t.displayName}`,
+                        group: t.isFestive
+                          ? (lang === "gu" ? "તહેવાર થીમ્સ (Festive)" : "Festive Themes")
+                          : (lang === "gu" ? "સ્ટાન્ડર્ડ થીમ્સ (Standard)" : "Standard Themes"),
+                      }))}
+                      triggerClassName="rounded-lg border-slate-200 bg-slate-50"
+                    />
                   </div>
 
                   <div>
                     <label className="block text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1">
                       {lang === "gu" ? "કાગળનું માપ" : "Paper Size"}
                     </label>
-                    <select
+                    <CustomSelect
+                      size="sm"
                       value={selectedPaperSize}
-                      onChange={(e) => setSelectedPaperSize(e.target.value as any)}
-                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg font-normal text-slate-800 text-[13px] focus:outline-none focus:border-[#1677E8] cursor-pointer h-10"
-                    >
-                      <option value="A4">A4 (210 × 297 mm)</option>
-                      <option value="A5">A5 (148 × 210 mm)</option>
-                      <option value="US_LETTER">Letter (8.5 × 11 in)</option>
-                      <option value="LEGAL">Legal (8.5 × 14 in)</option>
-                      <option value="THERMAL_80">Thermal 80mm (3 inch)</option>
-                      <option value="DL">DL (99 × 210 mm)</option>
-                    </select>
+                      onChange={(val: any) => setSelectedPaperSize(val as any)}
+                      options={[
+                        { value: "A4", label: "A4 (210 × 297 mm)" },
+                        { value: "A5", label: "A5 (148 × 210 mm)" },
+                        { value: "US_LETTER", label: "Letter (8.5 × 11 in)" },
+                        { value: "LEGAL", label: "Legal (8.5 × 14 in)" },
+                        { value: "THERMAL_80", label: "Thermal 80mm (3 inch)" },
+                        { value: "DL", label: "DL (99 × 210 mm)" },
+                      ]}
+                      triggerClassName="rounded-lg border-slate-200 bg-slate-50"
+                    />
                   </div>
 
                   <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
@@ -989,9 +1009,11 @@ export default function InvoiceDetailPage() {
             </div>
 
             {/* Primary Action Button (State Dependent) */}
-            {invoice.status === "DRAFT" ? (
+            {invoice.status === "DRAFT" &&
+            !invoice.convertedInvoiceId &&
+            !invoice.convertedInvoice ? (
               <button
-                onClick={() => handleIssueInvoice(false)}
+                onClick={() => setIsIssueConfirmOpen(true)}
                 disabled={isIssuing}
                 className="h-9 px-3 bg-[#1677E8] hover:bg-[#1268D3] text-white text-[13px] font-medium rounded-xl shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
               >
@@ -1006,7 +1028,7 @@ export default function InvoiceDetailPage() {
                     ? "Processing..."
                     : invoice.category === "PROFORMA_INVOICE"
                       ? (lang === "gu" ? "પાકું બિલ બનાવો" : "Convert to Tax Invoice")
-                      : (lang === "gu" ? "ટેક્સ બિલ બનાવો" : "Issue Tax Invoice")}
+                      : (lang === "gu" ? "ટેક્સ બિલ બનાવો" : "Finalize & Issue Invoice")}
                 </span>
               </button>
             ) : ["ISSUED", "PARTIALLY_PAID"].includes(invoice.status) && bal > 0 ? (
@@ -1151,6 +1173,59 @@ export default function InvoiceDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Converted Quotation Banner */}
+      {invoice.category === "PROFORMA_INVOICE" &&
+        (invoice.status === "CONVERTED" || invoice.convertedInvoice || invoice.convertedInvoiceId) && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3 flex items-center justify-between gap-3 text-emerald-900 text-sm shadow-2xs print:hidden">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>
+                {lang === "gu"
+                  ? `આ કવોટેશન સફળતાપૂર્વક પાકા ટેક્સ ઇનવોઇસ #${invoice.convertedInvoice?.invoiceNumber || ""} માં રૂપાંતરિત થઈ ગયું છે.`
+                  : `This quotation has been successfully converted to Tax Invoice #${invoice.convertedInvoice?.invoiceNumber || ""}.`}
+              </span>
+            </div>
+            {(invoice.convertedInvoice?.id || invoice.convertedInvoiceId) && (
+              <Link
+                href={`/sales/invoices/${invoice.convertedInvoice?.id || invoice.convertedInvoiceId}`}
+                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shrink-0 shadow-xs transition-colors flex items-center gap-1"
+              >
+                <span>{lang === "gu" ? "પાકું બિલ જુઓ" : "View Tax Invoice"}</span>
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </Link>
+            )}
+          </div>
+        )}
+
+      {/* Linked Quotation Source Banner for Converted Invoice */}
+      {invoice.category !== "PROFORMA_INVOICE" &&
+        (invoice.sourceQuotation || invoice.quotationNumber || invoice.quotationId) && (
+          <div className="bg-blue-50/80 border border-blue-200/80 rounded-2xl px-4 py-2.5 flex items-center justify-between gap-3 text-blue-900 text-xs shadow-2xs print:hidden">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold">{lang === "gu" ? "સ્ત્રોત:" : "Source:"}</span>
+              <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-medium">Quotation / Estimate</span>
+              <span className="text-blue-400">•</span>
+              <span>{lang === "gu" ? "કવોટેશન નંબર:" : "Quotation No:"}</span>
+              <span className="font-bold">#{invoice.sourceQuotation?.invoiceNumber || invoice.quotationNumber || "Original Quote"}</span>
+            </div>
+            {(invoice.sourceQuotation?.id || invoice.quotationId) && (
+              <Link
+                href={`/sales/invoices/${invoice.sourceQuotation?.id || invoice.quotationId}`}
+                className="text-blue-700 hover:text-blue-900 font-semibold hover:underline flex items-center gap-1"
+              >
+                <span>{lang === "gu" ? "કવોટેશન જુઓ" : "View Original Quotation"}</span>
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </Link>
+            )}
+          </div>
+        )}
 
       {/* Action Feedback Messages */}
       {actionError && (
@@ -1611,16 +1686,17 @@ export default function InvoiceDetailPage() {
             <label className="block text-[12px] font-medium text-slate-700 uppercase mb-1">
               Payment Mode *
             </label>
-            <select
+            <CustomSelect
               value={paymentMode}
-              onChange={(e) => setPaymentMode(e.target.value)}
-              className="w-full text-[13px] p-2 bg-slate-50 border border-slate-300 rounded focus:bg-white h-10"
-            >
-              <option value="CASH">{lang === "gu" ? "રોકડ (CASH)" : "CASH"}</option>
-              <option value="BANK_TRANSFER">{lang === "gu" ? "બેંક ખાતું (BANK TRANSFER)" : "BANK TRANSFER"}</option>
-              <option value="UPI_QR">{lang === "gu" ? "UPI (ગૂગલ પે / ફોનપે)" : "UPI (Google Pay / PhonePe)"}</option>
-              <option value="CHEQUE">{lang === "gu" ? "ચેક (CHEQUE)" : "CHEQUE"}</option>
-            </select>
+              onChange={(val: any) => setPaymentMode(val)}
+              options={[
+                { value: "CASH", label: lang === "gu" ? "રોકડ (CASH)" : "CASH" },
+                { value: "BANK_TRANSFER", label: lang === "gu" ? "બેંક ખાતું (BANK TRANSFER)" : "BANK TRANSFER" },
+                { value: "UPI_QR", label: lang === "gu" ? "UPI (ગૂગલ પે / ફોનપે)" : "UPI (Google Pay / PhonePe)" },
+                { value: "CHEQUE", label: lang === "gu" ? "ચેક (CHEQUE)" : "CHEQUE" },
+              ]}
+              triggerClassName="rounded-lg border-slate-300 bg-slate-50"
+            />
           </div>
 
           <div>
@@ -1706,6 +1782,65 @@ export default function InvoiceDetailPage() {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Issue Confirmation Modal */}
+      <Modal
+        isOpen={isIssueConfirmOpen}
+        onClose={() => setIsIssueConfirmOpen(false)}
+        title={lang === "gu" ? "પાકું ટેક્સ બિલ ફાઇનલ કરો" : "Finalize & Issue Tax Invoice"}
+        maxWidth="md"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-slate-600 leading-relaxed">
+            {lang === "gu"
+              ? "આ કાચા બિલને કાયદેસરના પાકા GST ટેક્સ ઇનવોઇસમાં રૂપાંતરિત કરવા માટે નીચેની વિગતો ચકાસો:"
+              : "Please verify the invoice details before issuing. Once finalized, an official sequential invoice number will be allocated and inventory stock will be deducted."}
+          </p>
+
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2 text-xs">
+            <div className="flex justify-between items-center">
+              <span className="text-slate-500">{lang === "gu" ? "કાચું બિલ નંબર:" : "Draft Invoice No:"}</span>
+              <span className="font-semibold text-slate-800">{invoice.invoiceNumber}</span>
+            </div>
+            {invoice.party?.name && (
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500">{lang === "gu" ? "ગ્રાહક:" : "Customer:"}</span>
+                <span className="font-semibold text-slate-800">{invoice.party.name}</span>
+              </div>
+            )}
+            <div className="flex justify-between items-center border-t border-slate-200 pt-2 font-bold">
+              <span className="text-slate-700">{lang === "gu" ? "કુલ રકમ (Grand Total):" : "Grand Total:"}</span>
+              <span className="text-emerald-700 text-sm">
+                ₹{Number(invoice.grandTotal || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setIsIssueConfirmOpen(false)}
+              className="h-9 px-3 text-[13px] font-medium text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
+            >
+              {lang === "gu" ? "રદ કરો" : "Cancel"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsIssueConfirmOpen(false);
+                handleIssueInvoice(false);
+              }}
+              disabled={isIssuing}
+              className="px-5 py-2 text-[13px] font-medium text-white bg-[#1677E8] hover:bg-[#1268D3] rounded-xl shadow-xs transition-colors flex items-center gap-2 cursor-pointer"
+            >
+              {isIssuing && (
+                <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              )}
+              <span>{lang === "gu" ? "પાકું બિલ બનાવો (Confirm & Issue)" : "Confirm & Issue Invoice"}</span>
+            </button>
+          </div>
+        </div>
       </Modal>
 
       {/* Stock Alert Confirmation Modal */}

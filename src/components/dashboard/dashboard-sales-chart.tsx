@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { formatInr, formatInrCompact } from "@/components/design-system/tokens";
+import { CustomSelect } from "@/components/ui/dropdown-system";
 
 export interface DailySalesPoint {
   dayLabel: string;
@@ -169,27 +170,20 @@ export function DashboardSalesChart({
         </div>
 
         {/* Period Selector Dropdown */}
-        <div className="relative inline-flex items-center">
-          <select
+        <div className="w-[140px]">
+          <CustomSelect
+            size="sm"
             value={period}
-            onChange={(e) => onPeriodChange?.(e.target.value)}
-            className="typo-btn-secondary text-[#1E293B] bg-white hover:bg-slate-50 border border-[#E2E8F0] hover:border-slate-300 rounded-lg px-2.5 py-1 pr-7 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer shadow-2xs h-8"
-          >
-            <option value="7">{lang === "gu" ? "છેલ્લા 7 દિવસ" : "Last 7 Days"}</option>
-            <option value="30">{lang === "gu" ? "છેલ્લા 30 દિવસ" : "Last 30 Days"}</option>
-            <option value="month">{lang === "gu" ? "આ મહિનો" : "This Month"}</option>
-            <option value="last-month">{lang === "gu" ? "ગયો મહિનો" : "Last Month"}</option>
-            <option value="fy">{lang === "gu" ? "આ નાણાકીય વર્ષ" : "This Financial Year"}</option>
-          </select>
-          <svg
-            className="w-3.5 h-3.5 text-slate-400 absolute right-2 pointer-events-none"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
+            onChange={(val: any) => onPeriodChange?.(val)}
+            options={[
+              { value: "7", label: lang === "gu" ? "છેલ્લા 7 દિવસ" : "Last 7 Days" },
+              { value: "30", label: lang === "gu" ? "છેલ્લા 30 દિવસ" : "Last 30 Days" },
+              { value: "month", label: lang === "gu" ? "આ મહિનો" : "This Month" },
+              { value: "last-month", label: lang === "gu" ? "ગયો મહિનો" : "Last Month" },
+              { value: "fy", label: lang === "gu" ? "આ નાણાકીય વર્ષ" : "This Financial Year" },
+            ]}
+            triggerClassName="rounded-lg border-[#E2E8F0] bg-white text-[#1E293B] hover:border-slate-300 shadow-2xs font-medium"
+          />
         </div>
       </div>
 

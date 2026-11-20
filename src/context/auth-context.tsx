@@ -16,7 +16,15 @@ export interface UserProfile {
   fullName?: string;
   email?: string;
   phone: string;
+  username?: string;
   role?: string;
+  customRoleId?: string;
+  customRoleName?: string;
+  dataScope?: "OWN_RECORDS" | "ASSIGNED_BRANCH" | "ALL_ORGANIZATION";
+  maxInvoiceAmount?: number | null;
+  maxDiscountPercent?: number | null;
+  canOverridePrice?: boolean;
+  permissions?: Record<string, Record<string, boolean>>;
 }
 
 export interface CompanyInfo {
@@ -202,6 +210,10 @@ interface AuthContextType {
   refreshTenantMetadata: () => Promise<void>;
   retryWorkspace: () => Promise<void>;
   createCompany: (dto: any) => Promise<any>;
+  hasPermission: (module: string, action: string) => boolean;
+  canAccessModule: (module: string) => boolean;
+  can: (action: string, module: string) => boolean;
+  refreshUserProfile: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -409,6 +421,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch {
           setUser(null);
         }
+
+        // Live Server Validation: Ensure fresh permissions from database immediately on session load
+        apiClient
+          .get<any>("/auth/me")
+          .then((res) => {
+            if (res && res.user) {
+              const freshUser: UserProfile = {
+                ...res.user,
+                name: res.user.name || res.user.fullName || "User",
+              };
+              setUser(freshUser);
+              try {
+                localStorage.setItem("billing_user_profile", JSON.stringify(freshUser));
+              } catch {}
+              if (res.companies && Array.isArray(res.companies) && res.companies.length > 0) {
+                setCompanies(res.companies);
+              }
+            }
+          })
+          .catch(() => {
+            // Offline fallback
+          });
 
         if (savedTenant) {
           try {
@@ -838,6 +872,163 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     financialYears[0] ||
     null;
 
+  const getModuleAliases = (mod: string): string[] => {
+    const m = (mod || "").toLowerCase().trim();
+    if (m === "sales_invoices" || m === "invoices" || m === "sales") {
+      return ["sales_invoices", "invoices", "sales"];
+    }
+    if (m === "proforma_invoices" || m === "proformas" || m === "proforma") {
+      return ["proforma_invoices", "proformas", "proforma"];
+    }
+    if (m === "delivery_challans" || m === "delivery_challan" || m === "challans" || m === "challan") {
+      return ["delivery_challans", "delivery_challan", "challans", "challan"];
+    }
+    if (m === "sales_returns" || m === "sales_return" || m === "credit_notes" || m === "credit_note") {
+      return ["sales_returns", "sales_return", "credit_notes", "credit_note"];
+    }
+    if (m === "cash_bank" || m === "banking" || m === "bank") {
+      return ["cash_bank", "banking", "bank"];
+    }
+    if (m === "gst_tax" || m === "gst" || m === "gst_returns") {
+      return ["gst_tax", "gst", "gst_returns"];
+    }
+    if (m === "accounting" || m === "vouchers") {
+      return ["accounting", "vouchers"];
+    }
+    if (m === "items" || m === "inventory") {
+      return ["items", "inventory"];
+    }
+    if (m === "quotations" || m === "quotation" || m === "estimates") {
+      return ["quotations", "quotation", "estimates"];
+    }
+    if (m === "parties" || m === "party") {
+      return ["parties", "party"];
+    }
+    if (m === "settings" || m === "user_management" || m === "users") {
+      return ["settings", "user_management", "users"];
+    }
+    return [m];
+  };
+
+  const hasPermission = useCallback(
+    (module: string, action: string): boolean => {
+      if (!user) return false;
+      const r = (user.role || "").toUpperCase();
+      if (
+        r === "SUPER_ADMIN" ||
+        r === "ORG_ADMIN" ||
+        r === "COMPANY_ADMIN" ||
+        r === "PARTNER" ||
+        r === "ADMIN"
+      ) {
+        return true;
+      }
+      if (!user.permissions) return false;
+
+      const aliases = getModuleAliases(module);
+      for (const alias of aliases) {
+        const modObj = user.permissions[alias];
+        if (modObj) {
+          if (modObj[action] === true) return true;
+          // If checking generic "view" and any specific view_* action is true (e.g. view_stock, view_ledger)
+          if (
+            action === "view" &&
+            Object.entries(modObj).some(([k, v]) => k.startsWith("view") && v === true)
+          ) {
+            return true;
+          }
+        }
+      }
+      return false;
+    },
+    [user],
+  );
+
+  const canAccessModule = useCallback(
+    (module: string): boolean => {
+      if (!user) return false;
+      const r = (user.role || "").toUpperCase();
+      if (
+        r === "SUPER_ADMIN" ||
+        r === "ORG_ADMIN" ||
+        r === "COMPANY_ADMIN" ||
+        r === "PARTNER" ||
+        r === "ADMIN"
+      ) {
+        return true;
+      }
+      if (!user.permissions) return false;
+
+      const aliases = getModuleAliases(module);
+      for (const alias of aliases) {
+        const modObj = user.permissions[alias];
+        if (modObj && Object.values(modObj).some((val) => val === true)) {
+          return true;
+        }
+      }
+      return false;
+    },
+    [user],
+  );
+
+  const can = useCallback(
+    (action: string, module: string): boolean => {
+      return hasPermission(module, action);
+    },
+    [hasPermission],
+  );
+
+  const refreshUserProfile = useCallback(async () => {
+    try {
+      const res = await apiClient.get<any>("/auth/me");
+      if (res && res.user) {
+        const u: UserProfile = {
+          ...res.user,
+          name: res.user.name || res.user.fullName || "User",
+        };
+        setUser(u);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem("billing_user_profile", JSON.stringify(u));
+          } catch {}
+        }
+        if (res.companies && Array.isArray(res.companies) && res.companies.length > 0) {
+          setCompanies(res.companies);
+        }
+      }
+    } catch {
+      // Background refresh silent failover
+    }
+  }, []);
+
+  // Live Sync: Re-fetch latest permissions on window focus or custom update event
+  useEffect(() => {
+    if (!token) return;
+    const handleSync = () => {
+      refreshUserProfile();
+    };
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "billing_permissions_last_updated" || e.key === "billing_user_profile") {
+        refreshUserProfile();
+      }
+    };
+    window.addEventListener("focus", handleSync);
+    window.addEventListener("user-permissions-updated", handleSync);
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener("focus", handleSync);
+      window.removeEventListener("user-permissions-updated", handleSync);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [token, refreshUserProfile]);
+
+  // Initial live sync on mount if token exists
+  useEffect(() => {
+    if (token) {
+      refreshUserProfile();
+    }
+  }, [token, refreshUserProfile]);
+
   return (
     <AuthContext.Provider
       value={{
@@ -866,6 +1057,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         refreshTenantMetadata,
         retryWorkspace,
         createCompany,
+        hasPermission,
+        canAccessModule,
+        can,
+        refreshUserProfile,
       }}
     >
       {children}

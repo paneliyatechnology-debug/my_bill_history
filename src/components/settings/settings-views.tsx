@@ -9,6 +9,9 @@ import { openRazorpayCheckout } from "../../lib/razorpay";
 import { INDIAN_STATES } from "@billing/shared-types";
 import { CreateCompanyModal } from "../tenants/create-company-modal";
 import ManageUsersView from "./manage-users-view";
+import RolesManagementView from "./roles-management-view";
+import StaffManagementView from "./staff-management-view";
+import ActivityLogsView from "./activity-logs-view";
 import { InvoiceSettingsStudio } from "../invoice/invoice-settings-studio";
 import EInvoiceSettingsPage from "../../app/settings/e-invoice/page";
 import {
@@ -41,6 +44,7 @@ import {
   Folder,
   Phone,
 } from "lucide-react";
+import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
 
 export interface SettingsViewProps {
   tab: string;
@@ -65,7 +69,15 @@ export function SettingsView({ tab }: SettingsViewProps) {
       return <PrintSettingsView />;
     case "user-management":
     case "manage-users":
-      return <ManageUsersView />;
+      return <StaffManagementView />;
+    case "roles":
+    case "role-and-permissions":
+    case "roles-and-permissions":
+      return <RolesManagementView />;
+    case "activity-logs":
+    case "activities":
+    case "audit-logs":
+      return <ActivityLogsView />;
     case "reminders":
       return <RemindersView />;
     case "ca-reports-sharing":
@@ -997,16 +1009,17 @@ function AccountSettingsView() {
                   <label className="block text-[12px] font-medium text-slate-700 mb-1">
                     Category
                   </label>
-                  <select
+                  <CustomSelect
                     value={suggestionCategory}
-                    onChange={(e) => setSuggestionCategory(e.target.value)}
-                    className="w-full px-3 py-2 text-[13px] bg-slate-50 border border-slate-200 rounded-xl h-10"
-                  >
-                    <option value="Feature Request">New Feature Request</option>
-                    <option value="GST & E-Way">GST & E-Way Bill Workflow</option>
-                    <option value="Thermal Printing">Thermal Printer Enhancement</option>
-                    <option value="Speed & UI">Performance & UI Improvement</option>
-                  </select>
+                    onChange={(val: any) => setSuggestionCategory(val)}
+                    options={[
+                      { value: "Feature Request", label: "New Feature Request" },
+                      { value: "GST & E-Way", label: "GST & E-Way Bill Workflow" },
+                      { value: "Thermal Printing", label: "Thermal Printer Enhancement" },
+                      { value: "Speed & UI", label: "Performance & UI Improvement" },
+                    ]}
+                    triggerClassName="rounded-xl border-slate-200 bg-slate-50"
+                  />
                 </div>
                 <div>
                   <label className="block text-[12px] font-medium text-slate-700 mb-1">
@@ -1588,13 +1601,16 @@ function ManageBusinessSettingsView() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className={labelCls}>State</label>
-              <select value={formData.stateCode} onChange={(e) => setFormData({ ...formData, stateCode: e.target.value })} className={fieldCls}>
-                {stateOptions.map(([code, st]) => (
-                  <option key={code} value={code}>
-                    {st.name}
-                  </option>
-                ))}
-              </select>
+              <CustomCombobox
+                value={formData.stateCode}
+                onChange={(val: any) => setFormData({ ...formData, stateCode: val })}
+                options={stateOptions.map(([code, st]) => ({
+                  value: code,
+                  label: st.name,
+                }))}
+                placeholder="Select State..."
+                triggerClassName="rounded-md border-slate-300 bg-white"
+              />
             </div>
             <div>
               <label className={labelCls}>Pincode</label>
@@ -1736,24 +1752,30 @@ function ManageBusinessSettingsView() {
           </div>
           <div>
             <label className={labelCls}>Industry Type</label>
-            <select value={formData.industryType} onChange={(e) => setFormData({ ...formData, industryType: e.target.value })} className={fieldCls}>
-              <option value="">Select Industry Type</option>
-              {(options.industryTypes || []).map((it: any) => (
-                <option key={it.id} value={it.id}>
-                  {it.label}
-                </option>
-              ))}
-            </select>
+            <CustomSelect
+              value={formData.industryType}
+              onChange={(val: any) => setFormData({ ...formData, industryType: val })}
+              options={[
+                { value: "", label: "Select Industry Type" },
+                ...(options.industryTypes || []).map((it: any) => ({
+                  value: it.id,
+                  label: it.label,
+                })),
+              ]}
+              triggerClassName="rounded-md border-slate-300 bg-white"
+            />
           </div>
           <div>
             <label className={labelCls}>Business Registration Type</label>
-            <select value={formData.registrationType} onChange={(e) => setFormData({ ...formData, registrationType: e.target.value })} className={fieldCls}>
-              {(options.registrationTypes || []).map((rt: any) => (
-                <option key={rt.id} value={rt.id}>
-                  {rt.label}
-                </option>
-              ))}
-            </select>
+            <CustomSelect
+              value={formData.registrationType}
+              onChange={(val: any) => setFormData({ ...formData, registrationType: val })}
+              options={(options.registrationTypes || []).map((rt: any) => ({
+                value: rt.id,
+                label: rt.label,
+              }))}
+              triggerClassName="rounded-md border-slate-300 bg-white"
+            />
           </div>
 
           <div>
@@ -1891,13 +1913,17 @@ function ManageBusinessSettingsView() {
               </p>
             ))}
             <div className="flex gap-2">
-              <select value={extraKey} onChange={(e) => setExtraKey(e.target.value)} className={`${fieldCls} max-w-[140px]`}>
-                {(options.extraDetailKeys || []).map((k: any) => (
-                  <option key={k.id} value={k.id}>
-                    {k.label}
-                  </option>
-                ))}
-              </select>
+              <div className="w-[140px] shrink-0">
+                <CustomSelect
+                  value={extraKey}
+                  onChange={(val: any) => setExtraKey(val)}
+                  options={(options.extraDetailKeys || []).map((k: any) => ({
+                    value: k.id,
+                    label: k.label,
+                  }))}
+                  triggerClassName="rounded-md border-slate-300 bg-white"
+                />
+              </div>
               <input
                 value={extraValue}
                 onChange={(e) => setExtraValue(e.target.value)}
@@ -2874,14 +2900,18 @@ function PrintSettingsView() {
 
                   <div className="flex items-center justify-between py-1">
                     <span className="text-slate-800 font-medium text-[11px]">Print Copies:</span>
-                    <select
-                      value={settings.printCopies}
-                      onChange={(e) => updateSetting("printCopies", Number(e.target.value))}
-                      className="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white font-medium text-slate-700"
-                    >
-                      <option value={1}>1 Copy (Customer)</option>
-                      <option value={2}>2 Copies (Customer + Store)</option>
-                    </select>
+                    <div className="w-48">
+                      <CustomSelect
+                        size="sm"
+                        value={String(settings.printCopies)}
+                        onChange={(val: any) => updateSetting("printCopies", Number(val))}
+                        options={[
+                          { value: "1", label: "1 Copy (Customer)" },
+                          { value: "2", label: "2 Copies (Customer + Store)" },
+                        ]}
+                        triggerClassName="rounded-lg border-slate-200 bg-white text-xs font-medium text-slate-700"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

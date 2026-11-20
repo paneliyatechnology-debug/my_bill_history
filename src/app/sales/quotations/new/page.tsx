@@ -18,6 +18,7 @@ import {
 import { ShortcutsModal } from "@/components/invoice/shortcuts-modal";
 import { SignatureModal } from "@/components/invoice/signature-modal";
 import { Check, AlertTriangle, X, Printer, Package } from "lucide-react";
+import { CustomCombobox } from "@/components/ui/dropdown-system";
 import {
   InvoiceCustomization,
   loadInvoiceCustomization,
@@ -982,17 +983,18 @@ const [notes, setNotes] = useState("");
                               <td className="py-3 px-3">
                                 <div className="space-y-1">
                                   <div className="flex items-center gap-2">
-                                    <select
+                                    <CustomCombobox
+                                      size="sm"
                                       value={row.itemId}
-                                      onChange={(e) => handleItemSelect(idx, e.target.value)}
-                                      className="w-full text-[13px] py-1.5 px-2.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#1677E8] rounded-xl font-normal text-slate-800 h-10"
-                                    >
-                                      {items.map((it) => (
-                                        <option key={it.id} value={it.id}>
-                                          {it.name} (Stock: {it.stockQuantity ?? 0})
-                                        </option>
-                                      ))}
-                                    </select>
+                                      onChange={(val: any) => handleItemSelect(idx, val)}
+                                      options={items.map((it) => ({
+                                        value: it.id,
+                                        label: it.name,
+                                        sublabel: `Stock: ${it.stockQuantity ?? 0}`,
+                                      }))}
+                                      placeholder="Select Item..."
+                                      triggerClassName="rounded-xl border-slate-200 bg-slate-50/80 hover:bg-white"
+                                    />
                                   </div>
                                 </div>
                               </td>

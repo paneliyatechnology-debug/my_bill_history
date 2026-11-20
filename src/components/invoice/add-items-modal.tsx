@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { X, Search, Tag } from "lucide-react";
 import { StockQuantityDisplay } from "../inventory/stock-quantity-display";
+import { CustomCombobox } from "@/components/ui/dropdown-system";
 
 export interface CatalogItem {
   id: string;
@@ -217,19 +218,20 @@ export function AddItemsModal({
           </div>
 
           {/* Select Category Dropdown */}
-          <div className="relative min-w-[160px]">
-            <select
+          <div className="min-w-[160px]">
+            <CustomCombobox
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg typo-input text-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer h-10"
-            >
-              <option value="ALL">Select Category</option>
-              {categories.filter((c) => c !== "ALL").map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
+              onChange={(val: any) => setSelectedCategory(val)}
+              options={[
+                { value: "ALL", label: "Select Category" },
+                ...categories.filter((c) => c !== "ALL").map((cat) => ({
+                  value: cat,
+                  label: cat,
+                })),
+              ]}
+              placeholder="Select Category"
+              triggerClassName="rounded-lg border-slate-300 bg-white text-slate-700"
+            />
           </div>
 
           {/* Create New Item Button */}
