@@ -25,6 +25,8 @@ import {
   Check,
   AlertTriangle,
   ShieldAlert,
+  FileSpreadsheet,
+  Plus,
 } from "lucide-react";
 import { CustomSelect } from "@/components/ui/dropdown-system";
 
@@ -126,6 +128,22 @@ export default function PartiesPage() {
   // Filters & Search
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const f = params.get("filter")?.toUpperCase();
+      if (f === "RECEIVABLE") {
+        setTypeFilter("RECEIVABLE");
+      } else if (f === "PAYABLE") {
+        setTypeFilter("PAYABLE");
+      } else if (f === "CUSTOMER") {
+        setTypeFilter("CUSTOMER");
+      } else if (f === "SUPPLIER") {
+        setTypeFilter("SUPPLIER");
+      }
+    }
+  }, []);
 
   // Create Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -868,6 +886,16 @@ export default function PartiesPage() {
     }
     if (typeFilter === "SUPPLIER") {
       return parties.filter((p) => p.type === "SUPPLIER" || p.type === "BOTH");
+    }
+    if (typeFilter === "RECEIVABLE") {
+      return parties.filter(
+        (p) => (p.type === "CUSTOMER" || p.type === "BOTH") && Number(p.balance || 0) > 0
+      );
+    }
+    if (typeFilter === "PAYABLE") {
+      return parties.filter(
+        (p) => (p.type === "SUPPLIER" || p.type === "BOTH") && Number(p.balance || 0) > 0
+      );
     }
     return parties.filter((p) => p.type === typeFilter);
   }, [parties, typeFilter]);
@@ -1947,51 +1975,51 @@ export default function PartiesPage() {
                 <button
                   type="button"
                   onClick={() => setIsImportModalOpen(true)}
-                  className="inline-flex items-center justify-center gap-2 h-10 px-4 bg-white hover:bg-emerald-50/50 text-[#166534] border border-[#86EFAC] typo-btn-secondary rounded-xl shadow-2xs transition-all w-full sm:w-auto shrink-0 cursor-pointer"
+                  className="inline-flex items-center justify-center gap-2 h-10 px-4 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-slate-300 font-medium text-sm rounded-xl shadow-2xs transition-all w-full sm:w-auto shrink-0 cursor-pointer"
                   title="Import Parties from Excel or CSV"
                 >
-                  <svg className="w-4 h-4 text-[#15803D]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                  </svg>
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
                   <span>{lang === "gu" ? "એક્સેલ / CSV ઈમ્પોર્ટ" : "Import Excel / CSV"}</span>
                 </button>
 
                 <button
                   onClick={handleOpenCreateModal}
-                  className="inline-flex items-center justify-center gap-1.5 h-10 px-4 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] text-white typo-btn-primary rounded-xl shadow-xs transition-all w-full sm:w-auto shrink-0 cursor-pointer"
+                  className="inline-flex items-center justify-center gap-2 h-10 px-5 bg-[#1677E8] hover:bg-[#1268D3] active:bg-[#0D5FC4] text-white font-semibold text-sm rounded-xl shadow-xs hover:shadow transition-all w-full sm:w-auto shrink-0 cursor-pointer whitespace-nowrap"
                 >
-                  <span className="text-base font-semibold leading-none">+</span>
+                  <Plus className="w-4 h-4 stroke-[2.5] shrink-0" />
                   <span>{lang === "gu" ? "નવો વેપારી ઉમેરો" : "Add New Party"}</span>
                 </button>
               </div>
             )}
           </div>
 
-          {/* 4 Summary KPI Cards (Exact Matching Target Design) */}
+          {/* 4 Summary KPI Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Card 1: Customers */}
             <div
               onClick={() => setTypeFilter(typeFilter === "CUSTOMER" ? "ALL" : "CUSTOMER")}
-              className={`bg-white rounded-2xl border p-4 sm:p-5 flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs transition-all cursor-pointer group ${
-                typeFilter === "CUSTOMER" ? "border-[#1677E8] ring-2 ring-blue-100" : "border-slate-200/80 hover:border-blue-200"
+              className={`rounded-2xl border-2 p-4 sm:p-5 flex items-center justify-between gap-3 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group ${
+                typeFilter === "CUSTOMER"
+                  ? "bg-blue-50/70 border-blue-500 ring-2 ring-blue-200/80 shadow-xs"
+                  : "bg-white border-blue-200 hover:bg-gradient-to-br hover:from-blue-50/90 hover:to-blue-100/50 hover:border-blue-500"
               }`}
             >
-              <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-[#EFF6FF] text-[#1677E8] flex items-center justify-center shrink-0">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-blue-100/90 transition-all">
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                 </div>
-                <div>
-                  <span className="typo-card-heading text-slate-600 block">
+                <div className="min-w-0">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 group-hover:text-blue-700 block truncate transition-colors">
                     {lang === "gu" ? "ગ્રાહકો" : "Customers"}
                   </span>
-                  <div className="typo-kpi text-slate-900 mt-0.5 leading-none">
+                  <div className="text-2xl font-bold text-slate-900 group-hover:text-blue-900 mt-1 leading-none tracking-tight transition-colors">
                     {totalCustomers}
                   </div>
                 </div>
               </div>
-              <div className="text-blue-500 group-hover:translate-x-0.5 transition-transform shrink-0">
+              <div className="text-blue-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all shrink-0">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                 </svg>
@@ -2001,27 +2029,29 @@ export default function PartiesPage() {
             {/* Card 2: Suppliers */}
             <div
               onClick={() => setTypeFilter(typeFilter === "SUPPLIER" ? "ALL" : "SUPPLIER")}
-              className={`bg-white rounded-2xl border p-4 sm:p-5 flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs transition-all cursor-pointer group ${
-                typeFilter === "SUPPLIER" ? "border-indigo-500 ring-2 ring-indigo-100" : "border-slate-200/80 hover:border-indigo-200"
+              className={`rounded-2xl border-2 p-4 sm:p-5 flex items-center justify-between gap-3 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group ${
+                typeFilter === "SUPPLIER"
+                  ? "bg-indigo-50/70 border-indigo-500 ring-2 ring-indigo-200/80 shadow-xs"
+                  : "bg-white border-indigo-200 hover:bg-gradient-to-br hover:from-indigo-50/90 hover:to-indigo-100/50 hover:border-indigo-500"
               }`}
             >
-              <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center shrink-0">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-indigo-100/90 transition-all">
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
                   </svg>
                 </div>
-                <div>
-                  <span className="typo-card-heading text-slate-600 block">
+                <div className="min-w-0">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 group-hover:text-indigo-700 block truncate transition-colors">
                     {lang === "gu" ? "સપ્લાયરો" : "Suppliers"}
                   </span>
-                  <div className="typo-kpi text-slate-900 mt-0.5 leading-none">
+                  <div className="text-2xl font-bold text-slate-900 group-hover:text-indigo-900 mt-1 leading-none tracking-tight transition-colors">
                     {totalSuppliers}
                   </div>
                 </div>
               </div>
-              <div className="text-indigo-500 group-hover:translate-x-0.5 transition-transform shrink-0">
+              <div className="text-indigo-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all shrink-0">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                 </svg>
@@ -2030,23 +2060,28 @@ export default function PartiesPage() {
 
             {/* Card 3: To Collect (Receivable) */}
             <div
-              onClick={() => setTypeFilter(typeFilter === "CUSTOMER" ? "ALL" : "CUSTOMER")}
-              className="bg-[#F0FDF4] rounded-2xl border border-[#BBF7D0] p-4 sm:p-5 flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
+              onClick={() => setTypeFilter(typeFilter === "RECEIVABLE" ? "ALL" : "RECEIVABLE")}
+              className={`rounded-2xl border-2 p-4 sm:p-5 flex items-center justify-between gap-3 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group ${
+                typeFilter === "RECEIVABLE"
+                  ? "bg-emerald-50/70 border-emerald-500 ring-2 ring-emerald-200/80 shadow-xs"
+                  : "bg-white border-emerald-200 hover:bg-gradient-to-br hover:from-emerald-50/90 hover:to-emerald-100/50 hover:border-emerald-500"
+              }`}
             >
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-12 h-12 rounded-2xl bg-[#DCFCE7] text-[#15803D] font-semibold text-xl flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 font-bold text-xl flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-emerald-100/90 transition-all">
                   ₹
                 </div>
                 <div className="min-w-0">
-                  <span className="typo-card-heading text-[#15803D] block truncate">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 group-hover:text-emerald-700 block truncate transition-colors">
                     {lang === "gu" ? "લેવાની રકમ (Receivable)" : "To Collect (Receivable)"}
                   </span>
-                  <div className="typo-kpi text-[#15803D] mt-0.5 leading-none truncate">
-                    ₹ {totalToCollect.toLocaleString("en-IN")}
+                  <div className="text-2xl font-bold text-slate-900 group-hover:text-emerald-900 mt-1 leading-none tracking-tight truncate transition-colors flex items-center gap-1">
+                    <span className="text-emerald-600 font-bold">₹</span>
+                    <span>{totalToCollect.toLocaleString("en-IN")}</span>
                   </div>
                 </div>
               </div>
-              <div className="text-[#15803D] group-hover:translate-x-0.5 transition-transform shrink-0">
+              <div className="text-emerald-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all shrink-0">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                 </svg>
@@ -2055,25 +2090,30 @@ export default function PartiesPage() {
 
             {/* Card 4: To Pay (Payable) */}
             <div
-              onClick={() => setTypeFilter(typeFilter === "SUPPLIER" ? "ALL" : "SUPPLIER")}
-              className="bg-[#FEF2F2] rounded-2xl border border-[#FECACA] p-4 sm:p-5 flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
+              onClick={() => setTypeFilter(typeFilter === "PAYABLE" ? "ALL" : "PAYABLE")}
+              className={`rounded-2xl border-2 p-4 sm:p-5 flex items-center justify-between gap-3 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group ${
+                typeFilter === "PAYABLE"
+                  ? "bg-rose-50/70 border-rose-500 ring-2 ring-rose-200/80 shadow-xs"
+                  : "bg-white border-rose-200 hover:bg-gradient-to-br hover:from-rose-50/90 hover:to-rose-100/50 hover:border-rose-500"
+              }`}
             >
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-12 h-12 rounded-2xl bg-[#FEE2E2] text-[#DC2626] flex items-center justify-center shrink-0">
-                  <svg className="w-6 h-6 text-[#DC2626]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-rose-100/90 transition-all">
+                  <svg className="w-6 h-6 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />
                   </svg>
                 </div>
                 <div className="min-w-0">
-                  <span className="typo-card-heading text-[#DC2626] block truncate">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 group-hover:text-rose-700 block truncate transition-colors">
                     {lang === "gu" ? "ચૂકવવાની રકમ (Payable)" : "To Pay (Payable)"}
                   </span>
-                  <div className="typo-kpi text-[#DC2626] mt-0.5 leading-none truncate">
-                    ₹ {totalToPay.toLocaleString("en-IN")}
+                  <div className="text-2xl font-bold text-slate-900 group-hover:text-rose-900 mt-1 leading-none tracking-tight truncate transition-colors flex items-center gap-1">
+                    <span className="text-rose-600 font-bold">↑ ₹</span>
+                    <span>{totalToPay.toLocaleString("en-IN")}</span>
                   </div>
                 </div>
               </div>
-              <div className="text-[#DC2626] group-hover:translate-x-0.5 transition-transform shrink-0">
+              <div className="text-rose-400 group-hover:text-rose-600 group-hover:translate-x-1 transition-all shrink-0">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                 </svg>
@@ -2132,19 +2172,34 @@ export default function PartiesPage() {
             exportable={hasPermission("parties", "export")}
             exportFileName="parties_master"
             filtersSlot={
-              <div className="flex items-center gap-2 w-48">
-                <CustomSelect
-                  size="sm"
-                  value={typeFilter}
-                  onChange={(val: any) => setTypeFilter(val)}
-                  options={[
-                    { value: "ALL", label: lang === "gu" ? "તમામ પ્રકાર (All Types)" : "All Types" },
-                    { value: "CUSTOMER", label: lang === "gu" ? "ગ્રાહક (Customers)" : "Customers" },
-                    { value: "SUPPLIER", label: lang === "gu" ? "સપ્લાયર (Suppliers)" : "Suppliers" },
-                    { value: "BOTH", label: lang === "gu" ? "બંને (Both)" : "Both" },
-                  ]}
-                  triggerClassName="rounded-xl border-[#E2E8F0] bg-white text-[#182230]"
-                />
+              <div className="flex items-center gap-2">
+                <div className="w-52 sm:w-56">
+                  <CustomSelect
+                    size="sm"
+                    value={typeFilter}
+                    onChange={(val: any) => setTypeFilter(val)}
+                    options={[
+                      { value: "ALL", label: lang === "gu" ? "તમામ પ્રકાર (All Types)" : "All Types" },
+                      { value: "CUSTOMER", label: lang === "gu" ? "ગ્રાહક (Customers)" : "Customers" },
+                      { value: "SUPPLIER", label: lang === "gu" ? "સપ્લાયર (Suppliers)" : "Suppliers" },
+                      { value: "RECEIVABLE", label: lang === "gu" ? "લેવાના બાકી (To Collect)" : "To Collect (Receivable)" },
+                      { value: "PAYABLE", label: lang === "gu" ? "ચૂકવવાના બાકી (To Pay)" : "To Pay (Payable)" },
+                      { value: "BOTH", label: lang === "gu" ? "બંને (Both)" : "Both" },
+                    ]}
+                    triggerClassName="rounded-xl border-[#E2E8F0] bg-white text-[#182230]"
+                  />
+                </div>
+                {typeFilter !== "ALL" && (
+                  <button
+                    type="button"
+                    onClick={() => setTypeFilter("ALL")}
+                    className="h-9 px-2.5 text-xs font-medium text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors inline-flex items-center gap-1 cursor-pointer shrink-0"
+                    title={lang === "gu" ? "ફિલ્ટર સાફ કરો" : "Clear filter"}
+                  >
+                    <span>{lang === "gu" ? "સાફ કરો" : "Clear"}</span>
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             }
             mobileCardRender={(p) => {

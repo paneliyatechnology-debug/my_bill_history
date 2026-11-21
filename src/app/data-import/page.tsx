@@ -136,6 +136,51 @@ export default function DataImportCenterPage() {
           </div>
         </div>
 
+        {/* 3-STEP IMPORT GUIDE */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-2xs flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold text-sm shrink-0">
+              1
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-800">
+                {lang === "gu" ? "૧. ટેમ્પલેટ ડાઉનલોડ કરો" : "1. Download Template"}
+              </div>
+              <div className="text-[11px] text-slate-500">
+                {lang === "gu" ? "કોઈપણ મોડ્યુલની .XLSX કે .CSV સેમ્પલ ફાઇલ લો" : "Get pre-formatted .XLSX or .CSV template with headers"}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-2xs flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 flex items-center justify-center font-bold text-sm shrink-0">
+              2
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-800">
+                {lang === "gu" ? "૨. ડેટા ભરો અથવા ફાઇલ તૈયાર કરો" : "2. Prepare or Copy Data"}
+              </div>
+              <div className="text-[11px] text-slate-500">
+                {lang === "gu" ? "ટેલી કે જૂના સોફ્ટવેરમાંથી ડેટા એક્સપોર્ટ કરો" : "Export from Tally, Busy, Vyapar or paste into template"}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-2xs flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center font-bold text-sm shrink-0">
+              3
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-800">
+                {lang === "gu" ? "૩. અપલોડ અને ઓટો-મેપિંગ" : "3. Upload & Auto-Map"}
+              </div>
+              <div className="text-[11px] text-slate-500">
+                {lang === "gu" ? "ઓટોમેટિક કોલમ મેપિંગ અને પ્રીવ્યૂ સાથે આયાત કરો" : "Automatic column matching, preview, and safe import"}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* SEARCH & CATEGORY FILTER */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1">
