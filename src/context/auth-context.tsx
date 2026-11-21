@@ -138,7 +138,16 @@ export interface SubscriptionNotice {
 function readWorkspaceCache(): WorkspaceCache | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = sessionStorage.getItem(WORKSPACE_CACHE_KEY);
+    // Check localStorage first (shared across all tabs)
+    let raw = localStorage.getItem(WORKSPACE_CACHE_KEY);
+    // If not in localStorage, check and migrate legacy sessionStorage
+    if (!raw) {
+      raw = sessionStorage.getItem(WORKSPACE_CACHE_KEY);
+      if (raw) {
+        localStorage.setItem(WORKSPACE_CACHE_KEY, raw);
+        sessionStorage.removeItem(WORKSPACE_CACHE_KEY);
+      }
+    }
     if (!raw) return null;
     const parsed = JSON.parse(raw) as WorkspaceCache;
     if (!parsed?.companyId || !Array.isArray(parsed.companies)) return null;
@@ -151,7 +160,9 @@ function readWorkspaceCache(): WorkspaceCache | null {
 function writeWorkspaceCache(cache: WorkspaceCache) {
   if (typeof window === "undefined") return;
   try {
-    sessionStorage.setItem(WORKSPACE_CACHE_KEY, JSON.stringify(cache));
+    localStorage.setItem(WORKSPACE_CACHE_KEY, JSON.stringify(cache));
+    // Clean up stale copy from sessionStorage so it doesn't cause divergence
+    sessionStorage.removeItem(WORKSPACE_CACHE_KEY);
   } catch {
     // Storage failover
   }
@@ -160,6 +171,7 @@ function writeWorkspaceCache(cache: WorkspaceCache) {
 function clearSessionWorkspace() {
   if (typeof window === "undefined") return;
   try {
+    localStorage.removeItem(WORKSPACE_CACHE_KEY);
     sessionStorage.removeItem(WORKSPACE_CACHE_KEY);
     sessionStorage.removeItem(SUBSCRIPTION_DISMISS_KEY);
   } catch {
@@ -490,8 +502,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(timer);
   }, []);
 
-  // Read companies, branches, and financial years from the login session.
-  // Hit the API only when that session cache is missing or belongs to another company.
+  // Read companies, branches, and financial years from the cache for instant render,
+  // then always revalidate in the background so all tabs and server updates stay 100% in sync.
   useEffect(() => {
     if (!token || !tenantContext.companyId) return;
     const cached = readWorkspaceCache();
@@ -505,9 +517,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setFinancialYears(cached.financialYears || []);
       setEntitlements(cached.entitlements);
       setWorkspaceError(null);
-      return;
     }
-    refreshTenantMetadata();
+    refreshTenantMetadata().catch(() => {});
+  }, [token, tenantContext.companyId, refreshTenantMetadata]);
+
+  // Cross-tab synchronization: keep all tabs updated in real time via window storage events
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === WORKSPACE_CACHE_KEY && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue) as WorkspaceCache;
+          if (parsed && Array.isArray(parsed.companies)) {
+            setCompanies(parsed.companies);
+            setBranches(parsed.branches || []);
+            setFinancialYears(parsed.financialYears || []);
+            setEntitlements(parsed.entitlements || null);
+          }
+        } catch {}
+      } else if (e.key === "billing_tenant_context" && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          setTenantContext(parsed);
+        } catch {}
+      } else if (e.key === "billing_auth_token" && !e.newValue) {
+        clearAuthStorage();
+        if (typeof window !== "undefined") {
+          window.location.replace("/login");
+        }
+      }
+    };
+
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === "visible" && token && tenantContext.companyId) {
+        const cached = readWorkspaceCache();
+        if (cached && cached.entitlements) {
+          setEntitlements(cached.entitlements);
+          if (cached.companies.length > 0) {
+            setCompanies(cached.companies);
+          }
+        }
+        refreshTenantMetadata().catch(() => {});
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("focus", handleVisibilityOrFocus);
+    document.addEventListener("visibilitychange", handleVisibilityOrFocus);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("focus", handleVisibilityOrFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityOrFocus);
+    };
   }, [token, tenantContext.companyId, refreshTenantMetadata]);
 
   // One live event from the server. No polling.
@@ -658,10 +721,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
           if (condition === "SUBSCRIPTION_EXPIRED") {
             applySubscription(payload, true);
+            refreshTenantMetadata().catch(() => {});
             return;
           }
           if (condition === "SUBSCRIPTION_ACTIVE" || condition === "TENANT_ACTIVATED") {
             applySubscription({ ...payload, isExpired: false }, false);
+            refreshTenantMetadata().catch(() => {});
           }
         } catch {
           // Ignore malformed keep-alive frames

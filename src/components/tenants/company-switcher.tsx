@@ -12,6 +12,7 @@ export function CompanySwitcher() {
     entitlements,
     user,
     lang,
+    refreshTenantMetadata,
   } = useAuth();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -53,16 +54,17 @@ export function CompanySwitcher() {
     };
   }, [isOpen]);
 
-  // Focus search input when dropdown opens
+  // Focus search input and revalidate metadata when dropdown opens
   useEffect(() => {
     if (isOpen) {
       setSearchQuery("");
       setSwitchError(null);
+      refreshTenantMetadata().catch(() => {});
       setTimeout(() => {
         searchInputRef.current?.focus();
       }, 50);
     }
-  }, [isOpen]);
+  }, [isOpen, refreshTenantMetadata]);
 
   // Filtered companies based on search
   const filteredCompanies = useMemo(() => {
