@@ -490,7 +490,7 @@ const navigationSections: NavSection[] = [
       {
         name: "Financial Year",
         nameGujarati: "નાણાકીય વર્ષ",
-        href: "/settings/account",
+        href: "/settings/financial-year",
         module: "settings",
         action: "view",
       },

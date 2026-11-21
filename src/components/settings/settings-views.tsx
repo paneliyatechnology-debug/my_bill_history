@@ -37,6 +37,7 @@ import {
   Tag,
   Scissors,
   Lock,
+  Unlock,
   Sparkles,
   MessageSquare,
   BarChart3,
@@ -50,6 +51,13 @@ import {
   ArrowUpRight,
   Info,
   CreditCard,
+  Plus,
+  Edit2,
+  Trash2,
+  CheckCircle2,
+  ArrowRight,
+  Clock,
+  RefreshCw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CustomSelect, CustomCombobox } from "@/components/ui/dropdown-system";
@@ -62,6 +70,9 @@ export function SettingsView({ tab }: SettingsViewProps) {
   switch (tab) {
     case "account":
       return <AccountSettingsView />;
+    case "financial-year":
+    case "financial-years":
+      return <FinancialYearSettingsView />;
     case "company":
     case "manage-business":
       return <ManageBusinessSettingsView />;
@@ -121,6 +132,731 @@ function formatReadableDate(dateStr?: string | null): string {
   } catch {
     return dateStr;
   }
+}
+
+// =========================================================================
+// FINANCIAL YEAR MANAGEMENT VIEW
+// =========================================================================
+function FinancialYearSettingsView() {
+  const { financialYears, currentFY, switchFinancialYear, refreshTenantMetadata, currentCompany, lang } = useAuth();
+  const gu = lang === "gu";
+
+  const [loading, setLoading] = useState(false);
+  const [actionId, setActionId] = useState<string | null>(null);
+  const [banner, setBanner] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Modals
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editFy, setEditFy] = useState<any | null>(null);
+
+  // Add Form
+  const [addName, setAddName] = useState("");
+  const [addStartDate, setAddStartDate] = useState("");
+  const [addEndDate, setAddEndDate] = useState("");
+  const [addIsCurrent, setAddIsCurrent] = useState(false);
+
+  // Edit Form
+  const [editName, setEditName] = useState("");
+  const [editStartDate, setEditStartDate] = useState("");
+  const [editEndDate, setEditEndDate] = useState("");
+  const [editIsLocked, setEditIsLocked] = useState(false);
+  const [editIsCurrent, setEditIsCurrent] = useState(false);
+
+  const openAddModal = () => {
+    let nextStartYear = 2027;
+    let nextEndYear = 2028;
+    if (financialYears.length > 0) {
+      const sorted = [...financialYears].sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
+      const latestEnd = new Date(sorted[0].endDate);
+      if (!isNaN(latestEnd.getTime())) {
+        nextStartYear = latestEnd.getFullYear();
+        nextEndYear = nextStartYear + 1;
+      }
+    }
+    setAddName(`FY ${nextStartYear}-${String(nextEndYear).slice(-2)}`);
+    setAddStartDate(`${nextStartYear}-04-01`);
+    setAddEndDate(`${nextEndYear}-03-31`);
+    setAddIsCurrent(false);
+    setBanner(null);
+    setShowAddModal(true);
+  };
+
+  const applyPreset = (startYear: number) => {
+    const endYear = startYear + 1;
+    setAddName(`FY ${startYear}-${String(endYear).slice(-2)}`);
+    setAddStartDate(`${startYear}-04-01`);
+    setAddEndDate(`${endYear}-03-31`);
+  };
+
+  const openEditModal = (fy: any) => {
+    setEditFy(fy);
+    setEditName(fy.name);
+    setEditStartDate(fy.startDate ? String(fy.startDate).slice(0, 10) : "");
+    setEditEndDate(fy.endDate ? String(fy.endDate).slice(0, 10) : "");
+    setEditIsLocked(Boolean(fy.isLocked));
+    setEditIsCurrent(Boolean(fy.isCurrent));
+    setBanner(null);
+  };
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addName.trim() || !addStartDate || !addEndDate) {
+      setBanner({ type: "error", text: gu ? "કૃપા કરીને તમામ વિગતો ભરો." : "Please fill in all required fields." });
+      return;
+    }
+    setLoading(true);
+    setBanner(null);
+    try {
+      await apiClient.post("/tenants/financial-years", {
+        name: addName.trim(),
+        startDate: addStartDate,
+        endDate: addEndDate,
+        isCurrent: addIsCurrent,
+      });
+      await refreshTenantMetadata();
+      setShowAddModal(false);
+      setBanner({
+        type: "success",
+        text: gu ? `નાણાકીય વર્ષ ${addName} સફળતાપૂર્વક ઉમેરાયું!` : `Financial year ${addName} created successfully!`,
+      });
+    } catch (err: any) {
+      setBanner({
+        type: "error",
+        text: err?.message || (gu ? "નાણાકીય વર્ષ ઉમેરવામાં નિષ્ફળતા મળી." : "Failed to create financial year."),
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editFy) return;
+    if (!editName.trim() || !editStartDate || !editEndDate) {
+      setBanner({ type: "error", text: gu ? "કૃપા કરીને તમામ વિગતો ભરો." : "Please fill in all required fields." });
+      return;
+    }
+    setLoading(true);
+    setBanner(null);
+    try {
+      await apiClient.patch(`/tenants/financial-years/${editFy.id}`, {
+        name: editName.trim(),
+        startDate: editStartDate,
+        endDate: editEndDate,
+        isLocked: editIsLocked,
+        isCurrent: editIsCurrent,
+      });
+      await refreshTenantMetadata();
+      setEditFy(null);
+      setBanner({
+        type: "success",
+        text: gu ? `નાણાકીય વર્ષ ${editName} સફળતાપૂર્વક અપડેટ થયું!` : `Financial year ${editName} updated successfully!`,
+      });
+    } catch (err: any) {
+      setBanner({
+        type: "error",
+        text: err?.message || (gu ? "અપડેટ કરવામાં નિષ્ફળતા મળી." : "Failed to update financial year."),
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleLock = async (fy: any) => {
+    setActionId(fy.id);
+    setBanner(null);
+    try {
+      await apiClient.patch(`/tenants/financial-years/${fy.id}`, {
+        isLocked: !fy.isLocked,
+      });
+      await refreshTenantMetadata();
+      setBanner({
+        type: "success",
+        text: fy.isLocked
+          ? (gu ? `${fy.name} અનલોક કરવામાં આવ્યું છે.` : `${fy.name} unlocked. Entries are now permitted.`)
+          : (gu ? `${fy.name} લૉક કરવામાં આવ્યું છે. બેક-ડેટેડ એન્ટ્રી રોકાશે.` : `${fy.name} locked against back-dated entries.`),
+      });
+    } catch (err: any) {
+      setBanner({ type: "error", text: err?.message || "Failed to update lock status." });
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const handleCloseYear = async (fyId: string) => {
+    if (!confirm(gu ? "શું તમે આ નાણાકીય વર્ષ બંધ કરવા માંગો છો? નવું નાણાકીય વર્ષ આપોઆપ ચાલુ થઈ જશે." : "Close this financial year? The next year will be marked as current.")) return;
+    setActionId(fyId);
+    setBanner(null);
+    try {
+      const res: any = await apiClient.post(`/tenants/financial-years/${fyId}/close`, {});
+      await refreshTenantMetadata();
+      setBanner({
+        type: "success",
+        text: res?.message || (gu ? "નાણાકીય વર્ષ સફળતાપૂર્વક બંધ કરવામાં આવ્યું!" : "Financial year closed successfully!"),
+      });
+    } catch (err: any) {
+      setBanner({ type: "error", text: err?.message || "Failed to close financial year." });
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const handleDelete = async (fy: any) => {
+    if (!confirm(gu ? `શું તમે "${fy.name}" કાઢી નાખવા માંગો છો?` : `Are you sure you want to delete "${fy.name}"?`)) return;
+    setActionId(fy.id);
+    setBanner(null);
+    try {
+      await apiClient.delete(`/tenants/financial-years/${fy.id}`);
+      await refreshTenantMetadata();
+      setBanner({
+        type: "success",
+        text: gu ? `${fy.name} કાઢી નાખવામાં આવ્યું.` : `${fy.name} deleted successfully.`,
+      });
+    } catch (err: any) {
+      setBanner({ type: "error", text: err?.message || "Cannot delete financial year." });
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const handleSwitch = async (fyId: string) => {
+    setActionId(fyId);
+    setBanner(null);
+    try {
+      await switchFinancialYear(fyId);
+      setBanner({
+        type: "success",
+        text: gu ? "સક્રિય નાણાકીય વર્ષ બદલાઈ ગયું છે!" : "Active financial year switched successfully!",
+      });
+    } catch (err: any) {
+      setBanner({ type: "error", text: err?.message || "Failed to switch financial year." });
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const currentYearObj = financialYears.find((y) => y.id === currentFY?.id) || currentFY;
+  const lockedCount = financialYears.filter((y) => y.isLocked).length;
+
+  return (
+    <div className="space-y-6">
+      {/* ── TOP HEADER ── */}
+      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              {gu ? "નાણાકીય વર્ષ મેનેજમેન્ટ" : "Financial Year Management"}
+            </h1>
+            <span className="text-xs bg-blue-50 text-[#1677E8] font-bold px-2 py-0.5 rounded-full border border-blue-200/60">
+              {financialYears.length} {gu ? "વર્ષો" : "Years"}
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mt-1">
+            {gu
+              ? `${currentCompany?.tradeName || currentCompany?.legalName || "કંપની"} ના નાણાકીય વર્ષો, નવી શરૂઆત, તારીખ સુધારો અને લૉક સ્થિતિ મેનેજ કરો.`
+              : `Manage accounting periods, add new financial years, edit dates, and lock closed years for ${currentCompany?.tradeName || currentCompany?.legalName || "your business"}.`}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={openAddModal}
+            className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#1677E8] hover:bg-[#1268D3] text-white rounded-xl text-xs font-semibold shadow-xs transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>{gu ? "+ નવું નાણાકીય વર્ષ" : "+ Add Financial Year"}</span>
+          </button>
+        </div>
+      </div>
+
+      {banner && (
+        <div
+          className={`p-4 rounded-xl border text-xs font-medium flex items-center justify-between shadow-xs ${
+            banner.type === "success"
+              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+              : "bg-rose-50 text-rose-800 border-rose-200"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {banner.type === "success" ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            ) : (
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            )}
+            <span>{banner.text}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setBanner(null)}
+            className="text-slate-400 hover:text-slate-600 p-1 text-sm"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* ── CURRENT ACTIVE FY HIGHLIGHT CARD ── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-gradient-to-br from-blue-50/70 via-white to-blue-50/30 border border-blue-200/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1677E8]">
+                {gu ? "સક્રિય નાણાકીય વર્ષ (Active Context)" : "Current Active FY"}
+              </span>
+              <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-200">
+                {gu ? "ચાલુ" : "ACTIVE"}
+              </span>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 mt-2">{currentYearObj?.name || "FY 2026-27"}</h2>
+            <p className="text-xs text-slate-600 mt-1 font-medium">
+              {formatReadableDate(currentYearObj?.startDate)} — {formatReadableDate(currentYearObj?.endDate)}
+            </p>
+          </div>
+          <div className="mt-4 pt-3 border-t border-blue-100/80 flex items-center justify-between text-xs text-slate-500">
+            <span>{gu ? "નવી એન્ટ્રીઓ આ વર્ષમાં થશે" : "All new vouchers post to this FY"}</span>
+            {currentYearObj?.id && !currentYearObj.isLocked && (
+              <button
+                type="button"
+                onClick={() => handleCloseYear(currentYearObj.id)}
+                disabled={actionId === currentYearObj.id}
+                className="text-[11px] font-bold text-slate-700 hover:text-rose-700 underline"
+              >
+                {gu ? "વર્ષ પૂરું કરો" : "Close Year"}
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              {gu ? "કુલ રેકોર્ડ થયેલ વર્ષો" : "Total Configured Years"}
+            </span>
+            <p className="text-2xl font-bold text-slate-900 mt-2 tabular-nums">{financialYears.length}</p>
+            <p className="text-xs text-slate-500 mt-1">
+              {gu ? "તમામ ઐતિહાસિક અને આગામી એકાઉન્ટિંગ પીરિયડ્સ" : "All historical & upcoming accounting periods"}
+            </p>
+          </div>
+          <div className="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500">
+            <span>{gu ? "ટોપ બારમાંથી ગમે ત્યારે સ્વિચ કરી શકાય છે" : "Switch anytime from header FY dropdown"}</span>
+          </div>
+        </div>
+
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              {gu ? "લૉક થયેલ વર્ષો (Locked)" : "Locked / Audited Years"}
+            </span>
+            <p className="text-2xl font-bold text-slate-900 mt-2 tabular-nums">{lockedCount}</p>
+            <p className="text-xs text-slate-500 mt-1">
+              {gu ? "બેકડેટેડ ફેરફારો સામે સુરક્ષિત રાખેલા વર્ષો" : "Protected from back-dated modifications & fraud"}
+            </p>
+          </div>
+          <div className="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500">
+            <span>{gu ? "ઑડિટ પૂર્ણ થયા પછી વર્ષ લૉક કરવું હિતાવહ છે" : "Recommended after tax filing & audit"}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── FINANCIAL YEARS TABLE ── */}
+      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+        <div className="px-5 py-4 border-b border-slate-200/80 flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">
+              {gu ? "નાણાકીય વર્ષોની યાદી" : "Configured Financial Years"}
+            </h3>
+            <p className="text-xs text-slate-500">
+              {gu ? "કોઈપણ વર્ષ પસંદ કરી તેનું એકાઉન્ટિંગ અને રિપોર્ટ્સ જોઈ શકાય છે." : "Select any year to review historical accounts or issue new entries."}
+            </p>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[11px]">
+                <th className="py-3 px-4">#</th>
+                <th className="py-3 px-4">{gu ? "વર્ષનું નામ (FY Name)" : "Financial Year"}</th>
+                <th className="py-3 px-4">{gu ? "શરૂઆત તારીખ" : "Start Date"}</th>
+                <th className="py-3 px-4">{gu ? "સમાપ્તિ તારીખ" : "End Date"}</th>
+                <th className="py-3 px-4">{gu ? "સ્થિતિ (Status)" : "Status"}</th>
+                <th className="py-3 px-4">{gu ? "લૉક સુરક્ષા" : "Entry Lock"}</th>
+                <th className="py-3 px-4 text-right">{gu ? "ક્રિયાઓ (Actions)" : "Actions"}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 font-normal">
+              {financialYears.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-10 text-slate-400 text-xs">
+                    {gu ? "કોઈ નાણાકીય વર્ષ મળ્યા નથી." : "No financial years found for this company."}
+                  </td>
+                </tr>
+              ) : (
+                financialYears.map((fy: any, idx: number) => {
+                  const isCurrentContext = fy.id === currentFY?.id;
+                  const isBusy = actionId === fy.id;
+
+                  return (
+                    <tr key={fy.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="py-3 px-4 text-slate-400 font-medium">{idx + 1}</td>
+                      <td className="py-3 px-4">
+                        <span className="font-bold text-slate-900 text-[13px]">{fy.name}</span>
+                        {fy.isCurrent && (
+                          <span className="ml-2 text-[10px] font-bold bg-blue-50 text-[#1677E8] border border-blue-200 px-1.5 py-0.2 rounded">
+                            {gu ? "ડિફોલ્ટ" : "Default Current"}
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-slate-700 font-medium tabular-nums">
+                        {formatReadableDate(fy.startDate)}
+                      </td>
+                      <td className="py-3 px-4 text-slate-700 font-medium tabular-nums">
+                        {formatReadableDate(fy.endDate)}
+                      </td>
+                      <td className="py-3 px-4">
+                        {isCurrentContext ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                            {gu ? "સક્રિય વર્ષ" : "Active Context"}
+                          </span>
+                        ) : (
+                          <span className="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                            {gu ? "અન્ય વર્ષ" : "Inactive"}
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4">
+                        {fy.isLocked ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                            <Lock className="w-3 h-3 text-amber-600" />
+                            <span>{gu ? "લૉક (બંધ)" : "Locked"}</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-md">
+                            <Unlock className="w-3 h-3 text-slate-400" />
+                            <span>{gu ? "ઓપન (ચાલુ)" : "Unlocked"}</span>
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {!isCurrentContext && (
+                            <button
+                              type="button"
+                              onClick={() => handleSwitch(fy.id)}
+                              disabled={isBusy}
+                              className="px-2.5 py-1 text-[11px] font-semibold bg-white border border-slate-300 hover:border-[#1677E8] hover:text-[#1677E8] text-slate-700 rounded-lg shadow-2xs transition-all cursor-pointer"
+                              title={gu ? "આ વર્ષમાં સ્વિચ કરો" : "Switch to this Financial Year"}
+                            >
+                              {isBusy ? "..." : (gu ? "સ્વિચ કરો" : "Switch")}
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(fy)}
+                            className="p-1.5 text-slate-500 hover:text-[#1677E8] hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                            title={gu ? "સુધારો (Edit)" : "Edit Financial Year"}
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleToggleLock(fy)}
+                            disabled={isBusy}
+                            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                              fy.isLocked
+                                ? "text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                                : "text-slate-400 hover:text-amber-600 hover:bg-slate-100"
+                            }`}
+                            title={fy.isLocked ? (gu ? "અનલૉક કરો" : "Unlock Year") : (gu ? "લૉક કરો" : "Lock Year")}
+                          >
+                            {fy.isLocked ? <Unlock className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
+                          </button>
+
+                          {!isCurrentContext && (
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(fy)}
+                              disabled={isBusy}
+                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                              title={gu ? "કાઢી નાખો (Delete)" : "Delete Financial Year"}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ── MODAL: ADD FINANCIAL YEAR ── */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-100">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-blue-50 border border-blue-100 text-[#1677E8]">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">
+                    {gu ? "નવું નાણાકીય વર્ષ ઉમેરો" : "Add New Financial Year"}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {gu ? "નવા નાણાકીય વર્ષની શરૂઆત અને સમાપ્તિ તારીખ નક્કી કરો." : "Specify the accounting period name and statutory dates."}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 text-sm rounded-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Quick Presets */}
+            <div>
+              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">
+                {gu ? "ઝડપી પ્રીસેટ્સ (Quick Presets)" : "Quick Presets"}
+              </span>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => applyPreset(2027)}
+                  className="px-2.5 py-1 text-xs font-semibold bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 rounded-lg text-slate-700 transition-colors"
+                >
+                  FY 2027-28
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyPreset(2028)}
+                  className="px-2.5 py-1 text-xs font-semibold bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 rounded-lg text-slate-700 transition-colors"
+                >
+                  FY 2028-29
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyPreset(2023)}
+                  className="px-2.5 py-1 text-xs font-semibold bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 rounded-lg text-slate-700 transition-colors"
+                >
+                  FY 2023-24 (Back-period)
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleCreate} className="space-y-4 pt-1">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  {gu ? "નાણાકીય વર્ષનું નામ (Financial Year Name) *" : "Financial Year Name *"}
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. FY 2027-28"
+                  value={addName}
+                  onChange={(e) => setAddName(e.target.value)}
+                  className="w-full h-9 px-3 border border-slate-300 rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] font-semibold"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    {gu ? "શરૂઆત તારીખ (Start Date) *" : "Start Date *"}
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={addStartDate}
+                    onChange={(e) => setAddStartDate(e.target.value)}
+                    className="w-full h-9 px-3 border border-slate-300 rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] font-mono"
+                  />
+                  <span className="text-[10px] text-slate-400 mt-0.5 block">{gu ? "સામાન્ય રીતે 01 એપ્રિલ" : "Standard: 01 April"}</span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    {gu ? "સમાપ્તિ તારીખ (End Date) *" : "End Date *"}
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={addEndDate}
+                    onChange={(e) => setAddEndDate(e.target.value)}
+                    className="w-full h-9 px-3 border border-slate-300 rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] font-mono"
+                  />
+                  <span className="text-[10px] text-slate-400 mt-0.5 block">{gu ? "સામાન્ય રીતે 31 માર્ચ" : "Standard: 31 March"}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="addIsCurrent"
+                  checked={addIsCurrent}
+                  onChange={(e) => setAddIsCurrent(e.target.checked)}
+                  className="rounded border-slate-300 text-[#1677E8] focus:ring-[#1677E8]"
+                />
+                <label htmlFor="addIsCurrent" className="text-xs text-slate-700 font-medium cursor-pointer">
+                  {gu ? "આ વર્ષને ડિફોલ્ટ સક્રિય નાણાકીય વર્ષ તરીકે સેટ કરો" : "Set as default current financial year"}
+                </label>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="h-9 px-4 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+                >
+                  {gu ? "રદ કરો" : "Cancel"}
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="h-9 px-5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-xs font-semibold rounded-xl shadow-xs transition-all disabled:opacity-50"
+                >
+                  {loading ? (gu ? "સેવ થાય છે..." : "Saving...") : (gu ? "વર્ષ ઉમેરો" : "Save Financial Year")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: EDIT FINANCIAL YEAR ── */}
+      {editFy && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-100">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-amber-50 border border-amber-100 text-amber-700">
+                  <Edit2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">
+                    {gu ? `નાણાકીય વર્ષ સુધારો: ${editFy.name}` : `Edit Financial Year: ${editFy.name}`}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {gu ? "નામ, તારીખ અથવા લૉક સુરક્ષામાં ફેરફાર કરો." : "Update accounting period name, dates, or lock status."}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditFy(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 text-sm rounded-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdate} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  {gu ? "નાણાકીય વર્ષનું નામ *" : "Financial Year Name *"}
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full h-9 px-3 border border-slate-300 rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] font-semibold"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    {gu ? "શરૂઆત તારીખ *" : "Start Date *"}
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={editStartDate}
+                    onChange={(e) => setEditStartDate(e.target.value)}
+                    className="w-full h-9 px-3 border border-slate-300 rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    {gu ? "સમાપ્તિ તારીખ *" : "End Date *"}
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={editEndDate}
+                    onChange={(e) => setEditEndDate(e.target.value)}
+                    className="w-full h-9 px-3 border border-slate-300 rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#1677E8]/20 focus:border-[#1677E8] font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
+                  <div>
+                    <span className="text-xs font-semibold text-slate-800 block">
+                      {gu ? "વર્ષ લૉક કરો (Lock / Freeze Year)" : "Lock / Freeze Financial Year"}
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      {gu ? "લૉક કરવાથી આ વર્ષમાં જૂની વાઉચર કે બિલ એન્ટ્રી સુધારી શકાશે નહીં." : "Prevent back-dated invoices, vouchers, and edits in this period."}
+                    </span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={editIsLocked}
+                    onChange={(e) => setEditIsLocked(e.target.checked)}
+                    className="rounded border-slate-300 text-[#1677E8] focus:ring-[#1677E8] w-4 h-4 cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 px-1">
+                  <input
+                    type="checkbox"
+                    id="editIsCurrent"
+                    checked={editIsCurrent}
+                    onChange={(e) => setEditIsCurrent(e.target.checked)}
+                    className="rounded border-slate-300 text-[#1677E8] focus:ring-[#1677E8]"
+                  />
+                  <label htmlFor="editIsCurrent" className="text-xs text-slate-700 font-medium cursor-pointer">
+                    {gu ? "આ વર્ષને ડિફોલ્ટ સક્રિય નાણાકીય વર્ષ બનાવો" : "Set as default current financial year"}
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditFy(null)}
+                  className="h-9 px-4 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+                >
+                  {gu ? "રદ કરો" : "Cancel"}
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="h-9 px-5 bg-[#1677E8] hover:bg-[#1268D3] text-white text-xs font-semibold rounded-xl shadow-xs transition-all disabled:opacity-50"
+                >
+                  {loading ? (gu ? "અપડેટ થાય છે..." : "Updating...") : (gu ? "સુધારો સેવ કરો" : "Update Financial Year")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 // =========================================================================
